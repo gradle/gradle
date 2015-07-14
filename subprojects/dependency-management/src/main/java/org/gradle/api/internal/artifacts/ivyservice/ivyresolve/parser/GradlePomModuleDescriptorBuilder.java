@@ -275,7 +275,6 @@ public class GradlePomModuleDescriptorBuilder {
         ivyModuleDescriptor.addDependency(dd);
     }
 
-    // TODO:DAZ Would be better if we held onto the VersionSelector and only rendered it when required
     private String convertVersionFromMavenSyntax(String version) {
         VersionSelector versionSelector = mavenVersionSelectorScheme.parseSelector(version);
         return defaultVersionSelectorScheme.renderSelector(versionSelector);

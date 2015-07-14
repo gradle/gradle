@@ -172,11 +172,6 @@ class DefaultLocalComponentMetaDataTest extends Specification {
 
         then:
         metaData.dependencies == [dependency]
-
-        // TODO:DAZ Test conversion of dependency meta data for publishing
-//        and:
-//        def ivyDependencies = metaData.toPublishMetaData().getModuleDescriptor().dependencies
-//        ivyDependencies.length == 1
     }
 
     def artifactName() {

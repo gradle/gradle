@@ -659,7 +659,6 @@ public class DependencyGraphBuilder {
             return Cast.uncheckedCast(outgoingEdges);
         }
 
-        // TODO:DAZ Need to get rid of this
         @Override
         public ConfigurationMetaData getMetaData() {
             return metaData;

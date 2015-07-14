@@ -26,7 +26,6 @@ import java.util.List;
 
 class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
 
-    // TODO:DAZ Validate these
     private static final String DEFAULT_JAVA_IMPORTS =
               "import play.api.templates._;"
             + "import play.api.templates.PlayMagic._;"

@@ -94,9 +94,6 @@ public class ResolveIvyFactory {
                 ((ExternalResourceResolver) baseRepository).setResolverProvider(parentModuleResolver);
             }
 
-            // TODO:DAZ In theory we could update this so that _all_ repositories are wrapped in a cache:
-            //     - would need to add local/remote pattern to artifact download
-            //     - This might help later when we integrate in-memory caching with file-backed caching.
             ModuleComponentRepository moduleComponentRepository = baseRepository;
             if (baseRepository.isLocal()) {
                 moduleComponentRepository = new LocalModuleComponentRepository(baseRepository, metadataProcessor);

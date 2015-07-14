@@ -38,8 +38,6 @@ public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinary
 
     void setAssetsJarFile(File file);
 
-    // TODO:DAZ Should be taken from the LanguageSourceSet instances?
-    // TODO:DAZ Should be a Classpath instance
     FileCollection getClasspath();
 
     void setClasspath(FileCollection applicationClasspath);

@@ -170,7 +170,6 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     }
 """
         then:
-        // TODO:DAZ Would like to use 'assemble' here, but it currently ignores non-buildable binaries
         fails "myLibJar"
 
         and:

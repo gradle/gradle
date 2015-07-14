@@ -23,7 +23,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
-// TODO:DAZ Some of these tests should apply to all single-language integration tests
+
 @LeaksFileHandles
 class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 

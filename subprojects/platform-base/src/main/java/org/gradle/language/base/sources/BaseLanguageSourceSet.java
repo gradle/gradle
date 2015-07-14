@@ -40,7 +40,7 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
     private boolean generated;
     private Task generatorTask;
 
-    // TODO:DAZ This is only here as a convenience for subclasses to create additional SourceDirectorySets
+    // This is here as a convenience for subclasses to create additional SourceDirectorySets
     protected FileResolver fileResolver;
 
     public String getName() {

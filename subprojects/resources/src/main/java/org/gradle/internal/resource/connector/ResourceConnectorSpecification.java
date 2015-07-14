@@ -17,6 +17,5 @@
 package org.gradle.internal.resource.connector;
 
 public interface ResourceConnectorSpecification {
-    // TODO:DAZ <T extends Credentials>
     <T> T getCredentials(Class<T> type);
 }

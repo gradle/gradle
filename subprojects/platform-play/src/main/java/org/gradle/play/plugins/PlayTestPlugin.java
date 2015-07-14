@@ -55,7 +55,6 @@ public class PlayTestPlugin extends RuleSource {
             final FileCollection testCompileClasspath = getTestCompileClasspath(binary, playToolProvider, configurations);
 
             final String testCompileTaskName = String.format("compile%sTests", StringUtils.capitalize(binary.getName()));
-            // TODO:DAZ Model a test suite
             final File testSourceDir = fileResolver.resolve("test");
             final FileCollection testSources = new SimpleFileCollection(testSourceDir).getAsFileTree().matching(new PatternSet().include("**/*.scala", "**/*.java"));
             final File testClassesDir = new File(buildDir, String.format("%s/testClasses", binary.getName()));

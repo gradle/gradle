@@ -194,7 +194,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         }
                     }
 
-                    // TODO:DAZ These should be configured on the component
                     PublicAssets assets = playBinary.getAssets();
                     assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
 
@@ -245,7 +244,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             binaries.all(new Action<PlayApplicationBinarySpec>() {
                 @Override
                 public void execute(PlayApplicationBinarySpec playApplicationBinarySpec) {
-                    // TODO:DAZ We'll need a different container of source sets for generated sources (can't add new ones while we iterate over the set)
                     for (LanguageSourceSet languageSourceSet : playApplicationBinarySpec.getInputs().withType(languageSourceSetType)) {
                         String name = String.format("%sScalaSources", languageSourceSet.getName());
                         ScalaLanguageSourceSet twirlScalaSources = BaseLanguageSourceSet.create(DefaultScalaLanguageSourceSet.class, name, playApplicationBinarySpec.getName(), fileResolver, instantiator);
@@ -361,7 +359,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             });
         }
 
-        // TODO:DAZ Need a nice way to create tasks that are associated with a binary but not part of _building_ it.
         @Mutate
         void createPlayRunTask(ModelMap<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
             for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {

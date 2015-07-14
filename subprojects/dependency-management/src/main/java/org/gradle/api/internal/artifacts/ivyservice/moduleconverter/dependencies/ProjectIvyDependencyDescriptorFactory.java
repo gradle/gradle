@@ -40,8 +40,6 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
         projectDependency.beforeResolved();
         ((ConfigurationInternal) projectDependency.getProjectConfiguration()).triggerWhenEmptyActionsIfNecessary();
         Module module = getProjectModule(dependency);
-
-        // TODO:DAZ What are the GAV values for the dependency here?
         ModuleVersionSelector requested = new DefaultModuleVersionSelector(module.getGroup(), module.getName(), module.getVersion());
         ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject().getPath());
 

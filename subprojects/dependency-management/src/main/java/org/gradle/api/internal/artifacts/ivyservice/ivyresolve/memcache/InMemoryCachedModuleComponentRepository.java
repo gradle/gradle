@@ -26,7 +26,6 @@ import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
-// TODO:DAZ Should share local and remote caches, and use make in-memory caching a decorator over filesystem caching
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
     final InMemoryCacheStats stats;
     private final ModuleComponentRepositoryAccess localAccess;

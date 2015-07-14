@@ -37,6 +37,5 @@ public interface DependencyGraphNode {
 
     Set<DependencyGraphEdge> getOutgoingEdges();
 
-    // TODO:DAZ Need to get rid of this
     ConfigurationMetaData getMetaData();
 }

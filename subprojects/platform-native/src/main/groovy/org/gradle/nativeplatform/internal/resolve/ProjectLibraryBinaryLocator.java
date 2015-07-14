@@ -51,7 +51,6 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
         }
         ModelMap<NativeBinarySpec> projectBinaries = library.getBinaries().withType(NativeBinarySpec.class);
         DomainObjectSet<NativeLibraryBinary> binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);
-        // TODO:DAZ Convert, don't cast
         for (NativeBinarySpec nativeBinarySpec : projectBinaries.values()) {
             binaries.add((NativeLibraryBinary) nativeBinarySpec);
         }

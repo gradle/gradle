@@ -92,7 +92,6 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         return this;
     }
 
-    // TODO:DAZ This is ugly and needs a major cleanup and unit tests
     public ArtifactResolutionResult execute() {
         if (componentType == null) {
             throw new IllegalStateException("Must specify component type and artifacts to query.");

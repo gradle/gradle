@@ -145,8 +145,6 @@ public class JavaCompile extends AbstractCompile {
     }
 
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
-        // TODO:DAZ Supply the target platform to the task, using the compatibility flags as overrides
-        // Or maybe split the legacy compile task from the new one
         Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
         return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }

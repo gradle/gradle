@@ -22,7 +22,6 @@ import org.gradle.internal.typeconversion.*;
 import org.gradle.platform.base.internal.DefaultPlatformRequirement;
 import org.gradle.platform.base.internal.PlatformRequirement;
 
-// TODO:DAZ Unit test
 public class PlayPlatformNotationParser {
 
     private static final NotationParserBuilder<PlatformRequirement> BUILDER = NotationParserBuilder

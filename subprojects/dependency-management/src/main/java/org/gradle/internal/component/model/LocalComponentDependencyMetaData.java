@@ -56,7 +56,6 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
 
     @Override
     public String toString() {
-        // TODO:DAZ Improve this copy from Ivy
         return "dependency: " + requested + " " + moduleConfiguration;
     }
 

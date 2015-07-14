@@ -114,7 +114,6 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     }
 
     private JarFile findDocumentationJar(Iterable<File> classpath) throws IOException {
-        // TODO:DAZ Use the location of the DocHandlerFactoryClass instead.
         File docJarFile = null;
         for (File file : classpath) {
             if (file.getName().startsWith("play-docs")) {

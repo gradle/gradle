@@ -48,7 +48,7 @@ public class ComponentRules extends RuleSource {
         component.getSources().afterEach(new AddDefaultSourceLocation(component.getName()));
     }
 
-    // TODO:DAZ Needs to be a separate action since can't have parameterized utility methods in a RuleSource
+    // Currently needs to be a separate action since can't have parameterized utility methods in a RuleSource
     private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpecInternal> {
         private final LanguageRegistration<U> languageRegistration;
         private final LanguageTransformContainer languageTransforms;

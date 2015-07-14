@@ -93,8 +93,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean insideBeforeResolve;
 
     private BuildableResolverResults cachedResolverResults = new DefaultResolverResults();
-
-    // TODO:DAZ These should really be protected by the lock as well
     private boolean dependenciesModified;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
