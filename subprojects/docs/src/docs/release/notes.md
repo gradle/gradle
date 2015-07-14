@@ -170,6 +170,7 @@ We would like to thank the following community members for making contributions 
 * [Amit Portnoy](https://github.com/amitport) - Minor fix in LifecycleBasePlugin
 * [Jordan Jennings](https://github.com/jordanjennings) - Documentation improvements
 * [Zoltán Kurucz](https://github.com/qzole) - Documentation improvements
+* [Yu Lu](https://github.com/yulucodebase) - Logging improvements
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
