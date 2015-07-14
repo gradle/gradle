@@ -32,7 +32,7 @@ class UserFunctionalTest extends Specification {
     }
 
     def "execute task 'helloWorld'"() {
-        given: "write build script file under test"
+        given:
         buildFile << """
             task helloWorld {
                 doLast {
@@ -41,12 +41,12 @@ class UserFunctionalTest extends Specification {
             }
         """
 
-        when: "create, configure and execute Gradle runner"
+        when:
         GradleRunner gradleRunner = GradleRunner.create()
         gradleRunner.withWorkingDir(testProjectDir.root).withArguments('helloWorld')
         BuildResult result = gradleRunner.succeeds()
 
-        then: "verify build result"
+        then:
         result.standardOutput.contains('Hello world!')
         result.standardError == ''
         result.executedTasks == [':helloWorld']
