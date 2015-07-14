@@ -35,8 +35,8 @@ import java.util.List;
  * <p>
  * The {@link #withArguments(String...)} method allows the build arguments to be specified,
  * just as they would be on the command line.
- * The {@link #succeeds()} method can be used to invoke the build when it is expected to succeed,
- * while the {@link #fails()} method can be used when the build is expected to fail.
+ * The {@link #build()} method can be used to invoke the build when it is expected to succeed,
+ * while the {@link #buildAndFail()} method can be used when the build is expected to fail.
  * <p>
  * GradleRunner instances are not thread safe and cannot be used concurrently.
  * However, multiple instances are able to be used concurrently.
@@ -136,7 +136,7 @@ public abstract class GradleRunner {
      * @throws UnexpectedBuildFailure if the build does not succeed
      * @return the build result
      */
-    public abstract BuildResult succeeds() throws UnexpectedBuildFailure;
+    public abstract BuildResult build() throws UnexpectedBuildFailure;
 
     /**
      * Executes a build, expecting it to complete with failure.
@@ -144,6 +144,6 @@ public abstract class GradleRunner {
      * @throws UnexpectedBuildSuccess if the build succeeds
      * @return the build result
      */
-    public abstract BuildResult fails() throws UnexpectedBuildSuccess;
+    public abstract BuildResult buildAndFail() throws UnexpectedBuildSuccess;
 
 }

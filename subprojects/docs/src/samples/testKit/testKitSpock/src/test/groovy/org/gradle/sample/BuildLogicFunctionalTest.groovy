@@ -45,7 +45,7 @@ class BuildLogicFunctionalTest extends Specification {
         def result = GradleRunner.create()
             .withWorkingDir(testProjectDir.root)
             .withArguments('helloWorld')
-            .succeeds()
+            .build()
 
         then:
         result.standardOutput.contains('Hello world!')

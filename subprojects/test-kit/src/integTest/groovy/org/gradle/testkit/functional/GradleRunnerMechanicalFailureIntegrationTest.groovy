@@ -32,7 +32,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        BuildResult result = gradleRunner.fails()
+        BuildResult result = gradleRunner.buildAndFail()
 
         then:
         noExceptionThrown()
@@ -54,7 +54,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        BuildResult result = gradleRunner.fails()
+        BuildResult result = gradleRunner.buildAndFail()
 
         then:
         noExceptionThrown()
@@ -71,7 +71,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
         gradleRunner.arguments << '--unknown'
-        gradleRunner.succeeds()
+        gradleRunner.build()
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
@@ -89,7 +89,7 @@ Unknown command-line option '--unknown'.""")
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
         gradleRunner.withWorkingDir(nonExistentWorkingDir)
-        gradleRunner.succeeds()
+        gradleRunner.build()
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
@@ -106,7 +106,7 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.succeeds()
+        gradleRunner.build()
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
@@ -132,7 +132,7 @@ For example, an unrecognized jvm option is used.""")
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.succeeds()
+        gradleRunner.build()
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)

@@ -35,7 +35,7 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld', 'byeWorld')
-        BuildResult result = gradleRunner.succeeds()
+        BuildResult result = gradleRunner.build()
 
         then:
         noExceptionThrown()

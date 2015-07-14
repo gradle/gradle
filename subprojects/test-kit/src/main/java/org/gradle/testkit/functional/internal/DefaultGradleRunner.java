@@ -85,7 +85,7 @@ public class DefaultGradleRunner extends GradleRunner {
         return withJvmArguments(new ArrayList<String>(Arrays.asList(jvmArguments)));
     }
 
-    public BuildResult succeeds() {
+    public BuildResult build() {
         return run(new Action<GradleExecutionResult>() {
             public void execute(GradleExecutionResult gradleExecutionResult) {
                 if (!gradleExecutionResult.isSuccessful()) {
@@ -95,7 +95,7 @@ public class DefaultGradleRunner extends GradleRunner {
         });
     }
 
-    public BuildResult fails() {
+    public BuildResult buildAndFail() {
         return run(new Action<GradleExecutionResult>() {
             public void execute(GradleExecutionResult gradleExecutionResult) {
                 if (gradleExecutionResult.isSuccessful()) {

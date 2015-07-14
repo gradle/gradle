@@ -26,7 +26,7 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        BuildResult result = gradleRunner.succeeds()
+        BuildResult result = gradleRunner.build()
 
         then:
         noExceptionThrown()
@@ -58,7 +58,7 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        BuildResult result = gradleRunner.succeeds()
+        BuildResult result = gradleRunner.build()
 
         then:
         noExceptionThrown()
@@ -86,7 +86,7 @@ public class MyApp {
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        BuildResult result = gradleRunner.succeeds()
+        BuildResult result = gradleRunner.build()
 
         then:
         noExceptionThrown()

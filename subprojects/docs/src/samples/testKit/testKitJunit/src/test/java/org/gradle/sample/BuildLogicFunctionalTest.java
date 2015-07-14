@@ -54,7 +54,7 @@ public class BuildLogicFunctionalTest {
         BuildResult result = GradleRunner.create()
             .withWorkingDir(testProjectDir.getRoot())
             .withArguments("helloWorld")
-            .succeeds();
+            .build();
 
         assertTrue(result.getStandardOutput().contains("Hello world!"));
         assertEquals(result.getStandardError(), "");

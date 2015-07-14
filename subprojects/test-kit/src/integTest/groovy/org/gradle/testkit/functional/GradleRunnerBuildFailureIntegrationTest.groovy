@@ -32,7 +32,7 @@ class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegr
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        BuildResult result = gradleRunner.fails()
+        BuildResult result = gradleRunner.buildAndFail()
 
         then:
         noExceptionThrown()
@@ -49,7 +49,7 @@ class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegr
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.fails()
+        gradleRunner.buildAndFail()
 
         then:
         Throwable t = thrown(UnexpectedBuildSuccess)
@@ -82,7 +82,7 @@ Error:
 
         when:
         GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
-        gradleRunner.succeeds()
+        gradleRunner.build()
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)

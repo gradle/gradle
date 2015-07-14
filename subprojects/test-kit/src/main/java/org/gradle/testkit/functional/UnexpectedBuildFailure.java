@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
  * Thrown when executing a build that was expected to succeed, but failed.
  *
  * @since 2.6
- * @see GradleRunner#succeeds()
+ * @see GradleRunner#build()
  */
 @Incubating
 public class UnexpectedBuildFailure extends RuntimeException {
