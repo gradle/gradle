@@ -23,7 +23,6 @@ import org.gradle.testkit.functional.BuildResult;
 import org.gradle.testkit.functional.GradleRunner;
 import org.gradle.testkit.functional.UnexpectedBuildFailure;
 import org.gradle.testkit.functional.UnexpectedBuildSuccess;
-import org.gradle.testkit.functional.internal.dist.GradleDistribution;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,15 +30,17 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DefaultGradleRunner extends GradleRunner {
+
     private final TmpDirectoryProvider tmpDirectoryProvider = new IsolatedDaemonHomeTmpDirectoryProvider();
-    private final GradleDistribution gradleDistribution;
+    private final File gradleHome;
+
     private File gradleUserHomeDir;
     private File workingDirectory;
     private List<String> arguments = new ArrayList<String>();
     private List<String> jvmArguments = new ArrayList<String>();
 
-    public DefaultGradleRunner(GradleDistribution gradleDistribution) {
-        this.gradleDistribution = gradleDistribution;
+    public DefaultGradleRunner(File gradleHome) {
+        this.gradleHome = gradleHome;
         this.gradleUserHomeDir = tmpDirectoryProvider.createDir();
     }
 
@@ -141,7 +142,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private BuildResult run(Action<GradleExecutionResult> action) {
-        GradleExecutor gradleExecutor = new ToolingApiGradleExecutor(gradleDistribution, workingDirectory);
+        GradleExecutor gradleExecutor = new ToolingApiGradleExecutor(gradleHome, workingDirectory);
         gradleExecutor.withGradleUserHomeDir(gradleUserHomeDir);
         gradleExecutor.withArguments(arguments);
         gradleExecutor.withJvmArguments(jvmArguments);

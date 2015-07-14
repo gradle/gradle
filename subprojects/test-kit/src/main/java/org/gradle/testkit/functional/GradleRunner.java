@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.testkit.functional.internal.DefaultGradleRunner;
-import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution;
 
 import java.io.File;
 import java.util.List;
@@ -103,8 +102,7 @@ public abstract class GradleRunner {
      */
     public static GradleRunner create() {
         GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator(GradleRunner.class);
-        File gradleHome = gradleDistributionLocator.getGradleHome();
-        return new DefaultGradleRunner(new InstalledGradleDistribution(gradleHome));
+        return new DefaultGradleRunner(gradleDistributionLocator.getGradleHome());
     }
 
 }

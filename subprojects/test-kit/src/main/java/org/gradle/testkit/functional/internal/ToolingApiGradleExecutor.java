@@ -18,8 +18,6 @@ package org.gradle.testkit.functional.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.testkit.functional.internal.dist.GradleDistribution;
-import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -36,14 +34,14 @@ import java.util.concurrent.TimeUnit;
 
 public class ToolingApiGradleExecutor implements GradleExecutor {
     private final Logger logger = Logging.getLogger(ToolingApiGradleExecutor.class);
-    private final GradleDistribution gradleDistribution;
+    private final File gradleHome;
     private final File workingDirectory;
     private File gradleUserHomeDir;
     private List<String> arguments;
     private List<String> jvmArguments;
 
-    public ToolingApiGradleExecutor(GradleDistribution gradleDistribution, File workingDirectory) {
-        this.gradleDistribution = gradleDistribution;
+    public ToolingApiGradleExecutor(File gradleHome, File workingDirectory) {
+        this.gradleHome = gradleHome;
         this.workingDirectory = workingDirectory;
     }
 
@@ -84,10 +82,10 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             launcher.setJvmArguments(jvmArgumentsArray);
 
             launcher.run();
-        } catch(RuntimeException t) {
+        } catch (RuntimeException t) {
             return new GradleExecutionResult(standardOutput, standardError, executedTasks, skippedTasks, t);
         } finally {
-            if(connection != null) {
+            if (connection != null) {
                 connection.close();
             }
         }
@@ -96,7 +94,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     }
 
     private GradleConnector buildConnector() {
-        DefaultGradleConnector gradleConnector = (DefaultGradleConnector)GradleConnector.newConnector();
+        DefaultGradleConnector gradleConnector = (DefaultGradleConnector) GradleConnector.newConnector();
         gradleConnector.useGradleUserHomeDir(gradleUserHomeDir);
         gradleConnector.forProjectDirectory(workingDirectory);
         gradleConnector.searchUpwards(false);
@@ -106,13 +104,11 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     }
 
     private void useGradleDistribution(GradleConnector gradleConnector) {
-        if(logger.isDebugEnabled()) {
-            logger.debug("Using %s", gradleDistribution.getDisplayName());
+        if (logger.isDebugEnabled()) {
+            logger.debug("Using %s", gradleHome);
         }
 
-        if(gradleDistribution instanceof InstalledGradleDistribution) {
-            gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getGradleHomeDir());
-        }
+        gradleConnector.useInstallation(gradleHome);
     }
 
     private class TaskExecutionProgressListener implements ProgressListener {
@@ -125,14 +121,14 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         }
 
         public void statusChanged(ProgressEvent event) {
-            if(event instanceof TaskFinishEvent) {
-                TaskFinishEvent taskFinishEvent = (TaskFinishEvent)event;
+            if (event instanceof TaskFinishEvent) {
+                TaskFinishEvent taskFinishEvent = (TaskFinishEvent) event;
                 String taskPath = taskFinishEvent.getDescriptor().getTaskPath();
                 executedTasks.add(taskPath);
 
                 TaskOperationResult result = taskFinishEvent.getResult();
 
-                if(isFailed(result) || isSkipped(result) || isUpToDate(result)) {
+                if (isFailed(result) || isSkipped(result) || isUpToDate(result)) {
                     skippedTasks.add(taskPath);
                 }
             }
@@ -147,7 +143,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         }
 
         private boolean isUpToDate(TaskOperationResult result) {
-            return result instanceof TaskSuccessResult && ((TaskSuccessResult)result).isUpToDate();
+            return result instanceof TaskSuccessResult && ((TaskSuccessResult) result).isUpToDate();
         }
     }
 }
