@@ -90,7 +90,7 @@
             The following code snippet of a functional test implementation demonstrates the use of the GradleRunner API:
         </para>
         <sample id="testKitFunctionalTestJunit" dir="testKit/testKitJunit/src/test/java/org/gradle/sample" title="Using the test-kit in a functional test with JUnit">
-            <sourcefile file="UserFunctionalTest.java" snippet="functional-test-junit"/>
+            <sourcefile file="BuildLogicFunctionalTest.java" snippet="functional-test-junit"/>
         </sample>
         <para>
             While JUnit has been the standard testing framework in the Java world for the past decade, Groovy-based alternatives like <ulink url="https://code.google.com/p/spock/">Spock</ulink>
@@ -103,7 +103,7 @@
         </itemizedlist>
         <para>The following code snippet takes the previous test example and turns it into a Spock test:</para>
         <sample id="testKitFunctionalTestSpock" dir="testKit/testKitSpock/src/test/groovy/org/gradle/sample" title="Using the test-kit in a functional test with Spock">
-            <sourcefile file="UserFunctionalTest.groovy" snippet="functional-test-spock"/>
+            <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock"/>
         </sample>
     </section>
 </chapter>

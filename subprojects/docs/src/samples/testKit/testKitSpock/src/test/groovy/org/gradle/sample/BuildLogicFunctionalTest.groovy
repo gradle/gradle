@@ -23,7 +23,7 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 // START SNIPPET functional-test-spock
-class UserFunctionalTest extends Specification {
+class BuildLogicFunctionalTest extends Specification {
     @Rule final TemporaryFolder testProjectDir = new org.junit.rules.TemporaryFolder()
     File buildFile
 

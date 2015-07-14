@@ -33,7 +33,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 // START SNIPPET functional-test-junit
-public class UserFunctionalTest {
+public class BuildLogicFunctionalTest {
     @Rule public final TemporaryFolder testProjectDir = new org.junit.rules.TemporaryFolder();
     private File buildFile;
 
