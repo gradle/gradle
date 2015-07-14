@@ -96,13 +96,14 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         DefaultResolverResults defaultResolverResults = (DefaultResolverResults) results;
         ResolvedGraphResults graphResults = defaultResolverResults.getGraphResults();
-        ResolvedArtifactResults artifactResults = defaultResolverResults.getArtifactsBuilder().resolve();
+        ResolvedArtifactResults artifactResults = defaultResolverResults.getResolvedArtifacts();
         TransientConfigurationResultsBuilder transientConfigurationResultsBuilder = defaultResolverResults.getTransientConfigurationResultsBuilder();
 
-        Factory<TransientConfigurationResults> transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults);
+        Factory<TransientConfigurationResults> transientConfigurationResultsFactory =
+                new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults);
 
         DefaultLenientConfiguration result = new DefaultLenientConfiguration(
-            configuration, cacheLockingManager, graphResults, artifactResults, transientConfigurationResultsFactory);
+            configuration, cacheLockingManager, graphResults.getUnresolvedDependencies(), artifactResults, transientConfigurationResultsFactory);
         results.withResolvedConfiguration(new DefaultResolvedConfiguration(result));
     }
 }

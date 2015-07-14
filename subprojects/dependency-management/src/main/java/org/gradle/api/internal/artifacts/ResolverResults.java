@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifacts;
 
 public interface ResolverResults {
     boolean hasError();
@@ -31,8 +30,6 @@ public interface ResolverResults {
     ResolutionResult getResolutionResult();
 
     ResolvedLocalComponentsResult getResolvedLocalComponents();
-
-    ResolvedArtifacts getResolvedArtifacts();
 
     void resolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult);
 

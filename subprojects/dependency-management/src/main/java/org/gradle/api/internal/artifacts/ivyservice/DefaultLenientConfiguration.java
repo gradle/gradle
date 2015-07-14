@@ -16,8 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -33,31 +32,31 @@ import java.util.*;
 public class DefaultLenientConfiguration implements LenientConfiguration {
     private CacheLockingManager cacheLockingManager;
     private final Configuration configuration;
-    private final ResolvedGraphResults graphResults;
-    private final ResolvedArtifactResults artifactResults;
+    private final Set<UnresolvedDependency> unresolvedDependencies;
+    private final ResolvedArtifacts artifactResults;
     private final Factory<TransientConfigurationResults> transientConfigurationResultsFactory;
 
-    public DefaultLenientConfiguration(Configuration configuration, CacheLockingManager cacheLockingManager, ResolvedGraphResults graphResults, ResolvedArtifactResults artifactResults,
-                                       Factory<TransientConfigurationResults> transientConfigurationResultsLoader) {
+    public DefaultLenientConfiguration(Configuration configuration, CacheLockingManager cacheLockingManager, Set<UnresolvedDependency> unresolvedDependencies,
+                                       ResolvedArtifacts artifactResults, Factory<TransientConfigurationResults> transientConfigurationResultsLoader) {
         this.configuration = configuration;
         this.cacheLockingManager = cacheLockingManager;
-        this.graphResults = graphResults;
+        this.unresolvedDependencies = unresolvedDependencies;
         this.artifactResults = artifactResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
     }
 
     public boolean hasError() {
-        return graphResults.hasError();
+        return unresolvedDependencies.size() > 0;
     }
 
     public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
-        return graphResults.getUnresolvedDependencies();
+        return unresolvedDependencies;
     }
 
     public void rethrowFailure() throws ResolveException {
         if (hasError()) {
             List<Throwable> failures = new ArrayList<Throwable>();
-            for (UnresolvedDependency unresolvedDependency : graphResults.getUnresolvedDependencies()) {
+            for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
                 failures.add(unresolvedDependency.getProblem());
             }
             throw new ResolveException(configuration.toString(), failures);

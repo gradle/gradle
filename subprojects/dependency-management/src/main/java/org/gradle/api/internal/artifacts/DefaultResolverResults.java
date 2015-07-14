@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifacts;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
@@ -37,9 +37,6 @@ public class DefaultResolverResults implements ResolverResults {
     @Override
     public boolean hasError() {
         if (fatalFailure != null) {
-            return true;
-        }
-        if (graphResults != null && graphResults.hasError()) {
             return true;
         }
         if (resolvedConfiguration != null && resolvedConfiguration.hasError()) {
@@ -72,14 +69,6 @@ public class DefaultResolverResults implements ResolverResults {
             throw fatalFailure;
         }
         return resolvedLocalComponentsResult;
-    }
-
-    @Override
-    public ResolvedArtifacts getResolvedArtifacts() {
-        if (fatalFailure != null) {
-            throw fatalFailure;
-        }
-        return artifactResults.resolve();
     }
 
     private void assertHasResult() {
@@ -126,8 +115,8 @@ public class DefaultResolverResults implements ResolverResults {
         return graphResults;
     }
 
-    public ResolvedArtifactsBuilder getArtifactsBuilder() {
-        return artifactResults;
+    public ResolvedArtifactResults getResolvedArtifacts() {
+        return artifactResults.resolve();
     }
 
     public TransientConfigurationResultsBuilder getTransientConfigurationResultsBuilder() {

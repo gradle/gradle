@@ -102,7 +102,8 @@ class DependencyGraphBuilderTest extends Specification {
         def graphResults = modelBuilder.complete()
         def artifactResults = artifactsBuilder.resolve()
 
-        new DefaultLenientConfiguration(configuration, Stub(CacheLockingManager), graphResults, artifactResults, new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults))
+        new DefaultLenientConfiguration(configuration, Stub(CacheLockingManager), graphResults.getUnresolvedDependencies(),
+                artifactResults, new TransientConfigurationResultsLoader(transientConfigurationResultsBuilder, graphResults, artifactResults))
     }
 
     def "does not resolve a given module selector more than once"() {
