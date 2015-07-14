@@ -113,11 +113,11 @@ public class GlobalScopeServices {
                 pluginModuleRegistry));
     }
 
-    DefaultModuleRegistry createModuleRegistry() {
+    ModuleRegistry createModuleRegistry() {
         return new DefaultModuleRegistry();
     }
 
-    DefaultGradleDistributionLocator createGradleDistributionLocator() {
+    GradleDistributionLocator createGradleDistributionLocator() {
         return new DefaultGradleDistributionLocator();
     }
 
