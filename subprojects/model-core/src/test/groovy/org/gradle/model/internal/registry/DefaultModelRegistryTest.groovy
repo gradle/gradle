@@ -15,14 +15,19 @@
  */
 
 package org.gradle.model.internal.registry
-
 import org.gradle.api.Action
+import org.gradle.api.Named
 import org.gradle.api.Transformer
+import org.gradle.api.internal.DefaultNamedDomainObjectSet
 import org.gradle.internal.BiAction
+import org.gradle.internal.Transformers
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.ConfigurationCycleException
 import org.gradle.model.InvalidModelRuleException
 import org.gradle.model.ModelRuleBindingException
+import org.gradle.model.collection.internal.BridgedCollections
 import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
@@ -232,14 +237,13 @@ class DefaultModelRegistryTest extends Specification {
         def action = Mock(Action)
 
         given:
-        def actionImpl = registry.action().path("foo").type(Bean).action(action)
         registry
                 .create("foo", new Bean(), action)
-                .configure(ModelActionRole.Defaults, actionImpl)
-                .configure(ModelActionRole.Initialize, actionImpl)
-                .configure(ModelActionRole.Mutate, actionImpl)
-                .configure(ModelActionRole.Finalize, actionImpl)
-                .configure(ModelActionRole.Validate, actionImpl)
+                .configure(ModelActionRole.Defaults, registry.action().path("foo").type(Bean).action(action))
+                .configure(ModelActionRole.Initialize, registry.action().path("foo").type(Bean).action(action))
+                .configure(ModelActionRole.Mutate, registry.action().path("foo").type(Bean).action(action))
+                .configure(ModelActionRole.Finalize, registry.action().path("foo").type(Bean).action(action))
+                .configure(ModelActionRole.Validate, registry.action().path("foo").type(Bean).action(action))
 
         when:
         def value = registry.realize(ModelPath.path("foo"), ModelType.of(Bean)).value
@@ -1102,10 +1106,70 @@ foo
          \\- foo""")
     }
 
+    def "rules are applied only once on elements accessible via multiple paths"() {
+        given:
+        def mmType = ModelTypes.modelMap(NamedBean)
+
+        registry
+            .modelMap("beans", NamedBean) { it.registerFactory(NamedBean) { new NamedBean(name: it) } }
+            .create(
+                BridgedCollections.creator(
+                    ModelReference.of("legacyBeans", DefaultNamedDomainObjectSet),
+                    Transformers.constant(new DefaultNamedDomainObjectSet<NamedBean>(NamedBean, DirectInstantiator.INSTANCE)),
+                    Named.Namer.INSTANCE,
+                    "legacyBeans creator",
+                    BridgedCollections.itemDescriptor("legacyBeans creator")
+                )
+                .withProjection(UnmanagedModelProjection.of(DefaultNamedDomainObjectSet))
+                .build()
+            )
+            .mutate {
+                it.descriptor("copy beans to legacyBeans").path("legacyBeans").type(DefaultNamedDomainObjectSet).action("beans", mmType, { legacyBeans, beans ->
+                    beans.each { bean ->
+                        legacyBeans.add bean
+                    }
+                })
+            }
+            .mutate {
+                it.path "beans" type mmType action { beans ->
+                    beans.create("b1")
+                    beans.create("b2")
+                }
+            }
+
+        def beansAppliedTo = []
+        registry.root.applyToAllLinksTransitive(
+            ModelActionRole.Defaults,
+            DirectNodeNoInputsModelAction.of(
+                ModelReference.of(NamedBean),
+                new SimpleModelRuleDescriptor("rule"),
+                new BiAction<MutableModelNode, NamedBean>() {
+                    @Override
+                    void execute(MutableModelNode node, NamedBean bean) {
+                        beansAppliedTo.add bean
+                    }
+                }
+            )
+        )
+
+        registry.bindAllReferences()
+
+        when:
+        registry.realize("legacyBeans")
+
+        then:
+        beansAppliedTo*.name == ["b1", "b2"]
+    }
+
     class Bean {
         String name
         String value
     }
 
+    class NamedBean implements Named {
+        String name
 
+        @Override
+        String toString() { name }
+    }
 }

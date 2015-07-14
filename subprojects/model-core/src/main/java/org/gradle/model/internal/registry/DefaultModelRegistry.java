@@ -18,10 +18,7 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.internal.BiActions;
@@ -319,6 +316,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     // TODO - reuse graph, discard state once not required
     private void transitionTo(GoalGraph goalGraph, ModelGoal targetGoal) {
         LinkedList<ModelGoal> queue = new LinkedList<ModelGoal>();
+        GraphTransitionContext context = new GraphTransitionContext();
         queue.add(targetGoal);
         while (!queue.isEmpty()) {
             ModelGoal goal = queue.getFirst();
@@ -338,7 +336,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
             if (goal.state == ModelGoal.State.VisitingDependencies) {
                 // All dependencies visited
-                goal.apply();
+                goal.apply(context);
                 goal.state = ModelGoal.State.Achieved;
                 queue.removeFirst();
                 continue;
@@ -462,7 +460,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         return node;
     }
 
-    private <T> void fireMutation(MutatorRuleBinder<T> boundMutator) {
+    private <T> void fireMutation(MutatorRuleBinder<T> boundMutator, final GraphTransitionContext context) {
         final List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction());
 
         final ModelNodeInternal node = boundMutator.getSubjectBinding().getNode();
@@ -477,7 +475,10 @@ public class DefaultModelRegistry implements ModelRegistry {
             RuleContext.run(descriptor, new Runnable() {
                 @Override
                 public void run() {
-                    mutator.execute(node, view.getInstance(), inputs);
+                    T instance = view.getInstance();
+                    if (!context.hasActionAlreadyBeenApplied(mutator, instance)) {
+                        mutator.execute(node, instance, inputs);
+                    }
                 }
             });
         } catch (Exception e) {
@@ -1054,6 +1055,22 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     /**
+     * Context object keeping track of the actions applied during the transitioning of the graph.
+     */
+    private static class GraphTransitionContext {
+        private final Map<ModelAction<?>, Set<Object>> appliedActions = new IdentityHashMap<ModelAction<?>, Set<Object>>();
+
+        public boolean hasActionAlreadyBeenApplied(ModelAction<?> action, Object subject) {
+            Set<Object> objects = appliedActions.get(action);
+            if (objects == null) {
+                objects = Sets.newIdentityHashSet();
+                appliedActions.put(action, objects);
+            }
+            return !objects.add(subject);
+        }
+    }
+
+    /**
      * Some abstract goal that must be achieved in the model graph.
      */
     private abstract static class ModelGoal {
@@ -1095,7 +1112,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         /**
          * Applies the action of this goal.
          */
-        void apply() {
+        void apply(GraphTransitionContext context) {
         }
 
         void attachToCycle(List<String> displayValue) {
@@ -1212,7 +1229,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public final void apply() {
+        public final void apply(GraphTransitionContext context) {
             if (!node.getState().equals(getTargetState().previous())) {
                 throw new IllegalStateException(String.format("Cannot transition model element '%s' to state %s as it is already at state %s.", node.getPath(), getTargetState(), node.getState()));
             }
@@ -1442,7 +1459,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        void apply() {
+        void apply(GraphTransitionContext context) {
             CreatorRuleBinder creatorBinder = node.getCreatorBinder();
             LOGGER.debug("Running model element '{}' creator rule action {}", getPath(), creatorBinder.getDescriptor());
             doCreate(node, creatorBinder);
@@ -1459,9 +1476,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        void apply() {
+        void apply(GraphTransitionContext context) {
             LOGGER.debug("Running model element '{}' rule action {}", getPath(), binder.getDescriptor());
-            fireMutation(binder);
+            fireMutation(binder, context);
             node.notifyFired(binder);
         }
     }
