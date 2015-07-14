@@ -17,8 +17,6 @@
 package org.gradle.testkit.functional
 
 import org.gradle.util.GFileUtils
-import org.gradle.util.TextUtil
-import spock.lang.Unroll
 
 class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
