@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
 class ClassInspectorTest extends Specification {
@@ -366,7 +368,18 @@ class ClassInspectorTest extends Specification {
         ClassInspector.inspect(Object).superTypes.empty
         ClassInspector.inspect(Serializable).superTypes.empty
         ClassInspector.inspect(List).superTypes.toList() == [Collection, Iterable]
+    }
+
+    @Requires(TestPrecondition.NOT_JDK_IBM)
+    def "can extract both super types and interfaces"() {
+        expect:
         ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, AbstractCollection, List, RandomAccess, Cloneable, Serializable, Collection, Iterable]
+    }
+
+    @Requires(TestPrecondition.JDK_IBM)
+    def "can extract both super types and interfaces on IBMs jdk"() {
+        expect:
+        ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, AbstractCollection, List, Cloneable, Serializable, RandomAccess, Collection, Iterable]
     }
 
     def "should find superclass methods before interface methods"() {
