@@ -18,6 +18,8 @@ package org.gradle.testkit.functional
 
 import org.gradle.util.GFileUtils
 
+import static org.gradle.testkit.functional.TaskResult.*
+
 class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     def "execute build for expected success"() {
@@ -33,8 +35,11 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
         result.standardOutput.contains(':helloWorld')
         result.standardOutput.contains('Hello world!')
         !result.standardError
-        result.executedTasks == [':helloWorld']
-        result.skippedTasks.empty
+        result.tasks.collect { it.path } == [':helloWorld']
+        result.taskPaths(SUCCESS) == [':helloWorld']
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UPTODATE).empty
+        result.taskPaths(FAILED).empty
     }
 
     def "execute plugin and custom task logic as part of the build script"() {
@@ -65,8 +70,11 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
         result.standardOutput.contains(':helloWorld')
         result.standardOutput.contains('Hello world!')
         !result.standardError
-        result.executedTasks == [':helloWorld']
-        result.skippedTasks.empty
+        result.tasks.collect { it.path } == [':helloWorld']
+        result.taskPaths(SUCCESS) == [':helloWorld']
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UPTODATE).empty
+        result.taskPaths(FAILED).empty
     }
 
     def "execute build with buildSrc project"() {
@@ -95,8 +103,11 @@ public class MyApp {
         result.standardOutput.contains(':helloWorld')
         result.standardOutput.contains('Hello world!')
         !result.standardError
-        result.executedTasks == [':helloWorld']
-        result.skippedTasks.empty
+        result.tasks.collect { it.path } == [':helloWorld']
+        result.taskPaths(SUCCESS) == [':helloWorld']
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UPTODATE).empty
+        result.taskPaths(FAILED).empty
     }
 
 }

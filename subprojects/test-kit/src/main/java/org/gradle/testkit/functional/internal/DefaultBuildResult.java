@@ -16,21 +16,24 @@
 
 package org.gradle.testkit.functional.internal;
 
+import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
 import org.gradle.testkit.functional.BuildResult;
+import org.gradle.testkit.functional.BuildTask;
+import org.gradle.testkit.functional.TaskResult;
+import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
 public class DefaultBuildResult implements BuildResult {
     private final String standardOutput;
     private final String standardError;
-    private final List<String> executedTasks;
-    private final List<String> skippedTasks;
+    private final List<BuildTask> tasks;
 
-    public DefaultBuildResult(String standardOutput, String standardError, List<String> executedTasks, List<String> skippedTasks) {
+    public DefaultBuildResult(String standardOutput, String standardError, List<BuildTask> tasks) {
         this.standardOutput = standardOutput;
         this.standardError = standardError;
-        this.executedTasks = executedTasks;
-        this.skippedTasks = skippedTasks;
+        this.tasks = tasks;
     }
 
     public String getStandardOutput() {
@@ -41,11 +44,23 @@ public class DefaultBuildResult implements BuildResult {
         return standardError;
     }
 
-    public List<String> getExecutedTasks() {
-        return executedTasks;
+    public List<BuildTask> getTasks() {
+        return tasks;
     }
 
-    public List<String> getSkippedTasks() {
-        return skippedTasks;
+    public List<BuildTask> tasks(final TaskResult result) {
+        return CollectionUtils.filter(tasks, new Spec<BuildTask>() {
+            public boolean isSatisfiedBy(BuildTask element) {
+                return element.getTaskResult() == result;
+            }
+        });
+    }
+
+    public List<String> taskPaths(TaskResult result) {
+        return CollectionUtils.collect(tasks(result), new Transformer<String, BuildTask>() {
+            public String transform(BuildTask buildTask) {
+                return buildTask.getPath();
+            }
+        });
     }
 }

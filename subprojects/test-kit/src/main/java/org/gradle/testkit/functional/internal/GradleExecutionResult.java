@@ -16,25 +16,25 @@
 
 package org.gradle.testkit.functional.internal;
 
+import org.gradle.testkit.functional.BuildTask;
+
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 public class GradleExecutionResult {
     private final ByteArrayOutputStream standardOutput;
     private final ByteArrayOutputStream standardError;
-    private final List<String> executedTasks;
-    private final List<String> skippedTasks;
+    private final List<BuildTask> tasks;
     private final Throwable throwable;
 
-    public GradleExecutionResult(ByteArrayOutputStream standardOutput, ByteArrayOutputStream standardError, List<String> executedTasks, List<String> skippedTasks) {
-        this(standardOutput, standardError, executedTasks, skippedTasks, null);
+    public GradleExecutionResult(ByteArrayOutputStream standardOutput, ByteArrayOutputStream standardError, List<BuildTask> tasks) {
+        this(standardOutput, standardError, tasks, null);
     }
 
-    public GradleExecutionResult(ByteArrayOutputStream standardOutput, ByteArrayOutputStream standardError, List<String> executedTasks, List<String> skippedTasks, Throwable throwable) {
+    public GradleExecutionResult(ByteArrayOutputStream standardOutput, ByteArrayOutputStream standardError, List<BuildTask> tasks, Throwable throwable) {
         this.standardOutput = standardOutput;
         this.standardError = standardError;
-        this.executedTasks = executedTasks;
-        this.skippedTasks = skippedTasks;
+        this.tasks = tasks;
         this.throwable = throwable;
     }
 
@@ -46,12 +46,8 @@ public class GradleExecutionResult {
         return standardError.toString();
     }
 
-    public List<String> getExecutedTasks() {
-        return executedTasks;
-    }
-
-    public List<String> getSkippedTasks() {
-        return skippedTasks;
+    public List<BuildTask> getTasks() {
+        return tasks;
     }
 
     public Throwable getThrowable() {

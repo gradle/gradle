@@ -32,6 +32,8 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.gradle.testkit.functional.TaskResult;
+
 // START SNIPPET functional-test-junit
 public class BuildLogicFunctionalTest {
     @Rule public final TemporaryFolder testProjectDir = new org.junit.rules.TemporaryFolder();
@@ -58,8 +60,10 @@ public class BuildLogicFunctionalTest {
 
         assertTrue(result.getStandardOutput().contains("Hello world!"));
         assertEquals(result.getStandardError(), "");
-        assertEquals(result.getExecutedTasks(), Collections.singletonList(":helloWorld"));
-        assertEquals(result.getSkippedTasks(), Collections.emptyList());
+        assertEquals(result.taskPaths(TaskResult.SUCCESS), Collections.singletonList(":helloWorld"));
+        assertEquals(result.taskPaths(TaskResult.SKIPPED), Collections.emptyList());
+        assertEquals(result.taskPaths(TaskResult.UPTODATE), Collections.emptyList());
+        assertEquals(result.taskPaths(TaskResult.FAILED), Collections.emptyList());
     }
 
     private void writeFile(File destination, String content) throws IOException {

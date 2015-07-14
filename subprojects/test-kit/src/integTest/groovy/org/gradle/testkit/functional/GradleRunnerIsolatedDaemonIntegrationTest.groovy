@@ -21,6 +21,8 @@ import org.gradle.util.GFileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
+import static org.gradle.testkit.functional.TaskResult.*
+
 class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerIntegrationTest {
     @Rule TemporaryFolder testUserHomeDir = new TemporaryFolder()
 
@@ -53,7 +55,11 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
 
         then:
         noExceptionThrown()
-        result.executedTasks == [':verifyProjectProperties']
+        result.tasks.collect { it.path } == [':verifyProjectProperties']
+        result.taskPaths(SUCCESS) == [':verifyProjectProperties']
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UPTODATE).empty
+        result.taskPaths(FAILED).empty
     }
 
     def "configuration in custom Gradle user home directory is used for test execution with daemon"() {
@@ -81,7 +87,11 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
 
         then:
         noExceptionThrown()
-        result.executedTasks == [':verifyProjectProperties']
+        result.tasks.collect { it.path } == [':verifyProjectProperties']
+        result.taskPaths(SUCCESS) == [':verifyProjectProperties']
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UPTODATE).empty
+        result.taskPaths(FAILED).empty
 
         cleanup:
         GFileUtils.forceDelete(gradlePropertiesFile)

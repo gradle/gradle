@@ -156,8 +156,7 @@ public class DefaultGradleRunner extends GradleRunner {
         return new DefaultBuildResult(
             execResult.getStandardOutput(),
             execResult.getStandardError(),
-            execResult.getExecutedTasks(),
-            execResult.getSkippedTasks()
+            execResult.getTasks()
         );
     }
 }

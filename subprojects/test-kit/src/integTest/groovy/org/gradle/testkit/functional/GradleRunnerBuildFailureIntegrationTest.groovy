@@ -18,6 +18,8 @@ package org.gradle.testkit.functional
 
 import org.gradle.util.TextUtil
 
+import static org.gradle.testkit.functional.TaskResult.*
+
 class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     def "execute build for expected failure"() {
@@ -39,8 +41,11 @@ class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegr
         result.standardOutput.contains(':helloWorld FAILED')
         result.standardError.contains("Execution failed for task ':helloWorld'")
         result.standardError.contains('Expected exception')
-        result.executedTasks == [':helloWorld']
-        result.skippedTasks == [':helloWorld']
+        result.tasks.collect { it.path } == [':helloWorld']
+        result.taskPaths(SUCCESS).empty
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UPTODATE).empty
+        result.taskPaths(FAILED) == [':helloWorld']
     }
 
     def "execute build for expected failure but succeeds"() {

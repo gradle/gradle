@@ -19,6 +19,8 @@ package org.gradle.testkit.functional
 import org.gradle.util.GFileUtils
 import org.gradle.util.TextUtil
 
+import static org.gradle.testkit.functional.TaskResult.*
+
 class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
     def "build execution for script with invalid Groovy syntax"() {
         given:
@@ -38,8 +40,11 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         noExceptionThrown()
         !result.standardOutput.contains(':helloWorld')
         result.standardError.contains('Could not compile build file')
-        result.executedTasks.empty
-        result.skippedTasks.empty
+        result.tasks.empty
+        result.taskPaths(SUCCESS).empty
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UPTODATE).empty
+        result.taskPaths(FAILED).empty
     }
 
     def "build execution for script with unknown Gradle API method class"() {
@@ -60,8 +65,11 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         noExceptionThrown()
         !result.standardOutput.contains(':helloWorld')
         result.standardError.contains('Could not find method doSomething()')
-        result.executedTasks.empty
-        result.skippedTasks.empty
+        result.tasks.empty
+        result.taskPaths(SUCCESS).empty
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UPTODATE).empty
+        result.taskPaths(FAILED).empty
     }
 
     def "build execution with badly formed argument"() {

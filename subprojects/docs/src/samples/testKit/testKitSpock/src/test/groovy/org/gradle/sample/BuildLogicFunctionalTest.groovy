@@ -16,8 +16,8 @@
 
 package org.gradle.sample
 
-import org.gradle.testkit.functional.BuildResult
 import org.gradle.testkit.functional.GradleRunner
+import org.gradle.testkit.functional.TaskResult
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -50,8 +50,10 @@ class BuildLogicFunctionalTest extends Specification {
         then:
         result.standardOutput.contains('Hello world!')
         result.standardError == ''
-        result.executedTasks == [':helloWorld']
-        result.skippedTasks.empty
+        result.taskPaths(TaskResult.SUCCESS) == [':helloWorld']
+        result.taskPaths(TaskResult.SKIPPED).empty
+        result.taskPaths(TaskResult.UPTODATE).empty
+        result.taskPaths(TaskResult.FAILED).empty
     }
 }
 // END SNIPPET functional-test-spock

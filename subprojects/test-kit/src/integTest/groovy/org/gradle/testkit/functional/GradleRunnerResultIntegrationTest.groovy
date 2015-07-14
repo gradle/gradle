@@ -16,6 +16,8 @@
 
 package org.gradle.testkit.functional
 
+import static org.gradle.testkit.functional.TaskResult.*
+
 /**
  * Tests more intricate aspects of the BuildResult object
  */
@@ -41,8 +43,11 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
         noExceptionThrown()
         result.standardOutput.contains(':helloWorld UP-TO-DATE')
         result.standardOutput.contains(':byeWorld SKIPPED')
-        result.executedTasks == [':helloWorld', ':byeWorld']
-        result.skippedTasks == [':helloWorld', ':byeWorld']
+        result.tasks.collect { it.path } == [':helloWorld', ':byeWorld']
+        result.taskPaths(SUCCESS) == []
+        result.taskPaths(SKIPPED) == [':byeWorld']
+        result.taskPaths(UPTODATE) == [':helloWorld']
+        result.taskPaths(FAILED).empty
     }
 
 }

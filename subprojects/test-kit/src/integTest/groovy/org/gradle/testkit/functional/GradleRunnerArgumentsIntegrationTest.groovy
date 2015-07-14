@@ -18,6 +18,8 @@ package org.gradle.testkit.functional
 
 import spock.lang.Unroll
 
+import static org.gradle.testkit.functional.TaskResult.*
+
 class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationTest {
 
     def "can execute build without specifying any arguments"() {
@@ -29,8 +31,11 @@ class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationT
         noExceptionThrown()
         result.standardOutput.contains(':help')
         !result.standardError
-        result.executedTasks == [':help']
-        result.skippedTasks.empty
+        result.tasks.collect { it.path } == [':help']
+        result.taskPaths(SUCCESS) == [':help']
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UPTODATE).empty
+        result.taskPaths(FAILED).empty
     }
 
     def "execute build for multiple tasks"() {
@@ -55,8 +60,11 @@ class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationT
         result.standardOutput.contains(':byeWorld')
         result.standardOutput.contains('Bye world!')
         !result.standardError
-        result.executedTasks == [':helloWorld', ':byeWorld']
-        result.skippedTasks.empty
+        result.tasks.collect { it.path } == [':helloWorld', ':byeWorld']
+        result.taskPaths(SUCCESS) == [':helloWorld', ':byeWorld']
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UPTODATE).empty
+        result.taskPaths(FAILED).empty
     }
 
     @Unroll
@@ -87,8 +95,11 @@ class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationT
         result.standardOutput.contains(debugMessage) == hasDebugMessage
         result.standardOutput.contains(infoMessage) == hasInfoMessage
         result.standardOutput.contains(quietMessage) == hasQuietMessage
-        result.executedTasks == [':helloWorld']
-        result.skippedTasks.empty
+        result.tasks.collect { it.path } == [':helloWorld']
+        result.taskPaths(SUCCESS) == [':helloWorld']
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UPTODATE).empty
+        result.taskPaths(FAILED).empty
 
         where:
         arguments                | hasDebugMessage | hasInfoMessage | hasQuietMessage

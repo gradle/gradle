@@ -30,29 +30,37 @@ public interface BuildResult {
     /**
      * Returns the standard output of a build execution.
      *
-     * @return Standard output
+     * @return the standard output
      */
     String getStandardOutput();
 
     /**
      * Returns the standard error messages of a build execution.
      *
-     * @return Standard error messages
+     * @return the standard error messages
      */
     String getStandardError();
 
     /**
-     * Returns the paths of executed tasks of a build execution. The execution status of a task can either be SKIPPED, UP-TO-DATE, FAILED or successful. Tasks from the {@code buildSrc} project
-     * will not be listed.
+     * Returns all tasks of the build execution independent of their result.
      *
-     * @return Executed tasks
+     * @return all tasks
      */
-    List<String> getExecutedTasks();
+    List<BuildTask> getTasks();
 
     /**
-     * Returns the paths of executed tasks that were marked SKIPPED, UP-TO-DATE or FAILED during build execution. Tasks from the {@code buildSrc} project will not be listed.
+     * Returns tasks of the build execution for a given result.
      *
-     * @return Skipped tasks
+     * @param result the given task result
+     * @return the filtered tasks
      */
-    List<String> getSkippedTasks();
+    List<BuildTask> tasks(TaskResult result);
+
+    /**
+     * Returns task paths of the build execution for a given result.
+     *
+     * @param result the given task result
+     * @return the filtered task paths
+     */
+    List<String> taskPaths(TaskResult result);
 }

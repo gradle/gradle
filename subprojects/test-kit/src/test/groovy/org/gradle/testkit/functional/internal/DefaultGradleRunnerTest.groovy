@@ -17,6 +17,7 @@
 package org.gradle.testkit.functional.internal
 
 import org.gradle.api.GradleException
+import org.gradle.testkit.functional.BuildResult
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -67,9 +68,8 @@ $expectedReason
         standardOutput.write('This is some output'.bytes)
         ByteArrayOutputStream standardError = new ByteArrayOutputStream()
         standardError.write('This is some error'.bytes)
-        List<String> executedTasks = new ArrayList<>();
-        List<String> skippedTasks = new ArrayList<>();
-        new GradleExecutionResult(standardOutput, standardError, executedTasks, skippedTasks, throwable)
+        List<BuildResult> tasks = new ArrayList<BuildResult>();
+        new GradleExecutionResult(standardOutput, standardError, tasks, throwable)
     }
 
     private String getBasicDiagnosticsMessage() {
