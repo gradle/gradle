@@ -30,6 +30,7 @@ import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
+import org.gradle.language.base.internal.testinterfaces.CustomLanguageSourceSet
 import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
 import spock.lang.Unroll
 
@@ -92,8 +93,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         registration.ruleDependencies == [ComponentModelBasePlugin]
         registration.type == ExtractedModelRule.Type.DEPENDENCIES
     }
-
-    interface CustomLanguageSourceSet extends LanguageSourceSet {}
 
     static class ImplementingCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {
     }

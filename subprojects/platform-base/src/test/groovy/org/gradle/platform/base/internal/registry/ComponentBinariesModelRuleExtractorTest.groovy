@@ -16,6 +16,10 @@
 
 package org.gradle.platform.base.internal.registry
 
+import org.gradle.language.base.internal.testinterfaces.RawLibrary
+import org.gradle.language.base.internal.testinterfaces.SomeBinarySpec
+import org.gradle.language.base.internal.testinterfaces.SomeBinarySubType
+import org.gradle.language.base.internal.testinterfaces.SomeLibrary
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
@@ -80,14 +84,6 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         "returnValue"             | "Method annotated with @ComponentBinaries must not have a return value."                                                                      | "non void method"
         "rawModelMap"             | "Parameter of type '${ModelMap.simpleName}' must declare a type parameter extending 'BinarySpec'."                                            | "non typed ModelMap parameter"
     }
-
-    interface SomeBinarySpec extends BinarySpec {}
-
-    interface SomeLibrary extends ComponentSpec {}
-
-    interface RawLibrary extends ComponentSpec {}
-
-    interface SomeBinarySubType extends SomeBinarySpec {}
 
     static class Rules {
         @ComponentBinaries

@@ -17,6 +17,8 @@
 package org.gradle.platform.base.internal.registry
 
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry
+import org.gradle.language.base.internal.testinterfaces.NotBinarySpec
+import org.gradle.language.base.internal.testinterfaces.SomeBinarySpec
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.ExtractedModelRule
@@ -92,17 +94,14 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         "noDefaultConstructor"             | "Binary implementation '${NoDefaultConstructor.name}' must have public default constructor."                           | "implementation with no public default constructor"
     }
 
-    interface SomeBinarySpec extends BinarySpec {}
 
     static class SomeBinarySpecImpl extends BaseBinarySpec implements SomeBinarySpec {}
 
     static class SomeBinarySpecOtherImpl extends SomeBinarySpecImpl {}
 
-    interface NotBinarySpec {}
-
     static class NotImplementingCustomBinary extends BaseBinarySpec implements BinarySpec {}
 
-    abstract static class NotExtendingBaseBinarySpec implements BinaryTypeModelRuleExtractorTest.SomeBinarySpec {}
+    abstract static class NotExtendingBaseBinarySpec implements SomeBinarySpec {}
 
     static class NoDefaultConstructor extends BaseBinarySpec implements SomeBinarySpec {
         NoDefaultConstructor(String arg) {

@@ -16,6 +16,8 @@
 
 package org.gradle.language.base.internal
 
+import org.gradle.language.base.internal.testinterfaces.NotComponentSpec
+import org.gradle.language.base.internal.testinterfaces.SomeComponentSpec
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.internal.core.ExtractedModelRule
@@ -91,13 +93,11 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         "noDefaultConstructor"             | "Component implementation '${NoDefaultConstructor.name}' must have public default constructor."                         | "implementation with no public default constructor"
     }
 
-    interface SomeComponentSpec extends ComponentSpec {}
+
 
     static class SomeComponentSpecImpl extends BaseComponentSpec implements SomeComponentSpec {}
 
     static class SomeComponentSpecOtherImpl extends SomeComponentSpecImpl {}
-
-    interface NotComponentSpec {}
 
     static class NotImplementingCustomComponent extends BaseComponentSpec implements ComponentSpec {}
 

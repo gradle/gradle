@@ -15,15 +15,14 @@
  */
 
 package org.gradle.platform.base.internal.registry
-
 import org.gradle.api.Task
+import org.gradle.language.base.internal.testinterfaces.SomeBinarySpec
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelReference
-import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks
 import org.gradle.platform.base.InvalidModelException
 import spock.lang.Unroll
@@ -76,12 +75,10 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         registration.action.subject == ModelReference.of("binaries")
     }
 
-    interface SomeBinary extends BinarySpec {}
-
     class Rules {
 
         @BinaryTasks
-        static String returnValue(ModelMap<Task> builder, SomeBinary binary) {
+        static String returnValue(ModelMap<Task> builder, SomeBinarySpec binary) {
         }
 
         @BinaryTasks
@@ -93,7 +90,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         }
 
         @BinaryTasks
-        static void rawModelMap(ModelMap tasks, SomeBinary binary) {
+        static void rawModelMap(ModelMap tasks, SomeBinarySpec binary) {
         }
 
         @BinaryTasks
@@ -101,7 +98,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         }
 
         @BinaryTasks
-        static void validTypeRule(ModelMap<Task> tasks, SomeBinary binary) {
+        static void validTypeRule(ModelMap<Task> tasks, SomeBinarySpec binary) {
             tasks.create("create${binary.getName()}")
         }
     }
