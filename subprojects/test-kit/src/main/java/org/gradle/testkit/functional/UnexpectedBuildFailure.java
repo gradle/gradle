@@ -19,9 +19,10 @@ package org.gradle.testkit.functional;
 import org.gradle.api.Incubating;
 
 /**
- * Thrown exception for a failed build execution that should have been successful.
+ * Thrown when executing a build that was expected to succeed, but failed.
  *
  * @since 2.6
+ * @see GradleRunner#succeeds()
  */
 @Incubating
 public class UnexpectedBuildFailure extends RuntimeException {

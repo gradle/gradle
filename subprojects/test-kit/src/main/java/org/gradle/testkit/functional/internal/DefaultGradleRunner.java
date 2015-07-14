@@ -45,7 +45,7 @@ public class DefaultGradleRunner extends GradleRunner {
         this.gradleUserHomeDir = tmpDirectoryProvider.createDir();
     }
 
-    public File getGradleUserHomeDir() {
+    public File getGradleUserHome() {
         return gradleUserHomeDir;
     }
 

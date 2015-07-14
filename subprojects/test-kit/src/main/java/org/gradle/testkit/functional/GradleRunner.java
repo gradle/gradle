@@ -25,84 +25,125 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Executes a Gradle build for given tasks and arguments.
+ * Executes a Gradle build, allowing inspection of the outcome.
+ * <p>
+ * A Gradle runner can be used to functionally test build logic, by executing a contrived build.
+ * Assertions can then be made on the outcome of the build, such as the state of files created by the build,
+ * or what tasks were actually executed during the build.
+ * <p>
+ * A runner can be created via the {@link #create()} method.
+ * <p>
+ * The {@link #withArguments(String...)} method allows the build arguments to be specified,
+ * just as they would be on the command line.
+ * The {@link #succeeds()} method can be used to invoke the build when it is expected to succeed,
+ * while the {@link #fails()} method can be used when the build is expected to fail.
+ * <p>
+ * GradleRunner instances are not thread safe and cannot be used concurrently.
+ * However, multiple instances are able to be used concurrently.
+ * <p>
+ * Further aspects of the build are also able to be configured.
+ * <p>
+ * Please see <a href="https://docs.gradle.org/current/userguide/test_kit.html">the Gradle TestKit User Guide chapter</a> for more information.
  *
  * @since 2.6
  */
 @Incubating
 public abstract class GradleRunner {
-    /**
-     * Returns the Gradle user home directory. Defaults to null which indicates the default location.
-     *
-     * @return Gradle user home directory
-     */
-    public abstract File getGradleUserHomeDir();
 
     /**
-     * Returns the working directory for the current build execution.
-     *
-     * @return Working directory
-     */
-    public abstract File getWorkingDir();
-
-    /**
-     * Sets the working directory for the current build execution.
-     *
-     * @param workingDirectory Working directory
-     * @return The current {@link GradleRunner} instance
-     */
-    public abstract GradleRunner withWorkingDir(File workingDirectory);
-
-    /**
-     * Returns the provided arguments (tasks and options) for the build execution. Defaults to an empty List.
-     *
-     * @return Build execution arguments
-     */
-    public abstract List<String> getArguments();
-
-    /**
-     * Sets the arguments (tasks and options) used for the build execution.
-     *
-     * @param arguments Build execution arguments
-     * @return The current {@link GradleRunner} instance
-     */
-    public abstract GradleRunner withArguments(List<String> arguments);
-
-    /**
-     * Sets the arguments (tasks and options) used for the build execution.
-     *
-     * @param arguments Build execution arguments
-     * @return The current {@link GradleRunner} instance
-     */
-    public abstract GradleRunner withArguments(String... arguments);
-
-    /**
-     * Executes a build and expects it to finish successfully. Throws an {@link UnexpectedBuildFailure} exception if build fails unexpectedly.
-     *
-     * @return Result of the build
-     */
-    public abstract BuildResult succeeds();
-
-    /**
-     * Executes a build and expects it to fail. Throws an {@link UnexpectedBuildSuccess} exception if build succeeds unexpectedly.
-     *
-     * @return Result of the build
-     */
-    public abstract BuildResult fails();
-
-    /**
-     * Creates and returns an implementation of a {@link GradleRunner}. The implementation is determined based on the following rules:
-     *
+     * Creates a new Gradle runner.
      * <p>
-     * - When running from a {@code Test} task, use the Gradle installation that is running the build.<br>
-     * - When importing into the IDE, use the Gradle installation that performed the import.
-     * </p>
+     * The runner requires a Gradle distribution (and therefore a specific version of Gradle) in order to execute builds.
+     * This method will find a Gradle distribution, based on the filesystem location of this class.
+     * That is, it is expected that this class is loaded from a Gradle distribution.
+     * <p>
+     * When using the GradleRunner as part of tests <i>being executed by Gradle</i> (i.e. a build using the {@code gradleTestKit()} dependency),
+     * this means that the same distribution of Gradle that is executing the tests will be used by GradleRunner returned by this method.
+     * <p>
+     * When using the GradleRunner as part of tests <i>being executed by an IDE</i>,
+     * this means that the same distribution of Gradle that was used when importing the project will be used.
      *
-     * @return Default implementation
+     * @return a new Gradle runner
      */
     public static GradleRunner create() {
         GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator(GradleRunner.class);
         return new DefaultGradleRunner(gradleDistributionLocator.getGradleHome());
     }
+
+    /**
+     * The Gradle user home directory to use for the build.
+     * <p>
+     * The Gradle user home directory contains dependency caches, and other persistent information.
+     * <p>
+     * Each runner <i>instance</i> is assigned a default for this property, of a directory inside the JVM's temp directory
+     * (i.e. the location specified by the {@code java.io.tmpdir} system property, typically {@code /tmp}).
+     * This default is different to Gradle's default, of {@code ~/.gradle}.
+     * This is in order to prevent builds under test inheriting any environmental configuration from the current user.
+     *
+     * @return the Gradle “user home” directory to use
+     */
+    public abstract File getGradleUserHome();
+
+    /**
+     * The directory that the build will be executed in.
+     * <p>
+     * This is analogous to the current directory when executing Gradle from the command line.
+     *
+     * @return the directory to execute the build in
+     */
+    public abstract File getWorkingDir();
+
+    /**
+     * Sets the directory that the Gradle will be executed in.
+     *
+     * @param workingDirectory the working directory
+     * @return {@code this}
+     * @see #getWorkingDir()
+     */
+    public abstract GradleRunner withWorkingDir(File workingDirectory);
+
+    /**
+     * The build arguments.
+     * <p>
+     * Effectively, the command line arguments to Gradle.
+     * This includes all tasks, flags, properties etc.
+     *
+     * @return the build arguments
+     */
+    public abstract List<String> getArguments();
+
+    /**
+     * Sets the build arguments.
+     *
+     * @param arguments the build arguments
+     * @return this
+     * @see #getArguments()
+     */
+    public abstract GradleRunner withArguments(List<String> arguments);
+
+    /**
+     * Sets the build arguments.
+     *
+     * @param arguments the build arguments
+     * @return this
+     * @see #getArguments()
+     */
+    public abstract GradleRunner withArguments(String... arguments);
+
+    /**
+     * Executes a build, expecting it to complete without failure.
+     *
+     * @throws UnexpectedBuildFailure if the build does not succeed
+     * @return the build result
+     */
+    public abstract BuildResult succeeds() throws UnexpectedBuildFailure;
+
+    /**
+     * Executes a build, expecting it to complete with failure.
+     *
+     * @throws UnexpectedBuildSuccess if the build succeeds
+     * @return the build result
+     */
+    public abstract BuildResult fails() throws UnexpectedBuildSuccess;
 
 }
