@@ -42,8 +42,9 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
                 components {
                     sampleLib(JvmLibrarySpec) {
                         binaries {
-                            customJar(CustomJarBinarySpec) {
-                                value = "12"
+                            customJar(CustomJarBinarySpec) { binary ->
+                                binary.value = "12"
+                                assert binary.value == "12"
                             }
                         }
                     }
@@ -77,10 +78,48 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
                 components {
                     sampleLib(JvmLibrarySpec) {
                         binaries {
-                            customJar(CustomChildJarBinarySpec) {
-                                value = "12"
-                                parentValue = "Lajos"
-                                childValue = "Tibor"
+                            customJar(CustomChildJarBinarySpec) { binary ->
+                                binary.value = "12"
+                                assert binary.value == "12"
+
+                                binary.parentValue = "Lajos"
+                                assert binary.parentValue == "Lajos"
+
+                                binary.childValue = "Tibor"
+                                assert binary.childValue == "Tibor"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "customJar"
+        new JarTestFixture(file("build/jars/customJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
+    }
+
+
+    def "managed JarBinarySpec subtypes can have @Unmanaged properties"() {
+        given:
+        buildFile << """
+            @Managed
+            interface CustomChildJarBinarySpec extends CustomJarBinarySpec {
+                @Unmanaged
+                InputStream getThing()
+                void setThing(InputStream thing)
+            }
+
+            ${registerBinaryType("CustomChildJarBinarySpec")}
+
+            model {
+                components {
+                    sampleLib(JvmLibrarySpec) {
+                        binaries {
+                            customJar(CustomChildJarBinarySpec) { binary ->
+                                def stream = new ByteArrayInputStream(new byte[0])
+                                binary.thing = stream
+                                assert binary.thing == stream
                             }
                         }
                     }
