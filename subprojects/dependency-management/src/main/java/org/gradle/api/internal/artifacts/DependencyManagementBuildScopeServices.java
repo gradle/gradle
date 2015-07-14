@@ -250,8 +250,8 @@ class DependencyManagementBuildScopeServices {
         }
 
         @Override
-        public ResolverProvider create(ResolveContext context) {
-            return DelegatingResolverProvider.of(resolver);
+        public ComponentResolvers create(ResolveContext context) {
+            return DelegatingComponentResolvers.of(resolver);
         }
     }
 }

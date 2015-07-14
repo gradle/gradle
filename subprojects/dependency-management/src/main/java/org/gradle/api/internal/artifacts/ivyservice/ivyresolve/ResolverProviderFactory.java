@@ -20,5 +20,5 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 public interface ResolverProviderFactory {
     boolean canCreate(ResolveContext context);
 
-    ResolverProvider create(ResolveContext context);
+    ComponentResolvers create(ResolveContext context);
 }

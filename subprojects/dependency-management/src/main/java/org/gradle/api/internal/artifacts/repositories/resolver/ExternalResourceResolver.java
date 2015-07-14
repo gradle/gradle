@@ -25,10 +25,10 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyResolverIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.component.ArtifactType;
@@ -59,7 +59,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private List<ResourcePattern> ivyPatterns = new ArrayList<ResourcePattern>();
     private List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
     private String name;
-    private ResolverProvider resolverProvider;
+    private ComponentResolvers componentResolvers;
 
     private final ExternalResourceRepository repository;
     private final boolean local;
@@ -101,8 +101,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return false;
     }
 
-    public void setResolverProvider(ResolverProvider resolver) {
-        this.resolverProvider = resolver;
+    public void setComponentResolvers(ComponentResolvers resolver) {
+        this.componentResolvers = resolver;
     }
 
     protected ExternalResourceRepository getRepository() {
@@ -166,7 +166,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
             return null;
         }
 
-        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(resolverProvider);
+        ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers);
         return parseMetaDataFromResource(moduleComponentIdentifier, metaDataResource, context);
     }
 

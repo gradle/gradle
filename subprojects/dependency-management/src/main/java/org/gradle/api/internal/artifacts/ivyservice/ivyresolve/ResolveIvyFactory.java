@@ -72,7 +72,7 @@ public class ResolveIvyFactory {
         this.versionComparator = versionComparator;
     }
 
-    public ResolverProvider create(ResolutionStrategyInternal resolutionStrategy,
+    public ComponentResolvers create(ResolutionStrategyInternal resolutionStrategy,
                                   Collection<? extends ResolutionAwareRepository> repositories,
                                   ComponentMetadataProcessor metadataProcessor) {
         if (repositories.isEmpty()) {
@@ -91,7 +91,7 @@ public class ResolveIvyFactory {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
 
             if (baseRepository instanceof ExternalResourceResolver) {
-                ((ExternalResourceResolver) baseRepository).setResolverProvider(parentModuleResolver);
+                ((ExternalResourceResolver) baseRepository).setComponentResolvers(parentModuleResolver);
             }
 
             ModuleComponentRepository moduleComponentRepository = baseRepository;
@@ -120,7 +120,7 @@ public class ResolveIvyFactory {
     /**
      * Provides access to the top-level resolver chain for looking up parent modules when parsing module descriptor files.
      */
-    private static class ParentModuleLookupResolver implements ResolverProvider, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+    private static class ParentModuleLookupResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
         private final CacheLockingManager cacheLockingManager;
         private final UserResolverChain delegate;
 

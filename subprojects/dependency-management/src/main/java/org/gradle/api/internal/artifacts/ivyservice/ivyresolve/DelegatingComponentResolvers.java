@@ -19,24 +19,24 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 
-public class DelegatingResolverProvider<T extends ArtifactResolver, U extends DependencyToComponentIdResolver, V extends ComponentMetaDataResolver> implements ResolverProvider {
+public class DelegatingComponentResolvers<T extends ArtifactResolver, U extends DependencyToComponentIdResolver, V extends ComponentMetaDataResolver> implements ComponentResolvers {
     private final T artifactResolver;
     private final U componentIdResolver;
     private final V componentResolver;
 
-    public static <T extends ArtifactResolver, U extends DependencyToComponentIdResolver, V extends ComponentMetaDataResolver> ResolverProvider of(
+    public static <T extends ArtifactResolver, U extends DependencyToComponentIdResolver, V extends ComponentMetaDataResolver> ComponentResolvers of(
         T artifactResolver,
         U componentIdResolver,
         V componentResolver
     ) {
-        return new DelegatingResolverProvider<T, U, V>(artifactResolver, componentIdResolver, componentResolver);
+        return new DelegatingComponentResolvers<T, U, V>(artifactResolver, componentIdResolver, componentResolver);
     }
 
-    public static <E extends ArtifactResolver & DependencyToComponentIdResolver & ComponentMetaDataResolver> ResolverProvider of(E delegate) {
-        return new DelegatingResolverProvider<E, E, E>(delegate, delegate, delegate);
+    public static <E extends ArtifactResolver & DependencyToComponentIdResolver & ComponentMetaDataResolver> ComponentResolvers of(E delegate) {
+        return new DelegatingComponentResolvers<E, E, E>(delegate, delegate, delegate);
     }
 
-    public DelegatingResolverProvider(T artifactResolver, U componentIdResolver, V componentResolver) {
+    public DelegatingComponentResolvers(T artifactResolver, U componentIdResolver, V componentResolver) {
         this.artifactResolver = artifactResolver;
         this.componentIdResolver = componentIdResolver;
         this.componentResolver = componentResolver;

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
@@ -37,9 +37,9 @@ import java.io.File;
  * If the parser asks for a resolver for a different revision, the resolver scope is all repositories.
  */
 public class ExternalResourceResolverDescriptorParseContext implements DescriptorParseContext {
-    private final ResolverProvider mainResolvers;
+    private final ComponentResolvers mainResolvers;
 
-    public ExternalResourceResolverDescriptorParseContext(ResolverProvider mainResolvers) {
+    public ExternalResourceResolverDescriptorParseContext(ComponentResolvers mainResolvers) {
         this.mainResolvers = mainResolvers;
     }
 

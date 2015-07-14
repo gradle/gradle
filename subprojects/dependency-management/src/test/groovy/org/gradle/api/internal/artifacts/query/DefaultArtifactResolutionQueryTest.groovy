@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers
 import org.gradle.api.internal.component.ComponentTypeRegistration
 import org.gradle.api.internal.component.ComponentTypeRegistry
 import org.gradle.internal.Factory
@@ -49,7 +49,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     def cacheLockingManager = Mock(CacheLockingManager)
     def componentTypeRegistry = Mock(ComponentTypeRegistry)
     def artifactResolver = Mock(ArtifactResolver)
-    def repositoryChain = Mock(ResolverProvider)
+    def repositoryChain = Mock(ComponentResolvers)
     def componentMetaDataResolver = Mock(ComponentMetaDataResolver)
     def componentResolveMetaData = Mock(ComponentResolveMetaData)
 

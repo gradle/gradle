@@ -17,8 +17,8 @@
 package org.gradle.jvm.internal;
 
 import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingResolverProvider;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
@@ -65,10 +65,10 @@ public class PlatformJvmServices implements PluginServiceRegistry {
         }
 
         @Override
-        public ResolverProvider create(ResolveContext context) {
+        public ComponentResolvers create(ResolveContext context) {
             LocalLibraryDependencyResolver delegate = new LocalLibraryDependencyResolver(projectModelResolver,
                 ((DependentSourceSetResolveContext) context).getVariants());
-            return DelegatingResolverProvider.of(delegate);
+            return DelegatingComponentResolvers.of(delegate);
         }
     }
 }

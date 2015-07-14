@@ -28,9 +28,9 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ErrorHandlingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
@@ -77,14 +77,11 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler, final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor) {
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
-
-
                 LOGGER.debug("Resolving {}", resolveContext);
-                ResolverProvider componentSource = createComponentSource(resolveContext, repositories, metadataHandler);
+                ComponentResolvers componentSource = createComponentSource(resolveContext, repositories, metadataHandler);
                 DependencyGraphBuilder builder = createDependencyGraphBuilder(componentSource, resolveContext.getResolutionStrategy(), metadataHandler);
 
                 ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(new ContextualArtifactResolver(cacheLockingManager, ivyContextManager, componentSource.getArtifactResolver()));
-
                 DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, artifactResolver);
 
                 // Resolve the dependency graph
@@ -93,7 +90,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         });
     }
 
-    private DependencyGraphBuilder createDependencyGraphBuilder(ResolverProvider componentSource, ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
+    private DependencyGraphBuilder createDependencyGraphBuilder(ComponentResolvers componentSource, ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
 
         DependencyToComponentIdResolver componentIdResolver = new DependencySubstitutionResolver(componentSource.getComponentIdResolver(), resolutionStrategy.getDependencySubstitutionRule());
         ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyDescriptorFactory);
@@ -105,9 +102,9 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, dependencyToConfigurationResolver, conflictHandler);
     }
 
-    private ResolverProviderChain createComponentSource(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler) {
+    private ComponentResolversChain createComponentSource(ResolveContext resolveContext, List<? extends ResolutionAwareRepository> repositories, GlobalDependencyResolutionRules metadataHandler) {
         List<ResolverProviderFactory> resolverFactories = allServices(ResolverProviderFactory.class);
-        List<ResolverProvider> resolvers = Lists.newArrayList();
+        List<ComponentResolvers> resolvers = Lists.newArrayList();
         for (ResolverProviderFactory factory : resolverFactories) {
             if (factory.canCreate(resolveContext)) {
                 resolvers.add(factory.create(resolveContext));
@@ -115,7 +112,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         }
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
         resolvers.add(ivyFactory.create(resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessor()));
-        return new ResolverProviderChain(resolvers);
+        return new ComponentResolversChain(resolvers);
     }
 
     private ResolveContextToComponentResolver createResolveContextConverter() {

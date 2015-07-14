@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProvider;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -30,16 +30,16 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResolverProviderChain implements ResolverProvider {
+public class ComponentResolversChain implements ComponentResolvers {
     private final DependencyToComponentIdResolverChain dependencyToComponentIdResolver;
     private final ComponentMetaDataResolverChain componentMetaDataResolver;
     private final ArtifactResolverChain artifactResolverChain;
 
-    public ResolverProviderChain(List<ResolverProvider> providers) {
+    public ComponentResolversChain(List<ComponentResolvers> providers) {
         List<DependencyToComponentIdResolver> depToComponentIdResolvers = new ArrayList<DependencyToComponentIdResolver>(providers.size());
         List<ComponentMetaDataResolver> componentMetaDataResolvers = new ArrayList<ComponentMetaDataResolver>(providers.size());
         List<ArtifactResolver> artifactResolvers = new ArrayList<ArtifactResolver>(providers.size());
-        for (ResolverProvider provider : providers) {
+        for (ComponentResolvers provider : providers) {
             depToComponentIdResolvers.add(provider.getComponentIdResolver());
             componentMetaDataResolvers.add(provider.getComponentResolver());
             artifactResolvers.add(provider.getArtifactResolver());
