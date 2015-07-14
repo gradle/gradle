@@ -18,7 +18,8 @@ package org.gradle.testkit.functional
 
 import org.gradle.util.TextUtil
 
-class GradleRunnerExpectedFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+
     def "execute build for expected failure"() {
         given:
         buildFile << """
@@ -68,4 +69,52 @@ Error:
 -----"""
         TextUtil.normaliseLineSeparators(t.message) ==~ expectedMessage
     }
+
+    def "execute build for expected success but fails"() {
+        given:
+        buildFile << """
+            task helloWorld {
+                doLast {
+                    throw new GradleException('Unexpected exception')
+                }
+            }
+        """
+
+        when:
+        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        gradleRunner.succeeds()
+
+        then:
+        Throwable t = thrown(UnexpectedBuildFailure)
+        String expectedMessage = """Unexpected build execution failure in ${TextUtil.escapeString(gradleRunner.workingDir.canonicalPath)} with arguments \\u005BhelloWorld\\u005D
+
+Output:
+:helloWorld FAILED
+
+BUILD FAILED
+
+Total time: .+ secs
+
+-----
+Error:
+
+FAILURE: Build failed with an exception.
+
+\\u002A Where:
+Build file '${TextUtil.escapeString(new File(gradleRunner.workingDir, "build.gradle").canonicalPath)}' line: 4
+
+\\u002A What went wrong:
+Execution failed for task ':helloWorld'.
+> Unexpected exception
+
+\\u002A Try:
+Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
+
+-----
+Reason:
+Unexpected exception
+-----"""
+        TextUtil.normaliseLineSeparators(t.message) ==~ expectedMessage
+    }
+
 }
