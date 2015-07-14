@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
@@ -32,4 +33,10 @@ public interface ResolverResults {
     ResolvedLocalComponentsResult getResolvedLocalComponents();
 
     ResolvedArtifacts getResolvedArtifacts();
+
+    void resolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult);
+
+    void failed(ResolveException failure);
+
+    void withResolvedConfiguration(ResolvedConfiguration resolvedConfiguration);
 }

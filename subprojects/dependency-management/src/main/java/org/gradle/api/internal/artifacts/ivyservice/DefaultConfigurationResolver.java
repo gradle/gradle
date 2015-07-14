@@ -63,7 +63,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.buildProjectDependencies = buildProjectDependencies;
     }
 
-    public void resolve(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
+    public void resolve(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         List<ResolutionAwareRepository> resolutionAwareRepositories = CollectionUtils.collect(repositories, Transformers.cast(ResolutionAwareRepository.class));
         StoreSet stores = storeFactory.createStoreSet();
 
@@ -93,7 +93,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         defaultResolverResults.retainState(graphResults, artifactsBuilder, oldTransientModelBuilder);
     }
 
-    public void resolveArtifacts(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
+    public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         DefaultResolverResults defaultResolverResults = (DefaultResolverResults) results;
         ResolvedGraphResults graphResults = defaultResolverResults.getGraphResults();
         ResolvedArtifactResults artifactResults = defaultResolverResults.getArtifactsBuilder().resolve();

@@ -17,9 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.artifacts.BuildableResolverResults;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
@@ -36,12 +36,12 @@ public class SelfResolvingDependencyConfigurationResolver implements Configurati
     }
 
     @Override
-    public void resolve(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
+    public void resolve(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         delegate.resolve(configuration, results);
     }
 
     @Override
-    public void resolveArtifacts(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
+    public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
 
         delegate.resolveArtifacts(configuration, results);
 

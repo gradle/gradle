@@ -92,7 +92,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private InternalState resolvedState = InternalState.UNRESOLVED;
     private boolean insideBeforeResolve;
 
-    private BuildableResolverResults cachedResolverResults = new DefaultResolverResults();
+    private ResolverResults cachedResolverResults = new DefaultResolverResults();
     private boolean dependenciesModified;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,

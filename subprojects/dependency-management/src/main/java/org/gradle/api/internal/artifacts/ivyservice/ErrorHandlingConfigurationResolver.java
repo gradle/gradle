@@ -21,9 +21,9 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.internal.artifacts.BuildableResolverResults;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.specs.Spec;
 
@@ -38,7 +38,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
     }
 
     @Override
-    public void resolve(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
+    public void resolve(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         try {
             delegate.resolve(configuration, results);
         } catch (final Throwable e) {
@@ -51,7 +51,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
     }
 
     @Override
-    public void resolveArtifacts(ConfigurationInternal configuration, BuildableResolverResults results) throws ResolveException {
+    public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         try {
             delegate.resolveArtifacts(configuration, results);
         } catch (ResolveException e) {
