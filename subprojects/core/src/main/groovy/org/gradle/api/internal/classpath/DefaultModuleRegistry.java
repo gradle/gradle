@@ -171,7 +171,11 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         try {
             ZipFile zipFile = new ZipFile(jarFile);
             try {
-                ZipEntry entry = zipFile.getEntry(String.format("%s-classpath.properties", name));
+                final String entryName = String.format("%s-classpath.properties", name);
+                ZipEntry entry = zipFile.getEntry(entryName);
+                if (entry == null) {
+                    throw new IllegalStateException("Did not find " + entryName + " in " + jarFile.getAbsolutePath());
+                }
                 return GUtil.loadProperties(zipFile.getInputStream(entry));
             } finally {
                 zipFile.close();
