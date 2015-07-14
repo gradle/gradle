@@ -50,6 +50,7 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
         """
+
         expect:
         succeeds "customJar"
         new JarTestFixture(file("build/jars/customJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
@@ -86,9 +87,23 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
         """
+
         expect:
         succeeds "customJar"
         new JarTestFixture(file("build/jars/customJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
+    }
+
+    def "managed JarBinarySpec subtype cannot be created via BinaryContainer"() {
+        given:
+        buildFile << """
+            binaries {
+                customJar(CustomJarBinarySpec)
+            }
+        """
+
+        expect:
+        def ex = fails "customJar"
+        ex.assertHasCause "Cannot create a CustomJarBinarySpec because this type is not known to this container. Known types are: (None)"
     }
 
     def registerBinaryType(String binaryType) {
