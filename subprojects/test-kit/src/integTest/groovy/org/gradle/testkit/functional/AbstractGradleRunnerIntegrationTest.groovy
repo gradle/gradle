@@ -25,16 +25,18 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 abstract class AbstractGradleRunnerIntegrationTest extends Specification {
-    @Shared IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    @Rule TestNameTestDirectoryProvider testProjectDir = new TestNameTestDirectoryProvider()
+    @Shared
+    IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+    @Rule
+    TestNameTestDirectoryProvider testProjectDir = new TestNameTestDirectoryProvider()
     File buildFile
 
     def setup() {
         buildFile = testProjectDir.file('build.gradle')
     }
 
-    protected DefaultGradleRunner prepareGradleRunner(String... tasks) {
-        DefaultGradleRunner gradleRunner = (DefaultGradleRunner)GradleRunner.create(new InstalledGradleDistribution(buildContext.gradleHomeDir))
+    protected GradleRunner prepareGradleRunner(String... tasks) {
+        def gradleRunner = new DefaultGradleRunner(new InstalledGradleDistribution(buildContext.gradleHomeDir))
         gradleRunner.withGradleUserHomeDir(buildContext.gradleUserHomeDir).withWorkingDir(testProjectDir.testDirectory).withArguments(tasks)
         assert gradleRunner.gradleUserHomeDir == buildContext.gradleUserHomeDir
         assert gradleRunner.workingDir == testProjectDir.testDirectory

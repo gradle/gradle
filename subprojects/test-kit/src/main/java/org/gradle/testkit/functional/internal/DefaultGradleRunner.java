@@ -86,7 +86,7 @@ public class DefaultGradleRunner extends GradleRunner {
     public BuildResult succeeds() {
         return run(new Action<GradleExecutionResult>() {
             public void execute(GradleExecutionResult gradleExecutionResult) {
-                if(!gradleExecutionResult.isSuccessful()) {
+                if (!gradleExecutionResult.isSuccessful()) {
                     throw new UnexpectedBuildFailure(createDiagnosticsMessage("Unexpected build execution failure", gradleExecutionResult));
                 }
             }
@@ -96,7 +96,7 @@ public class DefaultGradleRunner extends GradleRunner {
     public BuildResult fails() {
         return run(new Action<GradleExecutionResult>() {
             public void execute(GradleExecutionResult gradleExecutionResult) {
-                if(gradleExecutionResult.isSuccessful()) {
+                if (gradleExecutionResult.isSuccessful()) {
                     throw new UnexpectedBuildSuccess(createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult));
                 }
             }
@@ -124,7 +124,7 @@ public class DefaultGradleRunner extends GradleRunner {
         message.append(lineBreak);
         message.append("-----");
 
-        if(gradleExecutionResult.getThrowable() != null) {
+        if (gradleExecutionResult.getThrowable() != null) {
             message.append(lineBreak);
             message.append("Reason:");
             message.append(lineBreak);
@@ -147,7 +147,11 @@ public class DefaultGradleRunner extends GradleRunner {
         gradleExecutor.withJvmArguments(jvmArguments);
         GradleExecutionResult gradleExecutionResult = gradleExecutor.run();
         action.execute(gradleExecutionResult);
-        return new DefaultBuildResult(gradleExecutionResult.getStandardOutput(), gradleExecutionResult.getStandardError(),
-                                      gradleExecutionResult.getExecutedTasks(), gradleExecutionResult.getSkippedTasks());
+        return new DefaultBuildResult(
+            gradleExecutionResult.getStandardOutput(),
+            gradleExecutionResult.getStandardError(),
+            gradleExecutionResult.getExecutedTasks(),
+            gradleExecutionResult.getSkippedTasks()
+        );
     }
 }

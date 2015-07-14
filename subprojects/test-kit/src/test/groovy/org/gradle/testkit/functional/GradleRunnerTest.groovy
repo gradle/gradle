@@ -17,12 +17,10 @@
 package org.gradle.testkit.functional
 
 import org.gradle.testkit.functional.internal.DefaultGradleRunner
-import org.gradle.testkit.functional.internal.dist.GradleDistribution
-import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class GradleRunnerTest extends Specification {
+
     def "can create instance for default Gradle distribution"() {
         when:
         GradleRunner gradleRunner = GradleRunner.create()
@@ -31,27 +29,4 @@ class GradleRunnerTest extends Specification {
         gradleRunner instanceof DefaultGradleRunner
     }
 
-    @Unroll
-    def "can create instance with supported Gradle distribution type"() {
-        when:
-        GradleRunner gradleRunner = GradleRunner.create(new InstalledGradleDistribution(new File('some/dir')))
-
-        then:
-        gradleRunner instanceof DefaultGradleRunner
-    }
-
-    def "throws exception for unsupported Gradle distribution type"() {
-        when:
-        GradleRunner.create(new MyGradleDistribution())
-
-        then:
-        Throwable t = thrown(IllegalArgumentException)
-        t.message == "Invalid Gradle distribution type: ${MyGradleDistribution.name}"
-    }
-
-    private class MyGradleDistribution implements GradleDistribution {
-        String getDisplayName() {
-            'My custom Gradle distribution'
-        }
-    }
 }

@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.testkit.functional.internal.DefaultGradleRunner;
-import org.gradle.testkit.functional.internal.dist.GradleDistribution;
 import org.gradle.testkit.functional.internal.dist.InstalledGradleDistribution;
 
 import java.io.File;
@@ -105,14 +104,7 @@ public abstract class GradleRunner {
     public static GradleRunner create() {
         GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator(GradleRunner.class);
         File gradleHome = gradleDistributionLocator.getGradleHome();
-        return create(new InstalledGradleDistribution(gradleHome));
+        return new DefaultGradleRunner(new InstalledGradleDistribution(gradleHome));
     }
 
-    static GradleRunner create(GradleDistribution gradleDistribution) {
-        if(!(gradleDistribution instanceof InstalledGradleDistribution)) {
-            throw new IllegalArgumentException(String.format("Invalid Gradle distribution type: %s", gradleDistribution.getClass().getName()));
-        }
-
-        return new DefaultGradleRunner(gradleDistribution);
-    }
 }
