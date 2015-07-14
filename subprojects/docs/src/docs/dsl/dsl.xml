@@ -669,7 +669,9 @@
             <tr>
                 <td>org.gradle.play.PublicAssets</td>
             </tr>
-            <!-- TODO: add play distribution container back -->
+            <tr>
+                <td>org.gradle.play.distribution.PlayDistributionContainer</td>
+            </tr>
         </table>
     </section>
 
@@ -693,5 +695,5 @@
             <!-- add PlatformScalaCompile -->
         </table>
     </section>
-    
+
 </book>

@@ -19,6 +19,7 @@ package org.gradle.play.integtest.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -28,6 +29,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample sourceSetsPlaySample = new Sample(temporaryFolder, "play/sourcesets")
     @Rule Sample compilerPlaySample = new Sample(temporaryFolder, "play/configure-compiler")
     @Rule Sample distributionPlaySample = new Sample(temporaryFolder, "play/custom-distribution")
+    @Rule Sample customAssetsPlaySample = new Sample(temporaryFolder, "play/custom-assets")
 
     def "sourcesets sample is buildable" () {
         when:
@@ -44,7 +46,14 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
             "controllers/date/routes.class",
             "html/main.class"
         )
-        assetsJar(sourceSetsPlaySample)
+        assetsJar(sourceSetsPlaySample).with {
+            containsDescendants(
+                "public/sample.js"
+            )
+            doesNotContainDescendants(
+                "public/old_sample.js"
+            )
+        }
     }
 
     def "compiler sample is buildable" () {
@@ -60,7 +69,27 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
         sample distributionPlaySample
 
         then:
+        succeeds "dist"
+
+        and:
+        distributionZip(distributionPlaySample).containsDescendants(
+            "playBinary/README.md",
+            "playBinary/bin/runPlayBinaryAsUser.sh"
+        )
+    }
+
+    def "custom assets sample is buildable" () {
+        when:
+        sample customAssetsPlaySample
+
+        then:
         succeeds "build"
+
+        and:
+        customAssetsPlaySample.dir.file("build/playBinary/addCopyRights/sample.js").text.contains("* Copyright 2015")
+        assetsJar(customAssetsPlaySample).containsDescendants(
+            "public/sample.js"
+        )
     }
 
     JarTestFixture applicationJar(Sample sample) {
@@ -71,5 +100,9 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     JarTestFixture assetsJar(Sample sample) {
         def projectName = sample.dir.name
         new JarTestFixture(sample.dir.file("build/playBinary/lib/${projectName}-assets.jar"))
+    }
+
+    ZipTestFixture distributionZip(Sample sample) {
+        new ZipTestFixture(sample.dir.file("build/distributions/playBinary.zip"))
     }
 }

@@ -52,7 +52,7 @@ class PlayRunTest extends Specification {
         playRun.forkOptions.memoryInitialSize = "1G"
         playRun.forkOptions.memoryMaximumSize = "5G"
         when:
-        playRun.execute();
+        playRun.run();
         then:
         1 * playToolProvider.get(PlayApplicationRunner) >> playApplicationRunner
         1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->
@@ -65,7 +65,7 @@ class PlayRunTest extends Specification {
     def "passes forkOptions never null"() {
         1 * systemInputStream.read() >> 4
         when:
-        playRun.execute();
+        playRun.run();
         then:
         1 * playToolProvider.get(PlayApplicationRunner) >> playApplicationRunner
         1 * playApplicationRunner.start(_) >> { PlayRunSpec spec ->

@@ -25,7 +25,10 @@ model {
     distributions {
         playBinary {
             contents {
-                from("README")
+                from("README.md")
+                from("scripts") {
+                    into "bin"
+                }
             }
         }
     }

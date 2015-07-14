@@ -64,7 +64,7 @@
         <title>Software Model</title>
 
         <para>
-            The Play plugin uses a <link linkend="new_model">software model</link> to describe a Play application.  The software model is comprised of
+            The Play plugin uses a <emphasis>software model</emphasis> to describe a Play application.  The software model is comprised of
             "components" and "binaries".  Components are abstract software elements that are built to produce binaries.
             A Play application is represented by a <apilink class="org.gradle.play.PlayApplicationSpec"/> component type.  The plugin automatically
             creates a single <apilink class="org.gradle.play.PlayApplicationBinarySpec"/> when it is applied.
@@ -177,7 +177,8 @@
     <section>
         <title>Tasks</title>
 
-        <para>The Play plugin also adds a number of tasks which form a lifecycle for the project:</para>
+        <para>The Play plugin hooks into the normal Gradle lifecycle tasks such as <literal>assemble</literal>, <literal>check</literal> and <literal>build</literal>,
+            but it also adds several additional tasks which form the lifecycle of a Play project:</para>
 
         <table id="play_lifecycle_tasks">
             <title>Play plugin - lifecycle tasks</title>
@@ -250,24 +251,6 @@
                 </td>
                 <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
                 <td>Runs JUnit/TestNG tests for the Play application.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>createPlayBinaryDist</literal>
-                </td>
-                <td>Staging task for the Play application.</td>
-                <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
-                <td>Bundles the Play application as a distribution.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>stagePlayBinaryDist</literal>
-                </td>
-                <td>
-                    All compile tasks, jar building tasks, and start script script generating tasks.
-                </td>
-                <td><apilink class="org.gradle.api.tasks.Copy"/></td>
-                <td>Copies all compiled classes and public assets into a staging directory.</td>
             </tr>
         </table>
         <para>For the different types of sources in a Play application, the plugin adds the following compilation tasks:</para>
@@ -400,32 +383,101 @@
                 <sourcefile file="build.gradle" snippet="play-configure-compiler"/>
             </sample>
         </section>
-        <!-- TODO: This doesn't work
         <section>
-            <title>Adding additional files to your Play application distribution</title>
+            <title>Injecting a custom asset pipeline</title>
             <para>
-                If your Play application needs to include additional files into your distribution zip, you can add these files like any other <apilink class="org.gradle.api.distribution.Distribution"/>.
+                Gradle Play support comes with a simplistic asset processing pipeline that minifies javascript assets.  However, many organizations have their own
+                custom pipeline for processing assets.  You can easily hook the results of your pipeline into the Play binary by utilizing the <apilink class="org.gradle.play.PublicAssets"/>
+                property on the binary.
             </para>
-            <sample id="addFilesToPlayDistribution" dir="play/custom-distribution" title="Add extra files to Play application zip">
-                <sourcefile file="build.gradle" snippet="play-custom-distribution"/>
+            <sample id="customAssetsPipeline" dir="play/custom-assets" title="Configuring a custom asset pipeline">
+                <sourcefile file="build.gradle" snippet="custom-assets"/>
             </sample>
         </section>
-        -->
     </section>
 
     <section>
         <title>Multi-project Play applications</title>
         <para>
-            Play applications can be built in multi-project builds as well.  Simply apply the <literal>play</literal> plugin in the appropriate subproject.
+            Play applications can be built in multi-project builds as well.  Simply apply the <literal>play</literal> plugin in the appropriate subprojects.
             See the sample provided in the Gradle distribution for a working example.
         </para>
     </section>
-<!--
-    TODO: Create asset pipeline sample
     <section>
-        <title>Extending the Play Software Model</title>
+        <title>Packaging a Play application for distribution</title>
+        <para>
+            Gradle provides the capability to package your Play application so that it can easily be distributed and run in a target environment.
+            The distribution package (zip file) contains the Play binary jars, all dependencies, and generated scripts that set up the classpath and run
+            the application in a Play-specific <ulink url="http://netty.io">Netty</ulink> container.
+        </para>
+        <para>
+            The distribution can be created by running the <literal>dist</literal> lifecycle task and places the distribution in the <literal>$buildDir/distributions</literal> directory.  Alternatively,
+            one can validate the contents by running the <literal>stage</literal> lifecycle task which copies the files to the <literal>$buildDir/stage</literal> directory using the layout of the distribution package.
+        </para>
+        <table>
+            <title>Play distribution tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>createPlayBinaryStartScripts</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.application.CreateStartScripts"/></td>
+                <td>Generates scripts to run the Play application distribution.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>stagePlayBinaryDist</literal>
+                </td>
+                <td>
+                    <literal>playBinary</literal>, <literal>createPlayBinaryStartScripts</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Copy"/></td>
+                <td>Copies all jar files, dependencies and scripts into a staging directory.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>createPlayBinaryDist</literal>
+                </td>
+                <td><literal>stagePlayBinaryDist</literal></td>
+                <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
+                <td>Bundles the Play application as a distribution.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>stage</literal>
+                </td>
+                <td><literal>stagePlayBinaryDist</literal></td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Lifecycle task for staging a Play distribution.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>dist</literal>
+                </td>
+                <td><literal>createPlayBinaryDist</literal></td>
+                <td><apilink class="org.gradle.api.Task"/></td>
+                <td>Lifecycle task for creating a Play distribution.</td>
+            </tr>
+        </table>
+        <section>
+            <title>Adding additional files to your Play application distribution</title>
+            <para>
+                You can add additional files to the distribution package using the <apilink class="org.gradle.api.distribution.Distribution"/> API.
+            </para>
+            <sample id="addFilesToPlayDistribution" dir="play/custom-distribution" title="Add extra files to a Play application distribution">
+                <sourcefile file="build.gradle" snippet="play-custom-distribution"/>
+            </sample>
+        </section>
     </section>
--->
+
     <section>
         <title>Resources</title>
         <para>

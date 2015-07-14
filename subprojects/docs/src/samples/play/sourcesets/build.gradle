@@ -31,7 +31,7 @@ model {
                 javaScript {
                     source {
                         srcDir "additional/javascript"
-                        include "**/*.javascript"
+                        exclude "**/old_*.js"
                     }
                 }
             }

@@ -144,12 +144,33 @@ public class PlayRun extends ConventionTask {
         this.httpPort = httpPort;
     }
 
+    /**
+     * The Play application jar to run.
+     */
+    public File getApplicationJar() {
+        return applicationJar;
+    }
+
     public void setApplicationJar(File applicationJar) {
         this.applicationJar = applicationJar;
     }
 
+    /**
+     * The assets jar to run with the Play application.
+     */
+    public File getAssetsJar() {
+        return assetsJar;
+    }
+
     public void setAssetsJar(File assetsJar) {
         this.assetsJar = assetsJar;
+    }
+
+    /**
+     * The directories of the assets for the Play application (for live reload functionality).
+     */
+    public Set<File> getAssetsDirs() {
+        return assetsDirs;
     }
 
     public void setAssetsDirs(Set<File> assetsDirs) {

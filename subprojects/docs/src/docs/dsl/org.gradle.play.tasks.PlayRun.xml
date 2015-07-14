@@ -29,6 +29,15 @@
             <tr>
                 <td>httpPort</td>
             </tr>
+            <tr>
+                <td>applicationJar</td>
+            </tr>
+            <tr>
+                <td>assetsJar</td>
+            </tr>
+            <tr>
+                <td>assetsDirs</td>
+            </tr>
         </table>
     </section>
     <section>

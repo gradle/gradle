@@ -20,13 +20,13 @@ to model, build, test, run and package Play applications.  It includes support f
 * Processing Twirl templates
 * Compiling coffeescript assets
 * Minifying javascript assets
-* Running tests with the JUnitRunner
+* Running tests with JUnitRunner
 * Running applications in development mode
 * Staging and creating Play distribution packages
 
 Future releases will add more features and versions of the Play Framework.
 
-See the [User Guide](userguide/play_plugin.html) for more information on using the `play` plugin as well as the sample builds delivered with the Gradle distribution.
+See the [User Guide](userguide/play_plugin.html) as well as the sample builds delivered with the Gradle distribution for more information on using the `play` plugin.
 
 ### Support for verifying Gradle wrapper distribution download against SHA-256 hash
 
