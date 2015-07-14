@@ -15,7 +15,10 @@
  */
 package org.gradle.language.base.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.Plugin;
+import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
@@ -25,7 +28,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
@@ -132,12 +134,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                     }
                 }
             }
-        }
-
-        // TODO:DAZ Work out why this is required
-        @Mutate
-        void closeSourcesForBinaries(BinaryContainer binaries, ProjectSourceSet sources) {
-            // Only required because sources aren't fully integrated into model
         }
 
         @Model
