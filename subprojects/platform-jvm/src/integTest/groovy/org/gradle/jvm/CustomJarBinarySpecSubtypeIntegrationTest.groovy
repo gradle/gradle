@@ -19,50 +19,97 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec {
-    def "can create a Jar from a custom managed JarBinarySpec subtype"() {
+    def setup() {
         buildFile << """
-plugins {
-    id 'jvm-component'
-}
+            plugins {
+                id 'jvm-component'
+            }
 
-@Managed
-interface CustomJarBinarySpec extends JarBinarySpec {
-    String getValue()
-    void setValue(String value)
-}
+            @Managed
+            interface CustomJarBinarySpec extends JarBinarySpec {
+                String getValue()
+                void setValue(String value)
+            }
 
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform
-
-class CustomJarBinarySpecRules extends RuleSource {
-    @BinaryType
-    void customJarBinary(BinaryTypeBuilder<CustomJarBinarySpec> builder) {
+            ${registerBinaryType("CustomJarBinarySpec")}
+        """
     }
 
-    @Finalize
-    void setToolChainsForBinaries(ModelMap<BinarySpec> binaries) {
-        def platform = DefaultJavaPlatform.current()
-        binaries.withType(CustomJarBinarySpec).beforeEach { binary ->
-            binary.targetPlatform = platform
-        }
-    }
-}
-
-apply plugin: CustomJarBinarySpecRules
-
-model {
-    components {
-        sampleLib(JvmLibrarySpec) {
-            binaries {
-                customJar(CustomJarBinarySpec) {
-                    value = "12"
+    def "can create a Jar from a managed JarBinarySpec subtype"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    sampleLib(JvmLibrarySpec) {
+                        binaries {
+                            customJar(CustomJarBinarySpec) {
+                                value = "12"
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-}
-"""
+        """
         expect:
-        succeeds "components", "customJar"
+        succeeds "customJar"
         new JarTestFixture(file("build/jars/customJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
+    }
+
+    def "managed JarBinarySpec subtypes can have further subtypes"() {
+        given:
+        buildFile << """
+            @Managed
+            interface CustomParentJarBinarySpec extends CustomJarBinarySpec {
+                String getParentValue()
+                void setParentValue(String value)
+            }
+
+            @Managed
+            interface CustomChildJarBinarySpec extends CustomParentJarBinarySpec {
+                String getChildValue()
+                void setChildValue(String value)
+            }
+
+            ${registerBinaryType("CustomChildJarBinarySpec")}
+
+            model {
+                components {
+                    sampleLib(JvmLibrarySpec) {
+                        binaries {
+                            customJar(CustomChildJarBinarySpec) {
+                                value = "12"
+                                parentValue = "Lajos"
+                                childValue = "Tibor"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds "customJar"
+        new JarTestFixture(file("build/jars/customJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
+    }
+
+    def registerBinaryType(String binaryType) {
+        return """
+            import org.gradle.jvm.platform.internal.DefaultJavaPlatform
+
+            class ${binaryType}Rules extends RuleSource {
+                @BinaryType
+                void customJarBinary(BinaryTypeBuilder<${binaryType}> builder) {
+                }
+
+                @Finalize
+                void setToolChainsForBinaries(ModelMap<BinarySpec> binaries) {
+                    def platform = DefaultJavaPlatform.current()
+                    binaries.withType(${binaryType}).beforeEach { binary ->
+                        binary.targetPlatform = platform
+                    }
+                }
+            }
+
+            apply plugin: ${binaryType}Rules
+        """
     }
 }
