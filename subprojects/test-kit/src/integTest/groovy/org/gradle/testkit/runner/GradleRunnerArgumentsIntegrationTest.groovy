@@ -24,7 +24,7 @@ class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationT
 
     def "can execute build without specifying any arguments"() {
         when:
-        GradleRunner gradleRunner = prepareGradleRunner()
+        GradleRunner gradleRunner = runner()
         BuildResult result = gradleRunner.build()
 
         then:
@@ -50,7 +50,7 @@ class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationT
         """
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld', 'byeWorld')
+        GradleRunner gradleRunner = runner('helloWorld', 'byeWorld')
         BuildResult result = gradleRunner.build()
 
         then:
@@ -85,7 +85,7 @@ class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationT
         """
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         gradleRunner.arguments.addAll(arguments)
         BuildResult result = gradleRunner.build()
 

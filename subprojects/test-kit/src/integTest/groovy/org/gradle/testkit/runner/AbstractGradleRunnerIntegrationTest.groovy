@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.Rule
@@ -31,10 +32,14 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     File buildFile
 
     def setup() {
-        buildFile = testProjectDir.file('build.gradle')
+        buildFile = file('build.gradle')
     }
 
-    protected GradleRunner prepareGradleRunner(String... tasks) {
+    TestFile file(String path) {
+        testProjectDir.file(path)
+    }
+
+    protected GradleRunner runner(String... tasks) {
         def gradleRunner = new DefaultGradleRunner(buildContext.gradleHomeDir)
         gradleRunner.withGradleUserHomeDir(buildContext.gradleUserHomeDir).withWorkingDir(testProjectDir.testDirectory).withArguments(tasks)
         assert gradleRunner.gradleUserHome == buildContext.gradleUserHomeDir

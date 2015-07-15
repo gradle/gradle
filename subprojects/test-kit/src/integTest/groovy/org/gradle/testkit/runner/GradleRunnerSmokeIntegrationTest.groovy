@@ -27,7 +27,7 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         BuildResult result = gradleRunner.build()
 
         then:
@@ -62,7 +62,7 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
         """
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         BuildResult result = gradleRunner.build()
 
         then:
@@ -93,7 +93,7 @@ public class MyApp {
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         BuildResult result = gradleRunner.build()
 
         then:

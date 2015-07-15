@@ -16,6 +16,8 @@
 
 package org.gradle.testkit.runner
 
+import java.util.concurrent.CountDownLatch
+
 import static org.gradle.testkit.runner.TaskResult.*
 
 /**
@@ -36,8 +38,7 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
         """
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld', 'byeWorld')
-        BuildResult result = gradleRunner.build()
+        BuildResult result = runner('helloWorld', 'byeWorld').build()
 
         then:
         noExceptionThrown()
@@ -50,4 +51,40 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
         result.taskPaths(FAILED).empty
     }
 
+    def "task order represents execution order"() {
+        when:
+        file("settings.gradle") << "include 'a', 'b', 'c', 'd'"
+        buildFile << """
+            def latch = new $CountDownLatch.name(1)
+
+            project(":a") {
+              task t << {
+                latch.await()
+              }
+            }
+
+            project(":b") {
+              task t
+            }
+
+            project(":c") { // c is guaranteed to start after a, but finish before it does
+              task t {
+                dependsOn ":b:t"
+              }
+            }
+
+            project(":d") {
+              task t {
+                dependsOn ":c:t"
+                doLast {
+                  latch.countDown()
+                }
+              }
+            }
+        """
+
+        then:
+        def result = runner("t", "--parallel", "--max-workers=2").build()
+        result.tasks.findIndexOf { it.path == ":c:t" } > result.tasks.findIndexOf { it.path == ":a:t" }
+    }
 }

@@ -49,7 +49,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         """
 
         when:
-        DefaultGradleRunner gradleRunner = (DefaultGradleRunner)prepareGradleRunner('verifyProjectProperties')
+        DefaultGradleRunner gradleRunner = (DefaultGradleRunner)runner('verifyProjectProperties')
         gradleRunner.withJvmArguments("-Duser.home=$testUserHomeDir.root.canonicalPath")
         BuildResult result = gradleRunner.build()
 
@@ -82,7 +82,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         """
 
         when:
-        DefaultGradleRunner gradleRunner = prepareGradleRunner('verifyProjectProperties')
+        DefaultGradleRunner gradleRunner = runner('verifyProjectProperties')
         BuildResult result = gradleRunner.build()
 
         then:

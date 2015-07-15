@@ -29,7 +29,9 @@ import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.gradle.testkit.runner.TaskResult.*;
@@ -78,17 +80,27 @@ public class GradleExecutor {
 
     private class TaskExecutionProgressListener implements ProgressListener {
         private final List<BuildTask> tasks;
+        private final Map<String, Integer> order = new HashMap<String, Integer>();
 
         public TaskExecutionProgressListener(List<BuildTask> tasks) {
             this.tasks = tasks;
         }
 
         public void statusChanged(ProgressEvent event) {
+            if (event instanceof TaskStartEvent) {
+                TaskStartEvent taskStartEvent = (TaskStartEvent) event;
+                order.put(taskStartEvent.getDescriptor().getTaskPath(), tasks.size());
+                tasks.add(null);
+            }
             if (event instanceof TaskFinishEvent) {
                 TaskFinishEvent taskFinishEvent = (TaskFinishEvent) event;
                 String taskPath = taskFinishEvent.getDescriptor().getTaskPath();
                 TaskOperationResult result = taskFinishEvent.getResult();
-                tasks.add(determineBuildTask(result, taskPath));
+                final Integer index = order.get(taskPath);
+                if (index == null) {
+                    throw new IllegalStateException("Received task finish event for task " + taskPath + " without first receiving task start event");
+                }
+                tasks.set(index, determineBuildTask(result, taskPath));
             }
         }
 

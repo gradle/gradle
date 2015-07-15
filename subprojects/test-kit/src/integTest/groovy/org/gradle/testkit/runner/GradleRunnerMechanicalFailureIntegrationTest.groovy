@@ -33,7 +33,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         """
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         BuildResult result = gradleRunner.buildAndFail()
 
         then:
@@ -58,7 +58,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         """
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         BuildResult result = gradleRunner.buildAndFail()
 
         then:
@@ -77,7 +77,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         gradleRunner.arguments << '--unknown'
         gradleRunner.build()
 
@@ -95,7 +95,7 @@ Unknown command-line option '--unknown'.""")
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         gradleRunner.withWorkingDir(nonExistentWorkingDir)
         gradleRunner.build()
 
@@ -113,7 +113,7 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         gradleRunner.build()
 
         then:
@@ -139,7 +139,7 @@ For example, an unrecognized jvm option is used.""")
         """
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         gradleRunner.build()
 
         then:

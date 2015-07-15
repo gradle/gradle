@@ -33,7 +33,7 @@ class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegr
         """
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         BuildResult result = gradleRunner.buildAndFail()
 
         then:
@@ -53,7 +53,7 @@ class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegr
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         gradleRunner.buildAndFail()
 
         then:
@@ -86,7 +86,7 @@ Error:
         """
 
         when:
-        GradleRunner gradleRunner = prepareGradleRunner('helloWorld')
+        GradleRunner gradleRunner = runner('helloWorld')
         gradleRunner.build()
 
         then:
