@@ -21,46 +21,70 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * Result of a build execution.
+ * The result of executing a build, via the {@link GradleRunner}.
  *
  * @since 2.6
+ * @see GradleRunner#build()
+ * @see GradleRunner#buildAndFail()
  */
 @Incubating
 public interface BuildResult {
-    /**
-     * Returns the standard output of a build execution.
-     *
-     * @return the standard output
-     */
-    String getStandardOutput();
 
     /**
-     * Returns the standard error messages of a build execution.
+     * The textual output produced during the build.
+     * <p>
+     * This is equivalent to the console output produced when running a build from the command line,
+     * except for any error output (which is available via {@link #getErrorOutput()}).
      *
-     * @return the standard error messages
+     * @return the build output text, or empty string if there was no build output (e.g. ran with {@code -q})
      */
-    String getStandardError();
+    String getOutput();
 
     /**
-     * Returns all tasks of the build execution independent of their result.
+     * The textual error output produced during the build (i.e. text written to {@link System#err}).
+     * <p>
+     * During a build, Gradle itself does not write its output to the error output stream.
+     * However, tools used by the build, as well as processes forked by the build
+     * (who's output is forwarded) may write to the error output stream.
+     * <p>
+     * If the build fails to start, due to an invalid argument for example, the message will be written to the error output
+     * and hence available here.
      *
-     * @return all tasks
+     * @return the build error output text, or empty string if there was no error output
+     */
+    String getErrorOutput();
+
+    /**
+     * The tasks that were part of the build.
+     * <p>
+     * The order of the tasks corresponds to the order in which the tasks were started.
+     * If executing a parallel enabled build, the order is not guaranteed to be deterministic.
+     * <p>
+     * The returned list will be empty if no tasks were executed.
+     * This can occur if the build fails early, due to a build script failing to compile for example.
+     *
+     * @return the build tasks
      */
     List<BuildTask> getTasks();
 
     /**
-     * Returns tasks of the build execution for a given result.
+     * The subset of {@link #getTasks()} that had the given result.
+     * <p>
+     * The returned list will be empty if no tasks were executed that completed with the given result.
      *
-     * @param result the given task result
-     * @return the filtered tasks
+     * @param result the desired result
+     * @return the build tasks that completed with the given result
      */
     List<BuildTask> tasks(TaskResult result);
 
     /**
-     * Returns task paths of the build execution for a given result.
+     * The paths of the subset of {@link #getTasks()} that had the given result.
+     * <p>
+     * The returned list will be empty if no tasks were executed that completed with the given result.
      *
-     * @param result the given task result
-     * @return the filtered task paths
+     * @param result the desired result
+     * @return the paths of the build tasks that completed with the given result
      */
     List<String> taskPaths(TaskResult result);
+
 }

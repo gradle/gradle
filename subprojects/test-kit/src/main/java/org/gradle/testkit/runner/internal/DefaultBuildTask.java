@@ -32,7 +32,7 @@ public class DefaultBuildTask implements BuildTask {
         return path;
     }
 
-    public TaskResult getTaskResult() {
+    public TaskResult getResult() {
         return taskResult;
     }
 }

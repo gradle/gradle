@@ -58,7 +58,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         result.tasks.collect { it.path } == [':verifyProjectProperties']
         result.taskPaths(SUCCESS) == [':verifyProjectProperties']
         result.taskPaths(SKIPPED).empty
-        result.taskPaths(UPTODATE).empty
+        result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
     }
 
@@ -90,7 +90,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         result.tasks.collect { it.path } == [':verifyProjectProperties']
         result.taskPaths(SUCCESS) == [':verifyProjectProperties']
         result.taskPaths(SKIPPED).empty
-        result.taskPaths(UPTODATE).empty
+        result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
 
         cleanup:

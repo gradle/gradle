@@ -38,12 +38,12 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
 
         then:
         noExceptionThrown()
-        !result.standardOutput.contains(':helloWorld')
-        result.standardError.contains('Could not compile build file')
+        !result.output.contains(':helloWorld')
+        result.errorOutput.contains('Could not compile build file')
         result.tasks.empty
         result.taskPaths(SUCCESS).empty
         result.taskPaths(SKIPPED).empty
-        result.taskPaths(UPTODATE).empty
+        result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
     }
 
@@ -63,12 +63,12 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
 
         then:
         noExceptionThrown()
-        !result.standardOutput.contains(':helloWorld')
-        result.standardError.contains('Could not find method doSomething()')
+        !result.output.contains(':helloWorld')
+        result.errorOutput.contains('Could not find method doSomething()')
         result.tasks.empty
         result.taskPaths(SUCCESS).empty
         result.taskPaths(SKIPPED).empty
-        result.taskPaths(UPTODATE).empty
+        result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
     }
 

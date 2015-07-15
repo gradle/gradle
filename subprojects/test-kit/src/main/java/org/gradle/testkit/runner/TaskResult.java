@@ -17,13 +17,32 @@
 package org.gradle.testkit.runner;
 
 /**
- * The result of a task execution.
+ * The result of an attempt to execute a task.
  *
  * @since 2.6
+ * @see BuildTask#getResult()
  */
 public enum TaskResult {
+
+    /**
+     * That task was executed without failure.
+     */
     SUCCESS,
+
+    /**
+     * The task attempted to execute, but did not complete successfully.
+     */
     FAILED,
-    UPTODATE,
+
+    /**
+     * The task was not executed, as its output was up to date.
+     */
+    UP_TO_DATE,
+
+    /**
+     * The task was not executed due to some reason.
+     *
+     * A task may be skipped if it had no work to do (e.g. no source to compile).
+     */
     SKIPPED
 }

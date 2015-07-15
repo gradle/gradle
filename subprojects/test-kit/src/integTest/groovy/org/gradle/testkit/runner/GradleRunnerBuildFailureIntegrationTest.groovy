@@ -38,13 +38,13 @@ class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegr
 
         then:
         noExceptionThrown()
-        result.standardOutput.contains(':helloWorld FAILED')
-        result.standardError.contains("Execution failed for task ':helloWorld'")
-        result.standardError.contains('Expected exception')
+        result.output.contains(':helloWorld FAILED')
+        result.errorOutput.contains("Execution failed for task ':helloWorld'")
+        result.errorOutput.contains('Expected exception')
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS).empty
         result.taskPaths(SKIPPED).empty
-        result.taskPaths(UPTODATE).empty
+        result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED) == [':helloWorld']
     }
 

@@ -32,13 +32,13 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
 
         then:
         noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
+        result.output.contains(':helloWorld')
+        result.output.contains('Hello world!')
+        !result.errorOutput
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
         result.taskPaths(SKIPPED).empty
-        result.taskPaths(UPTODATE).empty
+        result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
     }
 
@@ -67,13 +67,13 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
 
         then:
         noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
+        result.output.contains(':helloWorld')
+        result.output.contains('Hello world!')
+        !result.errorOutput
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
         result.taskPaths(SKIPPED).empty
-        result.taskPaths(UPTODATE).empty
+        result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
     }
 
@@ -98,15 +98,15 @@ public class MyApp {
 
         then:
         noExceptionThrown()
-        result.standardOutput.contains(':buildSrc:compileJava')
-        result.standardOutput.contains(':buildSrc:build')
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
+        result.output.contains(':buildSrc:compileJava')
+        result.output.contains(':buildSrc:build')
+        result.output.contains(':helloWorld')
+        result.output.contains('Hello world!')
+        !result.errorOutput
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
         result.taskPaths(SKIPPED).empty
-        result.taskPaths(UPTODATE).empty
+        result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
     }
 

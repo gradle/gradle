@@ -36,11 +36,11 @@ public class DefaultBuildResult implements BuildResult {
         this.tasks = tasks;
     }
 
-    public String getStandardOutput() {
+    public String getOutput() {
         return standardOutput;
     }
 
-    public String getStandardError() {
+    public String getErrorOutput() {
         return standardError;
     }
 
@@ -51,7 +51,7 @@ public class DefaultBuildResult implements BuildResult {
     public List<BuildTask> tasks(final TaskResult result) {
         return CollectionUtils.filter(tasks, new Spec<BuildTask>() {
             public boolean isSatisfiedBy(BuildTask element) {
-                return element.getTaskResult() == result;
+                return element.getResult() == result;
             }
         });
     }

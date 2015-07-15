@@ -110,7 +110,7 @@ public class GradleExecutor {
             } else if (isSkipped(result)) {
                 return createBuildTask(taskPath, SKIPPED);
             } else if (isUpToDate(result)) {
-                return createBuildTask(taskPath, UPTODATE);
+                return createBuildTask(taskPath, UP_TO_DATE);
             }
 
             return createBuildTask(taskPath, SUCCESS);

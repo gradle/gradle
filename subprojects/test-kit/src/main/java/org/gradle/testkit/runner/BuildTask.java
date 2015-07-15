@@ -17,22 +17,30 @@
 package org.gradle.testkit.runner;
 
 /**
- * Representation of a build task.
+ * A task that was executed when running a specific build.
  *
  * @since 2.6
+ * @see BuildResult
  */
 public interface BuildTask {
+
     /**
-     * The task path.
+     * The unique path of the task.
+     * <p>
+     * The task path is a combination of its enclosing project's path and its name.
+     * For example, in multi project build the {@code bar} task of the {@code foo} project has a path of {@code :foo:bar}.
+     * In a single project build, the {@code bar} task of the lone project has a path of {@code :bar}.
+     * <p>
+     * This value corresponds to the value output by Gradle for the task during its normal progress logging.
      *
      * @return the task path
      */
     String getPath();
 
     /**
-     * The task result indicating its status.
+     * The result status of the task.
      *
-     * @return the task result
+     * @return the result status
      */
-    TaskResult getTaskResult();
+    TaskResult getResult();
 }
