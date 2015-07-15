@@ -212,7 +212,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                             message = String.format("'%s'", value);
                         }
                         if (incompatibleDimensionTypes.contains(dimension)) {
-                            message = String.format("%s but with an incompatible type (expected '%s' was '%s')", message, variantsMetaData.getDimensionType(dimension).getType().getTypeName(), md.getDimensionType(dimension).getType().getTypeName());
+                            message = String.format("%s but with an incompatible type (expected '%s' was '%s')", message, variantsMetaData.getDimensionType(dimension).getType().toString(), md.getDimensionType(dimension).getType().toString());
                         }
                         variants.put(dimension, message);
                     }
