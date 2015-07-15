@@ -23,17 +23,19 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GFileUtils
 
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
-    public static final String[] GROOVY_SRC_DIR = ['src', 'test', 'groovy'] as String[]
+    public static final String[] GROOVY_SRC_PATH = ['src', 'test', 'groovy'] as String[]
     public static final String[] TEST_CLASS_PACKAGE = ['org', 'gradle', 'test'] as String[]
+    public static final String[] TEST_CLASS_PATH = GROOVY_SRC_PATH + TEST_CLASS_PACKAGE
+    File functionalTestClassDir
 
     def setup() {
         executer.requireGradleHome()
+        functionalTestClassDir = testDirectoryProvider.createDir(TEST_CLASS_PATH)
+        buildFile << buildFileForGroovyProject()
     }
 
     def "use of GradleRunner API in test class without declaring test-kit dependency causes compilation error"() {
         given:
-        buildFile << buildFileForGroovyProject()
-        File groovySrcDir = testDirectoryProvider.createDir(GROOVY_SRC_DIR + TEST_CLASS_PACKAGE)
         GFileUtils.writeFile("""package org.gradle.test
 
 import org.gradle.testkit.runner.GradleRunner
@@ -47,7 +49,7 @@ class BuildLogicFunctionalTest {
         noExceptionThrown()
     }
 }
-""", new File(groovySrcDir, 'BuildLogicFunctionalTest.groovy'))
+""", new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
 
         when:
         ExecutionFailure failure = fails('build')
@@ -61,9 +63,7 @@ class BuildLogicFunctionalTest {
     }
 
     def "successfully execute functional test and verify expected result"() {
-        buildFile << buildFileForGroovyProject()
         buildFile << gradleTestKitDependency()
-        File groovySrcDir = testDirectoryProvider.createDir(GROOVY_SRC_DIR + TEST_CLASS_PACKAGE)
         GFileUtils.writeFile("""package org.gradle.test
 
 import org.gradle.testkit.runner.GradleRunner
@@ -105,7 +105,7 @@ class BuildLogicFunctionalTest {
         result.tasks(FAILED).empty
     }
 }
-""", new File(groovySrcDir, 'BuildLogicFunctionalTest.groovy'))
+""", new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
 
         when:
         ExecutionResult result = succeeds('build')
@@ -116,10 +116,8 @@ class BuildLogicFunctionalTest {
     }
 
     def "functional test fails due to invalid JVM parameter for test execution"() {
-        buildFile << buildFileForGroovyProject()
         buildFile << gradleTestKitDependency()
         GFileUtils.writeFile('org.gradle.jvmargs=-unknown', testDirectory.file('gradle.properties'))
-        File groovySrcDir = testDirectoryProvider.createDir(GROOVY_SRC_DIR + TEST_CLASS_PACKAGE)
         GFileUtils.writeFile("""package org.gradle.test
 
 import org.gradle.testkit.runner.GradleRunner
@@ -156,7 +154,7 @@ class BuildLogicFunctionalTest {
         notExceptionThrown()
     }
 }
-""", new File(groovySrcDir, 'BuildLogicFunctionalTest.groovy'))
+""", new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
 
         when:
         ExecutionFailure failure = fails('build')
