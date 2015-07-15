@@ -51,6 +51,28 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
         result.taskPaths(FAILED).empty
     }
 
+    def "executed buildSrc tasks are never listed in result"() {
+        given:
+        testProjectDir.createDir('buildSrc')
+        buildFile << helloWorldTask()
+
+        when:
+        GradleRunner gradleRunner = runner('helloWorld')
+        BuildResult result = gradleRunner.build()
+
+        then:
+        noExceptionThrown()
+        result.standardOutput.contains(':buildSrc:compileJava UP-TO-DATE')
+        result.standardOutput.contains(':buildSrc:build')
+        result.standardOutput.contains('Hello world!')
+        !result.standardError
+        result.tasks.collect { it.path } == [':helloWorld']
+        result.taskPaths(SUCCESS) == [':helloWorld']
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UP_TO_DATE).empty
+        result.taskPaths(FAILED).empty
+    }
+
     def "task order represents execution order"() {
         when:
         file("settings.gradle") << "include 'a', 'b', 'c', 'd'"
