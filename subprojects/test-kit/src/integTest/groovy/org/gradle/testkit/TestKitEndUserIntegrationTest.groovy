@@ -30,6 +30,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireGradleHome()
+        executer.requireIsolatedDaemons()
         functionalTestClassDir = testDirectoryProvider.createDir(TEST_CLASS_PATH)
         buildFile << buildFileForGroovyProject()
     }
@@ -58,8 +59,7 @@ class BuildLogicFunctionalTest {
         result.executedTasks.contains(':compileTestGroovy')
         !result.skippedTasks.contains(':compileTestGroovy')
         failure.error.contains("unable to resolve class $GradleRunner.name")
-        failure.error.contains("""Execution failed for task ':compileTestGroovy'.
-> Compilation failed; see the compiler error output for details.""")
+        failure.error.contains('Compilation failed; see the compiler error output for details.')
     }
 
     def "successfully execute functional test and verify expected result"() {
