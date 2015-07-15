@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.internal.id.UUIDGenerator
 import org.gradle.testkit.runner.daemon.GradleDaemon
 import org.gradle.testkit.runner.daemon.GradleDaemonAnalyzer
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
@@ -100,9 +101,9 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         GFileUtils.forceDelete(initScriptFile)
     }
 
-    def "daemon process is reused for test execution if one already exists"() {
+    def "daemon process dedicated to test execution is reused if one already exists"() {
         given:
-        File customGradleUserHomeDir = new File(testUserHomeDir.root, UUID.randomUUID().toString())
+        File customGradleUserHomeDir = new File(testUserHomeDir.root, new UUIDGenerator().generateId().toString())
         GradleDaemonAnalyzer gradleDaemonAnalyzer = new GradleDaemonAnalyzer(new File(customGradleUserHomeDir, 'daemon'), buildContext.version.version)
         gradleDaemonAnalyzer.daemons.empty
         buildFile << helloWorldTask()

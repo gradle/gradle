@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.daemon;
+package org.gradle.testkit.runner.daemon
 
-public class GradleDaemon {
-    private final String pid;
+import groovy.transform.TupleConstructor
 
-    public GradleDaemon(String pid) {
-        this.pid = pid;
-    }
-
-    public String getPid() {
-        return pid;
-    }
+@TupleConstructor
+class GradleDaemon {
+    final String pid
 }
