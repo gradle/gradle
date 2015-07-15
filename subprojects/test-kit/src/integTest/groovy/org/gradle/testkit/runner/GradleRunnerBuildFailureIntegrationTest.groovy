@@ -122,4 +122,25 @@ Unexpected exception
         TextUtil.normaliseLineSeparators(t.message) ==~ expectedMessage
     }
 
+    def "execute build without assigning a project directory"() {
+        String expectedErrorMessage = 'Please specify a project directory before executing the build'
+
+        given:
+        GradleRunner gradleRunner = runner('helloWorld')
+        gradleRunner.withProjectDir(null)
+
+        when:
+        gradleRunner.build()
+
+        then:
+        Throwable t = thrown(IllegalStateException)
+        t.message == expectedErrorMessage
+
+        when:
+        gradleRunner.buildAndFail()
+
+        then:
+        t = thrown(IllegalStateException)
+        t.message == expectedErrorMessage
+    }
 }

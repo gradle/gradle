@@ -143,6 +143,10 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private BuildResult run(Action<GradleExecutionResult> resultVerification) {
+        if(projectDirectory == null) {
+            throw new IllegalStateException("Please specify a project directory before executing the build");
+        }
+
         GradleExecutionResult execResult = gradleExecutor.run(
             gradleHome,
             gradleUserHomeDir,
