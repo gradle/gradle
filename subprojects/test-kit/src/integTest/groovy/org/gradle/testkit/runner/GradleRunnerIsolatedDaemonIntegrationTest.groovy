@@ -127,9 +127,6 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         List<GradleDaemon> laterDaemons = gradleDaemonAnalyzer.daemons
         laterDaemons.size() == 1
         daemonPidInUse == laterDaemons[0].pid
-
-        cleanup:
-        GFileUtils.forceDelete(customGradleUserHomeDir)
     }
 
     private File writeGradlePropertiesFile(File gradleUserHomeDir, String content) {
