@@ -16,11 +16,16 @@
 
 package org.gradle.jvm.internal.model;
 
+import com.google.common.base.Function;
 import org.gradle.jvm.JarBinarySpec;
+import org.gradle.jvm.internal.JarBinarySpecInternal;
+import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.ModelStructSchema;
 import org.gradle.model.internal.manage.schema.extract.ManagedImplTypeSchemaExtractionStrategySupport;
+import org.gradle.model.internal.manage.schema.extract.ManagedProxyClassGenerator;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionContext;
 import org.gradle.model.internal.type.ModelType;
 
@@ -28,6 +33,8 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 public class JarBinarySpecSpecializationSchemaExtractionStrategy extends ManagedImplTypeSchemaExtractionStrategySupport {
+
+    private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
 
     @Override
     protected boolean isTarget(ModelType<?> type) {
@@ -47,7 +54,13 @@ public class JarBinarySpecSpecializationSchemaExtractionStrategy extends Managed
     }
 
     @Override
-    protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, Class<R> concreteClass) {
-        throw new UnsupportedOperationException();
+    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, Class<R> concreteClass) {
+        Class<? extends R> implClass = classGenerator.generate(concreteClass, JarBinarySpecInternal.class);
+        return ModelSchema.struct(type, properties, implClass, new Function<ModelStructSchema<R>, NodeInitializer>() {
+            @Override
+            public NodeInitializer apply(ModelStructSchema<R> schema) {
+                return new JarBinarySpecSpecializationModelInitializer<R>(schema, store);
+            }
+        });
     }
 }
