@@ -41,14 +41,17 @@ Please see section [Verification of downloaded Gradle distributions](userguide/g
 
 This feature was contributed by [Dominik Schürmann](https://github.com/dschuermann).
 
-### Gradle test-kit
+### Support for functionally testing Gradle plugins
 
-One of the features the community has been yearning for a long time is the ability to write and execute tests for Gradle build logic. The Gradle team is excited to have started this work with this release.
-Gradle now supports a test-kit for writing functional tests for build scripts agnostic of the testing framework. The execution of the tests is performed by the Tooling API. This functionality is a
-tremendous step toward the capability of rigorously testing custom extensions to Gradle, a use case often encountered by build authors and Open Source plugin developers. Future releases will increase
-the support for other features.
+This release brings the initial version of, the long awaited, official support for functionally testing Gradle plugins. 
+That is, being able to programmatically execute a contrived build leveraging a plugin under development as part of the plugin's build.
+This functionality is being delivered as part of the new Gradle TestKit.
+ 
+Many community members stepped up and filled the void created by the absence of a built in way to do this.
+Notably, the folks at [Netflix](http://netflix.com/) contributed the very popular [Nebula Test](https://github.com/nebula-plugins/nebula-test) as part of their [Nebula Project](https://github.com/nebula-plugins).
+The functionality provided by this and other similar projects will over time be rolled into the Gradle TestKit.
 
-See the new User Guide section about using the [test-kit](userguide/test_kit.html).
+See the [new Gradle TestKit user guide chapter](userguide/test_kit.html) for more information.
 
 ## Promoted features
 
