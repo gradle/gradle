@@ -143,4 +143,23 @@ Unexpected exception
         t = thrown(IllegalStateException)
         t.message == expectedErrorMessage
     }
+
+    def "build execution for non-existent task"() {
+        given:
+        buildFile << helloWorldTask()
+
+        when:
+        GradleRunner gradleRunner = runner('doesNotExist')
+        BuildResult result = gradleRunner.buildAndFail()
+
+        then:
+        noExceptionThrown()
+        result.standardOutput.contains('BUILD FAILED')
+        result.standardError.contains("Task 'doesNotExist' not found in root project")
+        result.tasks.empty
+        result.taskPaths(SUCCESS).empty
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UP_TO_DATE).empty
+        result.taskPaths(FAILED).empty
+    }
 }
