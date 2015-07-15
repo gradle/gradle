@@ -28,7 +28,7 @@ class TestKitSamplesIntegrationTest extends AbstractIntegrationSpec {
         executer.requireGradleHome()
     }
 
-    @UsesSample("testKit/testKitJUnit")
+    @UsesSample("testKit/testKitJunit")
     def junit() {
         expect:
         executer.inDirectory(sample.dir)
