@@ -79,8 +79,6 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             //Hard to say what effect they have on the incremental build
             int transitiveStep = 3;
             double recompileAllFraction = 0.5d;
-            boolean recompileOnMacroDef = true;
-            boolean nameHashing = true;
             boolean relationsDebug = false;
             boolean apiDebug = false;
             int apiDiffContextSize = 5;
@@ -88,7 +86,10 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             boolean transactional = false;
             Option<File> backup = Option.empty();
 
-            return new IncOptions(transitiveStep, recompileAllFraction, relationsDebug, apiDebug, apiDiffContextSize, apiDumpDirectory, transactional, backup, recompileOnMacroDef, nameHashing);
+            // We need to use the deprecated constructor as it is compatible with certain previous versions of the Zince compiler
+            @SuppressWarnings("deprecation")
+            IncOptions options = new IncOptions(transitiveStep, recompileAllFraction, relationsDebug, apiDebug, apiDiffContextSize, apiDumpDirectory, transactional, backup);
+            return options;
         }
 
         static com.typesafe.zinc.Compiler createCompiler(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
