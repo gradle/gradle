@@ -22,6 +22,7 @@ import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.internal.*
+import org.gradle.messaging.remote.internal.PlaceholderException
 
 class DaemonMessageSerializerTest extends SerializerSpec {
     def serializer = DaemonMessageSerializer.create()
@@ -122,6 +123,23 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result.timestamp == 321L
         result.category == "category"
         result.status == "status"
+    }
+
+    def "can serialize Failure messages"() {
+        expect:
+        def failure = new RuntimeException()
+        def message = new Failure(failure)
+        def result = serialize(message, serializer) // Throwable serialization is not more efficient than default
+        result instanceof Failure
+        result.value.getClass() == RuntimeException
+
+        def unserializable = new IOException() {
+            def thing = new Object()
+        }
+        def message2 = new Failure(unserializable)
+        def result2 = serialize(message2, serializer)
+        result2 instanceof Failure
+        result2.value instanceof PlaceholderException
     }
 
     def "can serialize other messages"() {

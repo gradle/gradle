@@ -155,7 +155,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         connection.dispatch(new Finished());
 
         if (result instanceof Failure) {
-            // Could potentially distinguish between CommandFailure and DaemonFailure here.
             Throwable failure = ((Failure) result).getValue();
             if (failure instanceof DaemonStoppedException && cancellationToken.isCancellationRequested()) {
                 LOGGER.error("Daemon was stopped to handle build cancel request.");

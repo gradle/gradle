@@ -27,10 +27,12 @@ import java.util.List;
 public class DaemonMessageSerializer {
     public static Serializer<Object> create() {
         BaseSerializerFactory factory = new BaseSerializerFactory();
+        Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
+        Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         DefaultSerializerRegistry<Object> registry = new DefaultSerializerRegistry<Object>();
         registry.register(BuildEvent.class, new BuildEventSerializer());
-        Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
-        registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, factory.getSerializerFor(Throwable.class)));
+        registry.register(Failure.class, new FailureSerializer(throwableSerializer));
+        registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
         registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
         registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
         registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
@@ -38,6 +40,24 @@ public class DaemonMessageSerializer {
         registry.useJavaSerialization(Message.class);
         registry.useJavaSerialization(OutputEvent.class);
         return registry.build();
+    }
+
+    private static class FailureSerializer implements Serializer<Failure> {
+        private final Serializer<Throwable> throwableSerializer;
+
+        public FailureSerializer(Serializer<Throwable> throwableSerializer) {
+            this.throwableSerializer = throwableSerializer;
+        }
+
+        @Override
+        public void write(Encoder encoder, Failure failure) throws Exception {
+            throwableSerializer.write(encoder, failure.getValue());
+        }
+
+        @Override
+        public Failure read(Decoder decoder) throws Exception {
+            return new Failure(throwableSerializer.read(decoder));
+        }
     }
 
     private static class BuildEventSerializer implements Serializer<BuildEvent> {

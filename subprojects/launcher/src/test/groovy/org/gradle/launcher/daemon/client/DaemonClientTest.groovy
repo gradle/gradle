@@ -16,10 +16,10 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.api.BuildCancelledException
-import org.gradle.internal.invocation.BuildAction
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.id.IdGenerator
+import org.gradle.internal.invocation.BuildAction
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.daemon.protocol.*
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException
@@ -63,7 +63,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * connector.connect(compatibilitySpec) >> connection
         _ * connection.daemon
         1 * connection.dispatch({it instanceof Build})
-        2 * connection.receive() >>> [Stub(BuildStarted), new CommandFailure(failure)]
+        2 * connection.receive() >>> [Stub(BuildStarted), new Failure(failure)]
         1 * connection.dispatch({it instanceof CloseInput})
         1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
@@ -89,7 +89,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         }
 
         1 * connection.dispatch({it instanceof Build})
-        2 * connection.receive() >>> [ Stub(BuildStarted), new CommandFailure(new DaemonStoppedException())]
+        2 * connection.receive() >>> [ Stub(BuildStarted), new Failure(new DaemonStoppedException())]
         1 * connection.dispatch({it instanceof Cancel})
         1 * connection.dispatch({it instanceof CloseInput})
         1 * connection.dispatch({it instanceof Finished})
@@ -122,7 +122,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         1 * cancellationToken.removeCallback(_)
 
         1 * connection.dispatch({it instanceof Build})
-        2 * connection.receive() >>> [ Stub(BuildStarted), new CommandFailure(cancelledException)]
+        2 * connection.receive() >>> [ Stub(BuildStarted), new Failure(cancelledException)]
         1 * connection.dispatch({it instanceof Cancel})
         1 * connection.dispatch({it instanceof CloseInput})
         1 * connection.dispatch({it instanceof Finished})
