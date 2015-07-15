@@ -54,7 +54,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(ComponentSpec.class), JarBinaryRules.class);
+        modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(JarBinarySpec.class), JarBinaryRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
