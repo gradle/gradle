@@ -44,6 +44,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaData;
+import org.gradle.language.base.internal.model.VariantsMetaDataHelper;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
@@ -135,7 +136,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 if (jvmSpec.getTargetPlatform().getTargetCompatibility().compareTo(javaPlatform.getTargetCompatibility()) <= 0) {
                     VariantsMetaData binaryVariants = DefaultVariantsMetaData.extractFrom(jvmSpec);
                     Set<String> commonsDimensions = Sets.intersection(resolveDimensions, binaryVariants.getNonNullDimensions());
-                    boolean matching = incompatibleDimensionTypes(commonsDimensions, binaryVariants).isEmpty();
+                    boolean matching = VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData, binaryVariants, commonsDimensions).isEmpty();
                     if (matching) {
                         for (String dimension : commonsDimensions) {
                             if (!isPlatformDimension(dimension)) {
@@ -159,18 +160,6 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
         JavaPlatform first = platformToBinary.keySet().last();
         return platformToBinary.get(first);
-    }
-
-    private Set<String> incompatibleDimensionTypes(Set<String> testedDimensions, VariantsMetaData binaryVariant) {
-        Set<String> result = Sets.newHashSet();
-        for (String commonDimension : testedDimensions) {
-            Class<?> resolveType = variantsMetaData.getDimensionType(commonDimension);
-            Class<?> binaryVariantType = binaryVariant.getDimensionType(commonDimension);
-            if (binaryVariantType != null && !resolveType.isAssignableFrom(binaryVariantType)) {
-                result.add(commonDimension);
-            }
-        }
-        return result;
     }
 
     private LibraryResolutionResult doResolve(String projectPath,
@@ -259,7 +248,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             HashMultimap<String, String> variants = HashMultimap.create();
             for (BinarySpec spec : allBinaries) {
                 VariantsMetaData md = DefaultVariantsMetaData.extractFrom(spec);
-                Set<String> incompatibleDimensionTypes = incompatibleDimensionTypes(resolveDimensions, md);
+                Set<String> incompatibleDimensionTypes = VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData, md, resolveDimensions);
                 for (String dimension : resolveDimensions) {
                     String value = md.getValueAsString(dimension);
                     if (value != null) {
@@ -270,7 +259,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                             message = String.format("'%s'", value);
                         }
                         if (incompatibleDimensionTypes.contains(dimension)) {
-                            message = String.format("%s but with an incompatible type (expected '%s' was '%s')", message, variantsMetaData.getDimensionType(dimension).getName(), md.getDimensionType(dimension).getName());
+                            message = String.format("%s but with an incompatible type (expected '%s' was '%s')", message, variantsMetaData.getDimensionType(dimension).getType().getTypeName(), md.getDimensionType(dimension).getType().getTypeName());
                         }
                         variants.put(dimension, message);
                     }

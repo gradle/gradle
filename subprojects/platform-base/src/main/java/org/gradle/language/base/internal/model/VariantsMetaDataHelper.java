@@ -15,21 +15,21 @@
  */
 package org.gradle.language.base.internal.model;
 
-import org.gradle.api.Named;
+import com.google.common.collect.Sets;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Set;
 
-public interface VariantsMetaData {
-
-    Set<String> getAllDimensions();
-
-    Set<String> getNonNullDimensions();
-
-    String getValueAsString(String dimension);
-
-    <T extends Named> T getValueAsType(Class<T> clazz, String dimension);
-
-    ModelType<?> getDimensionType(String dimension);
-
+public class VariantsMetaDataHelper {
+    public static Set<String> incompatibleDimensionTypes(VariantsMetaData reference, VariantsMetaData candidate, Set<String> testedDimensions) {
+        Set<String> result = Sets.newHashSet();
+        for (String commonDimension : testedDimensions) {
+            ModelType<?> resolveType = reference.getDimensionType(commonDimension);
+            ModelType<?> binaryVariantType = candidate.getDimensionType(commonDimension);
+            if (binaryVariantType != null && !resolveType.isAssignableFrom(binaryVariantType)) {
+                result.add(commonDimension);
+            }
+        }
+        return result;
+    }
 }

@@ -38,6 +38,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.base.internal.model.VariantsMetaData
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.ComponentSpecContainer
 import org.gradle.platform.base.LibrarySpec
 import spock.lang.Specification
@@ -69,7 +70,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
         variants.getValueAsType(JavaPlatform, 'targetPlatform') >> platform
         variants.nonNullDimensions >> ['targetPlatform']
         variants.allDimensions >> ['targetPlatform']
-        variants.getDimensionType(_) >> JavaPlatform
+        variants.getDimensionType(_) >> ModelType.of(JavaPlatform)
         resolver = new LocalLibraryDependencyResolver(projectModelResolver, variants)
         metadata = Mock(DependencyMetaData)
         selector = Mock(LibraryComponentSelector)

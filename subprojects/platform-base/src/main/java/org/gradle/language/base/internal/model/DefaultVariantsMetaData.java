@@ -23,6 +23,7 @@ import org.gradle.api.Named;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
 import org.gradle.internal.reflect.PropertyDetails;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.Variant;
 
@@ -34,9 +35,9 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
     private final Map<String, Object> variants;
     private final Set<String> allVariantDimensions;
     private final Set<String> nonNullVariantDimensions;
-    private final Map<String, Class<?>> variantDimensionTypes;
+    private final Map<String, ModelType<?>> variantDimensionTypes;
 
-    private DefaultVariantsMetaData(Map<String, Object> variants, Map<String, Class<?>> variantDimensionTypes) {
+    private DefaultVariantsMetaData(Map<String, Object> variants, Map<String, ModelType<?>> variantDimensionTypes) {
         this.variants = variants;
         this.allVariantDimensions = variants.keySet();
         this.nonNullVariantDimensions = ImmutableSet.copyOf(Maps.filterEntries(variants, new Predicate<Map.Entry<String, Object>>() {
@@ -50,7 +51,7 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
 
     public static VariantsMetaData extractFrom(BinarySpec spec) {
         Map<String, Object> variants = Maps.newHashMap();
-        Map<String, Class<?>> dimensionTypes = Maps.newHashMap();
+        Map<String, ModelType<?>> dimensionTypes = Maps.newHashMap();
         Class<? extends BinarySpec> specClass = spec.getClass();
         Set<Class<?>> interfaces = ClassInspector.inspect(specClass).getSuperTypes();
         for (Class<?> intf : interfaces) {
@@ -61,7 +62,7 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
                 for (Method getter : getters) {
                     if (getter.getAnnotation(Variant.class) != null) {
                         extractVariant(variants, spec, property.getName(), getter);
-                        dimensionTypes.put(property.getName(), getter.getReturnType());
+                        dimensionTypes.put(property.getName(), ModelType.of(getter.getReturnType()));
                     }
                 }
             }
@@ -116,7 +117,7 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
     }
 
     @Override
-    public Class<?> getDimensionType(String dimension) {
+    public ModelType<?> getDimensionType(String dimension) {
         return variantDimensionTypes.get(dimension);
     }
 }
