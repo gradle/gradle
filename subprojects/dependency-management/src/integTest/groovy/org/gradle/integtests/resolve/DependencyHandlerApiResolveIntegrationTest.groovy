@@ -55,7 +55,7 @@ class DependencyHandlerApiResolveIntegrationTest extends DaemonIntegrationSpec {
                     def classFiles = jarFileEntries.findAll { it.name.endsWith('.class') }
 
                     classFiles.each {
-                        assert it.name.startsWith('org/gradle/testkit/functional')
+                        assert it.name.startsWith('org/gradle/testkit')
                     }
                 }
             }

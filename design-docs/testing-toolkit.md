@@ -146,7 +146,7 @@ Add methods to `BuildResult` to query the result.
 * A build can be executed with more than one task.
     * Tasks that are marked SKIPPED, UP-TO-DATE or FAILED can be retrieved as skipped tasks from `GradleRunner`.
     * All successful, failed or skipped tasks can be retrieved as executed tasks from `GradleRunner`.
-* A build that has `buildSrc` project does not list executed tasks from that project when retrieved from `GradleRunner`.
+* A build that has  `buildSrc` project does not list executed tasks from that project when retrieved from `GradleRunner`.
 
 ## Story: Test daemons are isolated from the environment they are running in
 
