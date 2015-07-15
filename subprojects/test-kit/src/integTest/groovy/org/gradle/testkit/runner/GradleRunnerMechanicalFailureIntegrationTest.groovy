@@ -78,8 +78,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.arguments << '--unknown'
+        GradleRunner gradleRunner = runner('helloWorld', '--unknown')
         gradleRunner.build()
 
         then:

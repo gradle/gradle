@@ -60,6 +60,7 @@ public interface BuildResult {
      * The order of the tasks corresponds to the order in which the tasks were started.
      * If executing a parallel enabled build, the order is not guaranteed to be deterministic.
      * <p>
+     * The returned list is an unmodifiable view of items.
      * The returned list will be empty if no tasks were executed.
      * This can occur if the build fails early, due to a build script failing to compile for example.
      *
@@ -70,6 +71,7 @@ public interface BuildResult {
     /**
      * The subset of {@link #getTasks()} that had the given result.
      * <p>
+     * The returned list is an unmodifiable view of items.
      * The returned list will be empty if no tasks were executed that completed with the given result.
      *
      * @param result the desired result
@@ -80,6 +82,7 @@ public interface BuildResult {
     /**
      * The paths of the subset of {@link #getTasks()} that had the given result.
      * <p>
+     * The returned list is an unmodifiable view of items.
      * The returned list will be empty if no tasks were executed that completed with the given result.
      *
      * @param result the desired result

@@ -118,6 +118,8 @@ public abstract class GradleRunner {
      * Effectively, the command line arguments to Gradle.
      * This includes all tasks, flags, properties etc.
      *
+     * The returned list is an unmodifiable view of items.
+     *
      * @return the build arguments
      */
     public abstract List<String> getArguments();

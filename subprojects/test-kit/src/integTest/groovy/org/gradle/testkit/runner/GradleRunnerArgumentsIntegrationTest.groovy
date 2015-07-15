@@ -85,8 +85,7 @@ class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationT
         """
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.arguments.addAll(arguments)
+        GradleRunner gradleRunner = runner(['helloWorld'] + arguments)
         BuildResult result = gradleRunner.build()
 
         then:

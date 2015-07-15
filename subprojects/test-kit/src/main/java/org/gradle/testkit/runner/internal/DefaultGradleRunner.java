@@ -27,6 +27,7 @@ import org.gradle.testkit.runner.UnexpectedBuildSuccess;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultGradleRunner extends GradleRunner {
@@ -64,7 +65,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     public List<String> getArguments() {
-        return arguments;
+        return Collections.unmodifiableList(arguments);
     }
 
     public GradleRunner withArguments(List<String> arguments) {
@@ -73,7 +74,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     public GradleRunner withArguments(String... arguments) {
-        return withArguments(new ArrayList<String>(Arrays.asList(arguments)));
+        return withArguments(Arrays.asList(arguments));
     }
 
     public GradleRunner withJvmArguments(List<String> jvmArguments) {
@@ -82,7 +83,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     public GradleRunner withJvmArguments(String... jvmArguments) {
-        return withJvmArguments(new ArrayList<String>(Arrays.asList(jvmArguments)));
+        return withJvmArguments(Arrays.asList(jvmArguments));
     }
 
     public BuildResult build() {

@@ -23,6 +23,7 @@ import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskResult;
 import org.gradle.util.CollectionUtils;
 
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultBuildResult implements BuildResult {
@@ -45,11 +46,11 @@ public class DefaultBuildResult implements BuildResult {
     }
 
     public List<BuildTask> getTasks() {
-        return tasks;
+        return Collections.unmodifiableList(tasks);
     }
 
     public List<BuildTask> tasks(final TaskResult result) {
-        return CollectionUtils.filter(tasks, new Spec<BuildTask>() {
+        return CollectionUtils.filter(getTasks(), new Spec<BuildTask>() {
             public boolean isSatisfiedBy(BuildTask element) {
                 return element.getResult() == result;
             }

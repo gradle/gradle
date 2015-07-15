@@ -39,9 +39,13 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
         testProjectDir.file(path)
     }
 
-    protected GradleRunner runner(String... tasks) {
+    protected GradleRunner runner(List<String> arguments) {
+        return runner(arguments as String[])
+    }
+
+    protected GradleRunner runner(String... arguments) {
         def gradleRunner = new DefaultGradleRunner(buildContext.gradleHomeDir)
-        gradleRunner.withGradleUserHomeDir(buildContext.gradleUserHomeDir).withProjectDir(testProjectDir.testDirectory).withArguments(tasks)
+        gradleRunner.withGradleUserHomeDir(buildContext.gradleUserHomeDir).withProjectDir(testProjectDir.testDirectory).withArguments(arguments)
         assert gradleRunner.gradleUserHomeDir == buildContext.gradleUserHomeDir
         assert gradleRunner.projectDir == testProjectDir.testDirectory
         gradleRunner
