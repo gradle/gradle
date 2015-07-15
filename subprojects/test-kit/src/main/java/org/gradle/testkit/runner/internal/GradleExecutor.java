@@ -18,6 +18,7 @@ package org.gradle.testkit.runner.internal;
 
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskResult;
+import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -57,7 +58,7 @@ public class GradleExecutor {
             launcher.setJvmArguments(jvmArgs.toArray(new String[jvmArgs.size()]));
 
             launcher.run();
-        } catch (RuntimeException t) {
+        } catch (BuildException t) {
             return new GradleExecutionResult(standardOutput, standardError, tasks, t);
         } finally {
             if (connection != null) {

@@ -16,6 +16,7 @@
 
 package org.gradle.sample;
 
+// START SNIPPET functional-test-junit
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.junit.Before;
@@ -32,9 +33,8 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.gradle.testkit.runner.TaskResult;
+import static org.gradle.testkit.runner.TaskResult.*;
 
-// START SNIPPET functional-test-junit
 public class BuildLogicFunctionalTest {
     @Rule public final TemporaryFolder testProjectDir = new org.junit.rules.TemporaryFolder();
     private File buildFile;
@@ -54,16 +54,16 @@ public class BuildLogicFunctionalTest {
         writeFile(buildFile, buildFileContent);
 
         BuildResult result = GradleRunner.create()
-            .withWorkingDir(testProjectDir.getRoot())
+            .withProjectDir(testProjectDir.getRoot())
             .withArguments("helloWorld")
             .build();
 
         assertTrue(result.getStandardOutput().contains("Hello world!"));
         assertEquals(result.getStandardError(), "");
-        assertEquals(result.taskPaths(TaskResult.SUCCESS), Collections.singletonList(":helloWorld"));
-        assertEquals(result.taskPaths(TaskResult.SKIPPED), Collections.emptyList());
-        assertEquals(result.taskPaths(TaskResult.UPTODATE), Collections.emptyList());
-        assertEquals(result.taskPaths(TaskResult.FAILED), Collections.emptyList());
+        assertEquals(result.taskPaths(SUCCESS), Collections.singletonList(":helloWorld"));
+        assertEquals(result.taskPaths(SKIPPED), Collections.emptyList());
+        assertEquals(result.taskPaths(UP_TO_DATE), Collections.emptyList());
+        assertEquals(result.taskPaths(FAILED), Collections.emptyList());
     }
 
     private void writeFile(File destination, String content) throws IOException {

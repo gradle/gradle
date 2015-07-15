@@ -16,13 +16,13 @@
 
 package org.gradle.sample
 
+// START SNIPPET functional-test-spock
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.TaskResult
+import static org.gradle.testkit.runner.TaskResult.*
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
-// START SNIPPET functional-test-spock
 class BuildLogicFunctionalTest extends Specification {
     @Rule final TemporaryFolder testProjectDir = new org.junit.rules.TemporaryFolder()
     File buildFile
@@ -43,17 +43,17 @@ class BuildLogicFunctionalTest extends Specification {
 
         when:
         def result = GradleRunner.create()
-            .withWorkingDir(testProjectDir.root)
+            .withProjectDir(testProjectDir.root)
             .withArguments('helloWorld')
             .build()
 
         then:
         result.standardOutput.contains('Hello world!')
         result.standardError == ''
-        result.taskPaths(TaskResult.SUCCESS) == [':helloWorld']
-        result.taskPaths(TaskResult.SKIPPED).empty
-        result.taskPaths(TaskResult.UPTODATE).empty
-        result.taskPaths(TaskResult.FAILED).empty
+        result.taskPaths(SUCCESS) == [':helloWorld']
+        result.tasks(SKIPPED).empty
+        result.tasks(UP_TO_DATE).empty
+        result.tasks(FAILED).empty
     }
 }
 // END SNIPPET functional-test-spock

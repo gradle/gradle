@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GFileUtils
 import org.gradle.util.TextUtil
 
@@ -117,13 +118,7 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         gradleRunner.build()
 
         then:
-        Throwable t = thrown(UnexpectedBuildFailure)
-        String message = TextUtil.normaliseLineSeparators(t.message)
-        message.contains("""Reason:
-Unable to start the daemon process.
-This problem might be caused by incorrect configuration of the daemon.
-For example, an unrecognized jvm option is used.""")
-        !message.contains(':helloWorld')
+        thrown GradleConnectionException
     }
 
     def "daemon dies during build execution"() {
@@ -143,14 +138,6 @@ For example, an unrecognized jvm option is used.""")
         gradleRunner.build()
 
         then:
-        Throwable t = thrown(UnexpectedBuildFailure)
-        String message = TextUtil.normaliseLineSeparators(t.message)
-        message.contains("""Output:
-:helloWorld
-Hello world!""")
-        !message.contains('Bye world!')
-        message.contains("""Reason:
-Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)
-""")
+        thrown GradleConnectionException
     }
 }

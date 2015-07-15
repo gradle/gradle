@@ -19,6 +19,7 @@ package org.gradle.testkit.runner;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import java.io.File;
@@ -67,7 +68,16 @@ public abstract class GradleRunner {
      */
     public static GradleRunner create() {
         GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator(GradleRunner.class);
-        return new DefaultGradleRunner(gradleDistributionLocator.getGradleHome());
+        final File gradleHome = gradleDistributionLocator.getGradleHome();
+        if (gradleHome == null) {
+            try {
+                File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
+                throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was loaded from " + classpathForClass + " which is not a Gradle distribution");
+            } catch (Exception e) {
+                throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was not loaded from a Gradle distribution");
+            }
+        }
+        return new DefaultGradleRunner(gradleHome);
     }
 
     /**
