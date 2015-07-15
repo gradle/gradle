@@ -17,10 +17,14 @@ package org.gradle.messaging.remote.internal.inet
 
 import org.gradle.api.Action
 import org.gradle.internal.id.UUIDGenerator
+import org.gradle.internal.serialize.BaseSerializerFactory
+import org.gradle.internal.serialize.Serializers
 import org.gradle.messaging.remote.internal.ConnectCompletion
 import org.gradle.messaging.remote.internal.ConnectException
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer
+import org.gradle.messaging.remote.internal.KryoBackedMessageSerializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Unroll
 
 class TcpConnectorTest extends ConcurrentSpec {
     final def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
@@ -157,18 +161,19 @@ class TcpConnectorTest extends ConcurrentSpec {
         acceptor?.requestStop()
     }
 
-    def "can receive message from peer after peer has closed connection"() {
+    @Unroll
+    def "can receive message from peer after peer has closed connection using #serializerName"() {
         // This is a test to simulate the messaging that the daemon does on build completion, in order to validate some assumptions
 
         when:
         def acceptor = incomingConnector.accept({ ConnectCompletion event ->
-            def connection = event.create(serializer)
+            def connection = event.create(messageSerializer)
             connection.dispatch("bye")
             connection.stop()
             instant.closed
         } as Action, false)
 
-        def connection = outgoingConnector.connect(acceptor.address).create(serializer)
+        def connection = outgoingConnector.connect(acceptor.address).create(messageSerializer)
         thread.blockUntil.closed
 
         then:
@@ -178,6 +183,11 @@ class TcpConnectorTest extends ConcurrentSpec {
         cleanup:
         connection?.stop()
         acceptor?.stop()
+
+        where:
+        messageSerializer | serializerName
+        new DefaultMessageSerializer<String>(getClass().getClassLoader())                                      | "java"
+        new KryoBackedMessageSerializer<String>(Serializers.stateful(BaseSerializerFactory.STRING_SERIALIZER)) | "kryo"
     }
 }
 
