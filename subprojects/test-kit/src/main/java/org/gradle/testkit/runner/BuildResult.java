@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional;
+package org.gradle.testkit.runner;
 
 import org.gradle.api.Incubating;
 

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional
+package org.gradle.testkit.runner
 
-import org.gradle.testkit.functional.internal.DefaultGradleRunner
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.GFileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
-import static org.gradle.testkit.functional.TaskResult.*
+import static org.gradle.testkit.runner.TaskResult.*
 
 class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerIntegrationTest {
     @Rule TemporaryFolder testUserHomeDir = new TemporaryFolder()

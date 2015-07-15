@@ -73,8 +73,8 @@
         <title>The GradleRunner API</title>
         <para>
             After adding the dependency on the test-kit, its API becomes available to the functional test classes of the relevant <literal>SourceSet</literal>. The main entry point for executing a
-            build script with the help of the test-kit is the interface <apilink class="org.gradle.testkit.functional.GradleRunner"/>. <literal>GradleRunner</literal> exposes a method named
-            <apilink class="org.gradle.testkit.functional.GradleRunner" method="create()"/> for instantiating the implementation.
+            build script with the help of the test-kit is the interface <apilink class="org.gradle.testkit.runner.GradleRunner"/>. <literal>GradleRunner</literal> exposes a method named
+            <apilink class="org.gradle.testkit.runner.GradleRunner" method="create()"/> for instantiating the implementation.
         </para>
         <para>
             The are more options that can be provided for a build execution. Please refer to the API to discover more options.
@@ -82,8 +82,8 @@
         <para>
             A build execution is assumed to be successful or failing based on the build script logic. The root cause of a failing build could be invalid syntax of the build script logic, a thrown
             exception, a failed task or a mechanical issue with the test execution originating from the Tooling API. The execution of build logic is initiated by calling the methods
-            <apilink class="org.gradle.testkit.functional.GradleRunner" method="build"/> or <apilink class="org.gradle.testkit.functional.GradleRunner" method="buildAndFail"/> on the
-            <literal>GradleRunner</literal> instance. The return type of these method calls is a <apilink class="org.gradle.testkit.functional.BuildResult"/>. The <literal>BuildResult</literal>
+            <apilink class="org.gradle.testkit.runner.GradleRunner" method="build"/> or <apilink class="org.gradle.testkit.runner.GradleRunner" method="buildAndFail"/> on the
+            <literal>GradleRunner</literal> instance. The return type of these method calls is a <apilink class="org.gradle.testkit.runner.BuildResult"/>. The <literal>BuildResult</literal>
             can be used for assertions on the expected outcome of a build.
         </para>
         <para>

@@ -16,8 +16,8 @@
 
 package org.gradle.sample;
 
-import org.gradle.testkit.functional.BuildResult;
-import org.gradle.testkit.functional.GradleRunner;
+import org.gradle.testkit.runner.BuildResult;
+import org.gradle.testkit.runner.GradleRunner;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,7 +32,7 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.gradle.testkit.functional.TaskResult;
+import org.gradle.testkit.runner.TaskResult;
 
 // START SNIPPET functional-test-junit
 public class BuildLogicFunctionalTest {

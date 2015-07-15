@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional.internal
+package org.gradle.testkit.runner.internal
 
 import org.gradle.util.GFileUtils
 import org.junit.Rule

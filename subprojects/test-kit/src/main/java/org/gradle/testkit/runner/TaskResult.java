@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional
+package org.gradle.testkit.runner;
 
-import org.gradle.testkit.functional.internal.DefaultGradleRunner
-import spock.lang.Specification
-
-class GradleRunnerTest extends Specification {
-
-    def "can create instance for default Gradle distribution"() {
-        when:
-        GradleRunner gradleRunner = GradleRunner.create()
-
-        then:
-        gradleRunner instanceof DefaultGradleRunner
-    }
-
+/**
+ * The result of a task execution.
+ *
+ * @since 2.6
+ */
+public enum TaskResult {
+    SUCCESS,
+    FAILED,
+    UPTODATE,
+    SKIPPED
 }

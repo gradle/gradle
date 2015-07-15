@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional.internal;
-
-import java.io.File;
-
-public interface TmpDirectoryProvider {
-    File createDir();
-}
+/**
+ * Support for executing contrived Gradle builds for the purpose of testing build logic.
+ *
+ * @see org.gradle.testkit.runner.GradleRunner
+ */
+package org.gradle.testkit.runner;

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional.internal
+package org.gradle.testkit.runner.internal
 
 import org.gradle.api.GradleException
-import org.gradle.testkit.functional.BuildResult
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll

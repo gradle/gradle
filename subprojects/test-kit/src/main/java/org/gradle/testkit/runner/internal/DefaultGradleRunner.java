@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional.internal;
+package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gradle.api.Action;
 import org.gradle.internal.SystemProperties;
-import org.gradle.testkit.functional.BuildResult;
-import org.gradle.testkit.functional.GradleRunner;
-import org.gradle.testkit.functional.UnexpectedBuildFailure;
-import org.gradle.testkit.functional.UnexpectedBuildSuccess;
+import org.gradle.testkit.runner.BuildResult;
+import org.gradle.testkit.runner.GradleRunner;
+import org.gradle.testkit.runner.UnexpectedBuildFailure;
+import org.gradle.testkit.runner.UnexpectedBuildSuccess;
 
 import java.io.File;
 import java.util.ArrayList;

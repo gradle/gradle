@@ -94,7 +94,7 @@ class DependencyHandlerApiResolveIntegrationTest extends DaemonIntegrationSpec {
 
         then:
         result.assertTaskNotSkipped(':compileTestJava')
-        result.error.contains('package org.gradle.testkit.functional does not exist')
+        result.error.contains('package org.gradle.testkit.runner does not exist')
     }
 
     private String gradleApiDependency() {
@@ -116,7 +116,7 @@ class DependencyHandlerApiResolveIntegrationTest extends DaemonIntegrationSpec {
     private String javaClassReferencingTestKit() {
         """package com.gradle.example;
 
-           import org.gradle.testkit.functional.GradleRunner;
+           import org.gradle.testkit.runner.GradleRunner;
 
            public class MyTest {}
         """

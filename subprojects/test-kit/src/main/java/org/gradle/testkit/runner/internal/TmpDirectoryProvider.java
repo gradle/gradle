@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-/**
- * Classes for writing and executing functional tests for custom build logic.
- */
-package org.gradle.testkit.functional;
+package org.gradle.testkit.runner.internal;
+
+import java.io.File;
+
+public interface TmpDirectoryProvider {
+    File createDir();
+}

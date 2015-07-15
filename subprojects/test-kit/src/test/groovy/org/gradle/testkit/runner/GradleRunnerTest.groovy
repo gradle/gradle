@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional;
+package org.gradle.testkit.runner
 
-/**
- * Representation of a build task.
- *
- * @since 2.6
- */
-public interface BuildTask {
-    /**
-     * The task path.
-     *
-     * @return the task path
-     */
-    String getPath();
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import spock.lang.Specification
 
-    /**
-     * The task result indicating its status.
-     *
-     * @return the task result
-     */
-    TaskResult getTaskResult();
+class GradleRunnerTest extends Specification {
+
+    def "can create instance for default Gradle distribution"() {
+        when:
+        GradleRunner gradleRunner = GradleRunner.create()
+
+        then:
+        gradleRunner instanceof DefaultGradleRunner
+    }
+
 }

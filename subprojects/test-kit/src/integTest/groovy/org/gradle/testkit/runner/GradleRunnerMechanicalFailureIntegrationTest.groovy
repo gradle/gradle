@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional
+package org.gradle.testkit.runner
 
 import org.gradle.util.GFileUtils
 import org.gradle.util.TextUtil
 
-import static org.gradle.testkit.functional.TaskResult.*
+import static org.gradle.testkit.runner.TaskResult.*
 
 class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
     def "build execution for script with invalid Groovy syntax"() {

@@ -14,16 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional;
+package org.gradle.testkit.runner.internal;
 
-/**
- * The result of a task execution.
- *
- * @since 2.6
- */
-public enum TaskResult {
-    SUCCESS,
-    FAILED,
-    UPTODATE,
-    SKIPPED
+import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.TaskResult;
+
+public class DefaultBuildTask implements BuildTask {
+    private final String path;
+    private final TaskResult taskResult;
+
+    public DefaultBuildTask(String path, TaskResult taskResult) {
+        this.path = path;
+        this.taskResult = taskResult;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public TaskResult getTaskResult() {
+        return taskResult;
+    }
 }

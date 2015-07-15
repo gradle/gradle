@@ -16,8 +16,8 @@
 
 package org.gradle.sample
 
-import org.gradle.testkit.functional.GradleRunner
-import org.gradle.testkit.functional.TaskResult
+import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskResult
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification

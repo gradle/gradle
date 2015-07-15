@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional.internal;
+package org.gradle.testkit.runner.internal;
 
-import org.gradle.testkit.functional.BuildTask;
-import org.gradle.testkit.functional.TaskResult;
+import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.TaskResult;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.gradle.testkit.functional.TaskResult.*;
+import static org.gradle.testkit.runner.TaskResult.*;
 
 public class GradleExecutor {
 

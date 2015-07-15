@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional.internal;
+package org.gradle.testkit.runner;
 
-import org.gradle.testkit.functional.BuildTask;
-import org.gradle.testkit.functional.TaskResult;
+/**
+ * Representation of a build task.
+ *
+ * @since 2.6
+ */
+public interface BuildTask {
+    /**
+     * The task path.
+     *
+     * @return the task path
+     */
+    String getPath();
 
-public class DefaultBuildTask implements BuildTask {
-    private final String path;
-    private final TaskResult taskResult;
-
-    public DefaultBuildTask(String path, TaskResult taskResult) {
-        this.path = path;
-        this.taskResult = taskResult;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public TaskResult getTaskResult() {
-        return taskResult;
-    }
+    /**
+     * The task result indicating its status.
+     *
+     * @return the task result
+     */
+    TaskResult getTaskResult();
 }

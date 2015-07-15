@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional
+package org.gradle.testkit.runner
 
 import org.gradle.util.GFileUtils
 
-import static org.gradle.testkit.functional.TaskResult.*
+import static org.gradle.testkit.runner.TaskResult.*
 
 class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional
+package org.gradle.testkit.runner
 
-import static org.gradle.testkit.functional.TaskResult.*
+import static org.gradle.testkit.runner.TaskResult.*
 
 /**
  * Tests more intricate aspects of the BuildResult object

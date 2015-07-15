@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.functional;
+package org.gradle.testkit.runner;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
-import org.gradle.testkit.functional.internal.DefaultGradleRunner;
+import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import java.io.File;
 import java.util.List;
