@@ -16,6 +16,8 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.testkit.runner.daemon.GradleDaemon
+import org.gradle.testkit.runner.daemon.GradleDaemonAnalyzer
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.GFileUtils
 import org.junit.Rule
@@ -96,6 +98,38 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         cleanup:
         GFileUtils.forceDelete(gradlePropertiesFile)
         GFileUtils.forceDelete(initScriptFile)
+    }
+
+    def "daemon process is reused for test execution if one already exists"() {
+        given:
+        File customGradleUserHomeDir = new File(testUserHomeDir.root, UUID.randomUUID().toString())
+        GradleDaemonAnalyzer gradleDaemonAnalyzer = new GradleDaemonAnalyzer(new File(customGradleUserHomeDir, 'daemon'), buildContext.version.version)
+        gradleDaemonAnalyzer.daemons.empty
+        buildFile << helloWorldTask()
+
+        when:
+        DefaultGradleRunner gradleRunner = runner('helloWorld')
+        gradleRunner.withGradleUserHomeDir(customGradleUserHomeDir)
+        gradleRunner.build()
+
+        then:
+        noExceptionThrown()
+        List<GradleDaemon> initialDaemons = gradleDaemonAnalyzer.daemons
+        initialDaemons.size() == 1
+        String daemonPidInUse = initialDaemons[0].pid
+        daemonPidInUse
+
+        when:
+        gradleRunner.build()
+
+        then:
+        noExceptionThrown()
+        List<GradleDaemon> laterDaemons = gradleDaemonAnalyzer.daemons
+        laterDaemons.size() == 1
+        daemonPidInUse == laterDaemons[0].pid
+
+        cleanup:
+        GFileUtils.forceDelete(customGradleUserHomeDir)
     }
 
     private File writeGradlePropertiesFile(File gradleUserHomeDir, String content) {

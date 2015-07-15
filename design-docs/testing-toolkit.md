@@ -173,6 +173,11 @@ The previous stories set up the basic mechanics for the test-kit. Daemons starte
     * A daemon process dedicated for test execution only use its dedicated JVM parameters. Any configuration found under `~/.gradle` is not taken into account.
     * Daemons are stopped at the end of the test.
 
+### Open issues
+
+* Looking at `DefaultGradleConnector#close()` it seems like it was introduced with Gradle 2.2. Later stories will allow executing a build with an older version.
+We'll support that scenario when we the corresponding story.
+
 ## Story: IDE user debugs test build
 
 The previous stories set up the basic mechanics for the test-kit. To make the test-kit production-ready these mechanics need to be fine-tuned.
