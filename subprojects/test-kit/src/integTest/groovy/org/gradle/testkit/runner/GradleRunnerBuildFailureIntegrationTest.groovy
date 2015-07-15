@@ -38,9 +38,9 @@ class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegr
 
         then:
         noExceptionThrown()
-        result.output.contains(':helloWorld FAILED')
-        result.errorOutput.contains("Execution failed for task ':helloWorld'")
-        result.errorOutput.contains('Expected exception')
+        result.standardOutput.contains(':helloWorld FAILED')
+        result.standardError.contains("Execution failed for task ':helloWorld'")
+        result.standardError.contains('Expected exception')
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS).empty
         result.taskPaths(SKIPPED).empty
@@ -58,7 +58,7 @@ class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegr
 
         then:
         Throwable t = thrown(UnexpectedBuildSuccess)
-        String expectedMessage = """Unexpected build execution success in ${TextUtil.escapeString(gradleRunner.workingDir.canonicalPath)} with arguments \\u005BhelloWorld\\u005D
+        String expectedMessage = """Unexpected build execution success in ${TextUtil.escapeString(gradleRunner.projectDir.canonicalPath)} with arguments \\u005BhelloWorld\\u005D
 
 Output:
 :helloWorld
@@ -91,7 +91,7 @@ Error:
 
         then:
         Throwable t = thrown(UnexpectedBuildFailure)
-        String expectedMessage = """Unexpected build execution failure in ${TextUtil.escapeString(gradleRunner.workingDir.canonicalPath)} with arguments \\u005BhelloWorld\\u005D
+        String expectedMessage = """Unexpected build execution failure in ${TextUtil.escapeString(gradleRunner.projectDir.canonicalPath)} with arguments \\u005BhelloWorld\\u005D
 
 Output:
 :helloWorld FAILED
@@ -106,7 +106,7 @@ Error:
 FAILURE: Build failed with an exception.
 
 \\u002A Where:
-Build file '${TextUtil.escapeString(new File(gradleRunner.workingDir, "build.gradle").canonicalPath)}' line: 4
+Build file '${TextUtil.escapeString(new File(gradleRunner.projectDir, "build.gradle").canonicalPath)}' line: 4
 
 \\u002A What went wrong:
 Execution failed for task ':helloWorld'.

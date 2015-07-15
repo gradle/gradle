@@ -82,7 +82,7 @@ public abstract class GradleRunner {
      *
      * @return the Gradle “user home” directory to use
      */
-    public abstract File getGradleUserHome();
+    public abstract File getGradleUserHomeDir();
 
     /**
      * The directory that the build will be executed in.
@@ -91,16 +91,16 @@ public abstract class GradleRunner {
      *
      * @return the directory to execute the build in
      */
-    public abstract File getWorkingDir();
+    public abstract File getProjectDir();
 
     /**
      * Sets the directory that the Gradle will be executed in.
      *
-     * @param workingDirectory the working directory
+     * @param projectDir the project directory
      * @return {@code this}
-     * @see #getWorkingDir()
+     * @see #getProjectDir()
      */
-    public abstract GradleRunner withWorkingDir(File workingDirectory);
+    public abstract GradleRunner withProjectDir(File projectDir);
 
     /**
      * The build arguments.

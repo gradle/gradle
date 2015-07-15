@@ -42,8 +42,8 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
 
         then:
         noExceptionThrown()
-        result.output.contains(':helloWorld UP-TO-DATE')
-        result.output.contains(':byeWorld SKIPPED')
+        result.standardOutput.contains(':helloWorld UP-TO-DATE')
+        result.standardOutput.contains(':byeWorld SKIPPED')
         result.tasks.collect { it.path } == [':helloWorld', ':byeWorld']
         result.taskPaths(SUCCESS) == []
         result.taskPaths(SKIPPED) == [':byeWorld']

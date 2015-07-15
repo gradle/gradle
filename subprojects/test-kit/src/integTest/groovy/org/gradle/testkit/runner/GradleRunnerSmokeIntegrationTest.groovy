@@ -32,9 +32,9 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
 
         then:
         noExceptionThrown()
-        result.output.contains(':helloWorld')
-        result.output.contains('Hello world!')
-        !result.errorOutput
+        result.standardOutput.contains(':helloWorld')
+        result.standardOutput.contains('Hello world!')
+        !result.standardError
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
         result.taskPaths(SKIPPED).empty
@@ -67,9 +67,9 @@ class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTe
 
         then:
         noExceptionThrown()
-        result.output.contains(':helloWorld')
-        result.output.contains('Hello world!')
-        !result.errorOutput
+        result.standardOutput.contains(':helloWorld')
+        result.standardOutput.contains('Hello world!')
+        !result.standardError
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
         result.taskPaths(SKIPPED).empty
@@ -98,11 +98,11 @@ public class MyApp {
 
         then:
         noExceptionThrown()
-        result.output.contains(':buildSrc:compileJava')
-        result.output.contains(':buildSrc:build')
-        result.output.contains(':helloWorld')
-        result.output.contains('Hello world!')
-        !result.errorOutput
+        result.standardOutput.contains(':buildSrc:compileJava')
+        result.standardOutput.contains(':buildSrc:build')
+        result.standardOutput.contains(':helloWorld')
+        result.standardOutput.contains('Hello world!')
+        !result.standardError
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
         result.taskPaths(SKIPPED).empty

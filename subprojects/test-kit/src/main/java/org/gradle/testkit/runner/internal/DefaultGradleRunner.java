@@ -36,7 +36,7 @@ public class DefaultGradleRunner extends GradleRunner {
     private final File gradleHome;
 
     private File gradleUserHomeDir;
-    private File workingDirectory;
+    private File projectDirectory;
     private List<String> arguments = new ArrayList<String>();
     private List<String> jvmArguments = new ArrayList<String>();
 
@@ -45,7 +45,7 @@ public class DefaultGradleRunner extends GradleRunner {
         this.gradleUserHomeDir = tmpDirectoryProvider.createDir();
     }
 
-    public File getGradleUserHome() {
+    public File getGradleUserHomeDir() {
         return gradleUserHomeDir;
     }
 
@@ -54,12 +54,12 @@ public class DefaultGradleRunner extends GradleRunner {
         return this;
     }
 
-    public File getWorkingDir() {
-        return workingDirectory;
+    public File getProjectDir() {
+        return projectDirectory;
     }
 
-    public GradleRunner withWorkingDir(File workingDirectory) {
-        this.workingDirectory = workingDirectory;
+    public GradleRunner withProjectDir(File projectDir) {
+        this.projectDirectory = projectDir;
         return this;
     }
 
@@ -110,7 +110,7 @@ public class DefaultGradleRunner extends GradleRunner {
         StringBuilder message = new StringBuilder();
         message.append(trailingMessage);
         message.append(" in ");
-        message.append(getWorkingDir().getAbsolutePath());
+        message.append(getProjectDir().getAbsolutePath());
         message.append(" with arguments ");
         message.append(getArguments());
         message.append(lineBreak).append(lineBreak);
@@ -146,7 +146,7 @@ public class DefaultGradleRunner extends GradleRunner {
         GradleExecutionResult execResult = gradleExecutor.run(
             gradleHome,
             gradleUserHomeDir,
-            workingDirectory,
+            projectDirectory,
             arguments,
             jvmArguments
         );

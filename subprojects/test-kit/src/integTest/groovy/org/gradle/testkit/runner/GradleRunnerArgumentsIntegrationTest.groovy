@@ -29,8 +29,8 @@ class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationT
 
         then:
         noExceptionThrown()
-        result.output.contains(':help')
-        !result.errorOutput
+        result.standardOutput.contains(':help')
+        !result.standardError
         result.tasks.collect { it.path } == [':help']
         result.taskPaths(SUCCESS) == [':help']
         result.taskPaths(SKIPPED).empty
@@ -55,11 +55,11 @@ class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationT
 
         then:
         noExceptionThrown()
-        result.output.contains(':helloWorld')
-        result.output.contains('Hello world!')
-        result.output.contains(':byeWorld')
-        result.output.contains('Bye world!')
-        !result.errorOutput
+        result.standardOutput.contains(':helloWorld')
+        result.standardOutput.contains('Hello world!')
+        result.standardOutput.contains(':byeWorld')
+        result.standardOutput.contains('Bye world!')
+        !result.standardError
         result.tasks.collect { it.path } == [':helloWorld', ':byeWorld']
         result.taskPaths(SUCCESS) == [':helloWorld', ':byeWorld']
         result.taskPaths(SKIPPED).empty
@@ -91,10 +91,10 @@ class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationT
 
         then:
         noExceptionThrown()
-        result.output.contains(':helloWorld')
-        result.output.contains(debugMessage) == hasDebugMessage
-        result.output.contains(infoMessage) == hasInfoMessage
-        result.output.contains(quietMessage) == hasQuietMessage
+        result.standardOutput.contains(':helloWorld')
+        result.standardOutput.contains(debugMessage) == hasDebugMessage
+        result.standardOutput.contains(infoMessage) == hasInfoMessage
+        result.standardOutput.contains(quietMessage) == hasQuietMessage
         result.tasks.collect { it.path } == [':helloWorld']
         result.taskPaths(SUCCESS) == [':helloWorld']
         result.taskPaths(SKIPPED).empty

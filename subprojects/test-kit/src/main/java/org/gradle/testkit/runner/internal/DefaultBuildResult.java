@@ -36,11 +36,11 @@ public class DefaultBuildResult implements BuildResult {
         this.tasks = tasks;
     }
 
-    public String getOutput() {
+    public String getStandardOutput() {
         return standardOutput;
     }
 
-    public String getErrorOutput() {
+    public String getStandardError() {
         return standardError;
     }
 

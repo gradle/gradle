@@ -38,12 +38,12 @@ import static org.gradle.testkit.runner.TaskResult.*;
 
 public class GradleExecutor {
 
-    public GradleExecutionResult run(File gradleHome, File gradleUserHome, File workDir, List<String> buildArgs, List<String> jvmArgs) {
+    public GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs) {
         final ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
         final ByteArrayOutputStream standardError = new ByteArrayOutputStream();
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
 
-        GradleConnector gradleConnector = buildConnector(gradleHome, gradleUserHome, workDir);
+        GradleConnector gradleConnector = buildConnector(gradleHome, gradleUserHome, projectDir);
         ProjectConnection connection = null;
 
         try {
@@ -68,10 +68,10 @@ public class GradleExecutor {
         return new GradleExecutionResult(standardOutput, standardError, tasks);
     }
 
-    private GradleConnector buildConnector(File gradleHome, File gradleUserHome, File workDir) {
+    private GradleConnector buildConnector(File gradleHome, File gradleUserHome, File projectDir) {
         DefaultGradleConnector gradleConnector = (DefaultGradleConnector) GradleConnector.newConnector();
         gradleConnector.useGradleUserHomeDir(gradleUserHome);
-        gradleConnector.forProjectDirectory(workDir);
+        gradleConnector.forProjectDirectory(projectDir);
         gradleConnector.searchUpwards(false);
         gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);
         gradleConnector.useInstallation(gradleHome);

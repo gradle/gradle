@@ -34,11 +34,11 @@ public interface BuildResult {
      * The textual output produced during the build.
      * <p>
      * This is equivalent to the console output produced when running a build from the command line,
-     * except for any error output (which is available via {@link #getErrorOutput()}).
+     * except for any error output (which is available via {@link #getStandardError()}).
      *
      * @return the build output text, or empty string if there was no build output (e.g. ran with {@code -q})
      */
-    String getOutput();
+    String getStandardOutput();
 
     /**
      * The textual error output produced during the build (i.e. text written to {@link System#err}).
@@ -52,7 +52,7 @@ public interface BuildResult {
      *
      * @return the build error output text, or empty string if there was no error output
      */
-    String getErrorOutput();
+    String getStandardError();
 
     /**
      * The tasks that were part of the build.
