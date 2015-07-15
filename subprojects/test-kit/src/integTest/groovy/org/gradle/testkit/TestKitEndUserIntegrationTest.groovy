@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GFileUtils
+import spock.lang.Ignore
 
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
     public static final String[] GROOVY_SRC_PATH = ['src', 'test', 'groovy'] as String[]
@@ -30,7 +31,6 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireGradleHome()
-        executer.requireIsolatedDaemons()
         functionalTestClassDir = testDirectoryProvider.createDir(TEST_CLASS_PATH)
         buildFile << buildFileForGroovyProject()
     }
@@ -115,6 +115,7 @@ class BuildLogicFunctionalTest {
         !result.skippedTasks.contains(':test')
     }
 
+    @Ignore
     def "functional test fails due to invalid JVM parameter for test execution"() {
         buildFile << gradleTestKitDependency()
         GFileUtils.writeFile('org.gradle.jvmargs=-unknown', testDirectory.file('gradle.properties'))
