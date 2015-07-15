@@ -33,6 +33,8 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResu
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult
 import org.gradle.jvm.JarBinarySpec
 import org.gradle.jvm.JvmLibrarySpec
+import org.gradle.jvm.internal.DefaultJavaPlatformVariantDimensionSelector
+import org.gradle.jvm.internal.DefaultVariantDimensionSelectorFactory
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.base.internal.model.VariantsMetaData
@@ -71,7 +73,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
         variants.nonNullDimensions >> ['targetPlatform']
         variants.allDimensions >> ['targetPlatform']
         variants.getDimensionType(_) >> ModelType.of(JavaPlatform)
-        resolver = new LocalLibraryDependencyResolver(projectModelResolver, variants)
+        resolver = new LocalLibraryDependencyResolver(projectModelResolver, variants, [DefaultVariantDimensionSelectorFactory.of(JavaPlatform, new DefaultJavaPlatformVariantDimensionSelector())])
         metadata = Mock(DependencyMetaData)
         selector = Mock(LibraryComponentSelector)
         requested = Mock(ModuleVersionSelector)

@@ -211,6 +211,8 @@ model {
         [6]  | ['debug']   | ['free']         | [6]       | ['debug', 'release'] | ['free']          | [firstFreeDebugJar: 'secondFreeDebugJar']           | [:]
         [6]  | ['debug']   | ['free']         | [6]       | ['debug']            | ['free', 'paid']  | [firstFreeDebugJar: 'secondFreeDebugJar']           | [:]
         [6]  | ['debug']   | ['free']         | [5, 6, 7] | ['debug']            | ['free']          | [firstFreeDebugJar: 'secondFreeDebug6Jar']          | [:]
+        [6]  | ['debug']   | ['free']         | [7, 6, 5] | ['debug']            | ['free']          | [firstFreeDebugJar: 'secondFreeDebug6Jar']          | [:]
+        [7]  | ['debug']   | ['free']         | [5, 6]    | ['debug']            | ['free']          | [firstFreeDebugJar: 'secondFreeDebug6Jar']          | [:]
         [6]  | ['debug']   | ['free']         | [7]       | ['debug']            | ['free']          | [:]                                                 | [firstFreeDebugJar: ["Cannot find a compatible binary for library 'second' (Java SE 6)",
                                                                                                                                                                                   "Required platform 'java6', available: 'java7'",
                                                                                                                                                                                   "Required flavor 'free', available: 'free'",
@@ -599,10 +601,10 @@ model {
         failure.assertThatCause(containsText(errorMessage))
 
         where:
-        binaryTypeA             | binaryTypeB             | errorMessage
-        'StringBuildTypeLib'    | 'BuildTypeBuildTypeLib' | "Required buildType 'default', available: 'default' but with an incompatible type (expected 'java.lang.String' was 'BuildType')"
-        'BuildTypeBuildTypeLib' | 'StringBuildTypeLib'    | "Required buildType 'default', available: 'default' but with an incompatible type (expected 'BuildType' was 'java.lang.String')"
-        'BuildTypeBuildTypeLib' | 'AnotherBuildTypeBuildTypeLib'    | "Required buildType 'default', available: 'default' but with an incompatible type (expected 'BuildType' was 'AnotherBuildType')"
+        binaryTypeA             | binaryTypeB                    | errorMessage
+        'StringBuildTypeLib'    | 'BuildTypeBuildTypeLib'        | "Required buildType 'default', available: 'default' but with an incompatible type (expected 'java.lang.String' was 'BuildType')"
+        'BuildTypeBuildTypeLib' | 'StringBuildTypeLib'           | "Required buildType 'default', available: 'default' but with an incompatible type (expected 'BuildType' was 'java.lang.String')"
+        'BuildTypeBuildTypeLib' | 'AnotherBuildTypeBuildTypeLib' | "Required buildType 'default', available: 'default' but with an incompatible type (expected 'BuildType' was 'AnotherBuildType')"
 
     }
 

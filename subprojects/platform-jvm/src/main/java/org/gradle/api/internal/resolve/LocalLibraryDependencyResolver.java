@@ -17,7 +17,10 @@ package org.gradle.api.internal.resolve;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -38,13 +41,9 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.jvm.JarBinarySpec;
-import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
-import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
-import org.gradle.language.base.internal.model.VariantsMetaData;
-import org.gradle.language.base.internal.model.VariantsMetaDataHelper;
+import org.gradle.language.base.internal.model.*;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
@@ -60,30 +59,21 @@ import java.util.*;
 // TODO: This should really live in platform-base, however we need to inject the library requirements at some
 // point, and for now it is hardcoded to JVM libraries
 public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
-    private static final Comparator<JavaPlatform> JAVA_PLATFORM_COMPARATOR = new Comparator<JavaPlatform>() {
-        @Override
-        public int compare(JavaPlatform o1, JavaPlatform o2) {
-            return o1.getTargetCompatibility().compareTo(o2.getTargetCompatibility());
-        }
-    };
-    private static final Comparator<JvmBinarySpec> JVM_BINARY_SPEC_COMPARATOR = new Comparator<JvmBinarySpec>() {
-        @Override
-        public int compare(JvmBinarySpec o1, JvmBinarySpec o2) {
-            return o1.getDisplayName().compareTo(o2.getDisplayName());
-        }
-    };
+
     private static final String TARGET_PLATFORM = "targetPlatform";
 
     private final ProjectModelResolver projectModelResolver;
     private final VariantsMetaData variantsMetaData;
     private final JavaPlatform javaPlatform;
     private final Set<String> resolveDimensions;
+    private final VariantsMatcher matcher;
 
-    public LocalLibraryDependencyResolver(ProjectModelResolver projectModelResolver, VariantsMetaData variantsMetaData) {
+    public LocalLibraryDependencyResolver(ProjectModelResolver projectModelResolver, VariantsMetaData variantsMetaData, List<VariantDimensionSelectorFactory> selectorFactories) {
         this.projectModelResolver = projectModelResolver;
         this.variantsMetaData = variantsMetaData;
         this.javaPlatform = variantsMetaData.getValueAsType(JavaPlatform.class, TARGET_PLATFORM);
         this.resolveDimensions = variantsMetaData.getNonNullDimensions();
+        this.matcher = new VariantsMatcher(selectorFactories);
     }
 
     @Override
@@ -96,7 +86,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             LibrarySpec selectedLibrary = resolutionResult.getSelectedLibrary();
             if (selectedLibrary != null) {
                 Collection<BinarySpec> allBinaries = selectedLibrary.getBinaries().values();
-                Collection<? extends BinarySpec> compatibleBinaries = filterBinaries(allBinaries);
+                Collection<? extends BinarySpec> compatibleBinaries = matcher.filterBinaries(variantsMetaData, allBinaries);
                 if (!allBinaries.isEmpty() && compatibleBinaries.isEmpty()) {
                     // no compatible variant found
                     result.failed(new ModuleVersionResolveException(selector, noCompatiblePlatformErrorMessage(libraryName, allBinaries)));
@@ -123,43 +113,6 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
 
     private PublishArtifact createJarPublishArtifact(JarBinarySpec jarBinarySpec) {
         return new LibraryPublishArtifact("jar", jarBinarySpec.getJarFile());
-    }
-
-    private Collection<? extends BinarySpec> filterBinaries(Collection<BinarySpec> values) {
-        if (values.isEmpty()) {
-            return values;
-        }
-        TreeMultimap<JavaPlatform, JvmBinarySpec> platformToBinary = TreeMultimap.create(JAVA_PLATFORM_COMPARATOR, JVM_BINARY_SPEC_COMPARATOR);
-        for (BinarySpec binarySpec : values) {
-            if (binarySpec instanceof JarBinarySpec) {
-                JarBinarySpec jvmSpec = (JarBinarySpec) binarySpec;
-                if (jvmSpec.getTargetPlatform().getTargetCompatibility().compareTo(javaPlatform.getTargetCompatibility()) <= 0) {
-                    VariantsMetaData binaryVariants = DefaultVariantsMetaData.extractFrom(jvmSpec);
-                    Set<String> commonsDimensions = Sets.intersection(resolveDimensions, binaryVariants.getNonNullDimensions());
-                    boolean matching = VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData, binaryVariants, commonsDimensions).isEmpty();
-                    if (matching) {
-                        for (String dimension : commonsDimensions) {
-                            if (!isPlatformDimension(dimension)) {
-                                String resolveValue = variantsMetaData.getValueAsString(dimension);
-                                String binaryValue = binaryVariants.getValueAsString(dimension);
-                                matching = com.google.common.base.Objects.equal(resolveValue, binaryValue);
-                                if (!matching) {
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    if (matching) {
-                        platformToBinary.put(jvmSpec.getTargetPlatform(), jvmSpec);
-                    }
-                }
-            }
-        }
-        if (platformToBinary.isEmpty()) {
-            return Collections.emptyList();
-        }
-        JavaPlatform first = platformToBinary.keySet().last();
-        return platformToBinary.get(first);
     }
 
     private LibraryResolutionResult doResolve(String projectPath,

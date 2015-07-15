@@ -23,14 +23,18 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderF
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.internal.model.JarBinarySpecSpecializationSchemaExtractionStrategy;
+import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 
 public class PlatformJvmServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JarBinaryRenderer.class);
         registration.add(JarBinarySpecSpecializationSchemaExtractionStrategy.class);
+        registration.add(VariantDimensionSelectorFactory.class, DefaultVariantDimensionSelectorFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantDimensionSelector()));
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {
@@ -46,17 +50,19 @@ public class PlatformJvmServices implements PluginServiceRegistry {
     public void registerProjectServices(ServiceRegistration registration) {
     }
 
-    private static class BuildScopeServices {
-        LocalLibraryDependencyResolverFactory createResolverProviderFactory(ProjectModelResolver projectModelResolver) {
-            return new LocalLibraryDependencyResolverFactory(projectModelResolver);
+    private class BuildScopeServices {
+        LocalLibraryDependencyResolverFactory createResolverProviderFactory(ProjectModelResolver projectModelResolver, ServiceRegistry registry) {
+            return new LocalLibraryDependencyResolverFactory(projectModelResolver, registry);
         }
     }
 
     public static class LocalLibraryDependencyResolverFactory implements ResolverProviderFactory {
         private final ProjectModelResolver projectModelResolver;
+        private final ServiceRegistry registry;
 
-        public LocalLibraryDependencyResolverFactory(ProjectModelResolver projectModelResolver) {
+        public LocalLibraryDependencyResolverFactory(ProjectModelResolver projectModelResolver, ServiceRegistry registry) {
             this.projectModelResolver = projectModelResolver;
+            this.registry = registry;
         }
 
         @Override
@@ -67,8 +73,10 @@ public class PlatformJvmServices implements PluginServiceRegistry {
         @Override
         public ComponentResolvers create(ResolveContext context) {
             LocalLibraryDependencyResolver delegate = new LocalLibraryDependencyResolver(projectModelResolver,
-                ((DependentSourceSetResolveContext) context).getVariants());
+                ((DependentSourceSetResolveContext) context).getVariants(),
+                registry.getAll(VariantDimensionSelectorFactory.class));
             return DelegatingComponentResolvers.of(delegate);
         }
     }
+
 }
