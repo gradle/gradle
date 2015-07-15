@@ -942,6 +942,16 @@ by the client.
   trigger a restart of the application at the appropriate time.
 - Failures need to be forwarded to the application for display.
 
+## Feature: Enhanced Play Testing support
+
+### Story: Developer configures a new test suite using the model
+
+Currently only a single Play Test suite is added to the Play model.  This would allow additional test suites to be easily configured
+via a model element.
+
+- Introduce a "test suite" model element that models a test suite with configurable source sets.
+- Derive all necessary tasks off of the source set.
+
 ## Feature: Long running compiler daemon
 
 Reuse the compiler daemon across builds to keep the Scala compiler warmed up. This is also useful for the other compilers.
