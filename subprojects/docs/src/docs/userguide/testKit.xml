@@ -50,7 +50,7 @@
     </section>
 
     <section>
-        <title>Functionally testing with GradleRunner</title>
+        <title>Functionally testing with the Gradle runner</title>
         <para>
             The <apilink class="org.gradle.testkit.runner.GradleRunner"/> facilitates programmatically executing Gradle builds, and inspecting the result.
         </para>
@@ -70,7 +70,7 @@
             methods depending on the anticipated outcome.
         </para>
         <para>
-            The following demonstrates the usage of GradleRunner in a Java JUnit test:
+            The following demonstrates the usage of Gradle runner in a Java JUnit test:
         </para>
         <sample id="testKitFunctionalTestJunit" dir="testKit/testKitJunit/src/test/java/org/gradle/sample" title="Using GradleRunner with JUnit">
             <sourcefile file="BuildLogicFunctionalTest.java" snippet="functional-test-junit"/>
@@ -85,10 +85,32 @@
             as it offers many compelling features over the use of JUnit.
         </para>
         <para>
-            The following demonstrates the usage of GradleRunner in a Groovy Spock test:
+            The following demonstrates the usage of Gradle runner in a Groovy Spock test:
         </para>
         <sample id="testKitFunctionalTestSpock" dir="testKit/testKitSpock/src/test/groovy/org/gradle/sample" title="Using GradleRunner with Spock">
             <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock"/>
         </sample>
+        <section>
+            <title>The Gradle version used to test</title>
+            <para>
+                The Gradle runner requires a Gradle distribution in order to execute the build.
+                The TestKit does not depend on all of Gradle's implementation.
+            </para>
+            <para>
+                When a runner is created, it will attempt to find a Gradle distribution based on where the <literal>GradleRunner</literal> class was loaded from.
+                That is, it is expected that the class was loaded from a Gradle distribution, as is the case when using the <literal>gradleTestKit()</literal> dependency declaration.
+            </para>
+            <para>
+                When using the runner as part of tests <emphasis>being executed by Gradle</emphasis> (e.g. executing the <literal>test</literal> task of a plugin project), the same distribution used to execute the tests will be used by the runner.
+                When using the runner as part of tests <emphasis>being executed by an IDE</emphasis>, the same distribution of Gradle that was used when importing the project will be used.
+                This means that the plugin will effectively be tested with the same version of Gradle that it is being built with.
+            </para>
+            <para>
+                If a Gradle distribution cannot be found, creation of the runner instance will fail.
+            </para>
+            <para>
+                Future versions of the TestKit will support more powerful distribution discovery, facilitating cross version testing.
+            </para>
+        </section>
     </section>
 </chapter>

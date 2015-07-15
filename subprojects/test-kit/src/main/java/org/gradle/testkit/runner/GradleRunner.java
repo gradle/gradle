@@ -58,10 +58,10 @@ public abstract class GradleRunner {
      * This method will find a Gradle distribution, based on the filesystem location of this class.
      * That is, it is expected that this class is loaded from a Gradle distribution.
      * <p>
-     * When using the GradleRunner as part of tests <i>being executed by Gradle</i> (i.e. a build using the {@code gradleTestKit()} dependency),
-     * this means that the same distribution of Gradle that is executing the tests will be used by GradleRunner returned by this method.
+     * When using the runner as part of tests <i>being executed by Gradle</i> (i.e. a build using the {@code gradleTestKit()} dependency),
+     * this means that the same distribution of Gradle that is executing the tests will be used by runner returned by this method.
      * <p>
-     * When using the GradleRunner as part of tests <i>being executed by an IDE</i>,
+     * When using the runner as part of tests <i>being executed by an IDE</i>,
      * this means that the same distribution of Gradle that was used when importing the project will be used.
      *
      * @return a new Gradle runner
