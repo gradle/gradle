@@ -18,173 +18,27 @@ package org.gradle.api.internal.resolve;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
-import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
-import org.gradle.language.base.internal.model.VariantsMetaData;
-import org.gradle.language.base.internal.model.VariantsMetaDataHelper;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.LibrarySpec;
-import org.gradle.platform.base.Platform;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
-public class LibraryResolutionErrorMessageBuilder {
-    private static final String TARGET_PLATFORM = "targetPlatform";
+public interface LibraryResolutionErrorMessageBuilder {
+    String multipleBinariesForSameVariantErrorMessage(String libraryName, Collection<? extends BinarySpec> binaries);
 
-    private final VariantsMetaData variantsMetaData;
-    private final Platform platform;
-    private final Set<String> resolveDimensions;
-
-    public LibraryResolutionErrorMessageBuilder(VariantsMetaData variantsMetaData) {
-        this.variantsMetaData = variantsMetaData;
-        this.platform = variantsMetaData.getValueAsType(Platform.class, TARGET_PLATFORM);
-        this.resolveDimensions = variantsMetaData.getNonNullDimensions();
-    }
-
-    public static List<String> formatLibraryNames(List<String> libs) {
-        List<String> list = Lists.transform(libs, new Function<String, String>() {
-            @Override
-            public String apply(String input) {
-                return String.format("'%s'", input);
-            }
-        });
-        return Ordering.natural().sortedCopy(list);
-    }
-
-    public String multipleBinariesForSameVariantErrorMessage(String libraryName, Collection<? extends BinarySpec> binaries) {
-        List<String> binaryDescriptors = new ArrayList<String>(binaries.size());
-        StringBuilder binaryDescriptor = new StringBuilder();
-        for (BinarySpec variant : binaries) {
-            binaryDescriptor.setLength(0);
-            binaryDescriptor.append("   - ").append(variant.getDisplayName()).append(":\n");
-            VariantsMetaData metaData = DefaultVariantsMetaData.extractFrom(variant);
-            Set<String> dimensions = new TreeSet<String>(metaData.getNonNullDimensions());
-            if (dimensions.size() > 1) { // 1 because of targetPlatform
-                for (String dimension : dimensions) {
-                    binaryDescriptor.append("       * ").append(dimension).append(" '").append(metaData.getValueAsString(dimension)).append("'\n");
-
-                }
-                binaryDescriptors.add(binaryDescriptor.toString());
-            }
-        }
-        if (binaryDescriptors.isEmpty()) {
-            return String.format("Multiple binaries available for library '%s' (%s) : %s", libraryName, platform, binaries);
-        } else {
-            // custom variants on binaries
-            StringBuilder sb = new StringBuilder(String.format("Multiple binaries available for library '%s' (%s) :\n", libraryName, platform));
-            for (String descriptor : binaryDescriptors) {
-                sb.append(descriptor);
-            }
-            return sb.toString();
-        }
-    }
-
-    private static boolean isPlatformDimension(String dimension) {
-        return TARGET_PLATFORM.equals(dimension);
-    }
-
-    public String noCompatibleBinaryErrorMessage(String libraryName, Collection<BinarySpec> allBinaries) {
-        if (resolveDimensions.size() == 1) { // 1 because of targetPlatform
-            List<String> availablePlatforms = Lists.transform(
-                Lists.newArrayList(allBinaries), new Function<BinarySpec, String>() {
-                    @Override
-                    public String apply(BinarySpec input) {
-                        return input instanceof JarBinarySpec ? ((JarBinarySpec) input).getTargetPlatform().toString() : input.toString();
-                    }
-                }
-            );
-            return String.format("Cannot find a compatible binary for library '%s' (%s). Available platforms: %s", libraryName, platform, availablePlatforms);
-        } else {
-            final boolean moreThanOneBinary = allBinaries.size() > 1;
-            Set<String> availablePlatforms = new TreeSet<String>(Lists.transform(
-                Lists.newArrayList(allBinaries), new Function<BinarySpec, String>() {
-                    @Override
-                    public String apply(BinarySpec input) {
-                        if (input instanceof JarBinarySpec) {
-                            JavaPlatform targetPlatform = ((JarBinarySpec) input).getTargetPlatform();
-                            if (moreThanOneBinary) {
-                                return String.format("'%s' on %s", targetPlatform.getName(), input.getDisplayName());
-                            }
-                            return String.format("'%s'", targetPlatform.getName(), input.getDisplayName());
-                        }
-                        return null;
-                    }
-                }
-            ));
-            StringBuilder error = new StringBuilder(String.format("Cannot find a compatible binary for library '%s' (%s).\n", libraryName, platform));
-            Joiner joiner = Joiner.on(",").skipNulls();
-            error.append("    Required platform '").append(platform.getName()).append("', ");
-            error.append("available: ").append(joiner.join(availablePlatforms));
-            error.append("\n");
-            HashMultimap<String, String> variants = HashMultimap.create();
-            for (BinarySpec spec : allBinaries) {
-                VariantsMetaData md = DefaultVariantsMetaData.extractFrom(spec);
-                Set<String> incompatibleDimensionTypes = VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData, md, resolveDimensions);
-                for (String dimension : resolveDimensions) {
-                    String value = md.getValueAsString(dimension);
-                    if (value != null) {
-                        String message;
-                        if (moreThanOneBinary) {
-                            message = String.format("'%s' on %s", value, spec.getDisplayName());
-                        } else {
-                            message = String.format("'%s'", value);
-                        }
-                        if (incompatibleDimensionTypes.contains(dimension)) {
-                            message = String.format("%s but with an incompatible type (expected '%s' was '%s')", message, variantsMetaData.getDimensionType(dimension).getConcreteClass().getName(), md.getDimensionType(dimension).getConcreteClass().getName());
-                        }
-                        variants.put(dimension, message);
-                    }
-                }
-            }
-
-            for (String dimension : resolveDimensions) {
-                if (!isPlatformDimension(dimension)) {
-                    error.append("    Required ").append(dimension).append(" '").append(variantsMetaData.getValueAsString(dimension)).append("'");
-                    Set<String> available = new TreeSet<String>(variants.get(dimension));
-                    if (!available.isEmpty()) {
-                        error.append(", available: ").append(joiner.join(available)).append("\n");
-                    } else {
-                        error.append(" but no compatible binary was found\n");
-                    }
-                }
-            }
-            return error.toString();
-        }
-    }
-
-    public static LibraryResolutionResult resultOf(Collection<? extends LibrarySpec> libraries, String libraryName, Predicate<? super LibrarySpec> libraryFilter) {
-        LibraryResolutionResult result = new LibraryResolutionResult();
-        for (LibrarySpec librarySpec : libraries) {
-            if (libraryFilter.apply(librarySpec)) {
-                result.libsMatchingRequirements.put(librarySpec.getName(), librarySpec);
-            } else {
-                result.libsNotMatchingRequirements.put(librarySpec.getName(), librarySpec);
-            }
-        }
-        result.resolve(libraryName);
-        return result;
-    }
-
-    public static LibraryResolutionResult projectNotFound() {
-        return LibraryResolutionResult.PROJECT_NOT_FOUND;
-    }
-
-    public static LibraryResolutionResult emptyResolutionResult() {
-        return LibraryResolutionResult.EMPTY;
-    }
-
+    String noCompatibleBinaryErrorMessage(String libraryName, Collection<BinarySpec> allBinaries);
 
     /**
      * Intermediate data structure used to store the result of a resolution and help at building an understandable error message in case resolution fails.
      */
-    public static class LibraryResolutionResult {
+    class LibraryResolutionResult {
         private static final LibraryResolutionResult EMPTY = new LibraryResolutionResult();
         private static final LibraryResolutionResult PROJECT_NOT_FOUND = new LibraryResolutionResult();
         private final Map<String, LibrarySpec> libsMatchingRequirements;
@@ -273,5 +127,37 @@ public class LibraryResolutionErrorMessageBuilder {
             }
             return sb.toString();
         }
+
+        public static LibraryResolutionResult of(Collection<? extends LibrarySpec> libraries, String libraryName, Predicate<? super LibrarySpec> libraryFilter) {
+            LibraryResolutionResult result = new LibraryResolutionResult();
+            for (LibrarySpec librarySpec : libraries) {
+                if (libraryFilter.apply(librarySpec)) {
+                    result.libsMatchingRequirements.put(librarySpec.getName(), librarySpec);
+                } else {
+                    result.libsNotMatchingRequirements.put(librarySpec.getName(), librarySpec);
+                }
+            }
+            result.resolve(libraryName);
+            return result;
+        }
+
+        public static LibraryResolutionResult projectNotFound() {
+            return LibraryResolutionResult.PROJECT_NOT_FOUND;
+        }
+
+        public static LibraryResolutionResult emptyResolutionResult() {
+            return LibraryResolutionResult.EMPTY;
+        }
+
+        private static List<String> formatLibraryNames(List<String> libs) {
+            List<String> list = Lists.transform(libs, new Function<String, String>() {
+                @Override
+                public String apply(String input) {
+                    return String.format("'%s'", input);
+                }
+            });
+            return Ordering.natural().sortedCopy(list);
+        }
     }
+
 }

@@ -46,13 +46,13 @@ import org.gradle.platform.base.LibrarySpec
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class LocalLibraryDependencyResolverTest extends Specification {
+class JvmLocalLibraryDependencyResolverTest extends Specification {
 
     Map<String, Project> projects
     ProjectRegistry<ProjectInternal> projectRegistry
     ProjectModelResolver projectModelResolver
     Project rootProject
-    LocalLibraryDependencyResolver resolver
+    JvmLocalLibraryDependencyResolver resolver
     DependencyMetaData metadata
     LibraryComponentSelector selector
     ModuleVersionSelector requested
@@ -73,7 +73,7 @@ class LocalLibraryDependencyResolverTest extends Specification {
         variants.nonNullDimensions >> ['targetPlatform']
         variants.allDimensions >> ['targetPlatform']
         variants.getDimensionType(_) >> ModelType.of(JavaPlatform)
-        resolver = new LocalLibraryDependencyResolver(projectModelResolver, variants, [DefaultVariantDimensionSelectorFactory.of(JavaPlatform, new DefaultJavaPlatformVariantDimensionSelector())])
+        resolver = new JvmLocalLibraryDependencyResolver(projectModelResolver, variants, [DefaultVariantDimensionSelectorFactory.of(JavaPlatform, new DefaultJavaPlatformVariantDimensionSelector())])
         metadata = Mock(DependencyMetaData)
         selector = Mock(LibraryComponentSelector)
         requested = Mock(ModuleVersionSelector)

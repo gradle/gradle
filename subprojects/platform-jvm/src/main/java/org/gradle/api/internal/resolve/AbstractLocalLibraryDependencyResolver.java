@@ -22,7 +22,8 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ArtifactResolveException;
@@ -34,8 +35,6 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-import org.gradle.jvm.JarBinarySpec;
-import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
@@ -52,28 +51,29 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-
-// TODO: This should really live in platform-base, however we need to inject the library requirements at some
-// point, and for now it is hardcoded to JVM libraries
-public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
-
-    private static final Predicate<LibrarySpec> LIBRARY_PREDICATE = new Predicate<LibrarySpec>() {
-        @Override
-        public boolean apply(LibrarySpec input) {
-            return !input.getBinaries().withType(JarBinarySpec.class).isEmpty();
-        }
-    };
-
+public abstract class AbstractLocalLibraryDependencyResolver<T extends BinarySpec> implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
     private final ProjectModelResolver projectModelResolver;
     private final VariantsMetaData variantsMetaData;
     private final VariantsMatcher matcher;
     private final LibraryResolutionErrorMessageBuilder errorMessageBuilder;
+    private final Predicate<LibrarySpec> binarySpecPredicate;
 
-    public LocalLibraryDependencyResolver(ProjectModelResolver projectModelResolver, VariantsMetaData variantsMetaData, List<VariantDimensionSelectorFactory> selectorFactories) {
+    public AbstractLocalLibraryDependencyResolver(
+        final Class<T> binarySpecType,
+        ProjectModelResolver projectModelResolver,
+        List<VariantDimensionSelectorFactory> selectorFactories,
+        VariantsMetaData variantsMetaData,
+        LibraryResolutionErrorMessageBuilder errorMessageBuilder) {
         this.projectModelResolver = projectModelResolver;
-        this.variantsMetaData = variantsMetaData;
         this.matcher = new VariantsMatcher(selectorFactories);
-        this.errorMessageBuilder = new LibraryResolutionErrorMessageBuilder(variantsMetaData);
+        this.errorMessageBuilder = errorMessageBuilder;
+        this.variantsMetaData = variantsMetaData;
+        this.binarySpecPredicate = new Predicate<LibrarySpec>() {
+            @Override
+            public boolean apply(LibrarySpec input) {
+                return !input.getBinaries().withType(binarySpecType).isEmpty();
+            }
+        };
     }
 
     @Override
@@ -96,9 +96,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                     BinarySpec selectedBinary = compatibleBinaries.iterator().next();
                     DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
                     buildDependencies.add(selectedBinary);
-
-                    DefaultLibraryLocalComponentMetaData metaData = createLocalComponentMetaData(selectedBinary, buildDependencies);
-
+                    LocalComponentMetaData metaData = createLocalComponentMetaData(selectedBinary, buildDependencies);
                     result.resolved(metaData);
                 }
             }
@@ -110,16 +108,8 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
     }
 
-    private DefaultLibraryLocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, DefaultTaskDependency buildDependencies) {
-        JarBinarySpec jarBinarySpec = (JarBinarySpec) selectedBinary;
-        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(jarBinarySpec.getId(), buildDependencies);
-        LibraryPublishArtifact jarBinary = new LibraryPublishArtifact("jar", jarBinarySpec.getJarFile());
-        metaData.addArtifacts(DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME, Collections.singleton(jarBinary));
-        return metaData;
-    }
-
     private LibraryResolutionErrorMessageBuilder.LibraryResolutionResult doResolve(String projectPath,
-                                              String libraryName) {
+                                                                                   String libraryName) {
         try {
             ModelRegistry projectModel = projectModelResolver.resolveProjectModel(projectPath);
             ComponentSpecContainer components = projectModel.find(
@@ -127,15 +117,14 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 ModelType.of(ComponentSpecContainer.class));
             if (components != null) {
                 ModelMap<? extends LibrarySpec> libraries = components.withType(LibrarySpec.class);
-                return LibraryResolutionErrorMessageBuilder.resultOf(libraries.values(), libraryName, LIBRARY_PREDICATE);
+                return JvmLibraryResolutionErrorMessageBuilder.LibraryResolutionResult.of(libraries.values(), libraryName, getLibraryPredicate());
             } else {
-                return LibraryResolutionErrorMessageBuilder.emptyResolutionResult();
+                return JvmLibraryResolutionErrorMessageBuilder.LibraryResolutionResult.emptyResolutionResult();
             }
         } catch (UnknownProjectException e) {
-            return LibraryResolutionErrorMessageBuilder.projectNotFound();
+            return JvmLibraryResolutionErrorMessageBuilder.LibraryResolutionResult.projectNotFound();
         }
     }
-
 
     @Override
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
@@ -179,6 +168,12 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 result.failed(new ArtifactResolveException("Unsupported artifact metadata type: " + artifact));
             }
         }
+    }
+
+    protected abstract LocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, TaskDependency buildDependencies);
+
+    private Predicate<? super LibrarySpec> getLibraryPredicate() {
+        return binarySpecPredicate;
     }
 
 }
