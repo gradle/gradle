@@ -24,6 +24,7 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelStructSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
@@ -54,7 +55,11 @@ public class ManagedModelCreators {
             .descriptor(descriptor);
 
         if (schema.getKind() == ModelSchema.Kind.STRUCT && Named.class.isAssignableFrom(type.getRawClass())) {
-            builder.action(ModelActionRole.Initialize, new NamedInitializer(path, descriptor));
+            // Only initialize "name" child node if the schema has such a node. This is not the case
+            // for a managed subtype of an unmanaged type that implements Named.
+            if (((ModelStructSchema<T>) schema).getProperties().containsKey("name")) {
+                builder.action(ModelActionRole.Initialize, new NamedInitializer(path, descriptor));
+            }
         }
         if (initializer != null) {
             builder.action(ModelActionRole.Initialize, initializer);
