@@ -73,10 +73,9 @@ class DefaultBuildExecuterTest extends Specification {
 
         given:
         def buildExecution = new DefaultBuildExecuter([], [action1, action2])
-        buildExecution.select(gradleInternal)
 
         when:
-        buildExecution.execute()
+        buildExecution.execute(gradleInternal)
 
         then:
         1 * action1.execute(!null)
@@ -89,10 +88,9 @@ class DefaultBuildExecuterTest extends Specification {
 
         given:
         def buildExecution = new DefaultBuildExecuter([], [action1, action2])
-        buildExecution.select(gradleInternal)
 
         when:
-        buildExecution.execute()
+        buildExecution.execute(gradleInternal)
 
         then:
         1 * action1.execute(!null) >> { it[0].proceed() }
@@ -106,10 +104,9 @@ class DefaultBuildExecuterTest extends Specification {
 
         given:
         def buildExecution = new DefaultBuildExecuter([], [action1])
-        buildExecution.select(gradleInternal)
 
         when:
-        buildExecution.execute()
+        buildExecution.execute(gradleInternal)
 
         then:
         1 * action1.execute(!null) >> { it[0].proceed() }
@@ -125,7 +122,7 @@ class DefaultBuildExecuterTest extends Specification {
 
         when:
         buildExecution.select(gradleInternal)
-        buildExecution.execute()
+        buildExecution.execute(gradleInternal)
 
         then:
         1 * configurationAction.configure(!null) >> {

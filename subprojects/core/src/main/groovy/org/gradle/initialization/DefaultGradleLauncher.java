@@ -48,7 +48,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildCompletionListener buildCompletionListener;
     private final BuildOperationExecutor buildOperationExecutor;
     private BuildExecuter buildExecuter;
-    private CustomBuildExecuter customBuildConfigurationBuildExecutor = null;
+    private CustomBuildExecuter customBuildConfigurationBuildExecutor;
 
     private final Closeable buildServices;
 
