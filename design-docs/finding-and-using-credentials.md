@@ -89,7 +89,7 @@ must not be used. Often, build users are not particularly opinionated regarding 
 * Plugin portal transport:
     - Credentials: api key + secret key.
 
-# Implementation Plan
+# Stories
 
 ## Story: Build author configures the set of authentication protocols to use for an HTTP repository
 
@@ -97,41 +97,66 @@ must not be used. Often, build users are not particularly opinionated regarding 
 - Where no auth protocols are configured, attempt all supported auth protocols for HTTP (current behaviour).
 - Use the credentials supplied for the repository for all attempted authentication protocols
 - Fail if an authentication protocol is specified that is not supported by the configured repository transport
-	- Only define HTTP authentication protocols for now
-	- All other repository transports disallow _all_ authentication protocols
+    - Only define `BasicAuth` and `DigestAuth` protocols for now, which apply only to HTTP repository transports
+    - All other repository transports disallow _all_ authentication protocols
 
 ```
     maven {
         url 'https://repo.somewhere.com/maven'
         credentials {
-	        username 'user'
-	        password 'pwd'
-	    }
+            username 'user'
+            password 'pwd'
+        }
         authentication(BasicAuth)
-        authentication(NTLMAuth)
+        authentication(DigestAuth)
     }
 ```
 
+### Implementation
+
+- Remove the use of "all" scheme in HTTP Client, and explicitly configure the supported credential types when none defined by user
+    - Investigate whether the Kerberos and SPNEGO authentication protocols currently work with Gradle. 
+      This will guide whether we should explicitly enable them in HTTP client
+- Model an authentication protocol instance as having a single Credentials instance. 
+  We can later extend this to support multiple credentials for certain protocols.
+    - Configure the HTTPClient by supplying with the configured AuthenticationProtocol instances.
+- Order of `authentication` calls is not significant: retain default ordering defined by HTTPClient (`org.apache.http.impl.client.AuthenticationStrategyImpl.DEFAULT_SCHEME_PRIORITY`)
+
 ### Test Coverage
 
-- Build fails with error when specifying an authentication protocol for an unsupported transport protocol (currently only HTTP should be supported)
-- Build fails when specifying an authentication protocol when no credentials have been specified
-- All supported authentication protocols are attempted when none are specified
-- When authentication protocols are specified, only those are attempted
+- Can configure and resolve from HTTP repository using a single authentication protocol (others are _not_ attempted):
+    - Basic Auth with password credentials
+    - Digest Auth with password credentials
+- Can configure and resolve from HTTP repository using Basic & Digest authentication protocols with common password credentials
+    - Other protocols are _not_ attempted: can inspect the HTTP header for supported protocols
+    - Will attempt Basic authentication only if Digest authentication fails, even if `BasicAuth` is specified first
+- All supported authentication protocols for HTTP are attempted when none explicitly specified: existing test coverage may suffice
+- Configuration failure when specifying:
+    - authentication protocol for a repository with a transport other than HTTP/HTTPS
+    - authentication protocol for a repository when no credentials have been specified
+    - multiple authentication protocols of the same type
+    - custom credentials type or AwsCredentials for an HTTP repository
 
-## Story: Build author configures Basic Auth to send credentials pre-emptively
+### Out of scope
+
+- Adding support or automated test coverage for NTLM, Kerberos or SPNEGO authentication
+- Exposing an NTLM-specific credentials type
+- Allowing credentials to be configured per authentication protocol
+- Configuration of the order that authentication protocols are attempted
+
+## Story: Build author configures Basic Auth to send credentials preemptively
 
 ```
     maven {
         url 'https://repo.somewhere.com/maven'
         credentials {
-	        username 'user'
-	        password 'pwd'
-	    }
+            username 'user'
+            password 'pwd'
+        }
         authentication(BasicAuth) {
-	        preemptive = true
-	    }
-        authentication(NTLMAuth)
+            preemptive = true
+        }
+        authentication(DigestAuth)
     }
 ```
 
