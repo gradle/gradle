@@ -214,9 +214,9 @@ integTestTasks.all { Test task ->
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     systemProperties['org.gradle.integtest.versions'] = project.hasProperty('testVersions') ? project.testVersions : 'latest'
 
-    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") ? 'all' : 'default'
+    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") && project.testAllPlatforms ? 'all' : 'default'
 
-    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("multiVersion") ? 'all' : 'default'
+    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
 
     dependsOn project.task("configure${task.name.capitalize()}") << {
         configure(task) {
@@ -274,7 +274,7 @@ task integTest(type: Test) {
         testLogging.showStandardStreams = true
     }
     if (project.hasProperty('org.gradle.integtest.verbose')) {
-        testLogging.showStandardStreams = true        
+        testLogging.showStandardStreams = true
     }
 }
 check.dependsOn(integTest)
