@@ -32,7 +32,7 @@ class ModelNodeInternalTest extends Specification {
     }
 
     @Unroll
-    def "should record a single executed rule when notify fired #fireCount time(s)"() {
+    def "should record executed rules when notify fired #fireCount time(s)"() {
         ModelRuleDescriptor descriptor = Mock()
         ModelNodeInternal modelNode = new ModelNodeInternalImpl(creatorRuleBinder)
         MutatorRuleBinder executionBinder = Mock()
@@ -46,7 +46,7 @@ class ModelNodeInternalTest extends Specification {
         }
 
         then:
-        modelNode.executedRules.size() == 1
+        modelNode.executedRules.size() == fireCount
         modelNode.executedRules[0] == descriptor
 
         where:
