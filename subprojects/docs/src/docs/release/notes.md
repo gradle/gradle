@@ -43,10 +43,10 @@ This feature was contributed by [Dominik Schürmann](https://github.com/dschuerm
 
 ### Support for functionally testing Gradle plugins
 
-This release brings the initial version of, the long awaited, official support for functionally testing Gradle plugins. 
+This release brings the initial version of, the long awaited, official support for functionally testing Gradle plugins.
 That is, being able to programmatically execute a contrived build leveraging a plugin under development as part of the plugin's build.
 This functionality is being delivered as part of the new Gradle TestKit.
- 
+
 Many community members stepped up and filled the void created by the absence of a built in way to do this.
 Notably, the folks at [Netflix](http://netflix.com/) contributed the very popular [Nebula Test](https://github.com/nebula-plugins/nebula-test) as part of their [Nebula Project](https://github.com/nebula-plugins).
 The functionality provided by this and other similar projects will over time be rolled into the Gradle TestKit.
@@ -174,9 +174,7 @@ We would like to thank the following community members for making contributions 
 * [Jordan Jennings](https://github.com/jordanjennings) - Documentation improvements
 * [Zoltán Kurucz](https://github.com/qzole) - Documentation improvements
 * [Yu Lu](https://github.com/yulucodebase) - Logging improvements
-<!--
-* [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
+* [Ben Blank](https://github.com/benblank) - Allow CopySpec.filter() to remove lines
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
