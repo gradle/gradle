@@ -97,7 +97,7 @@ Add methods to `TestLauncher` to request specific JVM test classes be executed.
 * handles more than one test task
 	* ~~class included in multiple test tasks is executed multiple times, once for each test task~~
 	* ~~class included in multiple projects is executed multiple times, once for each test task~~
-	* ~~request class A and class B, where class A is included in task A, class B is included in task B~
+	* ~~request class A and class B, where class A is included in task A, class B is included in task B~~
 	* ~~request class A, where class A is included in task A and not included in task B~~
 	* when configure-on-demand is being used with a multi-project build
 * tooling api operation fails with meaningful error message when no matching tests can be found
