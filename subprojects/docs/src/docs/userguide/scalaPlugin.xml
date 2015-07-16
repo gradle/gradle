@@ -209,7 +209,7 @@
         <title>Convention properties</title>
         <para>The Scala plugin does not add any convention properties to the project.</para>
     </section>
-    
+
     <section>
         <title>Source set properties</title>
         <para>The Scala plugin adds the following convention properties to each source set in the project. You can
@@ -356,7 +356,8 @@
         <para>
             The Scala plugin adds a configuration named <literal>zinc</literal> to resolve the Zinc library and its dependencies.
             Gradle will have a default version of the Zinc library, but if you want to override the
-            Zinc version that Gradle uses, add an explicit dependency like <literal>“com.typesafe.zinc:zinc:0.1.4”</literal>.
+            Zinc version that Gradle uses, add an explicit dependency like <literal>“com.typesafe.zinc:zinc:0.3.6”</literal>.  Gradle will support
+            version 0.3.0 of Zinc and above, although due to a regression in the Zinc library, versions 0.3.2 through 0.3.5.2 cannot be used.
             Regardless of which Zinc version is used, Zinc will always use the Scala compiler found on the <literal>scalaTools</literal> configuration.
         </para>
 
