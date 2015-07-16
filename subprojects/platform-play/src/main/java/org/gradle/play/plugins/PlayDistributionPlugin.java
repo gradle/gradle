@@ -16,10 +16,15 @@
 
 package org.gradle.play.plugins;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.Task;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -36,12 +41,10 @@ import org.gradle.play.distribution.PlayDistribution;
 import org.gradle.play.distribution.PlayDistributionContainer;
 import org.gradle.play.internal.distribution.DefaultPlayDistribution;
 import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A plugin that adds a distribution zip to a Play application build.
@@ -205,17 +208,20 @@ public class PlayDistributionPlugin extends RuleSource {
 
         @Override
         public String toString() {
-            Set<File> classpathFiles = new LinkedHashSet<File>();
-            classpathFiles.addAll(Sets.newLinkedHashSet(playConfiguration.getFileCollection()));
-            classpathFiles.add(assetsJarFile);
-            Set<String> classpathFileNames = CollectionUtils.collect(classpathFiles, new Transformer<String, File>() {
-                @Override
-                public String transform(File file) {
-                    return file.getName();
-                }
-            });
-
-            return StringUtils.join(classpathFileNames, " ");
+            return Joiner.on(" ").join(
+                Iterables.transform(
+                    Iterables.concat(
+                        playConfiguration.getFileCollection(),
+                        Collections.singleton(assetsJarFile)
+                    ),
+                    new Function<File, String>() {
+                        @Override
+                        public String apply(File input) {
+                            return input.getName();
+                        }
+                    }
+                )
+            );
         }
     }
 }
