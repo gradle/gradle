@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal;
+package org.gradle.jvm.internal.services;
 
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -25,6 +25,9 @@ import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.jvm.internal.DefaultJavaPlatformVariantDimensionSelector;
+import org.gradle.jvm.internal.DefaultVariantDimensionSelectorFactory;
+import org.gradle.jvm.internal.JarBinaryRenderer;
 import org.gradle.jvm.internal.model.JarBinarySpecSpecializationSchemaExtractionStrategy;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
