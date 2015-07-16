@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
-import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.LibrarySpec;
 
@@ -93,6 +92,7 @@ public interface LibraryResolutionErrorMessageBuilder {
         }
 
         public String toResolutionErrorMessage(
+            Class<? extends BinarySpec> binaryType,
             LibraryComponentSelector selector) {
             List<String> candidateLibraries = formatLibraryNames(getCandidateLibraries());
             String projectPath = selector.getProjectPath();
@@ -112,8 +112,8 @@ public interface LibraryResolutionErrorMessageBuilder {
                 LibrarySpec notMatchingRequirements = getNonMatchingLibrary();
                 if (notMatchingRequirements != null) {
                     sb.append(" contains a library named '").append(libraryName)
-                        .append("' but it is not a ")
-                        .append(JvmLibrarySpec.class.getSimpleName());
+                        .append("' but it doesn't have any binary of type ")
+                        .append(binaryType.getSimpleName());
                 } else {
                     sb.append(" does not contain library '").append(libraryName).append("'. Did you want to use ");
                     if (candidateLibraries.size() == 1) {

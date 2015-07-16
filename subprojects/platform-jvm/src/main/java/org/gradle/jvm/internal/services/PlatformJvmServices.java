@@ -30,6 +30,7 @@ import org.gradle.jvm.internal.DefaultVariantDimensionSelectorFactory;
 import org.gradle.jvm.internal.JarBinaryRenderer;
 import org.gradle.jvm.internal.model.JarBinarySpecSpecializationSchemaExtractionStrategy;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.language.base.internal.model.DefaultVariantDimensionSelectorFactory;
 import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 

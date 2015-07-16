@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.internal;
+package org.gradle.language.base.internal.model;
 
 import org.gradle.internal.Cast;
-import org.gradle.language.base.internal.model.VariantDimensionSelector;
-import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
 
 public class DefaultVariantDimensionSelectorFactory implements VariantDimensionSelectorFactory {
     private final Class<?> predicate;

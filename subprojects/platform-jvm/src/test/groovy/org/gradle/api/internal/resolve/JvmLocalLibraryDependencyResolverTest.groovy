@@ -34,9 +34,9 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResu
 import org.gradle.jvm.JarBinarySpec
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.internal.DefaultJavaPlatformVariantDimensionSelector
-import org.gradle.jvm.internal.DefaultVariantDimensionSelectorFactory
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
+import org.gradle.language.base.internal.model.DefaultVariantDimensionSelectorFactory
 import org.gradle.language.base.internal.model.VariantsMetaData
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.registry.ModelRegistry

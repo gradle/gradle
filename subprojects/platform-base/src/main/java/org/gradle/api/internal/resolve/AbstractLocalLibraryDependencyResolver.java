@@ -56,22 +56,24 @@ public abstract class AbstractLocalLibraryDependencyResolver<T extends BinarySpe
     private final VariantsMetaData variantsMetaData;
     private final VariantsMatcher matcher;
     private final LibraryResolutionErrorMessageBuilder errorMessageBuilder;
+    private final Class<? extends BinarySpec> binaryType;
     private final Predicate<LibrarySpec> binarySpecPredicate;
 
     public AbstractLocalLibraryDependencyResolver(
-        final Class<T> binarySpecType,
+        Class<T> binarySpecType,
         ProjectModelResolver projectModelResolver,
         List<VariantDimensionSelectorFactory> selectorFactories,
         VariantsMetaData variantsMetaData,
         LibraryResolutionErrorMessageBuilder errorMessageBuilder) {
         this.projectModelResolver = projectModelResolver;
-        this.matcher = new VariantsMatcher(selectorFactories);
+        this.matcher = new VariantsMatcher(selectorFactories, binarySpecType);
         this.errorMessageBuilder = errorMessageBuilder;
         this.variantsMetaData = variantsMetaData;
+        this.binaryType = binarySpecType;
         this.binarySpecPredicate = new Predicate<LibrarySpec>() {
             @Override
             public boolean apply(LibrarySpec input) {
-                return !input.getBinaries().withType(binarySpecType).isEmpty();
+                return !input.getBinaries().withType(binaryType).isEmpty();
             }
         };
     }
@@ -101,7 +103,7 @@ public abstract class AbstractLocalLibraryDependencyResolver<T extends BinarySpe
                 }
             }
             if (!result.hasResult()) {
-                String message = resolutionResult.toResolutionErrorMessage(selector);
+                String message = resolutionResult.toResolutionErrorMessage(binaryType, selector);
                 ModuleVersionResolveException failure = new ModuleVersionResolveException(selector, new LibraryResolveException(message));
                 result.failed(failure);
             }
@@ -117,12 +119,12 @@ public abstract class AbstractLocalLibraryDependencyResolver<T extends BinarySpe
                 ModelType.of(ComponentSpecContainer.class));
             if (components != null) {
                 ModelMap<? extends LibrarySpec> libraries = components.withType(LibrarySpec.class);
-                return JvmLibraryResolutionErrorMessageBuilder.LibraryResolutionResult.of(libraries.values(), libraryName, getLibraryPredicate());
+                return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.of(libraries.values(), libraryName, binarySpecPredicate);
             } else {
-                return JvmLibraryResolutionErrorMessageBuilder.LibraryResolutionResult.emptyResolutionResult();
+                return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.emptyResolutionResult();
             }
         } catch (UnknownProjectException e) {
-            return JvmLibraryResolutionErrorMessageBuilder.LibraryResolutionResult.projectNotFound();
+            return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.projectNotFound();
         }
     }
 
@@ -171,9 +173,5 @@ public abstract class AbstractLocalLibraryDependencyResolver<T extends BinarySpe
     }
 
     protected abstract LocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, TaskDependency buildDependencies);
-
-    private Predicate<? super LibrarySpec> getLibraryPredicate() {
-        return binarySpecPredicate;
-    }
 
 }

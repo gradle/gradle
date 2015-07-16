@@ -752,7 +752,7 @@ model {
 
     }
 
-    def "fails if a dependency is not a JvmLibrarySpec library"() {
+    def "fails if a dependency does not provide any JarBinarySpec"() {
         given:
         applyJavaPlugin(buildFile)
         addCustomLibraryType(buildFile)
@@ -784,7 +784,7 @@ model {
         failure.assertHasCause("Could not resolve project ':' library 'zdep'")
 
         and:
-        failure.assertHasCause("Project ':' contains a library named 'zdep' but it is not a JvmLibrarySpec")
+        failure.assertHasCause("Project ':' contains a library named 'zdep' but it doesn't have any binary of type JarBinarySpec")
     }
 
     def "successfully selects a JVM library if no library name is provided and 2 components are available"() {

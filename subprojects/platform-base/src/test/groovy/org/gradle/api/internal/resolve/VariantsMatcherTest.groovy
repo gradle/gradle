@@ -16,15 +16,12 @@
 
 package org.gradle.api.internal.resolve
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.Named
-import org.gradle.jvm.JarBinarySpec
-import org.gradle.jvm.internal.DefaultJavaPlatformVariantDimensionSelector
-import org.gradle.jvm.internal.DefaultVariantDimensionSelectorFactory
-import org.gradle.jvm.platform.JavaPlatform
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform
+import org.gradle.language.base.internal.model.DefaultVariantDimensionSelectorFactory
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData
 import org.gradle.language.base.internal.model.VariantDimensionSelector
+import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.Platform
 import org.gradle.platform.base.Variant
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -35,8 +32,8 @@ class VariantsMatcherTest extends Specification {
     def "should filter binaries based on requirements"() {
         given: "a library binary with some requirements"
 
-        def factories = [DefaultVariantDimensionSelectorFactory.of(JavaPlatform, new DefaultJavaPlatformVariantDimensionSelector())]
-        def matcher = new VariantsMatcher(factories)
+        def factories = [DefaultVariantDimensionSelectorFactory.of(MyPlatform, new MySelector())]
+        def matcher = new VariantsMatcher(factories, CustomSpecBase)
         def reference = DefaultVariantsMetaData.extractFrom(spec)
 
         when: "we filter binaries based on requirements"
@@ -48,7 +45,7 @@ class VariantsMatcherTest extends Specification {
         where:
         spec                                | binaries                                                                                                                                      | expected
         refSpec()                           | []                                                                                                                                            | []
-        refSpec()                           | [Mock(JarBinarySpec)]                                                                                                                         | []
+        refSpec()                           | [Mock(CustomSpecBase)]                                                                                                                         | []
         refSpec()                           | [refSpec()]                                                                                                                                   | [refSpec()]
         refSpec('1.7')                      | [refSpec('1.6')]                                                                                                                              | [refSpec('1.6')]
         refSpec('1.6')                      | [refSpec('1.7')]                                                                                                                              | []
@@ -80,7 +77,7 @@ class VariantsMatcherTest extends Specification {
     @Unroll
     def "can use a custom variant comparator"() {
         def factories = [
-            DefaultVariantDimensionSelectorFactory.of(JavaPlatform, new DefaultJavaPlatformVariantDimensionSelector()),
+            DefaultVariantDimensionSelectorFactory.of(MyPlatform, new MySelector()),
             DefaultVariantDimensionSelectorFactory.of(BuildType, new VariantDimensionSelector<BuildType>() {
                 @Override
                 boolean isCompatibleWithRequirement(BuildType requirement, BuildType value) {
@@ -93,7 +90,7 @@ class VariantsMatcherTest extends Specification {
                 }
             })
         ]
-        def matcher = new VariantsMatcher(factories)
+        def matcher = new VariantsMatcher(factories, CustomSpecBase)
         def reference = DefaultVariantsMetaData.extractFrom(spec)
 
         when: "we filter binaries based on requirements"
@@ -115,10 +112,10 @@ class VariantsMatcherTest extends Specification {
 
     }
 
-    private JarBinarySpec refSpec(String version = '1.7') {
-        def spec = Mock(JarBinarySpec)
-        spec.targetPlatform >> new DefaultJavaPlatform(JavaVersion.toVersion(version))
-        spec.displayName >> { "JarBinarySpec ($spec.targetPlatform)" }
+    private CustomSpecBase refSpec(String version = '1.7') {
+        def spec = Mock(CustomSpecBase)
+        spec.targetPlatform >> new MyPlatform(name:version)
+        spec.displayName >> { "CustomBinarySpec ($spec.targetPlatform)" }
         spec.equals(_) >> { args -> spec.displayName == args[0].displayName }
         spec.hashCode() >> { spec.displayName.hashCode() }
         spec.toString() >> { spec.displayName }
@@ -127,7 +124,7 @@ class VariantsMatcherTest extends Specification {
 
     private CustomSpec1 customSpec1(String version = '1.7', String flavor = 'free') {
         def spec = Mock(CustomSpec1)
-        spec.targetPlatform >> new DefaultJavaPlatform(JavaVersion.toVersion(version))
+        spec.targetPlatform >> new MyPlatform(name:version)
         spec.flavor >> flavor
         spec.displayName >> { "CustomSpec1 ($version, $flavor)" }
         spec.equals(_) >> { args -> spec.displayName == args[0].displayName }
@@ -138,7 +135,7 @@ class VariantsMatcherTest extends Specification {
 
     private CustomSpec2 customSpec2(String version = '1.7', String flavor = 'free', String buildType = 'release') {
         def spec = Mock(CustomSpec2)
-        spec.targetPlatform >> new DefaultJavaPlatform(JavaVersion.toVersion(version))
+        spec.targetPlatform >> new MyPlatform(name:version)
         spec.flavor >> flavor
         spec.buildType >> { buildType ? new BuildType(name: buildType) : null }
         spec.displayName >> { "CustomSpec2 ($version, $flavor, $buildType)" }
@@ -150,7 +147,7 @@ class VariantsMatcherTest extends Specification {
 
     private CustomSpec3 customSpec3(String version = '1.7', String flavor = 'free', String buildType = 'release', String customValue = 'foo') {
         def spec = Mock(CustomSpec3)
-        spec.targetPlatform >> new DefaultJavaPlatform(JavaVersion.toVersion(version))
+        spec.targetPlatform >> new MyPlatform(name:version)
         spec.flavor >> flavor
         spec.buildType >> { buildType ? new BuildType2(name: buildType, customValue: customValue) : null }
         spec.displayName >> { "CustomSpec3 ($version, $flavor, $buildType, $customValue)" }
@@ -160,12 +157,17 @@ class VariantsMatcherTest extends Specification {
         spec
     }
 
-    static interface CustomSpec1 extends JarBinarySpec {
+    static interface CustomSpecBase extends BinarySpec {
+        @Variant
+        Platform getTargetPlatform()
+    }
+
+    static interface CustomSpec1 extends CustomSpecBase {
         @Variant
         String getFlavor()
     }
 
-    static interface CustomSpec2 extends JarBinarySpec {
+    static interface CustomSpec2 extends CustomSpecBase {
         @Variant
         String getFlavor()
 
@@ -173,7 +175,7 @@ class VariantsMatcherTest extends Specification {
         BuildType getBuildType()
     }
 
-    static interface CustomSpec3 extends JarBinarySpec {
+    static interface CustomSpec3 extends CustomSpecBase {
         @Variant
         String getFlavor()
 
@@ -187,5 +189,41 @@ class VariantsMatcherTest extends Specification {
 
     static class BuildType2 extends BuildType {
         String customValue
+    }
+
+    static class MyPlatform implements Platform {
+        String name
+
+        @Override
+        String getDisplayName() {
+            "Java $name"
+        }
+
+        @Override
+        String getName() {
+            name
+        }
+
+
+        @Override
+        public String toString() {
+            displayName
+        }
+    }
+
+    static class MySelector implements VariantDimensionSelector<MyPlatform> {
+        private static int v(MyPlatform platform) {
+            Integer.valueOf(platform.name.replaceAll(/\./,''))
+        }
+
+        @Override
+        boolean isCompatibleWithRequirement(MyPlatform requirement, MyPlatform value) {
+            v(requirement) >= v(value)
+        }
+
+        @Override
+        boolean betterFit(MyPlatform requirement, MyPlatform first, MyPlatform second) {
+            v(first) < v(second)
+        }
     }
 }
