@@ -27,14 +27,15 @@ import java.util.List;
 public class ModelReportRulesFilter {
 
     public static List<ModelRuleDescriptor> uniqueExecutedRulesExcludingCreator(ModelNode model) {
-        final StringBuffer creator = new StringBuffer();
-        model.getDescriptor().describeTo(creator);
+        final StringBuffer creatorBuffer = new StringBuffer();
+        model.getDescriptor().describeTo(creatorBuffer);
+        final String creator = creatorBuffer.toString();
         Iterable<ModelRuleDescriptor> filtered = Iterables.filter(model.getExecutedRules(), new Predicate<ModelRuleDescriptor>() {
             @Override
             public boolean apply(ModelRuleDescriptor input) {
                 StringBuffer in = new StringBuffer();
                 input.describeTo(in);
-                return !in.toString().equals(creator.toString());
+                return !in.toString().equals(creator);
             }
         });
         return ImmutableSet.copyOf(filtered).asList();
