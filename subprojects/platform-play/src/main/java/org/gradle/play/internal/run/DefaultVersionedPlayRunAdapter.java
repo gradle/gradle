@@ -16,6 +16,7 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -31,15 +32,21 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 
 public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRunAdapter, Serializable {
-    private final AtomicReference<Object> reloadObject = new AtomicReference<Object>();
-    private volatile SoftReference<URLClassLoader> previousClassLoaderReference;
-    private volatile SoftReference<URLClassLoader> currentClassLoaderReference;
+
+    private final AtomicBoolean reload = new AtomicBoolean();
+    private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<ClassLoader>();
+    private final Queue<SoftReference<Closeable>> loadersToClose = new ConcurrentLinkedQueue<SoftReference<Closeable>>();
 
     protected abstract Class<?> getBuildLinkClass(ClassLoader classLoader) throws ClassNotFoundException;
 
@@ -55,17 +62,20 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                 if (method.getName().equals("projectPath")) {
                     return projectPath;
                 } else if (method.getName().equals("reload")) {
-                    closePreviousClassLoader();
-                    Object result = reloadObject.getAndSet(null);
-                    if (result == null) {
-                        return null;
-                    } else if (result == Boolean.TRUE) {
+
+                    // We can't close replaced loaders immediately, because their classes may be used during shutdown,
+                    // after the return of the reload() call that caused the loader to be swapped out.
+                    // We have no way of knowing when the loader is actually done with, so we use the request after the request
+                    // that triggered the reload as the trigger point to close the replaced loader.
+                    closeOldLoaders();
+
+                    if (reload.getAndSet(false)) {
                         ClassPath classpath = new DefaultClassPath(applicationJar).plus(new DefaultClassPath(changingClasspath));
                         URLClassLoader currentClassLoader = new URLClassLoader(classpath.getAsURLArray(), assetsClassLoader);
                         storeClassLoader(currentClassLoader);
                         return currentClassLoader;
                     } else {
-                        throw new IllegalStateException();
+                        return null;
                     }
                 } else if (method.getName().equals("settings")) {
                     return new HashMap<String, String>();
@@ -77,29 +87,36 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     }
 
     protected ClassLoader createAssetsClassLoader(File assetsJar, Iterable<File> assetsDirs, ClassLoader classLoader) {
-        return new URLClassLoader(new DefaultClassPath(assetsJar).getAsURLArray(), classLoader);
+        try {
+            return new URLClassLoader(new URL[]{assetsJar.toURI().toURL()}, classLoader);
+        } catch (MalformedURLException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
-    private void storeClassLoader(URLClassLoader currentClassLoader) {
-        URLClassLoader previousClassLoader = currentClassLoaderReference != null ? currentClassLoaderReference.get() : null;
-        if (previousClassLoader != null) {
-            previousClassLoaderReference = new SoftReference<URLClassLoader>(previousClassLoader);
+    private ClassLoader storeClassLoader(ClassLoader classLoader) {
+        final ClassLoader previous = currentClassloader.getAndSet(classLoader);
+        if (previous != null && previous instanceof Closeable) {
+            loadersToClose.add(new SoftReference<Closeable>(Cast.cast(Closeable.class, previous)));
         }
-        currentClassLoaderReference = new SoftReference<URLClassLoader>(currentClassLoader);
+        return classLoader;
     }
 
-    private void closePreviousClassLoader() throws IOException {
-        URLClassLoader previousClassLoader = previousClassLoaderReference != null ? previousClassLoaderReference.get() : null;
-        if (previousClassLoader instanceof Closeable) {
-            // use Closeable interface to find close method to prevent Java 1.7 specific method access
-            ((Closeable) previousClassLoader).close();
+    private void closeOldLoaders() throws IOException {
+        SoftReference<Closeable> ref = loadersToClose.poll();
+        while (ref != null) {
+            Closeable closeable = ref.get();
+            if (closeable != null) {
+                closeable.close();
+            }
+            ref.clear();
+            ref = loadersToClose.poll();
         }
-        previousClassLoaderReference = null;
     }
 
     @Override
     public void forceReloadNextTime() {
-        reloadObject.set(Boolean.TRUE);
+        reload.set(true);
     }
 
     public Object getBuildDocHandler(ClassLoader docsClassLoader, Iterable<File> classpath) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException {
