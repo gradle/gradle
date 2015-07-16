@@ -15,21 +15,18 @@
  */
 
 package org.gradle.api.internal.project.taskfactory
-
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
-import org.gradle.api.internal.*
+import org.gradle.api.internal.AbstractTask
+import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.DefaultTaskInputs
-import org.gradle.api.internal.tasks.DefaultTaskOutputs
 import org.gradle.api.tasks.TaskInstantiationException
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.ObjectInstantiationException
 import org.gradle.util.TestUtil
-import spock.lang.Issue
 import spock.lang.Specification
 
 class TaskFactoryTest extends Specification {
@@ -195,30 +192,4 @@ class TaskFactoryTest extends Specification {
 
     public static class NotATask {
     }
-
-    @Issue("GRADLE-3317")
-    def "can generate a task when the inject annotation is not present on all of the methods in the hierarchy"() {
-        given:
-        def generator = new AsmBackedClassGenerator()
-        def instantiator = new ClassGeneratorBackedInstantiator(generator, DirectInstantiator.INSTANCE)
-        ProjectInternal project = TestUtil.createRootProject()
-
-        when:
-        final ITaskFactory taskFactory = new TaskFactory(generator).createChild(project, instantiator)
-        AndroidJarTask obj = taskFactory.create("droidTask", AndroidJarTask)
-
-        then:
-        //getInputs() and getOutputs() exists on both org.gradle.api.Task and org.gradle.api.internal.AbstractTask
-        //Only AbstractTask has the @Inject annotation
-        obj.inputs.class == DefaultTaskInputs
-        obj.getInputs().class == DefaultTaskInputs
-        obj.getProperty("inputs").class == DefaultTaskInputs
-        obj.outputs.class == DefaultTaskOutputs
-        obj.getOutputs().class == DefaultTaskOutputs
-        obj.getProperty("outputs").class == DefaultTaskOutputs
-    }
 }
-
-public interface BinaryFileProviderTask extends Task {}
-
-class AndroidJarTask extends org.gradle.jvm.tasks.Jar implements BinaryFileProviderTask {}
