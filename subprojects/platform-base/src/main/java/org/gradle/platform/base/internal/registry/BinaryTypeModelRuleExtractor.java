@@ -19,9 +19,7 @@ package org.gradle.platform.base.internal.registry;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
@@ -33,6 +31,7 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 import java.util.Arrays;
@@ -42,7 +41,12 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryType, BinarySpec, BaseBinarySpec> {
     public BinaryTypeModelRuleExtractor() {
-        super("binary", BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, JavaReflectionUtil.factory(DirectInstantiator.INSTANCE, DefaultBinaryTypeBuilder.class));
+        super("binary", BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, new TypeBuilderFactory<BinarySpec>() {
+            @Override
+            public TypeBuilderInternal<BinarySpec> create(ModelType<? extends BinarySpec> publicType) {
+                return new DefaultBinaryTypeBuilder(publicType.getConcreteClass());
+            }
+        });
     }
 
     @Override
@@ -57,8 +61,8 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
     }
 
     public static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {
-        public DefaultBinaryTypeBuilder() {
-            super(BinaryType.class);
+        public DefaultBinaryTypeBuilder(Class<? extends BinarySpec> publicType) {
+            super(BinaryType.class, publicType);
         }
     }
 

@@ -18,9 +18,7 @@ package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -39,6 +37,7 @@ import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.component.BaseComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
+import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 import java.util.Arrays;
@@ -46,7 +45,12 @@ import java.util.List;
 
 public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<ComponentType, ComponentSpec, BaseComponentSpec> {
     public ComponentTypeModelRuleExtractor() {
-        super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, JavaReflectionUtil.factory(DirectInstantiator.INSTANCE, DefaultComponentTypeBuilder.class));
+        super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, new TypeBuilderFactory<ComponentSpec>() {
+            @Override
+            public TypeBuilderInternal<ComponentSpec> create(ModelType<? extends ComponentSpec> publicType) {
+                return new DefaultComponentTypeBuilder(publicType.getConcreteClass());
+            }
+        });
     }
 
     @Override
@@ -61,8 +65,8 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     }
 
     public static class DefaultComponentTypeBuilder extends AbstractTypeBuilder<ComponentSpec> implements ComponentTypeBuilder<ComponentSpec> {
-        public DefaultComponentTypeBuilder() {
-            super(ComponentType.class);
+        public DefaultComponentTypeBuilder(Class<? extends ComponentSpec> publicType) {
+            super(ComponentType.class, publicType);
         }
     }
 

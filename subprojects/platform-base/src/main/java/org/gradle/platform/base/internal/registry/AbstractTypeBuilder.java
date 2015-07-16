@@ -16,18 +16,25 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import org.gradle.model.Managed;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
     private final Class<?> markerAnnotation;
-    Class<? extends T> implementation;
+    private Class<? extends T> publicType;
+    private Class<? extends T> implementation;
 
-    public AbstractTypeBuilder(Class<?> markerAnnotation){
+    public AbstractTypeBuilder(Class<?> markerAnnotation, Class<? extends T> publicType) {
         this.markerAnnotation = markerAnnotation;
+        this.publicType = publicType;
     }
 
+    @Override
     public TypeBuilderInternal<T> defaultImplementation(Class<? extends T> implementation) {
+        if (this.publicType.isAnnotationPresent(Managed.class)) {
+            throw new InvalidModelException(String.format("Method annotated with @%s cannot set default implementation for managed type %s.", markerAnnotation.getSimpleName(), publicType.getName()));
+        }
         if (this.implementation != null) {
             throw new InvalidModelException(String.format("Method annotated with @%s cannot set default implementation multiple times.", markerAnnotation.getSimpleName()));
         }
@@ -35,6 +42,7 @@ public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
         return this;
     }
 
+    @Override
     public Class<? extends T> getDefaultImplementation() {
         return this.implementation;
     }

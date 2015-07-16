@@ -21,6 +21,7 @@ import org.gradle.language.base.internal.testinterfaces.NotBinarySpec
 import org.gradle.language.base.internal.testinterfaces.SomeBinarySpec
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
+import org.gradle.model.Managed
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelReference
@@ -83,6 +84,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         "extraParameter"                   | "Method annotated with @BinaryType must have a single parameter of type '${BinaryTypeBuilder.name}'."                  | "additional rule parameter"
         "returnValue"                      | "Method annotated with @BinaryType must not have a return value."                                                      | "method with return type"
         "implementationSetMultipleTimes"   | "Method annotated with @BinaryType cannot set default implementation multiple times."                                  | "implementation set multiple times"
+        "implementationSetForManagedType"  | "Method annotated with @BinaryType cannot set default implementation for managed type ${ManagedBinarySpec.name}."      | "implementation set for managed type"
         "noTypeParam"                      | "Parameter of type '${BinaryTypeBuilder.name}' must declare a type parameter."                                         | "missing type parameter"
         "notBinarySpec"                    | "Binary type '${NotBinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                        | "type not extending BinarySpec"
         "notCustomBinary"                  | "Binary type '${BinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                           | "type is BinarySpec"
@@ -108,6 +110,9 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         }
     }
 
+    @Managed
+    static interface ManagedBinarySpec extends BinarySpec {}
+
     static class Rules {
         @BinaryType
         static void validTypeRule(BinaryTypeBuilder<SomeBinarySpec> builder) {
@@ -130,6 +135,11 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         static void implementationSetMultipleTimes(BinaryTypeBuilder<SomeBinarySpec> builder) {
             builder.defaultImplementation(SomeBinarySpecImpl)
             builder.defaultImplementation(SomeBinarySpecOtherImpl)
+        }
+
+        @BinaryType
+        static void implementationSetForManagedType(BinaryTypeBuilder<ManagedBinarySpec> builder) {
+            builder.defaultImplementation(ManagedBinarySpec)
         }
 
         @BinaryType
