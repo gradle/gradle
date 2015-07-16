@@ -18,7 +18,6 @@ package org.gradle.jvm.internal.model;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.JarBinarySpec;
-import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelStructSchema;

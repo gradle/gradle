@@ -55,9 +55,9 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         registration.action.subject == ModelReference.of(ModelType.of(BinarySpecFactoryRegistry))
     }
 
-    def "applies ComponentModelBasePlugin only when implementation not set"() {
+    def "applies ComponentModelBasePlugin only when implementation not set for unmanaged binary spec"() {
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSet"))
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSetForUnmanagedBinarySpec"))
 
         then:
         registration.ruleDependencies == [ComponentModelBasePlugin]
@@ -123,7 +123,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         }
 
         @BinaryType
-        static void noImplementationSet(BinaryTypeBuilder<SomeBinarySpec> builder) {
+        static void noImplementationSetForUnmanagedBinarySpec(BinaryTypeBuilder<SomeBinarySpec> builder) {
         }
 
         @BinaryType

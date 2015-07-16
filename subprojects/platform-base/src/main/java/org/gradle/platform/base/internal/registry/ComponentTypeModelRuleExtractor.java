@@ -30,6 +30,7 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecIdentifier;
@@ -99,6 +100,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectIdentifier.class)).getInstance();
             final ProjectSourceSet projectSourceSet = ModelViews.assertType(inputs.get(2), ModelType.of(ProjectSourceSet.class)).getInstance();
+            final ModelSchemaStore schemaStore =  serviceRegistry.get(ModelSchemaStore.class);
             @SuppressWarnings("unchecked")
             Class<ComponentSpec> publicClass = (Class<ComponentSpec>) publicType.getConcreteClass();
             components.register(publicClass, descriptor, new BiFunction<ComponentSpec, String, MutableModelNode>() {
@@ -106,7 +108,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
                 public ComponentSpec apply(String name, MutableModelNode modelNode) {
                     FunctionalSourceSet componentSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet.class, name, instantiator, projectSourceSet);
                     ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                    return BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode, componentSourceSet, instantiator);
+                    return BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode, componentSourceSet, instantiator, schemaStore);
                 }
             });
         }

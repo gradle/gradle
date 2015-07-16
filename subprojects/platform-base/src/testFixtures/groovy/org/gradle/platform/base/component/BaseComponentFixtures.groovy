@@ -23,15 +23,21 @@ import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.manage.schema.ModelSchemaStore
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
 import org.gradle.platform.base.ComponentSpecIdentifier
 
 class BaseComponentFixtures {
 
-    static <T extends BaseComponentSpec> T create(Class<T> type, ModelRegistryHelper modelRegistry, ComponentSpecIdentifier componentId, FunctionalSourceSet functionalSourceSet, Instantiator instantiator) {
+    static <T extends BaseComponentSpec> T create(Class<T> type, ModelRegistryHelper modelRegistry, ComponentSpecIdentifier componentId, FunctionalSourceSet functionalSourceSet, Instantiator instantiator, ModelSchemaStore schemaStore = null) {
+        if (schemaStore == null) {
+            schemaStore = new DefaultModelSchemaStore(new ModelSchemaExtractor())
+        }
         try {
             modelRegistry.create(
                 ModelCreators.unmanagedInstanceOf(ModelReference.of(componentId.name, type), {
-                    BaseComponentSpec.create(type, componentId, it, functionalSourceSet, instantiator)
+                    BaseComponentSpec.create(type, componentId, it, functionalSourceSet, instantiator, schemaStore)
                 })
                     .descriptor(componentId.name)
                     .build()
