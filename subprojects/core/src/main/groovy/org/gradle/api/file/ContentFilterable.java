@@ -61,7 +61,8 @@ public interface ContentFilterable {
 
     /**
      * Adds a content filter based on the provided closure.  The Closure will be called with each line (stripped of line
-     * endings) and should return a String to replace the line.
+     * endings) and should return a String to replace the line or {@code null} to remove the line.  If every line is
+     * removed, the result will be an empty file, not an absent one.
      *
      * @param closure to implement line based filtering
      * @return this
