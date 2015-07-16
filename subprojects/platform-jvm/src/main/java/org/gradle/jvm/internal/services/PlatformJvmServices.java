@@ -26,7 +26,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.internal.DefaultJavaPlatformVariantDimensionSelector;
-import org.gradle.jvm.internal.DefaultVariantDimensionSelectorFactory;
 import org.gradle.jvm.internal.JarBinaryRenderer;
 import org.gradle.jvm.internal.model.JarBinarySpecSpecializationSchemaExtractionStrategy;
 import org.gradle.jvm.platform.JavaPlatform;
