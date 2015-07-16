@@ -143,6 +143,33 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
         ex.assertHasCause "Cannot create a CustomJarBinarySpec because this type is not known to this container. Known types are: (None)"
     }
 
+    def "illegal managed subtype yields error at rule execution time"() {
+        given:
+        buildFile << """
+            @Managed
+            interface IllegalJarBinarySpec extends JarBinarySpec {
+                void sayHello(String person)
+            }
+
+            ${registerBinaryType("IllegalJarBinarySpec")}
+
+            model {
+                components {
+                    sampleLib(JvmLibrarySpec) {
+                        binaries {
+                            illegalJar(IllegalJarBinarySpec)
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        def ex = fails "components"
+        ex.assertHasCause "Exception thrown while executing model rule: model.components > sampleLib.<init>"
+        ex.assertHasCause "Invalid managed model type IllegalJarBinarySpec: only paired getter/setter methods are supported (invalid methods: void IllegalJarBinarySpec#sayHello(java.lang.String))."
+    }
+
     def registerCustomJarBinaryType() {
         return """
             @Managed
