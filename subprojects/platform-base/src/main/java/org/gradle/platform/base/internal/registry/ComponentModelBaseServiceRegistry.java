@@ -24,7 +24,6 @@ import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.internal.session.BuildSession;
 import org.gradle.language.base.internal.resolve.DependentSourceSetLocalComponentConverter;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -81,7 +80,7 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
     }
 
     private static class BuildSessionScopeServices {
-        DeploymentRegistry createDeploymentRegistry(BuildSession buildSession) {
+        DeploymentRegistry createDeploymentRegistry() {
             return new DefaultDeploymentRegistry();
         }
     }
