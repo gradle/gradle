@@ -18,6 +18,7 @@ package org.gradle.internal.reflect
 
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 import spock.lang.Specification
 
 class ClassInspectorTest extends Specification {
@@ -371,22 +372,29 @@ class ClassInspectorTest extends Specification {
     }
 
     @Requires(TestPrecondition.NOT_JDK_IBM)
-    def "can extract both super types and interfaces"() {
+    def "methods of super classes appear before methods of implemented interfaces"() {
         expect:
         ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, AbstractCollection, List, RandomAccess, Cloneable, Serializable, Collection, Iterable]
     }
 
     @Requires(TestPrecondition.JDK_IBM)
-    def "can extract both super types and interfaces on IBMs jdk"() {
+    def "methods of super classes appear before methods of implemented interfaces on IBMs jdk"() {
         expect:
         ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, AbstractCollection, List, Cloneable, Serializable, RandomAccess, Collection, Iterable]
     }
 
-    def "should find superclass methods before interface methods"() {
+    @Issue("GRADLE-3317")
+    def "should find the correct method declaration"() {
         expect:
-        def details = ClassInspector.inspect(AndroidJarTask)
+        def details = ClassInspector.inspect(clazz)
         def getters = details.getProperty('inputs').getGetters()
-        getters[0].getAnnotations().size() == 1
+        getters[0].getDeclaringClass() == declaringClass
+
+        where:
+        clazz           | declaringClass
+        AndroidJarTask  | Jar
+        OverrideJarTask | OverrideJarTask
+        FromAbstract    | AbstractTask
     }
 
     public interface Task {
@@ -396,17 +404,18 @@ class ClassInspectorTest extends Specification {
     public interface BinaryFileProviderTask extends Task {}
 
     public abstract class AbstractTask implements Task {
-        public String getInputs() {
-            return "super"
-        }
+        public String getInputs() { return "super" }
     }
 
     public class Jar extends AbstractTask {
-        @Deprecated
-        public String getInputs() {
-            return "concrete"
-        }
+        public String getInputs() { return "concrete" }
     }
 
-    class AndroidJarTask extends Jar implements BinaryFileProviderTask {}
+    public class AndroidJarTask extends Jar implements BinaryFileProviderTask {}
+
+    public class OverrideJarTask extends AndroidJarTask {
+        public String getInputs() { return "override" }
+    }
+
+    public class FromAbstract extends AbstractTask {}
 }

@@ -36,6 +36,8 @@ public class ClassInspector {
         Set<Class<?>> seen = new HashSet<Class<?>>();
         List<Class<?>> queue = new ArrayList<Class<?>>();
         queue.add(type);
+        //Visit all super  classes before interfaces
+        Collections.addAll(queue, superClasses(type));
         while (!queue.isEmpty()) {
             Class<?> current = queue.remove(0);
             if (!seen.add(current)) {
@@ -45,8 +47,6 @@ public class ClassInspector {
                 classDetails.superType(current);
             }
             inspectClass(current, classDetails);
-            //Visit all super  classes before interfaces
-            Collections.addAll(queue, superClasses(current));
             Collections.addAll(queue, current.getInterfaces());
         }
     }
