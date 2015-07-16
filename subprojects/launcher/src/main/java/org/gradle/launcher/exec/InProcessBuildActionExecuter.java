@@ -24,19 +24,17 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.session.BuildSession;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
-    private final BuildSession buildSession;
+    private final GradleLauncherFactory gradleLauncherFactory;
     private final BuildActionRunner buildActionRunner;
 
-    public InProcessBuildActionExecuter(BuildSession buildSession, BuildActionRunner buildActionRunner) {
-        this.buildSession = buildSession;
+    public InProcessBuildActionExecuter(GradleLauncherFactory gradleLauncherFactory, BuildActionRunner buildActionRunner) {
+        this.gradleLauncherFactory = gradleLauncherFactory;
         this.buildActionRunner = buildActionRunner;
     }
 
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters) {
-        GradleLauncherFactory gradleLauncherFactory = buildSession.getServices().get(GradleLauncherFactory.class);
         DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext);
         gradleLauncher.addStandardOutputListener(buildRequestContext.getOutputListener());
         gradleLauncher.addStandardErrorListener(buildRequestContext.getErrorListener());

@@ -28,9 +28,7 @@ import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cli.CommandLineConverter;
-import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.initialization.DefaultClassLoaderRegistry;
-import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.initialization.*;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -66,6 +64,11 @@ public class GlobalScopeServicesTest {
 
     private ServiceRegistry registry() {
         return registry(false);
+    }
+
+    @Test
+    public void providesAGradleLauncherFactory() {
+        assertThat(registry().get(GradleLauncherFactory.class), instanceOf(DefaultGradleLauncherFactory.class));
     }
 
     @Test

@@ -35,6 +35,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.session.BuildSession;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -92,7 +93,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer) {
-        BuildScopeServices serviceRegistry = new BuildScopeServices(sharedServices, startParameter);
+        BuildSession buildSession = sharedServices.get(BuildSession.class);
+        BuildScopeServices serviceRegistry = new BuildScopeServices(buildSession.getServices(), startParameter);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
