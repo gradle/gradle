@@ -22,6 +22,8 @@ import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.ExtractedModelRule;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
@@ -35,10 +37,12 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
     private final ModelType<T> baseInterface;
     private final ModelType<U> baseImplementation;
     private final ModelType<?> builderInterface;
+    private final ModelSchemaStore schemaStore;
     private final TypeBuilderFactory<T> typeBuilderFactory;
 
-    public TypeModelRuleExtractor(String modelName, Class<T> baseInterface, Class<U> baseImplementation, Class<?> builderInterface, TypeBuilderFactory<T> typeBuilderFactory) {
+    public TypeModelRuleExtractor(String modelName, Class<T> baseInterface, Class<U> baseImplementation, Class<?> builderInterface, ModelSchemaStore schemaStore, TypeBuilderFactory<T> typeBuilderFactory) {
         this.modelName = modelName;
+        this.schemaStore = schemaStore;
         this.typeBuilderFactory = typeBuilderFactory;
         this.baseInterface = ModelType.of(baseInterface);
         this.baseImplementation = ModelType.of(baseImplementation);
@@ -48,7 +52,8 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
         try {
             ModelType<? extends T> type = readType(ruleDefinition);
-            TypeBuilderInternal<T> builder = typeBuilderFactory.create(type);
+            ModelSchema<? extends T> schema = schemaStore.getSchema(type);
+            TypeBuilderInternal<T> builder = typeBuilderFactory.create(schema);
             ruleDefinition.getRuleInvoker().invoke(builder);
             return createRegistration(ruleDefinition, type, builder);
         } catch (InvalidModelException e) {

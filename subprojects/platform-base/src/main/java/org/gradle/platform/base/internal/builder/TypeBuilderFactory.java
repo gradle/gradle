@@ -16,8 +16,8 @@
 
 package org.gradle.platform.base.internal.builder;
 
-import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 
 public interface TypeBuilderFactory<T> {
-    TypeBuilderInternal<T> create(ModelType<? extends T> publicType);
+    TypeBuilderInternal<T> create(ModelSchema<? extends T> schema);
 }

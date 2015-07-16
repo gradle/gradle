@@ -27,6 +27,7 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.session.BuildSession;
 import org.gradle.language.base.internal.resolve.DependentSourceSetLocalComponentConverter;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry {
 
@@ -59,16 +60,16 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
     }
 
     private static class GlobalScopeServices {
-        MethodModelRuleExtractor createLanguageTypePluginInspector() {
-            return new LanguageTypeModelRuleExtractor();
+        MethodModelRuleExtractor createLanguageTypePluginInspector(ModelSchemaStore schemaStore) {
+            return new LanguageTypeModelRuleExtractor(schemaStore);
         }
 
-        MethodModelRuleExtractor createComponentModelPluginInspector() {
-            return new ComponentTypeModelRuleExtractor();
+        MethodModelRuleExtractor createComponentModelPluginInspector(ModelSchemaStore schemaStore) {
+            return new ComponentTypeModelRuleExtractor(schemaStore);
         }
 
-        MethodModelRuleExtractor createBinaryTypeModelPluginInspector() {
-            return new BinaryTypeModelRuleExtractor();
+        MethodModelRuleExtractor createBinaryTypeModelPluginInspector(ModelSchemaStore schemaStore) {
+            return new BinaryTypeModelRuleExtractor(schemaStore);
         }
 
         MethodModelRuleExtractor createComponentBinariesPluginInspector() {

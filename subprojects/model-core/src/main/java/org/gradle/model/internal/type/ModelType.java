@@ -230,6 +230,10 @@ public abstract class ModelType<T> {
         }
     }
 
+    public String getName() {
+        return wrapper.getRepresentation(true);
+    }
+
     public String getSimpleName() {
         return wrapper.getRepresentation(false);
     }

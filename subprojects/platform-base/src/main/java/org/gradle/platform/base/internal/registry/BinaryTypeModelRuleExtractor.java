@@ -26,6 +26,8 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
@@ -40,11 +42,11 @@ import java.util.List;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryType, BinarySpec, BaseBinarySpec> {
-    public BinaryTypeModelRuleExtractor() {
-        super("binary", BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, new TypeBuilderFactory<BinarySpec>() {
+    public BinaryTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
+        super("binary", BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, schemaStore, new TypeBuilderFactory<BinarySpec>() {
             @Override
-            public TypeBuilderInternal<BinarySpec> create(ModelType<? extends BinarySpec> publicType) {
-                return new DefaultBinaryTypeBuilder(publicType.getConcreteClass());
+            public TypeBuilderInternal<BinarySpec> create(ModelSchema<? extends BinarySpec> schema) {
+                return new DefaultBinaryTypeBuilder(schema);
             }
         });
     }
@@ -61,8 +63,8 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
     }
 
     public static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {
-        public DefaultBinaryTypeBuilder(Class<? extends BinarySpec> publicType) {
-            super(BinaryType.class, publicType);
+        public DefaultBinaryTypeBuilder(ModelSchema<? extends BinarySpec> schema) {
+            super(BinaryType.class, schema);
         }
     }
 

@@ -28,6 +28,7 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;
@@ -44,11 +45,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<ComponentType, ComponentSpec, BaseComponentSpec> {
-    public ComponentTypeModelRuleExtractor() {
-        super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, new TypeBuilderFactory<ComponentSpec>() {
+    public ComponentTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
+        super("component", ComponentSpec.class, BaseComponentSpec.class, ComponentTypeBuilder.class, schemaStore, new TypeBuilderFactory<ComponentSpec>() {
             @Override
-            public TypeBuilderInternal<ComponentSpec> create(ModelType<? extends ComponentSpec> publicType) {
-                return new DefaultComponentTypeBuilder(publicType.getConcreteClass());
+            public TypeBuilderInternal<ComponentSpec> create(ModelSchema<? extends ComponentSpec> schema) {
+                return new DefaultComponentTypeBuilder(schema);
             }
         });
     }
@@ -65,8 +66,8 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     }
 
     public static class DefaultComponentTypeBuilder extends AbstractTypeBuilder<ComponentSpec> implements ComponentTypeBuilder<ComponentSpec> {
-        public DefaultComponentTypeBuilder(Class<? extends ComponentSpec> publicType) {
-            super(ComponentType.class, publicType);
+        public DefaultComponentTypeBuilder(ModelSchema<? extends ComponentSpec> schema) {
+            super(ComponentType.class, schema);
         }
     }
 
