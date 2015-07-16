@@ -316,7 +316,7 @@ public class DefaultGradleLauncherTest {
     private void expectTasksRun() {
         context.checking(new Expectations() {
             {
-                one(buildExecuter).execute();
+                one(buildExecuter).execute(gradleMock);
             }
         });
     }
@@ -324,7 +324,7 @@ public class DefaultGradleLauncherTest {
     private void expectTasksRunWithFailure(final Throwable failure) {
         context.checking(new Expectations() {
             {
-                one(buildExecuter).execute();
+                one(buildExecuter).execute(gradleMock);
                 will(throwException(failure));
             }
         });

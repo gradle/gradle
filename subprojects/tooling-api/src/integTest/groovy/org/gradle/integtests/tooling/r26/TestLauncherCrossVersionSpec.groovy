@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling.r26
-
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.GradleException
 import org.gradle.integtests.tooling.fixture.*
@@ -35,7 +34,6 @@ import org.gradle.tooling.events.test.TestProgressEvent
 import org.gradle.tooling.test.TestExecutionException
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 @ToolingApiVersion(">=2.6")
 @TargetGradleVersion(">=1.0-milestone-8")
@@ -391,10 +389,19 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=2.6")
-    @Ignore
     def "compatible with configure on demand"() {
         setup:
-        10.times{settingsFile << "include ':sub$it'\n"}
+        10.times{
+            settingsFile << "include ':sub$it'\n"
+            file("sub$it/src/test/java/example/MyTest.java") << """
+                package example;
+                public class MyTest {
+                    @org.junit.Test public void foo() throws Exception {
+                         org.junit.Assert.assertEquals(1, 1);
+                    }
+                }
+            """
+        }
         when:
         launchTests { TestLauncher testLauncher ->
             testLauncher.withArguments("--configure-on-demand")

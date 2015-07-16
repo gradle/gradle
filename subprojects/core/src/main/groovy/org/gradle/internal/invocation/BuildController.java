@@ -18,6 +18,7 @@ package org.gradle.internal.invocation;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.BuildConfigurationAction;
 
 /**
  * This is intended to eventually replace {@link org.gradle.initialization.GradleLauncher} internally. It's pretty rough at the moment.
@@ -57,4 +58,10 @@ public interface BuildController {
      * Sets the result for the build action.
      */
     void setResult(@Nullable Object result);
+
+    /**
+     * registers custom BuildConfigurationActions for the build.
+     */
+    void registerBuildConfigurationAction(BuildConfigurationAction buildConfigurationAction);
+
 }

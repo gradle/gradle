@@ -17,6 +17,7 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -50,7 +51,8 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     }
 
     private static class DefaultBuildController implements BuildController {
-        private enum State { Created, Completed }
+        private enum State {Created, Completed}
+
         private State state = State.Created;
         private boolean hasResult;
         private Object result;
@@ -84,6 +86,10 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         public void setResult(Object result) {
             this.hasResult = true;
             this.result = result;
+        }
+
+        public void registerBuildConfigurationAction(BuildConfigurationAction buildConfigurationAction) {
+            getLauncher().registerBuildConfigurationAction(buildConfigurationAction);
         }
 
         public GradleInternal getGradle() {

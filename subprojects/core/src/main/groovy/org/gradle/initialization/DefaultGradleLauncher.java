@@ -21,7 +21,9 @@ import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
+import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.BuildExecutionContext;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -30,6 +32,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import java.io.Closeable;
 
 public class DefaultGradleLauncher extends GradleLauncher {
+
     private enum Stage {
         Configure, Build
     }
@@ -44,7 +47,9 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final ModelConfigurationListener modelConfigurationListener;
     private final BuildCompletionListener buildCompletionListener;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final BuildExecuter buildExecuter;
+    private BuildExecuter buildExecuter;
+    private CustomBuildExecuter customBuildConfigurationBuildExecutor = null;
+
     private final Closeable buildServices;
 
     /**
@@ -138,8 +143,13 @@ public class DefaultGradleLauncher extends GradleLauncher {
         buildOperationExecutor.run("Calculate task graph", new Runnable() {
             @Override
             public void run() {
-                buildExecuter.select(gradle);
-
+                if(customBuildConfigurationBuildExecutor !=null){
+                    // a custom BuildConfigurationAction has been provided.
+                    // skipping the defaults
+                    customBuildConfigurationBuildExecutor.select(gradle);
+                } else {
+                    buildExecuter.select(gradle);
+                }
                 if (gradle.getStartParameter().isConfigureOnDemand()) {
                     buildListener.projectsEvaluated(gradle);
                 }
@@ -150,7 +160,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         buildOperationExecutor.run("Run tasks", new Runnable() {
             @Override
             public void run() {
-                buildExecuter.execute();
+                buildExecuter.execute(gradle);
             }
         });
 
@@ -191,12 +201,47 @@ public class DefaultGradleLauncher extends GradleLauncher {
         loggingManager.addStandardErrorListener(listener);
     }
 
+    @Override
+    public void registerBuildConfigurationAction(final BuildConfigurationAction buildConfigurationAction) {
+        customBuildConfigurationBuildExecutor = new CustomBuildExecuter(buildExecuter, buildConfigurationAction);
+    }
+
     public void stop() {
         try {
             loggingManager.stop();
             CompositeStoppable.stoppable(buildServices).stop();
         } finally {
             buildCompletionListener.completed();
+        }
+    }
+
+    private static class CustomBuildExecuter implements BuildExecuter {
+        private final BuildExecuter delegate;
+        private final BuildConfigurationAction customConfigurationAction;
+
+        public CustomBuildExecuter(BuildExecuter delegate, BuildConfigurationAction customConfigurationAction) {
+            this.delegate = delegate;
+            this.customConfigurationAction = customConfigurationAction;
+        }
+
+        @Override
+        public void select(final GradleInternal gradle) {
+            customConfigurationAction.configure(new BuildExecutionContext() {
+                @Override
+                public GradleInternal getGradle() {
+                    return gradle;
+                }
+
+                @Override
+                public void proceed() {
+                }
+            });
+
+        }
+
+        @Override
+        public void execute(GradleInternal gradle) {
+            delegate.execute(gradle);
         }
     }
 }

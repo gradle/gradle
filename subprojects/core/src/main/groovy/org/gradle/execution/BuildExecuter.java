@@ -30,5 +30,5 @@ public interface BuildExecuter {
     /**
      * Executes the selected tasks. Called after {@link #select(org.gradle.api.internal.GradleInternal)}.
      */
-    void execute();
+    void execute(GradleInternal gradle);
 }

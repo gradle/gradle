@@ -67,7 +67,7 @@ From a client this API can be used like:
 * ~~expected test progress events are received in each case~~
 * ~~reasonable error message when target Gradle version does not support test execution~~
 * ~~does something reasonable when continuous build is used.~~
-* `StartParameter.taskNames` returns something reasonable.
+* ~~`StartParameter.taskNames` returns something reasonable.~~
 
 ### Open questions
 
@@ -87,6 +87,10 @@ Add methods to `TestLauncher` to request specific JVM test classes be executed.
 ### Implementation
 
 * Change filter interfaces for `Test` to allow test class filters to be applied. Do not use patterns.
+* Change `BuildController` and according `GradleLauncher` to allow registering custom `BuildConfigurationActions`.
+* Register a custom `BuildConfigurationAction` to configure taskgraph with tasks based on provided `TestLauncher` configuration.
+    * update handling of TestDescriptors to use the new custom `BuildConfigurationAction` to configure the tasks to run instead of configuring
+      `StartParameter.taskNames`
 * Run all `Test` tasks with filters applied.
 
 ### Test Coverage

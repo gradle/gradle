@@ -16,17 +16,15 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import com.google.common.base.Equivalence;
-import org.gradle.BuildAdapter;
-import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestExecutionException;
+import org.gradle.execution.BuildConfigurationAction;
+import org.gradle.execution.BuildExecutionContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -35,12 +33,8 @@ import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
-import org.gradle.util.CollectionUtils;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class TestExecutionRequestActionRunner implements BuildActionRunner {
     @Override
@@ -50,9 +44,16 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         }
         final GradleInternal gradle = buildController.getGradle();
         final TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
-        configureForTestDescriptors(gradle, testExecutionRequestAction);
-        configureForTestClasses(gradle, testExecutionRequestAction);
-
+        buildController.registerBuildConfigurationAction(new BuildConfigurationAction() {
+            @Override
+            public void configure(BuildExecutionContext context) {
+                final Set<Task> allTasksToRun = new HashSet<Task>();
+                final GradleInternal gradleInternal = context.getGradle();
+                allTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal, testExecutionRequestAction));
+                allTasksToRun.addAll(configureBuildForTestClasses(gradleInternal, testExecutionRequestAction));
+                gradle.getTaskGraph().addTasks(allTasksToRun);
+            }
+        });
         PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
 
         Throwable failure = null;
@@ -77,32 +78,22 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         buildController.setResult(buildActionResult);
     }
 
-    private void configureForTestClasses(GradleInternal gradle, final TestExecutionRequestAction testExecutionRequestAction) {
-        if(testExecutionRequestAction.getTestExecutionRequest().getTestClassNames().isEmpty()){
-            return;
-        }
-        final Collection<String> testClassNames = testExecutionRequestAction.getTestExecutionRequest().getTestClassNames();
-        final Set<String> testTaskPaths = new HashSet<String>();
-        gradle.addBuildListener(new BuildAdapter() {
-            @Override
-            public void projectsEvaluated(Gradle gradle) {
-                final Set<Project> allprojects = gradle.getRootProject().getAllprojects();
-                for (Project project : allprojects) {
-                    final TaskCollection<Test> testTasks = project.getTasks().withType(Test.class);
-                    for (Test testTask : testTasks) {
-                        addTestClassFilter(testTask, testClassNames);
-                    }
-                    testTaskPaths.addAll(CollectionUtils.collect(testTasks, new Transformer<String, Test>() {
-                        @Override
-                        public String transform(Test testTask) {
-                            return testTask.getPath();
-                        }
-                    }));
-                }
+    private List<Task> configureBuildForTestClasses(GradleInternal gradle, final TestExecutionRequestAction testExecutionRequestAction) {
 
-                addTasksToStartParameter(testExecutionRequestAction.getStartParameter(), testTaskPaths);
+        if (testExecutionRequestAction.getTestExecutionRequest().getTestClassNames().isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Task> tasksToExecute = new ArrayList<Task>();
+        final Collection<String> testClassNames = testExecutionRequestAction.getTestExecutionRequest().getTestClassNames();
+        final Set<Project> allprojects = gradle.getRootProject().getAllprojects();
+        for (Project project : allprojects) {
+            final TaskCollection<Test> testTasks = project.getTasks().withType(Test.class);
+            for (Test testTask : testTasks) {
+                addTestClassFilter(testTask, testClassNames);
             }
-        });
+            tasksToExecute.addAll(testTasks);
+        }
+        return tasksToExecute;
     }
 
     private void addTestClassFilter(Test testTask, Collection<String> testClassNames) {
@@ -111,62 +102,39 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         }
     }
 
-    private void addTasksToStartParameter(StartParameter startParameter, Collection<String> taskPathsToAdd) {
-        final List<String> givenTaskPaths = startParameter.getTaskNames();
-
-        final Collection<String> allTaskPaths = CollectionUtils.addAll(givenTaskPaths, taskPathsToAdd);
-        startParameter.setTaskNames(CollectionUtils.dedup(allTaskPaths, new Equivalence<String>() {
-            @Override
-            protected boolean doEquivalent(String a, String b) {
-                return a.equals(b);
-            }
-
-            @Override
-            protected int doHash(String s) {
-                return s.hashCode();
-            }
-        }));
-    }
-
-    private void configureForTestDescriptors(GradleInternal gradle, final TestExecutionRequestAction testExecutionRequestAction) {
+    private List<Task> configureBuildForTestDescriptors(GradleInternal gradle, final TestExecutionRequestAction testExecutionRequestAction) {
         final Collection<InternalJvmTestExecutionDescriptor> testDescriptors = testExecutionRequestAction.getTestExecutionRequest().getTestExecutionDescriptors();
-        gradle.addBuildListener(new BuildAdapter() {
+        final List<String> testTaskPaths = org.gradle.util.CollectionUtils.collect(testDescriptors, new Transformer<String, InternalJvmTestExecutionDescriptor>() {
             @Override
-            public void projectsEvaluated(Gradle gradle) {
-                final List<String> testTaskPaths = org.gradle.util.CollectionUtils.collect(testDescriptors, new Transformer<String, InternalJvmTestExecutionDescriptor>() {
-                    @Override
-                    public String transform(InternalJvmTestExecutionDescriptor internalJvmTestDescriptor) {
-                        return internalJvmTestDescriptor.getTaskPath();
-                    }
+            public String transform(InternalJvmTestExecutionDescriptor internalJvmTestDescriptor) {
+                return internalJvmTestDescriptor.getTaskPath();
+            }
+        });
 
-                });
-
-                addTasksToStartParameter(testExecutionRequestAction.getStartParameter(), testTaskPaths);
-
-                for (final String testTaskPath : testTaskPaths) {
-                    gradle.getRootProject().getTasks().findByPath(testTaskPath);
-                    final Task task = gradle.getRootProject().getTasks().findByPath(testTaskPath);
-                    if (task == null) {
-                        throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
-                    } else if (!(task instanceof Test)) {
-                        throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
-                    } else {
-                        Test testTask = (Test) task;
-                        for (InternalJvmTestExecutionDescriptor testDescriptor : testDescriptors) {
-                            if (testDescriptor.getTaskPath().equals(testTaskPath)) {
-                                final String className = testDescriptor.getClassName();
-                                final String methodName = testDescriptor.getMethodName();
-                                if (className == null && methodName == null) {
-                                    testTask.getFilter().includeTestsMatching("*");
-                                } else {
-                                    testTask.getFilter().includeTest(className, methodName);
-                                }
-                            }
+        List<Task> testTasksToRun = new ArrayList<Task>();
+        for (final String testTaskPath : testTaskPaths) {
+            final Task task = gradle.getRootProject().getTasks().findByPath(testTaskPath);
+            if (task == null) {
+                throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
+            } else if (!(task instanceof Test)) {
+                throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
+            } else {
+                Test testTask = (Test) task;
+                for (InternalJvmTestExecutionDescriptor testDescriptor : testDescriptors) {
+                    if (testDescriptor.getTaskPath().equals(testTaskPath)) {
+                        final String className = testDescriptor.getClassName();
+                        final String methodName = testDescriptor.getMethodName();
+                        if (className == null && methodName == null) {
+                            testTask.getFilter().includeTestsMatching("*");
+                        } else {
+                            testTask.getFilter().includeTest(className, methodName);
                         }
                     }
                 }
+                testTasksToRun.add(task);
             }
-        });
+        }
+        return testTasksToRun;
     }
 
     private Throwable findRootCause(Exception tex) {
