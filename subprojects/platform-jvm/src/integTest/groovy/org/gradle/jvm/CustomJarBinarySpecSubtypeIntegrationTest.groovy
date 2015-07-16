@@ -24,20 +24,14 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
             plugins {
                 id 'jvm-component'
             }
-
-            @Managed
-            interface CustomJarBinarySpec extends JarBinarySpec {
-                String getValue()
-                void setValue(String value)
-            }
-
-            ${registerBinaryType("CustomJarBinarySpec")}
         """
     }
 
     def "can create a Jar from a managed JarBinarySpec subtype"() {
         given:
         buildFile << """
+            ${registerCustomJarBinaryType()}
+
             model {
                 components {
                     sampleLib(JvmLibrarySpec) {
@@ -60,6 +54,8 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
     def "managed JarBinarySpec subtypes can have further subtypes"() {
         given:
         buildFile << """
+            ${registerCustomJarBinaryType()}
+
             @Managed
             interface CustomParentJarBinarySpec extends CustomJarBinarySpec {
                 String getParentValue()
@@ -104,7 +100,7 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
         given:
         buildFile << """
             @Managed
-            interface CustomChildJarBinarySpec extends CustomJarBinarySpec {
+            interface CustomChildJarBinarySpec extends JarBinarySpec {
                 @Unmanaged
                 InputStream getThing()
                 void setThing(InputStream thing)
@@ -135,6 +131,8 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
     def "managed JarBinarySpec subtype cannot be created via BinaryContainer"() {
         given:
         buildFile << """
+            ${registerCustomJarBinaryType()}
+
             binaries {
                 customJar(CustomJarBinarySpec)
             }
@@ -143,6 +141,18 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
         expect:
         def ex = fails "customJar"
         ex.assertHasCause "Cannot create a CustomJarBinarySpec because this type is not known to this container. Known types are: (None)"
+    }
+
+    def registerCustomJarBinaryType() {
+        return """
+            @Managed
+            interface CustomJarBinarySpec extends JarBinarySpec {
+                String getValue()
+                void setValue(String value)
+            }
+
+            ${registerBinaryType("CustomJarBinarySpec")}
+        """
     }
 
     def registerBinaryType(String binaryType) {
