@@ -51,7 +51,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
     private ModelNode.State state = ModelNode.State.Known;
     private boolean hidden;
-    private final Set<ModelRuleDescriptor> executedRules = Sets.newLinkedHashSet();
+    private final List<ModelRuleDescriptor> executedRules = Lists.newArrayList();
 
     public ModelNodeInternal(CreatorRuleBinder creatorBinder) {
         this.creatorBinder = creatorBinder;
@@ -224,7 +224,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     @Override
-    public Set<ModelRuleDescriptor> getExecutedRules() {
+    public List<ModelRuleDescriptor> getExecutedRules() {
         return this.executedRules;
     }
 }

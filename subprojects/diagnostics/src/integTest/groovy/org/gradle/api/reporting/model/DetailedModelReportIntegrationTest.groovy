@@ -49,8 +49,6 @@ model {
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
         normaliseFileSeparators(modelNode.numbers.@creator[0]) == "model.numbers @ /build.gradle line 9, column 5"
-        normaliseFileSeparators(modelNode.numbers.@rules[0][0]) == "model.numbers @ /build.gradle line 9, column 5"
-
     }
 
     def "can find the relative path to a custom named build script"() {

@@ -24,7 +24,6 @@ import spock.lang.Unroll
 
 class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
-
     def "setup"() {
         EnableModelDsl.enable(executer)
         buildScript """

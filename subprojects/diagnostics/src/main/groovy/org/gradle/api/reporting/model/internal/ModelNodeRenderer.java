@@ -26,8 +26,8 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.reporting.ReportRenderer;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 import static org.gradle.logging.StyledTextOutput.Style.*;
@@ -91,7 +91,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
     }
 
     private void maybePrintRules(ModelNode model, StyledTextOutput styledTextoutput) {
-        Set<ModelRuleDescriptor> executedRules = model.getExecutedRules();
+        List<ModelRuleDescriptor> executedRules = ModelReportRulesFilter.uniqueExecutedRulesExcludingCreator(model);
         if (executedRules.size() > 0) {
             printNestedAttributeTitle(styledTextoutput, "Rules:");
             for (ModelRuleDescriptor ruleDescriptor : executedRules) {
