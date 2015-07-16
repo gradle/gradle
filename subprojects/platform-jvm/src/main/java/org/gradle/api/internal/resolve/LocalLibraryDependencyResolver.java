@@ -17,7 +17,6 @@ package org.gradle.api.internal.resolve;
 
 import com.google.common.base.Predicate;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
@@ -94,12 +93,11 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                 } else if (compatibleBinaries.size() > 1) {
                     result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleBinariesForSameVariantErrorMessage(libraryName, compatibleBinaries)));
                 } else {
-                    JarBinarySpec jarBinary = (JarBinarySpec) compatibleBinaries.iterator().next();
+                    BinarySpec selectedBinary = compatibleBinaries.iterator().next();
                     DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
-                    buildDependencies.add(jarBinary);
+                    buildDependencies.add(selectedBinary);
 
-                    DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(jarBinary.getId(), buildDependencies);
-                    metaData.addArtifacts(DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME, Collections.singleton(createJarPublishArtifact(jarBinary)));
+                    DefaultLibraryLocalComponentMetaData metaData = createLocalComponentMetaData(selectedBinary, buildDependencies);
 
                     result.resolved(metaData);
                 }
@@ -112,8 +110,12 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
         }
     }
 
-    private PublishArtifact createJarPublishArtifact(JarBinarySpec jarBinarySpec) {
-        return new LibraryPublishArtifact("jar", jarBinarySpec.getJarFile());
+    private DefaultLibraryLocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, DefaultTaskDependency buildDependencies) {
+        JarBinarySpec jarBinarySpec = (JarBinarySpec) selectedBinary;
+        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(jarBinarySpec.getId(), buildDependencies);
+        LibraryPublishArtifact jarBinary = new LibraryPublishArtifact("jar", jarBinarySpec.getJarFile());
+        metaData.addArtifacts(DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME, Collections.singleton(jarBinary));
+        return metaData;
     }
 
     private LibraryResolutionErrorMessageBuilder.LibraryResolutionResult doResolve(String projectPath,
