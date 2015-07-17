@@ -25,7 +25,7 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.*
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest
-import org.gradle.tooling.internal.provider.TestExecutionRequest
+import org.gradle.tooling.internal.consumer.TestExecutionRequest
 import spock.lang.Specification
 
 class TestExecutionConsumerConnectionTest extends Specification {

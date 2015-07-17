@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.events.OperationDescriptor;
 
