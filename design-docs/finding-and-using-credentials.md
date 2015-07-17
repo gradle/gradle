@@ -167,7 +167,7 @@ must not be used. Often, build users are not particularly opinionated regarding 
 * Implement an authentication protocol to facilitate public key authentication with SFTP repositories.
 
 * Add a `CredentialsContainer` to `org.gradle.api.internal.project.AbstractProject` similar to `org.gradle.api.artifacts.ConfigurationContainer`
-* Credentials, for the most part, should represent where the credentials data lives e.g. 'the public key is located at ~/.ssh/id_rsa.pub'
+* Credentials, for the most part, should represent where the credentials data lives e.g. 'the private key is located at ~/.ssh/id_rsa'
 * `org.gradle.api.artifacts.repositories.AuthenticationSupported` must remain backward compatible to support the existing DSL for configuring repositories.
 
 ## Proposed DSL
@@ -180,7 +180,8 @@ credentials {
     }
 
     publicKeyCreds(PublicKeyCredentials) {
-        publicKeyLocation = "~/.ssh/id_rsa.pub"
+        username = 'x'
+        privateKeyLocation = "~/.ssh/id_rsa"
     }
 
     basicAuthCreds(PasswordCredentials) {
