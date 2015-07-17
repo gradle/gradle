@@ -86,7 +86,7 @@ public interface TestFilter {
     TestFilter setIncludePatterns(String... testNamePatterns);
 
     /**
-     * Sets the test name patterns to be included in the filter. Wildcard '*' is supported. Replaces any existing test name patterns.
+     * Add a test method specified by test class name and method name.
      *
      * @param className the class name of the test to execute
      * @param methodName the method name of the test to execute. Can be null.
