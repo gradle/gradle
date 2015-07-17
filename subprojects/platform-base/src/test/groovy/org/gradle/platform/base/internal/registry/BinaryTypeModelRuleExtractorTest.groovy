@@ -119,7 +119,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
     }
 
     @Managed
-    static interface ManagedBinarySpec extends BinarySpec {}
+    static abstract class ManagedBinarySpec implements BinarySpec {}
 
     static class Rules {
         @BinaryType
