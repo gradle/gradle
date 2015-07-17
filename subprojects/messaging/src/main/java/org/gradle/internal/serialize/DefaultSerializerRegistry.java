@@ -43,10 +43,10 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
     }
 
     private static class TypeInfo {
-        final byte tag;
+        final int tag;
         final Serializer serializer;
 
-        private TypeInfo(byte tag, Serializer serializer) {
+        private TypeInfo(int tag, Serializer serializer) {
             this.tag = tag;
             this.serializer = serializer;
         }
@@ -54,28 +54,31 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
 
     private static class TaggedTypeSerializer<T> implements Serializer<T> {
         private static final int JAVA_TYPE = 1; // Reserve 0 for null (to be added later)
-        private static final TypeInfo JAVA_SERIALIZATION = new TypeInfo((byte) JAVA_TYPE, new DefaultSerializer<Object>());
+        private static final TypeInfo JAVA_SERIALIZATION = new TypeInfo(JAVA_TYPE, new DefaultSerializer<Object>());
         private final Map<Class<?>, TypeInfo> serializersByType = new HashMap<Class<?>, TypeInfo>();
-        private final Map<Byte, TypeInfo> serializersByTag = new HashMap<Byte, TypeInfo>();
+        private final TypeInfo[] serializersByTag;
         private final Set<Class<?>> javaSerialization;
 
         public TaggedTypeSerializer(Map<Class<?>, Serializer<?>> serializerMap, Set<Class<?>> javaSerialization) {
             this.javaSerialization = new HashSet<Class<?>>(javaSerialization);
-            serializersByTag.put(JAVA_SERIALIZATION.tag, JAVA_SERIALIZATION);
+            serializersByTag = new TypeInfo[2 + serializerMap.size()];
+            serializersByTag[JAVA_TYPE] = JAVA_SERIALIZATION;
+            int nextTag = 2;
             for (Map.Entry<Class<?>, Serializer<?>> entry : serializerMap.entrySet()) {
-                add(entry.getKey(), entry.getValue());
+                add(nextTag, entry.getKey(), entry.getValue());
+                nextTag++;
             }
         }
 
-        private void add(Class<?> type, Serializer<?> serializer) {
-            TypeInfo typeInfo = new TypeInfo((byte) (serializersByTag.size() + JAVA_TYPE), serializer);
+        private void add(int tag, Class<?> type, Serializer<?> serializer) {
+            TypeInfo typeInfo = new TypeInfo(tag, serializer);
             serializersByType.put(type, typeInfo);
-            serializersByTag.put(typeInfo.tag, typeInfo);
+            serializersByTag[typeInfo.tag] = typeInfo;
         }
 
         public T read(Decoder decoder) throws Exception {
-            byte tag = decoder.readByte();
-            TypeInfo typeInfo = serializersByTag.get(tag);
+            int tag = decoder.readSmallInt();
+            TypeInfo typeInfo = tag >= serializersByTag.length ? null : serializersByTag[tag];
             if (typeInfo == null) {
                 throw new IllegalArgumentException(String.format("Unexpected type tag %d found.", tag));
             }
@@ -84,7 +87,7 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
 
         public void write(Encoder encoder, T value) throws Exception {
             TypeInfo typeInfo = map(value.getClass());
-            encoder.writeByte(typeInfo.tag);
+            encoder.writeSmallInt(typeInfo.tag);
             typeInfo.serializer.write(encoder, value);
         }
 
