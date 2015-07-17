@@ -36,7 +36,7 @@ import static org.junit.Assert.assertTrue;
 import static org.gradle.testkit.runner.TaskResult.*;
 
 public class BuildLogicFunctionalTest {
-    @Rule public final TemporaryFolder testProjectDir = new org.junit.rules.TemporaryFolder();
+    @Rule public final TemporaryFolder testProjectDir = new TemporaryFolder();
     private File buildFile;
 
     @Before

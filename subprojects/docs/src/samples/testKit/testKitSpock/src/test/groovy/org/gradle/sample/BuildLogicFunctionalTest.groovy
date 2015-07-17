@@ -24,7 +24,7 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 class BuildLogicFunctionalTest extends Specification {
-    @Rule final TemporaryFolder testProjectDir = new org.junit.rules.TemporaryFolder()
+    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
 
     def setup() {
