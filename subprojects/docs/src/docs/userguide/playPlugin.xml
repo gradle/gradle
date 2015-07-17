@@ -32,6 +32,7 @@
         <sample id="usePlayPlugin" dir="play/basic" title="Using the Play plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
+        <para>Note that defining the typesafe repositories is necessary.  In future versions of Gradle, this will be replaced with a convenience syntax.</para>
     </section>
 
     <section>
