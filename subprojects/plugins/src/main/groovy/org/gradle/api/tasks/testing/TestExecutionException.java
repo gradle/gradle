@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
 import java.io.Serializable;
 
 /**
- * <p>A <code>TestExecutionException</code> is thrown when a test task fails.
+ * <p>A <code>TestExecutionException</code> is thrown when no tests can't be found.
  *
  * @since 2.6
  */

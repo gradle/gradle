@@ -191,7 +191,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     }
 
     /**
-     * This is used by consumers 2.5-rc1 and later.
+     * This is used by consumers 2.6-rc1 and later.
      */
     public <T> BuildResult<T> runTests(InternalTestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
