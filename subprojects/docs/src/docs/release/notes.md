@@ -175,6 +175,7 @@ We would like to thank the following community members for making contributions 
 * [Zoltán Kurucz](https://github.com/qzole) - Documentation improvements
 * [Yu Lu](https://github.com/yulucodebase) - Logging improvements
 * [Ben Blank](https://github.com/benblank) - Allow CopySpec.filter() to remove lines
+* [Harald Schmitt](https://github.com/surfing) - Fixed mixup in credentials design spec
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
