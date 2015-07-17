@@ -80,11 +80,10 @@ public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnec
         OperationDescriptor parent = descriptor.getParent();
         while (parent != null && parent.getParent() != null) {
             parent = parent.getParent();
+            if (parent instanceof TaskOperationDescriptor) {
+                return ((TaskOperationDescriptor) parent).getTaskPath();
+            }
         }
-        if (parent instanceof TaskOperationDescriptor) {
-            return ((TaskOperationDescriptor) parent).getTaskPath();
-        } else {
-            return null;
-        }
+        return null;
     }
 }
