@@ -33,6 +33,10 @@ class RegistrySpec extends Specification {
             super(toBinder(creationPath, type))
         }
 
+        TestNode(CreatorRuleBinder creatorBinder) {
+            super(creatorBinder)
+        }
+
         private static CreatorRuleBinder toBinder(String creationPath, Class<?> type) {
             def creator = ModelCreators.of(ModelPath.path(creationPath), BiActions.doNothing()).descriptor("test").withProjection(new UnmanagedModelProjection(ModelType.of(type))).build()
             def subject = new BindingPredicate()
