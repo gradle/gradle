@@ -28,6 +28,7 @@ import java.util.Set;
  * A {@code ConfigurableLauncher} allows you to configure a long running operation.
  *
  * @param <T> the ConfigurableLauncher implementation to return as part of the fluent API.
+ * @since 2.6
  * */
 public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends LongRunningOperation {
     /**

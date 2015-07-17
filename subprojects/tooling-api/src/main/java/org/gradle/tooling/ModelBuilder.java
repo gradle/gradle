@@ -16,12 +16,6 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.OperationType;
-
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Set;
 
 /**
  * A {@code ModelBuilder} allows you to fetch a snapshot of some model for a project or a build.
@@ -68,89 +62,7 @@ import java.util.Set;
  * @param <T> The type of model to build
  * @since 1.0-milestone-3
  */
-public interface ModelBuilder<T> extends LongRunningOperation {
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0
-     */
-    @Override
-    ModelBuilder<T> withArguments(String ... arguments);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-3
-     */
-    @Override
-    ModelBuilder<T> setStandardOutput(OutputStream outputStream);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-3
-     */
-    @Override
-    ModelBuilder<T> setStandardError(OutputStream outputStream);
-
-    /**
-     * {@inheritDoc}
-     * @since 2.3
-     */
-    @Incubating
-    @Override
-    ModelBuilder<T> setColorOutput(boolean colorOutput);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-7
-     */
-    @Override
-    ModelBuilder<T> setStandardInput(InputStream inputStream);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-8
-     */
-    @Override
-    ModelBuilder<T> setJavaHome(File javaHome);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-9
-     */
-    @Override
-    ModelBuilder<T> setJvmArguments(String... jvmArguments);
-
-    /**
-     * {@inheritDoc}
-     * @since 1.0-milestone-3
-     */
-    @Override
-    ModelBuilder<T> addProgressListener(ProgressListener listener);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.5
-     */
-    @Incubating
-    @Override
-    ModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener);
-
-    /**
-     * {@inheritDoc}
-     * @since 2.5
-     */
-    @Incubating
-    @Override
-    ModelBuilder<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> eventTypes);
-
-    /**
-     * {@inheritDoc}
-     * @since 2.3
-     */
-    @Incubating
-    @Override
-    ModelBuilder<T> withCancellationToken(CancellationToken cancellationToken);
+public interface ModelBuilder<T> extends ConfigurableLauncher<ModelBuilder<T>> {
 
     /**
      * Specifies the tasks to execute before building the model.

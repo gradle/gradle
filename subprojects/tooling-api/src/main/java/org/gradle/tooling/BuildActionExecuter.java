@@ -17,12 +17,6 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.OperationType;
-
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Set;
 
 /**
  * Used to execute a {@link BuildAction} in the build process.
@@ -31,99 +25,7 @@ import java.util.Set;
  * @since 1.8
  */
 @Incubating
-public interface BuildActionExecuter<T> extends LongRunningOperation {
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.3
-     */
-    @Override
-    BuildActionExecuter<T> withArguments(String... arguments);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.3
-     */
-    @Override
-    BuildActionExecuter<T> setStandardOutput(OutputStream outputStream);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.3
-     */
-    @Override
-    BuildActionExecuter<T> setStandardError(OutputStream outputStream);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.3
-     */
-    @Incubating
-    @Override
-    BuildActionExecuter<T> setColorOutput(boolean colorOutput);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.3
-     */
-    @Override
-    BuildActionExecuter<T> setStandardInput(InputStream inputStream);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.3
-     */
-    @Override
-    BuildActionExecuter<T> setJavaHome(File javaHome);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.3
-     */
-    @Override
-    BuildActionExecuter<T> setJvmArguments(String... jvmArguments);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.3
-     */
-    @Override
-    BuildActionExecuter<T> addProgressListener(ProgressListener listener);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.5
-     */
-    @Incubating
-    @Override
-    BuildActionExecuter<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.5
-     */
-    @Incubating
-    @Override
-    BuildActionExecuter<T> addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> eventTypes);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @since 2.3
-     */
-    @Incubating
-    @Override
-    BuildActionExecuter<T> withCancellationToken(CancellationToken cancellationToken);
+public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildActionExecuter<T>> {
 
     /**
      * Runs the action, blocking until its result is available.
