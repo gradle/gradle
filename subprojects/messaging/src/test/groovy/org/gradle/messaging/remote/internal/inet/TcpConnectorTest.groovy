@@ -17,17 +17,15 @@ package org.gradle.messaging.remote.internal.inet
 
 import org.gradle.api.Action
 import org.gradle.internal.id.UUIDGenerator
-import org.gradle.internal.serialize.BaseSerializerFactory
-import org.gradle.internal.serialize.Serializers
-import org.gradle.messaging.remote.internal.ConnectCompletion
-import org.gradle.messaging.remote.internal.ConnectException
-import org.gradle.messaging.remote.internal.DefaultMessageSerializer
-import org.gradle.messaging.remote.internal.KryoBackedMessageSerializer
+import org.gradle.internal.serialize.*
+import org.gradle.messaging.remote.internal.*
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Shared
 import spock.lang.Unroll
 
 class TcpConnectorTest extends ConcurrentSpec {
-    final def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
+    @Shared def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
+    @Shared def kryoSerializer = new KryoBackedMessageSerializer<String>(Serializers.stateful(BaseSerializerFactory.STRING_SERIALIZER))
     final def idGenerator = new UUIDGenerator()
     final def addressFactory = new InetAddressFactory()
     final def outgoingConnector = new TcpOutgoingConnector()
@@ -44,7 +42,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         connection != null
 
         cleanup:
-        acceptor?.requestStop()
+        acceptor?.stop()
+        connection?.stop()
     }
 
     def "client can connect to server using remote addresses"() {
@@ -58,7 +57,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         connection != null
 
         cleanup:
-        acceptor?.requestStop()
+        acceptor?.stop()
+        connection?.stop()
     }
 
     def "server executes action when incoming connection received"() {
@@ -66,14 +66,15 @@ class TcpConnectorTest extends ConcurrentSpec {
 
         when:
         def acceptor = incomingConnector.accept(action, false)
-        outgoingConnector.connect(acceptor.address)
+        def connection = outgoingConnector.connect(acceptor.address).create(serializer)
         thread.blockUntil.connected
 
         then:
         1 * action.execute(!null) >> { instant.connected }
 
         cleanup:
-        acceptor?.requestStop()
+        acceptor?.stop()
+        connection?.stop()
     }
 
     def "client throws exception when cannot connect to server"() {
@@ -112,6 +113,27 @@ class TcpConnectorTest extends ConcurrentSpec {
         e.cause instanceof java.net.ConnectException
     }
 
+    def "server closes connection when action fails"() {
+        Action action = Mock()
+
+        given:
+        _ * action.execute(_) >> {
+            throw new RuntimeException()
+        }
+
+        when:
+        def acceptor = incomingConnector.accept(action, false)
+        def connection = outgoingConnector.connect(acceptor.address).create(serializer)
+        def result = connection.receive()
+
+        then:
+        result == null
+
+        cleanup:
+        connection.stop()
+        acceptor?.stop()
+    }
+
     def "server stops accepting connections when action fails"() {
         Action action = Mock()
 
@@ -123,7 +145,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         when:
         def acceptor = incomingConnector.accept(action, false)
         async {
-            outgoingConnector.connect(acceptor.address)
+            def connection = outgoingConnector.connect(acceptor.address).create(serializer)
+            connection.stop()
         }
         outgoingConnector.connect(acceptor.address)
 
@@ -133,7 +156,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         e.cause instanceof java.net.ConnectException
 
         cleanup:
-        acceptor?.requestStop()
+        acceptor?.stop()
     }
 
     def "acceptor stop blocks until accept action has completed"() {
@@ -148,7 +171,7 @@ class TcpConnectorTest extends ConcurrentSpec {
 
         when:
         def acceptor = incomingConnector.accept(action, false)
-        outgoingConnector.connect(acceptor.address)
+        def connection = outgoingConnector.connect(acceptor.address).create(serializer)
         thread.blockUntil.connected
         operation.stop {
             acceptor.stop()
@@ -158,7 +181,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         operation.stop.end > instant.actionFinished
 
         cleanup:
-        acceptor?.requestStop()
+        acceptor?.stop()
+        connection?.stop()
     }
 
     @Unroll
@@ -186,8 +210,70 @@ class TcpConnectorTest extends ConcurrentSpec {
 
         where:
         messageSerializer | serializerName
-        new DefaultMessageSerializer<String>(getClass().getClassLoader())                                      | "java"
-        new KryoBackedMessageSerializer<String>(Serializers.stateful(BaseSerializerFactory.STRING_SERIALIZER)) | "kryo"
+        serializer        | "java"
+        kryoSerializer    | "kryo"
+    }
+
+    def "returns null on failure to receive due to truncated input"() {
+        def incomingSerializer = Mock(Serializer)
+        def outgoingSerializer = Mock(Serializer)
+        def action = Mock(Action)
+
+        given:
+        action.execute(_) >> { ConnectCompletion completion ->
+            def connection = completion.create(new KryoBackedMessageSerializer<String>(Serializers.stateful(incomingSerializer)))
+            connection.dispatch("string")
+            connection.stop()
+        }
+        incomingSerializer.write(_, _) >> { Encoder encoder, String value ->
+            encoder.writeInt(value.length())
+        }
+        outgoingSerializer.read(_) >> { Decoder decoder ->
+            decoder.readInt()
+            return decoder.readString()
+        }
+
+        when:
+        def acceptor = incomingConnector.accept(action, false)
+        def connection = outgoingConnector.connect(acceptor.address).create(new KryoBackedMessageSerializer<String>(Serializers.stateful(outgoingSerializer)))
+        def result = connection.receive()
+
+        then:
+        result == null
+
+        cleanup:
+        connection?.stop()
+        acceptor?.stop()
+    }
+
+    def "reports failure to receive due to broken serializer"() {
+        def outgoingSerializer = Mock(Serializer)
+        def action = Mock(Action)
+        def failure = new RuntimeException()
+
+        given:
+        action.execute(_) >> { ConnectCompletion completion ->
+            def connection = completion.create(kryoSerializer)
+            connection.dispatch("string")
+            connection.stop()
+        }
+        outgoingSerializer.read(_) >> { Decoder decoder ->
+            throw failure
+        }
+
+        when:
+        def acceptor = incomingConnector.accept(action, false)
+        def connection = outgoingConnector.connect(acceptor.address).create(new KryoBackedMessageSerializer<String>(Serializers.stateful(outgoingSerializer)))
+        connection.receive()
+
+        then:
+        MessageIOException e = thrown()
+        e.message == "Could not read message from '${connection.remoteAddress}'."
+        e.cause == failure
+
+        cleanup:
+        connection?.stop()
+        acceptor?.stop()
     }
 }
 
