@@ -38,7 +38,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
     def "can serialize LogEvent messages"() {
         expect:
         def event = new LogEvent(1234, "category", LogLevel.LIFECYCLE, "message", new RuntimeException())
-        def result = usesEfficientSerialization(event, serializer)
+        def result = serialize(event, serializer)
         result instanceof LogEvent
         result.timestamp == 1234
         result.category == "category"
@@ -49,7 +49,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result.throwable.stackTrace == event.throwable.stackTrace
 
         def event2 = new LogEvent(1234, "category", LogLevel.LIFECYCLE, "message", null)
-        def result2 = usesEfficientSerialization(event2, serializer)
+        def result2 = serialize(event2, serializer)
         result2 instanceof LogEvent
         result2.timestamp == 1234
         result2.category == "category"
@@ -63,7 +63,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         def event = new StyledTextOutputEvent(1234, "category", LogLevel.LIFECYCLE,
                 new StyledTextOutputEvent.Span(StyledTextOutput.Style.Description, "description"),
                 new StyledTextOutputEvent.Span(StyledTextOutput.Style.Error, "error"))
-        def result = usesEfficientSerialization(event, serializer)
+        def result = serialize(event, serializer)
         result instanceof StyledTextOutputEvent
         result.timestamp == 1234
         result.category == "category"
@@ -75,10 +75,18 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result.spans[1].text == "error"
     }
 
+    def "can serialize LogLevelChangeEvent messages"() {
+        expect:
+        def event = new LogLevelChangeEvent(LogLevel.LIFECYCLE)
+        def result = serialize(event, serializer)
+        result instanceof LogLevelChangeEvent
+        result.newLogLevel == LogLevel.LIFECYCLE
+    }
+
     def "can serialize ProgressStartEvent messages"() {
         expect:
         def event = new ProgressStartEvent(new OperationIdentifier(1234L), new OperationIdentifier(5678L), 321L, "category", "description", "short", "header", "status")
-        def result = usesEfficientSerialization(event, serializer)
+        def result = serialize(event, serializer)
         result instanceof ProgressStartEvent
         result.operationId == new OperationIdentifier(1234L)
         result.parentId == new OperationIdentifier(5678L)
@@ -90,7 +98,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result.status == "status"
 
         def event2 = new ProgressStartEvent(new OperationIdentifier(1234L), null, 321L, "category", "description", null, null, "")
-        def result2 = usesEfficientSerialization(event2, serializer)
+        def result2 = serialize(event2, serializer)
         result2 instanceof ProgressStartEvent
         result2.operationId == new OperationIdentifier(1234L)
         result2.parentId == null
@@ -105,7 +113,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
     def "can serialize ProgressCompleteEvent messages"() {
         expect:
         def event = new ProgressCompleteEvent(new OperationIdentifier(1234L), 321L, "category", "description", "status")
-        def result = usesEfficientSerialization(event, serializer)
+        def result = serialize(event, serializer)
         result instanceof ProgressCompleteEvent
         result.operationId == new OperationIdentifier(1234L)
         result.timestamp == 321L
@@ -117,7 +125,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
     def "can serialize ProgressEvent messages"() {
         expect:
         def event = new ProgressEvent(new OperationIdentifier(1234L), 321L, "category", "status")
-        def result = usesEfficientSerialization(event, serializer)
+        def result = serialize(event, serializer)
         result instanceof ProgressEvent
         result.operationId == new OperationIdentifier(1234L)
         result.timestamp == 321L

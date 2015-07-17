@@ -32,11 +32,16 @@ public class DaemonMessageSerializer {
         DefaultSerializerRegistry<Object> registry = new DefaultSerializerRegistry<Object>();
         registry.register(BuildEvent.class, new BuildEventSerializer());
         registry.register(Failure.class, new FailureSerializer(throwableSerializer));
+
+        // Output events
         registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
         registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
         registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
         registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
         registry.register(ProgressEvent.class, new ProgressEventSerializer());
+        registry.register(LogLevelChangeEvent.class, new LogLevelChangeEventSerializer(logLevelSerializer));
+
+        // Default for everything else
         registry.useJavaSerialization(Message.class);
         registry.useJavaSerialization(OutputEvent.class);
         return registry.build();
@@ -143,6 +148,25 @@ public class DaemonMessageSerializer {
             String description = decoder.readString();
             String status = decoder.readString();
             return new ProgressCompleteEvent(id, timestamp, category, description, status);
+        }
+    }
+
+    private static class LogLevelChangeEventSerializer implements Serializer<LogLevelChangeEvent> {
+        private final Serializer<LogLevel> logLevelSerializer;
+
+        public LogLevelChangeEventSerializer(Serializer<LogLevel> logLevelSerializer) {
+            this.logLevelSerializer = logLevelSerializer;
+        }
+
+        @Override
+        public void write(Encoder encoder, LogLevelChangeEvent value) throws Exception {
+            logLevelSerializer.write(encoder, value.getNewLogLevel());
+        }
+
+        @Override
+        public LogLevelChangeEvent read(Decoder decoder) throws Exception {
+            LogLevel logLevel = logLevelSerializer.read(decoder);
+            return new LogLevelChangeEvent(logLevel);
         }
     }
 
