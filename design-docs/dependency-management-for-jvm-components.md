@@ -469,7 +469,6 @@ Each property marked with `@Variant` defines a variant dimension for this kind o
 - Component report shows variants for a binary.
 - Not all binaries for a library need to have the same set of dimensions.
 - For this story, ignore variants when resolving dependencies.
-- For this story, assume that it is possible to add managed subtypes of `JarBinarySpec`.
 
 ### Implementation
 
