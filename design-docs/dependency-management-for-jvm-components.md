@@ -466,7 +466,7 @@ Each property marked with `@Variant` defines a variant dimension for this kind o
 
 - Property type must either be a String or a type that extends `Named`.
 - Annotate `JvmBinarySpec.targetPlatform`, the properties of `NativeBinarySpec` and `PlayApplicationBinarySpec`.
-- Component report shows variants for a binary.
+- Component report shows variants for a binary in alphabetic order.
 - Not all binaries for a library need to have the same set of dimensions.
 - For this story, ignore variants when resolving dependencies.
 
@@ -474,6 +474,15 @@ Each property marked with `@Variant` defines a variant dimension for this kind o
 
 - Meta-data must be extracted once and cached as part of the `ModelSchema` associated with the type.
 - Replace special case rendering of binary variant dimensions from the component report with general purpose reporting.
+
+### Test cases
+
+- Binaries with different variant dimensions can be built.
+- Variants are displayed for binary in alphabetic order.
+- Error cases:
+    - Invalid property type raises error during rule execution.
+    - `@Variant` annotation placed on setter raises error during rule execution.
+
 
 ## Story: Java sources of custom component are compiled against matching binary variant
 
