@@ -328,17 +328,46 @@ model {
     <section>
         <title>The model report</title>
         <para>
-            The built-in <link>model</link> task displays the model space as a tree.
-            It can be used to see what the potential elements to bind to are.
+            The built-in <apilink class="org.gradle.api.reporting.model.ModelReport"/> task displays a hierarchical view of the elements in the model space.
+            Each item prefixed with a `+`, excluding the topmost `+ model`, on the model report is a model element and the visual nesting of these elements correlates to the model
+            path e.g. `tasks.help` The model report displays the following details about each model element:
         </para>
+
+        <table>
+            <title>Model report - model element details</title>
+            <thead>
+                <td>Detail</td>
+                <td>Description</td>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Type</td>
+                    <td>This is the underlying type of the model element and is typically a fully qualified class name.</td>
+                </tr>
+                <tr>
+                    <td>Value</td>
+                    <td>Is conditionally displayed on the report when a model element can be represented as a string. The value of a model element can
+                        be specified by implementing the `toString()` method on it’s type.
+                    </td>
+                </tr>
+                <tr>
+                    <td>Creator</td>
+                    <td>Every model element on the model report has a creator. A creator signifies the origin of the model element i.e. what created the model element.
+                        The Creator is typically displayed as: &lt;class>#&lt;methodName>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Rules</td>
+                    <td>Is a listing of the rules, excluding creator rules, which are executed for a given model element. The order in which the rules are displayed reflects
+                        the order in which they are executed.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
         <sample id='basicRuleSourcePlugin-model-task' dir='modelRules/basicRuleSourcePlugin' title='model task output'>
             <output args='model' ignoreExtraLines="true"/>
         </sample>
-        <para>
-            Currently the report only shows the structure of the model space.
-            In future Gradle versions it will also display the types and values of the nodes.
-            Future versions will also provide richer and more interactive ways of exploring the model space.
-        </para>
     </section>
     <section>
         <title>Limitations and future direction</title>
