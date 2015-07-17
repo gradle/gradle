@@ -920,6 +920,14 @@ This improves usability by not doing the work of _applying_ changes until the de
 
 Adapt a generic build failure exception to a `PlayException` that renders the exception message.
 
+#### Test Coverage
+
+* After the Play application has started once successfully in continuous mode (`gradle -t runPlay`), when the source is changed in a way to cause a compilation error:
+   * `runPlay` should not run again
+   * Application should return an error page with build failed exception message
+   * Fixing compilation error should return application into "good" state
+   * Check Java, Scala, Asset, Route and Twirl compilation failures.
+
 ### Story: Developer views Java and Scala compilation failure in Play application
 
 Adapt compilation failures so that the failure and content of the failing file is displayed in the Play application.
