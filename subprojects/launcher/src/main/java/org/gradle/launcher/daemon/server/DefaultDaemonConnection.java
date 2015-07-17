@@ -16,10 +16,10 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.launcher.daemon.protocol.*;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
@@ -138,7 +138,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
         CompositeStoppable.stoppable(disconnectQueue, connection, executor, receiveQueue, stdinQueue, cancelQueue).stop();
     }
 
-    private static abstract class CommandQueue<C extends Command, H> implements Stoppable {
+    private static abstract class CommandQueue<C extends Message, H> implements Stoppable {
         private final Lock lock = new ReentrantLock();
         private final Condition condition = lock.newCondition();
         protected final LinkedList<C> queue = new LinkedList<C>();
@@ -277,7 +277,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
         @Override
         protected void doHandleDisconnect() {
             queue.clear();
-            queue.add(new CloseInput("<disconnected>"));
+            queue.add(new CloseInput());
         }
     }
 

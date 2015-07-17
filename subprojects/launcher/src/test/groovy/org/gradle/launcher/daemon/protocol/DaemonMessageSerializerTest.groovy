@@ -152,10 +152,9 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     def "can serialize other messages"() {
         expect:
-        def message = new CloseInput("id")
+        def message = new CloseInput()
         def messageResult = serialize(message, serializer)
         messageResult instanceof CloseInput
-        messageResult.identifier == "id"
 
         def event = new LogLevelChangeEvent(LogLevel.LIFECYCLE)
         def eventResult = serialize(event, serializer)

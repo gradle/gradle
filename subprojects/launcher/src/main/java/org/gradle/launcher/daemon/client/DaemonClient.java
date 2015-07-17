@@ -171,7 +171,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     }
 
     private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) {
-        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, executorFactory, idGenerator);
+        DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, executorFactory);
         DaemonCancelForwarder cancelForwarder = new DaemonCancelForwarder(connection, cancellationToken, idGenerator);
         try {
             cancelForwarder.start();
