@@ -540,11 +540,7 @@ a binary `B` has a variant `buildType` of type `BuildType`, the variant dimensio
     an error message indicating that the binary didn't have a compatible type for `buildType`.
     - Binary `A {platform, buildType}` depends on Library `B {platform, buildType}` but type of `A#buildType` is `BuildType extends Named` and `B#buildType` is `DifferentBuildType extends Named`: fail (no compatible) and display
         an error message indicating that the binary didn't have a compatible type for `buildType`.
-### Implementation
-- Extract variant metadata from `JarBinarySpec` instance: include `JavaPlatform` as well as any custom variants
-    - Depending on the advancement of other stories, first step maybe using reflection, second step using `ModelSchema`
-- `DependentSourceSetResolveContext` contains variant metadata for jar being built
-- `LocalLibraryDependencyResolver` compares variant metadata from resolve context with variant metadata for candidate binariesi
+
 
 ## Feature backlog
 
