@@ -35,7 +35,7 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
-import org.gradle.tooling.test.TestExecutionException;
+import org.gradle.tooling.TestExecutionException;
 
 import java.util.Collection;
 import java.util.List;

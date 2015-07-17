@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
-import org.gradle.tooling.test.TestExecutionException
+import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter

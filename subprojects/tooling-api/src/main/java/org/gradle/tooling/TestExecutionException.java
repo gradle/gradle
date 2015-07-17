@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.test;
+package org.gradle.tooling;
 
-import org.gradle.tooling.GradleConnectionException;
+import org.gradle.api.Incubating;
 
 /**
  * Thrown when the {@link org.gradle.tooling.TestLauncher} cannot run tests.
@@ -24,6 +24,7 @@ import org.gradle.tooling.GradleConnectionException;
  *
  * @since 2.6
  */
+@Incubating
 public class TestExecutionException extends GradleConnectionException {
     public TestExecutionException(String message, Throwable throwable) {
         super(message, throwable);

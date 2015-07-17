@@ -27,7 +27,7 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
-import org.gradle.tooling.test.TestExecutionException
+import org.gradle.tooling.TestExecutionException
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 

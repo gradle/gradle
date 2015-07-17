@@ -24,7 +24,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
-import org.gradle.tooling.test.TestExecutionException;
+import org.gradle.tooling.TestExecutionException;
 
 /**
  * Adapts a {@link ResultHandler} to a {@link ResultHandlerVersion1}.
