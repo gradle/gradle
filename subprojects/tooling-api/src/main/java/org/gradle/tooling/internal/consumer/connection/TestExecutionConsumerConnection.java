@@ -25,6 +25,7 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.DefaultInternalJvmTestExecutionDescriptor;
 import org.gradle.tooling.internal.consumer.DefaultInternalTestExecutionRequest;
+import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.converters.TaskPropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -34,7 +35,6 @@ import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
-import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.test.TestExecutionException;
 
 import java.util.Collection;
@@ -51,6 +51,7 @@ public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnec
         this.adapter = adapter;
     }
 
+    @Override
     public Void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
         final BuildCancellationTokenAdapter cancellationTokenAdapter = new BuildCancellationTokenAdapter(operationParameters.getCancellationToken());
         final BuildResult<Object> result = ((InternalTestExecutionConnection) getDelegate()).runTests(toInternalTestExecutionRequest(testExecutionRequest), cancellationTokenAdapter, operationParameters);

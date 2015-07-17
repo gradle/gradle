@@ -18,9 +18,11 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
+import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.model.internal.Exceptions;
 
 public abstract class AbstractConsumerConnection implements ConsumerConnection {
     private final ConnectionVersion4 delegate;
@@ -58,5 +60,9 @@ public abstract class AbstractConsumerConnection implements ConsumerConnection {
 
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) {
         return getActionRunner().run(action, operationParameters);
+    }
+
+    public Void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters){
+        throw Exceptions.unsupportedFeature("TestLauncher API", getVersionDetails().getVersion(), "2.6");
     }
 }

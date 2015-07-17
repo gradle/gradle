@@ -18,12 +18,10 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestLauncher;
-import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.TestExecutionConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.util.CollectionUtils;
 
@@ -71,12 +69,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
                 return operationParameters;
             }
             public Void run(ConsumerConnection connection) {
-                if(connection instanceof TestExecutionConsumerConnection) {
-                    Void sink = ((TestExecutionConsumerConnection) connection).runTests(new TestExecutionRequest(operationDescriptors, testClassNames), getParameters());
-                    return sink;
-                } else {
-                    throw new UnsupportedVersionException("TestLauncher API not supported by Gradle provider version");
-                }
+                return connection.runTests(new TestExecutionRequest(operationDescriptors, testClassNames), getParameters());
             }
         }, new ResultHandlerAdapter(handler));
     }
