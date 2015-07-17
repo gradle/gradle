@@ -15,22 +15,18 @@
  */
 
 package org.gradle.integtests.tooling.r26
+
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.GradleException
 import org.gradle.integtests.tooling.fixture.*
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.*
 import org.gradle.tooling.events.OperationDescriptor
-import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
-import org.gradle.tooling.events.task.TaskProgressEvent
-import org.gradle.tooling.events.task.TaskStartEvent
-import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
-import org.gradle.tooling.events.test.TestProgressEvent
 import org.gradle.tooling.test.TestExecutionException
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -41,10 +37,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     TestOutputStream stderr = new TestOutputStream()
     TestOutputStream stdout = new TestOutputStream()
 
-    def testDescriptors = [] as Set
-    def taskEvents = [] as Set
-
-    def givenTestDescriptors = [] as Set
+    ProgressEvents events = new ProgressEvents()
 
     def setup() {
         testCode()
@@ -57,37 +50,25 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         when:
         launchTests(testDescriptors("example.MyTest"));
         then:
-        taskEvents.any { it instanceof TaskStartEvent && it.descriptor.taskPath == ":compileJava" }
-        taskEvents.any { it instanceof TaskFinishEvent && it.descriptor.taskPath == ":compileJava" }
-        taskEvents.any { it instanceof TaskStartEvent && it.descriptor.taskPath == ":processResources" }
-        taskEvents.any { it instanceof TaskFinishEvent && it.descriptor.taskPath == ":processResources" }
-        taskEvents.any { it instanceof TaskStartEvent && it.descriptor.taskPath == ":classes" }
-        taskEvents.any { it instanceof TaskFinishEvent && it.descriptor.taskPath == ":classes" }
-        taskEvents.any { it instanceof TaskStartEvent && it.descriptor.taskPath == ":compileTestJava" }
-        taskEvents.any { it instanceof TaskFinishEvent && it.descriptor.taskPath == ":compileTestJava" }
-        taskEvents.any { it instanceof TaskStartEvent && it.descriptor.taskPath == ":compileTestJava" }
-        taskEvents.any { it instanceof TaskFinishEvent && it.descriptor.taskPath == ":compileTestJava" }
+        events.assertIsABuild()
+        events.operation("Task :compileJava").successful
+        events.operation("Task :processResources").successful
+        events.operation("Task :classes").successful
+        events.operation("Task :compileTestJava").successful
+        events.operation("Task :processTestResources").successful
+        events.operation("Task :testClasses").successful
+        events.operation("Task :test").successful
+        events.operation("Task :secondTest").successful
 
-        taskEvents.any { it instanceof TaskStartEvent && it.descriptor.taskPath == ":processTestResources" }
-        taskEvents.any { it instanceof TaskFinishEvent && it.descriptor.taskPath == ":processTestResources" }
-
-        taskEvents.any { it instanceof TaskStartEvent && it.descriptor.taskPath == ":testClasses" }
-        taskEvents.any { it instanceof TaskFinishEvent && it.descriptor.taskPath == ":testClasses" }
-        taskEvents.any { it instanceof TaskStartEvent && it.descriptor.taskPath == ":test" }
-        taskEvents.any { it instanceof TaskFinishEvent && it.descriptor.taskPath == ":test" }
-
-        taskEvents.any { it instanceof TaskStartEvent && it.descriptor.taskPath == ":secondTest" }
-        taskEvents.any { it instanceof TaskFinishEvent && it.descriptor.taskPath == ":secondTest" }
-
-        testDescriptors.any { it instanceof JvmTestOperationDescriptor && it.name == "Gradle Test Run :test" }
-        testDescriptors.any { it instanceof JvmTestOperationDescriptor && it.name == "Gradle Test Executor 1" }
-        testDescriptors.any { it instanceof JvmTestOperationDescriptor && it.name == "Gradle Test Run :secondTest" }
-        testDescriptors.any { it instanceof JvmTestOperationDescriptor && it.name == "Gradle Test Executor 2" }
-        testDescriptors.findAll { it instanceof JvmTestOperationDescriptor && it.displayName == "Test class example.MyTest" }.size() == 2
-        testDescriptors.findAll { it instanceof JvmTestOperationDescriptor && it.displayName == "Test foo(example.MyTest)" }.size() == 2
-        testDescriptors.findAll { it instanceof JvmTestOperationDescriptor && it.displayName == "Test foo2(example.MyTest)" }.size() == 2
-        testDescriptors.findAll { it instanceof JvmTestOperationDescriptor && it.displayName == "Test foo2(example.MyTest)" }.size() == 2
-        testDescriptors.findAll { it instanceof JvmTestOperationDescriptor && it.displayName == "Test class example2.MyOtherTest" }.size() == 2
+        events.operation("Gradle Test Run :test").successful
+        events.operation("Gradle Test Executor 1").successful
+        events.operation("Gradle Test Run :secondTest").successful
+        events.operation("Gradle Test Executor 2").successful
+        events.tests.findAll { it.descriptor.displayName == "Test class example.MyTest" }.size() == 2
+        events.tests.findAll { it.descriptor.displayName == "Test foo(example.MyTest)"  }.size() == 2
+        events.tests.findAll { it.descriptor.displayName == "Test foo2(example.MyTest)" }.size() == 2
+        events.tests.findAll { it.descriptor.displayName == "Test foo2(example.MyTest)" }.size() == 2
+        events.tests.findAll { it.descriptor.displayName == "Test class example2.MyOtherTest"}.size() == 2
     }
 
     @TargetGradleVersion(">=2.6")
@@ -209,8 +190,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
             assertTestNotExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
             assertTestNotExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
-
-            testDescriptors.clear()
+            events.clear()
             changeTestSource()
             waitingForBuild()
 
@@ -391,7 +371,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.6")
     def "compatible with configure on demand"() {
         setup:
-        10.times{
+        10.times {
             settingsFile << "include ':sub$it'\n"
             file("sub$it/src/test/java/example/MyTest.java") << """
                 package example;
@@ -445,17 +425,17 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     boolean assertTaskExecuted(String taskPath) {
-        assert taskEvents.findAll { it instanceof TaskFinishEvent }.any { it.descriptor.taskPath == taskPath }
+        assert events.all.findAll { it instanceof TaskFinishEvent }.any { it.descriptor.taskPath == taskPath }
         true
     }
 
     def assertTaskNotExecuted(String taskPath) {
-        assert !taskEvents.findAll { it instanceof TaskFinishEvent }.any { it.descriptor.taskPath == taskPath }
+        assert !events.all.findAll { it instanceof TaskFinishEvent }.any { it.descriptor.taskPath == taskPath }
         true
     }
 
     def assertTaskUpToDate(String taskPath) {
-        assert taskEvents.findAll { it instanceof TaskFinishEvent }.any { it.descriptor.taskPath == taskPath && it.result.upToDate }
+        assert events.all.findAll { it instanceof TaskFinishEvent }.any { it.descriptor.taskPath == taskPath && it.result.upToDate }
         true
     }
 
@@ -469,7 +449,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         true
     }
 
-    Collection<TestOperationDescriptor> testDescriptors(Set<TestOperationDescriptor> descriptors = givenTestDescriptors, String className, String methodName, String taskpath) {
+    Collection<TestOperationDescriptor> testDescriptors(List<TestOperationDescriptor> descriptors = events.tests.collect { it.descriptor }, String className, String methodName, String taskpath) {
 
         def descriptorByClassAndMethod = descriptors.findAll { it.className == className && it.methodName == methodName }
         if (taskpath == null) {
@@ -480,29 +460,30 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             def parent = it.parent
             while (parent.parent != null) {
                 parent = parent.parent
-            }
-            if (parent instanceof TaskOperationDescriptor) {
-                return parent.taskPath == taskpath
+                if (parent instanceof TaskOperationDescriptor) {
+                    return parent.taskPath == taskpath
+                }
             }
             false
         }
     }
 
-    Collection<OperationDescriptor> taskDescriptors(Set<TaskFinishEvent> taskEvents = this.taskEvents, String taskPath) {
+    Collection<OperationDescriptor> taskDescriptors(Set<TaskFinishEvent> taskEvents = this.events.all, String taskPath) {
         taskEvents.findAll { it instanceof TaskFinishEvent }.collect { it.descriptor }.findAll { it.taskPath == taskPath }
     }
 
-    Collection<TestOperationDescriptor> testDescriptors(Set<TestOperationDescriptor> descriptors = givenTestDescriptors, String className, String methodName) {
+    Collection<TestOperationDescriptor> testDescriptors(List<TestOperationDescriptor> descriptors = events.tests.collect { it.descriptor }, String className, String methodName) {
         testDescriptors(descriptors, className, methodName, null)
     }
 
-    Collection<TestOperationDescriptor> testDescriptors(Set<TestOperationDescriptor> descriptors = givenTestDescriptors, String className) {
+    Collection<TestOperationDescriptor> testDescriptors(List<TestOperationDescriptor> descriptors = events.tests.collect { it.descriptor }, String className) {
         testDescriptors(descriptors, className, null)
     }
 
 
     private boolean hasTestDescriptor(testInfo) {
-        !testDescriptors(testDescriptors, testInfo.className, testInfo.methodName, testInfo.task).isEmpty()
+        def collect = events.tests.collect { it.descriptor }
+        !testDescriptors(collect, testInfo.className, testInfo.methodName, testInfo.task).isEmpty()
     }
 
     void launchTests(Collection<OperationDescriptor> testsToLaunch) {
@@ -518,21 +499,10 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationTokenSource cancellationTokenSource, Closure confgurationClosure) {
-        testDescriptors.clear()
-        taskEvents.clear()
+
         TestLauncher testLauncher = connection.newTestLauncher()
             .withCancellationToken(cancellationTokenSource.token())
-            .addProgressListener(new ProgressListener() {
-
-            @Override
-            void statusChanged(ProgressEvent event) {
-                if (event instanceof TaskProgressEvent) {
-                    taskEvents << event
-                } else if (event instanceof TestProgressEvent) {
-                    testDescriptors << event.descriptor
-                }
-            }
-        }, EnumSet.of(OperationType.TEST, OperationType.TASK))
+            .addProgressListener(events)
 
         if (toolingApi.isEmbedded()) {
             testLauncher
@@ -546,6 +516,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
         confgurationClosure.call(testLauncher)
 
+        events.clear()
         if (resultHandler == null) {
             testLauncher.run()
         } else {
@@ -554,24 +525,13 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private collectDescriptorsFromBuild() {
-        givenTestDescriptors = [] as Set
         try {
             withConnection {
                 ProjectConnection connection ->
-                    connection.newBuild().forTasks('build').withArguments("--continue").addProgressListener(new ProgressListener() {
-                        @Override
-                        void statusChanged(ProgressEvent event) {
-                            if (event instanceof TaskFinishEvent) {
-                                taskEvents << event
-                            } else if (event instanceof TestProgressEvent) {
-                                givenTestDescriptors << event.descriptor
-                            }
-                        }
-                    }, EnumSet.of(OperationType.TEST, OperationType.TASK)).run()
+                    connection.newBuild().forTasks('build').withArguments("--continue").addProgressListener(events).run()
             }
         } catch (BuildException e) {
         }
-        givenTestDescriptors
     }
 
     def testCode() {

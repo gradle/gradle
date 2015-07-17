@@ -17,14 +17,7 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.tooling.Failure
-import org.gradle.tooling.events.FailureResult
-import org.gradle.tooling.events.FinishEvent
-import org.gradle.tooling.events.OperationDescriptor
-import org.gradle.tooling.events.OperationResult
-import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.StartEvent
-import org.gradle.tooling.events.SuccessResult
+import org.gradle.tooling.events.*
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 
@@ -32,10 +25,13 @@ class ProgressEvents implements ProgressListener {
     private final List<ProgressEvent> events = []
     private boolean dirty
     private final Map<String, Operation> byDisplayName = new LinkedHashMap<>()
+    private final List<Operation> operations= new ArrayList<Operation>()
+
 
     void clear() {
         events.clear()
         byDisplayName.clear()
+        operations.clear()
     }
 
     /**
@@ -55,8 +51,15 @@ class ProgressEvents implements ProgressListener {
                     running[descriptor] = event
 
                     // Display name should be mostly unique
-                    assert !byDisplayName.containsKey(descriptor.displayName)
-                    byDisplayName[descriptor.displayName] = new Operation(descriptor)
+                    // ignore this check for TestOperationDescriptors as they can be
+                    // currently not unique when coming from different test tasks
+                    if(!(descriptor instanceof TestOperationDescriptor)){
+                        assert !byDisplayName.containsKey(descriptor.displayName)
+                    }
+
+                    Operation operation = new Operation(descriptor)
+                    operations.add(operation)
+                    byDisplayName[descriptor.displayName] = operation
 
                     // parent should also be running
                     assert descriptor.parent == null || running.containsKey(descriptor.parent)
@@ -71,7 +74,8 @@ class ProgressEvents implements ProgressListener {
                     // parent should still be running
                     assert descriptor.parent == null || running.containsKey(descriptor.parent)
 
-                    byDisplayName[descriptor.displayName].result = event.result
+                    def storedOperation = operations.find { it.descriptor == descriptor }
+                    storedOperation.result = event.result
 
                     assert event.displayName.matches("\\Q${descriptor.displayName}\\E \\w+")
                     assert startEvent.eventTime <= event.eventTime
@@ -93,7 +97,6 @@ class ProgressEvents implements ProgressListener {
      */
     void assertHasSingleTree() {
         assertHasZeroOrMoreTrees()
-        def operations = operations
         assert !operations.empty
         assert operations[0].descriptor.parent == null
 
@@ -129,7 +132,7 @@ class ProgressEvents implements ProgressListener {
      */
     List<Operation> getOperations() {
         assertHasZeroOrMoreTrees()
-        return byDisplayName.values() as List
+        return operations
     }
 
     /**
@@ -137,7 +140,7 @@ class ProgressEvents implements ProgressListener {
      */
     List<Operation> getBuildOperations() {
         assertHasZeroOrMoreTrees()
-        return byDisplayName.values().findAll { it.buildOperation } as List
+        return operations.findAll { it.buildOperation } as List
     }
 
     /**
@@ -145,7 +148,7 @@ class ProgressEvents implements ProgressListener {
      */
     List<Operation> getTests() {
         assertHasZeroOrMoreTrees()
-        return byDisplayName.values().findAll { it.test } as List
+        return operations.findAll { it.test } as List
     }
 
     /**
@@ -153,7 +156,7 @@ class ProgressEvents implements ProgressListener {
      */
     List<Operation> getTasks() {
         assertHasZeroOrMoreTrees()
-        return byDisplayName.values().findAll { it.task } as List
+        return operations.findAll { it.task } as List
     }
 
     /**
@@ -161,7 +164,7 @@ class ProgressEvents implements ProgressListener {
      */
     List<Operation> getSuccessful() {
         assertHasZeroOrMoreTrees()
-        return byDisplayName.values().findAll { it.successful } as List
+        return operations.findAll { it.successful } as List
     }
 
     /**
@@ -169,7 +172,7 @@ class ProgressEvents implements ProgressListener {
      */
     List<Operation> getFailed() {
         assertHasZeroOrMoreTrees()
-        return byDisplayName.values().findAll { it.failed } as List
+        return operations.findAll { it.failed } as List
     }
 
     /**
@@ -185,6 +188,7 @@ class ProgressEvents implements ProgressListener {
     void statusChanged(ProgressEvent event) {
         dirty = true
         byDisplayName.clear()
+        operations.clear()
         events << event
     }
 
