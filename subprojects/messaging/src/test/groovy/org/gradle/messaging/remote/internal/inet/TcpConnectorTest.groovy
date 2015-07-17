@@ -21,8 +21,10 @@ import org.gradle.internal.serialize.*
 import org.gradle.messaging.remote.internal.*
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Shared
+import spock.lang.Timeout
 import spock.lang.Unroll
 
+@Timeout(60)
 class TcpConnectorTest extends ConcurrentSpec {
     @Shared def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
     @Shared def kryoSerializer = new KryoBackedMessageSerializer<String>(Serializers.stateful(BaseSerializerFactory.STRING_SERIALIZER))
@@ -215,23 +217,19 @@ class TcpConnectorTest extends ConcurrentSpec {
     }
 
     def "returns null on failure to receive due to truncated input"() {
-        def incomingSerializer = Mock(Serializer)
-        def outgoingSerializer = Mock(Serializer)
-        def action = Mock(Action)
-
         given:
-        action.execute(_) >> { ConnectCompletion completion ->
+        def incomingSerializer = { Encoder encoder, String value ->
+            encoder.writeInt(value.length())
+        } as Serializer
+        def action = { ConnectCompletion completion ->
             def connection = completion.create(new KryoBackedMessageSerializer<String>(Serializers.stateful(incomingSerializer)))
             connection.dispatch("string")
             connection.stop()
-        }
-        incomingSerializer.write(_, _) >> { Encoder encoder, String value ->
-            encoder.writeInt(value.length())
-        }
-        outgoingSerializer.read(_) >> { Decoder decoder ->
+        } as Action
+        def outgoingSerializer = { Decoder decoder ->
             decoder.readInt()
             return decoder.readString()
-        }
+        } as Serializer
 
         when:
         def acceptor = incomingConnector.accept(action, false)
@@ -248,15 +246,14 @@ class TcpConnectorTest extends ConcurrentSpec {
 
     def "reports failure to receive due to broken serializer"() {
         def outgoingSerializer = Mock(Serializer)
-        def action = Mock(Action)
         def failure = new RuntimeException()
 
         given:
-        action.execute(_) >> { ConnectCompletion completion ->
+        def action = { ConnectCompletion completion ->
             def connection = completion.create(kryoSerializer)
             connection.dispatch("string")
             connection.stop()
-        }
+        } as Action
         outgoingSerializer.read(_) >> { Decoder decoder ->
             throw failure
         }
