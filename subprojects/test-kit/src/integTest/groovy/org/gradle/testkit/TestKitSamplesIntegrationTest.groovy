@@ -17,28 +17,30 @@ package org.gradle.testkit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
 class TestKitSamplesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule Sample sample = new Sample(testDirectoryProvider)
+    @Rule Sample testKitJunitSample = new Sample(temporaryFolder, "testKit/testKitJunit")
+    @Rule Sample testKitSpockSample = new Sample(temporaryFolder, "testKit/testKitSpock")
 
     def setup() {
         executer.requireGradleHome()
     }
 
-    @UsesSample("testKit/testKitJunit")
     def junit() {
-        expect:
-        executer.inDirectory(sample.dir)
+        when:
+        sample testKitJunitSample
+
+        then:
         succeeds "check"
     }
 
-    @UsesSample("testKit/testKitSpock")
     def spock() {
-        expect:
-        executer.inDirectory(sample.dir)
+        when:
+        sample testKitSpockSample
+
+        then:
         succeeds "check"
     }
 }
