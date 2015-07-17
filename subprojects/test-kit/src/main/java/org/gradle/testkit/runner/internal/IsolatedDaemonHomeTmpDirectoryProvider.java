@@ -26,7 +26,7 @@ public class IsolatedDaemonHomeTmpDirectoryProvider implements TmpDirectoryProvi
     private final File parentDir;
 
     public IsolatedDaemonHomeTmpDirectoryProvider() {
-        this(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
+        this(new File(SystemProperties.getInstance().getUserHome()));
     }
 
     IsolatedDaemonHomeTmpDirectoryProvider(File parentDir) {
