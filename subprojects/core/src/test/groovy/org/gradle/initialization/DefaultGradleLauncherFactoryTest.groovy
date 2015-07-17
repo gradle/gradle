@@ -25,8 +25,9 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Specification
 
 class DefaultGradleLauncherFactoryTest extends Specification {
-    final ServiceRegistry sharedServices = new BuildSessionScopeServices(new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false)))
-    final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(sharedServices)
+    final ServiceRegistry globalServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false))
+    final ServiceRegistry sessionServices = new BuildSessionScopeServices(globalServices)
+    final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(globalServices)
 
     def "makes services from build context available as build scoped services"() {
         def startParameter = new StartParameter()
@@ -38,7 +39,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         }
 
         expect:
-        def launcher = factory.newInstance(startParameter, requestContext)
+        def launcher = factory.newInstance(startParameter, requestContext, sessionServices)
         launcher.gradle.parent == null
         launcher.gradle.startParameter == startParameter
         launcher.gradle.services.get(BuildRequestMetaData) == requestContext
@@ -68,7 +69,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
             getEventConsumer() >> eventConsumer
         }
 
-        def parent = factory.newInstance(startParameter, requestContext);
+        def parent = factory.newInstance(startParameter, requestContext, sessionServices);
         parent.buildListener.buildStarted(parent.gradle)
 
         expect:

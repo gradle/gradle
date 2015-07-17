@@ -70,6 +70,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
         LoggingManagerInternal mgr = newInstance(LoggingManagerInternal.class);
         return new DefaultDaemonCommandExecuter(
             get(BuildExecuter.class),
+            this,
             get(ProcessEnvironment.class),
             mgr,
             new File("dummy"),

@@ -36,12 +36,12 @@ class DaemonBuildActionExecuterTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        executer.execute(action, buildRequestContext, parameters)
+        executer.execute(action, buildRequestContext, parameters, null)
 
         then:
         BuildExceptionVersion1 e = thrown()
         e.cause == failure
-        1 * client.execute(action, buildRequestContext, !null) >> { throw new ReportedException(failure) }
+        1 * client.execute(action, buildRequestContext, !null, _) >> { throw new ReportedException(failure) }
         _ * daemonParameters.effectiveSystemProperties >> [:]
     }
 }

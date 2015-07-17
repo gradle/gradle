@@ -19,6 +19,7 @@ import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -40,7 +41,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         this.daemonParameters = daemonParameters;
     }
 
-    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters) {
+    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters, ServiceRegistry contextServices) {
         boolean continuous = action.getStartParameter() != null && action.getStartParameter().isContinuous() && isNotBuildingModel(action);
         if (continuous && !doesConsumerSupportCancellation(buildRequestContext)) {
             throw new UnsupportedVersionException("Continuous build requires Tooling API client version 2.1 or later.");
@@ -48,7 +49,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
             System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false);
         try {
-            return executer.execute(action, buildRequestContext, actionParameters);
+            return executer.execute(action, buildRequestContext, actionParameters, contextServices);
         } catch (ReportedException e) {
             Throwable t = e.getCause();
             while (t != null) {

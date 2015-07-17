@@ -37,7 +37,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
     def executesAction() {
         when:
-        def result = client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters))
+        def result = client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters), null)
 
         then:
         result == '[result]'
@@ -55,7 +55,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         RuntimeException failure = new RuntimeException()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters), null)
 
         then:
         RuntimeException e = thrown()
@@ -77,7 +77,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         }
 
         when:
-        client.execute(Stub(BuildAction), buildRequestContext, Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), buildRequestContext, Stub(BuildActionParameters), null)
 
         then:
         BuildCancelledException gce = thrown()
@@ -107,7 +107,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         }
 
         when:
-        client.execute(Stub(BuildAction), buildRequestContext, Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), buildRequestContext, Stub(BuildActionParameters), null)
 
         then:
         BuildCancelledException gce = thrown()
@@ -134,7 +134,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters), null)
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -150,7 +150,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters), null)
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -168,7 +168,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         DaemonClientConnection connection2 = Mock()
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters), null)
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
@@ -187,7 +187,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         connection.receive() >> Mock(DaemonUnavailable)
 
         when:
-        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters))
+        client.execute(Stub(BuildAction), Stub(BuildRequestContext), Stub(BuildActionParameters), null)
 
         then:
         thrown(NoUsableDaemonFoundException)

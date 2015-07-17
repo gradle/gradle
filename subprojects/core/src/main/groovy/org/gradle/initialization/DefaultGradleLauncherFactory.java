@@ -36,7 +36,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.internal.session.BuildSession;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -83,19 +82,18 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             cancellationToken = new DefaultBuildCancellationToken();
             buildEventConsumer = new NoOpBuildEventConsumer();
         }
-        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer);
+        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, sharedServices);
     }
 
     @Override
-    public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext) {
+    public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
         // This should only be used for top-level builds
         assert tracker.getCurrentBuild() == null;
-        return doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer());
+        return doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), parentRegistry);
     }
 
-    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer) {
-        BuildSession buildSession = sharedServices.get(BuildSession.class);
-        BuildScopeServices serviceRegistry = new BuildScopeServices(buildSession.getServices(), startParameter);
+    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, ServiceRegistry parentRegistry) {
+        BuildScopeServices serviceRegistry = new BuildScopeServices(parentRegistry, startParameter);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);

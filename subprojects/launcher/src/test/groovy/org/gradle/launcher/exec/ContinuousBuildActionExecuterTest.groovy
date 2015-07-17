@@ -26,10 +26,13 @@ import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.invocation.BuildAction
-import org.gradle.internal.session.BuildSession
+import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.PluginServiceRegistry
 import org.gradle.logging.TestStyledTextOutputFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Clock
@@ -54,13 +57,21 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def listenerManager = new DefaultListenerManager()
     @AutoCleanup("stop")
     def executorFactory = new DefaultExecutorFactory()
-    def buildSession = Mock(BuildSession)
+    def globalServices = Stub(ServiceRegistry)
     def executer = executer()
+    def sessionService = Mock(Stoppable)
 
     private File file = new File('file')
 
     def setup() {
         requestMetadata.getBuildTimeClock() >> clock
+        globalServices.getAll(PluginServiceRegistry) >> [
+                Stub(PluginServiceRegistry) {
+                    registerBuildSessionServices(_) >> { ServiceRegistration registration ->
+                        registration.add(Stoppable, sessionService)
+                    }
+                }
+        ]
     }
 
     def "uses underlying executer when continuous build is not enabled"() {
@@ -69,14 +80,14 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * delegate.execute(action, requestContext, actionParameters)
+        1 * delegate.execute(action, requestContext, actionParameters, _)
         0 * waiter._
     }
 
     def "allows exceptions to propagate for single builds"() {
         when:
         singleBuild()
-        1 * delegate.execute(action, requestContext, actionParameters) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
             throw new RuntimeException("!")
         }
         executeBuild()
@@ -88,7 +99,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def "waits for waiter"() {
         when:
         continuousBuild()
-        1 * delegate.execute(action, requestContext, actionParameters) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
             declareInput(file)
         }
         executeBuild()
@@ -102,7 +113,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def "exits if there are no file system inputs"() {
         when:
         continuousBuild()
-        1 * delegate.execute(action, requestContext, actionParameters)
+        1 * delegate.execute(action, requestContext, actionParameters, _)
         executeBuild()
 
         then:
@@ -112,7 +123,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     def "throws exception if last build fails in continous mode"() {
         when:
         continuousBuild()
-        1 * delegate.execute(action, requestContext, actionParameters) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
             declareInput(file)
             throw new ReportedException(new Exception("!"))
         }
@@ -131,7 +142,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * delegate.execute(action, requestContext, actionParameters) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
             declareInput(file)
         }
 
@@ -139,7 +150,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         1 * waiter.wait(_, _, _)
 
         and:
-        1 * delegate.execute(action, requestContext, actionParameters) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
             declareInput(file)
             throw new ReportedException(new Exception("!"))
         }
@@ -148,7 +159,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         1 * waiter.wait(_, _, _)
 
         and:
-        1 * delegate.execute(action, requestContext, actionParameters) >> {
+        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
             declareInput(file)
         }
 
@@ -210,7 +221,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * buildSession.reset()
+        1 * sessionService.stop()
     }
 
     def "closes build session after continuous build"() {
@@ -219,7 +230,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
         executeBuild()
 
         then:
-        1 * buildSession.reset()
+        1 * sessionService.stop()
     }
 
     private void singleBuild() {
@@ -231,7 +242,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private void executeBuild() {
-        executer.execute(action, requestContext, actionParameters)
+        executer.execute(action, requestContext, actionParameters, null)
     }
 
     private void declareInput(File file) {
@@ -239,7 +250,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private ContinuousBuildActionExecuter executer(JavaVersion javaVersion = JavaVersion.VERSION_1_7) {
-        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, OperatingSystem.current(), executorFactory, buildSession, waiter)
+        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, OperatingSystem.current(), executorFactory, globalServices, waiter)
     }
 
 }

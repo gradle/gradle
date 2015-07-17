@@ -21,6 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 
@@ -46,8 +47,8 @@ public class DaemonUsageSuggestingBuildActionExecuter implements BuildActionExec
     }
 
     @Override
-    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters) {
-        Object result = executer.execute(action, requestContext, actionParameters);
+    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+        Object result = executer.execute(action, requestContext, actionParameters, contextServices);
         possiblySuggestUsingDaemon(actionParameters);
         return result;
     }

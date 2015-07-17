@@ -27,6 +27,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.*;
@@ -109,7 +110,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
      * @param action The action
      * @throws org.gradle.initialization.ReportedException On failure, when the failure has already been logged/reported.
      */
-    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters parameters) {
+    public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters parameters, ServiceRegistry contextServices) {
         Object buildId = idGenerator.generateId();
         Build build = new Build(buildId, action, requestContext.getClient(), requestContext.getBuildTimeClock().getStartTime(), parameters);
         int saneNumberOfAttempts = 100; //is it sane enough?

@@ -23,6 +23,7 @@ import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
 import spock.lang.Specification
@@ -51,15 +52,16 @@ class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
     }
     final BuildRequestContext buildRequestContext = Mock()
     final BuildActionParameters params = Mock()
+    final ServiceRegistry serviceRegistry = Mock()
 
     def "delegates execution to the underlying executer"() {
         given:
         def executionResult = new Object()
-        delegate.execute(action, buildRequestContext, params) >> executionResult
+        delegate.execute(action, buildRequestContext, params, serviceRegistry) >> executionResult
         params.daemonUsage >> EXPLICITLY_ENABLED
 
         when:
-        def result = executer.execute(action, buildRequestContext, params)
+        def result = executer.execute(action, buildRequestContext, params, serviceRegistry)
 
         then:
         result == executionResult
@@ -72,7 +74,7 @@ class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
         os.windows >> false
 
         when:
-        executer.execute(action, buildRequestContext, params)
+        executer.execute(action, buildRequestContext, params, serviceRegistry)
 
         then:
         1 * textOutput.println()
@@ -89,7 +91,7 @@ class DaemonUsageSuggestingBuildActionExecuterTest extends Specification {
         os.windows >> isWindows
 
         when:
-        executer.execute(action, buildRequestContext, params)
+        executer.execute(action, buildRequestContext, params, serviceRegistry)
 
         then:
         0 * textOutput._

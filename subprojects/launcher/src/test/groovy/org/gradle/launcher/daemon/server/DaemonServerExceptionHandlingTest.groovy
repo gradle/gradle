@@ -68,7 +68,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         def action = new DummyLauncherAction(someState: unloadableClass)
 
         when:
-        client.execute(action, buildRequestContext, parameters)
+        client.execute(action, buildRequestContext, parameters, null)
 
         then:
         def ex = thrown(MessageIOException)
@@ -80,7 +80,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         //we need to override some methods to inject a failure action into the sequence
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
-                return new DefaultDaemonCommandExecuter(get(BuildExecuter),
+                return new DefaultDaemonCommandExecuter(get(BuildExecuter), this,
                         get(ProcessEnvironment), getFactory(LoggingManagerInternal.class).create(),
                         new File("dummy"), new StubDaemonHealthServices()) {
                     List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
@@ -104,7 +104,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters, null)
 
         then:
         def ex = thrown(Throwable)
@@ -120,7 +120,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters, null)
 
         then:
         def ex = thrown(OutOfMemoryError)

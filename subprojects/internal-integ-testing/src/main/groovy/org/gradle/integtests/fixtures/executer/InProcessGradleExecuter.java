@@ -199,7 +199,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
                 new DefaultBuildCancellationToken(),
                 new NoOpBuildEventConsumer(),
                 outputListener, errorListener);
-            actionExecuter.execute(action, buildRequestContext, buildActionParameters);
+            actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
             return new BuildResult(null, null);
         } catch (ReportedException e) {
             return new BuildResult(null, e.getCause());

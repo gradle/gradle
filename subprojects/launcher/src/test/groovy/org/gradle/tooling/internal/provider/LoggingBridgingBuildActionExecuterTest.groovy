@@ -37,13 +37,13 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
 
     def configuresLoggingWhileActionIsExecuting() {
         when:
-        executer.execute(action, buildRequestContext, parameters)
+        executer.execute(action, buildRequestContext, parameters, null)
 
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * loggingManager.addOutputEventListener(!null)
         1 * loggingManager.start()
-        1 * target.execute(action, buildRequestContext, parameters)
+        1 * target.execute(action, buildRequestContext, parameters, _)
         1 * loggingManager.stop()
     }
 
@@ -51,14 +51,14 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        executer.execute(action, buildRequestContext, parameters)
+        executer.execute(action, buildRequestContext, parameters, null)
 
         then:
         RuntimeException e = thrown()
         e == failure
         1 * loggingManagerFactory.create() >> loggingManager
         1 * loggingManager.start()
-        1 * target.execute(action, buildRequestContext, parameters) >> {throw failure}
+        1 * target.execute(action, buildRequestContext, parameters, _) >> {throw failure}
         1 * loggingManager.stop()
     }
 
@@ -68,8 +68,8 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
         parameters.getBuildLogLevel() >> LogLevel.QUIET
 
         when:
-        executer.execute(action, buildRequestContext, parameters)
-        
+        executer.execute(action, buildRequestContext, parameters, null)
+
         then:
         1 * loggingManager.setLevel(LogLevel.QUIET)
     }

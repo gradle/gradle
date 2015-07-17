@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.server.exec;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.Command;
@@ -39,14 +40,16 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
     private final DaemonHealthServices healthServices;
     private final ProcessEnvironment processEnvironment;
     private final File daemonLog;
+    private final ServiceRegistry contextServices;
 
-    public DefaultDaemonCommandExecuter(BuildActionExecuter<BuildActionParameters> actionExecuter, ProcessEnvironment processEnvironment,
+    public DefaultDaemonCommandExecuter(BuildActionExecuter<BuildActionParameters> actionExecuter, ServiceRegistry contextServices, ProcessEnvironment processEnvironment,
                                         LoggingManagerInternal loggingOutput, File daemonLog, DaemonHealthServices healthServices) {
         this.processEnvironment = processEnvironment;
         this.daemonLog = daemonLog;
         this.loggingOutput = loggingOutput;
         this.actionExecuter = actionExecuter;
         this.healthServices = healthServices;
+        this.contextServices = contextServices;
     }
 
     public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl) {
@@ -74,7 +77,7 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
             new RequestStopIfSingleUsedDaemon(),
             new ResetDeprecationLogger(),
             new WatchForDisconnection(),
-            new ExecuteBuild(actionExecuter)
+            new ExecuteBuild(actionExecuter, contextServices)
         );
     }
 }

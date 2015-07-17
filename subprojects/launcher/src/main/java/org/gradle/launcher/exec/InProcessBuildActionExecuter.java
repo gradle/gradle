@@ -25,6 +25,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.service.ServiceRegistry;
 
 import java.util.List;
 
@@ -37,8 +38,8 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         this.buildActionRunner = buildActionRunner;
     }
 
-    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters) {
-        DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext);
+    public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+        DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext, contextServices);
         gradleLauncher.addStandardOutputListener(buildRequestContext.getOutputListener());
         gradleLauncher.addStandardErrorListener(buildRequestContext.getErrorListener());
 

@@ -92,6 +92,7 @@ public class DaemonServices extends DefaultServiceRegistry {
             "password",
             new DefaultDaemonCommandExecuter(
                 buildActionExecuter,
+                this,
                 get(ProcessEnvironment.class),
                 loggingManager,
                 getDaemonLogFile(),

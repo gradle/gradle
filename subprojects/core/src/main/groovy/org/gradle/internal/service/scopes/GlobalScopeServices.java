@@ -50,8 +50,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.session.BuildSession;
-import org.gradle.internal.session.DefaultBuildSession;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
@@ -242,9 +240,5 @@ public class GlobalScopeServices {
 
     FileWatcherFactory createFileWatcherFactory(ExecutorFactory executorFactory) {
         return new DefaultFileWatcherFactory(executorFactory);
-    }
-
-    BuildSession createBuildSession(ServiceRegistry serviceRegistry) {
-        return new DefaultBuildSession(serviceRegistry);
     }
 }
