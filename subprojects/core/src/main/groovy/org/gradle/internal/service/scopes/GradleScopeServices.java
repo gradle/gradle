@@ -77,16 +77,18 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    BuildExecuter createBuildExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer) {
+    BuildExecuter createBuildExecuter() {
+        return new DefaultBuildExecuter(
+                asList(new DryRunBuildExecutionAction(),
+                        new SelectedTaskExecutionAction()));
+    }
+
+    BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer) {
         List<BuildConfigurationAction> configs = new LinkedList<BuildConfigurationAction>();
         configs.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
         configs.add(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector));
         configs.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
-
-        return new DefaultBuildExecuter(
-                configs,
-                asList(new DryRunBuildExecutionAction(),
-                        new SelectedTaskExecutionAction()));
+        return new DefaultBuildConfigurationActionExecuter(configs);
     }
 
     ProjectFinder createProjectFinder(final GradleInternal gradle) {

@@ -107,6 +107,16 @@ public class GradleScopeServicesTest extends Specification {
         buildExecuter sameInstance(secondExecuter)
     }
 
+    def "provides a build configuration action executer"() {
+        when:
+        def firstExecuter = registry.get(BuildConfigurationActionExecuter)
+        def secondExecuter = registry.get(BuildConfigurationActionExecuter)
+
+        then:
+        firstExecuter instanceof BuildConfigurationActionExecuter
+        firstExecuter sameInstance(secondExecuter)
+    }
+
     def "provides a task graph executer"() {
         when:
         def graphExecuter = registry.get(TaskGraphExecuter)

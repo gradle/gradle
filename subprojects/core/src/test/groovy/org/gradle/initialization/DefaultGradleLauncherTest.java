@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.progress.BuildOperationDetails;
@@ -65,6 +66,7 @@ public class DefaultGradleLauncherTest {
     private StartParameter expectedStartParams;
     private GradleInternal gradleMock;
     private BuildListener buildBroadcaster;
+    private BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private BuildExecuter buildExecuter;
 
     private GradleLauncher gradleLauncher;
@@ -96,6 +98,7 @@ public class DefaultGradleLauncherTest {
         gradleMock = context.mock(GradleInternal.class);
         buildBroadcaster = context.mock(BuildListener.class);
         buildExecuter = context.mock(BuildExecuter.class);
+        buildConfigurationActionExecuter = context.mock(BuildConfigurationActionExecuter.class);
         boolean expectedSearchUpwards = false;
 
         File expectedRootDir = tmpDir.file("rootDir");
@@ -115,7 +118,7 @@ public class DefaultGradleLauncherTest {
 
         gradleLauncher = new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock,
             buildConfigurerMock, exceptionAnalyserMock, loggingManagerMock, buildBroadcaster,
-            modelListenerMock, buildCompletionListener, buildOperationExecutor, buildExecuter,
+            modelListenerMock, buildCompletionListener, buildOperationExecutor, buildConfigurationActionExecuter, buildExecuter,
             buildServices);
 
         context.checking(new Expectations() {
@@ -308,7 +311,7 @@ public class DefaultGradleLauncherTest {
         context.checking(new Expectations() {
             {
                 one(buildConfigurerMock).configure(gradleMock);
-                one(buildExecuter).select(gradleMock);
+                one(buildConfigurationActionExecuter).select(gradleMock);
             }
         });
     }

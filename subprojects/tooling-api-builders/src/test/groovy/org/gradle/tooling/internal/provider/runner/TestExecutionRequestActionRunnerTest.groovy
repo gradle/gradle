@@ -15,7 +15,6 @@
  */
 
 package org.gradle.tooling.internal.provider.runner
-
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildController
 import spock.lang.Specification

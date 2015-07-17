@@ -16,9 +16,12 @@
 package org.gradle.initialization;
 
 import org.gradle.BuildResult;
+import org.gradle.api.Transformer;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.internal.concurrent.Stoppable;
+
+import java.util.List;
 
 /**
  * This was the old Gradle embedding API (it used to be in the public `org.gradle` package). It is now internal and is due to be merged into {@link org.gradle.internal.invocation.BuildController}.
@@ -63,5 +66,8 @@ public abstract class GradleLauncher implements Stoppable {
      */
     public abstract void addStandardErrorListener(StandardOutputListener listener);
 
-    public abstract void registerBuildConfigurationAction(final BuildConfigurationAction buildConfigurationAction);
+    /**
+     * Allows registration of transformations for customizing the list configuration action fired just before the list is processed.
+     */
+    public abstract void registerBuildConfigurationTransformer(Transformer<List<BuildConfigurationAction>, List<BuildConfigurationAction>> custumizationAction);
 }

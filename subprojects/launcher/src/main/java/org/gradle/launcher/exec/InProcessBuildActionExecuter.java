@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.initialization.BuildRequestContext;
@@ -24,6 +25,8 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+
+import java.util.List;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -86,8 +89,8 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
             this.result = result;
         }
 
-        public void registerBuildConfigurationAction(BuildConfigurationAction buildConfigurationAction) {
-            getLauncher().registerBuildConfigurationAction(buildConfigurationAction);
+        public void registerBuildConfigurationTransformer(Transformer<List<BuildConfigurationAction>, List<BuildConfigurationAction>> customizationTransformation) {
+            getLauncher().registerBuildConfigurationTransformer(customizationTransformation);
         }
 
         public GradleInternal getGradle() {

@@ -17,19 +17,21 @@ package org.gradle.initialization;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationAction;
+import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.execution.BuildExecutionContext;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.Closeable;
+import java.util.List;
 
 public class DefaultGradleLauncher extends GradleLauncher {
 
@@ -47,9 +49,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final ModelConfigurationListener modelConfigurationListener;
     private final BuildCompletionListener buildCompletionListener;
     private final BuildOperationExecutor buildOperationExecutor;
+    private BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private BuildExecuter buildExecuter;
-    private CustomBuildExecuter customBuildConfigurationBuildExecutor;
-
     private final Closeable buildServices;
 
     /**
@@ -60,7 +61,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  LoggingManagerInternal loggingManager, BuildListener buildListener,
                                  ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
-                                 BuildExecuter buildExecuter, Closeable buildServices) {
+                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, Closeable buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
@@ -70,6 +71,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.loggingManager = loggingManager;
         this.modelConfigurationListener = modelConfigurationListener;
         this.buildOperationExecutor = operationExecutor;
+        this.buildConfigurationActionExecuter = buildConfigurationActionExecuter;
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
@@ -143,13 +145,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         buildOperationExecutor.run("Calculate task graph", new Runnable() {
             @Override
             public void run() {
-                if(customBuildConfigurationBuildExecutor !=null){
-                    // a custom BuildConfigurationAction has been provided.
-                    // skipping the defaults
-                    customBuildConfigurationBuildExecutor.select(gradle);
-                } else {
-                    buildExecuter.select(gradle);
-                }
+                buildConfigurationActionExecuter.select(gradle);
                 if (gradle.getStartParameter().isConfigureOnDemand()) {
                     buildListener.projectsEvaluated(gradle);
                 }
@@ -201,9 +197,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
         loggingManager.addStandardErrorListener(listener);
     }
 
-    @Override
-    public void registerBuildConfigurationAction(final BuildConfigurationAction buildConfigurationAction) {
-        customBuildConfigurationBuildExecutor = new CustomBuildExecuter(buildExecuter, buildConfigurationAction);
+    public void registerBuildConfigurationTransformer(Transformer<List<BuildConfigurationAction>, List<BuildConfigurationAction>> transformer) {
+        buildConfigurationActionExecuter.registerBuildConfigurationTransformer(transformer);
     }
 
     public void stop() {
@@ -212,36 +207,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
             CompositeStoppable.stoppable(buildServices).stop();
         } finally {
             buildCompletionListener.completed();
-        }
-    }
-
-    private static class CustomBuildExecuter implements BuildExecuter {
-        private final BuildExecuter delegate;
-        private final BuildConfigurationAction customConfigurationAction;
-
-        public CustomBuildExecuter(BuildExecuter delegate, BuildConfigurationAction customConfigurationAction) {
-            this.delegate = delegate;
-            this.customConfigurationAction = customConfigurationAction;
-        }
-
-        @Override
-        public void select(final GradleInternal gradle) {
-            customConfigurationAction.configure(new BuildExecutionContext() {
-                @Override
-                public GradleInternal getGradle() {
-                    return gradle;
-                }
-
-                @Override
-                public void proceed() {
-                }
-            });
-
-        }
-
-        @Override
-        public void execute(GradleInternal gradle) {
-            delegate.execute(gradle);
         }
     }
 }

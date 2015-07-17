@@ -20,6 +20,8 @@ import org.gradle.api.Nullable;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.BuildConfigurationAction;
 
+import java.util.List;
+
 /**
  * This is intended to eventually replace {@link org.gradle.initialization.GradleLauncher} internally. It's pretty rough at the moment.
  */
@@ -60,8 +62,7 @@ public interface BuildController {
     void setResult(@Nullable Object result);
 
     /**
-     * registers custom BuildConfigurationActions for the build.
+     * Allows registration of transformations for customizing the list configuration action fired just before the list is processed.
      */
-    void registerBuildConfigurationAction(BuildConfigurationAction buildConfigurationAction);
-
+    void registerBuildConfigurationTransformer(org.gradle.api.Transformer<List<BuildConfigurationAction>, List<BuildConfigurationAction>> customizationTransformation);
 }

@@ -21,58 +21,12 @@ import spock.lang.Specification
 class DefaultBuildExecuterTest extends Specification {
     final GradleInternal gradleInternal = Mock()
 
-    def "select method calls configure method on first configuration action"() {
-        BuildConfigurationAction action1 = Mock()
-        BuildConfigurationAction action2 = Mock()
-
-        given:
-        def buildExecution = new DefaultBuildExecuter([action1, action2], [])
-
-        when:
-        buildExecution.select(gradleInternal)
-
-        then:
-        1 * action1.configure(!null)
-        0 * _._
-    }
-
-    def "calls next action in chain when configuration action calls proceed"() {
-        BuildConfigurationAction action1 = Mock()
-        BuildConfigurationAction action2 = Mock()
-
-        given:
-        def buildExecution = new DefaultBuildExecuter([action1, action2], [])
-
-        when:
-        buildExecution.select(gradleInternal)
-
-        then:
-        1 * action1.configure(!null) >> { it[0].proceed() }
-
-        and:
-        1 * action2.configure(!null)
-    }
-
-    def "does nothing when last configuration action calls proceed"() {
-        BuildConfigurationAction action1 = Mock()
-
-        given:
-        def buildExecution = new DefaultBuildExecuter([action1], [])
-
-        when:
-        buildExecution.select(gradleInternal)
-
-        then:
-        1 * action1.configure(!null) >> { it[0].proceed() }
-        0 * _._
-    }
-
     def "execute method calls execute method on first execution action"() {
         BuildExecutionAction action1 = Mock()
         BuildExecutionAction action2 = Mock()
 
         given:
-        def buildExecution = new DefaultBuildExecuter([], [action1, action2])
+        def buildExecution = new DefaultBuildExecuter([action1, action2])
 
         when:
         buildExecution.execute(gradleInternal)
@@ -87,7 +41,7 @@ class DefaultBuildExecuterTest extends Specification {
         BuildExecutionAction action2 = Mock()
 
         given:
-        def buildExecution = new DefaultBuildExecuter([], [action1, action2])
+        def buildExecution = new DefaultBuildExecuter([action1, action2])
 
         when:
         buildExecution.execute(gradleInternal)
@@ -103,7 +57,7 @@ class DefaultBuildExecuterTest extends Specification {
         BuildExecutionAction action1 = Mock()
 
         given:
-        def buildExecution = new DefaultBuildExecuter([], [action1])
+        def buildExecution = new DefaultBuildExecuter([action1])
 
         when:
         buildExecution.execute(gradleInternal)
@@ -114,20 +68,15 @@ class DefaultBuildExecuterTest extends Specification {
     }
 
     def "makes Gradle instance available to actions"() {
-        BuildConfigurationAction configurationAction = Mock()
         BuildExecutionAction executionAction = Mock()
 
         given:
-        def buildExecution = new DefaultBuildExecuter([configurationAction], [executionAction])
+        def buildExecution = new DefaultBuildExecuter([executionAction])
 
         when:
-        buildExecution.select(gradleInternal)
         buildExecution.execute(gradleInternal)
 
         then:
-        1 * configurationAction.configure(!null) >> {
-            assert it[0].gradle ==gradleInternal
-        }
         1 * executionAction.execute(!null) >> {
             assert it[0].gradle ==gradleInternal
         }
