@@ -86,7 +86,7 @@ class ProgressEvents implements ProgressListener {
                     throw new AssertionError("Unexpected type of progress event received: ${event.getClass()}")
                 }
             }
-            assert running.size() == 0
+            assert running.size() == 0: "Not all operations completed: ${running.values()}, events: ${events}"
 
             dirty = false
         }
