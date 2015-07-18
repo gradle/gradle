@@ -70,6 +70,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         } catch (NoSuchMethodError ignored) { /* method was only introduced in Groovy 1.8 */ }
         Map<String, Object> jointCompilationOptions = new HashMap<String, Object>();
         final File stubDir = spec.getGroovyCompileOptions().getStubDir();
+        stubDir.mkdirs();
         jointCompilationOptions.put("stubDir", stubDir);
         jointCompilationOptions.put("keepStubs", spec.getGroovyCompileOptions().isKeepStubs());
         configuration.setJointCompilationOptions(jointCompilationOptions);

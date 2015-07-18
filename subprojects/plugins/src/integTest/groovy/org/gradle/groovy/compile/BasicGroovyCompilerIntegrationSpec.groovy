@@ -57,6 +57,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "compileWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
         when:
         writeAnnotationProcessingBuild(
             "", // no Java
@@ -74,6 +78,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "compileBadCodeWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
         when:
         writeAnnotationProcessingBuild(
             "", // no Java
@@ -163,6 +171,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "jointCompileWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
         when:
         writeAnnotationProcessingBuild(
             "$annotationText public class Java {}",
@@ -202,6 +214,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     def "jointCompileBadCodeWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
         when:
         writeAnnotationProcessingBuild(
             "$annotationText public class Java {}",
