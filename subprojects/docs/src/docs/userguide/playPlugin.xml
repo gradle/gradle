@@ -400,7 +400,13 @@
     <section>
         <title>Multi-project Play applications</title>
         <para>
-            Play applications can be built in multi-project builds as well.  Simply apply the <literal>play</literal> plugin in the appropriate subprojects.
+            Play applications can be built in multi-project builds as well.  Simply apply the <literal>play</literal> plugin in the appropriate subprojects and create any
+            project dependencies on the <literal>play</literal> configuration.
+        </para>
+        <sample id="playMultiProjectDependencies" dir="play/multiproject" title="Configuring dependencies on Play subprojects">
+            <sourcefile file="build.gradle" snippet="play-multiproject-dependencies"/>
+        </sample>
+        <para>
             See the "play/multiproject" sample provided in the Gradle distribution for a working example.
         </para>
     </section>

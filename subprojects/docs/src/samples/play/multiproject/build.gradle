@@ -17,8 +17,10 @@ allprojects {
     }
 }
 
+// START SNIPPET play-multiproject-dependencies
 dependencies {
     play project(":admin")
     play project(":user")
     play project(":util")
 }
+// END SNIPPET play-multiproject-dependencies
