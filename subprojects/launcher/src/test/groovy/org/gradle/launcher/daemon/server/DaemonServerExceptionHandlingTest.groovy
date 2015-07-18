@@ -23,6 +23,7 @@ import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
 import org.gradle.launcher.daemon.client.StubDaemonHealthServices
@@ -49,6 +50,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         getClient() >> new GradleLauncherMetaData()
     }
     def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, IMPLICITLY_DISABLED, false, false)
+    def contextServices = Stub(ServiceRegistry)
 
     static class DummyLauncherAction implements BuildAction, Serializable {
         StartParameter startParameter
@@ -68,7 +70,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         def action = new DummyLauncherAction(someState: unloadableClass)
 
         when:
-        client.execute(action, buildRequestContext, parameters, null)
+        client.execute(action, buildRequestContext, parameters, contextServices)
 
         then:
         def ex = thrown(MessageIOException)
@@ -104,7 +106,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters, null)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters, contextServices)
 
         then:
         def ex = thrown(Throwable)
@@ -120,7 +122,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters, null)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters, contextServices)
 
         then:
         def ex = thrown(OutOfMemoryError)

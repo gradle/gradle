@@ -242,7 +242,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private void executeBuild() {
-        executer.execute(action, requestContext, actionParameters, null)
+        executer.execute(action, requestContext, actionParameters, globalServices)
     }
 
     private void declareInput(File file) {

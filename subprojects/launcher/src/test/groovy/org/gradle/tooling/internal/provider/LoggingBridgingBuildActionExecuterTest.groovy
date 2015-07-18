@@ -19,6 +19,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.Factory
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
@@ -31,19 +32,20 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
     final BuildAction action = Mock()
     final BuildRequestContext buildRequestContext = Mock()
     final ProviderOperationParameters parameters = Mock()
+    final ServiceRegistry contextServices = Mock()
 
     //declared type-lessly to work around groovy eclipse plugin bug
     final executer = new LoggingBridgingBuildActionExecuter(target, loggingManagerFactory)
 
     def configuresLoggingWhileActionIsExecuting() {
         when:
-        executer.execute(action, buildRequestContext, parameters, null)
+        executer.execute(action, buildRequestContext, parameters, contextServices)
 
         then:
         1 * loggingManagerFactory.create() >> loggingManager
         1 * loggingManager.addOutputEventListener(!null)
         1 * loggingManager.start()
-        1 * target.execute(action, buildRequestContext, parameters, _)
+        1 * target.execute(action, buildRequestContext, parameters, contextServices)
         1 * loggingManager.stop()
     }
 
@@ -51,14 +53,14 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        executer.execute(action, buildRequestContext, parameters, null)
+        executer.execute(action, buildRequestContext, parameters, contextServices)
 
         then:
         RuntimeException e = thrown()
         e == failure
         1 * loggingManagerFactory.create() >> loggingManager
         1 * loggingManager.start()
-        1 * target.execute(action, buildRequestContext, parameters, _) >> {throw failure}
+        1 * target.execute(action, buildRequestContext, parameters, contextServices) >> {throw failure}
         1 * loggingManager.stop()
     }
 
@@ -68,7 +70,7 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
         parameters.getBuildLogLevel() >> LogLevel.QUIET
 
         when:
-        executer.execute(action, buildRequestContext, parameters, null)
+        executer.execute(action, buildRequestContext, parameters, contextServices)
 
         then:
         1 * loggingManager.setLevel(LogLevel.QUIET)
