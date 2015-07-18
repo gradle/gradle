@@ -34,7 +34,6 @@ import org.gradle.launcher.daemon.protocol.*;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
 
@@ -49,7 +48,8 @@ import java.io.InputStream;
  * <li>The client creates a connection to daemon.</li>
  * <li>The client sends exactly one {@link Build} message.</li>
  * <li>The daemon sends exactly one {@link BuildStarted}, {@link Failure} or {@link DaemonUnavailable} message.</li>
- * <li>If the build is started, the daemon may send zero or more {@link OutputEvent} messages.</li>
+ * <li>If the build is started, the daemon may send zero or more {@link OutputMessage} messages.</li>
+ * <li>If the build is started, the daemon may send zero or more {@link BuildEvent} messages.</li>
  * <li>If the build is started, the client may send zero or more {@link ForwardInput} messages followed by exactly one {@link CloseInput} message.</li>
  * <li>If the build is started, the client may send {@link org.gradle.launcher.daemon.protocol.Cancel} message before {@link CloseInput} message.</li>
  * <li>The daemon sends exactly one {@link Result} message. It may no longer send any messages.</li>
@@ -171,7 +171,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         }
     }
 
-    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Object> connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) {
+    private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Message> connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) {
         DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, executorFactory);
         DaemonCancelForwarder cancelForwarder = new DaemonCancelForwarder(connection, cancellationToken, idGenerator);
         try {
@@ -180,13 +180,13 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             int objectsReceived = 0;
 
             while (true) {
-                Object object = connection.receive();
+                Message object = connection.receive();
                 LOGGER.trace("Received object #{}, type: {}", objectsReceived++, object == null ? null : object.getClass().getName());
 
                 if (object == null) {
                     return handleDaemonDisappearance(build, diagnostics);
-                } else if (object instanceof OutputEvent) {
-                    outputEventListener.onOutput((OutputEvent) object);
+                } else if (object instanceof OutputMessage) {
+                    outputEventListener.onOutput(((OutputMessage) object).getEvent());
                 } else if (object instanceof BuildEvent) {
                     buildEventConsumer.dispatch(((BuildEvent)object).getPayload());
                 } else {

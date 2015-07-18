@@ -173,8 +173,9 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         messageResult.identifier == "id"
     }
 
-    @Override
-    def <T> T serialize(T value, Serializer<T> serializer) {
-        return super.serialize(value, serializer)
+    OutputEvent serialize(OutputEvent event, Serializer<Object> serializer) {
+        def result = serialize(new OutputMessage(event), serializer)
+        assert result instanceof OutputMessage
+        return result.event
     }
 }

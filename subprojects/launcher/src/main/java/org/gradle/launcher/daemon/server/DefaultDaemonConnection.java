@@ -39,14 +39,14 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultDaemonConnection implements DaemonConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDaemonConnection.class);
-    private final Connection<Object> connection;
+    private final Connection<Message> connection;
     private final StoppableExecutor executor;
     private final StdinQueue stdinQueue;
     private final DisconnectQueue disconnectQueue;
     private final CancelQueue cancelQueue;
     private final ReceiveQueue receiveQueue;
 
-    public DefaultDaemonConnection(final Connection<Object> connection, ExecutorFactory executorFactory) {
+    public DefaultDaemonConnection(final Connection<Message> connection, ExecutorFactory executorFactory) {
         this.connection = connection;
         stdinQueue = new StdinQueue(executorFactory);
         disconnectQueue = new DisconnectQueue();
@@ -117,7 +117,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
     }
 
     public void logEvent(OutputEvent logEvent) {
-        connection.dispatch(logEvent);
+        connection.dispatch(new OutputMessage(logEvent));
     }
 
     @Override

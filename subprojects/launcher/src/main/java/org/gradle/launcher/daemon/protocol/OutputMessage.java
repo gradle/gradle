@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.server;
+package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.launcher.daemon.protocol.Message;
-import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.logging.internal.OutputEvent;
 
-public interface IncomingConnectionHandler {
-    void handle(Connection<Message> connection);
+public class OutputMessage extends Message {
+    private final OutputEvent event;
+
+    public OutputMessage(OutputEvent event) {
+        this.event = event;
+    }
+
+    public OutputEvent getEvent() {
+        return event;
+    }
 }

@@ -21,6 +21,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.serialize.Serializers;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
+import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.internal.ConnectCompletion;
@@ -67,8 +68,8 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
 
             Action<ConnectCompletion> connectEvent = new Action<ConnectCompletion>() {
                 public void execute(ConnectCompletion completion) {
-                    MessageSerializer<Object> serializer = new KryoBackedMessageSerializer<Object>(Serializers.stateful(DaemonMessageSerializer.create()));
-                    handler.handle(new SynchronizedDispatchConnection<Object>(completion.create(serializer)));
+                    MessageSerializer<Message> serializer = new KryoBackedMessageSerializer<Message>(Serializers.stateful(DaemonMessageSerializer.create()));
+                    handler.handle(new SynchronizedDispatchConnection<Message>(completion.create(serializer)));
                 }
             };
 

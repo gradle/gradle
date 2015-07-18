@@ -25,6 +25,7 @@ import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
+import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.messaging.remote.internal.*;
@@ -144,9 +145,9 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     private DaemonClientConnection connectToDaemon(DaemonInstanceDetails daemon, DaemonClientConnection.StaleAddressDetector staleAddressDetector) throws ConnectException {
-        RemoteConnection<Object> connection;
+        RemoteConnection<Message> connection;
         try {
-            MessageSerializer<Object> serializer = new KryoBackedMessageSerializer<Object>(Serializers.stateful(DaemonMessageSerializer.create()));
+            MessageSerializer<Message> serializer = new KryoBackedMessageSerializer<Message>(Serializers.stateful(DaemonMessageSerializer.create()));
             connection = connector.connect(daemon.getAddress()).create(serializer);
         } catch (ConnectException e) {
             staleAddressDetector.maybeStaleAddress(e);
