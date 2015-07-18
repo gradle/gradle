@@ -53,6 +53,24 @@ The functionality provided by this and other similar projects will over time be 
 
 See the [new Gradle TestKit user guide chapter](userguide/test_kit.html) for more information.
 
+### Rule based model configuration (i)
+
+Gradle 2.5 brings significant enhancements to the visualization of Rule based model configuration. The additional detail included in the model report, along
+with improvements to build errors, provides deep insight into what the model space looks like.
+
+The information included on the model report such as: what created a rule, where a rule was created, which rules apply to an element, the order in which rules are applied and the value of a particular
+model element are instrumental in understanding the state and relationships of the model space.
+
+The improvements to the error report generated, when a rule's inputs and/or subjects fail to bind, make it easier for build authors to pinpoint the root cause of build configuration errors. These improvements
+present the build author with vital debugging information such as:
+    * Which inputs or subjects could not be bound.
+    * Where, in the build script, the missing rule dependency was identified.
+    * The model path to the model element with the failure.
+    * Which method parameter, on a method rule, could not be bound.
+    * Suggestions as to which inputs/subjects could be used to successfully bind.
+
+See the [Rule based model configuration user guide chapter](userguide/new_model.html) for more information.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -99,66 +117,6 @@ Binaries now distinguish between source sets that are specific to them (owned so
 * Removed `BinarySpec.source(Object)`: to add an existing sourceSet to a binary, use `BinarySpec.getInputs().add()`.
 * `@Managed` models are no longer permitted to have setter methods for members of type `ManagedSet`.
 
-### Rule based model configuration
-* The model report displays each rule that has been executed against a given model element.
-* The naming of rule source (`org.gradle.model.RuleSource`) method rules, appearing on the model report and in build exceptions, has changed as follows:
-    - package names are omitted
-    - Method parameters are excluded
-      - Model report comparison
-        - Before
-        ```
-                  | Rules:  |
-                     ⤷ PersonRules#person(Person)
-                     ⤷ PersonRules#setFirstName(Person)
-                     ⤷ org.acme.SomeClass#method(ParameterType)
-                     ⤷ model.person
-        ```
-        - After
-        ```
-                  | Rules:
-                     ⤷ PersonRules#person
-                     ⤷ PersonRules#setFirstName
-                     ⤷ SomeClass#method
-                     ⤷ model.person
-        ```
-      - Build exception comparison
-        - Before:
-        ```
-        The following model rules are unbound:
-          org.gradle.model.ManagedNodeBackedModelMapTest$ElementRules#connectElementToInput(org.gradle.model.ManagedNodeBackedModelMapTest$Bean, java.lang.String)
-        ```
-
-        - After:
-        ```
-        The following model rules could not be applied:
-          ManagedNodeBackedModelMapTest$ElementRules#connectElementToInput
-        ```
-* The model report now displays a relative path to the build script for DSL based rules. Previously an absolute file path was displayed.
-* The format of build errors, caused by model based rules failing to locate subjects or inputs, has been improved.
-
-    __Current__
-    ```
-    The following model rules are unbound:
-      model.tasks.raboof @ /build.gradle line 15, column 17
-        Subject:
-          + tasks.raboof (java.lang.Object)
-        Inputs:
-          - tasks.foonar (java.lang.Object) @ line 16 - suggestions: tasks.foobar
-          - tasks.fooar (java.lang.Object) @ line 17 - suggestions: tasks.foobar
-          - tasks.foobarr (java.lang.Object) @ line 18 - suggestions: tasks.foobar"
-    ```
-
-    __New format__
-    ```
-    The following model rules could not be applied:
-      model.tasks.raboof @ /build.gradle line 15, column 17
-        Subject:
-           | Found:true | Path:tasks.raboof | Type:java.lang.Object|
-        Inputs:
-           | Found:false | Path:tasks.foonar | Type:java.lang.Object | Description:@ line 16 | Suggestions:tasks.foobar|
-           | Found:false | Path:tasks.fooar | Type:java.lang.Object | Description:@ line 17 | Suggestions:tasks.foobar|
-           | Found:false | Path:tasks.foobarr | Type:java.lang.Object | Description:@ line 18 | Suggestions:tasks.foobar|
-    ```
 
 ## External contributions
 
