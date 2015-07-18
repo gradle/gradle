@@ -401,7 +401,7 @@
         <title>Multi-project Play applications</title>
         <para>
             Play applications can be built in multi-project builds as well.  Simply apply the <literal>play</literal> plugin in the appropriate subprojects.
-            See the sample provided in the Gradle distribution for a working example.
+            See the "play/multiproject" sample provided in the Gradle distribution for a working example.
         </para>
     </section>
     <section>
@@ -488,8 +488,20 @@
         <itemizedlist>
             <listitem>
                 <para>
-                    Take a look at the Play types in the Gradle DSL Guide.
+                    Play types in the Gradle DSL Guide:
                 </para>
+                <itemizedlist>
+                    <listitem><apilink class="org.gradle.play.PlayApplicationBinarySpec"/></listitem>
+                    <listitem><apilink class="org.gradle.play.PlayApplicationSpec"/></listitem>
+                    <listitem><apilink class="org.gradle.play.platform.PlayPlatform"/></listitem>
+                    <listitem><apilink class="org.gradle.play.JvmClasses"/></listitem>
+                    <listitem><apilink class="org.gradle.play.PublicAssets"/></listitem>
+                    <listitem><apilink class="org.gradle.play.distribution.PlayDistributionContainer"/></listitem>
+                    <listitem><apilink class="org.gradle.play.tasks.JavaScriptMinify"/></listitem>
+                    <listitem><apilink class="org.gradle.play.tasks.PlayRun"/></listitem>
+                    <listitem><apilink class="org.gradle.play.tasks.RoutesCompile"/></listitem>
+                    <listitem><apilink class="org.gradle.play.tasks.TwirlCompile"/></listitem>
+                </itemizedlist>
             </listitem>
             <listitem>
                 <para>

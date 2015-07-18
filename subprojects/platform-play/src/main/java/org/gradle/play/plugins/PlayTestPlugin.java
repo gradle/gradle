@@ -60,6 +60,8 @@ public class PlayTestPlugin extends RuleSource {
             final File testClassesDir = new File(buildDir, String.format("%s/testClasses", binary.getName()));
             tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
+                    scalaCompile.setDescription("Compiles the scala and java test sources for the '" + binary.getName() + "' binary.");
+
                     scalaCompile.setClasspath(testCompileClasspath);
 
                     scalaCompile.dependsOn(binary.getBuildTask());
@@ -81,6 +83,8 @@ public class PlayTestPlugin extends RuleSource {
             final File binaryBuildDir = new File(buildDir, binary.getName());
             tasks.create(testTaskName, Test.class, new Action<Test>() {
                 public void execute(Test test) {
+                    test.setDescription("Runs tests for the '" + binary.getName() + "' binary.");
+
                     test.setClasspath(getRuntimeClasspath(testClassesDir, testCompileClasspath));
 
                     test.setTestClassesDir(testClassesDir);

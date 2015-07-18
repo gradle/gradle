@@ -115,6 +115,8 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
                 tasks.create(compileTaskName, PlayCoffeeScriptCompile.class, new Action<PlayCoffeeScriptCompile>() {
                     @Override
                     public void execute(PlayCoffeeScriptCompile coffeeScriptCompile) {
+                        coffeeScriptCompile.setDescription("Compiles coffeescript for the '" + coffeeScriptSourceSet.getName() + "' source set.");
+
                         File outputDirectory = outputDirectory(buildDir, binary, compileTaskName);
                         coffeeScriptCompile.setDestinationDir(outputDirectory);
                         coffeeScriptCompile.setSource(coffeeScriptSourceSet.getSource());

@@ -105,6 +105,7 @@ public class PlayDistributionPlugin extends RuleSource {
             tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
                 @Override
                 public void execute(Jar jar) {
+                    jar.setDescription("Assembles an application jar suitable for deployment for the '" + binary.getName() + "' binary.");
                     jar.dependsOn(binary.getTasks().withType(Jar.class));
                     jar.from(jar.getProject().zipTree(binary.getJarFile()));
                     jar.setDestinationDir(distJarDir);
@@ -122,7 +123,7 @@ public class PlayDistributionPlugin extends RuleSource {
             tasks.create(createStartScriptsTaskName, CreateStartScripts.class, new Action<CreateStartScripts>() {
                 @Override
                 public void execute(CreateStartScripts createStartScripts) {
-                    createStartScripts.setDescription("Creates OS specific scripts to run the Play application.");
+                    createStartScripts.setDescription("Creates OS specific scripts to run the '" + binary.getName() + "' application.");
                     createStartScripts.setClasspath(distributionJar.getOutputs().getFiles());
                     createStartScripts.setMainClassName("play.core.server.NettyServer");
                     createStartScripts.setApplicationName(binary.getName());
@@ -156,8 +157,7 @@ public class PlayDistributionPlugin extends RuleSource {
             tasks.create(stageTaskName, Copy.class, new Action<Copy>() {
                 @Override
                 public void execute(Copy copy) {
-                    copy.setDescription("Copies the binary distribution to a staging directory.");
-                    copy.setGroup(DISTRIBUTION_GROUP);
+                    copy.setDescription("Copies the '" + distribution.getName() + "' distribution to a staging directory.");
                     copy.setDestinationDir(stageDir);
 
                     CopySpecInternal baseSpec = copy.getRootSpec().addChild();
@@ -177,8 +177,7 @@ public class PlayDistributionPlugin extends RuleSource {
             tasks.create(distributionTaskName, Zip.class, new Action<Zip>() {
                 @Override
                 public void execute(final Zip zip) {
-                    zip.setDescription("Bundles the Play binary as a distribution.");
-                    zip.setGroup(DISTRIBUTION_GROUP);
+                    zip.setDescription("Packages the '" + distribution.getName() + "' distribution as a zip file.");
                     zip.setArchiveName(String.format("%s.zip", baseName));
                     zip.setDestinationDir(new File(buildDir, "distributions"));
                     zip.from(stageTask);

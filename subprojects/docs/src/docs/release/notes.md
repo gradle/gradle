@@ -12,7 +12,7 @@ Add-->
 
 ### Play Framework Support (i)
 
-Gradle now supports building [Play](https://www.playframework.com/) applications for Play versions 2.2.x and 2.3.x.  This support allows users
+Gradle now supports building [Play](https://www.playframework.com/) applications for Play version 2.3.x and limited support for 2.4.x.  This support allows users
 to model, build, test, run and package Play applications.  It includes support for:
 
 * Compiling Scala and Java controllers, tests, and model classes
@@ -24,7 +24,9 @@ to model, build, test, run and package Play applications.  It includes support f
 * Running applications in development mode
 * Staging and creating Play distribution packages
 
-Future releases will add more features and versions of the Play Framework.
+Support for Play 2.4.x is limited and does not include support for a few new build-related features in 2.4.  Specifically, Gradle does not yet support
+aggregate reverse routes or the use of "injected" routes generators.  Future releases will add support for these features as well as other features and
+versions of the Play Framework.
 
 See the [User Guide](userguide/play_plugin.html) as well as the sample builds delivered with the Gradle distribution for more information on using the `play` plugin.
 

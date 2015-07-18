@@ -180,7 +180,6 @@ class PlayDistributionPluginTest extends Specification {
         1 * tasks.create("createPlayBinaryDist", Zip, _) >> { String name, Class type, Action action ->
             action.execute(Mock(Zip) {
                 1 * setDescription(_)
-                1 * setGroup(_)
                 1 * setDestinationDir(_)
                 1 * setArchiveName("playBinary.zip")
                 1 * from(_ as Copy)
@@ -189,7 +188,6 @@ class PlayDistributionPluginTest extends Specification {
         1 * tasks.create("stagePlayBinaryDist", Copy, _) >> { String name, Class type, Action action ->
             action.execute(Mock(Copy) {
                 1 * setDescription(_)
-                1 * setGroup(_)
                 1 * setDestinationDir(_)
                 1 * getRootSpec() >> Mock(DestinationRootCopySpec) {
                     1 * addChild() >> Mock(CopySpecInternal) {

@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Task for compiling Twirl templates into HTML code.
+ * Task for compiling Twirl templates into Scala code.
  */
 @Incubating
 public class TwirlCompile extends SourceTask {

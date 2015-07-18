@@ -72,6 +72,7 @@ import java.util.Date;
 @Incubating
 public class PlayApplicationPlugin implements Plugin<Project> {
     public static final int DEFAULT_HTTP_PORT = 9000;
+    public static final String RUN_GROUP = "Run";
     private final ModelRegistry modelRegistry;
 
     @Inject
@@ -261,6 +262,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
                 tasks.create(twirlCompileTaskName, TwirlCompile.class, new Action<TwirlCompile>() {
                     public void execute(TwirlCompile twirlCompile) {
+                        twirlCompile.setDescription("Compiles twirl templates for the '" + twirlSourceSet.getName() + "' source set.");
                         twirlCompile.setPlatform(binary.getTargetPlatform());
                         twirlCompile.setSource(twirlSourceSet.getSource());
                         twirlCompile.setOutputDirectory(twirlCompileOutputDirectory);
@@ -281,6 +283,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
                 tasks.create(routesCompileTaskName, RoutesCompile.class, new Action<RoutesCompile>() {
                     public void execute(RoutesCompile routesCompile) {
+                        routesCompile.setDescription("Generates routes for the '" + routesSourceSet.getName() + "' source set.");
                         routesCompile.setPlatform(binary.getTargetPlatform());
                         routesCompile.setAdditionalImports(new ArrayList<String>());
                         routesCompile.setSource(routesSourceSet.getSource());
@@ -299,6 +302,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             final String scalaCompileTaskName = String.format("compile%s%s", StringUtils.capitalize(binary.getName()), "Scala");
             tasks.create(scalaCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
+                    scalaCompile.setDescription("Compiles all scala and java source sets for the '" + binary.getName() + "' binary.");
 
                     scalaCompile.setDestinationDir(binary.getClasses().getClassesDir());
                     scalaCompile.setPlatform(binary.getTargetPlatform().getScalaPlatform());
@@ -337,6 +341,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             String jarTaskName = String.format("create%sJar", StringUtils.capitalize(binary.getName()));
             tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
                 public void execute(Jar jar) {
+                    jar.setDescription("Assembles the application jar for the '" + binary.getName() + "' binary.");
                     jar.setDestinationDir(binary.getJarFile().getParentFile());
                     jar.setArchiveName(binary.getJarFile().getName());
                     jar.from(binary.getClasses().getClassesDir());
@@ -348,6 +353,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             String assetsJarTaskName = String.format("create%sAssetsJar", StringUtils.capitalize(binary.getName()));
             tasks.create(assetsJarTaskName, Jar.class, new Action<Jar>() {
                 public void execute(Jar jar) {
+                    jar.setDescription("Assembles the assets jar for the '" + binary.getName() + "' binary.");
                     jar.setDestinationDir(binary.getAssetsJarFile().getParentFile());
                     jar.setArchiveName(binary.getAssetsJarFile().getName());
                     jar.setClassifier("assets");
@@ -366,6 +372,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
                         playRun.setDescription("Runs the Play application for local development.");
+                        playRun.setGroup(RUN_GROUP);
                         playRun.setHttpPort(DEFAULT_HTTP_PORT);
                         playRun.setPlayToolProvider(playToolChain.select(binary.getTargetPlatform()));
                         playRun.setApplicationJar(binary.getJarFile());

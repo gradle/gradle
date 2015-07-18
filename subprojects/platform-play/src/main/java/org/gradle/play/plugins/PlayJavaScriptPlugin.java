@@ -85,6 +85,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
         tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {
             @Override
             public void execute(JavaScriptMinify javaScriptMinify) {
+                javaScriptMinify.setDescription("Minifies javascript for the '" + javaScriptSourceSet.getName() +"' source set.");
                 javaScriptMinify.setSource(javaScriptSourceSet.getSource());
                 javaScriptMinify.setDestinationDir(minifyOutputDirectory);
                 javaScriptMinify.setPlayPlatform(binary.getTargetPlatform());

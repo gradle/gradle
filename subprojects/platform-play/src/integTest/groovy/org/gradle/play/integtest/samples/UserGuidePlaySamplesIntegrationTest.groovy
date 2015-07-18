@@ -62,6 +62,11 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds "build"
+
+        and:
+        applicationJar(compilerPlaySample).containsDescendants(
+            "controllers/Application.class"
+        )
     }
 
     def "distribution sample is buildable" () {
