@@ -71,9 +71,9 @@ public class DefaultDaemonConnection implements DaemonConnection {
                             return;
                         }
 
-                        if (message instanceof IoCommand) {
+                        if (message instanceof InputMessage) {
                             LOGGER.debug("Received IO message from client: {}", message);
-                            stdinQueue.add((IoCommand) message);
+                            stdinQueue.add((InputMessage) message);
                         } else if (message instanceof Cancel) {
                             LOGGER.debug("Received cancel message from client: {}", message);
                             cancelQueue.add((Cancel) message);
@@ -253,13 +253,13 @@ public class DefaultDaemonConnection implements DaemonConnection {
         }
     }
 
-    private static class StdinQueue extends CommandQueue<IoCommand, StdinHandler> {
+    private static class StdinQueue extends CommandQueue<InputMessage, StdinHandler> {
 
         private StdinQueue(ExecutorFactory executorFactory) {
             super(executorFactory, "Stdin handler");
         }
 
-        protected boolean doHandleCommand(final StdinHandler handler, IoCommand command) {
+        protected boolean doHandleCommand(final StdinHandler handler, InputMessage command) {
             try {
                 if (command instanceof CloseInput) {
                     handler.onEndOfInput();

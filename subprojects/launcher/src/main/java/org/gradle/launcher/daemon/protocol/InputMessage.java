@@ -15,5 +15,5 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-abstract public class IoCommand extends Message {
+abstract public class InputMessage extends Message {
 }

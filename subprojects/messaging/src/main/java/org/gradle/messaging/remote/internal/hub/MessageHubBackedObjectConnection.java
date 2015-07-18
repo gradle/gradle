@@ -23,7 +23,7 @@ import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.Serializers;
 import org.gradle.internal.serialize.kryo.JavaSerializer;
-import org.gradle.internal.serialize.kryo.StatefulSerializer;
+import org.gradle.internal.serialize.StatefulSerializer;
 import org.gradle.internal.serialize.kryo.TypeSafeSerializer;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.ProxyDispatchAdapter;

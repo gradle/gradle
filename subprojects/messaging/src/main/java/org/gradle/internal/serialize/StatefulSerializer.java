@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.serialize.kryo;
-
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.ObjectReader;
-import org.gradle.internal.serialize.ObjectWriter;
+package org.gradle.internal.serialize;
 
 public interface StatefulSerializer<T> {
     /**

@@ -23,7 +23,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.io.TextStream;
 import org.gradle.launcher.daemon.protocol.CloseInput;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
-import org.gradle.launcher.daemon.protocol.IoCommand;
+import org.gradle.launcher.daemon.protocol.InputMessage;
 import org.gradle.messaging.dispatch.Dispatch;
 
 import java.io.InputStream;
@@ -39,12 +39,12 @@ public class DaemonClientInputForwarder implements Stoppable {
     public static final int DEFAULT_BUFFER_SIZE = 1024;
     private final InputForwarder forwarder;
 
-    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super IoCommand> dispatch,
+    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super InputMessage> dispatch,
                                       ExecutorFactory executorFactory) {
         this(inputStream, dispatch, executorFactory, DEFAULT_BUFFER_SIZE);
     }
 
-    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super IoCommand> dispatch,
+    public DaemonClientInputForwarder(InputStream inputStream, Dispatch<? super InputMessage> dispatch,
                                       ExecutorFactory executorFactory, int bufferSize) {
         TextStream handler = new ForwardTextStreamToConnection(dispatch);
         forwarder = new InputForwarder(inputStream, handler, executorFactory, bufferSize);
@@ -59,9 +59,9 @@ public class DaemonClientInputForwarder implements Stoppable {
     }
 
     private static class ForwardTextStreamToConnection implements TextStream {
-        private final Dispatch<? super IoCommand> dispatch;
+        private final Dispatch<? super InputMessage> dispatch;
 
-        public ForwardTextStreamToConnection(Dispatch<? super IoCommand> dispatch) {
+        public ForwardTextStreamToConnection(Dispatch<? super InputMessage> dispatch) {
             this.dispatch = dispatch;
         }
 

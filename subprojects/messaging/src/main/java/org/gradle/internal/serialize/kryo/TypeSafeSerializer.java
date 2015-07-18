@@ -16,10 +16,7 @@
 
 package org.gradle.internal.serialize.kryo;
 
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.ObjectReader;
-import org.gradle.internal.serialize.ObjectWriter;
+import org.gradle.internal.serialize.*;
 
 public class TypeSafeSerializer<T> implements StatefulSerializer<Object> {
     private final Class<T> type;

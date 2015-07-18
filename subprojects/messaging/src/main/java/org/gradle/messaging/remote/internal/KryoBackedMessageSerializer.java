@@ -22,7 +22,7 @@ import org.gradle.internal.serialize.ObjectReader;
 import org.gradle.internal.serialize.ObjectWriter;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-import org.gradle.internal.serialize.kryo.StatefulSerializer;
+import org.gradle.internal.serialize.StatefulSerializer;
 import org.gradle.messaging.remote.Address;
 
 import java.io.InputStream;

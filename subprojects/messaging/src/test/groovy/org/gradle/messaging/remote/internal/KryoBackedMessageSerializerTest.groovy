@@ -18,7 +18,7 @@ package org.gradle.messaging.remote.internal
 
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializers
-import org.gradle.internal.serialize.kryo.StatefulSerializer
+import org.gradle.internal.serialize.StatefulSerializer
 import spock.lang.Specification
 
 class KryoBackedMessageSerializerTest extends Specification {

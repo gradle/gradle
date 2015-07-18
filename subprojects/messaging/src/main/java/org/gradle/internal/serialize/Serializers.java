@@ -16,8 +16,6 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.internal.serialize.kryo.StatefulSerializer;
-
 public class Serializers {
     public static <T> StatefulSerializer<T> stateful(final Serializer<T> serializer) {
         return new StatefulSerializerAdapter<T>(serializer);

@@ -15,5 +15,5 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-public class CloseInput extends IoCommand {
+public class CloseInput extends InputMessage {
 }

@@ -20,7 +20,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ObjectReader;
 import org.gradle.internal.serialize.ObjectWriter;
-import org.gradle.internal.serialize.kryo.StatefulSerializer;
+import org.gradle.internal.serialize.StatefulSerializer;
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier;
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage;
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream;
