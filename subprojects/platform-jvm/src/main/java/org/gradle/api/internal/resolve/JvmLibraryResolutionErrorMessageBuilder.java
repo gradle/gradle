@@ -94,7 +94,7 @@ public class JvmLibraryResolutionErrorMessageBuilder implements LibraryResolutio
                             if (moreThanOneBinary) {
                                 return String.format("'%s' on %s", targetPlatform.getName(), input.getDisplayName());
                             }
-                            return String.format("'%s'", targetPlatform.getName(), input.getDisplayName());
+                            return String.format("'%s'", targetPlatform.getName());
                         }
                         return null;
                     }
