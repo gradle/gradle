@@ -150,16 +150,27 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result2.value instanceof PlaceholderException
     }
 
-    def "can serialize other messages"() {
+    def "can serialize CloseInput messages"() {
         expect:
         def message = new CloseInput()
-        def messageResult = serialize(message, serializer)
+        def messageResult = usesEfficientSerialization(message, serializer)
         messageResult instanceof CloseInput
+    }
 
-        def event = new LogLevelChangeEvent(LogLevel.LIFECYCLE)
-        def eventResult = serialize(event, serializer)
-        eventResult instanceof LogLevelChangeEvent
-        eventResult.newLogLevel == LogLevel.LIFECYCLE
+    def "can serialize ForwardInput messages"() {
+        expect:
+        def message = new ForwardInput("greetings".bytes)
+        def messageResult = usesEfficientSerialization(message, serializer)
+        messageResult instanceof ForwardInput
+        messageResult.bytes == message.bytes
+    }
+
+    def "can serialize other messages"() {
+        expect:
+        def message = new Cancel("id")
+        def messageResult = serialize(message, serializer)
+        messageResult instanceof Cancel
+        messageResult.identifier == "id"
     }
 
     @Override

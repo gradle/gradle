@@ -30,8 +30,13 @@ public class DaemonMessageSerializer {
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         DefaultSerializerRegistry<Object> registry = new DefaultSerializerRegistry<Object>();
+
         registry.register(BuildEvent.class, new BuildEventSerializer());
         registry.register(Failure.class, new FailureSerializer(throwableSerializer));
+
+        // Input events
+        registry.register(ForwardInput.class, new ForwardInputSerializer());
+        registry.register(CloseInput.class, new CloseInputSerializer());
 
         // Output events
         registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
@@ -43,7 +48,7 @@ public class DaemonMessageSerializer {
 
         // Default for everything else
         registry.useJavaSerialization(Message.class);
-        registry.useJavaSerialization(OutputEvent.class);
+
         return registry.build();
     }
 
@@ -242,6 +247,29 @@ public class DaemonMessageSerializer {
             LogLevel logLevel = logLevelSerializer.read(decoder);
             List<StyledTextOutputEvent.Span> spans = spanSerializer.read(decoder);
             return new StyledTextOutputEvent(timestamp, category, logLevel, spans);
+        }
+    }
+
+    private static class ForwardInputSerializer implements Serializer<ForwardInput> {
+        @Override
+        public void write(Encoder encoder, ForwardInput message) throws Exception {
+            encoder.writeBinary(message.getBytes());
+        }
+
+        @Override
+        public ForwardInput read(Decoder decoder) throws Exception {
+            return new ForwardInput(decoder.readBinary());
+        }
+    }
+
+    private static class CloseInputSerializer implements Serializer<CloseInput> {
+        @Override
+        public void write(Encoder encoder, CloseInput value) {
+        }
+
+        @Override
+        public CloseInput read(Decoder decoder) {
+            return new CloseInput();
         }
     }
 }
