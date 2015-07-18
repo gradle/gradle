@@ -16,13 +16,15 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 
-class DependencyHandlerApiResolveIntegrationTest extends DaemonIntegrationSpec {
+class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec {
     public static final String GRADLE_TEST_KIT_JAR_BASE_NAME = 'gradle-test-kit-'
 
     def setup() {
+        executer.requireGradleHome()
+
         buildFile << """
             apply plugin: 'java'
 
