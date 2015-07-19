@@ -158,9 +158,10 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     private List<String> getForkingOpts() {
         if (isRequireDaemon()) {
-            List<String> args = new ArrayList<String>(getGradleOpts());
+            List<String> args = new ArrayList<String>();
             // Don't use the default daemon JVM args, force to something sane
             args.add("-Dorg.gradle.jvmargs=-ea");
+            args.addAll(getGradleOpts());
             return args;
         } else {
             return getGradleOpts();

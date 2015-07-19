@@ -20,15 +20,8 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.server.health.DaemonStatus
-import org.gradle.test.fixtures.file.LeaksFileHandles
 
-@LeaksFileHandles
 class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
-
-    def setup() {
-        executer.withGradleOpts("-D${DaemonStatus.EXPIRE_AT_PROPERTY}=80")
-    }
-
     def "when build leaks more than available memory the daemon is expired eagerly"() {
         expect:
         daemonIsExpiredEagerly("-Xmx30m")
@@ -40,8 +33,7 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
     }
 
     private boolean daemonIsExpiredEagerly(String xmx) {
-        file("gradle.properties") << ("org.gradle.jvmargs=$xmx"
-                + " -Dorg.gradle.daemon.performance.logging=true")
+        executer.withGradleOpts("-D${DaemonStatus.EXPIRE_AT_PROPERTY}=80", "-Dorg.gradle.jvmargs=$xmx", "-Dorg.gradle.daemon.performance.logging=true")
 
         setupLeakyBuild()
         int newDaemons = 0
