@@ -34,7 +34,6 @@ import java.util.zip.ZipFile;
  */
 public class DefaultModuleRegistry implements ModuleRegistry {
     private final GradleDistributionLocator gradleDistributionLocator;
-    private final ClassLoader classLoader;
     private final Map<String, Module> modules = new HashMap<String, Module>();
     private final List<File> classpath = new ArrayList<File>();
     private final Map<String, File> classpathJars = new LinkedHashMap<String, File>();
@@ -52,7 +51,6 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     }
 
     private DefaultModuleRegistry(ClassLoader classLoader, ClassPath additionalModuleClassPath, GradleDistributionLocator gradleDistributionLocator) {
-        this.classLoader = classLoader;
         this.gradleDistributionLocator = gradleDistributionLocator;
 
         for (File classpathFile : new EffectiveClassPath(classLoader).plus(additionalModuleClassPath).getAsFiles()) {
