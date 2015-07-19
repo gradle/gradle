@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.internal.concurrent.Synchronizer;
 import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.gradle.messaging.remote.internal.Connection;
 import org.slf4j.Logger;
@@ -29,9 +28,9 @@ import org.slf4j.LoggerFactory;
  */
 public class SynchronizedDispatchConnection<T> implements Connection<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SynchronizedDispatchConnection.class);
-    
-    private final Synchronizer sync = new Synchronizer();
+    private final Object lock = new Object();
     private final Connection<T> delegate;
+    private boolean dispatching;
 
     public SynchronizedDispatchConnection(Connection<T> delegate) {
         this.delegate = delegate;
@@ -43,14 +42,21 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
     }
 
     public void dispatch(final T message) {
-        if (!(message instanceof OutputMessage)) {
-            LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
-        }
-        sync.synchronize(new Runnable() {
-            public void run() {
-                delegate.dispatch(message);
+        synchronized (lock) {
+            if (dispatching) {
+                // Safety check: dispatching a message should not cause the thread to dispatch another message (eg should not do any logging)
+                throw new IllegalStateException("This thread is already dispatching a message.");
             }
-        });
+            dispatching = true;
+            try {
+                if (!(message instanceof OutputMessage)) {
+                    LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
+                }
+                delegate.dispatch(message);
+            } finally {
+                dispatching = false;
+            }
+        }
     }
 
     public T receive() {
