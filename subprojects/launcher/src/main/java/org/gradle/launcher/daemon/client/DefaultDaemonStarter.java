@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -43,6 +44,7 @@ import org.gradle.util.GradleVersion;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultDaemonStarter implements DaemonStarter {
@@ -65,15 +67,23 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
     public DaemonStartupInfo startDaemon() {
         ModuleRegistry registry = new DefaultModuleRegistry();
-        ClassPath classpath = new DefaultClassPath();
-        for (Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
-            classpath = classpath.plus(module.getClasspath());
+        ClassPath classpath;
+        List<File> searchClassPath;
+        if (new DefaultGradleDistributionLocator().getGradleHome() != null) {
+            // When running from a Gradle distro, only need launcher jar. The daemon can find everything from there.
+            classpath = registry.getModule("gradle-launcher").getImplementationClasspath();
+            searchClassPath = Collections.emptyList();
+        } else {
+            // When not running from a Gradle distro, need runtime impl for launcher plus the search path to look for other modules
+            classpath = new DefaultClassPath();
+            for (Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
+                classpath = classpath.plus(module.getClasspath());
+            }
+            searchClassPath = registry.getAdditionalClassPath().getAsFiles();
         }
         if (classpath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }
-        // Required when not running from a Gradle distribution (eg from IDEA or the Gradle build)
-        List<File> additionalClassPath = registry.getAdditionalClassPath().getAsFiles();
 
         versionValidator.validate(daemonParameters);
 
@@ -107,8 +117,8 @@ public class DefaultDaemonStarter implements DaemonStarter {
             for (String daemonOpt : daemonOpts) {
                 encoder.writeString(daemonOpt);
             }
-            encoder.writeSmallInt(additionalClassPath.size());
-            for (File file : additionalClassPath) {
+            encoder.writeSmallInt(searchClassPath.size());
+            for (File file : searchClassPath) {
                 encoder.writeString(file.getAbsolutePath());
             }
             encoder.flush();
