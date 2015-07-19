@@ -29,7 +29,7 @@ integTestTasks.all {
     if (isCiServer) {
         maxParallelForks = Math.min(2, rootProject.maxParallelForks)
     }
-    forkEvery = 1
+    forkEvery = 2
 }
 
 daemonIntegTest {
