@@ -144,7 +144,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
                 builder.workingDir(getWorkingDir());
                 Collection<File> classpath = GLOBAL_SERVICES.get(ModuleRegistry.class).getAdditionalClassPath().getAsFiles();
                 builder.classpath(classpath);
-                builder.jvmArgs(getGradleOpts());
+                builder.jvmArgs(getForkingOpts());
                 builder.setMain(Main.class.getName());
                 builder.args(getAllArgs());
                 builder.setStandardInput(getStdin());
@@ -154,6 +154,17 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
                 return builder;
             }
         }).start();
+    }
+
+    private List<String> getForkingOpts() {
+        if (isRequireDaemon()) {
+            List<String> args = new ArrayList<String>(getGradleOpts());
+            // Don't use the default daemon JVM args, force to something sane
+            args.add("-Dorg.gradle.jvmargs=-ea");
+            return args;
+        } else {
+            return getGradleOpts();
+        }
     }
 
     private BuildResult doRun(StandardOutputListener outputListener, StandardOutputListener errorListener, BuildListenerImpl listener) {
