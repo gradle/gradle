@@ -17,13 +17,15 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.internal.concurrent.Synchronizer;
-import org.gradle.logging.internal.OutputEvent;
+import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.gradle.messaging.remote.internal.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Connection decorator that synchronizes dispatching.
+ *
+ * The plan is to replace this with a Connection implementation that queues outgoing messages and dispatches them from a worker thread.
  */
 public class SynchronizedDispatchConnection<T> implements Connection<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SynchronizedDispatchConnection.class);
@@ -41,7 +43,7 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
     }
 
     public void dispatch(final T message) {
-        if (!(message instanceof OutputEvent)) {
+        if (!(message instanceof OutputMessage)) {
             LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
         }
         sync.synchronize(new Runnable() {
