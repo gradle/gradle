@@ -113,7 +113,6 @@ project.logger.debug("debug logging");
     private ExecutionResult runUsingCommandLine() {
         targetDist.executer(temporaryFolder)
             .withArgument("--no-daemon") //suppress daemon usage suggestions
-            .withGradleOpts("-Dorg.gradle.daemon.disable-starting-message=true")
             .run()
     }
 
