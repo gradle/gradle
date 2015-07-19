@@ -16,6 +16,7 @@
 
 package org.gradle.model
 
+import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 
@@ -668,5 +669,39 @@ foo configured
 
         then:
         ":." in executedTasks
+    }
+
+    def "proxy classes are never used as task instance nodes types"(){
+        given:
+        buildFile << """
+tasks.create(name: 'taskContainerTask', type: DefaultTask) { }
+
+task standardTask << {}
+
+model {
+  tasks {
+    newModelTask(Task) {}
+  }
+}
+
+class MyPlugin extends RuleSource {
+    @Mutate
+    void addTasks(ModelMap<Task> tasks) {
+        tasks.create('modelMapTask') {}
+    }
+}
+apply type: MyPlugin
+"""
+
+        when:
+        succeeds("model")
+
+        then:
+        def tasksNode = ModelReportOutput.from(output).modelNode.tasks
+        tasksNode.taskContainerTask.@type[0] == 'org.gradle.api.DefaultTask'
+        tasksNode.standardTask.@type[0] == 'org.gradle.api.DefaultTask'
+        tasksNode.newModelTask.@type[0] == 'org.gradle.api.Task'
+        tasksNode.modelMapTask.@type[0] == 'org.gradle.api.Task'
+        tasksNode.model.@type[0] == 'org.gradle.api.reporting.model.ModelReport' //Placeholder task
     }
 }
