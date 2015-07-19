@@ -97,10 +97,9 @@ public class DefaultGradleLauncher extends GradleLauncher {
         return buildOperationExecutor.run("Run build", new Factory<BuildResult>() {
             @Override
             public BuildResult create() {
-                buildListener.buildStarted(gradle);
-
                 Throwable failure = null;
                 try {
+                    buildListener.buildStarted(gradle);
                     doBuildStages(upTo);
                 } catch (Throwable t) {
                     failure = exceptionAnalyser.transform(t);
