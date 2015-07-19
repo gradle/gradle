@@ -35,15 +35,15 @@ class StandardStreamsCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.3")
     def "logging is not sent to System.out or System.err"() {
         file("build.gradle") << """
-project.logger.error("error logging");
-project.logger.warn("warn logging");
-project.logger.lifecycle("lifecycle logging");
-project.logger.quiet("quiet logging");
-project.logger.info ("info logging");
-project.logger.debug("debug logging");
+project.logger.error("error log message");
+project.logger.warn("warn log message");
+project.logger.lifecycle("lifecycle log message");
+project.logger.quiet("quiet log message");
+project.logger.info ("info log message");
+project.logger.debug("debug log message");
 
 task log << {
-    println "task logging"
+    println "task log message"
 }
 """
 
@@ -55,8 +55,8 @@ task log << {
         }
 
         then:
-        !stdOutAndErr.stdOut.contains("logging")
-        !stdOutAndErr.stdErr.contains("logging")
+        !stdOutAndErr.stdOut.contains("log message")
+        !stdOutAndErr.stdErr.contains("log message")
     }
 
     @TargetGradleVersion(">=2.3")
