@@ -21,8 +21,6 @@ useTestFixtures(sourceSet: 'integTest', project: ':platformNative')
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':docs:userguideDocbook')
 
-    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m'
-
     doFirst {
         systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
         systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
