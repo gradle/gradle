@@ -27,9 +27,10 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.AutoCleanup
+import spock.lang.Ignore
 import spock.lang.Shared
 
-@Requires(TestPrecondition.JDK7_OR_EARLIER)
+@Requires(TestPrecondition.JDK7_OR_EARLIER) @Ignore
 class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
     @Shared
     AvailablePortFinder portFinder = AvailablePortFinder.createPrivate()
