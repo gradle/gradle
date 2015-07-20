@@ -330,7 +330,7 @@ model {
         <para>
             The built-in <apilink class="org.gradle.api.reporting.model.ModelReport"/> task displays a hierarchical view of the elements in the model space.
             Each item prefixed with a `+`, excluding the topmost `+ model`, on the model report is a model element and the visual nesting of these elements correlates to the model
-            path e.g. `tasks.help` The model report displays the following details about each model element:
+            path (e.g. `tasks.help`). The model report displays the following details about each model element:
         </para>
 
         <table>
