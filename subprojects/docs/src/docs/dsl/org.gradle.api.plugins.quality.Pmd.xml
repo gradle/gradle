@@ -44,6 +44,10 @@
                 <td>reports</td>
                 <td></td>
             </tr>
+            <tr>
+                <td>classpath</td>
+                <td><literal>project.pmd.classpath</literal></td>
+            </tr>
         </table>
     </section>
     <section>
