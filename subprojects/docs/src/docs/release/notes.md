@@ -18,8 +18,8 @@ to model, build, test, run and package Play applications.  It includes support f
 * Compiling Scala and Java controllers, tests, and model classes
 * Processing routes files
 * Processing Twirl templates
-* Compiling coffeescript assets
-* Minifying javascript assets
+* Compiling CoffeeScript assets
+* Minifying JavaScript assets
 * Running tests with JUnitRunner
 * Running applications in development mode
 * Staging and creating Play distribution packages
