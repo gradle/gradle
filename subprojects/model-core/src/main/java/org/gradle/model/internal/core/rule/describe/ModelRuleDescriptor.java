@@ -16,6 +16,10 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
+/**
+ * Describes a method rule.
+ * All implementations of this class are expected to implement the equals and hashCode method
+ */
 public interface ModelRuleDescriptor {
 
     // TODO - expand to include the concept of identity and description

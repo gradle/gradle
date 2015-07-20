@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
+import com.google.common.base.Objects;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
@@ -71,15 +72,13 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         MethodModelRuleDescriptor that = (MethodModelRuleDescriptor) o;
-
-        return method.equals(that.method);
+        return Objects.equal(method, that.method);
     }
 
     @Override
     public int hashCode() {
-        return method.hashCode();
+        return Objects.hashCode(method);
     }
 
     public static ModelRuleDescriptor of(Class<?> clazz, final String methodName) {

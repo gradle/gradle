@@ -20,9 +20,10 @@ import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import spock.lang.Specification
 
-class ModelReportRulesFilterTest extends Specification {
 
-    def "should remove duplicates and exclude creators"() {
+class ModelNodeRendererTest extends Specification {
+
+    def "should filter rules removeing duplicates and excluding creators"() {
         ModelRuleDescriptor creator = Mock()
         creator.describeTo(_) >> { Appendable a ->
             a.append("creator")
@@ -38,6 +39,6 @@ class ModelReportRulesFilterTest extends Specification {
         modelNode.getExecutedRules() >> [creator, mutator, creator, mutator]
 
         expect:
-        ModelReportRulesFilter.uniqueExecutedRulesExcludingCreator(modelNode) == [mutator]
+        ModelNodeRenderer.uniqueExecutedRulesExcludingCreator(modelNode).asList() == [mutator]
     }
 }

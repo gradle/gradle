@@ -27,5 +27,4 @@ public abstract class AbstractModelRuleDescriptor implements ModelRuleDescriptor
         describeTo(sb);
         return sb.toString();
     }
-
 }
