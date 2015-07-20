@@ -36,7 +36,13 @@ public class ClassInspector {
         Set<Class<?>> seen = new HashSet<Class<?>>();
         List<Class<?>> queue = new ArrayList<Class<?>>();
         queue.add(type);
-        //Visit all super  classes before interfaces
+
+        // We visit all super classes before visiting interfaces so ensure that when inspectClass() adds a getter/setter to a PropertyDetails,
+        // the method instance it adds is the 'nearest' one to the class being inspected.
+        // The precedence is as follows:
+        // 1. method instances declared in the class itself
+        // 2. method instances in the closest ancestor (super type),
+        // 3. method instances in interfaces.
         Collections.addAll(queue, superClasses(type));
         while (!queue.isEmpty()) {
             Class<?> current = queue.remove(0);

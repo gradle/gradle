@@ -22,7 +22,23 @@ import java.util.List;
 public interface PropertyDetails {
     String getName();
 
+    /**
+     * Contains a list of {@ref Method} instances which are the getters for a particular property.
+     * This list will only ever contain more than one element when it's class (or class hierarchy) has multiple getter methods with the same name but
+     * different return types, e.g.
+     *  boolean getSomeProperty();
+     *  Boolean getSomeProperty();
+     *  String getSomeProperty();
+     */
     List<Method> getGetters();
 
+    /**
+     * Contains a list of {@ref Method} instances which are the getters for a particular property.
+     * This list will only ever contain more than one element when it's class (or class hierarchy) has multiple setter methods with the same name taking different
+     * argument types, e.g.
+     *  void setProp(String value);
+     *  void setProp(int value);
+     *  void setProp(Object value);
+     */
     List<Method> getSetters();
 }

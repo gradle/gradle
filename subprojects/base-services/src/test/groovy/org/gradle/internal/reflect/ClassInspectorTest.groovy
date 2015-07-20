@@ -384,7 +384,7 @@ class ClassInspectorTest extends Specification {
     }
 
     @Issue("GRADLE-3317")
-    def "should find the correct method declaration"() {
+    def "should find the nearest method instance of the getInputs() getter"() {
         expect:
         def details = ClassInspector.inspect(clazz)
         def getters = details.getProperty('inputs').getGetters()
