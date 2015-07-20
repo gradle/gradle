@@ -16,9 +16,10 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.daemon.DaemonFixture
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.internal.id.UUIDGenerator
-import org.gradle.testkit.runner.daemon.GradleDaemon
-import org.gradle.testkit.runner.daemon.GradleDaemonAnalyzer
+import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.GFileUtils
 import org.junit.Rule
@@ -102,10 +103,12 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
     }
 
     def "daemon process dedicated to test execution is reused if one already exists"() {
+        final Integer expectedDaemonIdleTimeout = 120000
+
         given:
         File customGradleUserHomeDir = new File(testUserHomeDir.root, new UUIDGenerator().generateId().toString())
-        GradleDaemonAnalyzer gradleDaemonAnalyzer = new GradleDaemonAnalyzer(new File(customGradleUserHomeDir, 'daemon'), buildContext.version.version)
-        gradleDaemonAnalyzer.daemons.empty
+        DaemonLogsAnalyzer daemonLogsAnalyzer = new DaemonLogsAnalyzer(new File(customGradleUserHomeDir, 'daemon'), buildContext.version.version)
+        daemonLogsAnalyzer.visible.empty
         buildFile << helloWorldTask()
 
         when:
@@ -115,19 +118,23 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
 
         then:
         noExceptionThrown()
-        List<GradleDaemon> initialDaemons = gradleDaemonAnalyzer.daemons
+        List<DaemonFixture> initialDaemons = daemonLogsAnalyzer.visible
         initialDaemons.size() == 1
-        String daemonPidInUse = initialDaemons[0].pid
+        DaemonContext initialDaemonContext = initialDaemons[0].context
+        Long daemonPidInUse = initialDaemonContext.pid
         daemonPidInUse
+        initialDaemonContext.idleTimeout == expectedDaemonIdleTimeout
 
         when:
         gradleRunner.build()
 
         then:
         noExceptionThrown()
-        List<GradleDaemon> laterDaemons = gradleDaemonAnalyzer.daemons
+        List<DaemonFixture> laterDaemons = daemonLogsAnalyzer.visible
         laterDaemons.size() == 1
-        daemonPidInUse == laterDaemons[0].pid
+        DaemonContext laterDaemonContext = laterDaemons[0].context
+        daemonPidInUse == laterDaemonContext.pid
+        laterDaemonContext.idleTimeout == expectedDaemonIdleTimeout
     }
 
     private File writeGradlePropertiesFile(File gradleUserHomeDir, String content) {

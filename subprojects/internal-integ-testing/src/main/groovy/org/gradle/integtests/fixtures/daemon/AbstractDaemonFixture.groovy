@@ -39,6 +39,10 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
         }
     }
 
+    DaemonContext getContext() {
+        context
+    }
+
     void becomesIdle() {
         waitForState(State.idle)
     }
