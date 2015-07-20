@@ -50,18 +50,18 @@ public class DefaultBuildResult implements BuildResult {
     }
 
     public List<BuildTask> tasks(final TaskResult result) {
-        return CollectionUtils.filter(getTasks(), new Spec<BuildTask>() {
+        return Collections.unmodifiableList(CollectionUtils.filter(tasks, new Spec<BuildTask>() {
             public boolean isSatisfiedBy(BuildTask element) {
                 return element.getResult() == result;
             }
-        });
+        }));
     }
 
     public List<String> taskPaths(TaskResult result) {
-        return CollectionUtils.collect(tasks(result), new Transformer<String, BuildTask>() {
+        return Collections.unmodifiableList(CollectionUtils.collect(tasks(result), new Transformer<String, BuildTask>() {
             public String transform(BuildTask buildTask) {
                 return buildTask.getPath();
             }
-        });
+        }));
     }
 }
