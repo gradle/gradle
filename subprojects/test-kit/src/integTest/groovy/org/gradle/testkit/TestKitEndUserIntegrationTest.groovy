@@ -32,6 +32,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireGradleHome()
+        executer.withStackTraceChecksDisabled()
         functionalTestClassDir = testDirectoryProvider.createDir(TEST_CLASS_PATH)
         buildFile << buildFileForGroovyProject()
     }
@@ -52,22 +53,13 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def "use of GradleRunner API in test class by depending on external test-kit dependency causes compilation error"() {
         File gradleDistPluginsDir = new File(distribution.gradleHomeDir, 'lib/plugins')
-        File[] gradleTestKitLibs = gradleDistPluginsDir.listFiles(new FilenameFilter() {
-            boolean accept(File dir, String name) {
-                name.startsWith('gradle-test-kit')
-            }
-        })
+        File[] gradleTestKitLibs = gradleDistPluginsDir.listFiles(new GradleTestKitJarFilenameFilter())
         assert gradleTestKitLibs.length == 1
         File gradleTestKitLib = gradleTestKitLibs[0]
         TestFile libDir = testDirectoryProvider.createDir('lib')
-        GFileUtils.copyFile(gradleTestKitLib, new File(libDir, 'fake-gradle-test-kit.jar'))
+        GFileUtils.copyFile(gradleTestKitLib, new File(libDir, gradleTestKitLib.name))
 
-        buildFile << """
-            dependencies {
-                testCompile files('lib/fake-gradle-test-kit.jar')
-            }
-        """
-
+        buildFile << libDirDependency()
         GFileUtils.writeFile(buildLogicFunctionalTestCreatingGradleRunner(), new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
 
         when:
@@ -77,6 +69,32 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         result.executedTasks.contains(':compileTestGroovy')
         !result.skippedTasks.contains(':compileTestGroovy')
         failure.error.contains("Unable to load class $GradleRunner.name due to missing dependency ${GradleDistributionLocator.name.replaceAll('\\.', '/')}")
+    }
+
+    def "creating GradleRunner instance by depending on Gradle libraries outside of Gradle distribution throws exception"() {
+        File gradleDistLibDir = new File(distribution.gradleHomeDir, 'lib')
+        File gradleDistPluginsDir = new File(gradleDistLibDir, 'plugins')
+        File[] gradleCoreLibs = gradleDistLibDir.listFiles(new GradleCoreJarFilenameFilter())
+        File[] gradleTestKitLibs = gradleDistPluginsDir.listFiles(new GradleTestKitJarFilenameFilter())
+        assert gradleCoreLibs.length == 3
+        assert gradleTestKitLibs.length == 1
+        File[] allGradleLibs = gradleCoreLibs + gradleTestKitLibs
+        TestFile libDir = testDirectoryProvider.createDir('lib')
+
+        allGradleLibs.each {
+            GFileUtils.copyFile(it, new File(libDir, it.name))
+        }
+
+        buildFile << libDirDependency()
+        GFileUtils.writeFile(buildLogicFunctionalTestCreatingGradleRunner(), new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
+
+        when:
+        ExecutionFailure failure = fails('build')
+
+        then:
+        result.executedTasks.contains(':test')
+        !result.skippedTasks.contains(':test')
+        failure.output.contains('java.lang.IllegalStateException: Could not create a GradleRunner, as the GradleRunner class was not loaded from a Gradle distribution')
     }
 
     def "successfully execute functional test and verify expected result"() {
@@ -171,12 +189,13 @@ class BuildLogicFunctionalTest extends Specification {
 """, new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
 
         when:
-        fails('build')
+        ExecutionFailure failure = fails('build')
 
         then:
         result.executedTasks.contains(':test')
         !result.executedTasks.contains(':build')
         !result.skippedTasks.contains(':test')
+        failure.output.contains('Unrecognized option: -unknown')
     }
 
     private String buildFileForGroovyProject() {
@@ -191,6 +210,8 @@ class BuildLogicFunctionalTest extends Specification {
             repositories {
                 mavenCentral()
             }
+
+            test.testLogging.exceptionFormat = 'full'
         """
     }
 
@@ -198,6 +219,14 @@ class BuildLogicFunctionalTest extends Specification {
         """
             dependencies {
                 testCompile gradleTestKit()
+            }
+        """
+    }
+
+    private String libDirDependency() {
+        """
+            dependencies {
+                testCompile fileTree(dir: 'lib', include: '*.jar')
             }
         """
     }
@@ -215,5 +244,17 @@ class BuildLogicFunctionalTest extends Specification {
     }
 }
 """
+    }
+
+    private class GradleTestKitJarFilenameFilter implements FilenameFilter {
+        boolean accept(File dir, String name) {
+            name.startsWith('gradle-test-kit')
+        }
+    }
+
+    private class GradleCoreJarFilenameFilter implements FilenameFilter {
+        boolean accept(File dir, String name) {
+            name.startsWith('gradle-core') || name.startsWith('gradle-base-services')
+        }
     }
 }
