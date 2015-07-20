@@ -53,12 +53,11 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         """
 
         when:
-        DefaultGradleRunner gradleRunner = (DefaultGradleRunner)runner('verifyProjectProperties')
+        DefaultGradleRunner gradleRunner = runner('verifyProjectProperties')
         gradleRunner.withJvmArguments("-Duser.home=$testUserHomeDir.root.canonicalPath")
         BuildResult result = gradleRunner.build()
 
         then:
-        noExceptionThrown()
         result.tasks.collect { it.path } == [':verifyProjectProperties']
         result.taskPaths(SUCCESS) == [':verifyProjectProperties']
         result.taskPaths(SKIPPED).empty
@@ -86,11 +85,10 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         """
 
         when:
-        DefaultGradleRunner gradleRunner = runner('verifyProjectProperties')
+        GradleRunner gradleRunner = runner('verifyProjectProperties')
         BuildResult result = gradleRunner.build()
 
         then:
-        noExceptionThrown()
         result.tasks.collect { it.path } == [':verifyProjectProperties']
         result.taskPaths(SUCCESS) == [':verifyProjectProperties']
         result.taskPaths(SKIPPED).empty
@@ -102,39 +100,63 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         GFileUtils.forceDelete(initScriptFile)
     }
 
-    def "daemon process dedicated to test execution is reused if one already exists"() {
-        final Integer expectedDaemonIdleTimeout = 120000
-
+    def "daemon process dedicated to test execution uses short idle timeout"() {
         given:
-        File customGradleUserHomeDir = new File(testUserHomeDir.root, new UUIDGenerator().generateId().toString())
-        DaemonLogsAnalyzer daemonLogsAnalyzer = new DaemonLogsAnalyzer(new File(customGradleUserHomeDir, 'daemon'), buildContext.version.version)
-        daemonLogsAnalyzer.visible.empty
+        File customGradleUserHomeDir = createCustomGradleUserHomeDir()
+        DaemonLogsAnalyzer daemonLogsAnalyzer = createDaemonLogsAnalyzer(customGradleUserHomeDir)
         buildFile << helloWorldTask()
 
         when:
-        DefaultGradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withGradleUserHomeDir(customGradleUserHomeDir)
+        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(customGradleUserHomeDir, 'helloWorld')
         gradleRunner.build()
 
         then:
-        noExceptionThrown()
+        List<DaemonFixture> daemons = daemonLogsAnalyzer.visible
+        daemons.size() == 1
+        daemons[0].context.idleTimeout == 120000
+    }
+
+    def "daemon process dedicated to test execution is reused if one already exists"() {
+        given:
+        File customGradleUserHomeDir = createCustomGradleUserHomeDir()
+        DaemonLogsAnalyzer daemonLogsAnalyzer = createDaemonLogsAnalyzer(customGradleUserHomeDir)
+        buildFile << helloWorldTask()
+
+        when:
+        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(customGradleUserHomeDir, 'helloWorld')
+        gradleRunner.build()
+
+        then:
         List<DaemonFixture> initialDaemons = daemonLogsAnalyzer.visible
         initialDaemons.size() == 1
         DaemonContext initialDaemonContext = initialDaemons[0].context
         Long daemonPidInUse = initialDaemonContext.pid
         daemonPidInUse
-        initialDaemonContext.idleTimeout == expectedDaemonIdleTimeout
 
         when:
         gradleRunner.build()
 
         then:
-        noExceptionThrown()
         List<DaemonFixture> laterDaemons = daemonLogsAnalyzer.visible
         laterDaemons.size() == 1
         DaemonContext laterDaemonContext = laterDaemons[0].context
         daemonPidInUse == laterDaemonContext.pid
-        laterDaemonContext.idleTimeout == expectedDaemonIdleTimeout
+    }
+
+    private File createCustomGradleUserHomeDir() {
+        new File(testUserHomeDir.root, new UUIDGenerator().generateId().toString())
+    }
+
+    private DaemonLogsAnalyzer createDaemonLogsAnalyzer(File customGradleUserHomeDir)  {
+        DaemonLogsAnalyzer daemonLogsAnalyzer = new DaemonLogsAnalyzer(new File(customGradleUserHomeDir, 'daemon'), buildContext.version.version)
+        assert daemonLogsAnalyzer.visible.empty
+        daemonLogsAnalyzer
+    }
+
+    private GradleRunner runnerWithCustomGradleUserHomeDir(File customGradleUserHomeDir, String... arguments) {
+        DefaultGradleRunner gradleRunner = runner(arguments)
+        gradleRunner.withGradleUserHomeDir(customGradleUserHomeDir)
+        gradleRunner
     }
 
     private File writeGradlePropertiesFile(File gradleUserHomeDir, String content) {
