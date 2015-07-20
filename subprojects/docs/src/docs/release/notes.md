@@ -55,23 +55,39 @@ The functionality provided by this and other similar projects will over time be 
 
 See the [new Gradle TestKit user guide chapter](userguide/test_kit.html) for more information.
 
-### Rule based model configuration (i)
+### Rule based model configuration reporting improvements (i)
 
-Gradle 2.5 brings significant enhancements to the visualization of Rule based model configuration. The additional detail included in the model report, along
-with improvements to build errors, provides deep insight into what the model space looks like.
+Gradle 2.5 brings significant usability enhancements to the new [Rule based model configuration mechanism](userguide/new_model.html),
+through better reporting.
 
-The information included on the model report such as: what created a rule, where a rule was created, which rules apply to an element, the order in which rules are applied and the value of a particular
-model element are instrumental in understanding the state and relationships of the model space.
+The [in-built “Model report”](userguide/new_model.html#N18025) now exposes much more information about the build model, including:
 
-The improvements to the error report generated, when a rule's inputs and/or subjects fail to bind, make it easier for build authors to pinpoint the root cause of build configuration errors. These improvements
-present the build author with vital debugging information such as:
-    * Which inputs or subjects could not be bound.
-    * Where, in the build script, the missing rule dependency was identified.
-    * The model path to the model element with the failure.
-    * Which method parameter, on a method rule, could not be bound.
-    * Suggestions as to which inputs/subjects could be used to successfully bind.
+* The Java type of each model element
+* A string representation of the value of each model element
+* Which rule created each model element
+* Which rules were involved in configuring a model element and the order in which they were applied
 
-See the [Rule based model configuration user guide chapter](userguide/new_model.html) for more information.
+The model report makes it much easier to see the effective configuration of the build, and comprehension of how it came to be.
+Future improvements to the model report will include:
+
+* Improved names/identifiers for rules
+* Visualisation of dependencies between elements
+* Alternative formats that provide more control over level of detail
+* Greater coverage of the total build model
+
+In addition to the model report improvements, rule “binding failure” error messages have also been improved.
+A binding failure occurs when the declared subject or any of the inputs for a given rule cannot be found when the rule is required.
+Such a failure is fatal to the build.
+
+The new format presents vital debugging information such as:
+
+* Which inputs or subjects could not be bound.
+* Where, in the build script, the missing rule dependency was identified.
+* The model path to the model element with the failure.
+* Which method parameter, on a method rule, could not be bound.
+* Suggestions as to which inputs/subjects could be used to successfully bind.
+
+TODO: example output, or link to section in user guide with example output
 
 ## Promoted features
 
