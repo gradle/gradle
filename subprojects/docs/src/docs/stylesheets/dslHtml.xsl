@@ -74,7 +74,8 @@
                 <div class="sidebar">
                     <ul>
                         <xsl:apply-templates select="." mode="sidebar"/>
-                        <xsl:apply-templates select="/book/section/table[@role = 'dslTypes']" mode="sidebar"/>
+                        <!-- only apply navbar to sections that are not marked with 'noNavBar' -->
+                        <xsl:apply-templates select="/book/section[not(@condition) or @condition != 'noNavBar']/table[@role = 'dslTypes']" mode="sidebar"/>
                     </ul>
                 </div>
                 <div class="content">

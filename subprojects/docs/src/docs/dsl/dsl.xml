@@ -79,6 +79,8 @@
       -
       - 2. Adding new sections:
       - The section title should end with 'types' (see AssembleDslDocTask.mergeContent)
+      -
+      - Add attribute condition='noNavBar' to the section element if the section should not appear in the nav bar.
       -->
 
     <section>
@@ -649,7 +651,7 @@
         </table>
     </section>
 
-    <section>
+    <section condition="noNavBar">
         <title>Play Framework model types</title>
         <para>Used to configure software components developed with the Play Framework.</para>
         <table>
@@ -675,7 +677,7 @@
         </table>
     </section>
 
-    <section>
+    <section condition="noNavBar">
         <title>Play Framework task types</title>
         <para>Tasks used to build applications using the Play Framework.</para>
         <table>
