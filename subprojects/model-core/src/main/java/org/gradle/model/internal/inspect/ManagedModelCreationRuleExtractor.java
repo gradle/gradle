@@ -71,7 +71,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         }
 
         if (!modelSchema.getKind().isManaged()) {
-            String description = String.format("a void returning model element creation rule has to take an instance of a managed type as the first argument");
+            String description = "a void returning model element creation rule has to take an instance of a managed type as the first argument";
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), description);
         }
 
@@ -79,7 +79,14 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        return ManagedModelCreators.creator(descriptor, modelPath, modelSchema, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker()));
+        final ModelReference<T> reference = ModelReference.of(modelPath, managedType);
+        return ModelCreators.of(modelPath, modelSchema.getNodeInitializer())
+            .descriptor(descriptor)
+            .action(ModelActionRole.Initialize, InputUsingModelAction.of(
+                    reference, descriptor, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker())
+                )
+            )
+            .build();
     }
 
     private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?, ?> ruleDefinition) {

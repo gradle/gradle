@@ -17,16 +17,14 @@
 package org.gradle.model.internal.manage.projection
 
 import org.gradle.api.internal.ClosureBackedAction
-import org.gradle.internal.BiAction
 import org.gradle.model.Managed
 import org.gradle.model.ModelSet
 import org.gradle.model.ModelViewClosedException
+import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.inspect.ManagedModelCreators
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
@@ -52,12 +50,9 @@ class ModelSetModelProjectionTest extends Specification {
 
     def setup() {
         registry.create(
-                ManagedModelCreators.creator(
-                        new SimpleModelRuleDescriptor("define collection"),
-                        collectionPath,
-                        schemaStore.getSchema(collectionType),
-                        [],
-                        { value, inputs -> } as BiAction)
+            ModelCreators.of(collectionPath, schemaStore.getSchema(collectionType).nodeInitializer)
+                .descriptor("define collection")
+                .build()
         )
     }
 

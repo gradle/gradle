@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.api.Named;
 import org.gradle.internal.BiActions;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -51,6 +52,17 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
         for (ModelProperty<?> property : modelSchema.getProperties().values()) {
             addPropertyLink(modelNode, property);
         }
+        if (Named.class.isAssignableFrom(modelSchema.getType().getRawClass())) {
+            // Only initialize "name" child node if the schema has such a node. This is not the case
+            // for a managed subtype of an unmanaged type that implements Named.
+            if (modelSchema.getProperties().containsKey("name")) {
+                MutableModelNode nameLink = modelNode.getLink("name");
+                if (nameLink == null) {
+                    throw new IllegalStateException("expected name node for " + modelNode.getPath());
+                }
+                nameLink.setPrivateData(ModelType.of(String.class), modelNode.getPath().getName());
+            }
+        }
     }
 
     @Override
@@ -65,7 +77,9 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
         final ModelRuleDescriptor descriptor = modelNode.getDescriptor();
         if (propertySchema.getKind().isManaged()) {
             if (!property.isWritable()) {
-                ModelCreator creator = ManagedModelCreators.creator(descriptor, modelNode.getPath().child(property.getName()), propertySchema);
+                ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), propertySchema.getNodeInitializer())
+                    .descriptor(descriptor)
+                    .build();
                 modelNode.addLink(creator);
             } else {
                 ModelStructSchema<P> structSchema = (ModelStructSchema<P>) propertySchema;

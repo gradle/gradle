@@ -24,13 +24,9 @@ import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.internal.core.ModelActionRole;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.NoInputsModelAction;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.inspect.ManagedModelCreators;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -80,7 +76,12 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
             throw new InvalidModelRuleDeclarationException(descriptor, "Cannot create an element of type " + type.getName() + " as it is not a managed type");
         }
 
-        modelRegistry.create(ManagedModelCreators.creator(descriptor, modelPath, schema, new ClosureBackedAction<T>(closure)));
+        modelRegistry.create(
+            ModelCreators.of(modelPath, schema.getNodeInitializer())
+                .descriptor(descriptor)
+                .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(modelPath, type), descriptor, new ClosureBackedAction<T>(closure)))
+                .build()
+        );
     }
 
     public void configure(Closure<?> action) {

@@ -30,7 +30,6 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
-import org.gradle.model.internal.inspect.ManagedModelCreators;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -128,7 +127,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
                 ModelPath path = parentNode.getPath().child(name);
                 ModelSchema<S> schema = schemaStore.getSchema(type);
                 if (schema.getKind().isManaged()) {
-                    return ManagedModelCreators.creator(sourceDescriptor, path, schema);
+                    return ModelCreators.of(path, schema.getNodeInitializer()).descriptor(sourceDescriptor).build();
                 } else {
                     return creatorUsingFactory(sourceDescriptor, path, type, name, factoryReference);
                 }

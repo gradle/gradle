@@ -32,7 +32,6 @@ import org.gradle.model.dsl.internal.transform.RulesBlock;
 import org.gradle.model.dsl.internal.transform.SourceLocation;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.inspect.ManagedModelCreators;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -84,8 +83,7 @@ public class TransformedModelDslBacking {
         if (!schema.getKind().isManaged()) {
             throw new InvalidModelRuleDeclarationException(descriptor, "Cannot create an element of type " + type.getName() + " as it is not a managed type");
         }
-        ModelCreator creator = ManagedModelCreators.creator(descriptor, modelPath, schema);
-        modelRegistry.create(creator);
+        modelRegistry.create(ModelCreators.of(modelPath, schema.getNodeInitializer()).descriptor(descriptor).build());
         registerAction(modelPath, type, descriptor, ModelActionRole.Initialize, closure);
     }
 

@@ -17,8 +17,8 @@
 package org.gradle.model
 
 import org.gradle.api.Named
+import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.inspect.ManagedModelCreators
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import spock.lang.Specification
@@ -30,13 +30,13 @@ class ManagedNamedTest extends Specification {
 
     def "named struct has name name property populated"() {
         when:
-        r.create(ManagedModelCreators.creator(r.desc("foo"), r.path("foo"), schemaStore.getSchema(NamedThingInterface)))
+        r.create(ModelCreators.of(r.path("foo"), schemaStore.getSchema(NamedThingInterface).nodeInitializer).descriptor(r.desc("foo")).build())
 
         then:
         r.realize("foo", NamedThingInterface).name == "foo"
 
         when:
-        r.create(ManagedModelCreators.creator(r.desc("bar"), r.path("bar"), schemaStore.getSchema(NamedThingInterface)))
+        r.create(ModelCreators.of(r.path("bar"), schemaStore.getSchema(NamedThingInterface).nodeInitializer).descriptor(r.desc("bar")).build())
 
         then:
         r.realize("bar", NamedThingInterface).name == "bar"
@@ -51,7 +51,7 @@ class ManagedNamedTest extends Specification {
 
     def "named struct does not have name populated if does not implement named"() {
         when:
-        r.create(ManagedModelCreators.creator(r.desc("foo"), r.path("foo"), schemaStore.getSchema(NonNamedThing)))
+        r.create(ModelCreators.of(r.path("foo"), schemaStore.getSchema(NonNamedThing).nodeInitializer).descriptor(r.desc("foo")).build())
 
         then:
         r.realize("foo", NonNamedThing).name == null
