@@ -17,13 +17,14 @@
 package org.gradle.testkit.runner.internal
 
 import org.gradle.testkit.runner.BuildTask
-import org.gradle.testkit.runner.TaskResult
 import spock.lang.Specification
 
+import static org.gradle.testkit.runner.TaskResult.*
+
 class DefaultBuildResultTest extends Specification {
-    BuildTask successBuildResult = new DefaultBuildTask(':a', TaskResult.SUCCESS)
-    BuildTask failedBuildResult = new DefaultBuildTask(':b', TaskResult.FAILED)
-    BuildTask skippedBuildResult = new DefaultBuildTask(':c', TaskResult.SKIPPED)
+    BuildTask successBuildResult = new DefaultBuildTask(':a', SUCCESS)
+    BuildTask failedBuildResult = new DefaultBuildTask(':b', FAILED)
+    BuildTask skippedBuildResult = new DefaultBuildTask(':c', SKIPPED)
     def buildTasks = [successBuildResult, failedBuildResult]
     DefaultBuildResult defaultBuildResult = new DefaultBuildResult('output', 'error', buildTasks)
 
@@ -32,10 +33,10 @@ class DefaultBuildResultTest extends Specification {
         defaultBuildResult.standardOutput == 'output'
         defaultBuildResult.standardError == 'error'
         defaultBuildResult.tasks == buildTasks
-        defaultBuildResult.tasks(TaskResult.SUCCESS) == [successBuildResult]
-        defaultBuildResult.tasks(TaskResult.FAILED) == [failedBuildResult]
-        defaultBuildResult.taskPaths(TaskResult.SUCCESS) == [successBuildResult.path]
-        defaultBuildResult.taskPaths(TaskResult.FAILED) == [failedBuildResult.path]
+        defaultBuildResult.tasks(SUCCESS) == [successBuildResult]
+        defaultBuildResult.tasks(FAILED) == [failedBuildResult]
+        defaultBuildResult.taskPaths(SUCCESS) == [successBuildResult.path]
+        defaultBuildResult.taskPaths(FAILED) == [failedBuildResult.path]
     }
 
     def "returned tasks are unmodifiable"() {
@@ -46,13 +47,13 @@ class DefaultBuildResultTest extends Specification {
         thrown(UnsupportedOperationException)
 
         when:
-        defaultBuildResult.tasks(TaskResult.SUCCESS) << skippedBuildResult
+        defaultBuildResult.tasks(SUCCESS) << skippedBuildResult
 
         then:
         thrown(UnsupportedOperationException)
 
         when:
-        defaultBuildResult.taskPaths(TaskResult.SUCCESS) << skippedBuildResult
+        defaultBuildResult.taskPaths(SUCCESS) << skippedBuildResult
 
         then:
         thrown(UnsupportedOperationException)
