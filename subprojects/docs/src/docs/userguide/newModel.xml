@@ -346,19 +346,15 @@ model {
                 </tr>
                 <tr>
                     <td>Value</td>
-                    <td>Is conditionally displayed on the report when a model element can be represented as a string. The value of a model element can
-                        be specified by implementing the `toString()` method on it’s type.
-                    </td>
+                    <td>Is conditionally displayed on the report when a model element can be represented as a string.</td>
                 </tr>
                 <tr>
                     <td>Creator</td>
-                    <td>Every model element on the model report has a creator. A creator signifies the origin of the model element i.e. what created the model element.
-                        The Creator is typically displayed as: &lt;class>#&lt;methodName>
-                    </td>
+                    <td>Every model element has a creator. A creator signifies the origin of the model element (i.e. what created the model element).</td>
                 </tr>
                 <tr>
                     <td>Rules</td>
-                    <td>Is a listing of the rules, excluding creator rules, which are executed for a given model element. The order in which the rules are displayed reflects
+                    <td>Is a listing of the rules, excluding the creator rule, which are executed for a given model element. The order in which the rules are displayed reflects
                         the order in which they are executed.
                     </td>
                 </tr>
