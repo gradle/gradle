@@ -33,6 +33,7 @@ public class OrSpec<T> extends CompositeSpec<T> {
     }
 
     public boolean isSatisfiedBy(T object) {
+        List<Integer> p = new ArrayList<>();
         List<Spec<? super T>> specs = getSpecs();
         if (specs.isEmpty()) {
             return true;
