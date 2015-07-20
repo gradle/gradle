@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.TestLauncher;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
@@ -63,6 +64,9 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     }
 
     public void run(final ResultHandler<? super Void> handler) {
+        if(operationDescriptors.isEmpty() && testClassNames.isEmpty()){
+            throw new TestExecutionException("No test declared for execution.");
+        }
         final ConsumerOperationParameters operationParameters = operationParamsBuilder.setParameters(connectionParameters).build();
         connection.run(new ConsumerAction<Void>() {
             public ConsumerOperationParameters getParameters() {
@@ -72,6 +76,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
                 return connection.runTests(new TestExecutionRequest(operationDescriptors, testClassNames), getParameters());
             }
         }, new ResultHandlerAdapter(handler));
+
     }
 
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {

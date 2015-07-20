@@ -27,7 +27,7 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
-import org.gradle.tooling.TestExecutionException
+import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -128,17 +128,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=2.6")
-    def "passing task descriptor with unsupported task type fails with meaningful error"() {
-        given:
-        collectDescriptorsFromBuild()
-        when:
-        launchTests(taskDescriptors(":build"))
-        then:
-        def e = thrown(Exception)
-        e.cause.message == "Task ':build' of type 'org.gradle.api.DefaultTask_Decorated' not supported for executing tests via TestLauncher API."
-    }
-
-    @TargetGradleVersion(">=2.6")
     def "runs only test task linked in test descriptor"() {
         given:
         collectDescriptorsFromBuild()
@@ -226,6 +215,15 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=2.6")
+    def "fails with meaningful error when no tests declared"() {
+        when:
+        launchTests([])
+        then:
+        def e = thrown(TestExecutionException)
+        e.message == "No test declared for execution."
+    }
+
+    @TargetGradleVersion(">=2.6")
     def "fails with meaningful error when test no longer exists"() {
         given:
         collectDescriptorsFromBuild()
@@ -261,13 +259,66 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     def "fails with meaningful error when running against unsupported target version"() {
         when:
         withConnection { ProjectConnection connection ->
-            connection.newTestLauncher().run()
+            connection.newTestLauncher().withJvmTestClasses("org.acme.Test").run()
         }
 
         then:
         def e = thrown(UnsupportedVersionException)
         e.message == "The version of Gradle you are using (${getTargetDist().getVersion().getVersion()}) does not support TestLauncher API. Support for this was added in Gradle 2.6 and is available in all later versions."
     }
+
+    @TargetGradleVersion(">=2.6")
+    def "fails with meaningful error when passing invalid arguments"() {
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestClasses("example.MyTest")
+                    .withArguments("--someInvalidArgument")
+        }
+        then:
+        def e = thrown(UnsupportedBuildArgumentException)
+        e.message.contains("Unknown command-line option '--someInvalidArgument'.")
+    }
+
+    @TargetGradleVersion(">=2.6")
+    def "fails with BuildException when build fails"() {
+        given:
+        buildFile << "some invalid build code"
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestClasses("example.MyTest")
+        }
+        then:
+        thrown(BuildException)
+    }
+
+    @TargetGradleVersion(">=2.6")
+    def "throws BuildCancelledException when build canceled"() {
+        given:
+        buildFile << "some invalid build code"
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestClasses("example.MyTest")
+
+            def tokenSource = GradleConnector.newCancellationTokenSource()
+            launcher.withCancellationToken(tokenSource.token())
+            tokenSource.cancel()
+        }
+        then:
+        thrown(BuildCancelledException)
+    }
+
+    @TargetGradleVersion(">=2.6")
+    def "fails with meaningful error when passing task descriptor with unsupported task type"() {
+        given:
+        collectDescriptorsFromBuild()
+        when:
+        launchTests(taskDescriptors(":build"))
+        then:
+        def e = thrown(Exception)
+        e.cause.message == "Task ':build' of type 'org.gradle.api.DefaultTask_Decorated' not supported for executing tests via TestLauncher API."
+    }
+
+
 
     @TargetGradleVersion(">=2.6")
     def "can execute test class passed by name"() {
@@ -498,7 +549,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    def launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationTokenSource cancellationTokenSource, Closure confgurationClosure) {
+    void launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationTokenSource cancellationTokenSource, Closure confgurationClosure) {
 
         TestLauncher testLauncher = connection.newTestLauncher()
             .withCancellationToken(cancellationTokenSource.token())

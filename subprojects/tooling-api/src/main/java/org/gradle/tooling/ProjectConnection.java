@@ -95,8 +95,9 @@ public interface ProjectConnection {
      * Creates a test launcher which can be used to execute tests.
      *
      * @return The launcher.
-     * @since 2.5
+     * @since 2.6
      */
+    @Incubating
     TestLauncher newTestLauncher();
 
     /**
