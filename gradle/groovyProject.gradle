@@ -121,3 +121,7 @@ if (buildTypes.isActive("pullRequestValidation")) {
         }
     }
 }
+
+task compileAll {
+    dependsOn tasks.matching { it instanceof JavaCompile || it instanceof GroovyCompile }
+}
