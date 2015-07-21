@@ -30,5 +30,9 @@ class UserGuideSamplesIntegrationTest {
      - Running:
         ./gradlew intTestImage docs:userguideDocbook integtest:integTest --tests org.gradle.integtests.samples.UserGuideSamplesIntegrationTest
 
+     Samples are not tested by default. For a sample to be executed and tested, you need to:
+     - add a nested <output/> tag to the <sample/> tag
+     - use the `args` parameter of the output tag to specify the tasks to be executed
+     - optionally set the name of the reference output file (by default, will use [sample id].out)
     */
 }
