@@ -280,16 +280,17 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules could not be applied:
-  model.fooar @ ${File.separator}build.gradle line 20, column 17
+        failure.assertHasCause('''The following model rules could not be applied due to unsatisfied dependencies:
+  model.fooar @ build.gradle line 20, column 17
     Subject:
-       | Found:false | Path:fooar | Type:java.lang.Object | Suggestions:foobar|
-  model.foobah @ ${File.separator}build.gradle line 18, column 17
+      fooar java.lang.Object Suggestions:foobar [UNBOUND]
+  model.foobah @ build.gradle line 18, column 17
     Subject:
-       | Found:false | Path:foobah | Type:java.lang.Object | Suggestions:foobar|
-  model.foonar @ ${File.separator}build.gradle line 16, column 17
+      foobah java.lang.Object Suggestions:foobar [UNBOUND]
+  model.foonar @ build.gradle line 16, column 17
     Subject:
-       | Found:false | Path:foonar | Type:java.lang.Object | Suggestions:foobar|""")
+      foonar java.lang.Object Suggestions:foobar [UNBOUND]
+  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)''')
     }
 
     def "location and suggestions are provided for unbound rule inputs specified using a name"() {
@@ -320,14 +321,15 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules could not be applied:
-  model.tasks.raboof @ ${File.separator}build.gradle line 15, column 17
+        failure.assertHasCause('''The following model rules could not be applied due to unsatisfied dependencies:
+  model.tasks.raboof @ build.gradle line 15, column 17
     Subject:
-       | Found:true | Path:tasks.raboof | Type:java.lang.Object|
+      tasks.raboof java.lang.Object
     Inputs:
-       | Found:false | Path:tasks.foonar | Type:java.lang.Object | Description:@ line 16 | Suggestions:tasks.foobar|
-       | Found:false | Path:tasks.fooar | Type:java.lang.Object | Description:@ line 17 | Suggestions:tasks.foobar|
-       | Found:false | Path:tasks.foobarr | Type:java.lang.Object | Description:@ line 18 | Suggestions:tasks.foobar|""")
+      tasks.foonar java.lang.Object (@ line 16) Suggestions:tasks.foobar [UNBOUND]
+      tasks.fooar java.lang.Object (@ line 17) Suggestions:tasks.foobar [UNBOUND]
+      tasks.foobarr java.lang.Object (@ line 18) Suggestions:tasks.foobar [UNBOUND]
+  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)''')
     }
 
     def "can not access project or script from rule"() {
