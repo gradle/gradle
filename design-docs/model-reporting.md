@@ -72,6 +72,22 @@ Two problems:
 1. Use of `mutable` & `immutable`: should be `subject`, `inputs`
 1. Use of `+` for “did bind” and `-` for “did not bind” is too subtle - needs to be clearer what is happening
 
+The of error messages arising from the rules with unbound subjects or inputs is as follows:
+```
+The following model rules could not be applied due to unsatisfied dependencies:
+  MyPlugin$Rules#mutateThing2
+    Subject:
+      foo.nar MyPlugin$MyThing2 (parameter 1) [UNBOUND]
+        suggestions: foo.bar
+    Inputs:
+      foo.narre MyPlugin$MyThing3 (parameter 2) [UNBOUND]
+        suggestions: foo.bar. some
+      foo.narre MyPlugin$MyThing4 (parameter 3)
+
+[UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
+see: http://linktodocs
+```
+
 # Backlog
 
 # Story: Model report shows hidden nodes
