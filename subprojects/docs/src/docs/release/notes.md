@@ -55,6 +55,30 @@ The functionality provided by this and other similar projects will over time be 
 
 See the [new Gradle TestKit user guide chapter](userguide/test_kit.html) for more information.
 
+### Tooling API TestLauncher (i)
+
+This releases introduces a new [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) interface for launching tests using the Gradle Tooling API. This interface will evolve over the next couple of releases.
+With this release the [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) API allows specifying tests to be executed by passing TestOperationDescriptors received from a previous build invocation.
+
+
+		ProjectConnection connection = GradleConnector.newConnector()
+		   	.forProjectDirectory(new File("someFolder"))
+		   	.connect();
+
+		try {
+		   //run tests
+		   connection.newTestLauncher()
+			 .withTests(descriptor1, descriptor2)
+			 .addProgressListener(new MyTestListener(), EnumSet.of(OperationType.TEST))
+		     .setStandardOutput(System.out)
+		     .run();
+		} finally {
+		   connection.close();
+	    }
+
+See the javadoc for [`ProjectConnection`](dsl/org.gradle.tooling.ProjectConnection.html) and [`TestLauncher`](dsl/org.gradle.tooling.TestLauncher.html) for more information on using the new TestLauncher API.
+
+
 ### Rule based model configuration reporting improvements (i)
 
 Gradle 2.5 brings significant usability enhancements to the new [Rule based model configuration mechanism](userguide/new_model.html),
