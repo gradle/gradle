@@ -16,6 +16,22 @@ Here is a rough overview of the current structure of the CI pipeline
 
 This pipeline is replicated for the release and master branches.
 
+# Experiment: Run linux commit build on virtual machine hosted at EC2 
+
+Validate the theory that linux virtual machines for EC2 can be created using the same infrastructure (packer and salt) that is used to create linux build VMs hosted on
+the current managed machines, and that Teamcity can manage and use these virtual machines to run jobs.
+
+The motivation is to investigate the option of running verification builds for pull requests on EC2 hosted VMs, decoupled from our managed machines, and potentially
+later migrating some or all builds from managed machines to EC2.
+
+Implementation:
+
+- Spike to build an AMI using packer and salt and as much of the dev infrastructure definitions as practical. 
+- Spike to configure a teamcity agent pool that uses this AMI and EC2, plus a test build to run on this agent pool.
+
+The goal is not to get the build to pass, only to try to run it and to see the result. Once this has happened, the experiment is done and based on the result we
+can plan further to either continue with this approach or not.
+
 # Trigger the coverage builds less frequently
 
 Currently, coverage builds are triggered for each commit. We might change this so that multiple queued up commits are merged into a single build.
