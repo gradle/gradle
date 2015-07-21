@@ -167,18 +167,18 @@ Binaries now distinguish between source sets that are specific to them (owned so
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Ben Blank](https://github.com/benblank) - Allow CopySpec.filter() to remove lines
 * [Steve Ebersole](https://github.com/sebersole) - Support for passing arbitrary arguments to FindBugs tasks
 * [Malte Finsterwalder](https://github.com/finsterwalder) - Fixed resolving of references to `${parent.artifactId}` in POM files (GRADLE-3299)
-* [Roy Kachouh](https://github.com/roykachouh) - Fix for Application plugin script generation in projects with alphanumeric names
-* [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements
-* [Andrew Shu](https://github.com/talklittle) - Documentation improvements
-* [Dominik Schürmann](https://github.com/dschuermann) - Support for verifying Gradle wrapper distribution download against SHA-256 hash
-* [Amit Portnoy](https://github.com/amitport) - Minor fix in LifecycleBasePlugin
 * [Jordan Jennings](https://github.com/jordanjennings) - Documentation improvements
+* [Roy Kachouh](https://github.com/roykachouh) - Fix for Application plugin script generation in projects with alphanumeric names
 * [Zoltán Kurucz](https://github.com/qzole) - Documentation improvements
 * [Yu Lu](https://github.com/yulucodebase) - Logging improvements
-* [Ben Blank](https://github.com/benblank) - Allow CopySpec.filter() to remove lines
+* [Amit Portnoy](https://github.com/amitport) - Minor fix in LifecycleBasePlugin
 * [Harald Schmitt](https://github.com/surfing) - Fixed mixup in credentials design spec
+* [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements
+* [Dominik Schürmann](https://github.com/dschuermann) - Support for verifying Gradle wrapper distribution download against SHA-256 hash
+* [Andrew Shu](https://github.com/talklittle) - Documentation improvements
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
