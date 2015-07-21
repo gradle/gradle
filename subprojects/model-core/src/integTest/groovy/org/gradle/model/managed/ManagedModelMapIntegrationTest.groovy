@@ -157,7 +157,7 @@ class ManagedModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasDescription('A problem occurred configuring root project')
-        failure.assertHasCause('Exception thrown while executing model rule: Rules#people > foo.<init>')
+        failure.assertHasCause('Exception thrown while executing model rule: Rules#people > create(foo)')
         failure.assertHasCause('broken')
     }
 

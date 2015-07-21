@@ -16,13 +16,12 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.internal.core.*;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.core.ChildNodeInitializerStrategy;
+import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
-public class ManagedChildNodeCreatorStrategy<T> implements ChildNodeCreatorStrategy<T> {
+public class ManagedChildNodeCreatorStrategy<T> implements ChildNodeInitializerStrategy<T> {
 
     private final ModelSchemaStore modelSchemaStore;
 
@@ -31,10 +30,8 @@ public class ManagedChildNodeCreatorStrategy<T> implements ChildNodeCreatorStrat
     }
 
     @Override
-    public <S extends T> ModelCreator creator(MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, ModelType<S> type, final String name) {
-        ModelPath childPath = parentNode.getPath().child(name);
-        final ModelSchema<S> schema = modelSchemaStore.getSchema(type);
-        return ModelCreators.of(childPath, schema.getNodeInitializer()).descriptor(sourceDescriptor).build();
+    public <S extends T> NodeInitializer initalizer(ModelType<S> type) {
+        return modelSchemaStore.getSchema(type).getNodeInitializer();
     }
 
 }

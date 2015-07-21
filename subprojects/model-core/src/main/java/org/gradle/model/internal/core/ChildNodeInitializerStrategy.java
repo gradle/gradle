@@ -16,12 +16,11 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-public interface ChildNodeCreatorStrategy<T> {
+public interface ChildNodeInitializerStrategy<T> {
 
     // Node must project item as S
-    <S extends T> ModelCreator creator(MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, ModelType<S> type, String name);
+    <S extends T> NodeInitializer initalizer(ModelType<S> type);
 
 }

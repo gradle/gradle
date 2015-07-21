@@ -38,12 +38,12 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     private final ModelRuleDescriptor descriptor;
     private final MutableModelNode modelNode;
     private final ModelViewState state;
-    private final ChildNodeCreatorStrategy<T> creatorStrategy;
+    private final ChildNodeInitializerStrategy<T> creatorStrategy;
     private final ModelReference<T> elementTypeReference;
 
     private Collection<T> elements;
 
-    public NodeBackedModelSet(String toString, ModelType<T> elementType, ModelRuleDescriptor descriptor, MutableModelNode modelNode, ModelViewState state, ChildNodeCreatorStrategy<T> creatorStrategy) {
+    public NodeBackedModelSet(String toString, ModelType<T> elementType, ModelRuleDescriptor descriptor, MutableModelNode modelNode, ModelViewState state, ChildNodeInitializerStrategy<T> creatorStrategy) {
         this.toString = toString;
         this.elementType = elementType;
         this.elementTypeReference = ModelReference.of(elementType);
@@ -66,11 +66,18 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     @Override
     public void create(final Action<? super T> action) {
         state.assertCanMutate();
+
         String name = String.valueOf(modelNode.getLinkCount(elementType));
-        modelNode.addLink(creatorStrategy.creator(modelNode, descriptor, elementType, name));
-        modelNode.applyToLink(ModelActionRole.Initialize, NoInputsModelAction.of(
-                ModelReference.of(modelNode.getPath().child(name), elementType), NestedModelRuleDescriptor.append(descriptor, "create()"), action)
-        );
+        ModelPath childPath = modelNode.getPath().child(name);
+        final ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(this.descriptor, "create()");
+
+        NodeInitializer nodeInitializer = creatorStrategy.initalizer(elementType);
+        ModelCreator creator = ModelCreators.of(childPath, nodeInitializer)
+            .descriptor(descriptor)
+            .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(childPath, elementType), descriptor, action))
+            .build();
+
+        modelNode.addLink(creator);
     }
 
     @Override

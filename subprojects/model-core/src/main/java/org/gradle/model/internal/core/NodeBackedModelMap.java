@@ -24,8 +24,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Actions;
-import org.gradle.internal.BiAction;
-import org.gradle.internal.Cast;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -35,10 +33,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
@@ -50,9 +45,9 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     private final String description;
     private final boolean eager;
     private final ModelViewState viewState;
-    private final ChildNodeCreatorStrategy<? super T> creatorStrategy;
+    private final ChildNodeInitializerStrategy<? super T> creatorStrategy;
 
-    public NodeBackedModelMap(String description, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, ModelViewState viewState, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+    public NodeBackedModelMap(String description, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, ModelViewState viewState, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
         this.description = description;
         this.eager = eager;
         this.viewState = viewState;
@@ -62,11 +57,11 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         this.sourceDescriptor = sourceDescriptor;
     }
 
-    public NodeBackedModelMap(ModelType<T> type, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, ModelViewState viewState, ChildNodeCreatorStrategy<? super T> childNodeCreatorStrategy) {
-        this(derivedDescription(modelNode, type), type, sourceDescriptor, modelNode, eager, viewState, childNodeCreatorStrategy);
+    public NodeBackedModelMap(ModelType<T> type, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, ModelViewState viewState, ChildNodeInitializerStrategy<? super T> childStrategy) {
+        this(derivedDescription(modelNode, type), type, sourceDescriptor, modelNode, eager, viewState, childStrategy);
     }
 
-    public static <T> ChildNodeCreatorStrategy<T> createUsingParentNode(final ModelType<T> baseItemModelType) {
+    public static <T> ChildNodeInitializerStrategy<T> createUsingParentNode(final ModelType<T> baseItemModelType) {
         return createUsingParentNode(new Transformer<NamedEntityInstantiator<T>, MutableModelNode>() {
             @Override
             public NamedEntityInstantiator<T> transform(MutableModelNode modelNode) {
@@ -75,61 +70,50 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         });
     }
 
-    public static <T> ChildNodeCreatorStrategy<T> createUsingParentNode(final Transformer<? extends NamedEntityInstantiator<T>, ? super MutableModelNode> instantiatorTransform) {
-        return new ChildNodeCreatorStrategy<T>() {
+    public static <T> ChildNodeInitializerStrategy<T> createUsingParentNode(final Transformer<? extends NamedEntityInstantiator<T>, ? super MutableModelNode> instantiatorTransform) {
+        return new ChildNodeInitializerStrategy<T>() {
             @Override
-            public <S extends T> ModelCreator creator(final MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, final ModelType<S> type, final String name) {
-                return ModelCreators.of(
-                    parentNode.getPath().child(name), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                        @Override
-                        public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                            NamedEntityInstantiator<T> instantiator = instantiatorTransform.transform(parentNode);
-                            S item = instantiator.create(name, type.getConcreteClass());
-                            modelNode.setPrivateData(type, item);
-                        }
-                    })
-                    .withProjection(UnmanagedModelProjection.of(type))
-                    .descriptor(NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name))
-                    .build();
+            public <S extends T> NodeInitializer initalizer(final ModelType<S> type) {
+                return new NodeInitializer() {
+                    @Override
+                    public List<? extends ModelReference<?>> getInputs() {
+                        return Collections.emptyList();
+                    }
+
+                    @Override
+                    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                        NamedEntityInstantiator<T> instantiator = instantiatorTransform.transform(modelNode.getParent());
+                        S item = instantiator.create(modelNode.getPath().getName(), type.getConcreteClass());
+                        modelNode.setPrivateData(type, item);
+                    }
+
+                    @Override
+                    public List<? extends ModelProjection> getProjections() {
+                        return Collections.singletonList(UnmanagedModelProjection.of(type));
+                    }
+                };
             }
         };
     }
 
-    public static <T> ChildNodeCreatorStrategy<T> createUsingFactory(final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference) {
-        return new ChildNodeCreatorStrategy<T>() {
+    public static <T> ChildNodeInitializerStrategy<T> createUsingFactory(final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference) {
+        return new ChildNodeInitializerStrategy<T>() {
             @Override
-            public <S extends T> ModelCreator creator(final MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, final ModelType<S> type, final String name) {
-                return creatorUsingFactory(sourceDescriptor, parentNode.getPath().child(name), type, name, factoryReference);
+            public <S extends T> NodeInitializer initalizer(ModelType<S> type) {
+                return new FactoryBasedNodeInitializer<T, S>(factoryReference, type);
             }
         };
     }
 
-    private static <T, S extends T> ModelCreator creatorUsingFactory(ModelRuleDescriptor sourceDescriptor, ModelPath path, final ModelType<S> type, final String name, ModelReference<? extends InstanceFactory<? super T, String>> factoryReference) {
-        return ModelCreators.of(
-            path, new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                @Override
-                public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                    InstanceFactory<? super T, String> instantiator = Cast.uncheckedCast(modelViews.get(0).getInstance());
-                    S item = instantiator.create(type.getConcreteClass(), modelNode, name);
-                    modelNode.setPrivateData(type, item);
-                }
-            })
-            .inputs(factoryReference)
-            .withProjection(UnmanagedModelProjection.of(type))
-            .descriptor(NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name))
-            .build();
-    }
-
-    public static <T> ChildNodeCreatorStrategy<T> createManagedOrUsingFactory(final ModelSchemaStore schemaStore, final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference) {
-        return new ChildNodeCreatorStrategy<T>() {
+    public static <T> ChildNodeInitializerStrategy<T> createManagedOrUsingFactory(final ModelSchemaStore schemaStore, final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference) {
+        return new ChildNodeInitializerStrategy<T>() {
             @Override
-            public <S extends T> ModelCreator creator(final MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, final ModelType<S> type, final String name) {
-                ModelPath path = parentNode.getPath().child(name);
+            public <S extends T> NodeInitializer initalizer(final ModelType<S> type) {
                 ModelSchema<S> schema = schemaStore.getSchema(type);
                 if (schema.getKind().isManaged()) {
-                    return ModelCreators.of(path, schema.getNodeInitializer()).descriptor(sourceDescriptor).build();
+                    return schema.getNodeInitializer();
                 } else {
-                    return creatorUsingFactory(sourceDescriptor, path, type, name, factoryReference);
+                    return new FactoryBasedNodeInitializer<T, S>(factoryReference, type);
                 }
             }
         };
@@ -215,10 +199,18 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
     private <S extends T> void doCreate(final String name, final ModelType<S> type, final Action<? super S> initAction) {
         viewState.assertCanMutate();
-        ModelCreator creator = creatorStrategy.creator(modelNode, sourceDescriptor, type, name);
+        ModelPath childPath = modelNode.getPath().child(name);
+        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name);
+
+        NodeInitializer nodeInitializer = creatorStrategy.initalizer(type);
+
+        ModelCreator creator = ModelCreators.of(childPath, nodeInitializer)
+            .descriptor(descriptor)
+            .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(childPath, type), descriptor, initAction))
+            .build();
+
         modelNode.addLink(creator);
-        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "%s.<init>", name);
-        modelNode.applyToLink(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(creator.getPath(), type), descriptor, initAction));
+
         if (eager) {
             //noinspection ConstantConditions
             modelNode.getLink(name).ensureUsable();
@@ -297,7 +289,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     }
 
     public <S extends T> ModelMap<S> toSubType(Class<S> type) {
-        ChildNodeCreatorStrategy<S> creatorStrategy = uncheckedCast(this.creatorStrategy);
+        ChildNodeInitializerStrategy<S> creatorStrategy = uncheckedCast(this.creatorStrategy);
         return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, viewState, creatorStrategy);
     }
 
@@ -349,11 +341,12 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
             return uncheckedCast(subType);
         }
 
-        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, viewState, new ChildNodeCreatorStrategy<S>() {
+        return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, viewState, new ChildNodeInitializerStrategy<S>() {
             @Override
-            public <D extends S> ModelCreator creator(MutableModelNode parentNode, ModelRuleDescriptor sourceDescriptor, ModelType<D> type, String name) {
+            public <D extends S> NodeInitializer initalizer(ModelType<D> type) {
                 throw new IllegalArgumentException(String.format("Cannot create an item of type %s as this is not a subtype of %s.", type, elementType.toString()));
             }
         });
     }
+
 }

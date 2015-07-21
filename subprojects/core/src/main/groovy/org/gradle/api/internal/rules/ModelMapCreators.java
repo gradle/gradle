@@ -34,7 +34,7 @@ public class ModelMapCreators {
                                                                       ModelReference<? extends InstanceFactory<? super T, String>> factoryReference,
                                                                       ModelRuleDescriptor descriptor) {
 
-        ChildNodeCreatorStrategy<T> childFactory = NodeBackedModelMap.createUsingFactory(factoryReference);
+        ChildNodeInitializerStrategy<T> childFactory = NodeBackedModelMap.createUsingFactory(factoryReference);
 
         ModelType<C> containerType = ModelType.of(containerClass);
         ModelType<T> modelType = ModelType.of(typeClass);

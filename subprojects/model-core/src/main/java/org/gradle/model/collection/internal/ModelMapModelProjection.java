@@ -42,25 +42,25 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     @SuppressWarnings("deprecation")
     private final static Set<Class<?>> SUPPORTED_CONTAINER_TYPES = ImmutableSet.<Class<?>>of(ModelMap.class, CollectionBuilder.class);
 
-    public static <T> ModelProjection unmanaged(ModelType<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+    public static <T> ModelProjection unmanaged(ModelType<T> itemType, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
         return new ModelMapModelProjection<T>(itemType, false, false, creatorStrategy);
     }
 
-    public static <T> ModelProjection unmanaged(Class<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+    public static <T> ModelProjection unmanaged(Class<T> itemType, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
         return unmanaged(ModelType.of(itemType), creatorStrategy);
     }
 
-    public static <T> ModelProjection managed(ModelType<T> itemType, ChildNodeCreatorStrategy<? super T> creatorStrategy) {
+    public static <T> ModelProjection managed(ModelType<T> itemType, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
         return new ModelMapModelProjection<T>(itemType, false, true, creatorStrategy);
     }
 
     protected final Class<I> baseItemType;
     protected final ModelType<I> baseItemModelType;
     private final boolean eager;
-    private final ChildNodeCreatorStrategy<? super I> creatorStrategy;
+    private final ChildNodeInitializerStrategy<? super I> creatorStrategy;
     private final boolean managed;
 
-    protected ModelMapModelProjection(ModelType<I> baseItemModelType, boolean eager, boolean managed, ChildNodeCreatorStrategy<? super I> creatorStrategy) {
+    protected ModelMapModelProjection(ModelType<I> baseItemModelType, boolean eager, boolean managed, ChildNodeInitializerStrategy<? super I> creatorStrategy) {
         this.baseItemModelType = baseItemModelType;
         this.eager = eager;
         this.managed = managed;
