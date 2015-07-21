@@ -243,7 +243,7 @@
                     <literal>playBinary</literal> to build Play application.
                 </td>
                 <td><apilink class="org.gradle.play.tasks.PlayRun"/></td>
-                <td>Runs the Play application for local development.</td>
+                <td>Runs the Play application for local development. See <link linkend="play_continuous_build">how this works with continuous build.</link></td>
             </tr>
             <tr>
                 <td>
@@ -409,7 +409,7 @@
             <sourcefile file="build.gradle" snippet="play-multiproject-dependencies"/>
         </sample>
         <para>
-            See the "play/multiproject" sample provided in the Gradle distribution for a working example.
+            See the <filename>play/multiproject</filename> sample provided in the Gradle distribution for a working example.
         </para>
     </section>
     <section>
@@ -485,6 +485,39 @@
                 <sourcefile file="build.gradle" snippet="play-custom-distribution"/>
             </sample>
         </section>
+    </section>
+
+    <section id="play_continuous_build">
+        <title>Running a Play application</title>
+        <para>
+            <link linkend="continuous_build">Continuous build</link> is a generic feature that supports automatically re-running a task with its inputs have changed.
+            Any Play plugin task can be used with continuous build, but using this feature with the <literal>runPlayBinary</literal> task will
+            be useful for quickly iterating on your Play application with an edit->rebuild->refresh cycle.  This will be faster than re-running Gradle after each
+            change since the Play application JVM will be kept around and classes will be hot-reloaded.
+        </para>
+        <para>
+            To enable continuous build, run Gradle with <userinput>-t</userinput> or <userinput>--continuous</userinput>.
+        </para>
+        <para>
+            There are a couple of things to keep in mind with the current Play reload support.  Future Gradle releases will improve usability and error reporting.
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Changes made while the build is running will not cause another rebuild. This is a general continuous build limitation.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Build failures are not propagated to the browser/application. If the build fails, the application will continue to run without changes.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Application failures do not show source code in the browser.
+                </para>
+            </listitem>
+        </itemizedlist>
     </section>
 
     <section>
