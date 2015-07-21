@@ -93,5 +93,17 @@ public interface TestFilter {
      * @return this filter object
      */
     TestFilter includeTest(String className, String methodName);
+
+    /**
+     * Let the test task fail if a filter configuration was provided but no test matched the given configuration.
+     * @param failOnNoMatchingTests whether a test task should fail if no test is matching the filter configuration.
+     * */
+    void setFailOnNoMatchingTests(boolean failOnNoMatchingTests);
+
+    /**
+     * Returns whether the task should fail if no matching tests where found.
+     * The default is true.
+     */
+    boolean isFailOnNoMatchingTests();
 }
 

@@ -238,7 +238,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         }
         then:
         def e = thrown(TestExecutionException)
-        e.cause.message == "No tests found for given includes: [util.TestUtil.*]"
+        e.cause.message == "Tests configured in TestLauncher not found in any candidate test task."
     }
 
     @TargetGradleVersion(">=2.6")
@@ -255,6 +255,42 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
         def e = thrown(TestExecutionException)
         e.cause.message == "No tests found for given includes: [example.MyTest.*]"
+    }
+
+    @TargetGradleVersion(">=2.6")
+    def "build succeeds if test class is only available in one test task"() {
+        given:
+        file("src/moreTests/java/more/MoreTest.java") << """
+            package more;
+            public class MoreTest {
+                @org.junit.Test public void bar() throws Exception {
+                     org.junit.Assert.assertEquals(2, 2);
+                }
+            }
+        """
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestClasses("more.MoreTest")
+        }
+        then:
+        assertTaskExecuted(":secondTest")
+        assertTaskExecuted(":test")
+    }
+
+    @TargetGradleVersion(">=2.6")
+    def "fails with meaningful error when test class not available for any test task"() {
+        when:
+        withConnection { ProjectConnection connection ->
+            def testLauncher = connection.newTestLauncher()
+            testLauncher.withJvmTestClasses("org.acme.NotExistingTestClass")
+            testLauncher.run()
+        };
+        then:
+        assertTaskNotExecuted(":test")
+        assertTaskNotExecuted(":secondTest")
+
+        def e = thrown(TestExecutionException)
+        e.cause.message == "Tests configured in TestLauncher not found in any candidate test task."
     }
 
     @TargetGradleVersion(">=2.6")
@@ -608,9 +644,17 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         buildFile.text = simpleJavaProject()
 
         buildFile << """
+            sourceSets {
+                moreTests {
+                    java.srcDir "src/test"
+                    compileClasspath = compileClasspath + sourceSets.test.compileClasspath
+                    runtimeClasspath = runtimeClasspath + sourceSets.test.runtimeClasspath
+                }
+            }
+
             task secondTest(type:Test) {
-                classpath = sourceSets.test.runtimeClasspath
-                testClassesDir = sourceSets.test.output.classesDir
+                classpath = sourceSets.moreTests.runtimeClasspath
+                testClassesDir = sourceSets.moreTests.output.classesDir
             }
 
             build.dependsOn secondTest

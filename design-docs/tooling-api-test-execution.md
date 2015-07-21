@@ -52,7 +52,7 @@ From a client this API can be used like:
 	  ~~is in one place, rather than ad hoc per operation.~~
 * ~~Change filter interfaces for `Test` to allow test class and method filters to be applied. Do not use patterns (except perhaps to initially get something working).~~
 * ~~Run appropriate `Test` tasks based on the descriptors.~~
-* ~~Tests will not execute when test task is up-to-date.~
+* ~~Tests will not execute when test task is up-to-date.~~
 
 ### Test cases
 
@@ -95,7 +95,7 @@ Add methods to `TestLauncher` to request specific JVM test classes be executed.
 
 ### Test Coverage
 
-* can execute
+* ~~can execute~~
 	* ~~single JVM test class~~
 	* ~~multiple specific JVM test classes~~
 * ~~handles more than one test task~~

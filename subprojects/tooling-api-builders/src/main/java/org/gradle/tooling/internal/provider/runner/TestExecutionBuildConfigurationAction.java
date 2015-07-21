@@ -21,8 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.tasks.TaskCollection;
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.testing.TestExecutionException;
+import org.gradle.api.tasks.testing.*;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildExecutionContext;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
@@ -32,23 +31,26 @@ import java.util.*;
 
 class TestExecutionBuildConfigurationAction implements BuildConfigurationAction {
     private final GradleInternal gradle;
+    private List<TestListener> globalTestListeners;
     private InternalTestExecutionRequest testExecutionRequest;
 
-    public TestExecutionBuildConfigurationAction(InternalTestExecutionRequest testExecutionRequest, GradleInternal gradle) {
+    public TestExecutionBuildConfigurationAction(InternalTestExecutionRequest testExecutionRequest, GradleInternal gradle, TestListener... globalTestListeners) {
         this.testExecutionRequest = testExecutionRequest;
         this.gradle = gradle;
+        this.globalTestListeners = Arrays.asList(globalTestListeners);
     }
 
     @Override
     public void configure(BuildExecutionContext context) {
-        final Set<Task> allTasksToRun = new HashSet<Task>();
+        final Set<Test> allTestTasksToRun = new HashSet<Test>();
         final GradleInternal gradleInternal = context.getGradle();
-        allTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal, testExecutionRequest));
-        allTasksToRun.addAll(configureBuildForTestClasses(gradleInternal, testExecutionRequest));
-        gradle.getTaskGraph().addTasks(allTasksToRun);
+        allTestTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal, testExecutionRequest));
+        allTestTasksToRun.addAll(configureBuildForTestClasses(gradleInternal, testExecutionRequest));
+        registerGlobalTestListener(allTestTasksToRun);
+        gradle.getTaskGraph().addTasks(allTestTasksToRun);
     }
 
-    private List<Task> configureBuildForTestDescriptors(GradleInternal gradle, final InternalTestExecutionRequest testExecutionRequestAction) {
+    private List<Test> configureBuildForTestDescriptors(GradleInternal gradle, final InternalTestExecutionRequest testExecutionRequestAction) {
         final Collection<InternalJvmTestExecutionDescriptor> testDescriptors = testExecutionRequestAction.getTestExecutionDescriptors();
         final List<String> testTaskPaths = org.gradle.util.CollectionUtils.collect(testDescriptors, new Transformer<String, InternalJvmTestExecutionDescriptor>() {
             @Override
@@ -57,7 +59,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
             }
         });
 
-        List<Task> testTasksToRun = new ArrayList<Task>();
+        List<Test> testTasksToRun = new ArrayList<Test>();
         for (final String testTaskPath : testTaskPaths) {
             final Task task = gradle.getRootProject().getTasks().findByPath(testTaskPath);
             if (task == null) {
@@ -77,33 +79,42 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
                         }
                     }
                 }
-                testTasksToRun.add(task);
+                testTasksToRun.add(testTask);
             }
         }
         return testTasksToRun;
     }
 
-    private List<Task> configureBuildForTestClasses(GradleInternal gradle, final InternalTestExecutionRequest testExecutionRequest) {
+    private void registerGlobalTestListener(Set<Test> testTasks) {
+        for (TestListener globalTestListener : globalTestListeners) {
+            for (Test task : testTasks) {
+                task.addTestListener(globalTestListener);
+            }
+        }
+    }
 
+    private List<Test> configureBuildForTestClasses(GradleInternal gradle, final InternalTestExecutionRequest testExecutionRequest) {
         if (testExecutionRequest.getTestClassNames().isEmpty()) {
             return Collections.emptyList();
         }
-        List<Task> tasksToExecute = new ArrayList<Task>();
+        List<Test> tasksToExecute = new ArrayList<Test>();
         final Collection<String> testClassNames = testExecutionRequest.getTestClassNames();
         final Set<Project> allprojects = gradle.getRootProject().getAllprojects();
         for (Project project : allprojects) {
             final TaskCollection<Test> testTasks = project.getTasks().withType(Test.class);
             for (Test testTask : testTasks) {
-                addTestClassFilter(testTask, testClassNames);
+                configureTestClassFilter(testTask, testClassNames);
             }
             tasksToExecute.addAll(testTasks);
         }
         return tasksToExecute;
     }
 
-    private void addTestClassFilter(Test testTask, Collection<String> testClassNames) {
+    private void configureTestClassFilter(Test testTask, Collection<String> testClassNames) {
         for (String testClassName : testClassNames) {
-            testTask.getFilter().includeTest(testClassName, null);
+            final TestFilter filter = testTask.getFilter();
+            filter.includeTest(testClassName, null);
+            filter.setFailOnNoMatchingTests(false);
         }
     }
 }
