@@ -16,41 +16,34 @@
 
 package org.gradle.testkit
 
-import org.apache.commons.io.FilenameUtils
+import org.gradle.api.internal.GradleDistributionLocator
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GFileUtils
-import org.gradle.util.TextUtil
 
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
-    public static final String[] GROOVY_TEST_SRC_PATH = ['src', 'test', 'groovy'] as String[]
-    public static final String[] CLASS_PACKAGE = ['org', 'gradle', 'test'] as String[]
-    public static final String[] TEST_CLASS_PATH = GROOVY_TEST_SRC_PATH + CLASS_PACKAGE
-    public static final String[] GROOVY_SRC_PATH = ['src', 'main', 'groovy'] as String[]
-    File functionalTestClassDir
 
     def setup() {
-        executer.requireGradleHome()
-        executer.withStackTraceChecksDisabled()
-        functionalTestClassDir = testDirectoryProvider.createDir(TEST_CLASS_PATH)
+        executer.requireGradleHome().withStackTraceChecksDisabled()
         buildFile << buildFileForGroovyProject()
     }
 
     def "use of GradleRunner API in test class without declaring test-kit dependency causes compilation error"() {
         given:
-        GFileUtils.writeFile(buildLogicFunctionalTestCreatingGradleRunner(), new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
+        writeTest(buildLogicFunctionalTestCreatingGradleRunner())
 
         when:
-        ExecutionFailure failure = fails('build')
+        fails('build')
 
         then:
-        result.executedTasks.contains(':compileTestGroovy')
-        !result.skippedTasks.contains(':compileTestGroovy')
+        executedAndNotSkipped(':compileTestGroovy')
+        failureHasCause('Compilation failed; see the compiler error output for details.')
         failure.error.contains("unable to resolve class $GradleRunner.name")
-        failure.error.contains('Compilation failed; see the compiler error output for details.')
+    }
+
+    private TestFile writeTest(String content) {
+        testDirectoryProvider.file("src/test/groovy/org/gradle/test/BuildLogicFunctionalTest.groovy") << content
     }
 
     def "use of GradleRunner API in test class by depending on external test-kit dependency causes compilation error"() {
@@ -62,15 +55,14 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         GFileUtils.copyFile(gradleTestKitLib, new File(libDir, gradleTestKitLib.name))
 
         buildFile << libDirDependency()
-        GFileUtils.writeFile(buildLogicFunctionalTestCreatingGradleRunner(), new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
+        writeTest(buildLogicFunctionalTestCreatingGradleRunner())
 
         when:
-        ExecutionFailure failure = fails('build')
+        fails('build')
 
         then:
-        result.executedTasks.contains(':compileTestGroovy')
-        !result.skippedTasks.contains(':compileTestGroovy')
-        failure.error.contains("Unable to load class $GradleRunner.name due to missing dependency")
+        executedAndNotSkipped(':compileTestGroovy')
+        failure.error.contains("Unable to load class $GradleRunner.name due to missing dependency ${GradleDistributionLocator.name.replaceAll('\\.', '/')}")
     }
 
     def "creating GradleRunner instance by depending on Gradle libraries outside of Gradle distribution throws exception"() {
@@ -88,202 +80,231 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         }
 
         buildFile << libDirDependency()
-        GFileUtils.writeFile(buildLogicFunctionalTestCreatingGradleRunner(), new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
+        writeTest(buildLogicFunctionalTestCreatingGradleRunner())
 
         when:
-        ExecutionFailure failure = fails('build')
+        fails('build')
 
         then:
-        result.executedTasks.contains(':test')
-        !result.skippedTasks.contains(':test')
+        executedAndNotSkipped(':test')
         failure.output.contains('java.lang.IllegalStateException: Could not create a GradleRunner, as the GradleRunner class was not loaded from a Gradle distribution')
     }
 
     def "successfully execute functional test and verify expected result"() {
         buildFile << gradleTestKitDependency()
-        GFileUtils.writeFile("""package org.gradle.test
+        writeTest """
+            package org.gradle.test
 
-import org.gradle.testkit.runner.GradleRunner
-import static org.gradle.testkit.runner.TaskResult.*
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskResult.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
 
-class BuildLogicFunctionalTest extends Specification {
-    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
-    File buildFile
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                File buildFile
 
-    def setup() {
-        buildFile = testProjectDir.newFile('build.gradle')
-    }
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
+                }
 
-    def "execute helloWorld task"() {
-        given:
-        buildFile << '''
-            task helloWorld {
-                doLast {
-                    println 'Hello world!'
+                def "execute helloWorld task"() {
+                    given:
+                    buildFile << '''
+                        task helloWorld {
+                            doLast {
+                                println 'Hello world!'
+                            }
+                        }
+                    '''
+
+                    when:
+                    def result = GradleRunner.create()
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('helloWorld')
+                        .build()
+
+                    then:
+                    result.standardOutput.contains('Hello world!')
+                    result.standardError == ''
+                    result.taskPaths(SUCCESS) == [':helloWorld']
+                    result.taskPaths(SKIPPED).empty
+                    result.taskPaths(UP_TO_DATE).empty
+                    result.taskPaths(FAILED).empty
                 }
             }
-        '''
+        """
 
         when:
-        def result = GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
-            .withArguments('helloWorld')
-            .build()
+        succeeds('build')
 
         then:
-        result.standardOutput.contains('Hello world!')
-        result.standardError == ''
-        result.taskPaths(SUCCESS) == [':helloWorld']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
-    }
-}
-""", new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
-
-        when:
-        ExecutionResult result = succeeds('build')
-
-        then:
-        result.executedTasks.containsAll([':test', ':build'])
-        !result.skippedTasks.contains(':test')
+        executedAndNotSkipped(":test", ":build")
     }
 
     def "functional test fails due to invalid JVM parameter for test execution"() {
         buildFile << gradleTestKitDependency()
-        GFileUtils.writeFile("""package org.gradle.test
+        writeTest """
+            package org.gradle.test
 
-import org.gradle.testkit.runner.GradleRunner
-import static org.gradle.testkit.runner.TaskResult.*
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskResult.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
 
-class BuildLogicFunctionalTest extends Specification {
-    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
-    File buildFile
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                File buildFile
 
-    def setup() {
-        buildFile = testProjectDir.newFile('build.gradle')
-        new File(testProjectDir.root, 'gradle.properties') << 'org.gradle.jvmargs=-unknown'
-    }
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
+                    new File(testProjectDir.root, 'gradle.properties') << 'org.gradle.jvmargs=-unknown'
+                }
 
-    def "execute helloWorld task"() {
-        given:
-        buildFile << '''
-            task helloWorld {
-                doLast {
-                    println 'Hello world!'
+                def "execute helloWorld task"() {
+                    given:
+                    buildFile << '''
+                        task helloWorld {
+                            doLast {
+                                println 'Hello world!'
+                            }
+                        }
+                    '''
+
+                    expect:
+                    GradleRunner.create()
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('helloWorld')
+                        .build()
                 }
             }
-        '''
-
-        expect:
-        GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
-            .withArguments('helloWorld')
-            .build()
-    }
-}
-""", new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
+        """
 
         when:
-        ExecutionFailure failure = fails('build')
+        fails('build')
 
         then:
-        result.executedTasks.contains(':test')
-        !result.executedTasks.contains(':build')
-        !result.skippedTasks.contains(':test')
-        failure.output.contains('org.gradle.api.GradleException: Unable to start the daemon process.')
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failure.output.contains('Unrecognized option: -unknown')
     }
 
     def "can test plugin and custom task as external files by adding them to the build script's classpath"() {
-        buildFile << gradleApiDependency()
-        buildFile << gradleTestKitDependency()
-        File groovySrcDir = testDirectoryProvider.createDir(GROOVY_SRC_PATH + CLASS_PACKAGE)
+        file("settings.gradle") << "include 'sub'"
+        file("sub/build.gradle") << "apply plugin: 'groovy'; dependencies { compile localGroovy() }"
+        file("sub/src/main/groovy/org/gradle/test/lib/Support.groovy") << "package org.gradle.test.lib; class Support { static String MSG = 'Hello world!' }"
 
-        GFileUtils.writeFile("""package org.gradle.test
-
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-
-class HelloWorldPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        project.task('helloWorld', type: HelloWorld)
-    }
-}
-""", new File(groovySrcDir, 'HelloWorldPlugin.groovy'))
-
-        GFileUtils.writeFile("""package org.gradle.test
-
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
-
-class HelloWorld extends DefaultTask {
-    @TaskAction
-    void doSomething() {
-        println 'Hello world!'
-    }
-}
-""", new File(groovySrcDir, 'HelloWorld.groovy'))
-
-        String classesDir = TextUtil.escapeString(new File(testDirectory, FilenameUtils.separatorsToSystem('build/classes/main')).canonicalPath)
-        GFileUtils.writeFile("""package org.gradle.test
-
-import org.gradle.testkit.runner.GradleRunner
-import static org.gradle.testkit.runner.TaskResult.*
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
-
-class BuildLogicFunctionalTest extends Specification {
-    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
-    File buildFile
-
-    def setup() {
-        buildFile = testProjectDir.newFile('build.gradle')
-        buildFile << '''
-            buildscript {
+        buildFile <<
+            gradleApiDependency() <<
+            gradleTestKitDependency() <<
+            """
                 dependencies {
-                    classpath files('$classesDir')
+                  compile project(":sub")
+                }
+
+                task createClasspathManifest {
+                  def classpathFile = file("\$buildDir/\$name/plugin-classpath.txt")
+                  inputs.files sourceSets.main.runtimeClasspath
+                  outputs.file classpathFile
+
+                  doLast {
+                    classpathFile.parentFile.mkdirs()
+                    classpathFile.text = sourceSets.main.runtimeClasspath.join("\\n")
+                  }
+                }
+
+                processTestResources {
+                  from createClasspathManifest
+                }
+            """
+
+        file("src/main/groovy/org/gradle/test/HelloWorldPlugin.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class HelloWorldPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.task('helloWorld', type: HelloWorld)
                 }
             }
-        '''
-    }
+        """
 
-    def "execute helloWorld task"() {
-        given:
-        buildFile << 'apply plugin: org.gradle.test.HelloWorldPlugin'
+        file("src/main/groovy/org/gradle/test/HelloWorld.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+            import org.gradle.test.lib.Support
+
+            class HelloWorld extends DefaultTask {
+                @TaskAction
+                void doSomething() {
+                    println Support.MSG
+                }
+            }
+        """
+
+        writeTest """
+            package org.gradle.test
+
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskResult.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                File buildFile
+
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
+                    def pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
+                      .readLines()
+                      .collect { "'\$it'" }
+                      .join(", ")
+
+                    buildFile << \"\"\"
+                        buildscript {
+                            dependencies {
+                                classpath files(\$pluginClasspath)
+                            }
+                        }
+                    \"\"\"
+                }
+
+                def "execute helloWorld task"() {
+                    given:
+                    buildFile << 'apply plugin: org.gradle.test.HelloWorldPlugin'
+
+                    when:
+                    def result = GradleRunner.create()
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('helloWorld')
+                        .build()
+
+                    then:
+                    result.standardOutput.contains('Hello world!')
+                    result.standardError == ''
+                    result.taskPaths(SUCCESS) == [':helloWorld']
+                    result.taskPaths(SKIPPED).empty
+                    result.taskPaths(UP_TO_DATE).empty
+                    result.taskPaths(FAILED).empty
+                }
+            }
+        """
 
         when:
-        def result = GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
-            .withArguments('helloWorld')
-            .build()
+        succeeds('build')
 
         then:
-        result.standardOutput.contains('Hello world!')
-        result.standardError == ''
-        result.taskPaths(SUCCESS) == [':helloWorld']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
-    }
-}
-""", new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
-
-        when:
-        ExecutionResult result = succeeds('build')
-
-        then:
-        result.executedTasks.containsAll([':test', ':build'])
-        !result.skippedTasks.contains(':test')
+        executedAndNotSkipped(':test')
     }
 
-    private String buildFileForGroovyProject() {
+    private static String buildFileForGroovyProject() {
         """
             apply plugin: 'groovy'
 
@@ -300,7 +321,7 @@ class BuildLogicFunctionalTest extends Specification {
         """
     }
 
-    private String gradleTestKitDependency() {
+    private static String gradleTestKitDependency() {
         """
             dependencies {
                 testCompile gradleTestKit()
@@ -308,7 +329,7 @@ class BuildLogicFunctionalTest extends Specification {
         """
     }
 
-    private String gradleApiDependency() {
+    private static String gradleApiDependency() {
         """
             dependencies {
                 compile gradleApi()
@@ -316,7 +337,7 @@ class BuildLogicFunctionalTest extends Specification {
         """
     }
 
-    private String libDirDependency() {
+    private static String libDirDependency() {
         """
             dependencies {
                 testCompile fileTree(dir: 'lib', include: '*.jar')
@@ -324,19 +345,20 @@ class BuildLogicFunctionalTest extends Specification {
         """
     }
 
-    private String buildLogicFunctionalTestCreatingGradleRunner() {
-        """package org.gradle.test
+    private static String buildLogicFunctionalTestCreatingGradleRunner() {
+        """
+            package org.gradle.test
 
-import org.gradle.testkit.runner.GradleRunner
-import spock.lang.Specification
+            import org.gradle.testkit.runner.GradleRunner
+            import spock.lang.Specification
 
-class BuildLogicFunctionalTest extends Specification {
-    def "create GradleRunner"() {
-        expect:
-        GradleRunner.create()
-    }
-}
-"""
+            class BuildLogicFunctionalTest extends Specification {
+                def "create GradleRunner"() {
+                    expect:
+                    GradleRunner.create()
+                }
+            }
+        """
     }
 
     private class GradleTestKitJarFilenameFilter implements FilenameFilter {
