@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GFileUtils
+import org.gradle.util.TextUtil
 
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
     public static final String[] GROOVY_TEST_SRC_PATH = ['src', 'test', 'groovy'] as String[]
@@ -245,7 +246,7 @@ class BuildLogicFunctionalTest extends Specification {
         buildFile << '''
             buildscript {
                 dependencies {
-                    classpath files('${new File(testDirectory, 'build/classes/main').absolutePath}')
+                    classpath files('${TextUtil.escapeString(new File(testDirectory, 'build/classes/main').absolutePath)}')
                 }
             }
         '''

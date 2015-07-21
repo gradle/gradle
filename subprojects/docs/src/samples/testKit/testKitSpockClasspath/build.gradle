@@ -13,6 +13,6 @@ repositories {
 
 // START SNIPPET classes-output-directory-system-property
 test {
-    systemProperty 'classesDir', sourceSets.main.output.classesDir.absolutePath
+    systemProperty 'classesDir', sourceSets.main.output.classesDir.absolutePath.replaceAll('\\\\', '\\\\\\\\')
 }
 // END SNIPPET classes-output-directory-system-property
