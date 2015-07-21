@@ -86,10 +86,9 @@ public abstract class GradleRunner {
      * <p>
      * The Gradle user home directory contains dependency caches, and other persistent information.
      * <p>
-     * Each runner <i>instance</i> is assigned a default for this property, of a directory inside the JVM's temp directory
-     * (i.e. the location specified by the {@code java.io.tmpdir} system property, typically {@code /tmp}).
-     * This default is different to Gradle's default, of {@code ~/.gradle}.
-     * This is in order to prevent builds under test inheriting any environmental configuration from the current user.
+     * Each runner <i>instance</i> is using Gradle's default user home directory {@code ~/.gradle}. Any environmental configuration
+     * from the current user is inherited. In a future version of Gradle, the environmental configuration is going to be isolated
+     * for test execution.
      *
      * @return the Gradle “user home” directory to use
      */

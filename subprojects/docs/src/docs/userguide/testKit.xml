@@ -67,7 +67,9 @@
             <apilink class="org.gradle.testkit.runner.GradleRunner" method="build"/>
             or
             <apilink class="org.gradle.testkit.runner.GradleRunner" method="buildAndFail"/>
-            methods depending on the anticipated outcome.
+            methods depending on the anticipated outcome. Each runner instance is using Gradle's default user home directory <literal>~/.gradle</literal>.
+            Any environmental configuration (e.g. <literal>gradle.properties</literal>) from the current user is inherited. In a future version of Gradle,
+            the environmental configuration is going to be isolated for test execution.
         </para>
         <para>
             The following demonstrates the usage of Gradle runner in a Java JUnit test:

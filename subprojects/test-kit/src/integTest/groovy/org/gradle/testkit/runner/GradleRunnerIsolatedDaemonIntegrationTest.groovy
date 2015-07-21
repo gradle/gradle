@@ -24,12 +24,14 @@ import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.GFileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskResult.*
 
 class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerIntegrationTest {
     @Rule TemporaryFolder testUserHomeDir = new TemporaryFolder()
 
+    @Ignore
     def "configuration in default Gradle user home directory is ignored for test execution with daemon"() {
         given:
         File defaultGradleUserHomeDir = new File(testUserHomeDir.root, '.gradle')
@@ -65,6 +67,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         result.taskPaths(FAILED).empty
     }
 
+    @Ignore
     def "configuration in custom Gradle user home directory is used for test execution with daemon"() {
         setup:
         String gradlePropertiesContent = 'myProp1=propertiesFile'
@@ -116,6 +119,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         daemons[0].context.idleTimeout == 120000
     }
 
+    @Ignore
     def "daemon process dedicated to test execution is reused if one already exists"() {
         given:
         File customGradleUserHomeDir = createCustomGradleUserHomeDir()

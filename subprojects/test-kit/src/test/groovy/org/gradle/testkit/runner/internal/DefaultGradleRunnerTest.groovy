@@ -17,7 +17,6 @@
 package org.gradle.testkit.runner.internal
 
 import org.gradle.api.GradleException
-import org.gradle.internal.SystemProperties
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.TextUtil
 import spock.lang.Specification
@@ -36,7 +35,7 @@ class DefaultGradleRunnerTest extends Specification {
         expect:
         defaultGradleRunner.projectDir == workingDir
         defaultGradleRunner.arguments == arguments
-        defaultGradleRunner.gradleUserHomeDir == new File(new File(SystemProperties.instance.userHome), IsolatedDaemonHomeTmpDirectoryProvider.DIR_NAME)
+        !defaultGradleRunner.gradleUserHomeDir
     }
 
     def "returned arguments are unmodifiable"() {
