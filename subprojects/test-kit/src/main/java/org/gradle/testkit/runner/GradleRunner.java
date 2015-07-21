@@ -35,7 +35,8 @@ import java.util.List;
  * A runner can be created via the {@link #create()} method.
  * <p>
  * The {@link #withArguments(String...)} method allows the build arguments to be specified,
- * just as they would be on the command line.
+ * just as they would be on the command line. It's required to provide a project directory with
+ * the method {@link #withProjectDir(File)}} before invoking the build.
  * The {@link #build()} method can be used to invoke the build when it is expected to succeed,
  * while the {@link #buildAndFail()} method can be used when the build is expected to fail.
  * <p>
@@ -105,6 +106,8 @@ public abstract class GradleRunner {
 
     /**
      * Sets the directory that the Gradle will be executed in.
+     * <p>
+     * This method is required to be called before using {@link #build()} or {@link #buildAndFail()}.
      *
      * @param projectDir the project directory
      * @return {@code this}
@@ -145,17 +148,19 @@ public abstract class GradleRunner {
     /**
      * Executes a build, expecting it to complete without failure.
      *
+     * @throws IllegalStateException if project directory was not provided beforehand
      * @throws UnexpectedBuildFailure if the build does not succeed
      * @return the build result
      */
-    public abstract BuildResult build() throws UnexpectedBuildFailure;
+    public abstract BuildResult build() throws IllegalStateException, UnexpectedBuildFailure;
 
     /**
      * Executes a build, expecting it to complete with failure.
      *
+     * @throws IllegalStateException if project directory was not provided beforehand
      * @throws UnexpectedBuildSuccess if the build succeeds
      * @return the build result
      */
-    public abstract BuildResult buildAndFail() throws UnexpectedBuildSuccess;
+    public abstract BuildResult buildAndFail() throws IllegalStateException, UnexpectedBuildSuccess;
 
 }
