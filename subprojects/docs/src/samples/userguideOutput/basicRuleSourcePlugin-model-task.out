@@ -48,7 +48,6 @@ Root project
               | Value:  	task ':hello'
               | Creator: 	PersonRules#createHelloTask > create(hello)
               | Rules:
-                 ⤷ PersonRules#createHelloTask > hello.<init>
                  ⤷ copyToTaskContainer
         + help
               | Type:   	org.gradle.configuration.Help
@@ -59,7 +58,7 @@ Root project
         + init
               | Type:   	org.gradle.buildinit.tasks.InitBuild
               | Value:  	task ':init'
-              | Creator: 	tasks.addPlaceholderAction(init)
+U              | Creator: 	tasks.addPlaceholderAction(init)
               | Rules:
                  ⤷ copyToTaskContainer
         + model
