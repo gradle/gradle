@@ -86,15 +86,15 @@ public class PlayPluginConfigurations {
             return configurations.getByName(name);
         }
 
-        FileCollection getFileCollection() {
+        FileCollection getAllArtifacts() {
             return getConfiguration();
         }
 
-        FileCollection getChangingFiles() {
+        FileCollection getChangingArtifacts() {
             return new FilterByProjectComponentTypeFileCollection(getConfiguration(), true);
         }
 
-        FileCollection getNonChangingFiles() {
+        FileCollection getNonChangingArtifacts() {
             return new FilterByProjectComponentTypeFileCollection(getConfiguration(), false);
         }
 

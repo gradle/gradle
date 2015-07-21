@@ -198,7 +198,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     PublicAssets assets = playBinary.getAssets();
                     assets.addAssetDir(new File(projectIdentifier.getProjectDir(), "public"));
 
-                    playBinaryInternal.setClasspath(configurations.getPlay().getFileCollection());
+                    playBinaryInternal.setClasspath(configurations.getPlay().getAllArtifacts());
                 }
             });
         }
@@ -378,8 +378,8 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         playRun.setApplicationJar(binary.getJarFile());
                         playRun.setAssetsJar(binary.getAssetsJarFile());
                         playRun.setAssetsDirs(binary.getAssets().getAssetDirs());
-                        playRun.setRuntimeClasspath(configurations.getPlayRun().getNonChangingFiles());
-                        playRun.setChangingClasspath(configurations.getPlayRun().getChangingFiles());
+                        playRun.setRuntimeClasspath(configurations.getPlayRun().getNonChangingArtifacts());
+                        playRun.setChangingClasspath(configurations.getPlayRun().getChangingArtifacts());
                         playRun.dependsOn(binary.getBuildTask());
                     }
                 });

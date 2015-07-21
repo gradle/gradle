@@ -136,7 +136,7 @@ public class PlayDistributionPlugin extends RuleSource {
             CopySpec libSpec = distSpec.addChild().into("lib");
             libSpec.from(distributionJar);
             libSpec.from(binary.getAssetsJarFile());
-            libSpec.from(configurations.getPlayRun().getFileCollection());
+            libSpec.from(configurations.getPlayRun().getAllArtifacts());
 
             CopySpec binSpec = distSpec.addChild().into("bin");
             binSpec.from(createStartScripts);
@@ -210,7 +210,7 @@ public class PlayDistributionPlugin extends RuleSource {
             return Joiner.on(" ").join(
                 Iterables.transform(
                     Iterables.concat(
-                        playConfiguration.getFileCollection(),
+                        playConfiguration.getAllArtifacts(),
                         Collections.singleton(assetsJarFile)
                     ),
                     new Function<File, String>() {

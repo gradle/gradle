@@ -101,7 +101,7 @@ public class PlayTestPlugin extends RuleSource {
     }
 
     private FileCollection getTestCompileClasspath(PlayApplicationBinarySpec binary, PlayToolProvider playToolProvider, PlayPluginConfigurations configurations) {
-        return new SimpleFileCollection(binary.getJarFile()).plus(configurations.getPlayTest().getFileCollection());
+        return new SimpleFileCollection(binary.getJarFile()).plus(configurations.getPlayTest().getAllArtifacts());
     }
 
     private FileCollection getRuntimeClasspath(File testClassesDir, FileCollection testCompileClasspath) {
