@@ -41,4 +41,11 @@ class TestKitSamplesIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(sample.dir)
         succeeds "check"
     }
+
+    @UsesSample("testKit/testKitSpockClasspath")
+    def buildscriptClasspath() {
+        expect:
+        executer.inDirectory(sample.dir)
+        succeeds "check"
+    }
 }

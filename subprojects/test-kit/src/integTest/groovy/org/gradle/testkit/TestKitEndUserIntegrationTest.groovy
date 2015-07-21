@@ -24,9 +24,10 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GFileUtils
 
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
-    public static final String[] GROOVY_SRC_PATH = ['src', 'test', 'groovy'] as String[]
-    public static final String[] TEST_CLASS_PACKAGE = ['org', 'gradle', 'test'] as String[]
-    public static final String[] TEST_CLASS_PATH = GROOVY_SRC_PATH + TEST_CLASS_PACKAGE
+    public static final String[] GROOVY_TEST_SRC_PATH = ['src', 'test', 'groovy'] as String[]
+    public static final String[] CLASS_PACKAGE = ['org', 'gradle', 'test'] as String[]
+    public static final String[] TEST_CLASS_PATH = GROOVY_TEST_SRC_PATH + CLASS_PACKAGE
+    public static final String[] GROOVY_SRC_PATH = ['src', 'main', 'groovy'] as String[]
     File functionalTestClassDir
 
     def setup() {
@@ -197,12 +198,94 @@ class BuildLogicFunctionalTest extends Specification {
         failure.output.contains('org.gradle.api.GradleException: Unable to start the daemon process.')
     }
 
+    def "can test plugin and custom task as external files by adding them to the build script's classpath"() {
+        buildFile << gradleApiDependency()
+        buildFile << gradleTestKitDependency()
+        File groovySrcDir = testDirectoryProvider.createDir(GROOVY_SRC_PATH + CLASS_PACKAGE)
+
+        GFileUtils.writeFile("""package org.gradle.test
+
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+class HelloWorldPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.task('helloWorld', type: HelloWorld)
+    }
+}
+""", new File(groovySrcDir, 'HelloWorldPlugin.groovy'))
+
+        GFileUtils.writeFile("""package org.gradle.test
+
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
+
+class HelloWorld extends DefaultTask {
+    @TaskAction
+    void doSomething() {
+        println 'Hello world!'
+    }
+}
+""", new File(groovySrcDir, 'HelloWorld.groovy'))
+
+        GFileUtils.writeFile("""package org.gradle.test
+
+import org.gradle.testkit.runner.GradleRunner
+import static org.gradle.testkit.runner.TaskResult.*
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import spock.lang.Specification
+
+class BuildLogicFunctionalTest extends Specification {
+    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+    File buildFile
+
+    def setup() {
+        buildFile = testProjectDir.newFile('build.gradle')
+        buildFile << '''
+            buildscript {
+                dependencies {
+                    classpath files('${new File(testDirectory, 'build/classes/main').absolutePath}')
+                }
+            }
+        '''
+    }
+
+    def "execute helloWorld task"() {
+        given:
+        buildFile << 'apply plugin: org.gradle.test.HelloWorldPlugin'
+
+        when:
+        def result = GradleRunner.create()
+            .withProjectDir(testProjectDir.root)
+            .withArguments('helloWorld')
+            .build()
+
+        then:
+        result.standardOutput.contains('Hello world!')
+        result.standardError == ''
+        result.taskPaths(SUCCESS) == [':helloWorld']
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UP_TO_DATE).empty
+        result.taskPaths(FAILED).empty
+    }
+}
+""", new File(functionalTestClassDir, 'BuildLogicFunctionalTest.groovy'))
+
+        when:
+        ExecutionResult result = succeeds('build')
+
+        then:
+        result.executedTasks.containsAll([':test', ':build'])
+        !result.skippedTasks.contains(':test')
+    }
+
     private String buildFileForGroovyProject() {
         """
             apply plugin: 'groovy'
 
             dependencies {
-                testCompile localGroovy()
+                compile localGroovy()
                 testCompile 'org.spockframework:spock-core:1.0-groovy-2.3'
             }
 
@@ -218,6 +301,14 @@ class BuildLogicFunctionalTest extends Specification {
         """
             dependencies {
                 testCompile gradleTestKit()
+            }
+        """
+    }
+
+    private String gradleApiDependency() {
+        """
+            dependencies {
+                compile gradleApi()
             }
         """
     }

@@ -90,6 +90,39 @@
         <sample id="testKitFunctionalTestSpock" dir="testKit/testKitSpock/src/test/groovy/org/gradle/sample" title="Using GradleRunner with Spock">
             <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock"/>
         </sample>
+        <para>
+            It is a common practice to implement any custom build logic (like plugins and task types) that is more complex in nature as external classes in a standalone project. The main
+            driver behind this approach is bundle the compiled code into a JAR file, publish it to a binary repository and reuse it across various projects.
+        </para>
+        <para>
+            At the moment the TestKit does not automatically add compiled class files under test to its classpath. Therefore the classes wouldn't be resolvable from a build script under
+            test when exercised by the <literal>GradleRunner</literal>. Future versions of Gradle will remove this impediment.
+        </para>
+        <para>
+            This scenario is still feasible though it requires some additional configuration. To provide the TestKit with the path to the classes output directory two steps need to be
+            implemented in the project:
+        </para>
+        <itemizedlist>
+            <listitem>Inject the path to the classes output directory to the <literal>Test</literal> task;</listitem>
+            <listitem>Add the injected classes output directory to the build script's classpath of the root project under test.</listitem>
+        </itemizedlist>
+        <para>
+            The following example demonstrates how to provide the path to the classes output directory as system property:
+        </para>
+        <sample id="testKitFunctionalTestSpockClassesOutputDirectory" dir="testKit/testKitSpockClasspath" title="Providing the classes output directory to test task">
+            <sourcefile file="build.gradle" snippet="classes-output-directory-system-property"/>
+        </sample>
+        <para>
+            In your test implementation that uses the <literal>GradleRunner</literal>, read the system property and add it to the build script's classpath. The following example extends
+            the <literal>setup</literal> method from the Spock test class shown above:
+        </para>
+        <sample id="testKitFunctionalTestSpockBuildScriptClasspath" dir="testKit/testKitSpockClasspath/src/test/groovy/org/gradle/sample" title="Adding the classes output directory to the build script's classpath">
+            <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-classpath-setup"/>
+        </sample>
+        <para>
+            While this approach works perfectly for running Gradle from the command line, additional logic would have to be put into place for executing the tests from an IDE. The main
+            reason is that the output directory (e.g. <literal>out/production/&lt;modulename&gt;</literal> in IntelliJ) used by IDEs differs from the one used by Gradle.
+        </para>
         <section>
             <title>The Gradle version used to test</title>
             <para>
