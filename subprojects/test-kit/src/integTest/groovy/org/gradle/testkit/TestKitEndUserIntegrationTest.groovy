@@ -246,7 +246,7 @@ class BuildLogicFunctionalTest extends Specification {
         buildFile << '''
             buildscript {
                 dependencies {
-                    classpath files('${TextUtil.escapeString(new File(testDirectory, 'build/classes/main').absolutePath)}')
+                    classpath files('${TextUtil.escapeString(new File(testDirectory, 'build/classes/main').canonicalPath)}')
                 }
             }
         '''
