@@ -391,10 +391,10 @@ class ClassInspectorTest extends Specification {
         getters[0].getDeclaringClass() == declaringClass
 
         where:
-        clazz                                                          | declaringClass
-        ImplementingRootClassSubSub_ImplementsRootInterfaceSub         | ImplementingRootClassSub
-        Extends_ImplementingRootClassSubSub_ImplementsRootInterfaceSub | Extends_ImplementingRootClassSubSub_ImplementsRootInterfaceSub
-        Extends_ImplementingRootClass                                  | ImplementingRootClass
+        clazz                                                        | declaringClass
+        ImplementingRootClassSubSubImplementsRootInterfaceSub        | ImplementingRootClassSub
+        ExtendsImplementingRootClassSubSubImplementsRootInterfaceSub | ExtendsImplementingRootClassSubSubImplementsRootInterfaceSub
+        ExtendsImplementingRootClass                                 | ImplementingRootClass
     }
 
     public interface RootInterface {
@@ -411,11 +411,11 @@ class ClassInspectorTest extends Specification {
         public String getInputs() { return "concrete" }
     }
 
-    public class ImplementingRootClassSubSub_ImplementsRootInterfaceSub extends ImplementingRootClassSub implements RootInterfaceSub {}
+    public class ImplementingRootClassSubSubImplementsRootInterfaceSub extends ImplementingRootClassSub implements RootInterfaceSub {}
 
-    public class Extends_ImplementingRootClassSubSub_ImplementsRootInterfaceSub extends ImplementingRootClassSubSub_ImplementsRootInterfaceSub {
+    public class ExtendsImplementingRootClassSubSubImplementsRootInterfaceSub extends ImplementingRootClassSubSubImplementsRootInterfaceSub {
         public String getInputs() { return "override" }
     }
 
-    public class Extends_ImplementingRootClass extends ImplementingRootClass {}
+    public class ExtendsImplementingRootClass extends ImplementingRootClass {}
 }
