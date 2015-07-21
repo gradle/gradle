@@ -16,6 +16,7 @@
 
 package org.gradle.testkit
 
+import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -229,6 +230,7 @@ class HelloWorld extends DefaultTask {
 }
 """, new File(groovySrcDir, 'HelloWorld.groovy'))
 
+        String classesDir = TextUtil.escapeString(new File(testDirectory, FilenameUtils.separatorsToSystem('build/classes/main')).canonicalPath)
         GFileUtils.writeFile("""package org.gradle.test
 
 import org.gradle.testkit.runner.GradleRunner
@@ -246,7 +248,7 @@ class BuildLogicFunctionalTest extends Specification {
         buildFile << '''
             buildscript {
                 dependencies {
-                    classpath files('${TextUtil.escapeString(new File(testDirectory, 'build/classes/main').canonicalPath)}')
+                    classpath files('$classesDir')
                 }
             }
         '''
