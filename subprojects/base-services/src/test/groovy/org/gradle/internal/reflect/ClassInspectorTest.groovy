@@ -372,50 +372,50 @@ class ClassInspectorTest extends Specification {
     }
 
     @Requires(TestPrecondition.NOT_JDK_IBM)
-    def "methods of super classes appear before methods of implemented interfaces"() {
+    def "super types ordered by their distance"() {
         expect:
         ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, AbstractCollection, List, RandomAccess, Cloneable, Serializable, Collection, Iterable]
     }
 
     @Requires(TestPrecondition.JDK_IBM)
-    def "methods of super classes appear before methods of implemented interfaces on IBMs jdk"() {
+    def "super types ordered by their distance on IBMs jdk"() {
         expect:
         ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, AbstractCollection, List, Cloneable, Serializable, RandomAccess, Collection, Iterable]
     }
 
     @Issue("GRADLE-3317")
-    def "should find the nearest method instance of the getInputs() getter"() {
+    def "method for property getter is for nearest declaration"() {
         expect:
         def details = ClassInspector.inspect(clazz)
         def getters = details.getProperty('inputs').getGetters()
         getters[0].getDeclaringClass() == declaringClass
 
         where:
-        clazz           | declaringClass
-        AndroidJarTask  | Jar
-        OverrideJarTask | OverrideJarTask
-        FromAbstract    | AbstractTask
+        clazz                                                          | declaringClass
+        ImplementingRootClassSubSub_ImplementsRootInterfaceSub         | ImplementingRootClassSub
+        Extends_ImplementingRootClassSubSub_ImplementsRootInterfaceSub | Extends_ImplementingRootClassSubSub_ImplementsRootInterfaceSub
+        Extends_ImplementingRootClass                                  | ImplementingRootClass
     }
 
-    public interface Task {
+    public interface RootInterface {
         public String getInputs()
     }
 
-    public interface BinaryFileProviderTask extends Task {}
+    public interface RootInterfaceSub extends RootInterface {}
 
-    public abstract class AbstractTask implements Task {
+    public class ImplementingRootClass implements RootInterface {
         public String getInputs() { return "super" }
     }
 
-    public class Jar extends AbstractTask {
+    public class ImplementingRootClassSub extends ImplementingRootClass {
         public String getInputs() { return "concrete" }
     }
 
-    public class AndroidJarTask extends Jar implements BinaryFileProviderTask {}
+    public class ImplementingRootClassSubSub_ImplementsRootInterfaceSub extends ImplementingRootClassSub implements RootInterfaceSub {}
 
-    public class OverrideJarTask extends AndroidJarTask {
+    public class Extends_ImplementingRootClassSubSub_ImplementsRootInterfaceSub extends ImplementingRootClassSubSub_ImplementsRootInterfaceSub {
         public String getInputs() { return "override" }
     }
 
-    public class FromAbstract extends AbstractTask {}
+    public class Extends_ImplementingRootClass extends ImplementingRootClass {}
 }

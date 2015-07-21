@@ -35,14 +35,10 @@ public class ClassInspector {
     private static void visitGraph(Class<?> type, MutableClassDetails classDetails) {
         Set<Class<?>> seen = new HashSet<Class<?>>();
         List<Class<?>> queue = new ArrayList<Class<?>>();
-        queue.add(type);
 
-        // We visit all super classes before visiting interfaces so ensure that when inspectClass() adds a getter/setter to a PropertyDetails,
-        // the method instance it adds is the 'nearest' one to the class being inspected.
-        // The precedence is as follows:
-        // 1. method instances declared in the class itself
-        // 2. method instances in the closest ancestor (super type),
-        // 3. method instances in interfaces.
+        // fully visit the class hierarchy before any interfaces in order to meet the contract
+        // of PropertyDetails.getGetters() etc.
+        queue.add(type);
         Collections.addAll(queue, superClasses(type));
         while (!queue.isEmpty()) {
             Class<?> current = queue.remove(0);
