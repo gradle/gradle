@@ -14,28 +14,41 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.protocol.test;
 
+import org.gradle.api.Transformer;
 import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.internal.OperationDescriptorInternal;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 public class TestExecutionRequest {
-    private List<OperationDescriptor> operationDescriptors;
+    private List<InternalOperationDescriptor> operationDescriptors;
     private Set<String> testClassNames;
 
     public TestExecutionRequest(List<OperationDescriptor> operationDescriptors, Set<String> testClassNames) {
-        this.operationDescriptors = operationDescriptors;
+        this.operationDescriptors = toInternal(operationDescriptors);
         this.testClassNames = testClassNames;
+    }
+
+    private List<InternalOperationDescriptor> toInternal(List<OperationDescriptor> operationDescriptors) {
+        return CollectionUtils.collect(operationDescriptors, new Transformer<InternalOperationDescriptor, OperationDescriptor>() {
+            @Override
+            public InternalOperationDescriptor transform(OperationDescriptor operationDescriptor) {
+                return ((OperationDescriptorInternal)operationDescriptor).getInternalOperationDescriptor();
+            }
+        });
     }
 
     public Collection<String> getTestClassNames() {
         return testClassNames;
     }
 
-    public Collection<OperationDescriptor> getOperationDescriptors() {
+    public Collection<InternalOperationDescriptor> getOperationDescriptors() {
         return operationDescriptors;
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.consumer.Distribution;
-import org.gradle.tooling.internal.consumer.TestExecutionRequest;
+import org.gradle.tooling.internal.protocol.test.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 /**

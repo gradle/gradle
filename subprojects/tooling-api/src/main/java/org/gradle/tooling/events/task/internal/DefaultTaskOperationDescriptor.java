@@ -19,6 +19,7 @@ package org.gradle.tooling.events.task.internal;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 
 /**
  * Implementation of the {@code TaskOperationDescriptor} interface.
@@ -27,8 +28,8 @@ public final class DefaultTaskOperationDescriptor extends DefaultOperationDescri
 
     private final String taskPath;
 
-    public DefaultTaskOperationDescriptor(String name, String displayName, String taskPath, OperationDescriptor parent) {
-        super(name, displayName, parent);
+    public DefaultTaskOperationDescriptor(InternalTaskDescriptor descriptor, String taskPath, OperationDescriptor parent) {
+        super(descriptor, parent);
         this.taskPath = taskPath;
     }
 

@@ -198,10 +198,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
         if (descriptor instanceof InternalJvmTestDescriptor) {
             InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
-            return new DefaultJvmTestOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent,
+            return new DefaultJvmTestOperationDescriptor(jvmTestDescriptor, parent,
                 toJvmTestKind(jvmTestDescriptor.getTestKind()), jvmTestDescriptor.getSuiteName(), jvmTestDescriptor.getClassName(), jvmTestDescriptor.getMethodName());
         } else {
-            return new DefaultTestOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent);
+            return new DefaultTestOperationDescriptor(descriptor, parent);
         }
     }
 
@@ -217,12 +217,12 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private TaskOperationDescriptor toTaskDescriptor(InternalTaskDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
-        return new DefaultTaskOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), descriptor.getTaskPath(), parent);
+        return new DefaultTaskOperationDescriptor(descriptor, descriptor.getTaskPath(), parent);
     }
 
     private OperationDescriptor toDescriptor(InternalOperationDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
-        return new DefaultOperationDescriptor(descriptor.getName(), descriptor.getDisplayName(), parent);
+        return new DefaultOperationDescriptor(descriptor, parent);
     }
 
     private synchronized OperationDescriptor getParentDescriptor(Object parentId) {

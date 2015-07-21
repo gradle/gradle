@@ -16,25 +16,13 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import com.google.common.collect.Lists;
-import org.gradle.tooling.TestExecutionException;
-import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.task.TaskOperationDescriptor;
-import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.DefaultInternalJvmTestExecutionDescriptor;
-import org.gradle.tooling.internal.consumer.DefaultInternalTestExecutionRequest;
-import org.gradle.tooling.internal.consumer.TestExecutionRequest;
+import org.gradle.tooling.internal.protocol.test.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
-
-import java.util.Collection;
-import java.util.List;
 
 /*
  * <p>Used for providers >= 2.5.</p>
@@ -48,36 +36,7 @@ public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnec
     @Override
     public Void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
         final BuildCancellationTokenAdapter cancellationTokenAdapter = new BuildCancellationTokenAdapter(operationParameters.getCancellationToken());
-        ((InternalTestExecutionConnection) getDelegate()).runTests(toInternalTestExecutionRequest(testExecutionRequest), cancellationTokenAdapter, operationParameters);
-        return null;
-    }
-
-    InternalTestExecutionRequest toInternalTestExecutionRequest(TestExecutionRequest testExecutionRequest) {
-        final Collection<OperationDescriptor> operationDescriptors = testExecutionRequest.getOperationDescriptors();
-        final List<InternalJvmTestExecutionDescriptor> internalJvmTestDescriptors = Lists.newArrayList();
-        for (final OperationDescriptor descriptor : operationDescriptors) {
-            if (descriptor instanceof JvmTestOperationDescriptor) {
-                JvmTestOperationDescriptor jvmTestOperationDescriptor = (JvmTestOperationDescriptor)descriptor;
-                internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(jvmTestOperationDescriptor.getClassName(), jvmTestOperationDescriptor.getMethodName(), findTaskPath(jvmTestOperationDescriptor)));
-            } else if (descriptor instanceof TaskOperationDescriptor) {
-                final TaskOperationDescriptor taskOperationDescriptor = (TaskOperationDescriptor) descriptor;
-                internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(null, null, taskOperationDescriptor.getTaskPath()));
-            } else {
-                throw new TestExecutionException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
-            }
-        }
-        InternalTestExecutionRequest internalTestExecutionRequest = new DefaultInternalTestExecutionRequest(internalJvmTestDescriptors, testExecutionRequest.getTestClassNames());
-        return internalTestExecutionRequest;
-    }
-
-    private String findTaskPath(JvmTestOperationDescriptor descriptor) {
-        OperationDescriptor parent = descriptor.getParent();
-        while (parent != null && parent.getParent() != null) {
-            parent = parent.getParent();
-            if (parent instanceof TaskOperationDescriptor) {
-                return ((TaskOperationDescriptor) parent).getTaskPath();
-            }
-        }
+        ((InternalTestExecutionConnection) getDelegate()).runTests(testExecutionRequest, cancellationTokenAdapter, operationParameters);
         return null;
     }
 }

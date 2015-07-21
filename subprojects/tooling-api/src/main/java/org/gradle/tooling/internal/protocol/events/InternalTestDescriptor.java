@@ -22,4 +22,5 @@ package org.gradle.tooling.internal.protocol.events;
  * @since 2.4
  */
 public interface InternalTestDescriptor extends InternalOperationDescriptor {
+    String getTaskPath();
 }

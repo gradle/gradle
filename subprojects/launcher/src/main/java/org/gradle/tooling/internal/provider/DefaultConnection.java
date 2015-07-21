@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.JavaVersion;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLayoutParameters;
@@ -26,13 +27,21 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.DefaultInternalJvmTestExecutionDescriptor;
+import org.gradle.tooling.internal.consumer.DefaultInternalTestExecutionRequest;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
+import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
+import org.gradle.tooling.internal.protocol.test.TestExecutionRequest;
 import org.gradle.tooling.internal.provider.connection.BuildLogLevelMixIn;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
@@ -42,6 +51,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.List;
 
 public class DefaultConnection implements InternalConnection, BuildActionRunner,
     ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection {
@@ -193,13 +204,31 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     /**
      * This is used by consumers 2.6-rc1 and later.
      */
-    public <T> BuildResult<T> runTests(InternalTestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
+    public <T> BuildResult<T> runTests(TestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         validateCanRun();
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
-        Object results = connection.runTests(testExecutionRequest, buildCancellationToken, providerParameters);
+        Object results = connection.runTests(toInternalTestExecutionRequest(testExecutionRequest), buildCancellationToken, providerParameters);
         return new ProviderBuildResult<T>((T) results);
+    }
+
+    InternalTestExecutionRequest toInternalTestExecutionRequest(TestExecutionRequest testExecutionRequest) {
+        final Collection<InternalOperationDescriptor> operationDescriptors = testExecutionRequest.getOperationDescriptors();
+        final List<InternalJvmTestExecutionDescriptor> internalJvmTestDescriptors = Lists.newArrayList();
+        for (final InternalOperationDescriptor descriptor : operationDescriptors) {
+            if (descriptor instanceof InternalJvmTestDescriptor) {
+                InternalJvmTestDescriptor jvmTestOperationDescriptor = (InternalJvmTestDescriptor)descriptor;
+                internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(jvmTestOperationDescriptor.getClassName(), jvmTestOperationDescriptor.getMethodName(), jvmTestOperationDescriptor.getTaskPath()));
+            } else if (descriptor instanceof InternalTaskDescriptor) {
+                final InternalTaskDescriptor taskOperationDescriptor = (InternalTaskDescriptor) descriptor;
+                internalJvmTestDescriptors.add(new DefaultInternalJvmTestExecutionDescriptor(null, null, taskOperationDescriptor.getTaskPath()));
+            } else {
+                throw new TestExecutionException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
+            }
+        }
+        InternalTestExecutionRequest internalTestExecutionRequest = new DefaultInternalTestExecutionRequest(internalJvmTestDescriptors, testExecutionRequest.getTestClassNames());
+        return internalTestExecutionRequest;
     }
 
     private void validateCanRun() {

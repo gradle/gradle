@@ -17,6 +17,7 @@ package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Describes an operation for which an event has occurred.
@@ -28,6 +29,7 @@ import org.gradle.api.Nullable;
  * @since 2.4
  */
 @Incubating
+@HasInternalProtocol
 public interface OperationDescriptor {
 
     /**

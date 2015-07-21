@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.internal.consumer.TestExecutionRequest;
+import org.gradle.tooling.internal.protocol.test.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 /**

@@ -70,7 +70,8 @@ class ClientForwardingTestListener implements TestListenerInternal {
         String className = suite.getClassName();
         String methodName = null;
         Object parentId = getParentId(suite);
-        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+        final String testTaskPath = getTestTaskPath(suite);
+        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId, testTaskPath);
     }
 
     private DefaultTestDescriptor toTestDescriptorForTest(TestDescriptorInternal test) {
@@ -82,7 +83,21 @@ class ClientForwardingTestListener implements TestListenerInternal {
         String className = test.getClassName();
         String methodName = test.getName();
         Object parentId = getParentId(test);
-        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId);
+        final String testTaskPath = getTestTaskPath(test);
+        return new DefaultTestDescriptor(id, name, displayName, testKind, suiteName, className, methodName, parentId, testTaskPath);
+    }
+
+    private String getTestTaskPath(TestDescriptorInternal descriptorInternal) {
+        TestDescriptorInternal parent = descriptorInternal;
+        while(parent != null && parent.getParent() != null) {
+            parent = parent.getParent();
+        }
+        if(parent != null ){
+            return parent.getId().toString();
+        }else {
+            return null;
+        }
+
     }
 
     private Object getParentId(TestDescriptorInternal descriptor) {

@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.test;
+package org.gradle.tooling.events.internal;
 
-import org.gradle.tooling.internal.protocol.BuildParameters;
-import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.InternalCancellationToken;
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
-public interface InternalTestExecutionConnection extends InternalProtocolInterface {
-    <T> BuildResult<T> runTests(TestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters);
+public interface OperationDescriptorInternal {
+    InternalOperationDescriptor getInternalOperationDescriptor();
 }

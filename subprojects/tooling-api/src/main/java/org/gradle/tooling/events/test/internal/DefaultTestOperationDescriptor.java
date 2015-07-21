@@ -19,14 +19,14 @@ package org.gradle.tooling.events.test.internal;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 
 /**
  * Implementation of the {@code TestOperationDescriptor} interface.
  */
 public class DefaultTestOperationDescriptor extends DefaultOperationDescriptor implements TestOperationDescriptor {
 
-    public DefaultTestOperationDescriptor(String name, String displayName, OperationDescriptor parent) {
-        super(name, displayName, parent);
+    public DefaultTestOperationDescriptor(InternalTestDescriptor internalTestDescriptor, OperationDescriptor parent) {
+        super(internalTestDescriptor, parent);
     }
-
 }
