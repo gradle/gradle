@@ -37,30 +37,6 @@ model {
     }
 }
 """
-        if (versionNumber.major == 2 && versionNumber.minor >= 4) {
-            buildFile << """
-repositories {
-    maven {
-        name = "scalaz-bintray"
-        url = "https://dl.bintray.com/scalaz/releases"
-    }
-}
-dependencies {
-    playTest 'org.specs2:specs2-junit_2.11:3.6.1'
-    playTest "com.typesafe.play:play-specs2_2.11:${version}"
-}
-"""
-            [file("test/ApplicationSpec.scala"), file("test/FailingApplicationSpec.scala")].each {
-                it.with {
-                    text = text.replace('route(FakeRequest(GET, "/boum")) must beNone', '''route(FakeRequest(GET, "/boum")) must beSome.which { result =>
-          status(result) must equalTo(NOT_FOUND)
-      }
-''')
-                }
-            }
-
-
-        }
     }
 
     def "reports failing run play app tests"() {
@@ -69,13 +45,13 @@ dependencies {
         then:
 
         output.contains(TextUtil.toPlatformLineSeparators("""
-FailingApplicationSpec > Application should::render the index page FAILED
-    org.specs2.reporter.SpecFailureAssertionFailedError
+FailingApplicationSpec > failingTest FAILED
+    java.lang.AssertionError at FailingApplicationSpec.scala:23
 """))
 
         output.contains(TextUtil.toPlatformLineSeparators("""
-FailingIntegrationSpec > Application should::work from within a browser FAILED
-    org.specs2.reporter.SpecFailureAssertionFailedError
+FailingIntegrationSpec > failingTest FAILED
+    java.lang.AssertionError at FailingIntegrationSpec.scala:23
 """))
         errorOutput.contains("6 tests completed, 2 failed")
         errorOutput.contains("> There were failing tests.")
