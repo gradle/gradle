@@ -322,6 +322,120 @@ model {
 
 - Need to method breaking changes in the release notes
 
+
+## Story: Unmanaged property information is stored in model schema
+
+Allow model schema to store information about properties defined in unmanaged types, and in the unmanaged ancestry of managed types.
+
+- extract property information about selected unmanaged types
+- extract property information from unmanaged super-types of managed types
+
+There are three kinds of properties:
+
+- *managed* — abstract getter/setter, implementation is generated, data stored in model
+- *unmanaged* — non-abstract getter/setter, implementation provided by managed type, data stored by managed class
+- *delegated* — no getter/setter in managed class, implementation generated, data stored by unmanaged delegate type
+
+Example:
+
+```
+@Managed
+abstract class SomeManagedType implements JarBinarySpec {
+
+  // managed property
+  abstract String getFlavor();
+  abstract void setFlavor(String flavor);
+
+  // unmanaged property
+  String getBuildType() {
+    return getFlavor() == “paid” ? “production” : “debug”;
+  }
+
+  // delegated property — inherited from JarBinarySpec
+  // JavaPlatform getTargetPlatform();
+  // void setTargetPlatform(JavaPlatform platform);
+}
+```
+
+### Test cases
+
+- properties are extracted from unmanaged type
+    - extractor strategy allows properties `a` and `b` to pass into the schema
+    - unmanaged type has properties `a`, `b` and `c`
+    - extracted schema contains the following properties:
+        - property `a` with `kind = UNMANAGED`
+        - property `b` with `kind = UNMANAGED`
+- properties are extracted from managed subtype of unmanaged type
+    - extractor strategy allows unmanaged properties `a` and `b` to pass into the schema
+    - unmanaged type has properties `a`, `b` and `c`
+    - managed subtype has abstract property `m`
+    - managed subtype has non-abstract property `u`
+    - extracted schema contains the following properties:
+        - property `a` with `kind = DELEGATED`
+        - property `b` with `kind = DELEGATED`
+        - property `m` has `kind = MANAGED`
+        - property `u` has `kind = UNMANAGED`
+- fail when managed type tries to override method from unmanaged super-type
+
+### Implementation
+
+#### Current workflow for extracting schema:
+
+- Managed types (with potential unmanaged super-type):
+    - get methods via Class.getMethods() — loses overridden method annotations
+    - ignore Object and GroovyObject methods and their overrides
+    - ignore all methods from unmanaged super-type (e.g. `JarBinarySpec`)
+    - verify no overloads
+    - process all getters
+        - validate getter (no type parameter, no parameters etc.)
+        - determine if getter is abstract
+        - find setter, and if found:
+            - validate setter (no type parameters, single parameter matches getter, void return type)
+            - ensure that both getter and setter are abstract
+        - only record if property is abstract (i.e. when we need to manage it)
+        - mark property methods as covered
+    - fail if any methods were left uncovered
+
+- Unmanaged types: opaque schema, do not record any properties
+
+#### Planned workflow:
+
+- Managed types (with potential unmanaged super-type):
+    - get all methods by crawling ancestry and using Clazz.getDeclaredMethods() (so that we don’t miss annotations on overridden methods with the same return type—this is to future-proof for variant detection)
+    - *ignore Object and GroovyObject methods and their overrides*
+    - ~~ignore all methods from unmanaged super-type (e.g. `JarBinarySpec`)~~
+    - *verify no overloads*
+    - verify no overrides of delegated methods of an unmanaged super-type
+    - *process all getters*
+        - *validate getter (no type parameter, no parameters etc.)*
+        - *determine if getter is abstract*
+        - determine if getter has implementation (i.e. it’s going to be generated, because it’s part of `JarBinarySpec`)
+        - *find setter, and if found:*
+            - *validate setter (no type parameters, single parameter matches getter, void return type)*
+            - determine if setter has implementation (i.e. it’s going to be generated, because it’s part of `JarBinarySpec`)
+            - ensure that either both getter and setter are abstract, or both of them have implementation
+        - record property
+            - if property is delegated then `kind = DELEGATED`
+            - otherwise if property has implementation, then `kind = UNMANAGED`
+            - otherwise `kind = MANAGED`
+        - *mark property methods as covered*
+    - mark all methods of the delegate type as covered
+    - *fail if any methods were left uncovered*
+
+- Unmanaged types:
+    - if type is not one of the known types, use the normal opaque schema
+    - otherwise do the same as for the managed case, but:
+        - always assume that a method has an implementation
+        - record all properties as `kind = UNMANAGED`
+        - do not fail if any methods were not covered
+
+### Open issues
+
+- `ModelProperty.unmanaged` is currently used to mark properties that have an unmanaged *type.* This is only used in one place to check if the property was indeed annotated with `@Unmanaged`, but serves no other use (yet?). This collides somewhat with the definition of “kind = UNMANAGED” above.
+- Might there be a point in using the schema instead of the managed class itself during the managed proxy generation?
+- Should we rewrite existing tests using unmanaged subtypes to use managed subtypes instead?
+
+
 ## Story: Plugin author defines a custom component built from Java source
 
 Define a custom component that produces a Jar binary from Java source and resources, using the `jvm-component` plugin.
