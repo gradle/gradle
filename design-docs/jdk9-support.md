@@ -40,6 +40,26 @@ Proposed solution is to use a classpath manifest jar only on 9 and later.
 
 See: https://issues.gradle.org/browse/GRADLE-3286
 
+## Update linux jdk9 installation
+
+### open issues
+
+- convenient update of jdk9 early access releases
+
+## Add windows jdk9 coverage to Gradle CI pipeline
+
+At the moment there is no 64bit windows jdk9 available yet (Build b60)
+
+### implementation
+
+- add jdk9 installation to the windows vm boxes
+    - update salt-master win-repo setup to download jdk9 from java.net
+    - update windows build vms to install jdk9
+- setup  `Windows - Java 1.9 - Quick test` build configuration on teamcity
+    - running `clean quickTest`
+    - for `master` pipeline
+    - for `release` pipeline
+
 # Feature: Self hosted on Java 9
 
 Goal: Run a coverage CI build on Java 9. At completion, it will be possible to build and test Gradle using Java 9.
