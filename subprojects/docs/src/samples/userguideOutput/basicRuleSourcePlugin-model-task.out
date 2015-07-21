@@ -58,7 +58,7 @@ Root project
         + init
               | Type:   	org.gradle.buildinit.tasks.InitBuild
               | Value:  	task ':init'
-U              | Creator: 	tasks.addPlaceholderAction(init)
+              | Creator: 	tasks.addPlaceholderAction(init)
               | Rules:
                  ⤷ copyToTaskContainer
         + model
