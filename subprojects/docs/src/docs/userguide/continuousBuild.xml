@@ -56,8 +56,7 @@
             </para>
         </tip>
         <para>
-            At this time, <emphasis>only</emphasis> changes to input files to the previously executed tasks will initiate a build.
-            Furthermore, only changes that occur after the build has completed (and Gradle has prompted that it is waiting for changes) are noticed.
+            At this time, only changes that occur after the build has completed (and Gradle has prompted that it is waiting for changes) are noticed.
             No other changes will initiate a build.
             For example, changes to build scripts and build logic will not initiate build.
             Likewise, changes to files that are read during the configuration of the build, not the execution, will not initiate a build.
