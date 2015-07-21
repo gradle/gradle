@@ -42,6 +42,11 @@ public interface GradleHandle {
     ExecutionFailure waitForFailure();
 
     /**
+     * Blocks until the build is complete and exits, disregarding the result.
+     */
+    void waitForExit();
+
+    /**
      * Returns true if the build is currently running.
      */
     boolean isRunning();

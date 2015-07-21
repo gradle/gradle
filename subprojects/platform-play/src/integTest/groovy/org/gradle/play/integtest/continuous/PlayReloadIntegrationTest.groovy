@@ -144,7 +144,6 @@ var message = "Hello JS";
 
         when:
         file("app/controllers/jva/PureJava.java") << "XXX"
-        expectBuildFailure = true
 
         then:
         fails()

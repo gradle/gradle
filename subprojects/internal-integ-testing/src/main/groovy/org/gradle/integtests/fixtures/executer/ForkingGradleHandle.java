@@ -100,6 +100,11 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         return (ExecutionFailure) waitForStop(true);
     }
 
+    @Override
+    public void waitForExit() {
+        getExecHandle().waitForFinish().rethrowFailure();
+    }
+
     protected ExecutionResult waitForStop(boolean expectFailure) {
         ExecHandle execHandle = getExecHandle();
         ExecResult execResult = execHandle.waitForFinish();
@@ -111,7 +116,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         boolean didFail = execResult.getExitValue() != 0;
         if (didFail != expectFailure) {
             String message = String.format("Gradle execution %s in %s with: %s %s%nOutput:%n%s%n-----%nError:%n%s%n-----%n",
-                    expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), execHandle.getArguments(), output, error);
+                expectFailure ? "did not fail" : "failed", execHandle.getDirectory(), execHandle.getCommand(), execHandle.getArguments(), output, error);
             throw new UnexpectedBuildFailure(message);
         }
 

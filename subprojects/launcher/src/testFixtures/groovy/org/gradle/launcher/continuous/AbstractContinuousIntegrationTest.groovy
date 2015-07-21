@@ -39,7 +39,6 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
 
     int buildTimeout = WAIT_FOR_WATCHING_TIMEOUT_SECONDS
     int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
-    boolean expectBuildFailure = false
     boolean killToStop
 
     @Rule
@@ -151,7 +150,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
             } else {
                 closeStdIn()
                 new SimpleTimeLimiter().callWithTimeout(
-                    { expectBuildFailure ? gradle.waitForFailure() : gradle.waitForFinish() },
+                    { gradle.waitForExit() },
                     shutdownTimeout, TimeUnit.SECONDS, false
                 )
             }
