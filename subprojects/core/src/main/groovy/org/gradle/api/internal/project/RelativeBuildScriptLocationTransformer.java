@@ -29,7 +29,7 @@ public class RelativeBuildScriptLocationTransformer implements Transformer<Optio
         Transformer<String, File> stringFileTransformer = RelativeFileNameTransformer.from(project.getProjectDir());
         File file = project.getBuildScriptSource().getResource().getFile();
         if (null != file) {
-            return Optional.of(File.separatorChar + stringFileTransformer.transform(file));
+            return Optional.of(stringFileTransformer.transform(file));
         }
         return Optional.absent();
     }

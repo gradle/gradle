@@ -18,7 +18,10 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.internal.BiActions;
@@ -46,12 +49,14 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final ModelGraph modelGraph;
     private final RuleBindings ruleBindings;
     private final ModelRuleExtractor ruleExtractor;
+    private final String documentationLocation;
     private final Set<RuleBinder> unboundRules = Sets.newIdentityHashSet();
 
     boolean reset;
 
-    public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
+    public DefaultModelRegistry(ModelRuleExtractor ruleExtractor, String documentationLocation) {
         this.ruleExtractor = ruleExtractor;
+        this.documentationLocation = documentationLocation;
         ModelCreator rootCreator = ModelCreators.of(ModelPath.ROOT, BiActions.doNothing()).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
         modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootCreator, ModelPath.ROOT), null));
         modelGraph.getRoot().setState(Created);
@@ -280,7 +285,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private UnboundModelRulesException unbound(Iterable<? extends RuleBinder> binders) {
         ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(modelGraph.getFlattened().keySet());
         List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
-        return new UnboundModelRulesException(unboundRules);
+        return new UnboundModelRulesException(unboundRules, documentationLocation);
     }
 
     private ModelNodeInternal require(ModelPath path) {

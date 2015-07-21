@@ -36,7 +36,7 @@ import spock.lang.Unroll
 import java.beans.Introspector
 
 class ModelRuleExtractorTest extends Specification {
-    ModelRegistry registry = new DefaultModelRegistry(null)
+    ModelRegistry registry = new DefaultModelRegistry(null, null)
     def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
 
     static class ModelThing {

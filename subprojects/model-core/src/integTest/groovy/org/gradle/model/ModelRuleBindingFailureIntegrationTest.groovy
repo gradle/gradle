@@ -55,17 +55,19 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules could not be applied:
-  MyPlugin\$Rules#mutateThing2
+        failure.assertHasCause('''The following model rules could not be applied due to unsatisfied dependencies:
+  MyPlugin$Rules#mutateThing2
     Subject:
-       | Found:false | Path:<unspecified> | Type:MyPlugin\$MyThing2 | Description:parameter 1|
+      <no path> MyPlugin$MyThing2 (parameter 1) [UNBOUND]
     Inputs:
-       | Found:false | Path:<unspecified> | Type:MyPlugin\$MyThing3 | Description:parameter 2|
-       | Found:false | Path:<unspecified> | Type:java.lang.String | Description:parameter 3|
-       | Found:false | Path:<unspecified> | Type:java.lang.Integer | Description:parameter 4|
-  MyPlugin\$Rules#thing1
+      <no path> MyPlugin$MyThing3 (parameter 2) [UNBOUND]
+      <no path> java.lang.String (parameter 3) [UNBOUND]
+      <no path> java.lang.Integer (parameter 4) [UNBOUND]
+  MyPlugin$Rules#thing1
     Inputs:
-       | Found:false | Path:<unspecified> | Type:MyPlugin\$MyThing2 | Description:parameter 1|""")
+      <no path> MyPlugin$MyThing2 (parameter 1) [UNBOUND]
+  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
+ ''')
     }
 
     def "unbound dsl rules are reported"() {
@@ -83,10 +85,10 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules could not be applied:
-  model.foo.bar @ ${File.separator}build.gradle line 4, column 17
+        failure.assertHasCause("""The following model rules could not be applied due to unsatisfied dependencies:
+  model.foo.bar @ build.gradle line 4, column 17
     Subject:
-       | Found:false | Path:foo.bar | Type:java.lang.Object|""")
+      foo.bar java.lang.Object [UNBOUND]""")
     }
 
     def "suggestions are provided for unbound rules"() {
@@ -114,10 +116,12 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules could not be applied:
-  model.tasks.foonar @ ${File.separator}build.gradle line 15, column 17
+        failure.assertHasCause('''The following model rules could not be applied due to unsatisfied dependencies:
+  model.tasks.foonar @ build.gradle line 15, column 17
     Subject:
-       | Found:false | Path:tasks.foonar | Type:java.lang.Object | Suggestions:tasks.foobar|""")
+      tasks.foonar java.lang.Object Suggestions:tasks.foobar [UNBOUND]
+  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
+  ''')
     }
 
     def "ambiguous binding integration test"() {
@@ -210,10 +214,11 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules could not be applied:
+        failure.assertHasCause('''The following model rules could not be applied due to unsatisfied dependencies:
   Rules#foo
     Inputs:
-       | Found:false | Path:bar | Type:java.lang.Integer""")
+      bar java.lang.Integer (parameter 1) [UNBOUND]
+  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)''')
     }
 
     def "unbound rule for project that has no needed tasks does not cause error"() {
@@ -225,7 +230,7 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
         succeeds ":b:dependencies"
         fails ":a:dependencies"
         failure.assertHasDescription("A problem occurred configuring project ':a'")
-        failure.assertHasCause("The following model rules could not be applied:")
+        failure.assertHasCause("The following model rules could not be applied due to unsatisfied dependencies:")
     }
 
     def "bound subject with unbound inputs are reported"() {
@@ -260,16 +265,17 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
         fails "tasks"
 
         then:
-        failure.assertHasCause("""The following model rules could not be applied:
-  MyPlugin\$Rules#mutateThing2
+        failure.assertHasCause('''The following model rules could not be applied due to unsatisfied dependencies:
+  MyPlugin$Rules#mutateThing2
     Subject:
-       | Found:false | Path:<unspecified> | Type:MyPlugin\$MyThing2 | Description:parameter 1|
+      <no path> MyPlugin$MyThing2 (parameter 1) [UNBOUND]
     Inputs:
-       | Found:false | Path:<unspecified> | Type:MyPlugin\$MyThing3 | Description:parameter 2|
-  MyPlugin\$Rules#thing1
+      <no path> MyPlugin$MyThing3 (parameter 2) [UNBOUND]
+  MyPlugin$Rules#thing1
     Subject:
-       | Found:true | Path:thing1 | Type:MyPlugin\$MyThing1 | Description:parameter 1|
+      thing1 MyPlugin$MyThing1 (parameter 1)
     Inputs:
-       | Found:false | Path:<unspecified> | Type:MyPlugin\$MyThing3 | Description:parameter 2|""")
+      <no path> MyPlugin$MyThing3 (parameter 2) [UNBOUND]
+  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)''')
     }
 }

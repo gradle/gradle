@@ -518,6 +518,6 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: model.tasks")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'model.tasks @ ${File.separator}${buildFile.name}")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'model.tasks @ ${buildFile.name}")
     }
 }

@@ -26,19 +26,19 @@ import java.util.List;
 
 public class UnboundModelRulesException extends GradleException {
 
-    private static final String MESSAGE = "The following model rules could not be applied:";
+    private static final String MESSAGE = "The following model rules could not be applied due to unsatisfied dependencies:";
     private final List<? extends UnboundRule> rules;
 
-    public UnboundModelRulesException(List<? extends UnboundRule> rules) {
-        super(toMessage(rules));
+    public UnboundModelRulesException(List<? extends UnboundRule> rules, String documentationLocation) {
+        super(toMessage(rules, documentationLocation));
         this.rules = rules;
     }
 
-    private static String toMessage(Iterable<? extends UnboundRule> rules) {
+    private static String toMessage(Iterable<? extends UnboundRule> rules, String documentationLocation) {
         StringWriter string = new StringWriter();
         PrintWriter writer = new PrintWriter(string);
         writer.println(MESSAGE);
-        new UnboundRulesReporter(writer, "  ").reportOn(rules);
+        new UnboundRulesReporter(writer, "  ", documentationLocation).reportOn(rules);
         return string.toString();
     }
 

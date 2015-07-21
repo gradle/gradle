@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class MutationRuleExecutionOrderTest extends Specification {
     def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
-    def modelRegistry = new ModelRegistryHelper(new DefaultModelRegistry(extractor))
+    def modelRegistry = new ModelRegistryHelper(new DefaultModelRegistry(extractor, null))
 
     static class MutationRecorder {
         def mutations = []

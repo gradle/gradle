@@ -80,10 +80,12 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message) == """The following model rules could not be applied:
+        normaliseLineSeparators(e.message) == '''The following model rules could not be applied due to unsatisfied dependencies:
   foo creator
     Inputs:
-       | Found:false | Path:other | Type:java.lang.Object|"""
+      other java.lang.Object [UNBOUND]
+  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
+  see: testDocs'''
     }
 
     def "cannot get element for which creator by-type input does not exist"() {
@@ -95,10 +97,12 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message) == """The following model rules could not be applied:
+        normaliseLineSeparators(e.message) == '''The following model rules could not be applied due to unsatisfied dependencies:
   foo creator
     Inputs:
-       | Found:false | Path:<unspecified> | Type:java.lang.Long|"""
+      <no path> java.lang.Long [UNBOUND]
+  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
+  see: testDocs'''
     }
 
     def "cannot register creator when by-type input is ambiguous"() {
@@ -875,16 +879,18 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message) == '''The following model rules could not be applied:
+        normaliseLineSeparators(e.message) == '''The following model rules could not be applied due to unsatisfied dependencies:
   by-path
     Subject:
-       | Found:false | Path:a.b | Type:java.lang.Object|
+      a.b java.lang.Object [UNBOUND]
   by-path-and-type
     Subject:
-       | Found:false | Path:missing | Type:java.lang.String|
+      missing java.lang.String [UNBOUND]
   by-type
     Subject:
-       | Found:false | Path:<unspecified> | Type:java.lang.Long|'''
+      <no path> java.lang.Long [UNBOUND]
+  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
+  see: testDocs'''
     }
 
     def "reports unbound inputs"() {
@@ -898,20 +904,22 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message) == '''The following model rules could not be applied:
+        normaliseLineSeparators(e.message) == '''The following model rules could not be applied due to unsatisfied dependencies:
   by-path
     Subject:
-       | Found:true | Path:foo | Type:java.lang.Object|
+      foo java.lang.Object
     Inputs:
-       | Found:false | Path:other.thing | Type:java.lang.String | Description:java.lang.String|
+      other.thing java.lang.String (java.lang.String) [UNBOUND]
   by-type
     Subject:
-       | Found:false | Path:<unspecified> | Type:java.lang.Runnable|
+      <no path> java.lang.Runnable [UNBOUND]
     Inputs:
-       | Found:false | Path:<unspecified> | Type:java.lang.String | Description:java.lang.String|
+      <no path> java.lang.String (java.lang.String) [UNBOUND]
   creator
     Inputs:
-       | Found:false | Path:a.b | Type:java.lang.Object | Description:a.b|'''
+      a.b java.lang.Object (a.b) [UNBOUND]
+  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
+  see: testDocs'''
     }
 
     def "closes elements as required to bind all subjects and inputs"() {
@@ -965,12 +973,14 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message) == '''The following model rules could not be applied:
+        normaliseLineSeparators(e.message) == '''The following model rules could not be applied due to unsatisfied dependencies:
   non-bindable
     Subject:
-       | Found:true | Path:foo | Type:org.gradle.model.internal.registry.DefaultModelRegistryTest\$Bean|
+      foo org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean
     Inputs:
-       | Found:false | Path:emptyBeans.element | Type:org.gradle.model.internal.registry.DefaultModelRegistryTest\$Bean|'''
+      emptyBeans.element org.gradle.model.internal.registry.DefaultModelRegistryTest$Bean [UNBOUND]
+  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
+  see: testDocs'''
     }
 
     def "does not report unbound creators of removed nodes"() {

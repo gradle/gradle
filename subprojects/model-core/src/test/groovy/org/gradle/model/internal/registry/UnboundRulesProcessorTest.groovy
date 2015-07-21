@@ -47,7 +47,7 @@ class UnboundRulesProcessorTest extends RegistrySpec {
 
     String reportFor(List<UnboundRule> rules) {
         def writer = new StringWriter()
-        new UnboundRulesReporter(new PrintWriter(writer), "").reportOn(rules)
+        new UnboundRulesReporter(new PrintWriter(writer), "", "").reportOn(rules)
         normaliseLineSeparators(writer.toString())
     }
 

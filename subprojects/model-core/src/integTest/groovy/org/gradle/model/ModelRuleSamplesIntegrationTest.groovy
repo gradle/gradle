@@ -35,3 +35,5 @@ class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Hello John Smith!")
     }
 }
+
+

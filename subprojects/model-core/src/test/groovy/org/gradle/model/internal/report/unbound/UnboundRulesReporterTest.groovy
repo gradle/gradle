@@ -22,7 +22,8 @@ import spock.lang.Specification
 class UnboundRulesReporterTest extends Specification {
 
     def output = new StringWriter()
-    def reporter = new UnboundRulesReporter(new PrintWriter(output), "> ")
+
+    def reporter = new UnboundRulesReporter(new PrintWriter(output), "> ", 'http://someDocs/blah.html')
 
     def "reports on unbound rules"() {
         when:
@@ -39,12 +40,15 @@ class UnboundRulesReporterTest extends Specification {
         then:
         output.toString() == TextUtil.toPlatformLineSeparators("""> r1
 >   Subject:
->      | Found:false | Path:parent.p1 | Type:java.lang.String|
->      | Found:false | Path:<unspecified> | Type:java.lang.String | Scope:'some.scope'|
->      | Found:true | Path:parent.p3 | Type:java.lang.Integer|
+>     parent.p1 java.lang.String [UNBOUND]
+>     <no path> java.lang.String scope:'some.scope' [UNBOUND]
+>     parent.p3 java.lang.Integer
 >   Inputs:
->      | Found:false | Path:parent.p4 | Type:java.lang.Number | Suggestions:parent.p31, parent.p32|
->      | Found:false | Path:<unspecified> | Type:java.lang.Number|
->      | Found:true | Path:parent.p6 | Type:java.lang.Number|""")
+>     parent.p4 java.lang.Number Suggestions:parent.p31, parent.p32 [UNBOUND]
+>     <no path> java.lang.Number [UNBOUND]
+>     parent.p6 java.lang.Number
+  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
+  see: http://someDocs/blah.html""")
     }
 }
+

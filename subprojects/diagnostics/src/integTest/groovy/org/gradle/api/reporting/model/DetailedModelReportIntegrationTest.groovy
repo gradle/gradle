@@ -48,7 +48,7 @@ model {
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "model.numbers @ /build.gradle line 9, column 5"
+        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "model.numbers @ build.gradle line 9, column 5"
     }
 
     def "can find the relative path to a custom named build script"() {
@@ -72,7 +72,7 @@ model {
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "model.numbers @ /why.gradle line 9, column 5"
+        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "model.numbers @ why.gradle line 9, column 5"
     }
 
     def "can find the relative path when model configuration is via an apply from"() {
@@ -94,7 +94,7 @@ model {
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "model.numbers @ /build.gradle line 9, column 13"
+        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "model.numbers @ build.gradle line 9, column 13"
     }
 
     private String managedNumbers() {

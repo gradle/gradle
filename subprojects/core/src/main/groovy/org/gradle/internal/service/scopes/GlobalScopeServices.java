@@ -233,12 +233,13 @@ public class GlobalScopeServices {
         return new ModelRuleSourceDetector();
     }
 
-    protected ModelRegistryStore createModelRegistryStore(GradleBuildEnvironment buildEnvironment, ModelRuleExtractor ruleExtractor) {
+    protected ModelRegistryStore createModelRegistryStore(GradleBuildEnvironment buildEnvironment, ModelRuleExtractor ruleExtractor, DocumentationRegistry documentationRegistry) {
+        String documentationFor = documentationRegistry.getDocumentationFor("new-model");
         if (buildEnvironment.isLongLivingProcess() && Boolean.getBoolean(ReusingModelRegistryStore.TOGGLE)) {
             LOGGER.warn(ReusingModelRegistryStore.BANNER);
-            return new ReusingModelRegistryStore(ruleExtractor);
+            return new ReusingModelRegistryStore(ruleExtractor, documentationFor);
         } else {
-            return new AlwaysNewModelRegistryStore(ruleExtractor);
+            return new AlwaysNewModelRegistryStore(ruleExtractor, documentationFor);
         }
     }
 

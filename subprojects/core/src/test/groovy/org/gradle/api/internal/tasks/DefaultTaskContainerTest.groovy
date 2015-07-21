@@ -32,7 +32,7 @@ import static java.util.Collections.singletonMap
 public class DefaultTaskContainerTest extends Specification {
 
     private taskFactory = Mock(ITaskFactory)
-    def modelRegistry = new DefaultModelRegistry(null)
+    def modelRegistry = new DefaultModelRegistry(null, null)
     private project = Mock(ProjectInternal, name: "<project>") {
         getModelRegistry() >> modelRegistry
     }
