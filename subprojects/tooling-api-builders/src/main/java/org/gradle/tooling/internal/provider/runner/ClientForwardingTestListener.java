@@ -89,15 +89,14 @@ class ClientForwardingTestListener implements TestListenerInternal {
 
     private String getTestTaskPath(TestDescriptorInternal descriptorInternal) {
         TestDescriptorInternal parent = descriptorInternal;
-        while(parent != null && parent.getParent() != null) {
+        while (parent != null && parent.getParent() != null) {
             parent = parent.getParent();
         }
-        if(parent != null ){
+        if (parent != null) {
             return parent.getId().toString();
-        }else {
+        } else {
             return null;
         }
-
     }
 
     private Object getParentId(TestDescriptorInternal descriptor) {
