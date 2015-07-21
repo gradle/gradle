@@ -47,6 +47,28 @@ class DefaultGradleRunnerTest extends Specification {
         thrown(UnsupportedOperationException)
     }
 
+    def "creates defensive copy of passed in argument lists"() {
+        given:
+        def originalArguments = ['arg1', 'arg2']
+        def originalJvmArguments = ['arg3', 'arg4']
+
+        when:
+        defaultGradleRunner.withArguments(originalArguments)
+        defaultGradleRunner.withJvmArguments(originalJvmArguments)
+
+        then:
+        defaultGradleRunner.arguments == ['arg1', 'arg2']
+        defaultGradleRunner.jvmArguments == ['arg3', 'arg4']
+
+        when:
+        originalArguments << 'arg5'
+        originalJvmArguments << 'arg6'
+
+        then:
+        defaultGradleRunner.arguments == ['arg1', 'arg2']
+        defaultGradleRunner.jvmArguments == ['arg3', 'arg4']
+    }
+
     def "creates diagnostic message for execution result without thrown exception"() {
         given:
         GradleExecutionResult gradleExecutionResult = createGradleExecutionResult()

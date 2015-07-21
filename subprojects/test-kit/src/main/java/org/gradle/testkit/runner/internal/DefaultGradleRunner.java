@@ -69,7 +69,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     public GradleRunner withArguments(List<String> arguments) {
-        this.arguments = arguments;
+        this.arguments = new ArrayList<String>(arguments);
         return this;
     }
 
@@ -78,7 +78,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     public GradleRunner withJvmArguments(List<String> jvmArguments) {
-        this.jvmArguments = jvmArguments;
+        this.jvmArguments = new ArrayList<String>(jvmArguments);
         return this;
     }
 
