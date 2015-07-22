@@ -19,10 +19,7 @@ package org.gradle.testkit.runner.internal;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gradle.api.Action;
 import org.gradle.internal.SystemProperties;
-import org.gradle.testkit.runner.BuildResult;
-import org.gradle.testkit.runner.GradleRunner;
-import org.gradle.testkit.runner.UnexpectedBuildFailure;
-import org.gradle.testkit.runner.UnexpectedBuildSuccess;
+import org.gradle.testkit.runner.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -142,8 +139,8 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private BuildResult run(Action<GradleExecutionResult> resultVerification) {
-        if(projectDirectory == null) {
-            throw new IllegalStateException("Please specify a project directory before executing the build");
+        if (projectDirectory == null) {
+            throw new InvalidRunnerConfigurationException("Please specify a project directory before executing the build");
         }
 
         GradleExecutionResult execResult = gradleExecutor.run(

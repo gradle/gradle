@@ -133,14 +133,14 @@ Unexpected exception
         gradleRunner.build()
 
         then:
-        Throwable t = thrown(IllegalStateException)
+        Throwable t = thrown(InvalidRunnerConfigurationException)
         t.message == expectedErrorMessage
 
         when:
         gradleRunner.buildAndFail()
 
         then:
-        t = thrown(IllegalStateException)
+        t = thrown(InvalidRunnerConfigurationException)
         t.message == expectedErrorMessage
     }
 

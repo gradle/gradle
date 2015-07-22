@@ -34,16 +34,18 @@ import java.util.List;
  * <p>
  * A runner can be created via the {@link #create()} method.
  * <p>
+ * Typically, the test code using the runner will programmatically create a build (e.g. by writing Gradle build files to a temporary space) to execute.
+ * The build to execute is effectively specified by the {@link #withProjectDir(File)}} method.
+ * It is a requirement that a project directory be set.
+ * <p>
  * The {@link #withArguments(String...)} method allows the build arguments to be specified,
- * just as they would be on the command line. It's required to provide a project directory with
- * the method {@link #withProjectDir(File)}} before invoking the build.
+ * just as they would be on the command line.
+ * <p>
  * The {@link #build()} method can be used to invoke the build when it is expected to succeed,
  * while the {@link #buildAndFail()} method can be used when the build is expected to fail.
  * <p>
  * GradleRunner instances are not thread safe and cannot be used concurrently.
  * However, multiple instances are able to be used concurrently.
- * <p>
- * Further aspects of the build are also able to be configured.
  * <p>
  * Please see <a href="https://docs.gradle.org/current/userguide/test_kit.html">the Gradle TestKit User Guide chapter</a> for more information.
  *
@@ -106,7 +108,10 @@ public abstract class GradleRunner {
     /**
      * Sets the directory that the Gradle will be executed in.
      * <p>
-     * This method is required to be called before using {@link #build()} or {@link #buildAndFail()}.
+     * This is typically set to the root project of the build under test.
+     * <p>
+     * A project directory must be set.
+     * This method must be called before {@link #build()} or {@link #buildAndFail()}.
      *
      * @param projectDir the project directory
      * @return {@code this}
@@ -147,19 +152,19 @@ public abstract class GradleRunner {
     /**
      * Executes a build, expecting it to complete without failure.
      *
-     * @throws IllegalStateException if project directory was not provided beforehand
+     * @throws InvalidRunnerConfigurationException if the configuration of this runner is invalid (e.g. project directory not set)
      * @throws UnexpectedBuildFailure if the build does not succeed
      * @return the build result
      */
-    public abstract BuildResult build() throws IllegalStateException, UnexpectedBuildFailure;
+    public abstract BuildResult build() throws InvalidRunnerConfigurationException, UnexpectedBuildFailure;
 
     /**
      * Executes a build, expecting it to complete with failure.
      *
-     * @throws IllegalStateException if project directory was not provided beforehand
+     * @throws InvalidRunnerConfigurationException if the configuration of this runner is invalid (e.g. project directory not set)
      * @throws UnexpectedBuildSuccess if the build succeeds
      * @return the build result
      */
-    public abstract BuildResult buildAndFail() throws IllegalStateException, UnexpectedBuildSuccess;
+    public abstract BuildResult buildAndFail() throws InvalidRunnerConfigurationException, UnexpectedBuildSuccess;
 
 }
