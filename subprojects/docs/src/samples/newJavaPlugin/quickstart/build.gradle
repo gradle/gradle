@@ -1,0 +1,38 @@
+// START SNIPPET use-plugin
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+// END SNIPPET use-plugin
+
+// START SNIPPET single-lib
+model {
+    components {
+        main(JvmLibrarySpec)
+    }
+// END SNIPPET single-lib
+// START SNIPPET configure-sourceset
+    components {
+        main {
+            sources {
+                java {
+                    // configure the "java" source set
+                }
+            }
+        }
+    }
+// END SNIPPET configure-sourceset
+// START SNIPPET new-sourceset
+    components {
+        main {
+            sources {
+                mySourceSet(JavaSourceSet) {
+                    // configure the "mySourceSet" source set
+                }
+            }
+        }
+    }
+// END SNIPPET new-sourceset
+// START SNIPPET single-lib
+}
+// END SNIPPET single-lib

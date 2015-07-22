@@ -1,0 +1,45 @@
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+// START SNIPPET simple-dependency
+model {
+    components {
+        core(JvmLibrarySpec)
+
+        server(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'core'
+                    }
+                }
+            }
+        }
+    }
+}
+// END SNIPPET simple-dependency
+
+model {
+    components {
+// START SNIPPET dependency-other-project
+       client(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        project ':util' library 'main'
+                    }
+// END SNIPPET dependency-other-project
+// START SNIPPET dependency-other-project-implicit-lib
+                    dependencies {
+                        project ':util'
+                    }
+// END SNIPPET dependency-other-project-implicit-lib
+// START SNIPPET dependency-other-project
+                }
+            }
+        }
+// END SNIPPET dependency-other-project
+    }
+}

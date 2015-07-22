@@ -1,0 +1,9 @@
+:compileCoreJarCoreJava
+:processCoreJarCoreResources
+:createCoreJar
+:coreJar
+:compileServerJarServerJava
+:createServerJar
+:serverJar
+
+BUILD SUCCESSFUL

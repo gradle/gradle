@@ -1,0 +1,9 @@
+:compileMainJarMainJava
+:processMainJarMainResources
+:createMainJar
+:mainJar
+:assemble
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
