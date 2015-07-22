@@ -100,7 +100,7 @@ The [in-built “Model report”](userguide/new_model.html#N18025) now exposes m
 * Which rule created each model element
 * Which rules were involved in configuring a model element and the order in which they were applied
 
-The model report makes it much easier to see the effective configuration of the build, and comprehension of how it came to be.
+The model report makes it much easier to see the effective configuration of the build, and comprehend how it came to be.
 Future improvements to the model report will include:
 
 * Improved names/identifiers for rules
@@ -120,7 +120,30 @@ The new format presents vital debugging information such as:
 * Which method parameter, on a method rule, could not be bound.
 * Suggestions as to which inputs/subjects could be used to successfully bind.
 
-TODO: example output, or link to section in user guide with example output
+e.g.
+Consider the following rule configuration which is invalid because of an unsatisfied input: `bar`.
+
+```groovy
+class Rules extends RuleSource {
+    @Model
+    Integer foo(@Path("bar") Integer bar) {
+        return 22
+    }
+}
+
+apply type: Rules
+```
+
+The resulting error message gives some clear insight into what went wrong and why:
+
+```
+> The following model rules could not be applied due to unsatisfied dependencies:
+    Rules#foo
+      Inputs:
+        bar java.lang.Integer (parameter 1) [UNBOUND]
+    [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
+    see: https://docs.gradle.org/2.6/userguide/new-model.html
+```
 
 ## Promoted features
 
