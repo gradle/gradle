@@ -23,16 +23,28 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 class BuildLogicFunctionalTest extends Specification {
+
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
 
     // START SNIPPET functional-test-classpath-setup
     def setup() {
         buildFile = testProjectDir.newFile('build.gradle')
+
+        def pluginClasspathResource = getClass().classLoader.findResource("plugin-classpath.txt")
+        if (pluginClasspathResource == null) {
+            throw new IllegalStateException("Did not find plugin classpath resource, run `testClasses` build task.")
+        }
+
+        def pluginClasspath = pluginClasspathResource.readLines()
+            .collect { "'$it'" }
+            .join(", ")
+
+        // Add the logic under test to the test build
         buildFile << """
             buildscript {
                 dependencies {
-                    classpath files('${System.properties['classesDir']}')
+                    classpath files($pluginClasspath)
                 }
             }
         """

@@ -204,18 +204,19 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 task createClasspathManifest {
-                  def classpathFile = file("\$buildDir/\$name/plugin-classpath.txt")
-                  inputs.files sourceSets.main.runtimeClasspath
-                  outputs.file classpathFile
+                    def outputDir = file("\$buildDir/\$name")
 
-                  doLast {
-                    classpathFile.parentFile.mkdirs()
-                    classpathFile.text = sourceSets.main.runtimeClasspath.join("\\n")
-                  }
+                    inputs.files sourceSets.main.runtimeClasspath
+                    outputs.dir outputDir
+
+                    doLast {
+                        outputDir.mkdirs()
+                        file("\$outputDir/plugin-classpath.txt").text = sourceSets.main.runtimeClasspath.join("\\n")
+                    }
                 }
 
-                processTestResources {
-                  from createClasspathManifest
+                dependencies {
+                    testCompile files(createClasspathManifest)
                 }
             """
 
