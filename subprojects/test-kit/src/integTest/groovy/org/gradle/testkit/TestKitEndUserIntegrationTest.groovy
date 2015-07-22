@@ -18,15 +18,19 @@ package org.gradle.testkit
 
 import org.gradle.api.internal.GradleDistributionLocator
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.internal.IsolatedDaemonHomeTmpDirectoryProvider
 import org.gradle.util.GFileUtils
 
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
+    DaemonLogsAnalyzer daemonLogsAnalyzer
 
     def setup() {
         executer.requireGradleHome().withStackTraceChecksDisabled()
         buildFile << buildFileForGroovyProject()
+        daemonLogsAnalyzer = createDaemonLogAnalyzer()
     }
 
     def "use of GradleRunner API in test class without declaring test-kit dependency causes compilation error"() {
@@ -141,6 +145,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
+        daemonLogsAnalyzer.visible.empty
     }
 
     def "functional test fails due to invalid JVM parameter for test execution"() {
@@ -188,6 +193,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         failureDescriptionContains("Execution failed for task ':test'.")
         failure.output.contains('Unrecognized option: -unknown')
+        daemonLogsAnalyzer.visible.empty
     }
 
     def "can test plugin and custom task as external files by adding them to the build script's classpath"() {
@@ -304,6 +310,13 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(':test')
+        daemonLogsAnalyzer.visible.empty
+    }
+
+    private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
+        File gradleUserHomeDir = new IsolatedDaemonHomeTmpDirectoryProvider().createDir()
+        File daemonBaseDir = new File(gradleUserHomeDir, 'daemon')
+        DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, executer.distribution.version.version)
     }
 
     private static String buildFileForGroovyProject() {

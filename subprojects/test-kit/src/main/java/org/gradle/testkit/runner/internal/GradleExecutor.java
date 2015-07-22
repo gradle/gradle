@@ -38,6 +38,17 @@ import java.util.concurrent.TimeUnit;
 import static org.gradle.testkit.runner.TaskOutcome.*;
 
 public class GradleExecutor {
+    public GradleExecutor() {
+        registerShutdownHook();
+    }
+
+    private void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            public void run() {
+                DefaultGradleConnector.close();
+            }
+        }));
+    }
 
     public GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs) {
         final ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
