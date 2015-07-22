@@ -17,8 +17,14 @@
 <chapter id='new_java_plugin'>
     <title>The New Java Plugin</title>
 
-    <para>The New Java plugin is an incubating plugin intended to replace the <link linkend="java_plugin">Java plugin</link>, and
-        leveraging the <link linkend="new_model">new model infrastructure</link>
+    <note>
+        <para>
+            The Gradle support for building Java binaries using the new model is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+        </para>
+    </note>
+
+    <para>The New Java plugin is intended to replace the <link linkend="java_plugin">Java plugin</link>, and
+        leverages the <link linkend="new_model">new model infrastructure</link>
         to acheive best performance, improved expressiveness
         and variant-aware dependency management.
     </para>
