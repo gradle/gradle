@@ -61,7 +61,7 @@ public class AntlrExecuter {
         try {
             Object toolObj = loadTool("antlr.Tool", null);
             LOGGER.info("Processing with ANTLR 2");
-            return processV2(toolObj, spec.asCommandLineWithoutFiles(), spec.getGrammarFiles(), spec.getOutputDirectory());
+            return processV2(toolObj, spec.getArguments(), spec.getGrammarFiles(), spec.getOutputDirectory());
         } catch (ClassNotFoundException e) {
             LOGGER.debug("ANTLR 2 not found on classpath");
         }
@@ -99,8 +99,13 @@ public class AntlrExecuter {
         XRef xref = new MetadataExtracter().extractMetadata(grammarFiles);
         List<GenerationPlan> generationPlans = new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(xref);
         for (GenerationPlan generationPlan : generationPlans) {
-            String[] argArr = arguments.toArray(new String[arguments.size() + 1]);
-            argArr[arguments.size()] = generationPlan.getSource().getAbsolutePath();
+            String[] argArr = arguments.toArray(new String[arguments.size() + 3]);
+            argArr[arguments.size()] = "-o";
+            argArr[arguments.size() + 1] = generationPlan.getGenerationDirectory().getAbsolutePath();
+            argArr[arguments.size() + 2] = generationPlan.getSource().getAbsolutePath();
+            for (String s : argArr) {
+                System.out.println("s = " + s);
+            }
             JavaReflectionUtil.method(tool, Integer.class, "doEverything", String[].class).invoke(tool, new Object[]{argArr});
         }
         return new AntlrResult(0);  // ANTLR 2 always returning 0

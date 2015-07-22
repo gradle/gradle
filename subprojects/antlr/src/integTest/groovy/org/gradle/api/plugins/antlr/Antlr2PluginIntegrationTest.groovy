@@ -28,8 +28,9 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         expect:
         succeeds("generateGrammarSource")
         assertAntlrVersion(2)
-        assertGrammarSourceGenerated("TestGrammar")
-        assertGrammarSourceGenerated("AnotherGrammar")
+        assertGrammarSourceGenerated("org/acme/TestGrammar")
+        assertGrammarSourceGenerated("org/acme/AnotherGrammar")
+        assertGrammarSourceGenerated("UnpackagedGrammar")
         succeeds("build")
     }
 
@@ -66,12 +67,21 @@ Execution failed for task ':generateGrammarSource'.
         expect:
         succeeds("generateGrammarSource")
         assertAntlrVersion(2)
-        assertGrammarSourceGenerated("TestGrammar")
+        assertGrammarSourceGenerated("org/acme/TestGrammar")
+        assertGrammarSourceGenerated("org/acme/AnotherGrammar")
+        assertGrammarSourceGenerated("UnpackagedGrammar")
+
         succeeds("build")
     }
 
     private goodGrammar() {
-        file("src/main/antlr/TestGrammar.g") << """class TestGrammar extends Parser;
+        file("src/main/antlr/TestGrammar.g") << """
+            header {
+                package org.acme;
+            }
+
+            class TestGrammar extends Parser;
+
             options {
                 buildAST = true;
             }
@@ -86,10 +96,29 @@ Execution failed for task ':generateGrammarSource'.
             atom:   INT
                 ;"""
 
-        file("src/main/antlr/AnotherGrammar.g") << """class AnotherGrammar extends Parser;
+        file("src/main/antlr/AnotherGrammar.g") << """
+            header {
+                package org.acme;
+            }
+            class AnotherGrammar extends Parser;
             options {
                 buildAST = true;
                 importVocab = TestGrammar;
+            }
+
+            expr:   mexpr (PLUS^ mexpr)* SEMI!
+                ;
+
+            mexpr
+                :   atom (STAR^ atom)*
+                ;
+
+            atom:   INT
+                ;"""
+
+        file("src/main/antlr/UnpackagedGrammar.g") << """class UnpackagedGrammar extends Parser;
+            options {
+                buildAST = true;
             }
 
             expr:   mexpr (PLUS^ mexpr)* SEMI!
@@ -109,6 +138,7 @@ Execution failed for task ':generateGrammarSource'.
             import antlr.Token;
             import antlr.TokenStream;
             import antlr.TokenStreamException;
+            import org.acme.TestGrammar;
 
             public class Test {
                 public static void main(String[] args) {

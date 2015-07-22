@@ -78,22 +78,6 @@ class AntlrSpecFactoryTest extends Specification {
         spec.arguments.count { it == "-traceTreeWalker" } == 1
     }
 
-    def buildCommonArgumentsAddsAllParameters() {
-        when:
-        AntlrTask task = Mock()
-        _ * task.outputDirectory >> destFile()
-        _ * task.getArguments() >> ["-test"]
-        _ * task.isTrace() >> true
-        _ * task.isTraceLexer() >> true
-        _ * task.isTraceParser() >> true
-        _ * task.isTraceTreeWalker() >> true
-
-        def spec = factory.create(task, [] as Set)
-
-        then:
-        spec.asCommandLineWithoutFiles() == ["-test", "-trace", "-traceLexer", "-traceParser", "-traceTreeWalker", "-o", "/output"]
-    }
-
     def destFile() {
         File dest = Mock()
         dest.getAbsolutePath() >> "/output"

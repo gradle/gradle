@@ -53,18 +53,10 @@ public class AntlrSpec implements Serializable {
         return outputDirectory;
     }
 
-    public List<String> asCommandLineWithoutFiles() {
+    public List<String> asCommandLineWithFiles() {
         List<String> commandLine = Lists.newLinkedList(arguments);
-
         commandLine.add("-o");
         commandLine.add(getOutputDirectory().getAbsolutePath());
-
-        return commandLine;
-    }
-
-    public List<String> asCommandLineWithFiles() {
-        List<String> commandLine = Lists.newLinkedList(asCommandLineWithoutFiles());
-
         for (File file : getGrammarFiles()) {
             commandLine.add(file.getAbsolutePath());
         }
