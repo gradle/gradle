@@ -1,0 +1,19 @@
+:compileJava5MainJarMainJava UP-TO-DATE
+:processJava5MainJarMainResources UP-TO-DATE
+:createJava5MainJar UP-TO-DATE
+:java5MainJar UP-TO-DATE
+:server:compileJava5MainJarMainJava
+:server:createJava5MainJar
+:server:java5MainJar
+:compileJava6MainJarMainJava UP-TO-DATE
+:processJava6MainJarMainResources UP-TO-DATE
+:createJava6MainJar UP-TO-DATE
+:java6MainJar UP-TO-DATE
+:server:compileJava6MainJarMainJava
+:server:createJava6MainJar
+:server:java6MainJar
+:server:assemble
+:server:check UP-TO-DATE
+:server:build
+
+BUILD SUCCESSFUL

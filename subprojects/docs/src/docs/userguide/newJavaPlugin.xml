@@ -69,7 +69,7 @@
 
     <section>
         <title>Creating a library</title>
-        <para>A library is created by declaring a <firstterm>JvmLibrarySpec</firstterm> under the <literal>components</literal>
+        <para>A library is created by declaring a <apilink class="org.gradle.jvm.JvmLibrarySpec"/> under the <literal>components</literal>
             element of the <literal>model</literal>:
         </para>
         <sample id="newJavaQuickstart" dir="newJavaPlugin/quickstart" title="Creating a source set">
@@ -89,7 +89,7 @@
             <sourcefile file="build.gradle" snippet="configure-sourceset"/>
         </sample>
         <para>It is also possible to create an additional source set, using the
-            <literal>JavaSourceSet</literal>
+            <apilink class="org.gradle.language.java.JavaSourceSet"/>
             type:
         </para>
         <sample id="newJavaQuickstart" dir="newJavaPlugin/quickstart" title="Creating a new source set">
@@ -113,7 +113,7 @@
             </itemizedlist>
             Dependencies onto external components are not yet supported.
         </para>
-        <para>Dependencies are declared on a <firstterm>source set</firstterm>:</para>
+        <para>Dependencies are declared on a <apilink class="org.gradle.api.tasks.SourceSet">source set</apilink>:</para>
         <sample id="newJavaMultiComponents" dir="newJavaPlugin/multiplecomponents" title="Declaring a dependency onto a library">
             <sourcefile file="build.gradle" snippet="simple-dependency"/>
             <output args="serverJar" outputFile="newJavaMultiComponents-serverJar.out" ignoreExtraLines="true"/>
@@ -130,6 +130,7 @@
         <sample id="newJavaMultiComponents" dir="newJavaPlugin/multiplecomponents" title="Declaring a dependency onto a project with an implicit library">
             <sourcefile file="build.gradle" snippet="dependency-other-project-implicit-lib"/>
         </sample>
+        <para>The <apilink class="org.gradle.platform.base.DependencySpecContainer"/> class provides a complete reference of the dependencies DSL.</para>
     </section>
 
     <section>
@@ -148,7 +149,7 @@
             <para>Defining what platforms a library is built can be done with the <literal>targetPlatform</literal> DSL:</para>
             <sample id="newJavaTargetPlatforms" dir="newJavaPlugin/targetplatforms" title="Declaring target platforms">
                 <sourcefile file="build.gradle" snippet="declare-target-platforms"/>
-                <output args="build" ignoreExtraLines="true"/>
+                <output args=":build" ignoreExtraLines="true"/>
             </sample>
             <para>When building the application, Gradle generates two binaries: <literal>java5MainJar</literal> and <literal>java6MainJar</literal>
             corresponding to the target versions of Java. Those are artifacts of the library that will participate in dependency resolution.</para>
@@ -157,7 +158,28 @@
             <title>Dependency resolution</title>
             <para>When a library targets multiple versions of Java and that it depends on another library, Gradle will make its best effort to
             resolve the dependency to the most appropriate version:</para>
-
+            <sample id="newJavaTargetPlatforms" dir="newJavaPlugin/targetplatforms" title="Declaring target platforms">
+                <sourcefile file="server/build.gradle" snippet="dependency-with-platform"/>
+                <output args=":server:build" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-server.out"/>
+            </sample>
+            <para>Gradle automatically chooses the Java 6 variant of the dependency for the Java 6 variant of the <literal>server</literal> component,
+            and chooses the Java 5 version of the dependency for the Java 5 variant of the <literal>server</literal> component. In fact, Gradle chooses
+            the <emphasis>highest compatible</emphasis> version of the component:</para>
+            <para>
+                <itemizedlist>
+                    <listitem>for a binary <literal>B</literal> built for Java <literal>n</literal></listitem>
+                    <listitem>for a dependency binary <literal>D</literal> built for Java <literal>m</literal></listitem>
+                    <listitem><literal>D</literal> is compatible with <literal>B</literal> if <literal>m&lt;=n</literal></listitem>
+                    <listitem>for multiple compatible binaries <literal>D1, D2, ...Dn</literal>, choose the highest Java version</listitem>
+                </itemizedlist>
+            </para>
+        </section>
+        <section>
+            <title>Custom variant resolution</title>
+            <para>The Java plugin, in addition to the target platform resolution, supports resolution of custom variants. Custom variants
+            can be defined on custom binary types, as long as they extends <apilink class="org.gradle.jvm.JarBinarySpec"/>. Users interested
+            in testing this incubating feature can check out the documentation of the <apilink class="org.gradle.platform.base.Variant"/>
+            annotation.</para>
         </section>
     </section>
 </chapter>
