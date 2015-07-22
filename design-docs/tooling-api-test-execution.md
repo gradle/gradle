@@ -126,10 +126,13 @@ Add methods to `TestLauncher` to request specific JVM test classes be executed.
 * add flag to `TestLauncher` indicating a test tasks should always be executed (not matter of up-to-date or not)
 * allow configuration from client side via `TestLauncher#alwaysRunTests()`
 * configure candidate test tasks in `TestExecutionRequestActionRunner` as not up-to-date when always run flag is set
+    * dependend tasks on candiate test tasks stay up-to-date
 
 ### Test Coverage
 
 * can force execution of up-to-date test
+* dependent tasks on test task keep being up-to-date
+* when multiple test task candidates are available, all got reexecuted.
 
 ## Story: Add ability to launch JVM tests by method
 
