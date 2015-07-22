@@ -12,8 +12,10 @@ Add-->
 
 ### Play Framework Support (i)
 
-Gradle can now build [Play](https://www.playframework.com/) applications for Play version 2.3.x and 2.4.x.  The new `play` plugin allows users
-to model, build, test, run and package Play applications.  It includes support for:
+Gradle can now build [Play](https://www.playframework.com/) applications for Play version 2.3.x and 2.4.x.
+The new `play` plugin allows users to build, test, run and package Play applications.
+
+It includes support for:
 
 * Compiling Scala and Java controllers, tests, and model classes
 * Processing routes files
@@ -21,15 +23,17 @@ to model, build, test, run and package Play applications.  It includes support f
 * Compiling CoffeeScript assets
 * Minifying JavaScript assets
 * Running tests with JUnitRunner
-* Running applications in development mode
+* Running applications in development mode with hot reloading
 * Staging and creating Play distribution packages
 
-Compatibility with Play 2.4.x is limited. The `play` plugin does not work with a few new build-related features in 2.4.  Specifically, Gradle
-does not allow you to configure reverse routes or use "injected" routes generators.  Future releases will add support for these features as well
-as other features and versions of the Play Framework.
+Compatibility with Play 2.4.x is limited.
+The `play` plugin does not work with a few new build-related features in 2.4.
+Specifically, Gradle does not allow you to configure reverse routes or use "injected" routes generators.
+Future releases will add support for these features as well as other features and versions of the Play Framework.
 
-Building on top of the new [continuous build](userguide/continuous_build.html) feature from the last release, the `play` plugin lets you run your Play
-application with continuous build and have Gradle automatically reload your application when sources change without stopping it.
+When running a Play application as part of a [continuous build](userguide/continuous_build.html), changes to the source are reflected in the running app automatically… no restart required.
+This facilitates a fast development cycle.
+The mechanism empowering this “hot reloading” will be made generally available to other types of applications and services in future versions of Gradle.
 
 See the [User Guide](userguide/play_plugin.html) as well as the sample builds delivered with the Gradle distribution for more information on using the `play` plugin.
 

@@ -322,6 +322,30 @@
         </sample>
     </section>
 
+    <section id="play_continuous_build">
+        <title>Running a Play application</title>
+        <para>
+            The <literal>runPlayBinary</literal> task starts the Play application under development.
+            During development it is beneficial to execute this task as a <link linkend="continuous_build">continuous build</link>.
+            Continuous build is a generic feature that supports automatically re-running a build when inputs change.
+            The <literal>runPlayBinary</literal> task is “continuous build aware” in that it behaves differently when run as part of a continuous build.
+        </para>
+        <para>
+            When not run as part of a continuous build, the <literal>runPlayBinary</literal> task will <emphasis>block</emphasis> the build.
+            That is, the task will not complete as long as the application is running.
+            When running as part of a continuous build, the task will start the application if not running and otherwise propagate any changes to the code of the application to the running instance.
+            This is useful for quickly iterating on your Play application with an edit->rebuild->refresh cycle.
+        </para>
+        <para>
+            To enable continuous build, run Gradle with <userinput>-t runPlayBinary</userinput> or <userinput>--continuous runPlayBinary</userinput>.
+        </para>
+        <para>
+            Users of Play used to such a workflow with Play's default build system should note that compile errors are handled differently.
+            If a build failure occurs before the <literal>runPlayBinary</literal> during a continuous build, the Play application itself will not reflect this.
+            The Play application will remain unchanged, with the build failure details being present in Gradle's output.
+        </para>
+    </section>
+
     <section id="configuring_play">
         <title>Configuring a Play application</title>
         <section id="configuring_play_platform">
@@ -485,39 +509,6 @@
                 <sourcefile file="build.gradle" snippet="play-custom-distribution"/>
             </sample>
         </section>
-    </section>
-
-    <section id="play_continuous_build">
-        <title>Running a Play application</title>
-        <para>
-            <link linkend="continuous_build">Continuous build</link> is a generic feature that supports automatically re-running a task with its inputs have changed.
-            Any Play plugin task can be used with continuous build, but using this feature with the <literal>runPlayBinary</literal> task will
-            be useful for quickly iterating on your Play application with an edit->rebuild->refresh cycle.  This will be faster than re-running Gradle after each
-            change since the Play application JVM will be kept around and classes will be hot-reloaded.
-        </para>
-        <para>
-            To enable continuous build, run Gradle with <userinput>-t</userinput> or <userinput>--continuous</userinput>.
-        </para>
-        <para>
-            There are a couple of things to keep in mind with the current Play reload support.  Future Gradle releases will improve usability and error reporting.
-        </para>
-        <itemizedlist>
-            <listitem>
-                <para>
-                    Changes made while the build is running will not cause another rebuild. This is a general continuous build limitation.
-                </para>
-            </listitem>
-            <listitem>
-                <para>
-                    Build failures are not propagated to the browser/application. If the build fails, the application will continue to run without changes.
-                </para>
-            </listitem>
-            <listitem>
-                <para>
-                    Application failures do not show source code in the browser.
-                </para>
-            </listitem>
-        </itemizedlist>
     </section>
 
     <section>
