@@ -103,12 +103,21 @@ Add methods to `TestLauncher` to request specific JVM test classes be executed.
 	* ~~class included in multiple projects is executed multiple times, once for each test task~~
 	* ~~request class A and class B, where class A is included in task A, class B is included in task B~~
 	* ~~request class A, where class A is included in task A and not included in task B~~
+<<<<<<< Updated upstream
 	* when configure-on-demand is being used with a multi-project build
 * tooling api operation fails with meaningful error message when no matching tests can be found
 	* class does not exist
 	* class does not define any tests or is not a test class
 * build should not fail if filter matches a single test task
 * expected test progress events are received in each case
+=======
+	* ~~when configure-on-demand is being used with a multi-project build~
+* ~~tooling api operation fails with meaningful error message when no matching tests can be found~~
+	* ~~class does not exist~~
+	* class does not define any tests or is not a test class
+* ~~build should not fail if filter matches a single test task~~
+* ~~expected test progress events are received in each case~~
+>>>>>>> Stashed changes
 
 ## Story: Allow forced execution of up-to-date test tasks
 

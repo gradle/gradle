@@ -65,7 +65,8 @@ See the [new Gradle TestKit user guide chapter](userguide/test_kit.html) for mor
 ### Tooling API TestLauncher (i)
 
 This releases introduces a new [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) interface for launching tests using the Gradle Tooling API. This interface will evolve over the next couple of releases.
-With this release the [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) API allows specifying tests to be executed by passing TestOperationDescriptors received from a previous build invocation.
+With this release the [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) API allows specifying tests to be executed by passing TestOperationDescriptors received from a previous build invocation or
+by specifying the class to be tested by full qualified classname.
 
 
 		ProjectConnection connection = GradleConnector.newConnector()
@@ -76,6 +77,7 @@ With this release the [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.h
 		   //run tests
 		   connection.newTestLauncher()
 			 .withTests(descriptor1, descriptor2)
+             .launcher.withJvmTestClasses("example.MyTest")
 			 .addProgressListener(new MyTestListener(), EnumSet.of(OperationType.TEST))
 		     .setStandardOutput(System.out)
 		     .run();
