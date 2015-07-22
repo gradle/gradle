@@ -29,6 +29,7 @@ import java.util.List;
 
 public class DefaultGradleRunner extends GradleRunner {
 
+    private final TmpDirectoryProvider tmpDirectoryProvider = new IsolatedDaemonHomeTmpDirectoryProvider();
     private final GradleExecutor gradleExecutor = new GradleExecutor();
     private final File gradleHome;
 
@@ -39,6 +40,7 @@ public class DefaultGradleRunner extends GradleRunner {
 
     public DefaultGradleRunner(File gradleHome) {
         this.gradleHome = gradleHome;
+        this.gradleUserHomeDir = tmpDirectoryProvider.createDir();
     }
 
     public File getGradleUserHomeDir() {

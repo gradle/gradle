@@ -131,16 +131,10 @@
         <section>
             <title>Controlling the build environment</title>
             <para>
-                The runner does not currently attempt to execute the test builds in an isolated environment.
-                It also does not expose mechanism for fine grained control of environment variables etc.
-                Future versions of the TestKit will provide better isolation and control.
-            </para>
-            <para>
-                Unless a specific Gradle user home dir is specified via the build arguments (i.e. <userinput>-g</userinput> or <userinput>--gradle-user-home</userinput>),
-                Gradle will use its default of <literal>~/.gradle</literal>.
-                This may not be desirable.
-                Any environmental configuration (e.g. <literal>~/.gradle/gradle.properties</literal>) for the current user will be inherited.
-                You may wish to isolate test builds by specifying an explicit Gradle user home to use via the build arguments.
+                The runner executes the test builds in an isolated environment by specifying a dedicated Gradle user home directory in  <literal>~/.gradle-test-kit</literal>.
+                Any configuration in the default Gradle user home directory (e.g. <literal>~/.gradle/gradle.properties</literal>) is not used for test execution.
+                The TestKit does not expose mechanism for fine grained control of environment variables etc.
+                Future versions of the TestKit will provide improved configuration options.
             </para>
         </section>
         <section>
