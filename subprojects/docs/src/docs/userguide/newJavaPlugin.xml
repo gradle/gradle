@@ -132,4 +132,32 @@
         </sample>
     </section>
 
+    <section>
+        <title>Platform aware dependency management</title>
+        <section>
+            <title>Specifying the target platform</title>
+            <para>The software model extracts the target platform as a core concept. In the Java world, it means that a library can be built, or resolved,
+            against a specific version. For example, if you compile a library for Java 5, we know that such a library can be consumed by a library
+            built for Java 6, but the opposite is not true. Gradle lets you define which platforms a library targets, and will take care of:</para>
+            <para>
+                <itemizedlist>
+                    <listitem>generating a binary for each target platform (eg, a Java 5 jar as well as a Java 6 jar)</listitem>
+                    <listitem>resolve the dependencies against matching target platforms</listitem>
+                </itemizedlist>
+            </para>
+            <para>Defining what platforms a library is built can be done with the <literal>targetPlatform</literal> DSL:</para>
+            <sample id="newJavaTargetPlatforms" dir="newJavaPlugin/targetplatforms" title="Declaring target platforms">
+                <sourcefile file="build.gradle" snippet="declare-target-platforms"/>
+                <output args="build" ignoreExtraLines="true"/>
+            </sample>
+            <para>When building the application, Gradle generates two binaries: <literal>java5MainJar</literal> and <literal>java6MainJar</literal>
+            corresponding to the target versions of Java. Those are artifacts of the library that will participate in dependency resolution.</para>
+        </section>
+        <section>
+            <title>Dependency resolution</title>
+            <para>When a library targets multiple versions of Java and that it depends on another library, Gradle will make its best effort to
+            resolve the dependency to the most appropriate version:</para>
+
+        </section>
+    </section>
 </chapter>

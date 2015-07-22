@@ -1,0 +1,15 @@
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+// START SNIPPET declare-target-platforms
+model {
+    components {
+        main(JvmLibrarySpec) {
+            targetPlatform 'java5'
+            targetPlatform 'java6'
+        }
+    }
+}
+// END SNIPPET declare-target-platforms

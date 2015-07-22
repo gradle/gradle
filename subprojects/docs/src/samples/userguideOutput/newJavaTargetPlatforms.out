@@ -1,0 +1,13 @@
+:compileJava5MainJarMainJava
+:processJava5MainJarMainResources
+:createJava5MainJar
+:java5MainJar
+:compileJava6MainJarMainJava
+:processJava6MainJarMainResources
+:createJava6MainJar
+:java6MainJar
+:assemble
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
