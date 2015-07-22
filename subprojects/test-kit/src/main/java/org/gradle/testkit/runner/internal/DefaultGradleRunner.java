@@ -50,28 +50,6 @@ public class DefaultGradleRunner extends GradleRunner {
         return this;
     }
 
-    public File getProjectDir() {
-        return projectDirectory;
-    }
-
-    public GradleRunner withProjectDir(File projectDir) {
-        this.projectDirectory = projectDir;
-        return this;
-    }
-
-    public List<String> getArguments() {
-        return Collections.unmodifiableList(arguments);
-    }
-
-    public GradleRunner withArguments(List<String> arguments) {
-        this.arguments = new ArrayList<String>(arguments);
-        return this;
-    }
-
-    public GradleRunner withArguments(String... arguments) {
-        return withArguments(Arrays.asList(arguments));
-    }
-
     public GradleRunner withJvmArguments(List<String> jvmArguments) {
         this.jvmArguments = new ArrayList<String>(jvmArguments);
         return this;
@@ -81,6 +59,34 @@ public class DefaultGradleRunner extends GradleRunner {
         return withJvmArguments(Arrays.asList(jvmArguments));
     }
 
+    @Override
+    public File getProjectDir() {
+        return projectDirectory;
+    }
+
+    @Override
+    public GradleRunner withProjectDir(File projectDir) {
+        this.projectDirectory = projectDir;
+        return this;
+    }
+
+    @Override
+    public List<String> getArguments() {
+        return Collections.unmodifiableList(arguments);
+    }
+
+    @Override
+    public GradleRunner withArguments(List<String> arguments) {
+        this.arguments = new ArrayList<String>(arguments);
+        return this;
+    }
+
+    @Override
+    public GradleRunner withArguments(String... arguments) {
+        return withArguments(Arrays.asList(arguments));
+    }
+
+    @Override
     public BuildResult build() {
         return run(new Action<GradleExecutionResult>() {
             public void execute(GradleExecutionResult gradleExecutionResult) {
@@ -91,6 +97,7 @@ public class DefaultGradleRunner extends GradleRunner {
         });
     }
 
+    @Override
     public BuildResult buildAndFail() {
         return run(new Action<GradleExecutionResult>() {
             public void execute(GradleExecutionResult gradleExecutionResult) {

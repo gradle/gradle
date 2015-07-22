@@ -224,6 +224,24 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=2.6")
+    def "fails with meaningful error when declared class has not tests"() {
+        given:
+        file("src/test/java/util/TestUtil.java") << """
+            package util;
+            public class TestUtil {
+                static void someUtilsMethod(){}
+            }
+        """
+        when:
+        launchTests{ TestLauncher launcher ->
+            launcher.withJvmTestClasses("util.TestUtil")
+        }
+        then:
+        def e = thrown(TestExecutionException)
+        e.cause.message == "No tests found for given includes: [util.TestUtil.*]"
+    }
+
+    @TargetGradleVersion(">=2.6")
     def "fails with meaningful error when test no longer exists"() {
         given:
         collectDescriptorsFromBuild()
