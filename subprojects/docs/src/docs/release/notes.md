@@ -157,9 +157,9 @@ These incubating methods will be removed in the next minor version.
 
 * Removed `FunctionalSourceSet.copy()`
 
-### Updated default Scala Zinc compiler version for Play applications
+### Updated default Scala Zinc compiler version
 
-The default version of the Scala Zinc compiler used for Play applications has changed from 0.3.0 to 0.3.5.3.
+The default version of the Scala Zinc compiler has changed from 0.3.5.3 to 0.3.7.
 
 ### Changes to source set handling of binaries
 
@@ -180,7 +180,7 @@ We would like to thank the following community members for making contributions 
 * [Ben Blank](https://github.com/benblank) - Allow CopySpec.filter() to remove lines
 * [Steve Ebersole](https://github.com/sebersole) - Support for passing arbitrary arguments to FindBugs tasks
 * [Malte Finsterwalder](https://github.com/finsterwalder) - Fixed resolving of references to `${parent.artifactId}` in POM files (GRADLE-3299)
-* [Ethan Hall](https://github.com/ethankhall) - Update Scala Zinc compiler version for Play (GRADLE-3319)
+* [Ethan Hall](https://github.com/ethankhall) - Update Scala Zinc compiler version to work with Java 8 (GRADLE-3319)
 * [Jordan Jennings](https://github.com/jordanjennings) - Documentation improvements
 * [Roy Kachouh](https://github.com/roykachouh) - Fix for Application plugin script generation in projects with alphanumeric names
 * [Zoltán Kurucz](https://github.com/qzole) - Documentation improvements

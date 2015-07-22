@@ -86,7 +86,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             boolean transactional = false;
             Option<File> backup = Option.empty();
 
-            // We need to use the deprecated constructor as it is compatible with certain previous versions of the Zince compiler
+            // We need to use the deprecated constructor as it is compatible with certain previous versions of the Zinc compiler
             @SuppressWarnings("deprecation")
             IncOptions options = new IncOptions(transitiveStep, recompileAllFraction, relationsDebug, apiDebug, apiDiffContextSize, apiDumpDirectory, transactional, backup);
             return options;
