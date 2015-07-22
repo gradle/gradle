@@ -67,9 +67,7 @@
             <apilink class="org.gradle.testkit.runner.GradleRunner" method="build"/>
             or
             <apilink class="org.gradle.testkit.runner.GradleRunner" method="buildAndFail"/>
-            methods depending on the anticipated outcome. Each runner instance is using Gradle's default user home directory <literal>~/.gradle</literal>.
-            Any environmental configuration (e.g. <literal>gradle.properties</literal>) from the current user is inherited. In a future version of Gradle,
-            the environmental configuration is going to be isolated for test execution.
+            methods depending on the anticipated outcome.
         </para>
         <para>
             The following demonstrates the usage of Gradle runner in a Java JUnit test:
@@ -128,6 +126,21 @@
                 This means that after making a change to the source of the code under test, the source must be recompiled by Gradle.
                 Similarly, if the effective classpath of the code under test changes, the manifest must be regenerated.
                 In either case, executing the <literal>testClasses</literal> task of the build will ensure that things are up to date.
+            </para>
+        </section>
+        <section>
+            <title>Controlling the build environment</title>
+            <para>
+                The runner does not currently attempt to execute the test builds in an isolated environment.
+                It also does not expose mechanism for fine grained control of environment variables etc.
+                Future versions of the TestKit will provide better isolation and control.
+            </para>
+            <para>
+                Unless a specific Gradle user home dir is specified via the build arguments (i.e. <userinput>-g</userinput> or <userinput>--gradle-user-home</userinput>),
+                Gradle will use its default of <literal>~/.gradle</literal>.
+                This may not be desirable.
+                Any environmental configuration (e.g. <literal>~/.gradle/gradle.properties</literal>) for the current user will be inherited.
+                You may wish to isolate test builds by specifying an explicit Gradle user home to use via the build arguments.
             </para>
         </section>
         <section>

@@ -84,19 +84,6 @@ public abstract class GradleRunner {
     }
 
     /**
-     * The Gradle user home directory to use for the build.
-     * <p>
-     * The Gradle user home directory contains dependency caches, and other persistent information.
-     * <p>
-     * Each runner <i>instance</i> is using Gradle's default user home directory {@code ~/.gradle}. Any environmental configuration
-     * from the current user is inherited. In a future version of Gradle, the environmental configuration is going to be isolated
-     * for test execution.
-     *
-     * @return the Gradle “user home” directory to use
-     */
-    public abstract File getGradleUserHomeDir();
-
-    /**
      * The directory that the build will be executed in.
      * <p>
      * This is analogous to the current directory when executing Gradle from the command line.
