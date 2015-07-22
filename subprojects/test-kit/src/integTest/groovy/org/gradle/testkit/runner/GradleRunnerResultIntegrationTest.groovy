@@ -18,7 +18,7 @@ package org.gradle.testkit.runner
 
 import java.util.concurrent.CountDownLatch
 
-import static org.gradle.testkit.runner.TaskResult.*
+import static org.gradle.testkit.runner.TaskOutcome.*
 
 /**
  * Tests more intricate aspects of the BuildResult object
@@ -71,6 +71,8 @@ class GradleRunnerResultIntegrationTest extends AbstractGradleRunnerIntegrationT
         result.taskPaths(SKIPPED).empty
         result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
+        result.task(":helloWorld") == result.tasks.find { it.path == ":helloWorld" }
+        result.task(":nonsense") == null
     }
 
     def "task order represents execution order"() {

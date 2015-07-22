@@ -17,22 +17,22 @@
 package org.gradle.testkit.runner.internal;
 
 import org.gradle.testkit.runner.BuildTask;
-import org.gradle.testkit.runner.TaskResult;
+import org.gradle.testkit.runner.TaskOutcome;
 
 public class DefaultBuildTask implements BuildTask {
     private final String path;
-    private final TaskResult taskResult;
+    private final TaskOutcome outcome;
 
-    public DefaultBuildTask(String path, TaskResult taskResult) {
+    public DefaultBuildTask(String path, TaskOutcome outcome) {
         this.path = path;
-        this.taskResult = taskResult;
+        this.outcome = outcome;
     }
 
     public String getPath() {
         return path;
     }
 
-    public TaskResult getResult() {
-        return taskResult;
+    public TaskOutcome getOutcome() {
+        return outcome;
     }
 }

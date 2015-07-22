@@ -96,7 +96,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             package org.gradle.test
 
             import org.gradle.testkit.runner.GradleRunner
-            import static org.gradle.testkit.runner.TaskResult.*
+            import static org.gradle.testkit.runner.TaskOutcome.*
             import org.junit.Rule
             import org.junit.rules.TemporaryFolder
             import spock.lang.Specification
@@ -149,7 +149,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             package org.gradle.test
 
             import org.gradle.testkit.runner.GradleRunner
-            import static org.gradle.testkit.runner.TaskResult.*
+            import static org.gradle.testkit.runner.TaskOutcome.*
             import org.junit.Rule
             import org.junit.rules.TemporaryFolder
             import spock.lang.Specification
@@ -251,7 +251,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             package org.gradle.test
 
             import org.gradle.testkit.runner.GradleRunner
-            import static org.gradle.testkit.runner.TaskResult.*
+            import static org.gradle.testkit.runner.TaskOutcome.*
             import org.junit.Rule
             import org.junit.rules.TemporaryFolder
             import spock.lang.Specification

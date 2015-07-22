@@ -17,7 +17,7 @@
 package org.gradle.testkit.runner.internal;
 
 import org.gradle.testkit.runner.BuildTask;
-import org.gradle.testkit.runner.TaskResult;
+import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.gradle.testkit.runner.TaskResult.*;
+import static org.gradle.testkit.runner.TaskOutcome.*;
 
 public class GradleExecutor {
 
@@ -117,8 +117,8 @@ public class GradleExecutor {
             return createBuildTask(taskPath, SUCCESS);
         }
 
-        private BuildTask createBuildTask(String taskPath, TaskResult result) {
-            return new DefaultBuildTask(taskPath, result);
+        private BuildTask createBuildTask(String taskPath, TaskOutcome outcome) {
+            return new DefaultBuildTask(taskPath, outcome);
         }
 
         private boolean isFailed(TaskOperationResult result) {

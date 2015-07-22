@@ -20,7 +20,7 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GFileUtils
 import org.gradle.util.TextUtil
 
-import static org.gradle.testkit.runner.TaskResult.*
+import static TaskOutcome.*
 
 class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
     def "build execution for script with invalid Groovy syntax"() {

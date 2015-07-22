@@ -33,7 +33,7 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import static org.gradle.testkit.runner.TaskResult.*;
+import static org.gradle.testkit.runner.TaskOutcome.*;
 
 public class BuildLogicFunctionalTest {
     @Rule public final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -59,11 +59,7 @@ public class BuildLogicFunctionalTest {
             .build();
 
         assertTrue(result.getStandardOutput().contains("Hello world!"));
-        assertEquals(result.getStandardError(), "");
-        assertEquals(result.taskPaths(SUCCESS), Collections.singletonList(":helloWorld"));
-        assertEquals(result.taskPaths(SKIPPED), Collections.emptyList());
-        assertEquals(result.taskPaths(UP_TO_DATE), Collections.emptyList());
-        assertEquals(result.taskPaths(FAILED), Collections.emptyList());
+        assertEquals(result.task(":helloWorld").getOutcome(), SUCCESS);
     }
 
     private void writeFile(File destination, String content) throws IOException {

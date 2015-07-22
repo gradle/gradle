@@ -16,11 +16,12 @@
 
 package org.gradle.testkit.runner.internal;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
-import org.gradle.testkit.runner.TaskResult;
+import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collections;
@@ -49,19 +50,31 @@ public class DefaultBuildResult implements BuildResult {
         return Collections.unmodifiableList(tasks);
     }
 
-    public List<BuildTask> tasks(final TaskResult result) {
+    public List<BuildTask> tasks(final TaskOutcome outcome) {
         return Collections.unmodifiableList(CollectionUtils.filter(tasks, new Spec<BuildTask>() {
             public boolean isSatisfiedBy(BuildTask element) {
-                return element.getResult() == result;
+                return element.getOutcome() == outcome;
             }
         }));
     }
 
-    public List<String> taskPaths(TaskResult result) {
-        return Collections.unmodifiableList(CollectionUtils.collect(tasks(result), new Transformer<String, BuildTask>() {
+    public List<String> taskPaths(TaskOutcome outcome) {
+        return Collections.unmodifiableList(CollectionUtils.collect(tasks(outcome), new Transformer<String, BuildTask>() {
             public String transform(BuildTask buildTask) {
                 return buildTask.getPath();
             }
         }));
+    }
+
+    @Nullable
+    @Override
+    public BuildTask task(String taskPath) {
+        for (BuildTask task : tasks) {
+            if (task.getPath().equals(taskPath)) {
+                return task;
+            }
+        }
+
+        return null;
     }
 }

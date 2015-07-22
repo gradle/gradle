@@ -38,9 +38,9 @@ public interface BuildTask {
     String getPath();
 
     /**
-     * The result status of the task.
+     * The outcome of attempting to execute this task.
      *
-     * @return the result status
+     * @return the task outcome
      */
-    TaskResult getResult();
+    TaskOutcome getOutcome();
 }

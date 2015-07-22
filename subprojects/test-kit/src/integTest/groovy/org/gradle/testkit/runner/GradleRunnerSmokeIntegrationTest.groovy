@@ -18,7 +18,7 @@ package org.gradle.testkit.runner
 
 import org.gradle.util.GFileUtils
 
-import static org.gradle.testkit.runner.TaskResult.*
+import static TaskOutcome.*
 
 class GradleRunnerSmokeIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 

@@ -18,7 +18,7 @@ package org.gradle.testkit.runner
 
 import org.gradle.util.TextUtil
 
-import static org.gradle.testkit.runner.TaskResult.*
+import static TaskOutcome.*
 
 class GradleRunnerBuildFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 

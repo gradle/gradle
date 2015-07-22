@@ -19,7 +19,7 @@ package org.gradle.testkit.runner.internal
 import org.gradle.testkit.runner.BuildTask
 import spock.lang.Specification
 
-import static org.gradle.testkit.runner.TaskResult.*
+import static org.gradle.testkit.runner.TaskOutcome.*
 
 class DefaultBuildResultTest extends Specification {
     BuildTask successBuildResult = new DefaultBuildTask(':a', SUCCESS)

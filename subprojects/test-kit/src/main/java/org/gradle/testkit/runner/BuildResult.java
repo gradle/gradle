@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 import java.util.List;
 
@@ -69,25 +70,34 @@ public interface BuildResult {
     List<BuildTask> getTasks();
 
     /**
-     * The subset of {@link #getTasks()} that had the given result.
+     * The subset of {@link #getTasks()} that had the given outcome.
      * <p>
      * The returned list is an unmodifiable view of items.
-     * The returned list will be empty if no tasks were executed that completed with the given result.
+     * The returned list will be empty if no tasks were executed with the given outcome.
      *
-     * @param result the desired result
-     * @return the build tasks that completed with the given result
+     * @param outcome the desired outcome
+     * @return the build tasks with the given outcome
      */
-    List<BuildTask> tasks(TaskResult result);
+    List<BuildTask> tasks(TaskOutcome outcome);
 
     /**
-     * The paths of the subset of {@link #getTasks()} that had the given result.
+     * The paths of the subset of {@link #getTasks()} that had the given outcome.
      * <p>
      * The returned list is an unmodifiable view of items.
-     * The returned list will be empty if no tasks were executed that completed with the given result.
+     * The returned list will be empty if no tasks were executed with the given outcome.
      *
-     * @param result the desired result
-     * @return the paths of the build tasks that completed with the given result
+     * @param outcome the desired outcome
+     * @return the paths of the build tasks with the given outcome
      */
-    List<String> taskPaths(TaskResult result);
+    List<String> taskPaths(TaskOutcome outcome);
+
+    /**
+     * Returns the result object for a particular task, or {@code null} if the given task was not part of the build.
+     *
+     * @param taskPath the path of the target task
+     * @return information about the executed task, or {@code null} if the task was not executed
+     */
+    @Nullable
+    BuildTask task(String taskPath);
 
 }

@@ -17,15 +17,15 @@
 package org.gradle.testkit.runner;
 
 /**
- * The result of an attempt to execute a task.
+ * The outcome of executing a task during a build.
  *
  * @since 2.6
- * @see BuildTask#getResult()
+ * @see BuildTask#getOutcome()
  */
-public enum TaskResult {
+public enum TaskOutcome {
 
     /**
-     * That task was executed without failure.
+     * That task executed and performed its actions without failure.
      */
     SUCCESS,
 

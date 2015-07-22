@@ -26,7 +26,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Ignore
 
-import static org.gradle.testkit.runner.TaskResult.*
+import static TaskOutcome.*
 
 class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerIntegrationTest {
     @Rule TemporaryFolder testUserHomeDir = new TemporaryFolder()
