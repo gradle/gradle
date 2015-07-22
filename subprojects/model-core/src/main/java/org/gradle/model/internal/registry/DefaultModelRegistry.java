@@ -321,7 +321,6 @@ public class DefaultModelRegistry implements ModelRegistry {
     // TODO - reuse graph, discard state once not required
     private void transitionTo(GoalGraph goalGraph, ModelGoal targetGoal) {
         LinkedList<ModelGoal> queue = new LinkedList<ModelGoal>();
-        GraphTransitionContext context = new GraphTransitionContext();
         queue.add(targetGoal);
         while (!queue.isEmpty()) {
             ModelGoal goal = queue.getFirst();
@@ -341,7 +340,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
             if (goal.state == ModelGoal.State.VisitingDependencies) {
                 // All dependencies visited
-                goal.apply(context);
+                goal.apply();
                 goal.state = ModelGoal.State.Achieved;
                 queue.removeFirst();
                 continue;
@@ -465,7 +464,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         return node;
     }
 
-    private <T> void fireMutation(MutatorRuleBinder<T> boundMutator, final GraphTransitionContext context) {
+    private <T> void fireMutation(MutatorRuleBinder<T> boundMutator) {
         final List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction());
 
         final ModelNodeInternal node = boundMutator.getSubjectBinding().getNode();
@@ -480,10 +479,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             RuleContext.run(descriptor, new Runnable() {
                 @Override
                 public void run() {
-                    T instance = view.getInstance();
-                    if (!context.hasActionAlreadyBeenApplied(mutator, instance)) {
-                        mutator.execute(node, instance, inputs);
-                    }
+                    mutator.execute(node, view.getInstance(), inputs);
                 }
             });
         } catch (Exception e) {
@@ -1060,22 +1056,6 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     /**
-     * Context object keeping track of the actions applied during the transitioning of the graph.
-     */
-    private static class GraphTransitionContext {
-        private final Map<ModelAction<?>, Set<Object>> appliedActions = new IdentityHashMap<ModelAction<?>, Set<Object>>();
-
-        public boolean hasActionAlreadyBeenApplied(ModelAction<?> action, Object subject) {
-            Set<Object> objects = appliedActions.get(action);
-            if (objects == null) {
-                objects = Sets.newIdentityHashSet();
-                appliedActions.put(action, objects);
-            }
-            return !objects.add(subject);
-        }
-    }
-
-    /**
      * Some abstract goal that must be achieved in the model graph.
      */
     private abstract static class ModelGoal {
@@ -1117,7 +1097,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         /**
          * Applies the action of this goal.
          */
-        void apply(GraphTransitionContext context) {
+        void apply() {
         }
 
         void attachToCycle(List<String> displayValue) {
@@ -1234,7 +1214,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public final void apply(GraphTransitionContext context) {
+        public final void apply() {
             if (!node.getState().equals(getTargetState().previous())) {
                 throw new IllegalStateException(String.format("Cannot transition model element '%s' to state %s as it is already at state %s.", node.getPath(), getTargetState(), node.getState()));
             }
@@ -1464,7 +1444,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        void apply(GraphTransitionContext context) {
+        void apply() {
             CreatorRuleBinder creatorBinder = node.getCreatorBinder();
             LOGGER.debug("Running model element '{}' creator rule action {}", getPath(), creatorBinder.getDescriptor());
             doCreate(node, creatorBinder);
@@ -1481,9 +1461,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        void apply(GraphTransitionContext context) {
+        void apply() {
             LOGGER.debug("Running model element '{}' rule action {}", getPath(), binder.getDescriptor());
-            fireMutation(binder, context);
+            fireMutation(binder);
             node.notifyFired(binder);
         }
     }

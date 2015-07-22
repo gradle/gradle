@@ -16,24 +16,30 @@
 
 package org.gradle.jvm.internal;
 
+import org.gradle.api.Action;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
+import org.gradle.platform.base.ComponentSpec;
 
 import java.io.File;
 
 @SuppressWarnings("UnusedDeclaration")
 public class JarBinaryRules extends RuleSource {
     @Defaults
-    void configureJarBinaries(JarBinarySpec jarBinary, BuildDirHolder buildDirHolder, JavaToolChainRegistry toolChains) {
-        File binariesDir = new File(buildDirHolder.getBuildDir(), "jars");
-        File classesDir = new File(buildDirHolder.getBuildDir(), "classes");
-        File outputDir = new File(classesDir, jarBinary.getName());
-
-        jarBinary.setClassesDir(outputDir);
-        jarBinary.setResourcesDir(outputDir);
-        jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinary.getName(), jarBinary.getId().getLibraryName())));
-        jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
+    void configureJarBinaries(final ComponentSpec jvmLibrary, BuildDirHolder buildDirHolder, final JavaToolChainRegistry toolChains) {
+        final File binariesDir = new File(buildDirHolder.getBuildDir(), "jars");
+        final File classesDir = new File(buildDirHolder.getBuildDir(), "classes");
+        jvmLibrary.getBinaries().withType(JarBinarySpec.class).beforeEach(new Action<JarBinarySpec>() {
+            @Override
+            public void execute(JarBinarySpec jarBinary) {
+                File outputDir = new File(classesDir, jarBinary.getName());
+                jarBinary.setClassesDir(outputDir);
+                jarBinary.setResourcesDir(outputDir);
+                jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinary.getName(), jarBinary.getId().getLibraryName())));
+                jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
+            }
+        });
     }
 }
