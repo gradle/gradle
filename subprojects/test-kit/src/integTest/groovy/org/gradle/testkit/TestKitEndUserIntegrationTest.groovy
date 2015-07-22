@@ -265,6 +265,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     buildFile = testProjectDir.newFile('build.gradle')
                     def pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
                       .readLines()
+                      .collect { it.replace('\\\\', '\\\\\\\\') } // escape backslashes in Windows paths
                       .collect { "'\$it'" }
                       .join(", ")
 

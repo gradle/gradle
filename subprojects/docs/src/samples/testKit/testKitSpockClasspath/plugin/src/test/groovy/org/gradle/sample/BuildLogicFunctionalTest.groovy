@@ -37,6 +37,7 @@ class BuildLogicFunctionalTest extends Specification {
         }
 
         def pluginClasspath = pluginClasspathResource.readLines()
+            .collect { it.replace('\\', '\\\\') } // escape backslashes in Windows paths
             .collect { "'$it'" }
             .join(", ")
 
