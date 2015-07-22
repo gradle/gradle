@@ -147,5 +147,18 @@
                 Future versions of the TestKit will support more powerful distribution discovery, facilitating cross version testing.
             </para>
         </section>
+        <section>
+            <title>Debugging and usage of the Gradle Daemon</title>
+            <para>
+                The runner uses the <link linkend="embedding">Tooling API</link> the execute builds.
+                An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests).
+                Therefore, executing your <emphasis>tests</emphasis> in debug mode does not allow you to debug your build logic as you may expect.
+                Any breakpoints set in your IDE will be not be tripped by the code being exercised by the test build.
+            </para>
+            <para>
+                At this time, there is no way to effectively debug the build logic under test.
+                This, highly desirable, feature will be available in future versions of the test kit.
+            </para>
+        </section>
     </section>
 </chapter>
