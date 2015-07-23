@@ -21,11 +21,10 @@ import org.gradle.tooling.events.OperationDescriptor;
 
 /**
  *
- * A {@code TestLauncher} allows you to configure and execute a tests in a Gradle build.
+ * A {@code TestLauncher} allows you to execute tests in a Gradle build.
  *
  * @since 2.6
- *
- * */
+ */
 @Incubating
 public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
 
@@ -51,7 +50,7 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * Executes the build, blocking until it is complete.
      *
      * @throws TestExecutionException when no tests for execution declared or can be found.
-     * @throws UnsupportedVersionException When the target Gradle version does not support build execution.
+     * @throws UnsupportedVersionException When the target Gradle version does not support test execution.
      * @throws org.gradle.tooling.exceptions.UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
      * @throws BuildException On some failure while executing the tests in the Gradle build.
      * @throws BuildCancelledException When the operation was cancelled before it completed successfully.

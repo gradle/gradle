@@ -90,7 +90,6 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
 
     /**
      * {@inheritDoc}
-     *
      * @since 2.5
      */
     @Incubating
@@ -107,7 +106,6 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
 
     /**
      * {@inheritDoc}
-     *
      * @since 2.3
      */
     @Incubating
