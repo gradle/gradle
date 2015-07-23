@@ -16,6 +16,7 @@
 
 package org.gradle.play.integtest.continuous
 
+import groovy.transform.NotYetImplemented
 import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayReloadIntegrationTest
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
@@ -57,6 +58,75 @@ class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegratio
         }
     }
 
+    @NotYetImplemented
+    def "should reload with exception when modify scala controller"() {
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        expectBuildFailure = true
+        addBadCode()
+
+        then:
+        fails()
+        !executedTasks.contains('runPlayBinary')
+        runningApp.playUrl().text == 'Hello world' // TODO:
+
+        when:
+        fixBadCode()
+        then:
+        appIsRunningAndDeployed()
+
+    }
+
+    private void addBadCode() {
+        file("app/controllers/Application.scala").with {
+            text = text.replaceFirst(/(?s)\}\s*$/, '''
+  def hello = Action {
+    Ok("Hello world")
+  }
+''') // missing closing brace
+        }
+    }
+
+    private void fixBadCode() {
+        file("app/controllers/Application.scala") << "}"
+    }
+
+    @NotYetImplemented
+    def "should reload with exception when modify routes"() {
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        expectBuildFailure = true
+        addBadRoute()
+
+        then:
+        fails()
+        !executedTasks.contains('runPlayBinary')
+        runningApp.playUrl().text == 'Hello world' // TODO:
+
+        when:
+        fixBadRoute()
+        then:
+        appIsRunningAndDeployed()
+    }
+
+    def addBadRoute() {
+        file("conf/routes") << "\nGET     /badroute"
+    }
+
+    def fixBadRoute() {
+        file("conf/routes") << " controllers.Application.index"
+    }
+
     def "should reload modified coffeescript"() {
         when:
         succeeds("runPlayBinary")
@@ -76,6 +146,39 @@ alert message
         succeeds()
         runningApp.playUrl('assets/javascripts/test.js').text.contains('Hello coffeescript')
         runningApp.playUrl('assets/javascripts/test.min.js').text.contains('Hello coffeescript')
+    }
+
+    @NotYetImplemented
+    def "should reload with exception when modify CoffeeScript"() {
+        when:
+        succeeds("runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        expectBuildFailure = true
+        addBadCoffeeScript()
+
+        then:
+        fails()
+        !executedTasks.contains('runPlayBinary')
+        runningApp.playUrl().text == 'Hello world' // TODO:
+
+        when:
+        fixBadCoffeeScript()
+        then:
+        appIsRunningAndDeployed()
+    }
+
+    def addBadCoffeeScript() {
+        file("app/assets/javascripts/test.coffee") << 'message = "Hello CoffeeScript' // missing closing quote
+    }
+
+    def fixBadCoffeeScript() {
+        file("app/assets/javascripts/test.coffee") << """ "
+        alert message
+"""
     }
 
     def "should detect new javascript files"() {
@@ -131,6 +234,7 @@ var message = "Hello JS";
         assert runningApp.playUrl().text.contains("Welcome to Play with Gradle")
     }
 
+    // TODO: Rework this (we should show failure now)
     def "reload is not triggered if task dependency of play run task fails" () {
         given:
         staticTimeController()
