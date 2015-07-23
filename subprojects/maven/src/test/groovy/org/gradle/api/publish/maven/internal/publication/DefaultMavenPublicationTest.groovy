@@ -203,6 +203,7 @@ public class DefaultMavenPublicationTest extends Specification {
         moduleDependency.version >> "version"
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [excludeRule]
+        moduleDependency.transitive >> true
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -215,6 +216,38 @@ public class DefaultMavenPublicationTest extends Specification {
             version == "version"
             artifacts == [artifact]
             excludeRules == [excludeRule]
+        }
+    }
+
+    def "adopts non-transitive module dependency from added component"() {
+        given:
+        def publication = createPublication()
+        def moduleDependency = Mock(ModuleDependency)
+        def artifact = Mock(DependencyArtifact)
+        def excludeRule = Mock(ExcludeRule)
+
+        when:
+        moduleDependency.group >> "group"
+        moduleDependency.name >> "name"
+        moduleDependency.version >> "version"
+        moduleDependency.artifacts >> [artifact]
+        moduleDependency.excludeRules >> [excludeRule]
+        moduleDependency.transitive >> false
+
+        and:
+        publication.from(componentWithDependency(moduleDependency))
+
+        then:
+        publication.runtimeDependencies.size() == 1
+        with (publication.runtimeDependencies.asList().first()) {
+            groupId == "group"
+            artifactId == "name"
+            version == "version"
+            artifacts == [artifact]
+            excludeRules != [excludeRule]
+            excludeRules.size() == 1
+            excludeRules[0].group == '*'
+            excludeRules[0].module == '*'
         }
     }
 

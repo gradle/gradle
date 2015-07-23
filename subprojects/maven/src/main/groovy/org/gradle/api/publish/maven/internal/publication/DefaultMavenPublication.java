@@ -110,7 +110,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private void addProjectDependency(ProjectDependency dependency) {
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
         runtimeDependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.<DependencyArtifact>emptyList(),
-            dependency.isTransitive()? Collections.<ExcludeRule>emptySet() : createExcludeAllRule()));
+            dependency.isTransitive()? dependency.getExcludeRules() : createExcludeAllRule()));
     }
 
     private void addModuleDependency(ModuleDependency dependency) {
