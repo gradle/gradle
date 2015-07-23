@@ -548,6 +548,6 @@ configure p3
         fails "tasks"
 
         and:
-        failure.assertHasCause("The following model rules could not be applied due to unsatisfied dependencies:")
+        failure.assertHasCause("The following model rules could not be applied due to unbound inputs and/or subjects:")
     }
 }

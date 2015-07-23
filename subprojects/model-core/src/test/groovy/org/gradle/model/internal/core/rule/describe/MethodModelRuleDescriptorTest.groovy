@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core.rule.describe
 
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class MethodModelRuleDescriptorTest extends Specification {
@@ -26,7 +27,7 @@ class MethodModelRuleDescriptorTest extends Specification {
         MethodModelRuleDescriptor.of(getClass(), method).describeTo(sb)
 
         then:
-        sb.toString() == getClass().simpleName + "#" + method
+        sb.toString() == ModelType.of(getClass()).simpleName + "#" + method
 
         where:
         method << [
@@ -42,7 +43,7 @@ class MethodModelRuleDescriptorTest extends Specification {
         MethodModelRuleDescriptor.of(Outer.Inner, "noArgs").describeTo(sb)
 
         then:
-        sb.toString() == 'MethodModelRuleDescriptorTest$Outer$Inner#noArgs'
+        sb.toString() == 'MethodModelRuleDescriptorTest.Outer.Inner#noArgs'
     }
 
     def noArgs() {}

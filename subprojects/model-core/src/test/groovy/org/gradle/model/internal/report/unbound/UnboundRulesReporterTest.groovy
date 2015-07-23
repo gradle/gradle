@@ -23,7 +23,7 @@ class UnboundRulesReporterTest extends Specification {
 
     def output = new StringWriter()
 
-    def reporter = new UnboundRulesReporter(new PrintWriter(output), "> ", 'http://someDocs/blah.html')
+    def reporter = new UnboundRulesReporter(new PrintWriter(output), "> ")
 
     def "reports on unbound rules"() {
         when:
@@ -39,16 +39,19 @@ class UnboundRulesReporterTest extends Specification {
 
         then:
         output.toString() == TextUtil.toPlatformLineSeparators("""> r1
->   Subject:
->     parent.p1 java.lang.String [UNBOUND]
->     <no path> java.lang.String scope:'some.scope' [UNBOUND]
->     parent.p3 java.lang.Integer
->   Inputs:
->     parent.p4 java.lang.Number Suggestions:parent.p31, parent.p32 [UNBOUND]
->     <no path> java.lang.Number [UNBOUND]
->     parent.p6 java.lang.Number
-  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
-  see: http://someDocs/blah.html""")
+>   subject:
+>     - parent.p1 String [*]
+>     - <no path> String [*]
+>         scope: some.scope
+>     - parent.p3 Integer
+>   inputs:
+>     - parent.p4 Number [*]
+>         suggestions: parent.p31, parent.p32
+>     - <no path> Number [*]
+>     - parent.p6 Number
+
+[*] - indicates that a model item could not be found for the path or type.
+""")
     }
 }
 

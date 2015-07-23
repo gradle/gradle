@@ -73,11 +73,11 @@ public class UnboundRuleInput {
     }
 
     public static Builder type(Class<?> type) {
-        return type(type.getName());
+        return type(ModelType.of(type));
     }
 
     public static Builder type(ModelType<?> type) {
-        return type(type.toString());
+        return type(type.getSimpleName());
     }
 
     @NotThreadSafe

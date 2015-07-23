@@ -49,14 +49,12 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final ModelGraph modelGraph;
     private final RuleBindings ruleBindings;
     private final ModelRuleExtractor ruleExtractor;
-    private final String documentationLocation;
     private final Set<RuleBinder> unboundRules = Sets.newIdentityHashSet();
 
     boolean reset;
 
-    public DefaultModelRegistry(ModelRuleExtractor ruleExtractor, String documentationLocation) {
+    public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
-        this.documentationLocation = documentationLocation;
         ModelCreator rootCreator = ModelCreators.of(ModelPath.ROOT, BiActions.doNothing()).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
         modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootCreator, ModelPath.ROOT), null));
         modelGraph.getRoot().setState(Created);
@@ -285,7 +283,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private UnboundModelRulesException unbound(Iterable<? extends RuleBinder> binders) {
         ModelPathSuggestionProvider suggestionsProvider = new ModelPathSuggestionProvider(modelGraph.getFlattened().keySet());
         List<? extends UnboundRule> unboundRules = new UnboundRulesProcessor(binders, suggestionsProvider).process();
-        return new UnboundModelRulesException(unboundRules, documentationLocation);
+        return new UnboundModelRulesException(unboundRules);
     }
 
     private ModelNodeInternal require(ModelPath path) {

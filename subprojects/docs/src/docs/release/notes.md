@@ -2,14 +2,6 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
-Add-->
-
-<!--
-### Example new and noteworthy
--->
-
 ### Play Framework Support (i)
 
 Gradle can now build [Play](https://www.playframework.com/) applications for Play version 2.3.x and 2.4.x.
@@ -87,7 +79,6 @@ by specifying the class to be tested by full qualified classname.
 
 See the javadoc for [`ProjectConnection`](dsl/org.gradle.tooling.ProjectConnection.html) and [`TestLauncher`](dsl/org.gradle.tooling.TestLauncher.html) for more information on using the new TestLauncher API.
 
-
 ### Rule based model configuration reporting improvements (i)
 
 Gradle 2.5 brings significant usability enhancements to the new [Rule based model configuration mechanism](userguide/new_model.html),
@@ -137,13 +128,18 @@ apply type: Rules
 The resulting error message gives some clear insight into what went wrong and why:
 
 ```
-> The following model rules could not be applied due to unsatisfied dependencies:
-    Rules#foo
-      Inputs:
-        bar java.lang.Integer (parameter 1) [UNBOUND]
-    [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
-    see: https://docs.gradle.org/2.6/userguide/new-model.html
+The following model rules could not be applied due to unbound inputs and/or subjects:
+
+  Rules#foo
+    inputs:
+      - bar Integer (parameter 1) [*]
+
+[*] - indicates that a model item could not be found for the path or type.
 ```
+
+In the above example, the error occurred due to there being no model element at path `bar`.
+
+This is an area of active development and will continue to improve and evolve in coming Gradle releases.
 
 ## Promoted features
 
@@ -151,10 +147,6 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
@@ -164,10 +156,6 @@ Features that have become superseded or irrelevant due to the natural evolution 
 in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
-
-<!--
-### Example deprecation
--->
 
 ### Deprecation of methods on (incubating) software model
 
@@ -196,7 +184,6 @@ Binaries now distinguish between source sets that are specific to them (owned so
 * Added `BinarySpec.getInputs()` that contains all the source sets needed to build the binary, including the ones specific to the binary and external source sets (e.g. inherited from the binary's parent component).
 * Removed `BinarySpec.source(Object)`: to add an existing sourceSet to a binary, use `BinarySpec.getInputs().add()`.
 * `@Managed` models are no longer permitted to have setter methods for members of type `ManagedSet`.
-
 
 ## External contributions
 

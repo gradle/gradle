@@ -17,92 +17,77 @@
 package org.gradle.model.internal.report.unbound;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import net.jcip.annotations.NotThreadSafe;
 
 import java.io.PrintWriter;
-import java.util.List;
 
 @NotThreadSafe
 public class UnboundRulesReporter {
 
     private final PrintWriter writer;
     private final String prefix;
-    private final String documentationLocation;
     private final static String INDENT = "  ";
 
-    public UnboundRulesReporter(PrintWriter writer, String prefix, String documentationLocation) {
+    public UnboundRulesReporter(PrintWriter writer, String prefix) {
         this.writer = writer;
         this.prefix = prefix;
-        this.documentationLocation = documentationLocation;
     }
 
     public void reportOn(Iterable<? extends UnboundRule> rules) {
-        boolean first = true;
         for (UnboundRule rule : rules) {
-            if (!first) {
-                writer.println();
-            }
-            first = false;
-
             writer.print(prefix);
-
-            writer.print(rule.getDescriptor());
+            writer.println(rule.getDescriptor());
             if (rule.getMutableInputs().size() > 0) {
-                heading("Subject:");
+                heading("subject:");
                 reportInputs(rule.getMutableInputs());
             }
             if (rule.getImmutableInputs().size() > 0) {
-                heading("Inputs:");
+                heading("inputs:");
                 reportInputs(rule.getImmutableInputs());
             }
+            writer.println();
         }
-        writer.println();
-        writer.println(indent(1) + "[UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)");
-        writer.print(indent(1) + "see: " + documentationLocation);
+        writer.println("[*] - indicates that a model item could not be found for the path or type.");
     }
 
     private void reportInputs(Iterable<? extends UnboundRuleInput> inputs) {
         for (UnboundRuleInput input : inputs) {
-            item();
-            List<String> parts = Lists.newArrayList();
-
-
-            String path = input.getPath() == null ? "<no path>" : input.getPath();
-            parts.add(path);
-            parts.add(input.getType());
+            writer.print(indent(2));
+            writer.write("- ");
+            writer.write(input.getPath() == null ? "<no path>" : input.getPath());
+            writer.write(" ");
+            writer.write(input.getType() == null ? "<untyped>" : input.getType());
             if (input.getDescription() != null) {
-                parts.add(String.format("(%s)", input.getDescription()));
-            }
-            if (input.getPath() == null && input.getScope() != null) {
-                parts.add(String.format("scope:'%s'", input.getScope()));
-            }
-            if (input.getSuggestedPaths().size() > 0) {
-                String join = Joiner.on(", ").join(input.getSuggestedPaths());
-                parts.add(String.format("Suggestions:%s", join.trim()));
+                writer.write(" ");
+                writer.write("(");
+                writer.write(input.getDescription());
+                writer.write(")");
             }
             if (!input.isBound()) {
-                parts.add("[UNBOUND]");
+                writer.write(" ");
+                writer.write("[*]");
             }
-            writer.print(Joiner.on(" ").join(parts));
+            writer.println();
+            if (input.getPath() == null && input.getScope() != null) {
+                writer.write(indent(4));
+                writer.write("scope: ");
+                writer.println(input.getScope());
+            }
+            if (input.getSuggestedPaths().size() > 0) {
+                writer.write(indent(4));
+                writer.write("suggestions: ");
+                writer.println(Joiner.on(", ").join(input.getSuggestedPaths()));
+            }
         }
     }
 
-    private void item() {
-        writer.println();
-        writer.print(prefix);
-        writer.print(indent(2));
-    }
-
     private void heading(String heading) {
-        writer.println();
-        writer.print(prefix);
-        writer.print(INDENT);
-        writer.print(heading);
+        writer.print(indent(1));
+        writer.println(heading);
     }
 
     private String indent(int times) {
-        StringBuffer buff = new StringBuffer();
+        StringBuffer buff = new StringBuffer(prefix);
         for (int i = 0; i < times; i++) {
             buff.append(INDENT);
         }

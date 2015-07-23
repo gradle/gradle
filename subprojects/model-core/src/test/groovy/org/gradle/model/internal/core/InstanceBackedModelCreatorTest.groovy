@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class InstanceBackedModelCreatorTest extends Specification {
 
-    def registry = new DefaultModelRegistry(null, null)
+    def registry = new DefaultModelRegistry(null)
 
     def "action is called"() {
         when:
