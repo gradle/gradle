@@ -60,8 +60,9 @@ public class DistributionFactory {
         }
         if (wrapper.getDistribution() != null) {
             return new ZippedDistribution(wrapper.getConfiguration(), executorFactory);
+        } else {
+            return getDownloadedDistribution(GradleVersion.current().getVersion());
         }
-        return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
 
     /**
