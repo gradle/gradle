@@ -24,7 +24,7 @@ import org.junit.Rule
 class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    Sample sample = new Sample(temporaryFolder, "jvmComponents/java")
+    Sample sample = new Sample(temporaryFolder, "newJavaPlugin/quickstart")
 
     def "can build java based jvm component"() {
         setup:
@@ -35,7 +35,7 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         new JarTestFixture(sample.dir.file("build/jars/mainJar/main.jar")).hasDescendants(
-                "org/gradle/samples/HelloWorld.class"
+                "org/gradle/Person.class", "org/gradle/resource.xml"
         )
     }
 }
