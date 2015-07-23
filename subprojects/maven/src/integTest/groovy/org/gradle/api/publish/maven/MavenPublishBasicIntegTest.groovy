@@ -234,7 +234,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: PublishingPlugin\$Rules#publishing")
+        failure.assertHasCause("Exception thrown while executing model rule: PublishingPlugin.Rules#publishing")
         failure.assertHasCause("Maven publication 'maven' cannot include multiple components")
     }
 

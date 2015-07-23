@@ -342,7 +342,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasCause "Exception thrown while executing model rule: NativeComponentModelPlugin\$Rules#configureGeneratedSourceSets"
+        failure.assertHasCause "Exception thrown while executing model rule: NativeComponentModelPlugin.Rules#configureGeneratedSourceSets"
         failure.assertHasCause "Could not find property 'sourceDir' on task ':generateSources'."
     }
 
