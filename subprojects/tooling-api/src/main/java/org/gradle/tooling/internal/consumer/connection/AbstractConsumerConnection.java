@@ -21,7 +21,7 @@ import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.internal.protocol.test.TestExecutionRequest;
+import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.model.internal.Exceptions;
 
 public abstract class AbstractConsumerConnection implements ConsumerConnection {

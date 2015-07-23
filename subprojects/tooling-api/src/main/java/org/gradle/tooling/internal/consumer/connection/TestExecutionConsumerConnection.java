@@ -22,7 +22,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
-import org.gradle.tooling.internal.protocol.test.TestExecutionRequest;
+import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 
 /*
  * <p>Used for providers >= 2.5.</p>

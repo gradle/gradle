@@ -24,7 +24,7 @@ import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection
-import org.gradle.tooling.internal.protocol.test.TestExecutionRequest
+import org.gradle.tooling.internal.consumer.TestExecutionRequest
 import spock.lang.Specification
 
 class TestExecutionConsumerConnectionTest extends Specification {
