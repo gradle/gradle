@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.TestLauncher;
-import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -31,7 +31,7 @@ import java.util.*;
 public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTestLauncher> implements TestLauncher {
 
     private final AsyncConsumerActionExecutor connection;
-    private List<OperationDescriptor> operationDescriptors = new ArrayList<OperationDescriptor>();
+    private List<TestOperationDescriptor> operationDescriptors = new ArrayList<TestOperationDescriptor>();
     private Set<String> testClassNames = new HashSet<String>();
 
     public DefaultTestLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
@@ -47,7 +47,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     }
 
     @Override
-    public TestLauncher withTests(OperationDescriptor... testDescriptors) {
+    public TestLauncher withTests(TestOperationDescriptor... testDescriptors) {
         operationDescriptors.addAll(Arrays.asList(testDescriptors));
         return this;
     }

@@ -15,13 +15,11 @@
  */
 
 package org.gradle.integtests.tooling.r26
-
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.GradleException
 import org.gradle.integtests.tooling.fixture.*
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.*
-import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -109,25 +107,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=2.6")
-    def "runs all tests when test task descriptor is passed"() {
-        given:
-        collectDescriptorsFromBuild()
-        when:
-        launchTests(taskDescriptors(":test") + testDescriptors("example.MyTest", "foo", ":test"));
-        then:
-        assertTaskExecuted(":test")
-        assertTaskNotExecuted(":secondTest")
-
-        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
-        assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
-
-        assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
-        assertTestNotExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
-        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
-    }
-
-    @TargetGradleVersion(">=2.6")
     def "runs only test task linked in test descriptor"() {
         given:
         collectDescriptorsFromBuild()
@@ -169,7 +148,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             launchTests(it, new TestResultHandler(), cancellationTokenSource) { TestLauncher launcher ->
                 def testsToLaunch = testDescriptors("example.MyTest", null, ":secondTest")
                 launcher
-                    .withTests(testsToLaunch.toArray(new OperationDescriptor[testsToLaunch.size()]))
+                    .withTests(testsToLaunch.toArray(new TestOperationDescriptor[testsToLaunch.size()]))
                     .withArguments("-t")
             }
             waitingForBuild()
@@ -200,13 +179,13 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     def "listener errors are rethrown on client side"() {
         given:
         collectDescriptorsFromBuild()
-        def taskDescriptors = taskDescriptors(":test")
+        def descriptors = testDescriptors("example.MyTest")
         def failingProgressListener = failingProgressListener()
         when:
         withConnection { ProjectConnection connection ->
             def testLauncher = connection.newTestLauncher()
             testLauncher.addProgressListener(failingProgressListener)
-            testLauncher.withTests(taskDescriptors.toArray(new TaskOperationDescriptor[taskDescriptors.size()]))
+            testLauncher.withTests(descriptors.toArray(new TestOperationDescriptor[descriptors.size()]))
             testLauncher.run()
         };
         then:
@@ -360,19 +339,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         then:
         thrown(BuildCancelledException)
     }
-
-    @TargetGradleVersion(">=2.6")
-    def "fails with meaningful error when passing task descriptor with unsupported task type"() {
-        given:
-        collectDescriptorsFromBuild()
-        when:
-        launchTests(taskDescriptors(":build"))
-        then:
-        def e = thrown(Exception)
-        e.cause.message == "Task ':build' of type 'org.gradle.api.DefaultTask_Decorated' not supported for executing tests via TestLauncher API."
-    }
-
-
 
     @TargetGradleVersion(">=2.6")
     def "can execute test class passed by name"() {
@@ -573,10 +539,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    Collection<OperationDescriptor> taskDescriptors(Set<TaskFinishEvent> taskEvents = this.events.all, String taskPath) {
-        taskEvents.findAll { it instanceof TaskFinishEvent }.collect { it.descriptor }.findAll { it.taskPath == taskPath }
-    }
-
     Collection<TestOperationDescriptor> testDescriptors(List<TestOperationDescriptor> descriptors = events.tests.collect { it.descriptor }, String className, String methodName) {
         testDescriptors(descriptors, className, methodName, null)
     }
@@ -591,9 +553,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         !testDescriptors(collect, testInfo.className, testInfo.methodName, testInfo.task).isEmpty()
     }
 
-    void launchTests(Collection<OperationDescriptor> testsToLaunch) {
+    void launchTests(Collection<TestOperationDescriptor> testsToLaunch) {
         launchTests { TestLauncher testLauncher ->
-            testLauncher.withTests(testsToLaunch.toArray(new OperationDescriptor[testsToLaunch.size()]))
+            testLauncher.withTests(testsToLaunch.toArray(new TestOperationDescriptor[testsToLaunch.size()]))
         }
     }
 

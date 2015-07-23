@@ -17,7 +17,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.test.TestOperationDescriptor;
 
 /**
  *
@@ -35,7 +35,7 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @return this
      * @since 2.6
      */
-    TestLauncher withTests(OperationDescriptor... descriptors);
+    TestLauncher withTests(TestOperationDescriptor... descriptors);
 
     /**
      * Adds tests to be executed declared by class name.

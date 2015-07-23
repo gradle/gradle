@@ -20,9 +20,9 @@ import org.gradle.api.Transformer;
 import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.OperationDescriptorInternal;
+import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.util.CollectionUtils;
@@ -35,7 +35,7 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
     private final Collection<InternalJvmTestExecutionDescriptor> jvmTestExecutionDescriptors;
     private Set<String> testClassNames;
 
-    public TestExecutionRequest(List<OperationDescriptor> operationDescriptors, Set<String> testClassNames) {
+    public TestExecutionRequest(List<TestOperationDescriptor> operationDescriptors, Set<String> testClassNames) {
         this.jvmTestExecutionDescriptors = adapt(operationDescriptors);
         this.testClassNames = testClassNames;
     }
@@ -49,7 +49,7 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
         return testClassNames;
     }
 
-    private Collection<InternalJvmTestExecutionDescriptor> adapt(List<OperationDescriptor> operationDescriptors) {
+    private Collection<InternalJvmTestExecutionDescriptor> adapt(List<TestOperationDescriptor> operationDescriptors) {
         return CollectionUtils.collect(operationDescriptors, new Transformer<InternalJvmTestExecutionDescriptor, OperationDescriptor>() {
             @Override
             public InternalJvmTestExecutionDescriptor transform(OperationDescriptor operationDescriptor) {
@@ -57,9 +57,6 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
                 if (internalOperationDescriptor instanceof InternalJvmTestDescriptor) {
                     InternalJvmTestDescriptor jvmTestOperationDescriptor = (InternalJvmTestDescriptor)internalOperationDescriptor;
                     return new DefaultInternalJvmTestExecutionDescriptor(jvmTestOperationDescriptor.getClassName(), jvmTestOperationDescriptor.getMethodName(), jvmTestOperationDescriptor.getTaskPath());
-                } else if (internalOperationDescriptor instanceof InternalTaskDescriptor) {
-                    final InternalTaskDescriptor taskOperationDescriptor = (InternalTaskDescriptor) internalOperationDescriptor;
-                    return new DefaultInternalJvmTestExecutionDescriptor(null, null, taskOperationDescriptor.getTaskPath());
                 } else {
                     throw new TestExecutionException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
                 }
