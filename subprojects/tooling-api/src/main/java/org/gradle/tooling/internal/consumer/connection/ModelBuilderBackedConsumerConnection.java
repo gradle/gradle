@@ -40,7 +40,7 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer);
         modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
         this.modelProducer = modelProducer;
-        this.actionRunner = new UnsupportedActionRunner(getVersionDetails());
+        this.actionRunner = new UnsupportedActionRunner(getVersionDetails().getVersion());
     }
 
     @Override

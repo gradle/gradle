@@ -38,6 +38,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     public DefaultTestLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
         operationParamsBuilder.setTasks(Collections.<String>emptyList());
+        operationParamsBuilder.setEntryPoint("TestLauncher API");
         this.connection = connection;
     }
 
@@ -74,7 +75,8 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
                 return operationParameters;
             }
             public Void run(ConsumerConnection connection) {
-                return connection.runTests(new TestExecutionRequest(operationDescriptors, testClassNames), getParameters());
+                connection.runTests(new TestExecutionRequest(operationDescriptors, testClassNames), getParameters());
+                return null;
             }
         }, new ResultHandlerAdapter(handler));
 

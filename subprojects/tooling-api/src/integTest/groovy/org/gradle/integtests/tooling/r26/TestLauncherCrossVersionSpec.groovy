@@ -318,7 +318,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def e = thrown(UnsupportedVersionException)
-        e.message == "The version of Gradle you are using (${getTargetDist().getVersion().getVersion()}) does not support TestLauncher API. Support for this was added in Gradle 2.6 and is available in all later versions."
+        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the TestLauncher API. Support for this is available in Gradle 2.6 and all later versions."
     }
 
     @TargetGradleVersion(">=2.6")

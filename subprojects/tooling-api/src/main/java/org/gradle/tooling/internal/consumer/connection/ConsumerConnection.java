@@ -38,5 +38,5 @@ public interface ConsumerConnection extends Stoppable {
     <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters)
             throws UnsupportedOperationException, IllegalStateException;
 
-    Void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters);
+    void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters);
 }

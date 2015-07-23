@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r112
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
@@ -33,16 +34,12 @@ task noop << {
 """
     }
 
-    @ToolingApiVersion(">=1.12")
+    @ToolingApiVersion("current")
     @TargetGradleVersion("<1.0-milestone-8")
-    def "build rejected for pre 1.0m8 providers"() {
+    def "build fails for pre 1.0m8 providers"() {
         when:
-        def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            build.standardOutput = output
-            build.forTasks("noop")
-            build.run()
+            connection.newBuild().run()
         }
 
         then:
@@ -50,20 +47,43 @@ task noop << {
         e.message == "Support for Gradle version ${targetDist.version.version} was removed in tooling API version 2.0. You should upgrade your Gradle build to use Gradle 1.0-milestone-8 or later."
     }
 
-    @ToolingApiVersion(">=1.12")
+    @ToolingApiVersion("current")
     @TargetGradleVersion("<1.0-milestone-8")
     def "model retrieving fails for pre 1.0m8 providers"() {
         when:
-        def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
-            def modelBuilder = connection.model(EclipseProject)
-            modelBuilder.standardOutput = output
-            modelBuilder.get()
+            connection.model(EclipseProject).get()
         }
 
         then:
         UnsupportedVersionException e = thrown()
         e.message == "Support for Gradle version ${targetDist.version.version} was removed in tooling API version 2.0. You should upgrade your Gradle build to use Gradle 1.0-milestone-8 or later."
+    }
+
+    @ToolingApiVersion("current")
+    @TargetGradleVersion("<1.0-milestone-8")
+    def "build action fails for pre 1.0m8 providers"() {
+        when:
+        withConnection { ProjectConnection connection ->
+            connection.action(new NullAction()).run()
+        }
+
+        then:
+        UnsupportedVersionException e = thrown()
+        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the BuildActionExecuter API. Support for this is available in Gradle 1.8 and all later versions."
+    }
+
+    @ToolingApiVersion("current")
+    @TargetGradleVersion("<1.0-milestone-8")
+    def "test execution fails for pre 1.0m8 providers"() {
+        when:
+        withConnection { ProjectConnection connection ->
+            connection.newTestLauncher().withJvmTestClasses("class").run()
+        }
+
+        then:
+        UnsupportedVersionException e = thrown()
+        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the TestLauncher API. Support for this is available in Gradle 2.6 and all later versions."
     }
 
     @ToolingApiVersion("<1.2")

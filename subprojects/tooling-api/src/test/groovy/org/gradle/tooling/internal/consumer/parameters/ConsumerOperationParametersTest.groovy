@@ -26,7 +26,8 @@ import spock.lang.Specification
 class ConsumerOperationParametersTest extends Specification {
 
     def "null or empty arguments have the same meaning"() {
-        def params = ConsumerOperationParameters.builder()
+        def params = ConsumerOperationParameters.builder().setEntryPoint("entry-point")
+
         when:
         params.arguments = null
 
@@ -47,7 +48,7 @@ class ConsumerOperationParametersTest extends Specification {
     }
 
     def "null or empty jvm arguments have the same meaning"() {
-        def params = ConsumerOperationParameters.builder()
+        def params = ConsumerOperationParameters.builder().setEntryPoint("entry-point")
         when:
         params.jvmArguments = null
 
@@ -68,7 +69,7 @@ class ConsumerOperationParametersTest extends Specification {
     }
 
     def "task names and empty launchables"() {
-        def builder = ConsumerOperationParameters.builder()
+        def builder = ConsumerOperationParameters.builder().setEntryPoint("entry-point")
         when:
         builder.tasks = ['a', 'b']
         def params = builder.build()
@@ -79,7 +80,7 @@ class ConsumerOperationParametersTest extends Specification {
     }
 
     def "launchables from provider"() {
-        def builder = ConsumerOperationParameters.builder()
+        def builder = ConsumerOperationParameters.builder().setEntryPoint("entry-point")
         when:
         def launchable1 = Mock(InternalLaunchable)
         def launchable2 = Mock(InternalLaunchable)
@@ -92,7 +93,7 @@ class ConsumerOperationParametersTest extends Specification {
     }
 
     def "launchables from adapters"() {
-        def builder = ConsumerOperationParameters.builder()
+        def builder = ConsumerOperationParameters.builder().setEntryPoint("entry-point")
         when:
         def launchable1 = Mock(TaskListingLaunchable)
         def paths1 = Sets.newTreeSet()
