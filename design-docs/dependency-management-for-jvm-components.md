@@ -673,6 +673,14 @@ a binary `B` has a variant `buildType` of type `BuildType`, the variant dimensio
         an error message indicating that the binary didn't have a compatible type for `buildType`.
 
 
+## Open issues
+
+- `gradle tasks` triggers dependency resolution, making it unusable if one of the errors exercised by the stories above is thrown. For example, a dependency on a missing library,
+or a dependency onto an incompatible variant, will cause a resolution error. The consequence is that `gradle tasks` will fail. Dependency resolution is done because the model
+is realized, and that the report might need to show the task dependencies. In our case, task dependencies can only be computed if resolution is done, so it breaks the task. A
+possible workaround involves catching errors in `org.gradle.internal.graph.DirectedGraph.getNodeValues`, so that we can still compute the dependencies of other tasks and show
+the tasks report. The task report would then retrieve the list of errors and display them in a reasonable way to the user.
+
 ## Feature backlog
 
 - Allow library to expose Jar, classes dir or any combination as its Java API.
