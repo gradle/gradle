@@ -65,11 +65,7 @@ public class DependencyGraphBuilder {
         this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
     }
 
-    public void resolve(ResolveContext resolveContext, DependencyGraphVisitor... visitors) {
-        resolveDependencyGraph(resolveContext, new CompositeDependencyGraphVisitor(visitors));
-    }
-
-    private void resolveDependencyGraph(ResolveContext resolveContext, DependencyGraphVisitor modelVisitor) {
+    public void resolve(ResolveContext resolveContext, DependencyGraphVisitor modelVisitor) {
         DefaultBuildableComponentResolveResult rootModule = new DefaultBuildableComponentResolveResult();
         moduleResolver.resolve(resolveContext, rootModule);
 

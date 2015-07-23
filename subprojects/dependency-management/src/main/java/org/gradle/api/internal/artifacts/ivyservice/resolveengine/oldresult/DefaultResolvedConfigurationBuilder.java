@@ -51,8 +51,8 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
         builder.done(root);
     }
 
-    public void addChild(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child) {
-        builder.parentChildMapping(parent, child);
+    public void addChild(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, long artifactSet) {
+        builder.parentChildMapping(parent, child, artifactSet);
     }
 
     public void newResolvedDependency(ResolvedConfigurationIdentifier id) {

@@ -31,6 +31,8 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.*
@@ -91,13 +93,17 @@ class DependencyGraphBuilderTest extends Specification {
     private DefaultLenientConfiguration resolve() {
         def transientConfigurationResultsBuilder = new TransientConfigurationResultsBuilder(new DummyBinaryStore(), new DummyStore())
         def modelBuilder = new DefaultResolvedConfigurationBuilder(transientConfigurationResultsBuilder)
-        def artifactsBuilder = new DefaultResolvedArtifactsBuilder()
+        def configurationResultVisitor = new ResolvedConfigurationDependencyGraphVisitor(modelBuilder)
 
-        builder.resolve(configuration,
-                new ResolvedArtifactsGraphVisitor(artifactsBuilder, artifactResolver),
-                new ResolutionResultDependencyGraphVisitor(resolutionResultBuilder),
-                new ResolvedConfigurationDependencyGraphVisitor(modelBuilder),
-                new ResolvedLocalComponentsResultGraphVisitor(projectModelBuilder))
+        def resolutionResultVisitor = new ResolutionResultDependencyGraphVisitor(resolutionResultBuilder)
+        def projectComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(projectModelBuilder)
+
+        def artifactsBuilder = new DefaultResolvedArtifactsBuilder()
+        def artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(new CompositeDependencyArtifactsVisitor(artifactsBuilder, configurationResultVisitor), artifactResolver)
+
+        def graphVisitor = new CompositeDependencyGraphVisitor(configurationResultVisitor, resolutionResultVisitor, projectComponentsVisitor, artifactsGraphVisitor)
+
+        builder.resolve(configuration, graphVisitor)
 
         def graphResults = modelBuilder.complete()
         def artifactResults = artifactsBuilder.resolve()

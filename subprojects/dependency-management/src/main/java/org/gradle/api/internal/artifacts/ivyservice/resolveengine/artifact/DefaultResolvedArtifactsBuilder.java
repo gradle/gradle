@@ -22,7 +22,7 @@ public class DefaultResolvedArtifactsBuilder implements ResolvedArtifactsBuilder
     private final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
 
     public void visitArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, ArtifactSet artifactSet) {
-        artifactResults.addArtifactSet(parent, child, artifactSet);
+        artifactResults.addArtifactSet(artifactSet);
     }
 
     @Override

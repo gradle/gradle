@@ -21,18 +21,17 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisitor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResolvedConfigurationDependencyGraphVisitor.class);
+public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisitor, DependencyArtifactsVisitor {
 
     private final ResolvedConfigurationBuilder builder;
     private final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
@@ -57,26 +56,25 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
     }
 
     public void visitEdge(DependencyGraphNode resolvedConfiguration) {
-        LOGGER.debug("Attaching {} to its parents.", resolvedConfiguration);
+        ResolvedConfigurationIdentifier targetNodeId = resolvedConfiguration.getNodeId();
         for (DependencyGraphEdge dependency : resolvedConfiguration.getIncomingEdges()) {
-            attachToParents(dependency, resolvedConfiguration);
+            if (dependency.getFrom().getNodeId() == root.getNodeId()) {
+                ModuleDependency moduleDependency = dependency.getModuleDependency();
+                builder.addFirstLevelDependency(moduleDependency, targetNodeId);
+            }
         }
     }
 
-    private void attachToParents(DependencyGraphEdge dependency, DependencyGraphNode childConfiguration) {
-        ResolvedConfigurationIdentifier parent = dependency.getFrom().getNodeId();
-        ResolvedConfigurationIdentifier child = childConfiguration.getNodeId();
-
-        builder.addChild(parent, child);
-        if (parent == root.getNodeId()) {
-            ModuleDependency moduleDependency = dependency.getModuleDependency();
-            builder.addFirstLevelDependency(moduleDependency, child);
-        }
+    public void visitArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, ArtifactSet artifacts) {
+        builder.addChild(parent, child, artifacts.getId());
     }
 
     public void finish(DependencyGraphNode root) {
         attachFailures(builder);
         builder.done(root.getNodeId());
+    }
+
+    public void finishArtifacts() {
     }
 
     private void attachFailures(ResolvedConfigurationBuilder result) {

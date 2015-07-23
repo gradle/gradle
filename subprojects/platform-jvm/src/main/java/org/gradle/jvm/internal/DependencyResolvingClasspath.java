@@ -140,7 +140,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void visitArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, ArtifactSet artifacts) {
-            artifactResults.addArtifactSet(parent, child, artifacts);
+            artifactResults.addArtifactSet(artifacts);
         }
 
         @Override

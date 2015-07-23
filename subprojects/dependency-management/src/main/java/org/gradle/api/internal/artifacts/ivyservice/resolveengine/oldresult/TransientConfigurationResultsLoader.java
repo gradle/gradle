@@ -42,8 +42,8 @@ public class TransientConfigurationResultsLoader implements Factory<TransientCon
 
     private class ContentMapping implements ResolvedContentsMapping {
         @Override
-        public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child) {
-            return artifactResults.getArtifacts(parent, child);
+        public Set<ResolvedArtifact> getArtifacts(long id) {
+            return artifactResults.getArtifacts(id);
         }
 
         @Override

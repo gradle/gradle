@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -29,8 +28,7 @@ public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
     // Transient state: held between resolving graph and resolving actual artifacts
     private Map<Long, ArtifactSet> artifactSets = Maps.newHashMap();
 
-    // Artifact State : we map edge->id->artifacts because many edges share the same artifact set
-    private Map<DependencyEdgeId, Long> artifactSetIds = Maps.newHashMap();
+    // Artifact State : held for the life of a build
     private Set<ResolvedArtifact> artifacts;
     private Map<Long, Set<ResolvedArtifact>> resolvedArtifactsById;
 
@@ -41,18 +39,14 @@ public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
     }
 
     @Override
-    public Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child) {
+    public Set<ResolvedArtifact> getArtifacts(long id) {
         assertArtifactsResolved();
-        DependencyEdgeId dependencyEdgeId = new DependencyEdgeId(parent, child);
-        Long artifactSetId = artifactSetIds.get(dependencyEdgeId);
-        Set<ResolvedArtifact> a = resolvedArtifactsById.get(artifactSetId);
-        assert a != null : "Unable to find artifacts for dependency: " + parent + " -> " + child;
+        Set<ResolvedArtifact> a = resolvedArtifactsById.get(id);
+        assert a != null : "Unable to find artifacts for id: " + id;
         return a;
     }
 
-    public void addArtifactSet(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, ArtifactSet artifactSet) {
-        DependencyEdgeId dependencyEdgeId = new DependencyEdgeId(parent, child);
-        artifactSetIds.put(dependencyEdgeId, artifactSet.getId());
+    public void addArtifactSet(ArtifactSet artifactSet) {
         artifactSets.put(artifactSet.getId(), artifactSet);
     }
 
@@ -74,36 +68,6 @@ public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
     private void assertArtifactsResolved() {
         if (artifacts == null) {
             throw new IllegalStateException("Cannot access artifacts before they are explicitly resolved.");
-        }
-    }
-
-    private static class DependencyEdgeId {
-        private final ResolvedConfigurationIdentifier parentId;
-        private final ResolvedConfigurationIdentifier childId;
-
-        private DependencyEdgeId(ResolvedConfigurationIdentifier parentId, ResolvedConfigurationIdentifier childId) {
-            this.parentId = parentId;
-            this.childId = childId;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            DependencyEdgeId that = (DependencyEdgeId) o;
-            return childId.equals(that.childId) && parentId.equals(that.parentId);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = parentId.hashCode();
-            result = 31 * result + childId.hashCode();
-            return result;
         }
     }
 }
