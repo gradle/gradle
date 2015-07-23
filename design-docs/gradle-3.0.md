@@ -9,7 +9,6 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
-
 ## Test output directories
 
 The current defaults for the outputs of tasks of type `Test` conflict with each other:
@@ -119,6 +118,8 @@ types and to offer a more consistent DSL.
 
 ## Tooling API clean ups
 
+* Remove the old `ProgressListener` interfaces and methods. These are superceded by the new interfaces. However, the new interfaces are supported only
+  by Gradle 2.5 and later, so might need to defer the removal until 4.0.
 * Move `UnsupportedBuildArgumentException` and `UnsupportedOperationConfigurationException` up to `org.gradle.tooling`, to remove
   package cycle from the API.
 
