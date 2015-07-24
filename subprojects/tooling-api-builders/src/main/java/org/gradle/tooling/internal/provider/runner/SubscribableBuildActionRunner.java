@@ -30,7 +30,7 @@ import java.util.Set;
 public class SubscribableBuildActionRunner implements BuildActionRunner {
     private BuildActionRunner delegate;
 
-    public SubscribableBuildActionRunner( BuildActionRunner delegate) {
+    public SubscribableBuildActionRunner(BuildActionRunner delegate) {
         this.delegate = delegate;
     }
 
