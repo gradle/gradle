@@ -153,6 +153,7 @@ Add methods to `BuildResult` to query the result.
 The previous stories set up the basic mechanics for the test-kit. Daemons started by test-kit should be isolated from the machine environment:
 
 - Test-kit uses only daemons started by test-kit.
+- Test kit daemons are not affected by build using custom gradle user home dir (i.e. isolate daemon base dir)
 - Configuration in ~/.gradle is ignored, such as `init.gradle` and `gradle.properties`
 - Daemons use default JVM arguments that are more appropriate to test daemons. Best option might be to use the JVM defaults.
 - Daemons are reused by tests.
@@ -161,7 +162,9 @@ The previous stories set up the basic mechanics for the test-kit. Daemons starte
 
 ### Implementation
 
-- Should be possible to implement this by setting the Gradle user home dir to some temporary directory, and defining some system properties.
+- Allow “working space” for runner to be specified, defaulting to `«java.io.tmpdir»/gradle-test-kit-«user name»`
+    - Use for default gradle user home dir
+    - Use for daemon base dir
 - Reuse the temporary directory within the test JVM process, so that daemons are reused for multiple tests.
 - Kill off the daemons when the JVM exits (See `DefaultGradleConnector#close()`). If required, split out another internal method to stop the daemons.
 
@@ -172,11 +175,16 @@ The previous stories set up the basic mechanics for the test-kit. Daemons starte
     * If a daemon process already exists, determine if it is a daemon process dedicated for test execution. Reuse it if possible. Otherwise, create a new one.
     * A daemon process dedicated for test execution only use its dedicated JVM parameters. Any configuration found under `~/.gradle` is not taken into account.
     * Daemons are stopped at the end of the test.
+* Two gradle runners sharing the same working space can be run at the same time
+    * No daemons are left behind.
+* Runner fails early if working space dir cannot be created or written to
+* Executing a build with a `-g` option does not affect daemon mechanics (i.e. daemon base dir is not under `-g`)
 
 ### Open issues
 
 * Looking at `DefaultGradleConnector#close()` it seems like it was introduced with Gradle 2.2. Later stories will allow executing a build with an older version.
-We'll support that scenario when we the corresponding story.
+
+We'll support that scenario when we get to the corresponding story.
 
 ## Story: IDE user debugs test build
 
