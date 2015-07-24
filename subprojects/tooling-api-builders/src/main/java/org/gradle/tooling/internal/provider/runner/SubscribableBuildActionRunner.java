@@ -17,18 +17,45 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.SubscribableBuildAction;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class SubscribableBuildActionRunner implements BuildActionRunner {
-    private BuildClientSubscriptionHandler buildClientSubscriptionHandler;
     private BuildActionRunner delegate;
 
-    public SubscribableBuildActionRunner(BuildClientSubscriptionHandler buildClientSubscriptionHandler, BuildActionRunner delegate) {
-        this.buildClientSubscriptionHandler = buildClientSubscriptionHandler;
+    public SubscribableBuildActionRunner( BuildActionRunner delegate) {
         this.delegate = delegate;
+    }
+
+    private Set<BuildClientSubscriptions> registeredClientSubscriptions = new HashSet<BuildClientSubscriptions>();
+
+    void registerListenersForClientSubscriptions(BuildClientSubscriptions clientSubscriptions, GradleInternal gradle) {
+        registeredClientSubscriptions.add(clientSubscriptions);
+        BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
+        if (clientSubscriptions.isSendTestProgressEvents()) {
+            gradle.addListener(new ClientForwardingTestListener(eventConsumer, clientSubscriptions));
+        }
+        if (clientSubscriptions.isSendTaskProgressEvents()) {
+            gradle.addListener(new ClientForwardingTaskListener(eventConsumer, clientSubscriptions));
+        }
+        if (clientSubscriptions.isSendBuildProgressEvents()) {
+            gradle.addListener(new ClientForwardingBuildListener(eventConsumer));
+        }
+    }
+
+    public void removeClientSubscriptions(BuildClientSubscriptions clientSubscriptions) {
+        registeredClientSubscriptions.remove(clientSubscriptions);
+    }
+
+    public boolean hasClientSubscriptionsRegistered(BuildClientSubscriptions clientSubscriptions) {
+        return registeredClientSubscriptions.contains(clientSubscriptions);
     }
 
     @Override
@@ -41,12 +68,12 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
 
         // register listeners that dispatch all progress via the registered BuildEventConsumer instance,
         // this allows to send progress events back to the DaemonClient (via short-cut)
-        if (!buildClientSubscriptionHandler.hasClientSubscriptionsRegistered(subscribableBuildAction.getClientSubscriptions())) {
-            buildClientSubscriptionHandler.registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), gradle);
+        if (!hasClientSubscriptionsRegistered(subscribableBuildAction.getClientSubscriptions())) {
+            registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), gradle);
         }
         delegate.run(action, buildController);
         if (buildController.hasResult()) {
-            buildClientSubscriptionHandler.removeClientSubscriptions(subscribableBuildAction.getClientSubscriptions());
+            removeClientSubscriptions(subscribableBuildAction.getClientSubscriptions());
         }
     }
 }
