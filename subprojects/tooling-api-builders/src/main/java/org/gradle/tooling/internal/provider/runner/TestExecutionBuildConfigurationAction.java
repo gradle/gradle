@@ -26,6 +26,7 @@ import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildExecutionContext;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
+import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 
 import java.util.*;
 
@@ -52,10 +53,11 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
 
     private List<Test> configureBuildForTestDescriptors(GradleInternal gradle, final InternalTestExecutionRequest testExecutionRequestAction) {
         final Collection<InternalJvmTestExecutionDescriptor> testDescriptors = testExecutionRequestAction.getTestExecutionDescriptors();
+
         final List<String> testTaskPaths = org.gradle.util.CollectionUtils.collect(testDescriptors, new Transformer<String, InternalJvmTestExecutionDescriptor>() {
             @Override
             public String transform(InternalJvmTestExecutionDescriptor internalJvmTestDescriptor) {
-                return internalJvmTestDescriptor.getTaskPath();
+                return ((DefaultTestDescriptor)internalJvmTestDescriptor.getDescriptor()).getTaskPath();
             }
         });
 
@@ -69,7 +71,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
             } else {
                 Test testTask = (Test) task;
                 for (InternalJvmTestExecutionDescriptor testDescriptor : testDescriptors) {
-                    if (testDescriptor.getTaskPath().equals(testTaskPath)) {
+                    if (((DefaultTestDescriptor)testDescriptor.getDescriptor()).getTaskPath().equals(testTaskPath)) {
                         final String className = testDescriptor.getClassName();
                         final String methodName = testDescriptor.getMethodName();
                         if (className == null && methodName == null) {

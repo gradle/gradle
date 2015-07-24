@@ -85,7 +85,6 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
         return parentId;
     }
 
-    @Override
     public String getTaskPath() {
         return taskPath;
     }

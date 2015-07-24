@@ -56,7 +56,7 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
                 final InternalOperationDescriptor internalOperationDescriptor = ((OperationDescriptorInternal) operationDescriptor).getInternalOperationDescriptor();
                 if (internalOperationDescriptor instanceof InternalJvmTestDescriptor) {
                     InternalJvmTestDescriptor jvmTestOperationDescriptor = (InternalJvmTestDescriptor)internalOperationDescriptor;
-                    return new DefaultInternalJvmTestExecutionDescriptor(jvmTestOperationDescriptor.getClassName(), jvmTestOperationDescriptor.getMethodName(), jvmTestOperationDescriptor.getTaskPath());
+                    return new DefaultInternalJvmTestExecutionDescriptor(jvmTestOperationDescriptor);
                 } else {
                     throw new TestExecutionException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
                 }

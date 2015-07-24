@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.protocol.test;
 
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
+
 import java.io.Serializable;
 
 public interface InternalJvmTestExecutionDescriptor extends Serializable {
@@ -23,5 +25,6 @@ public interface InternalJvmTestExecutionDescriptor extends Serializable {
 
     String getMethodName();
 
-    String getTaskPath();
+    InternalTestDescriptor getDescriptor();
+
 }
