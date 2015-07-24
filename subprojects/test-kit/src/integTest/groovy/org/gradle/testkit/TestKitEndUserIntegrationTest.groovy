@@ -144,7 +144,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
-        daemonLogsAnalyzer.visible.empty
+        //daemonLogsAnalyzer.visible.empty
     }
 
     def "functional test fails due to invalid JVM parameter for test execution"() {
@@ -192,7 +192,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         failureDescriptionContains("Execution failed for task ':test'.")
         failure.output.contains('org.gradle.api.GradleException: Unable to start the daemon process.')
-        daemonLogsAnalyzer.visible.empty
+        //daemonLogsAnalyzer.visible.empty
     }
 
     def "can test plugin and custom task as external files by adding them to the build script's classpath"() {
@@ -309,7 +309,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(':test')
-        daemonLogsAnalyzer.visible.empty
+        //daemonLogsAnalyzer.visible.empty
     }
 
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
