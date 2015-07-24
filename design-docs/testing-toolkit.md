@@ -212,6 +212,10 @@ The `GradleRunner` interface will be extended to provide additional methods.
 * All previous features work in debug mode. Potentially add a test runner to run each test in debug and non-debug mode.
 * Manually verify that when using an IDE, a breakpoint can be added in Gradle code (say in the Java plugin), the test run, and the breakpoint hit.
 
+### Open issues
+
+- Port number?
+
 ## Story: Functional test defines classes under test to make visible to test builds
 
 Provide an API for functional tests to define a classpath containing classes under test:
