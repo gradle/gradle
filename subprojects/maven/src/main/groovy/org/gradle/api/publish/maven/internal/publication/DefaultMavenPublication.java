@@ -126,9 +126,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
      * @return
      */
     private static Set<ExcludeRule> createExcludeAllRule() {
-        Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
-        excludeRules.add(new DefaultExcludeRule("*", "*"));
-        return excludeRules;
+        return Collections.<ExcludeRule>singleton(new DefaultExcludeRule("*", "*"));
     }
 
     public MavenArtifact artifact(Object source) {
