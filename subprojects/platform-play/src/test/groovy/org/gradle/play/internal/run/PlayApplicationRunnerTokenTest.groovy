@@ -35,4 +35,27 @@ class PlayApplicationRunnerTokenTest extends Specification {
         1 * client.waitForStop()
         1 * process.waitForStop()
     }
+
+    def "rebuildSuccess sends successful build result to server"() {
+        when:
+        runnerToken.rebuildSuccess()
+
+        then:
+        1 * server.rebuild({ RebuildReason reason ->
+            assert reason.successful
+        })
+    }
+
+    def "rebuildFailure sends failure build result to server"() {
+        given:
+        def failure = new Throwable()
+        when:
+        runnerToken.rebuildFailure(failure)
+
+        then:
+        1 * server.rebuild({ RebuildReason reason ->
+            assert !reason.successful
+            assert reason.failure == failure
+        })
+    }
 }

@@ -15,7 +15,7 @@
  */
 
 package org.gradle.play.integtest.fixtures
-
+import org.apache.http.HttpStatus
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.AvailablePortFinder
 
@@ -32,6 +32,15 @@ class RunningPlayApp {
 
     URL playUrl(String path='') {
         return new URL("http://localhost:$httpPort/${path}")
+    }
+
+    def playUrlError(String path='') {
+        HttpURLConnection connection = playUrl(path).openConnection()
+        assert connection.responseCode >= HttpStatus.SC_BAD_REQUEST
+
+        return [ 'httpCode': connection.responseCode,
+          'message': connection.responseMessage,
+          'text': connection.errorStream.text ]
     }
 
     int selectPort() {

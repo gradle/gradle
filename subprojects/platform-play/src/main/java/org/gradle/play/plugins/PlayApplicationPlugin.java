@@ -16,14 +16,18 @@
 package org.gradle.play.plugins;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
+import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
@@ -53,6 +57,7 @@ import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.*;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
+import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
 import org.gradle.play.internal.run.PlayApplicationRunnerFactory;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
@@ -86,6 +91,12 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ScalaLanguagePlugin.class);
         project.getExtensions().create("playConfigurations", PlayPluginConfigurations.class, project.getConfigurations(), project.getDependencies());
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(PlayApplicationSpec.class), PlaySourceSetRules.class);
+
+        project.getGradle().addBuildListener(new BuildAdapter() {
+            @Override
+            public void buildFinished(BuildResult result) {
+            }
+        });
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -366,9 +377,17 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createPlayRunTask(ModelMap<Task> tasks, BinaryContainer binaryContainer, ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
+        void createPlayRunTask(ModelMap<Task> tasks, BinaryContainer binaryContainer, final ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
+
             for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
+                // deployment registry is shared across all projects and binary name is not unique across all projects
+                String deploymentId = String.format("deploy%s@%s", binary.getName(), projectIdentifier.getPath());
+
+                DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
+                final PlayApplicationDeploymentHandle deploymentHandle = registerOrFindDeploymentHandle(deploymentRegistry, deploymentId);
+                deploymentHandle.newBuild(serviceRegistry.get(Gradle.class));
+
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
                         playRun.setDescription("Runs the Play application for local development.");
@@ -380,10 +399,20 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         playRun.setAssetsDirs(binary.getAssets().getAssetDirs());
                         playRun.setRuntimeClasspath(configurations.getPlayRun().getNonChangingArtifacts());
                         playRun.setChangingClasspath(configurations.getPlayRun().getChangingArtifacts());
+                        playRun.setDeployment(deploymentHandle);
                         playRun.dependsOn(binary.getBuildTask());
                     }
                 });
             }
+        }
+
+        private PlayApplicationDeploymentHandle registerOrFindDeploymentHandle(DeploymentRegistry deploymentRegistry, String deploymentId) {
+            PlayApplicationDeploymentHandle deploymentHandle  = deploymentRegistry.get(PlayApplicationDeploymentHandle.class, deploymentId);
+            if (deploymentHandle == null) {
+                deploymentHandle = new PlayApplicationDeploymentHandle(deploymentId);
+                deploymentRegistry.register(deploymentId, deploymentHandle);
+            }
+            return deploymentHandle;
         }
 
         private File srcOutputDirectory(File buildDir, PlayApplicationBinarySpec binary, String taskName) {

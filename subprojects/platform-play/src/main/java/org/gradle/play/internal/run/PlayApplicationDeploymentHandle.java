@@ -16,30 +16,53 @@
 
 package org.gradle.play.internal.run;
 
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.deployment.internal.DeploymentHandle;
 
-public class PlayApplicationDeploymentHandle implements DeploymentHandle {
+public class PlayApplicationDeploymentHandle implements DeploymentHandle<PlayApplicationRunnerToken> {
+    private PlayApplicationRunnerToken runnerToken;
     private final String id;
-    private final PlayApplicationRunnerToken runnerToken;
     private static Logger logger = Logging.getLogger(PlayApplicationDeploymentHandle.class);
 
-    public PlayApplicationDeploymentHandle(String id, PlayApplicationRunnerToken runnerToken) {
+    public PlayApplicationDeploymentHandle(String id) {
         this.id = id;
+    }
+
+    @Override
+    public void start(PlayApplicationRunnerToken runnerToken) {
         this.runnerToken = runnerToken;
     }
 
     @Override
     public boolean isRunning() {
-        return runnerToken.isRunning();
+        if (runnerToken!=null) {
+            return runnerToken.isRunning();
+        }
+        return false;
     }
 
     @Override
-    public void stop() {
-        if (isRunning()) {
-            logger.info("Stopping Play deployment handle for " + id);
-            runnerToken.stop();
+    public void newBuild(Gradle gradle) {
+        gradle.addBuildListener(new BuildAdapter() {
+            @Override
+            public void buildFinished(BuildResult result) {
+                reloadFromResult(result);
+            }
+        });
+    }
+
+    void reloadFromResult(BuildResult result) {
+        Throwable failure = result.getFailure();
+        if (failure != null) {
+            if (isRunning()) {
+                runnerToken.rebuildFailure(failure);
+            } else {
+                throw new IllegalStateException("Cannot reload a deployment handle that has already been stopped.");
+            }
         }
     }
 
@@ -48,6 +71,14 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
             runnerToken.rebuildSuccess();
         } else {
             throw new IllegalStateException("Cannot reload a deployment handle that has already been stopped.");
+        }
+    }
+
+    @Override
+    public void stop() {
+        if (isRunning()) {
+            logger.info("Stopping Play deployment handle for " + id);
+            runnerToken.stop();
         }
     }
 }

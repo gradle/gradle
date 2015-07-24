@@ -108,8 +108,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         stop.countDown();
     }
 
-    @Override
-    public void rebuildSuccess() {
-        runAdapter.forceReloadNextTime();
+    public void rebuild(RebuildReason reason) {
+        runAdapter.forceReloadNextTime(reason);
     }
 }

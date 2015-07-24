@@ -24,19 +24,13 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.play.internal.run.DefaultPlayRunSpec;
-import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
-import org.gradle.play.internal.run.PlayApplicationRunner;
-import org.gradle.play.internal.run.PlayApplicationRunnerToken;
-import org.gradle.play.internal.run.PlayRunSpec;
+import org.gradle.play.internal.run.*;
 import org.gradle.play.internal.toolchain.PlayToolProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
@@ -69,6 +63,8 @@ public class PlayRun extends ConventionTask {
 
     private PlayToolProvider playToolProvider;
 
+    private PlayApplicationDeploymentHandle deploymentHandle;
+
     /**
      * fork options for the running a Play application.
      */
@@ -82,10 +78,8 @@ public class PlayRun extends ConventionTask {
     @TaskAction
     public void run() {
         ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
-        String deploymentId = getPath();
-        PlayApplicationDeploymentHandle deploymentHandle = getDeploymentRegistry().get(PlayApplicationDeploymentHandle.class, deploymentId);
 
-        if (deploymentHandle == null) {
+        if (!deploymentHandle.isRunning()) {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
                 .start("Start Play server", "Starting Play");
 
@@ -93,8 +87,7 @@ public class PlayRun extends ConventionTask {
                 int httpPort = getHttpPort();
                 PlayRunSpec spec = new DefaultPlayRunSpec(runtimeClasspath, changingClasspath, applicationJar, assetsJar, assetsDirs, getProject().getProjectDir(), getForkOptions(), httpPort);
                 PlayApplicationRunnerToken runnerToken = playToolProvider.get(PlayApplicationRunner.class).start(spec);
-                deploymentHandle = new PlayApplicationDeploymentHandle(deploymentId, runnerToken);
-                getDeploymentRegistry().register(deploymentId, deploymentHandle);
+                deploymentHandle.start(runnerToken);
             } finally {
                 progressLogger.completed();
             }
@@ -185,12 +178,15 @@ public class PlayRun extends ConventionTask {
         this.changingClasspath = changingClasspath;
     }
 
-    @Inject
-    protected DeploymentRegistry getDeploymentRegistry() {
-        throw new UnsupportedOperationException();
-    }
-
     public void setPlayToolProvider(PlayToolProvider playToolProvider) {
         this.playToolProvider = playToolProvider;
+    }
+
+    public void setDeployment(PlayApplicationDeploymentHandle deploymentHandle) {
+        this.deploymentHandle = deploymentHandle;
+    }
+
+    public PlayApplicationDeploymentHandle getDeployment() {
+        return deploymentHandle;
     }
 }

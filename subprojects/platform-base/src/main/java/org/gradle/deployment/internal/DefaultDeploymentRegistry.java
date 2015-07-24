@@ -26,11 +26,11 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultDeploymentRegistry implements DeploymentRegistry {
     private final Lock lock = new ReentrantLock();
-    private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
+    private final Map<String, DeploymentHandle<? extends RunnerToken>> handles = Maps.newHashMap();
     private boolean stopped;
 
     @Override
-    public void register(String id, DeploymentHandle handle) {
+    public void register(String id, DeploymentHandle<? extends RunnerToken> handle) {
         lock.lock();
         try {
             failIfStopped();
@@ -45,7 +45,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
     }
 
     @Override
-    public <T extends DeploymentHandle> T get(Class<T> handleType, String id) {
+    public <T extends DeploymentHandle<? extends RunnerToken>> T get(Class<T> handleType, String id) {
         lock.lock();
         try {
             failIfStopped();

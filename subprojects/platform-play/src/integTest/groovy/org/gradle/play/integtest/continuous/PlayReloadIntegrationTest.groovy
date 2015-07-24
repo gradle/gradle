@@ -16,7 +16,6 @@
 
 package org.gradle.play.integtest.continuous
 
-import groovy.transform.NotYetImplemented
 import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayReloadIntegrationTest
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
@@ -58,28 +57,32 @@ class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegratio
         }
     }
 
-    @NotYetImplemented
     def "should reload with exception when modify scala controller"() {
         when:
         succeeds("runPlayBinary")
-
         then:
         appIsRunningAndDeployed()
 
         when:
-        expectBuildFailure = true
         addBadCode()
-
         then:
         fails()
         !executedTasks.contains('runPlayBinary')
-        runningApp.playUrl().text == 'Hello world' // TODO:
+        errorPageHasTaskFailure("compilePlayBinaryScala")
 
         when:
         fixBadCode()
         then:
+        succeeds()
         appIsRunningAndDeployed()
 
+    }
+
+    private errorPageHasTaskFailure(task) {
+        def error = runningApp.playUrlError()
+        assert error.httpCode == 500
+        assert error.text.contains("Execution failed for task &#x27;:$task&#x27;.")
+        error
     }
 
     private void addBadCode() {
@@ -96,26 +99,23 @@ class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegratio
         file("app/controllers/Application.scala") << "}"
     }
 
-    @NotYetImplemented
     def "should reload with exception when modify routes"() {
         when:
         succeeds("runPlayBinary")
-
         then:
         appIsRunningAndDeployed()
 
         when:
-        expectBuildFailure = true
         addBadRoute()
-
         then:
         fails()
         !executedTasks.contains('runPlayBinary')
-        runningApp.playUrl().text == 'Hello world' // TODO:
+        errorPageHasTaskFailure("compilePlayBinaryRoutes")
 
         when:
         fixBadRoute()
         then:
+        succeeds()
         appIsRunningAndDeployed()
     }
 
@@ -148,36 +148,36 @@ alert message
         runningApp.playUrl('assets/javascripts/test.min.js').text.contains('Hello coffeescript')
     }
 
-    @NotYetImplemented
     def "should reload with exception when modify CoffeeScript"() {
         when:
         succeeds("runPlayBinary")
-
         then:
         appIsRunningAndDeployed()
 
         when:
-        expectBuildFailure = true
         addBadCoffeeScript()
 
         then:
         fails()
         !executedTasks.contains('runPlayBinary')
-        runningApp.playUrl().text == 'Hello world' // TODO:
+        errorPageHasTaskFailure("compilePlayBinaryCoffeeScript")
 
         when:
         fixBadCoffeeScript()
         then:
+        succeeds()
         appIsRunningAndDeployed()
     }
 
     def addBadCoffeeScript() {
-        file("app/assets/javascripts/test.coffee") << 'message = "Hello CoffeeScript' // missing closing quote
+        // missing closing quote
+        file("app/assets/javascripts/bad.coffee") << """
+message = "Hello CoffeeScript"""
     }
 
     def fixBadCoffeeScript() {
-        file("app/assets/javascripts/test.coffee") << """ "
-        alert message
+        file("app/assets/javascripts/bad.coffee") << """ "
+alert message
 """
     }
 
@@ -199,6 +199,39 @@ var message = "Hello JS";
         runningApp.playUrl('assets/javascripts/helloworld.min.js').text.contains('Hello JS')
     }
 
+    def "should reload with exception when modify javascript"() {
+        when:
+        succeeds("runPlayBinary")
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        addBadJavaScript()
+
+        then:
+        fails()
+        !executedTasks.contains('runPlayBinary')
+        errorPageHasTaskFailure("minifyPlayBinaryJavaScript")
+
+        when:
+        fixBadJavaScript()
+        then:
+        succeeds()
+        appIsRunningAndDeployed()
+    }
+
+    def addBadJavaScript() {
+        // missing closing quote
+        file("app/assets/javascripts/bad.js") << '''
+var message = "Hello JS'''
+    }
+
+    def fixBadJavaScript() {
+        file("app/assets/javascripts/bad.js") << """ ";
+alert(message);
+"""
+    }
+
     def "should reload modified java model"() {
         when:
         succeeds("runPlayBinary")
@@ -215,6 +248,41 @@ var message = "Hello JS";
         then:
         succeeds()
         assert runningApp.playUrl().text.contains("<li>Hello foo:1 !</li>")
+    }
+
+    def "should reload with exception when modify java"() {
+        when:
+        succeeds("runPlayBinary")
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        addBadJava()
+
+        then:
+        fails()
+        !executedTasks.contains('runPlayBinary')
+        errorPageHasTaskFailure("compilePlayBinaryScala")
+
+        when:
+        fixBadJava()
+        then:
+        succeeds()
+        appIsRunningAndDeployed()
+    }
+
+    def addBadJava() {
+        file("app/models/NewType.java") << """
+package models;
+
+public class NewType {
+"""
+    }
+
+    def fixBadJava() {
+        file("app/models/NewType.java") << """
+}
+"""
     }
 
     def "should reload twirl template"() {
@@ -234,38 +302,42 @@ var message = "Hello JS";
         assert runningApp.playUrl().text.contains("Welcome to Play with Gradle")
     }
 
-    // TODO: Rework this (we should show failure now)
-    def "reload is not triggered if task dependency of play run task fails" () {
-        given:
-        staticTimeController()
 
+    def "should reload with exception when modify twirl template"() {
         when:
         succeeds("runPlayBinary")
-
         then:
         appIsRunningAndDeployed()
-        def time = runningApp.playUrl('java/time').text
 
         when:
-        file("app/controllers/jva/PureJava.java") << "XXX"
+        addBadTwirlTemplate()
 
         then:
         fails()
+        !executedTasks.contains('runPlayBinary')
+        errorPageHasTaskFailure("compilePlayBinaryTwirlTemplates")
 
-        and: "controller class has not been reloaded"
-        runningApp.playUrl('java/time').text == time
+        when:
+        fixBadTwirlTemplate()
+        then:
+        succeeds()
+        appIsRunningAndDeployed()
     }
 
-    void staticTimeController() {
-        file("conf/jva.routes") << "\nGET     /time                   controllers.jva.PureJava.time"
-        file("app/controllers/jva/PureJava.java").with {
-            text = text.replaceFirst(/(?s)\}\s*$/, '''
-                  private static long time = System.currentTimeMillis();
-                  public static Result time() {
-                    return ok(String.format("%d", time));
-                  }
-                }
-            ''')
-        }
+    def addBadTwirlTemplate() {
+        file("app/views/bad.scala.html") << """
+@(name: String)
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+Hello @{name"""
+    }
+
+    def fixBadTwirlTemplate() {
+        file("app/views/bad.scala.html") << """}!
+</body>
+</html>
+"""
     }
 }

@@ -16,15 +16,19 @@
 
 package org.gradle.play.internal.run
 
+import org.gradle.BuildResult
+import org.gradle.api.invocation.Gradle
 import spock.lang.Specification
 
 
 class PlayApplicationDeploymentHandleTest extends Specification {
     def PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
-    def PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle("test", runnerToken)
+    def PlayApplicationDeploymentHandle deploymentHandle = new PlayApplicationDeploymentHandle("test")
+    def Gradle gradle = Mock(Gradle)
 
     def "reloading deployment handle reloads runner" () {
         when:
+        deploymentHandle.start(runnerToken)
         deploymentHandle.reload()
 
         then:
@@ -34,6 +38,7 @@ class PlayApplicationDeploymentHandleTest extends Specification {
 
     def "stopping deployment handle stops runner" () {
         when:
+        deploymentHandle.start(runnerToken)
         deploymentHandle.stop()
 
         then:
@@ -46,10 +51,43 @@ class PlayApplicationDeploymentHandleTest extends Specification {
         1 * runnerToken.isRunning() >> false
 
         when:
+        deploymentHandle.start(runnerToken)
         deploymentHandle.reload()
 
         then:
         IllegalStateException e = thrown()
         e.message == "Cannot reload a deployment handle that has already been stopped."
     }
+
+    def "cannot reload a deployment handle that was never started" () {
+        when:
+        deploymentHandle.reload()
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "Cannot reload a deployment handle that has already been stopped."
+    }
+
+    def "build failures cause deployment handle to reload runner" () {
+        given:
+        runnerToken.isRunning() >> true
+        deploymentHandle.start(runnerToken)
+
+        when:
+        deploymentHandle.newBuild(gradle)
+        then:
+        1 * gradle.addBuildListener(_)
+
+        when:
+        def failure = new Throwable()
+        deploymentHandle.reloadFromResult(new BuildResult(gradle, failure))
+        then:
+        runnerToken.rebuildFailure(failure)
+
+        when:
+        deploymentHandle.reloadFromResult(new BuildResult(gradle, null))
+        then:
+        0 * _
+    }
+
 }

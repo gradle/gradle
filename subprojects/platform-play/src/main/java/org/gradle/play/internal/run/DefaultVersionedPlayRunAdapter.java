@@ -38,13 +38,12 @@ import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.jar.JarFile;
 
 public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRunAdapter, Serializable {
 
-    private final AtomicBoolean reload = new AtomicBoolean();
+    private final AtomicReference<RebuildReason> reload = new AtomicReference<RebuildReason>();
     private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<ClassLoader>();
     private final Queue<SoftReference<Closeable>> loadersToClose = new ConcurrentLinkedQueue<SoftReference<Closeable>>();
 
@@ -56,9 +55,10 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
     public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final Iterable<File> changingClasspath, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
         final ClassLoader assetsClassLoader = createAssetsClassLoader(assetsJar, assetsDirs, classLoader);
-        forceReloadNextTime();
+        forceReloadNextTime(new RebuildReason());
         return Proxy.newProxyInstance(classLoader, new Class<?>[]{getBuildLinkClass(classLoader)}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
                 if (method.getName().equals("projectPath")) {
                     return projectPath;
                 } else if (method.getName().equals("reload")) {
@@ -68,14 +68,19 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                     // We have no way of knowing when the loader is actually done with, so we use the request after the request
                     // that triggered the reload as the trigger point to close the replaced loader.
                     closeOldLoaders();
-
-                    if (reload.getAndSet(false)) {
+                    RebuildReason reason = reload.get();
+                    if (reason == null) {
+                        // no reload needs to occur
+                        return null;
+                    } else if (reason.isSuccessful()) {
+                        reload.compareAndSet(reason, null); // clear rebuild flag
                         ClassPath classpath = new DefaultClassPath(applicationJar).plus(new DefaultClassPath(changingClasspath));
                         URLClassLoader currentClassLoader = new URLClassLoader(classpath.getAsURLArray(), assetsClassLoader);
                         storeClassLoader(currentClassLoader);
                         return currentClassLoader;
                     } else {
-                        return null;
+                        // failure
+                        return reason.getFailure();
                     }
                 } else if (method.getName().equals("settings")) {
                     return new HashMap<String, String>();
@@ -115,8 +120,8 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     }
 
     @Override
-    public void forceReloadNextTime() {
-        reload.set(true);
+    public void forceReloadNextTime(RebuildReason reason) {
+        reload.set(reason);
     }
 
     public Object getBuildDocHandler(ClassLoader docsClassLoader, Iterable<File> classpath) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException {
