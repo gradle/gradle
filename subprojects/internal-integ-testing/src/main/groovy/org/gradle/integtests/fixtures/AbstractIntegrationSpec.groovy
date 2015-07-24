@@ -23,12 +23,13 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
-import org.gradle.util.TextUtil
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.Statement
 import spock.lang.Specification
+
+import static org.gradle.util.Matchers.normalizedLineSeparators
 
 /**
  * Spockified version of AbstractIntegrationTest.
@@ -191,15 +192,15 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
 
     protected void failureDescriptionStartsWith(String description) {
-        failure.assertThatDescription(CoreMatchers.startsWith(TextUtil.normaliseLineSeparators(description)))
+        failure.assertThatDescription(normalizedLineSeparators(CoreMatchers.containsString(description)))
     }
 
     protected void failureDescriptionContains(String description) {
-        failure.assertThatDescription(CoreMatchers.containsString(TextUtil.normaliseLineSeparators(description)))
+        failure.assertThatDescription(normalizedLineSeparators(CoreMatchers.containsString(description)))
     }
 
     protected void failureCauseContains(String description) {
-        failure.assertThatCause(CoreMatchers.containsString(TextUtil.normaliseLineSeparators(description)))
+        failure.assertThatCause(normalizedLineSeparators(CoreMatchers.containsString(description)))
     }
 
     private assertHasResult() {
