@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import org.gradle.util.TextUtil
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import org.junit.runners.model.FrameworkMethod
@@ -190,15 +191,15 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
 
     protected void failureDescriptionStartsWith(String description) {
-        failure.assertThatDescription(CoreMatchers.startsWith(description))
+        failure.assertThatDescription(CoreMatchers.startsWith(TextUtil.normaliseLineSeparators(description)))
     }
 
     protected void failureDescriptionContains(String description) {
-        failure.assertThatDescription(CoreMatchers.containsString(description))
+        failure.assertThatDescription(CoreMatchers.containsString(TextUtil.normaliseLineSeparators(description)))
     }
 
     protected void failureCauseContains(String description) {
-        failure.assertThatCause(CoreMatchers.containsString(description))
+        failure.assertThatCause(CoreMatchers.containsString(TextUtil.normaliseLineSeparators(description)))
     }
 
     private assertHasResult() {
