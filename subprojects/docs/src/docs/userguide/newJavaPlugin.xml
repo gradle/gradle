@@ -82,7 +82,7 @@
             <sourcefile file="build.gradle" snippet="single-lib"/>
             <output args='build' ignoreExtraLines="true"/>
         </sample>
-        <para>This example creates a library named <literal>main</literal>, which will implicitly create a <firstterm>source set</firstterm>
+        <para>This example creates a library named <literal>main</literal>, which will implicitly create a <apilink class="org.gradle.language.java.JavaSourceSet"/>
             named <literal>java</literal>.
             Therefore the new Java plugin follows the conventions of the <link linkend="java_plugin">old Java plugin</link>, and Java sources
             are expected to be found in <filename>src/main/java</filename>,
@@ -159,6 +159,16 @@
             </sample>
             <para>When building the application, Gradle generates two binaries: <literal>java5MainJar</literal> and <literal>java6MainJar</literal>
             corresponding to the target versions of Java. Those are artifacts of the library that will participate in dependency resolution.</para>
+        </section>
+        <section>
+            <title>Binary specific source sets</title>
+            <para>For each <apilink class="org.gradle.jvm.JvmLibrarySpec"/> it is possible to define additional source sets for each binary. A common use case for this
+            is having specific dependencies for each variant. The example below configures a <literal>java6</literal> source set on the <literal>java6MainJar</literal>
+            binary:</para>
+            <sample id="newJavaTargetPlatforms" dir="newJavaPlugin/targetplatforms" title="Declaring binary specific sources">
+                <sourcefile file="build.gradle" snippet="binary-specific-sourceset"/>
+                <output args=":java6MainJar" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-java6MainJar.out"/>
+            </sample>
         </section>
         <section>
             <title>Dependency resolution</title>

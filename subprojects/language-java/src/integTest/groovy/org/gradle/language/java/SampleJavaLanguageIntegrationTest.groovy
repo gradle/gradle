@@ -24,18 +24,39 @@ import org.junit.Rule
 class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    Sample sample = new Sample(temporaryFolder, "newJavaPlugin/quickstart")
+    Sample quickstart = new Sample(temporaryFolder, "newJavaPlugin/quickstart")
+
+    @Rule
+    Sample platformAware = new Sample(temporaryFolder, "newJavaPlugin/targetplatforms")
 
     def "can build java based jvm component"() {
         setup:
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(quickstart.dir)
 
         when:
         succeeds("assemble")
 
         then:
-        new JarTestFixture(sample.dir.file("build/jars/mainJar/main.jar")).hasDescendants(
+        new JarTestFixture(quickstart.dir.file("build/jars/mainJar/main.jar")).hasDescendants(
                 "org/gradle/Person.class", "org/gradle/resource.xml"
+        )
+    }
+
+    def "can create a binary specific source set"() {
+        setup:
+        executer.inDirectory(platformAware.dir)
+
+        when:
+        succeeds("assemble")
+
+        then: "the Java 5 version of the jar doesn't include any Java 6 class"
+        new JarTestFixture(platformAware.dir.file("build/jars/java5MainJar/main.jar")).hasDescendants(
+            "org/gradle/Person.class", "org/gradle/resource.xml"
+        )
+
+        and: "the Java 6 jar contains the Person6 class"
+        new JarTestFixture(platformAware.dir.file("build/jars/java6MainJar/main.jar")).hasDescendants(
+            "org/gradle/Person.class", "org/gradle/Person6.class", "org/gradle/resource.xml"
         )
     }
 }

@@ -10,6 +10,19 @@ model {
             targetPlatform 'java5'
             targetPlatform 'java6'
         }
-    }
+// END SNIPPET declare-target-platforms
+// START SNIPPET binary-specific-sourceset
+        main {
+            binaries.named('java6MainJar') {
+                sources {
+                    java6(JavaSourceSet) {
+                        source.srcDir 'src/main/java6'
+                    }
+                }
+            }
+        }
+// END SNIPPET binary-specific-sourceset
+// START SNIPPET declare-target-platforms
+   }
 }
 // END SNIPPET declare-target-platforms

@@ -3,6 +3,7 @@
 :createJava5MainJar
 :java5MainJar
 :compileJava6MainJarMainJava
+:compileJava6MainJarMainJava6
 :processJava6MainJarMainResources
 :createJava6MainJar
 :java6MainJar

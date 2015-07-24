@@ -6,6 +6,7 @@
 :server:createJava5MainJar
 :server:java5MainJar
 :compileJava6MainJarMainJava UP-TO-DATE
+:compileJava6MainJarMainJava6 UP-TO-DATE
 :processJava6MainJarMainResources UP-TO-DATE
 :createJava6MainJar UP-TO-DATE
 :java6MainJar UP-TO-DATE
