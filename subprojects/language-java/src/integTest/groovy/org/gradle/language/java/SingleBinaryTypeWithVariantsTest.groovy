@@ -79,6 +79,12 @@ model {
         file('src/first/java/FirstApp.java') << 'public class FirstApp extends SecondApp {}'
         file('src/second/java/SecondApp.java') << 'public class SecondApp {}'
 
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
         expect:
         Set consumedErrors = []
         forEachFlavorAndBuildTypeBinary(buildTypesToTest, flavorsToTest, jdk1) { String taskName ->

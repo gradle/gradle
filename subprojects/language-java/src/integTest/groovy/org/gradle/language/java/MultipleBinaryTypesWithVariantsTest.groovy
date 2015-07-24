@@ -56,6 +56,12 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp {}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        when:
         fails ':firstJar'
 
         then:

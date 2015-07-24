@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.java
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -55,9 +56,11 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        expect:
-        succeeds ':mainJar'
+        when:
+        succeeds ':tasks', ':mainJar'
 
+        then:
+        executedAndNotSkipped ':tasks', ':mainJar'
     }
 
     @Unroll
@@ -107,8 +110,11 @@ model {
 """
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        expect:
-        succeeds ':mainJar'
+        when:
+        succeeds ':tasks', ':mainJar'
+
+        then:
+        executedAndNotSkipped ':tasks', ':mainJar'
 
         where:
         dependency << ["project ':sub' library 'zdep'", "project ':sub'"]
@@ -158,10 +164,11 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        expect:
-        succeeds ':java6MainJar'
-        succeeds ':java7MainJar'
+        when:
+        succeeds ':tasks', ':java6MainJar', ':java7MainJar'
 
+        then:
+        executedAndNotSkipped ':tasks', ':java6MainJar', ':java7MainJar'
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -202,8 +209,11 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        expect: 'The Java 7 variant of the main jar can be built'
-        succeeds ':java7MainJar'
+        when: 'The Java 7 variant of the main jar can be built'
+        succeeds ':tasks', ':java7MainJar'
+
+        then:
+        executedAndNotSkipped ':tasks', ':java7MainJar'
 
         and: 'the Java 6 variant fails'
         fails ':java6MainJar'
@@ -254,8 +264,11 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        expect:
-        succeeds ':mainJar'
+        when:
+        succeeds ':tasks', ':mainJar'
+
+        then:
+        executedAndNotSkipped ':tasks', ':mainJar'
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -295,9 +308,11 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        expect:
-        succeeds ':mainJar'
+        when:
+        succeeds ':tasks', ':mainJar'
 
+        then:
+        executedAndNotSkipped ':tasks', ':mainJar'
     }
 
     def "custom component can consume a JVM library"() {
@@ -334,9 +349,11 @@ model {
         file('src/zdep/java/App.java') << 'public class App extends TestApp {}'
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        expect:
-        succeeds ':zdepJar'
+        when:
+        succeeds ':tasks', ':zdepJar'
 
+        then:
+        executedAndNotSkipped ':tasks', ':zdepJar'
     }
 
     def "Java consumes custom component consuming Java component"() {
@@ -386,8 +403,11 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
         file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
 
-        expect:
-        succeeds ':mainJar'
+        when:
+        succeeds ':tasks', ':mainJar'
+
+        then:
+        executedAndNotSkipped ':tasks', ':mainJar'
     }
 
     def "Custom consumes Java component consuming custom component"() {
@@ -441,8 +461,11 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
         file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
 
-        expect:
-        succeeds ':mainJar'
+        when:
+        succeeds ':tasks', ':mainJar'
+
+        then:
+        executedAndNotSkipped ':tasks', ':mainJar'
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
@@ -495,8 +518,11 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
         file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
 
-        expect: "Can resolve dependencies and compile the Java 7 variant of the main Jar"
-        succeeds ':java7MainJar'
+        when: "Can resolve dependencies and compile the Java 7 variant of the main Jar"
+        succeeds ':tasks', ':java7MainJar'
+
+        then:
+        executedAndNotSkipped ':tasks', ':java7MainJar'
 
         and: "Can resolve dependencies and compile any of the dependencies"
         succeeds ':secondJar'
@@ -558,7 +584,7 @@ model {
         }
         create('checkSecondJava6VariantDependencies') {
             doLast {
-                compileSecond6JarSecondJava.taskDependencies.getDependencies(compileSecond6JarSecondJava)
+                assert compileSecond6JarSecondJava.taskDependencies.getDependencies(compileSecond6JarSecondJava).empty
             }
         }
     }
@@ -568,17 +594,21 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
         file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
 
-        expect: "Can resolve dependencies of the Java 6 and Java 7 variant of the main Jar"
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and: "Can resolve dependencies of the Java 6 and Java 7 variant of the main Jar"
         succeeds ':checkMainDependencies'
 
         and: "Resolving the dependencies and compiling the Java 7 variant of the second jar should work"
         succeeds ':checkSecondJava7VariantDependencies'
         succeeds ':second7Jar'
 
-        and: "Resolving the dependencies of the Java 6 version of the second jar should fail"
-        fails ':checkSecondJava6VariantDependencies'
-        failure.assertHasCause("Could not resolve all dependencies for 'Jar 'second6Jar'' source set 'Java source 'second:java''")
-        failure.assertHasCause("Cannot find a compatible binary for library 'third' (Java SE 6). Available platforms: [Java SE 7]")
+        and: "Resolving the dependencies of the Java 6 version of the second jar should return an empty set"
+        succeeds ':checkSecondJava6VariantDependencies'
 
         and: "Can build the Java 7 variant of all components"
         succeeds ':java7MainJar'
@@ -655,7 +685,13 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
         file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
 
-        expect: "Can build the Java 7 variant of all components"
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and: "Can build the Java 7 variant of all components"
         succeeds ':java7MainJar'
         succeeds ':second7Jar'
         succeeds ':java7ThirdJar'
@@ -719,7 +755,7 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
         file('src/third/java/ThirdApp.java') << 'public class ThirdApp { void dependsOn(TestApp app) {} }'
 
-        expect: "Can resolve the dependencies for each component"
+        and: "Can resolve the dependencies for each component"
         succeeds ':checkDependencies'
 
         and: 'building fails'
@@ -774,7 +810,7 @@ model {
         }
         create('checkMainJava6Dependencies') {
             doLast {
-                compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava)
+                assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).empty
             }
         }
     }
@@ -784,13 +820,17 @@ model {
         file('src/second/java/SecondApp.java') << 'public class SecondApp { void dependsOn(ThirdApp app) {}  }'
         file('src/third/java/ThirdApp.java') << 'public class ThirdApp {}'
 
-        expect: "Can resolve dependencies of the Java 7 variant of the main and second components"
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and: "Can resolve dependencies of the Java 7 variant of the main and second components"
         succeeds ':checkJava7Dependencies'
 
-        and: "Fails resolving the dependencies of the Java 6 variant of the main component"
-        fails ':checkMainJava6Dependencies'
-        failure.assertHasCause "Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java''"
-        failure.assertHasCause "Multiple binaries available for library 'second' (Java SE 6) : [Jar 'second6Jar', Jar 'second6Jarx']"
+        and: "Resolving the dependencies of the Java 6 variant of the main component should lead to an empty set"
+        succeeds ':checkMainJava6Dependencies'
 
         and: "Can build the Java 7 variant of all components"
         succeeds ':java7MainJar'
@@ -889,7 +929,13 @@ model {
         file('src/fourth/java/FourthApp.java') << 'public class FourthApp { void dependsOn(ThirdApp app) {} }'
         file('src/fifth/java/FifthApp.java') << 'public class FifthApp {}'
 
-        expect: "can resolve dependencies"
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and: "can resolve dependencies"
         succeeds ':checkDependencies'
 
         and: "can build any of the components"
