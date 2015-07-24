@@ -16,7 +16,6 @@
 
 package org.gradle.testkit
 
-import org.gradle.api.internal.GradleDistributionLocator
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.test.fixtures.file.TestFile
@@ -66,7 +65,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(':compileTestGroovy')
-        failure.error.contains("Unable to load class $GradleRunner.name due to missing dependency ${GradleDistributionLocator.name.replaceAll('\\.', '/')}")
+        failure.error.contains("Unable to load class $GradleRunner.name due to missing dependency")
     }
 
     def "creating GradleRunner instance by depending on Gradle libraries outside of Gradle distribution throws exception"() {
@@ -192,7 +191,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureDescriptionContains("Execution failed for task ':test'.")
-        failure.output.contains('Unrecognized option: -unknown')
+        failure.output.contains('org.gradle.api.GradleException: Unable to start the daemon process.')
         daemonLogsAnalyzer.visible.empty
     }
 
