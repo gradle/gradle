@@ -223,9 +223,28 @@ public class ProviderConnection {
             boolean listenToBuildProgress = buildProgressListener != null && buildProgressListener.getSubscribedOperations().contains(InternalBuildProgressListener.BUILD_EXECUTION);
             BuildClientSubscriptions clientSubscriptions = new BuildClientSubscriptions(listenToTestProgress, listenToTaskProgress, listenToBuildProgress);
             FailsafeBuildProgressListenerAdapter wrapper = new FailsafeBuildProgressListenerAdapter(buildProgressListener);
-            BuildEventConsumer buildEventConsumer = clientSubscriptions.isSendAnyProgressEvents()
-                ? new BuildProgressListenerInvokingBuildEventConsumer(wrapper) : new NoOpBuildEventConsumer();
+            BuildEventConsumer buildEventConsumer = clientSubscriptions.isSendAnyProgressEvents() ? new BuildProgressListenerInvokingBuildEventConsumer(wrapper) : new NoOpBuildEventConsumer();
+            if (Boolean.TRUE.equals(providerParameters.isEmbedded())) {
+                // Contract requires build events are delivered by a single thread. This is taken care of by the daemon client when not in embedded mode
+                // Need to apply some synchronization when in embedded mode
+                buildEventConsumer = new SynchronizedConsumer(buildEventConsumer);
+            }
             return new ProgressListenerConfiguration(clientSubscriptions, buildEventConsumer, wrapper);
+        }
+
+        private static class SynchronizedConsumer implements BuildEventConsumer {
+            private final BuildEventConsumer delegate;
+
+            public SynchronizedConsumer(BuildEventConsumer delegate) {
+                this.delegate = delegate;
+            }
+
+            @Override
+            public void dispatch(Object message) {
+                synchronized (this) {
+                    delegate.dispatch(message);
+                }
+            }
         }
     }
 }

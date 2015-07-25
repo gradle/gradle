@@ -51,8 +51,7 @@ public class ConnectionScopeServices {
     }
 
     ProviderConnection createProviderConnection(BuildExecuter buildActionExecuter, DaemonClientFactory daemonClientFactory,
-                                                ClassLoaderFactory classLoaderFactory, ClassLoaderCache classLoaderCache,
-                                                ShutdownCoordinator shutdownCoordinator, ServiceRegistry serviceRegistry) {
+                                                ClassLoaderFactory classLoaderFactory, ServiceRegistry serviceRegistry) {
         return new ProviderConnection(
                 serviceRegistry,
                 loggingServices,
