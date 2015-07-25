@@ -21,6 +21,7 @@ import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInvocation> {
@@ -35,11 +36,10 @@ public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInv
         return String.format("Failed to notify %s.", typeDescription);
     }
 
-    protected abstract Iterable<? extends Dispatch<MethodInvocation>> getHandlers();
-
-    public void dispatch(MethodInvocation invocation) {
+    protected void dispatch(MethodInvocation invocation, Iterator<? extends Dispatch<MethodInvocation>> handlers) {
         List<Throwable> failures = new ArrayList<Throwable>();
-        for (Dispatch<MethodInvocation> handler : getHandlers()) {
+        while (handlers.hasNext()) {
+            Dispatch<MethodInvocation> handler = handlers.next();
             try {
                 handler.dispatch(invocation);
             } catch (UncheckedException e) {

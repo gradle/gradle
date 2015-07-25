@@ -23,6 +23,7 @@ import org.gradle.messaging.dispatch.ReflectionDispatch;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -73,8 +74,9 @@ public class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> {
     }
 
     @Override
-    protected Iterable<? extends Dispatch<MethodInvocation>> getHandlers() {
-        return new ArrayList<Dispatch<MethodInvocation>>(handlers.values());
+    public void dispatch(MethodInvocation message) {
+        Iterator<Dispatch<MethodInvocation>> iterator = new ArrayList<Dispatch<MethodInvocation>>(handlers.values()).iterator();
+        dispatch(message, iterator);
     }
 
     private class ActionInvocationHandler implements Dispatch<MethodInvocation> {

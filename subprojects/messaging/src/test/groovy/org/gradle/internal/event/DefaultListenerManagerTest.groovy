@@ -199,7 +199,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         received1.findAll { it.startsWith("b") } == ["b-1", "b-2", "b-3", "b-4", "b-5"]
     }
 
-    def threadBlocksWhenAnotherThreadIsNotifyingOnTheSameType() {
+    def notifyingBlocksWhenAnotherThreadIsNotifyingOnTheSameType() {
         given:
         def listener1 = { String p ->
             if (p == "a") {
@@ -229,7 +229,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         instant.bReceived > instant.aHandled
     }
 
-    def threadDoesNotBlockWhenAnotherThreadIsNotifyingOnDifferentType() {
+    def notifyingDoesNotBlockWhenAnotherThreadIsNotifyingOnDifferentType() {
         given:
         def listener1 = { String p ->
             instant.aReceived
@@ -440,6 +440,255 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         then:
         1 * fooListener3.foo("param2")
         0 * _
+    }
+
+    def listenerCanAddAnotherListenerOfSameType() {
+        given:
+        manager.addListener(fooListener1)
+
+        when:
+        manager.getBroadcaster(TestFooListener.class).foo("param")
+
+        then:
+        1 * fooListener1.foo("param") >> {
+            manager.addListener(fooListener2)
+        }
+        0 * _
+
+        when:
+        manager.getBroadcaster(TestFooListener.class).foo("param 2")
+
+        then:
+        1 * fooListener1.foo("param 2")
+        1 * fooListener2.foo("param 2")
+    }
+
+    def listenerCanAddAnotherListenerOfDifferentType() {
+        given:
+        manager.addListener(fooListener1)
+
+        when:
+        manager.getBroadcaster(TestFooListener.class).foo("param")
+
+        then:
+        1 * fooListener1.foo("param") >> {
+            manager.addListener(barListener1)
+            manager.getBroadcaster(TestBarListener.class).bar(12)
+        }
+        1 * barListener1.bar(12)
+        0 * _
+    }
+
+    def listenerCanRemoveAnotherListener() {
+        given:
+        manager.addListener(fooListener1)
+        manager.addListener(fooListener2)
+        manager.addListener(fooListener3)
+
+        when:
+        manager.getBroadcaster(TestFooListener.class).foo("param")
+
+        then:
+        1 * fooListener1.foo("param")
+        1 * fooListener2.foo("param") >> {
+            manager.removeListener(fooListener1)
+            manager.removeListener(fooListener3)
+        }
+        0 * _
+    }
+
+    def listenerCannotGenerateEventsOfSameType() {
+        given:
+        manager.addListener(fooListener1)
+        manager.addListener(barListener1)
+
+        when:
+        manager.getBroadcaster(TestFooListener.class).foo("param")
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "Cannot notify listeners of type TestFooListener as these listeners are already being notified."
+
+        and:
+        1 * fooListener1.foo("param") >> {
+            manager.getBroadcaster(TestFooListener.class).foo("param2")
+        }
+        0 * _
+
+        when:
+        manager.getBroadcaster(TestFooListener.class).foo("param")
+
+        then:
+        IllegalStateException e2 = thrown()
+        e2.message == "Cannot notify listeners of type TestFooListener as these listeners are already being notified."
+
+        and:
+        1 * fooListener1.foo("param") >> {
+            manager.getBroadcaster(TestBarListener.class).bar(12)
+        }
+        1 * barListener1.bar(12) >> {
+            manager.getBroadcaster(TestFooListener.class).foo("param 2")
+        }
+        0 * _
+    }
+
+    def listenerCanGenerateEventsOfDifferentType() {
+        given:
+        manager.addListener(fooListener1)
+        manager.addListener(barListener1)
+
+        when:
+        manager.getBroadcaster(TestFooListener.class).foo("param")
+
+        then:
+        1 * fooListener1.foo("param") >> {
+            manager.getBroadcaster(TestBarListener.class).bar(12)
+        }
+        1 * barListener1.bar(12)
+        0 * _
+    }
+
+    def multipleThreadsCanAddListeners() {
+        when:
+        async {
+            start {
+                manager.addListener(fooListener1)
+            }
+            start {
+                manager.addListener(fooListener2)
+            }
+            start {
+                manager.addListener(fooListener3)
+            }
+        }
+        manager.getBroadcaster(TestFooListener.class).foo("param")
+
+        then:
+        1 * fooListener1.foo("param")
+        1 * fooListener2.foo("param")
+        1 * fooListener3.foo("param")
+        0 * _
+    }
+
+    def multipleThreadsCanRemoveListeners() {
+        when:
+        async {
+            start {
+                manager.addListener(fooListener1)
+                manager.removeListener(fooListener1)
+            }
+            start {
+                manager.addListener(fooListener2)
+                manager.removeListener(fooListener2)
+            }
+            start {
+                manager.addListener(fooListener3)
+                manager.removeListener(fooListener3)
+            }
+        }
+        manager.getBroadcaster(TestFooListener.class).foo("param")
+
+        then:
+        0 * _
+    }
+
+    def addingListenerDoesNotBlockWhileAnotherThreadIsNotifying() {
+        given:
+        def listener1 = {
+            instant.received
+            thread.block()
+            instant.handled
+        } as TestFooListener
+        manager.addListener(listener1)
+
+        when:
+        async {
+            start {
+                manager.getBroadcaster(TestFooListener.class).foo("param")
+            }
+            thread.blockUntil.received
+            manager.addListener(fooListener2)
+            instant.added
+        }
+
+        then:
+        instant.added < instant.handled
+
+        and:
+        0 * _
+    }
+
+    def addingListenerDoesNotBlockWhileAnotherThreadIsNotifyingOnDifferentType() {
+        given:
+        def listener1 = {
+            instant.received
+            thread.block()
+            instant.handled
+        } as TestFooListener
+        manager.addListener(listener1)
+
+        when:
+        async {
+            start {
+                manager.getBroadcaster(TestFooListener.class).foo("param")
+            }
+            thread.blockUntil.received
+            manager.addListener(barListener1)
+            instant.added
+        }
+
+        then:
+        instant.added < instant.handled
+
+        and:
+        0 * _
+    }
+
+    def removingListenerBlocksWhileAnotherThreadIsNotifying() {
+        given:
+        def listener1 = {
+            instant.received
+            thread.block()
+            instant.handled
+        } as TestFooListener
+        manager.addListener(listener1)
+
+        when:
+        async {
+            start {
+                manager.getBroadcaster(TestFooListener.class).foo("param")
+            }
+            thread.blockUntil.received
+            manager.removeListener(listener1)
+            instant.removed
+        }
+
+        then:
+        instant.removed > instant.handled
+    }
+
+    def removingListenerDoesNotBlockWhileAnotherThreadIsNotifyingOnDifferentType() {
+        given:
+        def listener1 = {
+            instant.received
+            thread.block()
+            instant.handled
+        } as TestFooListener
+        manager.addListener(listener1)
+        manager.addListener(barListener1)
+
+        when:
+        async {
+            start {
+                manager.getBroadcaster(TestFooListener.class).foo("param")
+            }
+            thread.blockUntil.received
+            manager.removeListener(barListener1)
+            instant.removed
+        }
+
+        then:
+        instant.removed < instant.handled
     }
 
     public interface TestFooListener {

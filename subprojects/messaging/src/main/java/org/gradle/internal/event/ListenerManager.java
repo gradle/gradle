@@ -31,7 +31,9 @@ public interface ListenerManager {
      * single invocation of this method.  There is no order dependency: if a broadcaster has already been made for type
      * T, the listener will be registered with it if <code>(listener instanceof T)</code> returns true.
      *
-     * <p>A listener will be used by a single thread at a time, so the listener does not need to be thread-safe.
+     * <p>A listener will be used by a single thread at a time, so the listener implementation does not need to be thread-safe.
+     *
+     * <p>The listener will not receive events that are currently being broadcast from some other thread.
      *
      * @param listener the listener to add.
      */
@@ -41,6 +43,8 @@ public interface ListenerManager {
      * Removes a listener.  A single object can implement multiple interfaces, and all interfaces are unregistered by a
      * single invocation of this method.  There is no order dependency: if a broadcaster has already been made for type
      * T, the listener will be unregistered with it if <code>(listener instanceof T)</code> returns true.
+     *
+     * <p>When this method returns, the listener will not be in use and will not receive any further events.
      *
      * @param listener the listener to remove.
      */
@@ -72,6 +76,8 @@ public interface ListenerManager {
      * of the listener as they need.  The client code must provide some way for its users to register listeners on the
      * specialized broadcasters.
      *
+     * <p>The returned value is not thread-safe.</p>
+     *
      * @param listenerClass The type of listener for which to create a broadcaster.
      * @return A broadcaster that forwards method calls to all listeners assigned to it, or of the same type that have
      *         been (or will be) registered with this manager.
@@ -80,7 +86,7 @@ public interface ListenerManager {
 
     /**
      * Uses the given object as a logger. Each listener class has exactly one logger associated with it. Any existing
-     * logger for the listener class is discarded.
+     * logger for the listener class is discarded. Loggers are otherwise treated the same way as listeners.
      *
      * @param logger The new logger to use.
      */
