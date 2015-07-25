@@ -1130,61 +1130,6 @@ foo
          \\- foo""")
     }
 
-    def "rules are applied only once on elements accessible via multiple paths"() {
-        given:
-        def mmType = ModelTypes.modelMap(NamedBean)
-
-        registry
-            .modelMap("beans", NamedBean) { it.registerFactory(NamedBean) { new NamedBean(name: it) } }
-            .create(
-                BridgedCollections.creator(
-                    ModelReference.of("legacyBeans", DefaultNamedDomainObjectSet),
-                    Transformers.constant(new DefaultNamedDomainObjectSet<NamedBean>(NamedBean, DirectInstantiator.INSTANCE)),
-                    Named.Namer.INSTANCE,
-                    "legacyBeans creator",
-                    BridgedCollections.itemDescriptor("legacyBeans creator")
-                )
-                .withProjection(UnmanagedModelProjection.of(DefaultNamedDomainObjectSet))
-                .build()
-            )
-            .mutate {
-                it.descriptor("copy beans to legacyBeans").path("legacyBeans").type(DefaultNamedDomainObjectSet).action("beans", mmType, { legacyBeans, beans ->
-                    beans.each { bean ->
-                        legacyBeans.add bean
-                    }
-                })
-            }
-            .mutate {
-                it.path "beans" type mmType action { beans ->
-                    beans.create("b1")
-                    beans.create("b2")
-                }
-            }
-
-        def beansAppliedTo = []
-        registry.root.applyToAllLinksTransitive(
-            ModelActionRole.Defaults,
-            DirectNodeNoInputsModelAction.of(
-                ModelReference.of(NamedBean),
-                new SimpleModelRuleDescriptor("rule"),
-                new BiAction<MutableModelNode, NamedBean>() {
-                    @Override
-                    void execute(MutableModelNode node, NamedBean bean) {
-                        beansAppliedTo.add bean
-                    }
-                }
-            )
-        )
-
-        registry.bindAllReferences()
-
-        when:
-        registry.realize("legacyBeans")
-
-        then:
-        beansAppliedTo*.name == ["b1", "b2"]
-    }
-
     class Bean {
         String name
         String value
