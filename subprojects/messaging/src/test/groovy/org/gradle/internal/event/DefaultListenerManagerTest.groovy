@@ -17,9 +17,11 @@
 package org.gradle.internal.event
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Timeout
 
 import java.util.concurrent.CopyOnWriteArrayList
 
+@Timeout(60)
 class DefaultListenerManagerTest extends ConcurrentSpec {
     def manager = new DefaultListenerManager();
 
@@ -96,7 +98,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         0 * _
     }
 
-    def canHaveMultipleListenerTypes() {
+    def canHaveListenersOfDifferentTypes() {
         given:
         manager.addListener(fooListener1)
         manager.addListener(barListener1)
@@ -113,6 +115,26 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
         then:
         1 * barListener1.bar(12)
+        0 * _
+    }
+
+    def listenerCanImplementMultipleTypes() {
+        given:
+        def listener = Mock(BothListener)
+        manager.addListener(listener)
+
+        when:
+        manager.getBroadcaster(TestFooListener.class).foo("param")
+
+        then:
+        1 * listener.foo("param")
+        0 * _
+
+        when:
+        manager.getBroadcaster(TestBarListener.class).bar(12)
+
+        then:
+        1 * listener.bar(12)
         0 * _
     }
 
@@ -160,6 +182,9 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
     def listenersReceiveMessagesInSameOrderRegardlessOfGeneratingThread() {
         given:
+        def events1 = events("a", 20)
+        def events2 = events("b", 20)
+        def events3 = events("c", 20)
         def received1 = new CopyOnWriteArrayList<String>()
         def received2 = new CopyOnWriteArrayList<String>()
         def listener1 = { String p ->
@@ -176,30 +201,35 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                broadcaster.foo("a-1")
-                broadcaster.foo("a-2")
-                broadcaster.foo("a-3")
-                broadcaster.foo("a-4")
-                broadcaster.foo("a-5")
+                events1.each {
+                    broadcaster.foo(it)
+                }
             }
             start {
-                broadcaster.foo("b-1")
-                broadcaster.foo("b-2")
-                broadcaster.foo("b-3")
-                broadcaster.foo("b-4")
-                broadcaster.foo("b-5")
+                events2.each {
+                    broadcaster.foo(it)
+                }
+            }
+            start {
+                events3.each {
+                    broadcaster.foo(it)
+                }
             }
         }
 
         then:
-        received1.size() == 10
-        received2.size() == 10
+        received1.size() == 60
+        received2.size() == 60
         received1 == received2
-        received1.findAll { it.startsWith("a") } == ["a-1", "a-2", "a-3", "a-4", "a-5"]
-        received1.findAll { it.startsWith("b") } == ["b-1", "b-2", "b-3", "b-4", "b-5"]
+        received1.findAll { it.startsWith("a") } == events1
+        received1.findAll { it.startsWith("b") } == events2
     }
 
-    def notifyingBlocksWhenAnotherThreadIsNotifyingOnTheSameType() {
+    List<String> events(String prefix, int count) {
+        return (1..count).collect { i -> "$prefix-$i" as String }
+    }
+
+    def notifyBlocksWhenAnotherThreadIsNotifyingOnTheSameType() {
         given:
         def listener1 = { String p ->
             if (p == "a") {
@@ -229,7 +259,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         instant.bReceived > instant.aHandled
     }
 
-    def notifyingDoesNotBlockWhenAnotherThreadIsNotifyingOnDifferentType() {
+    def notifyDoesNotBlockWhenAnotherThreadIsNotifyingOnDifferentType() {
         given:
         def listener1 = { String p ->
             instant.aReceived
@@ -258,6 +288,35 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
         then:
         instant.bReceived < instant.aHandled
+    }
+
+    def notifyBlocksWhenAnotherThreadIsNotifyingTheSameListenerWithDifferentType() {
+        given:
+        def listener = [foo: { String p ->
+            instant.aReceived
+            thread.block()
+            instant.aHandled
+        },
+        bar: { int i ->
+            instant.bReceived
+        }
+        ] as BothListener
+
+        manager.addListener(listener)
+
+        when:
+        async {
+            start {
+                manager.getBroadcaster(TestFooListener.class).foo("a")
+            }
+            start {
+                thread.blockUntil.aReceived
+                manager.getBroadcaster(TestBarListener.class).bar(12)
+            }
+        }
+
+        then:
+        instant.bReceived > instant.aHandled
     }
 
     def removedListenersDontGetMessages() {
@@ -644,7 +703,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         0 * _
     }
 
-    def removingListenerBlocksWhileAnotherThreadIsNotifying() {
+    def removingListenerBlocksWhileAnotherThreadIsNotifyingListener() {
         given:
         def listener1 = {
             instant.received
@@ -697,5 +756,8 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
     public interface TestBarListener {
         void bar(int value);
+    }
+
+    public interface BothListener extends TestFooListener, TestBarListener {
     }
 }

@@ -57,10 +57,11 @@ public class DefaultListenerManager implements ListenerManager {
         synchronized (lock) {
             ListenerDetails details = allListeners.remove(listener);
             if (details != null) {
-                details.remove();
+                details.disconnect();
                 for (EventBroadcast<?> broadcaster : broadcasters.values()) {
                     broadcaster.maybeRemove(details);
                 }
+                details.untilNotInUse(Thread.currentThread());
             }
         }
     }
@@ -138,19 +139,20 @@ public class DefaultListenerManager implements ListenerManager {
             return source.getSource();
         }
 
+        // Must be holding lock
         void maybeAdd(ListenerDetails listener) {
             if (type.isInstance(listener.listener)) {
                 listeners.add(listener);
             }
         }
 
+        // Must be holding lock
         void maybeRemove(ListenerDetails listener) {
-            if (listeners.remove(listener)) {
-                // Wait until listener is not being used. This could be more efficient, to block only when the listener is actually being used
-                untilNotNotifying();
-            }
+            listeners.remove(listener);
+            // Another thread may be using listener
         }
 
+        // Must be holding lock
         void maybeSetLogger(ListenerDetails candidate) {
             if (type.isInstance(candidate.listener)) {
                 if (logger == null && parent != null) {
@@ -160,18 +162,9 @@ public class DefaultListenerManager implements ListenerManager {
             }
         }
 
-        private void untilNotNotifying() {
-            while (owner != null && owner != Thread.currentThread()) {
-                try {
-                    lock.wait();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-        }
-
-        private Iterator<Dispatch<MethodInvocation>> startNotification(boolean includeLogger) {
+        private List<Dispatch<MethodInvocation>> startNotification(boolean includeLogger) {
             synchronized (lock) {
+                // Mark this listener type as being notified
                 while (owner != null) {
                     if (owner == Thread.currentThread()) {
                         throw new IllegalStateException(String.format("Cannot notify listeners of type %s as these listeners are already being notified.", type.getSimpleName()));
@@ -192,13 +185,22 @@ public class DefaultListenerManager implements ListenerManager {
                 if (parentDispatch != null) {
                     dispatchers.add(parentDispatch);
                 }
-                dispatchers.addAll(listeners);
-                return dispatchers.iterator();
+                for (ListenerDetails listener : listeners) {
+                    listener.startNotification(owner);
+                    dispatchers.add(listener);
+                }
+                return dispatchers;
             }
         }
 
-        private void endNotification() {
+        private void endNotification(List<Dispatch<MethodInvocation>> dispatchers) {
             synchronized (lock) {
+                for (Dispatch<MethodInvocation> dispatcher : dispatchers) {
+                    if (dispatcher instanceof ListenerDetails) {
+                        ListenerDetails listener = (ListenerDetails) dispatcher;
+                        listener.endNotification(owner);
+                    }
+                }
                 owner = null;
                 lock.notifyAll();
             }
@@ -214,27 +216,30 @@ public class DefaultListenerManager implements ListenerManager {
 
             @Override
             public void dispatch(MethodInvocation invocation) {
-                Iterator<Dispatch<MethodInvocation>> dispatchers = startNotification(includeLogger);
+                List<Dispatch<MethodInvocation>> dispatchers = startNotification(includeLogger);
                 try {
-                    dispatch(invocation, dispatchers);
+                    dispatch(invocation, dispatchers.iterator());
                 } finally {
-                    endNotification();
+                    endNotification(dispatchers);
                 }
             }
         }
     }
 
-    private static class ListenerDetails implements Dispatch<MethodInvocation> {
+    private class ListenerDetails implements Dispatch<MethodInvocation> {
         final Object listener;
         final Dispatch<MethodInvocation> dispatch;
         final AtomicBoolean removed = new AtomicBoolean();
+
+        // Protected by lock
+        Thread owner;
 
         public ListenerDetails(Object listener) {
             this.listener = listener;
             this.dispatch = new ReflectionDispatch(listener);
         }
 
-        void remove() {
+        void disconnect() {
             removed.set(true);
         }
 
@@ -243,6 +248,32 @@ public class DefaultListenerManager implements ListenerManager {
             if (!removed.get()) {
                 dispatch.dispatch(message);
             }
+        }
+
+        // Must be holding lock
+        public void startNotification(Thread owner) {
+            untilNotInUse(owner);
+            this.owner = owner;
+        }
+
+        // Must be holding lock
+        public void untilNotInUse(Thread expectedOwner) {
+            while (this.owner != null && this.owner != expectedOwner) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        }
+
+        // Must be holding lock
+        public void endNotification(Thread owner) {
+            if (this.owner != owner && this.owner != null) {
+                throw new IllegalStateException("Unexpected owner for listener.");
+            }
+            this.owner = null;
+            lock.notifyAll();
         }
     }
 }
