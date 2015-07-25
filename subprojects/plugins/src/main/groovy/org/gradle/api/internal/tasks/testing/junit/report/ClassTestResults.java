@@ -26,6 +26,7 @@ import java.util.TreeSet;
  * Test results for a given class.
  */
 public class ClassTestResults extends CompositeTestResults {
+    private static final int MAX_FILENAME_BASE_LEN = 200;
     private final long id;
     private final String name;
     private final PackageTestResults packageResults;
@@ -49,7 +50,12 @@ public class ClassTestResults extends CompositeTestResults {
 
     @Override
     public String getBaseUrl() {
-        return String.format("classes/%s.html", FileUtils.toSafeFileName(name));
+        String safeFileName = FileUtils.toSafeFileName(name);
+                if(safeFileName.length()> MAX_FILENAME_BASE_LEN){
+            String idString = Long.toString(id);
+            safeFileName = safeFileName.substring(0, MAX_FILENAME_BASE_LEN-idString.length()-1)+"-"+idString;
+        }
+        return String.format("classes/%s.html", safeFileName);
     }
 
     public String getName() {
