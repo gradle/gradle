@@ -21,6 +21,11 @@ import java.lang.annotation.*;
  * <p>Marks a property as specifying an output directory for a task.</p>
  *
  * <p>This annotation should be attached to the getter method or the field for the property.</p>
+ *
+ * <p>This will cause the task to fail the up-to-date check when the directory path or task
+ * output to that directory has been modified since the task was last run. Modifications to
+ * to the directory outside of the task outputs are ignored. This allows multiple tasks to
+ * annotate the same path without interfering with each other's up-to-date checks.</p>
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
