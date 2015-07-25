@@ -20,14 +20,18 @@ package org.gradle.internal.event;
  * Unified manager for all listeners for Gradle.  Provides a simple way to find all listeners of a given type in the
  * system.
  *
- * While the methods work with any Object, in general only interfaces should be used as listener types.  Also, due to
- * implementation details, any listener method with a non-void return type will return a null.
+ * <p>While the methods work with any Object, in general only interfaces should be used as listener types.
+ *
+ * <p>Implementations are thread-safe: A listener is notified by at most 1 thread at a time, and so do not need to be thread-safe. All listeners
+ * of a given type received events in the same order. Listeners can be added and removed at any time.
  */
 public interface ListenerManager {
     /**
      * Added a listener.  A single object can implement multiple interfaces, and all interfaces are registered by a
      * single invocation of this method.  There is no order dependency: if a broadcaster has already been made for type
      * T, the listener will be registered with it if <code>(listener instanceof T)</code> returns true.
+     *
+     * <p>A listener will be used by a single thread at a time, so the listener does not need to be thread-safe.
      *
      * @param listener the listener to add.
      */
@@ -43,9 +47,14 @@ public interface ListenerManager {
     void removeListener(Object listener);
 
     /**
-     * Returns a broadcaster for the given listenerClass.  If there are no registered listeners for that type, a
-     * broadcaster is returned which does not forward method calls to any listeners.  The returned broadcasters are
-     * live, that is their list of listeners can be updated by calls to {@link #addListener(Object)} and {@link
+     * Returns a broadcaster for the given listenerClass. Any method invoked on the broadcaster is forwarded to all registered
+     * listeners of the given type. This is done synchronously. Any listener method with a non-void return type will return a null.
+     * Exceptions are propagated, and multiple failures are packaged up in a {@link ListenerNotificationException}.
+     *
+     * <p>A listener is used by a single thread at a time.
+     *
+     * <p>If there are no registered listeners for the requested type, a broadcaster is returned which does not forward method calls to any listeners.
+     * The returned broadcasters are live, that is their list of listeners can be updated by calls to {@link #addListener(Object)} and {@link
      * #removeListener(Object)} after they have been returned.  Broadcasters are also cached, so that repeatedly calling
      * this method with the same listenerClass returns the same broadcaster object.
      *

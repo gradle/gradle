@@ -64,7 +64,6 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final ListenerBroadcast<InternalTaskExecutionListener> internalTaskListeners;
     private final DefaultTaskExecutionPlan taskExecutionPlan;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final Object eventNotificationLock = new Object();
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
     public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor, Factory<? extends TaskExecuter> taskExecuter, BuildCancellationToken cancellationToken, TimeProvider timeProvider, BuildOperationExecutor buildOperationExecutor) {
@@ -198,23 +197,14 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
             TaskOperationInternal taskOperation = new TaskOperationInternal(id, parentOperationId, task);
             TaskStateInternal state = task.getState();
             long startTime = timeProvider.getCurrentTime();
-            // TODO - move serialization to ListenerManager contract
-            synchronized (eventNotificationLock) {
-                internalTaskListeners.getSource().beforeExecute(taskOperation, new OperationStartEvent(startTime));
-            }
+            internalTaskListeners.getSource().beforeExecute(taskOperation, new OperationStartEvent(startTime));
             try {
-                synchronized (eventNotificationLock) {
-                    taskListeners.getSource().beforeExecute(task);
-                }
+                taskListeners.getSource().beforeExecute(task);
                 taskExecuter.execute(task, task.getState(), new DefaultTaskExecutionContext());
-                synchronized (eventNotificationLock) {
-                    taskListeners.getSource().afterExecute(task, state);
-                }
+                taskListeners.getSource().afterExecute(task, state);
             } finally {
-                synchronized (eventNotificationLock) {
-                    long endTime = timeProvider.getCurrentTime();
-                    internalTaskListeners.getSource().afterExecute(taskOperation, new OperationResult(startTime, endTime, task.getState().getFailure()));
-                }
+                long endTime = timeProvider.getCurrentTime();
+                internalTaskListeners.getSource().afterExecute(taskOperation, new OperationResult(startTime, endTime, task.getState().getFailure()));
             }
         }
     }
