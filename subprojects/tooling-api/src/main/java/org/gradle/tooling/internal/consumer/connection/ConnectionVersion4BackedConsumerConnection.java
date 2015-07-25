@@ -21,7 +21,7 @@ import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.Distribution;
-import org.gradle.tooling.internal.protocol.test.TestExecutionRequest;
+import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.model.build.BuildEnvironment;
@@ -62,11 +62,11 @@ public class ConnectionVersion4BackedConsumerConnection implements ConsumerConne
     }
 
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        throw fail();
+        return new UnsupportedActionRunner(version).run(action, operationParameters);
     }
 
-    public Void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters){
-        throw Exceptions.unsupportedFeature("TestLauncher API", version, "2.6");
+    public void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), version, "2.6");
     }
 
     private UnsupportedVersionException fail() {

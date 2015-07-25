@@ -218,7 +218,7 @@ model {
         then:
         failure.assertHasDescription "A problem occurred evaluating root project 'custom-binary'."
         failure.assertHasCause "Failed to apply plugin [class 'MySamplePlugin']"
-        failure.assertHasCause "MySamplePlugin\$Rules#register is not a valid binary model rule method."
+        failure.assertHasCause "MySamplePlugin.Rules#register is not a valid binary model rule method."
         failure.assertHasCause "Method annotated with @BinaryType must have a single parameter of type 'org.gradle.platform.base.BinaryTypeBuilder'."
     }
 
@@ -244,8 +244,8 @@ model {
         fails "tasks"
         then:
         failure.assertHasDescription "A problem occurred configuring root project 'custom-binary'."
-        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin\$Rules1#register"
-        failure.assertHasCause "Cannot register a factory for type SampleBinary because a factory for this type was already registered by MySamplePlugin\$Rules#register."
+        failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin.Rules1#register"
+        failure.assertHasCause "Cannot register a factory for type SampleBinary because a factory for this type was already registered by MySamplePlugin.Rules#register."
     }
 
     def "additional binaries listed in components report"() {

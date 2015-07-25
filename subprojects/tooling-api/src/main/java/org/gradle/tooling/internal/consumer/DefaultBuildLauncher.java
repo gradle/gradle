@@ -32,6 +32,7 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
 
     public DefaultBuildLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
+        operationParamsBuilder.setEntryPoint("BuildLauncher API");
         operationParamsBuilder.setTasks(Collections.<String>emptyList());
         this.connection = connection;
     }

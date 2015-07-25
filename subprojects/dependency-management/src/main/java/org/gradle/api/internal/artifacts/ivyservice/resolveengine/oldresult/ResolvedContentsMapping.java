@@ -24,7 +24,7 @@ import java.util.Set;
 
 public interface ResolvedContentsMapping {
 
-    Set<ResolvedArtifact> getArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child);
+    Set<ResolvedArtifact> getArtifacts(long id);
 
     ModuleDependency getModuleDependency(ResolvedConfigurationIdentifier id);
 }

@@ -24,15 +24,13 @@ import org.gradle.model.internal.registry.ModelRegistry;
 public class AlwaysNewModelRegistryStore implements ModelRegistryStore {
 
     private final ModelRuleExtractor extractor;
-    private final String documentationLocation;
 
-    public AlwaysNewModelRegistryStore(ModelRuleExtractor extractor, String documentationLocation) {
+    public AlwaysNewModelRegistryStore(ModelRuleExtractor extractor) {
         this.extractor = extractor;
-        this.documentationLocation = documentationLocation;
     }
 
     @Override
     public ModelRegistry get(ProjectIdentifier projectIdentifier) {
-        return new DefaultModelRegistry(extractor, documentationLocation);
+        return new DefaultModelRegistry(extractor);
     }
 }

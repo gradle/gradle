@@ -649,14 +649,14 @@ class ManagedNodeBackedModelMapTest extends Specification {
 
         then:
         UnboundModelRulesException e = thrown()
-        normaliseLineSeparators(e.message) == '''The following model rules could not be applied due to unsatisfied dependencies:
-  ManagedNodeBackedModelMapTest$ElementRules#connectElementToInput
-    Subject:
-      <no path> org.gradle.model.ManagedNodeBackedModelMapTest$Bean (parameter 1) scope:'beans.element' [UNBOUND]
-    Inputs:
-      <no path> java.lang.String (parameter 2) [UNBOUND]
-  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)
-  see: testDocs'''
+        normaliseLineSeparators(e.message).contains('''
+  ManagedNodeBackedModelMapTest.ElementRules#connectElementToInput
+    subject:
+      - <no path> ManagedNodeBackedModelMapTest.Bean (parameter 1) [*]
+          scope: beans.element
+    inputs:
+      - <no path> String (parameter 2) [*]
+''')
     }
 
     static class SetOther extends RuleSource {

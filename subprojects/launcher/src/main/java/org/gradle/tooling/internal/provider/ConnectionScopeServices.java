@@ -51,8 +51,9 @@ public class ConnectionScopeServices {
     }
 
     ProviderConnection createProviderConnection(BuildExecuter buildActionExecuter, DaemonClientFactory daemonClientFactory,
-                                                ClassLoaderFactory classLoaderFactory, ClassLoaderCache classLoaderCache,
-                                                ShutdownCoordinator shutdownCoordinator, ServiceRegistry serviceRegistry) {
+                                                ClassLoaderFactory classLoaderFactory, ServiceRegistry serviceRegistry,
+                                                // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
+                                                ShutdownCoordinator shutdownCoordinator) {
         return new ProviderConnection(
                 serviceRegistry,
                 loggingServices,

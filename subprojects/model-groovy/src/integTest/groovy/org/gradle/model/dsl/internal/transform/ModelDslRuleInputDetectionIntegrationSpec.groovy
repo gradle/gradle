@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.dsl.internal.transform
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import spock.lang.Unroll
@@ -101,6 +102,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         and:
         output.contains "thing.value: foo-bar"
     }
+
     @Unroll
     def "only literal strings can be given to dollar - #code"() {
         when:
@@ -120,14 +122,14 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         where:
         code << [
-                '$(1)',
-                '$("$name")',
-                '$("a" + "b")',
-                'def a = "foo"; $(a)',
-                '$("foo", "bar")',
-                '$()',
-                '$(null)',
-                '$("")'
+            '$(1)',
+            '$("$name")',
+            '$("a" + "b")',
+            'def a = "foo"; $(a)',
+            '$("foo", "bar")',
+            '$()',
+            '$(null)',
+            '$("")'
         ]
     }
 
@@ -158,7 +160,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         where:
         code << [
-                'something.$(1)',
+            'something.$(1)',
 //                'this.$("$name")',
 //                'foo.bar().$("a" + "b")',
         ]
@@ -209,15 +211,15 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         where:
         code << [
-                'if (true) { add $("foo") }',
-                'if (false) {} else if (true) { add $("foo") }',
-                'if (false) {} else { add $("foo") }',
-                'def i = true; while(i) { add $("foo"); i = false }',
-                '[1].each { add $("foo") }',
-                'add "${$("foo")}"',
-                'def v = $("foo"); add(v)',
-                'add($("foo"))',
-                'add($("foo").toString())',
+            'if (true) { add $("foo") }',
+            'if (false) {} else if (true) { add $("foo") }',
+            'if (false) {} else { add $("foo") }',
+            'def i = true; while(i) { add $("foo"); i = false }',
+            '[1].each { add $("foo") }',
+            'add "${$("foo")}"',
+            'def v = $("foo"); add(v)',
+            'add($("foo"))',
+            'add($("foo").toString())',
         ]
     }
 
@@ -280,17 +282,22 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         fails "tasks"
 
         then:
-        failure.assertHasCause('''The following model rules could not be applied due to unsatisfied dependencies:
+        failureCauseContains('''
   model.fooar @ build.gradle line 20, column 17
-    Subject:
-      fooar java.lang.Object Suggestions:foobar [UNBOUND]
+    subject:
+      - fooar Object [*]
+          suggestions: foobar
+
   model.foobah @ build.gradle line 18, column 17
-    Subject:
-      foobah java.lang.Object Suggestions:foobar [UNBOUND]
+    subject:
+      - foobah Object [*]
+          suggestions: foobar
+
   model.foonar @ build.gradle line 16, column 17
-    Subject:
-      foonar java.lang.Object Suggestions:foobar [UNBOUND]
-  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)''')
+    subject:
+      - foonar Object [*]
+          suggestions: foobar
+''')
     }
 
     def "location and suggestions are provided for unbound rule inputs specified using a name"() {
@@ -321,15 +328,18 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         fails "tasks"
 
         then:
-        failure.assertHasCause('''The following model rules could not be applied due to unsatisfied dependencies:
+        failureCauseContains('''
   model.tasks.raboof @ build.gradle line 15, column 17
-    Subject:
-      tasks.raboof java.lang.Object
-    Inputs:
-      tasks.foonar java.lang.Object (@ line 16) Suggestions:tasks.foobar [UNBOUND]
-      tasks.fooar java.lang.Object (@ line 17) Suggestions:tasks.foobar [UNBOUND]
-      tasks.foobarr java.lang.Object (@ line 18) Suggestions:tasks.foobar [UNBOUND]
-  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)''')
+    subject:
+      - tasks.raboof Object
+    inputs:
+      - tasks.foonar Object (@ line 16) [*]
+          suggestions: tasks.foobar
+      - tasks.fooar Object (@ line 17) [*]
+          suggestions: tasks.foobar
+      - tasks.foobarr Object (@ line 18) [*]
+          suggestions: tasks.foobar
+''')
     }
 
     def "can not access project or script from rule"() {

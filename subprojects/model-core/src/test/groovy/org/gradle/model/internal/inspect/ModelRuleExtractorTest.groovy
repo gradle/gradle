@@ -36,7 +36,7 @@ import spock.lang.Unroll
 import java.beans.Introspector
 
 class ModelRuleExtractorTest extends Specification {
-    ModelRegistry registry = new DefaultModelRegistry(null, null)
+    ModelRegistry registry = new DefaultModelRegistry(null)
     def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
 
     static class ModelThing {
@@ -148,7 +148,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == "${getClass().simpleName}\$$HasMultipleRuleAnnotations.simpleName#thing is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate]"
+        e.message == "${ModelType.of(HasMultipleRuleAnnotations).simpleName}#thing is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate]"
     }
 
     static class ConcreteGenericModelType extends RuleSource {
@@ -334,9 +334,9 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         extractor.extract(MutationAndFinalizeRules)*.action*.descriptor == [
-                MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1"),
-                MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1"),
-                MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3")
+            MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "finalize1"),
+            MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate1"),
+            MethodModelRuleDescriptor.of(MutationAndFinalizeRules, "mutate3")
         ]
 
     }
@@ -368,7 +368,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == 'ModelRuleExtractorTest$RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged#bar is not a valid model rule method: a void returning model element creation rule has to take an instance of a managed type as the first argument'
+        e.message == 'ModelRuleExtractorTest.RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged#bar is not a valid model rule method: a void returning model element creation rule has to take an instance of a managed type as the first argument'
     }
 
     static class RuleSourceCreatingAClassAnnotatedWithManaged extends RuleSource {
@@ -383,7 +383,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == 'Declaration of model rule ModelRuleExtractorTest\$RuleSourceCreatingAClassAnnotatedWithManaged#bar is invalid.'
+        e.message == 'Declaration of model rule ModelRuleExtractorTest.RuleSourceCreatingAClassAnnotatedWithManaged#bar is invalid.'
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == "Invalid managed model type $ManagedAnnotatedClass.name: must be defined as an interface or an abstract class."
     }
@@ -400,7 +400,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == 'ModelRuleExtractorTest$RuleSourceWithAVoidReturningNoArgumentMethod#bar is not a valid model rule method: a void returning model element creation rule has to take a managed model element instance as the first argument'
+        e.message == 'ModelRuleExtractorTest.RuleSourceWithAVoidReturningNoArgumentMethod#bar is not a valid model rule method: a void returning model element creation rule has to take a managed model element instance as the first argument'
     }
 
     static class RuleSourceCreatingManagedWithNestedPropertyOfInvalidManagedType extends RuleSource {
@@ -422,7 +422,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "Declaration of model rule ${getClass().simpleName}\$$inspected.simpleName#bar is invalid."
+        e.message == "Declaration of model rule ${getClass().simpleName}.$inspected.simpleName#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type.
 The type was analyzed due to the following dependencies:
@@ -450,7 +450,7 @@ ${managedType.name}
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "Declaration of model rule ${getClass().simpleName}\$$RuleSourceCreatingManagedWithNonManageableParent.simpleName#bar is invalid."
+        e.message == "Declaration of model rule ${ModelType.of(RuleSourceCreatingManagedWithNonManageableParent).simpleName}#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type.
 The type was analyzed due to the following dependencies:

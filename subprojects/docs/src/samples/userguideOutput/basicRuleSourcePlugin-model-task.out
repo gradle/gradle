@@ -41,7 +41,7 @@ Root project
               | Value:  	task ':dependencyInsight'
               | Creator: 	tasks.addPlaceholderAction(dependencyInsight)
               | Rules:
-                 ⤷ HelpTasksPlugin$Rules#addDefaultDependenciesReportConfiguration
+                 ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration
                  ⤷ copyToTaskContainer
         + hello
               | Type:   	org.gradle.api.Task

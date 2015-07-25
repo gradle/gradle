@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.integtests.tooling.r18.NullAction
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
@@ -35,28 +36,37 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
 
     def "tooling api reports an error when requesting a model using a gradle version that does not implement the tooling api"() {
         when:
-        toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
+        toolingApi.withConnection { ProjectConnection connection -> connection.getModel(GradleProject.class) }
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "The specified Gradle distribution '${distroZip}' does not implement the tooling API. Support for the tooling API was added in Gradle 1.0-milestone-3 and is available in all later versions."
+        e.message == "The version of Gradle you are using (Gradle distribution '${distroZip}') does not support the ModelBuilder API. Support for this is available in Gradle 1.0-milestone-8 and all later versions."
     }
 
     def "tooling api reports an error when running a build using a gradle version does not implement the tooling api"() {
         when:
-        toolingApi.withConnection { connection -> connection.newBuild().run() }
+        toolingApi.withConnection { ProjectConnection connection -> connection.newBuild().run() }
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "The specified Gradle distribution '${distroZip}' does not implement the tooling API. Support for the tooling API was added in Gradle 1.0-milestone-3 and is available in all later versions."
+        e.message == "The version of Gradle you are using (Gradle distribution '${distroZip}') does not support the BuildLauncher API. Support for this is available in Gradle 1.0-milestone-8 and all later versions."
     }
 
     def "tooling api reports an error when running a build action using a gradle version does not implement the tooling api"() {
         when:
-        toolingApi.withConnection { connection -> connection.action(new NullAction()).run() }
+        toolingApi.withConnection { ProjectConnection connection -> connection.action(new NullAction()).run() }
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "The specified Gradle distribution '${distroZip}' does not implement the tooling API. Support for the tooling API was added in Gradle 1.0-milestone-3 and is available in all later versions."
+        e.message == "The version of Gradle you are using (Gradle distribution '${distroZip}') does not support the BuildActionExecuter API. Support for this is available in Gradle 1.8 and all later versions."
+    }
+
+    def "tooling api reports an error when running tests using a gradle version does not implement the tooling api"() {
+        when:
+        toolingApi.withConnection { ProjectConnection connection -> connection.newTestLauncher().withJvmTestClasses("class").run() }
+
+        then:
+        UnsupportedVersionException e = thrown()
+        e.message == "The version of Gradle you are using (Gradle distribution '${distroZip}') does not support the TestLauncher API. Support for this is available in Gradle 2.6 and all later versions."
     }
 }

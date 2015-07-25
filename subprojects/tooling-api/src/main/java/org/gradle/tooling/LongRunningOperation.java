@@ -63,6 +63,8 @@ public interface LongRunningOperation {
     /**
      * Specifies whether to generate colored (ANSI encoded) output for logging. The default is to not generate color output.
      *
+     * <p>Supported by Gradle 2.3 or later. Ignored for older versions.</p>
+     *
      * @param colorOutput {@code true} to request color output (using ANSI encoding).
      * @return this
      * @since 2.3
@@ -112,6 +114,8 @@ public interface LongRunningOperation {
      * <p>
      * If not configured, null, or an empty array is passed, then the reasonable default will be used.
      *
+     * <p>Requires Gradle 1.0-milestone-9 or later.</p>
+     *
      * @param jvmArguments to use for the Gradle process
      * @return this
      * @since 1.0-milestone-9
@@ -145,6 +149,8 @@ public interface LongRunningOperation {
      *
      * If not configured, null, or an empty array is passed, then the reasonable default will be used.
      *
+     * <p>Requires Gradle 1.0 or later.</p>
+     *
      * @param arguments Gradle command line arguments
      * @return this
      * @since 1.0
@@ -154,6 +160,12 @@ public interface LongRunningOperation {
     /**
      * Adds a progress listener which will receive progress events as the operation runs.
      *
+     * <p>This method is intended to be replaced by {@link #addProgressListener(org.gradle.tooling.events.ProgressListener)}. The new progress listener type
+     * provides much richer information and much better handling of parallel operations that run during the build, such as tasks that run in parallel.
+     * You should prefer using the new listener interface where possible. Note, however, that the new interface is supported only for Gradle 2.5 and later
+     * and is currently {@link Incubating}. It may change in later Gradle releases.
+     * </p>
+     *
      * @param listener The listener
      * @return this
      * @since 1.0-milestone-7
@@ -162,6 +174,12 @@ public interface LongRunningOperation {
 
     /**
      * Adds a progress listener which will receive progress events of all types as the operation runs.
+     *
+     * <p>This method is intended to replace {@link #addProgressListener(ProgressListener)}. You should prefer using the new progress listener method where possible,
+     * as the new interface provides much richer information and much better handling of parallel operations that run during the build.
+     * </p>
+     *
+     * <p>Supported by Gradle 2.5 or later. Gradle 2.4 supports {@link OperationType#TEST} operations only. Ignored for older versions.</p>
      *
      * @param listener The listener
      * @return this
@@ -173,6 +191,12 @@ public interface LongRunningOperation {
     /**
      * Adds a progress listener which will receive progress events as the operations of the requested type run.
      *
+     * <p>This method is intended to replace {@link #addProgressListener(ProgressListener)}. You should prefer using the new progress listener method where possible,
+     * as the new interface provides much richer information and much better handling of parallel operations that run during the build.
+     * </p>
+     *
+     * <p>Supported by Gradle 2.5 or later. Gradle 2.4 supports {@link OperationType#TEST} operations only. Ignored for older versions.</p>
+     *
      * @param listener The listener
      * @param operationTypes The types of operations to receive progress events for.
      * @return this
@@ -183,6 +207,8 @@ public interface LongRunningOperation {
 
     /**
      * Sets the cancellation token to use to cancel the operation if required.
+     *
+     * <p>Supported by Gradle 2.1 or later. Ignored for older versions.</p>
      *
      * @since 2.1
      */

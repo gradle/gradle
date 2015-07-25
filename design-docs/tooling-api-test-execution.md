@@ -52,7 +52,7 @@ From a client this API can be used like:
 	  ~~is in one place, rather than ad hoc per operation.~~
 * ~~Change filter interfaces for `Test` to allow test class and method filters to be applied. Do not use patterns (except perhaps to initially get something working).~~
 * ~~Run appropriate `Test` tasks based on the descriptors.~~
-* ~~Tests will not execute when test task is up-to-date.~
+* ~~Tests will not execute when test task is up-to-date.~~
 
 ### Test cases
 
@@ -60,7 +60,6 @@ From a client this API can be used like:
     * ~~method A included in task A and task B. Descriptor for (method A, task A) is used, ensure task A only is executed~~
     * ~~method A included in task A and task B. Descriptor for (method A, task A) and (method A, task B) is used, ensure both tasks executed.~~
     * ~~using descriptor for (class A, task A) runs all methods for class A in task A.~~
-    * ~~using descriptor for (task A) runs all tests for task A.~~
 * ~~build fails when the target test no longer exists.~~
 * ~~does something reasonable when the target test task no longer exists, but the test still exists.~~
 * ~~does something reasonable when the target test is no longer part of the target test task.~~
@@ -95,29 +94,26 @@ Add methods to `TestLauncher` to request specific JVM test classes be executed.
 
 ### Test Coverage
 
-* can execute
+* ~~can execute~~
 	* ~~single JVM test class~~
 	* ~~multiple specific JVM test classes~~
-* handles more than one test task
+* ~~handles more than one test task~~
 	* ~~class included in multiple test tasks is executed multiple times, once for each test task~~
 	* ~~class included in multiple projects is executed multiple times, once for each test task~~
 	* ~~request class A and class B, where class A is included in task A, class B is included in task B~~
 	* ~~request class A, where class A is included in task A and not included in task B~~
-<<<<<<< Updated upstream
-	* when configure-on-demand is being used with a multi-project build
-* tooling api operation fails with meaningful error message when no matching tests can be found
-	* class does not exist
-	* class does not define any tests or is not a test class
-* build should not fail if filter matches a single test task
-* expected test progress events are received in each case
-=======
-	* ~~when configure-on-demand is being used with a multi-project build~
+	* ~~when configure-on-demand is being used with a multi-project build~~
 * ~~tooling api operation fails with meaningful error message when no matching tests can be found~~
 	* ~~class does not exist~~
-	* class does not define any tests or is not a test class
+	* ~~class does not define any tests or is not a test class~~
 * ~~build should not fail if filter matches a single test task~~
 * ~~expected test progress events are received in each case~~
->>>>>>> Stashed changes
+	* ~~when configure-on-demand is being used with a multi-project build~~
+* ~~tooling api operation fails with meaningful error message when no matching tests can be found~~
+	* ~~class does not exist~~
+	* ~~class does not define any tests or is not a test class~~
+* ~~build should not fail if filter matches a single test task~~
+* ~~expected test progress events are received in each case~~
 
 ## Story: Allow forced execution of up-to-date test tasks
 

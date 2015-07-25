@@ -50,7 +50,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer);
         modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
         this.modelProducer = new BuildExecutingModelProducer(modelProducer);
-        this.actionRunner = new UnsupportedActionRunner(getVersionDetails());
+        this.actionRunner = new UnsupportedActionRunner(getVersionDetails().getVersion());
     }
 
     @Override

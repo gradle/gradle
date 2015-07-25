@@ -16,31 +16,28 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
 
 public class DefaultInternalJvmTestExecutionDescriptor implements InternalJvmTestExecutionDescriptor {
-    private final String className;
-    private final String methodName;
-    private final String taskPath;
+    private InternalJvmTestDescriptor descriptor;
 
-    public DefaultInternalJvmTestExecutionDescriptor(String className, String methodName, String taskPath) {
-        this.className = className;
-        this.methodName = methodName;
-        this.taskPath = taskPath;
+    public InternalTestDescriptor getDescriptor() {
+        return descriptor;
+    }
+
+    public DefaultInternalJvmTestExecutionDescriptor(InternalJvmTestDescriptor descriptor) {
+        this.descriptor = descriptor;
     }
 
     @Override
     public String getClassName() {
-        return className;
+        return descriptor.getClassName();
     }
 
     @Override
     public String getMethodName() {
-        return methodName;
-    }
-
-    @Override
-    public String getTaskPath() {
-        return taskPath;
+        return descriptor.getMethodName();
     }
 }

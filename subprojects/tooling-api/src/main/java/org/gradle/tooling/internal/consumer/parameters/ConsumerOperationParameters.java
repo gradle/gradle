@@ -45,6 +45,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private final List<ProgressListener> testProgressListeners = new ArrayList<ProgressListener>();
         private final List<ProgressListener> taskProgressListeners = new ArrayList<ProgressListener>();
         private final List<ProgressListener> buildOperationProgressListeners = new ArrayList<ProgressListener>();
+        private String entryPoint;
         private CancellationToken cancellationToken;
         private ConnectionParameters parameters;
         private OutputStream stdout;
@@ -58,6 +59,11 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<InternalLaunchable> launchables;
 
         private Builder() {
+        }
+
+        public Builder setEntryPoint(String entryPoint) {
+            this.entryPoint = entryPoint;
+            return this;
         }
 
         public Builder setParameters(ConnectionParameters parameters) {
@@ -151,17 +157,22 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         }
 
         public ConsumerOperationParameters build() {
+            if (entryPoint == null) {
+                throw new IllegalStateException("No entry point specified.");
+            }
+
             // create the listener adapters right when the ConsumerOperationParameters are instantiated but no earlier,
             // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
             // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
             ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.legacyProgressListeners);
             FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter = new FailsafeBuildProgressListenerAdapter(
-                new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
-            return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables,
-                progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
+                    new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
+            return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables,
+                    progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
         }
     }
 
+    private final String entryPointName;
     private final ProgressListenerAdapter progressListener;
     private final FailsafeBuildProgressListenerAdapter buildProgressListener;
     private final CancellationToken cancellationToken;
@@ -179,9 +190,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<String> tasks;
     private final List<InternalLaunchable> launchables;
 
-    private ConsumerOperationParameters(ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
+    private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
                                         File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables,
                                         ProgressListenerAdapter progressListener, FailsafeBuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken) {
+        this.entryPointName = entryPointName;
         this.parameters = parameters;
         this.stdout = stdout;
         this.stderr = stderr;
@@ -208,6 +220,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         if (!javaHome.isDirectory()) {
             throw new IllegalArgumentException("Supplied javaHome is not a valid folder. You supplied: " + javaHome);
         }
+    }
+
+    public String getEntryPointName() {
+        return entryPointName;
     }
 
     public long getStartTime() {

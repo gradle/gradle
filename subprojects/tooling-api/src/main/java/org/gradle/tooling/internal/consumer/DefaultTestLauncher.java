@@ -19,12 +19,11 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.TestLauncher;
-import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.protocol.test.TestExecutionRequest;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;
@@ -32,12 +31,13 @@ import java.util.*;
 public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTestLauncher> implements TestLauncher {
 
     private final AsyncConsumerActionExecutor connection;
-    private List<OperationDescriptor> operationDescriptors = new ArrayList<OperationDescriptor>();
+    private List<TestOperationDescriptor> operationDescriptors = new ArrayList<TestOperationDescriptor>();
     private Set<String> testClassNames = new HashSet<String>();
 
     public DefaultTestLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
         operationParamsBuilder.setTasks(Collections.<String>emptyList());
+        operationParamsBuilder.setEntryPoint("TestLauncher API");
         this.connection = connection;
     }
 
@@ -47,7 +47,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     }
 
     @Override
-    public TestLauncher withTests(OperationDescriptor... testDescriptors) {
+    public TestLauncher withTests(TestOperationDescriptor... testDescriptors) {
         operationDescriptors.addAll(Arrays.asList(testDescriptors));
         return this;
     }
@@ -74,7 +74,8 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
                 return operationParameters;
             }
             public Void run(ConsumerConnection connection) {
-                return connection.runTests(new TestExecutionRequest(operationDescriptors, testClassNames), getParameters());
+                connection.runTests(new TestExecutionRequest(operationDescriptors, testClassNames), getParameters());
+                return null;
             }
         }, new ResultHandlerAdapter(handler));
 

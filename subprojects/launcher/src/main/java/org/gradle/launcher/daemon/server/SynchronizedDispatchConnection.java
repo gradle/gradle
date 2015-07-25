@@ -42,6 +42,9 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
     }
 
     public void dispatch(final T message) {
+        if (!(message instanceof OutputMessage)) {
+            LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
+        }
         synchronized (lock) {
             if (dispatching) {
                 // Safety check: dispatching a message should not cause the thread to dispatch another message (eg should not do any logging)
@@ -49,9 +52,6 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
             }
             dispatching = true;
             try {
-                if (!(message instanceof OutputMessage)) {
-                    LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
-                }
                 delegate.dispatch(message);
             } finally {
                 dispatching = false;

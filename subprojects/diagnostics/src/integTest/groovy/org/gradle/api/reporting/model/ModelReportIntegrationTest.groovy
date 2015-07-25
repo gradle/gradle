@@ -197,7 +197,7 @@ model {
               | Value:  \ttask ':dependencyInsight'
               | Creator: \ttasks.addPlaceholderAction(dependencyInsight)
               | Rules:
-                 ⤷ HelpTasksPlugin$Rules#addDefaultDependenciesReportConfiguration
+                 ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration
                  ⤷ copyToTaskContainer
         + help
               | Type:   \torg.gradle.configuration.Help
@@ -281,7 +281,7 @@ apply plugin: ClassHolder.InnerRules
         def rules = modelNode.myNumbers.@rules[0]
         rules[i++] == 'NumberRules#defaultsRule'
         rules[i++] == 'NumberRules#mutateRule'
-        rules[i++] == 'ClassHolder$InnerRules#mutateRule'
+        rules[i++] == 'ClassHolder.InnerRules#mutateRule'
         rules[i++] == 'NumberRules#finalizeRule'
         rules[i] == 'NumberRules#validateRule'
     }

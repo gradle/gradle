@@ -20,12 +20,12 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -72,7 +72,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     @Override
     public Set<File> getFiles() {
-        ensureResolved();
+        ensureResolved(true);
         Set<ResolvedArtifact> artifacts = resolveResult.artifactResults.getArtifacts();
         return CollectionUtils.collect(artifacts, new org.gradle.api.Transformer<File, ResolvedArtifact>() {
             @Override
@@ -84,15 +84,17 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        ensureResolved();
+        ensureResolved(false);
         return resolveResult.taskDependency;
     }
 
-    private void ensureResolved() {
+    private void ensureResolved(boolean failFast) {
         if (resolveResult == null) {
             resolveResult = new ResolveResult();
 
             dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, resolveResult, resolveResult);
+        }
+        if (failFast) {
             failOnUnresolvedDependency(resolveResult.notFound);
         }
     }
@@ -102,7 +104,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' source set '%s'", binary.getDisplayName(), sourceSet.getDisplayName()), notFound);
         }
     }
-    
+
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
         public final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
         public final List<Throwable> notFound = new LinkedList<Throwable>();
@@ -140,7 +142,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void visitArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, ArtifactSet artifacts) {
-            artifactResults.addArtifactSet(parent, child, artifacts);
+            artifactResults.addArtifactSet(artifacts);
         }
 
         @Override

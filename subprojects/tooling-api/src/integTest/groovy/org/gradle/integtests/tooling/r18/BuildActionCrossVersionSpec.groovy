@@ -133,6 +133,6 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support execution of build actions provided by the tooling API client. Support for this was added in Gradle 1.8 and is available in all later versions."
+        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the BuildActionExecuter API. Support for this is available in Gradle 1.8 and all later versions."
     }
 }

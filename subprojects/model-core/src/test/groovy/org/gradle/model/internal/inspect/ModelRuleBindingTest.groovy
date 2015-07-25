@@ -32,7 +32,7 @@ import spock.lang.Unroll
  */
 class ModelRuleBindingTest extends Specification {
     def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
-    def modelRegistry = new DefaultModelRegistry(extractor, "testDocs")
+    def modelRegistry = new DefaultModelRegistry(extractor)
 
     static class AmbiguousBindingsInOneSource extends RuleSource {
         @Mutate

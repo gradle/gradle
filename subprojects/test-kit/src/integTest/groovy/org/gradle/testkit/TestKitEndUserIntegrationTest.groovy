@@ -191,8 +191,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureDescriptionContains("Execution failed for task ':test'.")
-        failure.output.contains('org.gradle.api.GradleException: Unable to start the daemon process.')
-        //daemonLogsAnalyzer.visible.empty
+        failure.output.contains('Unrecognized option: -unknown')
     }
 
     def "can test plugin and custom task as external files by adding them to the build script's classpath"() {

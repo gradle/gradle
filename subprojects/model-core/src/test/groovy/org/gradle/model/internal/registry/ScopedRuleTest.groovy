@@ -33,7 +33,7 @@ import spock.lang.Specification
 class ScopedRuleTest extends Specification {
 
     def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance())
-    def registry = new ModelRegistryHelper(new DefaultModelRegistry(new ModelRuleExtractor(extractors), null))
+    def registry = new ModelRegistryHelper(new DefaultModelRegistry(new ModelRuleExtractor(extractors)))
 
     static class RuleSourceUsingRuleWithDependencies extends RuleSource {
         @HasDependencies
@@ -83,7 +83,7 @@ class ScopedRuleTest extends Specification {
         then:
         ModelRuleExecutionException e = thrown()
         e.cause.class == InvalidModelRuleDeclarationException
-        e.cause.message == "Rule ScopedRuleTest\$CreatorRule#string cannot be applied at the scope of model element values as creation rules cannot be used when applying rule sources to particular elements"
+        e.cause.message == "Rule ScopedRuleTest.CreatorRule#string cannot be applied at the scope of model element values as creation rules cannot be used when applying rule sources to particular elements"
     }
 
     static class ByPathBoundInputsChildRule extends RuleSource {

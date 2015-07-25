@@ -36,12 +36,10 @@ public class ReusingModelRegistryStore implements ModelRegistryStore {
     public static final String BANNER = "Experimental model reuse is enabled.";
 
     private final ModelRuleExtractor ruleExtractor;
-    private final String documentationLocation;
     private final Map<String, ModelRegistry> store = Maps.newHashMap();
 
-    public ReusingModelRegistryStore(ModelRuleExtractor ruleExtractor, String documentationLocation) {
+    public ReusingModelRegistryStore(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
-        this.documentationLocation = documentationLocation;
     }
 
     @Override
@@ -49,7 +47,7 @@ public class ReusingModelRegistryStore implements ModelRegistryStore {
         ModelRegistry modelRegistry = store.get(projectIdentifier.getProjectDir().getAbsolutePath());
         if (modelRegistry == null) {
             LOGGER.info("creating new model registry for project: " + projectIdentifier.getPath());
-            modelRegistry = new DefaultModelRegistry(ruleExtractor, documentationLocation);
+            modelRegistry = new DefaultModelRegistry(ruleExtractor);
             store.put(projectIdentifier.getProjectDir().getAbsolutePath(), modelRegistry);
         } else {
             LOGGER.info("reusing model for project: " + projectIdentifier.getPath());

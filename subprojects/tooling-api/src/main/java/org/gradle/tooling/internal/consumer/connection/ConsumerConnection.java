@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.internal.protocol.test.TestExecutionRequest;
+import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 /**
@@ -38,5 +38,5 @@ public interface ConsumerConnection extends Stoppable {
     <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters)
             throws UnsupportedOperationException, IllegalStateException;
 
-    Void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters);
+    void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters);
 }

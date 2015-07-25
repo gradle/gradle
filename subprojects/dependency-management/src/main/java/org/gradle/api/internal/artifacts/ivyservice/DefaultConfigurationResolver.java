@@ -22,8 +22,10 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.*;
@@ -71,7 +73,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Store<TransientConfigurationResults> oldModelCache = stores.oldModelCache();
         TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
         DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
-        DependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder);
+        ResolvedConfigurationDependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder);
 
         BinaryStore newModelStore = stores.nextBinaryStore();
         Store<ResolvedComponentResult> newModelCache = stores.newModelCache();
@@ -81,10 +83,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ResolvedLocalComponentsResultBuilder localComponentsResultBuilder = new DefaultResolvedLocalComponentsResultBuilder(buildProjectDependencies);
         DependencyGraphVisitor projectModelVisitor = new ResolvedLocalComponentsResultGraphVisitor(localComponentsResultBuilder);
 
-        DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelVisitor, projectModelVisitor);
         ResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder();
 
-        resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, graphVisitor, artifactsBuilder);
+        DependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(oldModelVisitor, newModelVisitor, projectModelVisitor);
+        DependencyArtifactsVisitor artifactsVisitor = new CompositeDependencyArtifactsVisitor(oldModelVisitor, artifactsBuilder);
+
+        resolver.resolve(configuration, resolutionAwareRepositories, metadataHandler, graphVisitor, artifactsVisitor);
 
         DefaultResolverResults defaultResolverResults = (DefaultResolverResults) results;
         defaultResolverResults.resolved(newModelBuilder.complete(), localComponentsResultBuilder.complete());

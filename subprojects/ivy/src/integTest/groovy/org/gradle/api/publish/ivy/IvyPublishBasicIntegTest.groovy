@@ -149,7 +149,7 @@ public class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: PublishingPlugin\$Rules#publishing")
+        failure.assertHasCause("Exception thrown while executing model rule: PublishingPlugin.Rules#publishing")
         failure.assertHasCause("Ivy publication 'ivy' cannot include multiple components")
     }
 }

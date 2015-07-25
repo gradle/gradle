@@ -137,12 +137,13 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
     def "fails when build action requested"() {
         given:
         parameters.tasks >> ['a']
+        parameters.entryPointName >> "<api>"
 
         when:
         connection.run(Stub(BuildAction), parameters)
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == /The version of Gradle you are using (1.0-milestone-8) does not support execution of build actions provided by the tooling API client. Support for this was added in Gradle 1.8 and is available in all later versions./
+        e.message == /The version of Gradle you are using (1.0-milestone-8) does not support the <api>. Support for this is available in Gradle 1.8 and all later versions./
     }
 }

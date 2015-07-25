@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
@@ -74,7 +75,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     }
 
     @Override
-    public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler, final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor) {
+    public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler,
+                        final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor) {
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
                 LOGGER.debug("Resolving {}", resolveContext);
@@ -85,7 +87,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
                 DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, artifactResolver);
 
                 // Resolve the dependency graph
-                builder.resolve(resolveContext, graphVisitor, artifactsGraphVisitor);
+                builder.resolve(resolveContext, new CompositeDependencyGraphVisitor(graphVisitor, artifactsGraphVisitor));
             }
         });
     }

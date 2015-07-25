@@ -18,17 +18,16 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.model.internal.Exceptions;
 
 class UnsupportedActionRunner implements ActionRunner {
-    private final VersionDetails versionDetails;
+    private final String version;
 
-    UnsupportedActionRunner(VersionDetails versionDetails) {
-        this.versionDetails = versionDetails;
+    UnsupportedActionRunner(String version) {
+        this.version = version;
     }
 
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) {
-        throw Exceptions.unsupportedFeature("execution of build actions provided by the tooling API client", versionDetails.getVersion(), "1.8");
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), version, "1.8");
     }
 }

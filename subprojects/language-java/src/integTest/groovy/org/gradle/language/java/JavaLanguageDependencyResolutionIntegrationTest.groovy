@@ -45,10 +45,10 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
         when:
-        succeeds ':mainJar'
+        succeeds ':tasks', ':mainJar'
 
         then:
-        executedAndNotSkipped ':compileZdepJarZdepJava', ':createZdepJar', ':zdepJar', ':compileMainJarMainJava'
+        executedAndNotSkipped ':tasks', ':compileZdepJarZdepJava', ':createZdepJar', ':zdepJar', ':compileMainJarMainJava'
 
     }
 
@@ -73,10 +73,10 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
         when:
-        succeeds ':mainJar'
+        succeeds ':tasks', ':mainJar'
 
         then:
-        executedAndNotSkipped(':createMainJar', ':mainJar')
+        executedAndNotSkipped(':tasks', ':createMainJar', ':mainJar')
 
     }
 
@@ -148,7 +148,13 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        when: "build fails"
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and: "build fails"
         fails ':mainJar'
 
         then: "displays the possible solution"
@@ -201,6 +207,12 @@ model {
         file('dep/src/main/java/Dep.java') << 'public class Dep {}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         succeeds ':mainJar'
 
         then:
@@ -241,7 +253,13 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
-        when: "build fails"
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and: "build fails"
         fails ':mainJar'
 
         then:
@@ -285,6 +303,12 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         fails ':mainJar'
 
         then:
@@ -330,6 +354,12 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         fails ':mainJar'
 
         then:
@@ -386,6 +416,12 @@ model {
         file('dep/src/main/java/SomeInterface.java') << 'public interface SomeInterface {}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         succeeds ':mainJar'
 
         then:
@@ -428,6 +464,12 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         fails ':mainJar'
 
         then:
@@ -467,6 +509,12 @@ plugins {
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         fails ':mainJar'
 
         then:
@@ -501,6 +549,12 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp/* extends Dep */{}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         fails ':mainJar'
 
         then:
@@ -579,6 +633,12 @@ model {
         file('c/src/main/java/Deeper.java') << 'public class Deeper {}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         succeeds ':mainJar'
 
         then:
@@ -661,7 +721,13 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
         file('b/src/main/java/Dep.java') << 'public class Dep {}'
 
-        when: "we query the classpath for project 'a' library 'main'"
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and: "we query the classpath for project 'a' library 'main'"
         succeeds ':checkDependenciesForMainJar'
 
         then: "dependency resolution resolves the classpath"
@@ -745,6 +811,12 @@ model {
         file('c/src/main/java/Deeper.java') << 'public class Deeper {}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         succeeds ':mainJar'
 
         then:
@@ -775,6 +847,12 @@ model {
 }
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
+
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
 
         when:
         fails ':mainJar'
@@ -823,6 +901,12 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         succeeds ':mainJar'
 
         then:
@@ -866,7 +950,13 @@ model {
         file('src/dep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
-        expect:
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         succeeds 'java6MainJar'
 
         and:
@@ -921,6 +1011,12 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         fails ':mainJar'
 
         then:
@@ -979,7 +1075,13 @@ model {
         file('src/dep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
-        when: "attempt to build main jar Java 6"
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and: "attempt to build main jar Java 6"
         fails ':java6MainJar'
 
         then: "fails because multiple binaries are available for the Java 6 variant of 'dep'"
@@ -1033,11 +1135,14 @@ model {
         file('src/dep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
-        expect:
-        succeeds 'java6MainJar'
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
 
         and:
-        succeeds 'java7MainJar'
+        succeeds 'java6MainJar', 'java7MainJar'
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
@@ -1079,7 +1184,13 @@ model {
         file('src/dep/java/Dep.java') << 'public class Dep {}'
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
-        expect:
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        then:
         succeeds 'java6MainJar'
 
         and:
@@ -1114,6 +1225,12 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         fails 'mainJar'
 
         then:
@@ -1150,6 +1267,12 @@ model {
         file('src/main/java/TestApp.java') << 'public class TestApp extends Dep {}'
 
         when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and:
         fails ':java6MainJar'
 
         then:
@@ -1203,7 +1326,13 @@ model {
 '''
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
 
-        when: "build fails"
+        when:
+        succeeds ':tasks'
+
+        then:
+        executedAndNotSkipped ':tasks'
+
+        and: "build fails"
         fails ':mainJar'
 
         then: "displays a reasonable error message indicating the faulty source set"

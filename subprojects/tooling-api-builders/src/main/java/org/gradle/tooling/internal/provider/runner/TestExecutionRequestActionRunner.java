@@ -18,7 +18,10 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestExecutionException;
+import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
 import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.internal.invocation.BuildAction;
@@ -30,35 +33,28 @@ import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
 
 public class TestExecutionRequestActionRunner implements BuildActionRunner {
+
     @Override
     public void run(BuildAction action, BuildController buildController) {
         if (!(action instanceof TestExecutionRequestAction)) {
             return;
         }
-        GradleInternal gradle = buildController.getGradle();
-        TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
-        TestExecutionBuildConfigurationAction testTasksConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequestAction.getTestExecutionRequest(), gradle);
-
-        @SuppressWarnings("unchecked")
-        ReplaceBuildConfigurationTransformer replaceBuildConfigurationTransformer = new ReplaceBuildConfigurationTransformer(testTasksConfigurationAction,
-            Lists.newArrayList(TaskNameResolvingBuildConfigurationAction.class, DefaultTasksBuildExecutionAction.class));
-
-        buildController.registerBuildConfigurationTransformer(replaceBuildConfigurationTransformer);
-        PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
+        TestCountListener testCountListener = new TestCountListener();
+        final GradleInternal gradle = buildController.getGradle();
 
         Throwable failure = null;
         try {
-            buildController.run();
+            doRun((TestExecutionRequestAction) action, buildController, testCountListener);
+            evaluateTestCount(testCountListener);
         } catch (RuntimeException rex) {
             Throwable throwable = findRootCause(rex);
-            if (throwable instanceof InternalTestExecutionException) {
-                failure = throwable;
-            } else if (throwable instanceof TestExecutionException) {
+            if (throwable instanceof TestExecutionException) {
                 failure = new InternalTestExecutionException("Error while running test(s)", throwable);
             } else {
                 throw rex;
             }
         }
+        PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
         BuildActionResult buildActionResult;
         if (failure != null) {
             buildActionResult = new BuildActionResult(null, payloadSerializer.serialize(failure));
@@ -68,12 +64,58 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         buildController.setResult(buildActionResult);
     }
 
+    private void evaluateTestCount(TestCountListener testCountListener) {
+        if (testCountListener.hasUnmatchedTests()) {
+            throw new TestExecutionException("Tests configured in TestLauncher not found in any candidate test task.");
+        }
+    }
+
+    private void doRun(TestExecutionRequestAction action, BuildController buildController, TestCountListener testCountListener) {
+        TestExecutionBuildConfigurationAction testTasksConfigurationAction = new TestExecutionBuildConfigurationAction(action.getTestExecutionRequest(), buildController.getGradle(), testCountListener);
+        @SuppressWarnings("unchecked")
+        ReplaceBuildConfigurationTransformer replaceBuildConfigurationTransformer = new ReplaceBuildConfigurationTransformer(testTasksConfigurationAction,
+            Lists.newArrayList(TaskNameResolvingBuildConfigurationAction.class, DefaultTasksBuildExecutionAction.class));
+
+        buildController.registerBuildConfigurationTransformer(replaceBuildConfigurationTransformer);
+
+        buildController.run();
+    }
+
     private Throwable findRootCause(Exception tex) {
-        Throwable t = tex.getCause();
+        Throwable t = tex;
         while (t.getCause() != null) {
             t = t.getCause();
         }
         return t;
+    }
+
+    private class TestCountListener implements TestListener {
+        private long resultCount;
+        private boolean didJob;
+
+        @Override
+        public void beforeSuite(TestDescriptor suite) {
+        }
+
+        @Override
+        public void afterSuite(TestDescriptor suite, TestResult result) {
+            didJob = true;
+            if (suite.getParent() == null) {
+                resultCount = resultCount + result.getTestCount();
+            }
+        }
+
+        @Override
+        public void beforeTest(TestDescriptor testDescriptor) {
+        }
+
+        @Override
+        public void afterTest(TestDescriptor test, TestResult result) {
+        }
+
+        public boolean hasUnmatchedTests() {
+            return resultCount == 0 && didJob; // up-to-date tests tasks are ignored
+        }
     }
 
 }

@@ -15,9 +15,9 @@
  */
 
 package org.gradle.model
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.util.Matchers.matchesRegexp
 /**
  * Tests aspects of model rule binding validation such as when/why validation is run.
  *
@@ -60,13 +60,12 @@ class ModelRuleBindingValidationIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         fails "help"
-        failure.assertHasCause("""The following model rules could not be applied due to unsatisfied dependencies:
+        failureCauseContains("""
   Rules#s1
-    Inputs:
-      <no path> java.lang.Integer (parameter 1) [UNBOUND]
-  [UNBOUND] - indicates that the subject or input could not be found (i.e. the reference could not be bound)""")
+    inputs:
+      - <no path> Integer (parameter 1) [*]
 
-        failure.assertThatCause(matchesRegexp(".*?see: .*?userguide\\/new-model\\.html.*?"))
+[*] - indicates that a model item could not be found for the path or type.""")
     }
 
 }

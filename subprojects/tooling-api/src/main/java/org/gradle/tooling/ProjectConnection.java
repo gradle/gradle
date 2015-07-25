@@ -46,6 +46,7 @@ import org.gradle.api.Incubating;
  * <p>All implementations of {@code ProjectConnection} are thread-safe, and may be shared by any number of threads.</p>
  *
  * <p>All notifications from a given {@code ProjectConnection} instance are delivered by a single thread at a time. Note, however, that the delivery thread may change over time.</p>
+ *
  * @since 1.0-milestone-3
  */
 public interface ProjectConnection {
@@ -94,6 +95,8 @@ public interface ProjectConnection {
     /**
      * Creates a test launcher which can be used to execute tests.
      *
+     * <p>Requires Gradle 2.6 or later.</p>
+     *
      * @return The launcher.
      * @since 2.6
      */
@@ -130,6 +133,8 @@ public interface ProjectConnection {
     /**
      * Creates an executer which can be used to run the given action. The action is serialized into the build
      * process and executed, then its result is serialized back to the caller.
+     *
+     * <p>Requires Gradle 1.8 or later.</p>
      *
      * @param buildAction The action to run.
      * @param <T> The result type.

@@ -17,23 +17,21 @@
 package org.gradle.internal.event;
 
 import org.gradle.api.Action;
-import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.ReflectionDispatch;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-public class BroadcastDispatch<T> implements Dispatch<MethodInvocation> {
-    private final Class<T> type;
+public class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> {
     private final Map<Object, Dispatch<MethodInvocation>> handlers = new LinkedHashMap<Object, Dispatch<MethodInvocation>>();
 
     public BroadcastDispatch(Class<T> type) {
-        this.type = type;
+        super(type);
     }
 
     public Class<T> getType() {
@@ -75,28 +73,10 @@ public class BroadcastDispatch<T> implements Dispatch<MethodInvocation> {
         handlers.clear();
     }
 
-    private String getErrorMessage() {
-        String typeDescription = type.getSimpleName().replaceAll("(\\p{Upper})", " $1").trim().toLowerCase();
-        return String.format("Failed to notify %s.", typeDescription);
-    }
-
-    public void dispatch(MethodInvocation invocation) {
-        List<Throwable> failures = new ArrayList<Throwable>();
-        for (Dispatch<MethodInvocation> handler : new ArrayList<Dispatch<MethodInvocation>>(handlers.values())) {
-            try {
-                handler.dispatch(invocation);
-            } catch (UncheckedException e) {
-                failures.add(e.getCause());
-            } catch (Throwable t) {
-                failures.add(t);
-            }
-        }
-        if (failures.size() == 1 && failures.get(0) instanceof RuntimeException) {
-            throw (RuntimeException) failures.get(0);
-        }
-        if (!failures.isEmpty()) {
-            throw new ListenerNotificationException(getErrorMessage(), failures);
-        }
+    @Override
+    public void dispatch(MethodInvocation message) {
+        Iterator<Dispatch<MethodInvocation>> iterator = new ArrayList<Dispatch<MethodInvocation>>(handlers.values()).iterator();
+        dispatch(message, iterator);
     }
 
     private class ActionInvocationHandler implements Dispatch<MethodInvocation> {
