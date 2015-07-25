@@ -78,16 +78,17 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     def fileNameIsSafe(String testName){
         given:
-        Pattern pattern = Pattern.compile("[a-zA-Z0-9\\.#_]");
+        Pattern pattern = Pattern.compile("[a-zA-Z0-9\\.#_/\$-]+");
         TestClassResult result = new TestClassResult(1, testName, 100)
 
         when:
         def fileName = generator.getReportFileName(result)
         def matcher = pattern.matcher(fileName);
+        println fileName
 
         then:
         fileName.length() < MAX_FILENAME_LEN
-        matcher.find()
+        matcher.matches()
 
         where:
         testName << [

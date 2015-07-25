@@ -30,7 +30,7 @@ class ClassTestResultsTest extends Specification {
 
     def baseUrlIsSafeFileName(String testName){
         given:
-        Pattern pattern = Pattern.compile("[a-zA-Z0-9\\.#_]");
+        Pattern pattern = Pattern.compile("[a-zA-Z0-9\\.#_/\$-]+");
 
         when:
         def baseUrl = new ClassTestResults(1, testName, null).getBaseUrl()
@@ -38,7 +38,7 @@ class ClassTestResultsTest extends Specification {
 
         then:
         baseUrl.length() < MAX_FILENAME_LEN
-        matcher.find()
+        matcher.matches()
 
         where:
         testName << [
