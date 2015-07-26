@@ -21,10 +21,13 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.tasks.TaskCollection;
-import org.gradle.api.tasks.testing.*;
+import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.TestExecutionException;
+import org.gradle.api.tasks.testing.TestFilter;
+import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildExecutionContext;
-import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 
@@ -52,12 +55,12 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
     }
 
     private List<Test> configureBuildForTestDescriptors(GradleInternal gradle, final InternalTestExecutionRequest testExecutionRequestAction) {
-        final Collection<InternalJvmTestExecutionDescriptor> testDescriptors = testExecutionRequestAction.getTestExecutionDescriptors();
+        final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequestAction.getTestExecutionDescriptors();
 
-        final List<String> testTaskPaths = org.gradle.util.CollectionUtils.collect(testDescriptors, new Transformer<String, InternalJvmTestExecutionDescriptor>() {
+        final List<String> testTaskPaths = org.gradle.util.CollectionUtils.collect(testDescriptors, new Transformer<String, InternalTestDescriptor>() {
             @Override
-            public String transform(InternalJvmTestExecutionDescriptor internalJvmTestDescriptor) {
-                return ((DefaultTestDescriptor)internalJvmTestDescriptor.getDescriptor()).getTaskPath();
+            public String transform(InternalTestDescriptor testDescriptor) {
+                return ((DefaultTestDescriptor) testDescriptor).getTaskPath();
             }
         });
 
@@ -70,10 +73,11 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
                 throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
             } else {
                 Test testTask = (Test) task;
-                for (InternalJvmTestExecutionDescriptor testDescriptor : testDescriptors) {
-                    if (((DefaultTestDescriptor)testDescriptor.getDescriptor()).getTaskPath().equals(testTaskPath)) {
-                        final String className = testDescriptor.getClassName();
-                        final String methodName = testDescriptor.getMethodName();
+                for (InternalTestDescriptor testDescriptor : testDescriptors) {
+                    DefaultTestDescriptor defaultTestDescriptor = (DefaultTestDescriptor) testDescriptor;
+                    if (defaultTestDescriptor.getTaskPath().equals(testTaskPath)) {
+                        String className = defaultTestDescriptor.getClassName();
+                        String methodName = defaultTestDescriptor.getMethodName();
                         if (className == null && methodName == null) {
                             testTask.getFilter().includeTestsMatching("*");
                         } else {

@@ -21,6 +21,16 @@ import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 
+/**
+ * Mixed into a provider connection to allow tests to be executed.
+ *
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 2.6-rc-1.</p>
+ * <p>Provider compatibility: This interface is implemented by all provider versions from 2.6-rc-1.</p>
+ *
+ * @since 2.6-rc-1
+ */
 public interface InternalTestExecutionConnection extends InternalProtocolInterface {
     <T> BuildResult<T> runTests(InternalTestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters);
 }

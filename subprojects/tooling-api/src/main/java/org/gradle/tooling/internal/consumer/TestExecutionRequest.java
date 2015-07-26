@@ -17,13 +17,10 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.Transformer;
-import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.OperationDescriptorInternal;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
-import org.gradle.tooling.internal.protocol.test.InternalJvmTestExecutionDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.util.CollectionUtils;
 
@@ -32,34 +29,28 @@ import java.util.List;
 import java.util.Set;
 
 public class TestExecutionRequest implements InternalTestExecutionRequest {
-    private final Collection<InternalJvmTestExecutionDescriptor> jvmTestExecutionDescriptors;
-    private Set<String> testClassNames;
+    private final Collection<InternalTestDescriptor> testDescriptors;
+    private final Set<String> testClassNames;
 
     public TestExecutionRequest(List<TestOperationDescriptor> operationDescriptors, Set<String> testClassNames) {
-        this.jvmTestExecutionDescriptors = adapt(operationDescriptors);
+        this.testDescriptors = adapt(operationDescriptors);
         this.testClassNames = testClassNames;
     }
 
     @Override
-    public Collection<InternalJvmTestExecutionDescriptor> getTestExecutionDescriptors() {
-        return jvmTestExecutionDescriptors;
+    public Collection<InternalTestDescriptor> getTestExecutionDescriptors() {
+        return testDescriptors;
     }
 
     public Collection<String> getTestClassNames() {
         return testClassNames;
     }
 
-    private Collection<InternalJvmTestExecutionDescriptor> adapt(List<TestOperationDescriptor> operationDescriptors) {
-        return CollectionUtils.collect(operationDescriptors, new Transformer<InternalJvmTestExecutionDescriptor, OperationDescriptor>() {
+    private Collection<InternalTestDescriptor> adapt(List<TestOperationDescriptor> operationDescriptors) {
+        return CollectionUtils.collect(operationDescriptors, new Transformer<InternalTestDescriptor, OperationDescriptor>() {
             @Override
-            public InternalJvmTestExecutionDescriptor transform(OperationDescriptor operationDescriptor) {
-                final InternalOperationDescriptor internalOperationDescriptor = ((OperationDescriptorInternal) operationDescriptor).getInternalOperationDescriptor();
-                if (internalOperationDescriptor instanceof InternalJvmTestDescriptor) {
-                    InternalJvmTestDescriptor jvmTestOperationDescriptor = (InternalJvmTestDescriptor)internalOperationDescriptor;
-                    return new DefaultInternalJvmTestExecutionDescriptor(jvmTestOperationDescriptor);
-                } else {
-                    throw new TestExecutionException("Invalid TestOperationDescriptor implementation. Only JvmTestOperationDescriptor supported.");
-                }
+            public InternalTestDescriptor transform(OperationDescriptor operationDescriptor) {
+                return (InternalTestDescriptor) ((OperationDescriptorInternal) operationDescriptor).getInternalOperationDescriptor();
             }
         });
     }
