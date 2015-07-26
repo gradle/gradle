@@ -52,6 +52,8 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @throws TestExecutionException when no tests for execution declared or can be found.
      * @throws UnsupportedVersionException When the target Gradle version does not support test execution.
      * @throws org.gradle.tooling.exceptions.UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
+     * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
+     *          When the target Gradle version does not support some requested configuration option.
      * @throws BuildException On some failure while executing the tests in the Gradle build.
      * @throws BuildCancelledException When the operation was cancelled before it completed successfully.
      * @throws GradleConnectionException On some other failure using the connection.

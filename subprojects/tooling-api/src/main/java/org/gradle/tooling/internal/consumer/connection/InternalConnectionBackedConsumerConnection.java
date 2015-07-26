@@ -49,7 +49,11 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         ModelProducer modelProducer = new InternalConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, (InternalConnection) delegate);
         modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer);
         modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
-        this.modelProducer = new BuildExecutingModelProducer(modelProducer);
+        modelProducer = new BuildExecutingModelProducer(modelProducer);
+        if (getVersionDetails().getVersion().equals("1.0-milestone-8")) {
+            modelProducer = new NoCommandLineArgsModelProducer(modelProducer);
+        }
+        this.modelProducer = modelProducer;
         this.actionRunner = new UnsupportedActionRunner(getVersionDetails().getVersion());
     }
 
@@ -85,6 +89,22 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         }
     }
 
+    private class NoCommandLineArgsModelProducer implements ModelProducer {
+        private final ModelProducer delegate;
+
+        public NoCommandLineArgsModelProducer(ModelProducer delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+            if (operationParameters.getArguments() != null && !operationParameters.getArguments().isEmpty()) {
+                throw Exceptions.unsupportedOperationConfiguration(operationParameters.getEntryPointName() + " withArguments()", getVersionDetails().getVersion(), "1.0-milestone-9");
+            }
+            return delegate.produceModel(type, operationParameters);
+        }
+    }
+
     private class BuildExecutingModelProducer implements ModelProducer {
         private final ModelProducer delegate;
 
@@ -98,7 +118,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
                 return null;
             } else {
                 if (operationParameters.getTasks() != null) {
-                    throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()", getVersionDetails().getVersion());
+                    throw Exceptions.unsupportedOperationConfiguration(operationParameters.getEntryPointName() + " forTasks()", getVersionDetails().getVersion(), "1.2");
                 }
                 return delegate.produceModel(type, operationParameters);
             }

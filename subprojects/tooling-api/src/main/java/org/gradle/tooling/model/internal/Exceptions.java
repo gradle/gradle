@@ -42,12 +42,9 @@ public class Exceptions {
                 , method);
     }
 
-    public static UnsupportedOperationConfigurationException unsupportedOperationConfiguration(String operation, String targetVersion) {
-        return new UnsupportedOperationConfigurationException(String.format("Unsupported configuration: %s."
-                + "\nYou configured the LongRunningOperation (ModelBuilder or BuildLauncher) with an unsupported option."
-                + "\nThe version of Gradle are using (%s) does not support this configuration option."
-                + "\nTo resolve the problem you can change/upgrade the target version of Gradle."
-                , operation, targetVersion));
+    public static UnsupportedOperationConfigurationException unsupportedOperationConfiguration(String operation, String targetVersion, String versionAdded) {
+        return new UnsupportedOperationConfigurationException(String.format("The version of Gradle you are using (%s) does not support the %s configuration option. Support for this is available in Gradle %s and all later versions.",
+                targetVersion, operation, versionAdded));
     }
 
     public static UnknownModelException unsupportedModel(Class<?> modelType, String targetVersion) {
