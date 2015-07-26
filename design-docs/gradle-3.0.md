@@ -118,7 +118,8 @@ types and to offer a more consistent DSL.
 
 ## Tooling API clean ups
 
-* Remove the old `ProgressListener` interfaces and methods. These are superceded by the new interfaces. However, the new interfaces are supported only
+* Remove support for consumers older than 1.6, will allow the provider to drop support for `BuildActionRunner` protocol.
+* Remove the old `ProgressListener` interfaces and methods. These are superseded by the new interfaces. However, the new interfaces are supported only
   by Gradle 2.5 and later, so might need to defer the removal until 4.0.
 * Move `UnsupportedBuildArgumentException` and `UnsupportedOperationConfigurationException` up to `org.gradle.tooling`, to remove
   package cycle from the API.
