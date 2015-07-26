@@ -77,6 +77,18 @@ public interface ModelBuilder<T> extends ConfigurableLauncher<ModelBuilder<T>> {
     ModelBuilder<T> forTasks(String... tasks);
 
     /**
+     * Specifies the tasks to execute before building the model.
+     *
+     * If not configured, null, or an empty array is passed, then no tasks will be executed.
+     *
+     * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
+     * @return this
+     * @since 2.6
+     */
+    @Incubating
+    ModelBuilder<T> forTasks(Iterable<String> tasks);
+
+    /**
      * Fetch the model, blocking until it is available.
      *
      * @return The model.

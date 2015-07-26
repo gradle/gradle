@@ -40,6 +40,13 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
 
     /**
      * {@inheritDoc}
+     * @since 2.6
+     */
+    @Override
+    T withArguments(Iterable<String> arguments);
+
+    /**
+     * {@inheritDoc}
      * @since 1.0-milestone-3
      */
     @Override
@@ -83,6 +90,13 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
 
     /**
      * {@inheritDoc}
+     * @since 2.6
+     */
+    @Override
+    T setJvmArguments(Iterable<String> jvmArguments);
+
+    /**
+     * {@inheritDoc}
      * @since 1.0-milestone-3
      */
     @Override
@@ -103,6 +117,14 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher> extends Lo
     @Incubating
     @Override
     T addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> eventTypes);
+
+    /**
+     * {@inheritDoc}
+     * @since 2.6
+     */
+    @Incubating
+    @Override
+    T addProgressListener(org.gradle.tooling.events.ProgressListener listener, OperationType... operationTypes);
 
     /**
      * {@inheritDoc}

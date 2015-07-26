@@ -29,13 +29,22 @@ import org.gradle.tooling.events.test.TestOperationDescriptor;
 public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
 
     /**
-     * Adds tests to be executed by passing OperationDescriptors received from a previously Gradle Run.
+     * Adds tests to be executed by passing test descriptors received from a previously Gradle Run.
      *
      * @param descriptors The OperationDescriptor defining one or more tests.
      * @return this
      * @since 2.6
      */
     TestLauncher withTests(TestOperationDescriptor... descriptors);
+
+    /**
+     * Adds tests to be executed by passing test descriptors received from a previously Gradle Run.
+     *
+     * @param descriptors The OperationDescriptor defining one or more tests.
+     * @return this
+     * @since 2.6
+     */
+    TestLauncher withTests(Iterable<? extends TestOperationDescriptor> descriptors);
 
     /**
      * Adds tests to be executed declared by class name.
@@ -45,6 +54,15 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @since 2.6
      */
     TestLauncher withJvmTestClasses(String... testClasses);
+
+    /**
+     * Adds tests to be executed declared by class name.
+     *
+     * @param testClasses The class names of the tests to be executed.
+     * @return this
+     * @since 2.6
+     */
+    TestLauncher withJvmTestClasses(Iterable<String> testClasses);
 
     /**
      * Executes the build, blocking until it is complete.

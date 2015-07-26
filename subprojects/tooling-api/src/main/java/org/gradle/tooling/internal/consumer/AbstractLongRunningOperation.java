@@ -16,6 +16,9 @@
 package org.gradle.tooling.internal.consumer;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Nullable;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
@@ -26,6 +29,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractLongRunningOperation<T extends AbstractLongRunningOperation<T>> implements LongRunningOperation {
@@ -45,9 +49,23 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
         return operationParamsBuilder.setParameters(connectionParameters).build();
     }
 
+    protected static @Nullable <T> List<T> rationalizeInput(@Nullable T[] arguments) {
+        return arguments != null && arguments.length > 0 ? ImmutableList.copyOf(arguments) : null;
+    }
+
+    protected static @Nullable <T> List<T> rationalizeInput(@Nullable Iterable<? extends T> arguments) {
+        return arguments != null && arguments.iterator().hasNext() ? ImmutableList.copyOf(arguments) : null;
+    }
+
     @Override
     public T withArguments(String... arguments) {
-        operationParamsBuilder.setArguments(arguments);
+        operationParamsBuilder.setArguments(rationalizeInput(arguments));
+        return getThis();
+    }
+
+    @Override
+    public T withArguments(Iterable<String> arguments) {
+        operationParamsBuilder.setArguments(rationalizeInput(arguments));
         return getThis();
     }
 
@@ -83,7 +101,13 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
 
     @Override
     public T setJvmArguments(String... jvmArguments) {
-        operationParamsBuilder.setJvmArguments(jvmArguments);
+        operationParamsBuilder.setJvmArguments(rationalizeInput(jvmArguments));
+        return getThis();
+    }
+
+    @Override
+    public T setJvmArguments(Iterable<String> jvmArguments) {
+        operationParamsBuilder.setJvmArguments(rationalizeInput(jvmArguments));
         return getThis();
     }
 
@@ -96,6 +120,11 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     @Override
     public T addProgressListener(org.gradle.tooling.events.ProgressListener listener) {
         return addProgressListener(listener, EnumSet.allOf(OperationType.class));
+    }
+
+    @Override
+    public T addProgressListener(org.gradle.tooling.events.ProgressListener listener, OperationType... operationTypes) {
+        return addProgressListener(listener, ImmutableSet.copyOf(operationTypes));
     }
 
     @Override

@@ -53,8 +53,20 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     }
 
     @Override
+    public TestLauncher withTests(Iterable<? extends TestOperationDescriptor> descriptors) {
+        operationDescriptors.addAll(CollectionUtils.toList(descriptors));
+        return this;
+    }
+
+    @Override
     public TestLauncher withJvmTestClasses(String... classNames) {
         testClassNames.addAll(CollectionUtils.toList(classNames));
+        return this;
+    }
+
+    @Override
+    public TestLauncher withJvmTestClasses(Iterable<String> testClasses) {
+        testClassNames.addAll(CollectionUtils.toList(testClasses));
         return this;
     }
 
