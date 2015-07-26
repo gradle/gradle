@@ -25,14 +25,12 @@ import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 public class TestExecutionRequest implements InternalTestExecutionRequest {
     private final Collection<InternalTestDescriptor> testDescriptors;
-    private final Set<String> testClassNames;
+    private final Collection<String> testClassNames;
 
-    public TestExecutionRequest(List<TestOperationDescriptor> operationDescriptors, Set<String> testClassNames) {
+    public TestExecutionRequest(Iterable<TestOperationDescriptor> operationDescriptors, Collection<String> testClassNames) {
         this.testDescriptors = adapt(operationDescriptors);
         this.testClassNames = testClassNames;
     }
@@ -46,7 +44,7 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
         return testClassNames;
     }
 
-    private Collection<InternalTestDescriptor> adapt(List<TestOperationDescriptor> operationDescriptors) {
+    private Collection<InternalTestDescriptor> adapt(Iterable<TestOperationDescriptor> operationDescriptors) {
         return CollectionUtils.collect(operationDescriptors, new Transformer<InternalTestDescriptor, OperationDescriptor>() {
             @Override
             public InternalTestDescriptor transform(OperationDescriptor operationDescriptor) {
