@@ -50,7 +50,6 @@ task log << {
             def build = connection.newBuild()
             build.standardOutput = output
             build.forTasks("log")
-            build.withArguments("-d", "-s")
             build.run(resultHandler)
             server.waitFor()
             ConcurrentTestUtil.poll {
