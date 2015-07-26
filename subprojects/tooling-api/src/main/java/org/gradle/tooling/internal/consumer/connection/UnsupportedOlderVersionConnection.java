@@ -32,12 +32,12 @@ import org.gradle.tooling.model.internal.Exceptions;
  *
  * <p>Used for providers >= 1.0-milestone-3 and <= 1.0-milestone-7.</p>
  */
-public class ConnectionVersion4BackedConsumerConnection implements ConsumerConnection {
+public class UnsupportedOlderVersionConnection implements ConsumerConnection {
     private final Distribution distribution;
     private final ProtocolToModelAdapter adapter;
     private final String version;
 
-    public ConnectionVersion4BackedConsumerConnection(Distribution distribution, ConnectionVersion4 delegate, ProtocolToModelAdapter adapter) {
+    public UnsupportedOlderVersionConnection(Distribution distribution, ConnectionVersion4 delegate, ProtocolToModelAdapter adapter) {
         this.distribution = distribution;
         this.adapter = adapter;
         version = delegate.getMetaData().getVersion();
