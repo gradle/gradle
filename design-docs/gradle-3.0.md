@@ -118,6 +118,7 @@ types and to offer a more consistent DSL.
 
 ## Tooling API clean ups
 
+* `LongRunningOperation.withArguments()` should be called `setArguments()` for consistency.
 * Remove support for consumers older than 1.6, will allow the provider to drop support for `BuildActionRunner` protocol.
 * Remove the old `ProgressListener` interfaces and methods. These are superseded by the new interfaces. However, the new interfaces are supported only
   by Gradle 2.5 and later, so might need to defer the removal until 4.0.
