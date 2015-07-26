@@ -46,7 +46,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
 
     @Override
     public void configure(BuildExecutionContext context) {
-        final Set<Test> allTestTasksToRun = new HashSet<Test>();
+        final Set<Test> allTestTasksToRun = new LinkedHashSet<Test>();
         final GradleInternal gradleInternal = context.getGradle();
         allTestTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal, testExecutionRequest));
         allTestTasksToRun.addAll(configureBuildForTestClasses(gradleInternal, testExecutionRequest));
