@@ -113,7 +113,7 @@ public class ProviderConnection {
         Parameters params = initParams(providerParameters);
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
-        final TestExecutionRequestAction action = new TestExecutionRequestAction(testExecutionRequest, startParameter, listenerConfig.clientSubscriptions);
+        TestExecutionRequestAction action = new TestExecutionRequestAction(testExecutionRequest, startParameter, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
     }
 
