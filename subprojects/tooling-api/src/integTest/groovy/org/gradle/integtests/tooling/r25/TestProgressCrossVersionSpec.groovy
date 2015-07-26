@@ -391,6 +391,9 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.4")
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
         given:
+        if (!targetDist.toolingApiEventsInEmbeddedModeSupported) {
+            toolingApi.requireDaemons()
+        }
         projectDir.createFile('settings.gradle') << """
             include ':sub1'
             include ':sub2'
