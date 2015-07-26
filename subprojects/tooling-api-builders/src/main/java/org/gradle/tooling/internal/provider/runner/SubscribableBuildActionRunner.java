@@ -24,9 +24,6 @@ import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.SubscribableBuildAction;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class SubscribableBuildActionRunner implements BuildActionRunner {
     private BuildActionRunner delegate;
 
@@ -34,10 +31,7 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
         this.delegate = delegate;
     }
 
-    private Set<BuildClientSubscriptions> registeredClientSubscriptions = new HashSet<BuildClientSubscriptions>();
-
-    void registerListenersForClientSubscriptions(BuildClientSubscriptions clientSubscriptions, GradleInternal gradle) {
-        registeredClientSubscriptions.add(clientSubscriptions);
+    private void registerListenersForClientSubscriptions(BuildClientSubscriptions clientSubscriptions, GradleInternal gradle) {
         BuildEventConsumer eventConsumer = gradle.getServices().get(BuildEventConsumer.class);
         if (clientSubscriptions.isSendTestProgressEvents()) {
             gradle.addListener(new ClientForwardingTestListener(eventConsumer, clientSubscriptions));
@@ -50,14 +44,6 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
         }
     }
 
-    public void removeClientSubscriptions(BuildClientSubscriptions clientSubscriptions) {
-        registeredClientSubscriptions.remove(clientSubscriptions);
-    }
-
-    public boolean hasClientSubscriptionsRegistered(BuildClientSubscriptions clientSubscriptions) {
-        return registeredClientSubscriptions.contains(clientSubscriptions);
-    }
-
     @Override
     public void run(BuildAction action, BuildController buildController) {
         if (!(action instanceof SubscribableBuildAction)) {
@@ -68,12 +54,7 @@ public class SubscribableBuildActionRunner implements BuildActionRunner {
 
         // register listeners that dispatch all progress via the registered BuildEventConsumer instance,
         // this allows to send progress events back to the DaemonClient (via short-cut)
-        if (!hasClientSubscriptionsRegistered(subscribableBuildAction.getClientSubscriptions())) {
-            registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), gradle);
-        }
+        registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), gradle);
         delegate.run(action, buildController);
-        if (buildController.hasResult()) {
-            removeClientSubscriptions(subscribableBuildAction.getClientSubscriptions());
-        }
     }
 }

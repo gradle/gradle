@@ -16,12 +16,12 @@
 
 package org.gradle.tooling.internal.provider;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.StartParameter;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class TestExecutionRequestAction extends SubscribableBuildAction implements InternalTestExecutionRequest {
@@ -33,8 +33,8 @@ public class TestExecutionRequestAction extends SubscribableBuildAction implemen
         super(clientSubscriptions);
         this.startParameter = startParameter;
         // Unpack the request to serialize across to the daemon
-        this.testDescriptors = new LinkedHashSet<InternalTestDescriptor>(testExecutionRequest.getTestExecutionDescriptors());
-        this.testClassNames = new LinkedHashSet<String>(testExecutionRequest.getTestClassNames());
+        this.testDescriptors = ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors());
+        this.testClassNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
     }
 
     @Override
