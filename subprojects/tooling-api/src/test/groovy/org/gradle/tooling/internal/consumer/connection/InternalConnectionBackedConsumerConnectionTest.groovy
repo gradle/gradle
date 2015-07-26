@@ -145,7 +145,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
 
         then:
         UnsupportedOperationConfigurationException e = thrown()
-        e.message == /The version of Gradle you are using (1.0-milestone-8) does not support the <api> withArguments() configuration option. Support for this is available in Gradle 1.0-milestone-9 and all later versions./
+        e.message == /The version of Gradle you are using (1.0-milestone-8) does not support the <api> withArguments() configuration option. Support for this is available in Gradle 1.0 and all later versions./
     }
 
     def "fails when build action requested"() {

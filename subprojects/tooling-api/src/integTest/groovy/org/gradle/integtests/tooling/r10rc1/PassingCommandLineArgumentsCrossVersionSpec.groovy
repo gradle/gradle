@@ -124,7 +124,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
         then:
         UnsupportedOperationConfigurationException ex = thrown()
-        ex.message.contains("The version of Gradle you are using (${targetDist.version.version}) does not support the BuildLauncher API withArguments() configuration option. Support for this is available in Gradle 1.0-milestone-9 and all later versions.")
+        ex.message.contains("The version of Gradle you are using (${targetDist.version.version}) does not support the BuildLauncher API withArguments() configuration option. Support for this is available in Gradle 1.0 and all later versions.")
 
         when:
         withConnection { ProjectConnection it ->
@@ -133,7 +133,7 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
 
         then:
         UnsupportedOperationConfigurationException ex2 = thrown()
-        ex2.message.contains("The version of Gradle you are using (${targetDist.version.version}) does not support the ModelBuilder API withArguments() configuration option. Support for this is available in Gradle 1.0-milestone-9 and all later versions.")
+        ex2.message.contains("The version of Gradle you are using (${targetDist.version.version}) does not support the ModelBuilder API withArguments() configuration option. Support for this is available in Gradle 1.0 and all later versions.")
     }
 
     def "can overwrite project dir via build arguments"() {

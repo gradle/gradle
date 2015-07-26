@@ -34,6 +34,7 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.Exceptions;
+import org.gradle.util.GradleVersion;
 
 /**
  * An adapter for a {@link InternalConnection} based provider.
@@ -50,7 +51,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer);
         modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
         modelProducer = new BuildExecutingModelProducer(modelProducer);
-        if (getVersionDetails().getVersion().equals("1.0-milestone-8")) {
+        if (GradleVersion.version(getVersionDetails().getVersion()).compareTo(GradleVersion.version("1.0")) < 0) {
             modelProducer = new NoCommandLineArgsModelProducer(modelProducer);
         }
         this.modelProducer = modelProducer;
@@ -99,7 +100,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         @Override
         public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
             if (operationParameters.getArguments() != null && !operationParameters.getArguments().isEmpty()) {
-                throw Exceptions.unsupportedOperationConfiguration(operationParameters.getEntryPointName() + " withArguments()", getVersionDetails().getVersion(), "1.0-milestone-9");
+                 throw Exceptions.unsupportedOperationConfiguration(operationParameters.getEntryPointName() + " withArguments()", getVersionDetails().getVersion(), "1.0");
             }
             return delegate.produceModel(type, operationParameters);
         }
