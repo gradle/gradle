@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Nullable;
 import org.gradle.tooling.CancellationToken;
@@ -24,10 +23,12 @@ import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -50,11 +51,11 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     }
 
     protected static @Nullable <T> List<T> rationalizeInput(@Nullable T[] arguments) {
-        return arguments != null && arguments.length > 0 ? ImmutableList.copyOf(arguments) : null;
+        return arguments != null && arguments.length > 0 ? Arrays.asList(arguments) : null;
     }
 
     protected static @Nullable <T> List<T> rationalizeInput(@Nullable Iterable<? extends T> arguments) {
-        return arguments != null && arguments.iterator().hasNext() ? ImmutableList.copyOf(arguments) : null;
+        return arguments != null && arguments.iterator().hasNext() ? CollectionUtils.toList(arguments) : null;
     }
 
     @Override
