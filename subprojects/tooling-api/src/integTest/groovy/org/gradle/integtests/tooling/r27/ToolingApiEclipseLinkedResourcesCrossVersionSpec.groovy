@@ -15,10 +15,10 @@
  */
 
 package org.gradle.integtests.tooling.r27
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
+import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseFileSeparators
 
 @TargetGradleVersion(">=2.7")
 class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecification {
@@ -59,7 +59,7 @@ sourceSets {
         subprojectA.sourceDirectories.size() == 3
         subprojectA.linkedResources[0].name == 'src-sibling'
         subprojectA.linkedResources[0].type == '2'
-        subprojectA.linkedResources[0].location == srcSiblingFolder.getAbsolutePath()
+        subprojectA.linkedResources[0].location == normaliseFileSeparators(srcSiblingFolder.getAbsolutePath())
         subprojectA.linkedResources[0].locationUri == null
 
         subprojectA.sourceDirectories[0].path == "src"

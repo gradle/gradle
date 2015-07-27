@@ -16,6 +16,9 @@
 
 package org.gradle.integtests.tooling.fixture;
 
+import java.io.File;
+import java.util.regex.Pattern;
+
 public class TextUtil {
 
     /**
@@ -23,5 +26,9 @@ public class TextUtil {
      */
     public static String escapeString(Object obj) {
         return obj.toString().replaceAll("\\\\", "\\\\\\\\");
+    }
+
+    public static String normaliseFileSeparators(String path) {
+        return path.replaceAll(Pattern.quote(File.separator), "/");
     }
 }
