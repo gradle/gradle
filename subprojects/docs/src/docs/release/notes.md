@@ -59,10 +59,9 @@ See the [new Gradle TestKit user guide chapter](userguide/test_kit.html) for mor
 
 ### Tooling API TestLauncher (i)
 
-This releases introduces a new [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) interface for launching tests using the Gradle Tooling API. This interface will evolve over the next couple of releases.
-With this release the [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) API allows specifying tests to be executed by passing TestOperationDescriptors received from a previous build invocation or
-by specifying the class to be tested by full qualified classname.
+This releases introduces a new [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) interface for launching tests using the [Tooling API](userguide/embedding.html).
 
+The following is an example of using the new API…
 
 		ProjectConnection connection = GradleConnector.newConnector()
 		   	.forProjectDirectory(new File("someFolder"))
@@ -80,7 +79,7 @@ by specifying the class to be tested by full qualified classname.
 		   connection.close();
 	    }
 
-See the javadoc for [`ProjectConnection`](dsl/org.gradle.tooling.ProjectConnection.html) and [`TestLauncher`](dsl/org.gradle.tooling.TestLauncher.html) for more information on using the new TestLauncher API.
+See the Javadoc for [`ProjectConnection`](dsl/org.gradle.tooling.ProjectConnection.html) and [`TestLauncher`](dsl/org.gradle.tooling.TestLauncher.html) for more information on using the new TestLauncher API.
 
 ### Rule based model configuration reporting improvements (i)
 
