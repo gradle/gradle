@@ -18,6 +18,7 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.*;
 
@@ -29,7 +30,6 @@ import java.util.List;
 
 public class DefaultGradleRunner extends GradleRunner {
 
-    private final TmpDirectoryProvider tmpDirectoryProvider = new IsolatedDaemonHomeTmpDirectoryProvider();
     private final GradleExecutor gradleExecutor = new GradleExecutor();
     private final File gradleHome;
 
@@ -39,8 +39,20 @@ public class DefaultGradleRunner extends GradleRunner {
     private List<String> jvmArguments = new ArrayList<String>();
 
     public DefaultGradleRunner(File gradleHome) {
+        this(gradleHome, new IsolatedDaemonHomeTmpDirectoryProvider());
+    }
+
+    DefaultGradleRunner(File gradleHome, TmpDirectoryProvider tmpDirectoryProvider) {
         this.gradleHome = gradleHome;
-        this.gradleUserHomeDir = tmpDirectoryProvider.createDir();
+        this.gradleUserHomeDir = createGradleUserHomeDir(tmpDirectoryProvider);
+    }
+
+    private File createGradleUserHomeDir(TmpDirectoryProvider tmpDirectoryProvider) {
+        try {
+            return tmpDirectoryProvider.createDir();
+        } catch (UncheckedIOException e) {
+            throw new InvalidRunnerConfigurationException("Unable to create Gradle user home directory for test execution", e);
+        }
     }
 
     public File getGradleUserHomeDir() {

@@ -17,31 +17,47 @@
 package org.gradle.testkit.runner.internal
 
 import org.gradle.api.GradleException
-import org.gradle.internal.SystemProperties
+import org.gradle.api.UncheckedIOException
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultGradleRunnerTest extends Specification {
-    DefaultGradleRunner defaultGradleRunner = new DefaultGradleRunner(Mock(File))
+    File gradleHome = Mock(File)
+    TmpDirectoryProvider tmpDirectoryProvider = Mock(TmpDirectoryProvider)
     File workingDir = new File('my/tests')
     List<String> arguments = ['compile', 'test', '--parallel', '-Pfoo=bar']
 
-    def setup() {
-        defaultGradleRunner.withProjectDir(workingDir).withArguments(arguments)
-    }
-
     def "provides expected field values"() {
-        expect:
+        given:
+        File gradleUserHome = new File('some/dir')
+
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunner()
+        defaultGradleRunner.withProjectDir(workingDir).withArguments(arguments)
+
+        then:
         defaultGradleRunner.projectDir == workingDir
         defaultGradleRunner.arguments == arguments
-        defaultGradleRunner.gradleUserHomeDir == new File(new File(SystemProperties.instance.userHome), IsolatedDaemonHomeTmpDirectoryProvider.DIR_NAME)
+        1 * tmpDirectoryProvider.createDir() >> gradleUserHome
+        defaultGradleRunner.gradleUserHomeDir == gradleUserHome
+    }
+
+    def "throws exception if working Gradle user home directory cannot be created"() {
+        when:
+        createRunner()
+
+        then:
+        1 * tmpDirectoryProvider.createDir() >> { throw new UncheckedIOException() }
+        Throwable t = thrown(InvalidRunnerConfigurationException)
+        t.message == 'Unable to create Gradle user home directory for test execution'
     }
 
     def "returned arguments are unmodifiable"() {
         when:
-        defaultGradleRunner.arguments << '-i'
+        createRunner().arguments << '-i'
 
         then:
         thrown(UnsupportedOperationException)
@@ -51,6 +67,7 @@ class DefaultGradleRunnerTest extends Specification {
         given:
         def originalArguments = ['arg1', 'arg2']
         def originalJvmArguments = ['arg3', 'arg4']
+        DefaultGradleRunner defaultGradleRunner = createRunner()
 
         when:
         defaultGradleRunner.withArguments(originalArguments)
@@ -69,8 +86,29 @@ class DefaultGradleRunnerTest extends Specification {
         defaultGradleRunner.jvmArguments == ['arg3', 'arg4']
     }
 
+    def "throws exception if working directory is not provided when build is requested"() {
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunner()
+        defaultGradleRunner.build()
+
+        then:
+        Throwable t = thrown(InvalidRunnerConfigurationException)
+        t.message == 'Please specify a project directory before executing the build'
+    }
+
+    def "throws exception if working directory is not provided when build and fail is requested"() {
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunner()
+        defaultGradleRunner.buildAndFail()
+
+        then:
+        Throwable t = thrown(InvalidRunnerConfigurationException)
+        t.message == 'Please specify a project directory before executing the build'
+    }
+
     def "creates diagnostic message for execution result without thrown exception"() {
         given:
+        DefaultGradleRunner defaultGradleRunner = createRunnerWithWorkingDirAndArgument()
         GradleExecutionResult gradleExecutionResult = createGradleExecutionResult()
 
         when:
@@ -83,6 +121,7 @@ class DefaultGradleRunnerTest extends Specification {
     @Unroll
     def "creates diagnostic message for execution result for thrown #description"() {
         given:
+        DefaultGradleRunner defaultGradleRunner = createRunnerWithWorkingDirAndArgument()
         GradleExecutionResult gradleExecutionResult = createGradleExecutionResult(exception)
 
         when:
@@ -99,6 +138,14 @@ $expectedReason
         new RuntimeException('Something went wrong')                                                                                  | 'Something went wrong'        | 'exception having no parent cause'
         new RuntimeException('Something went wrong', new GradleException('Unknown command line option'))                              | 'Unknown command line option' | 'exception having single parent cause'
         new RuntimeException('Something went wrong', new GradleException('Unknown command line option', new Exception('Total fail'))) | 'Total fail'                  | 'exception having multiple parent causes'
+    }
+
+    private DefaultGradleRunner createRunner() {
+        new DefaultGradleRunner(gradleHome, tmpDirectoryProvider)
+    }
+
+    private DefaultGradleRunner createRunnerWithWorkingDirAndArgument() {
+        createRunner().withProjectDir(workingDir).withArguments(arguments)
     }
 
     private GradleExecutionResult createGradleExecutionResult(Throwable throwable = null) {
