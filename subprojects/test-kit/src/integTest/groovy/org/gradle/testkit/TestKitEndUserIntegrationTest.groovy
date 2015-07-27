@@ -25,12 +25,9 @@ import org.gradle.testkit.runner.internal.IsolatedDaemonHomeTmpDirectoryProvider
 import org.gradle.util.GFileUtils
 
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
-    DaemonLogsAnalyzer daemonLogsAnalyzer
-
     def setup() {
         executer.requireGradleHome().withStackTraceChecksDisabled()
         buildFile << buildFileForGroovyProject()
-        daemonLogsAnalyzer = createDaemonLogAnalyzer()
     }
 
     def "use of GradleRunner API in test class without declaring test-kit dependency causes compilation error"() {
@@ -103,7 +100,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test", ":build")
-        //daemonLogsAnalyzer.visible.empty
+        assertDaemonsAreStopping()
     }
 
     def "successfully execute functional tests with parallel forks"() {
@@ -133,7 +130,8 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         testClassNames.each { testClassName ->
             assert result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
         }
-        //daemonLogsAnalyzer.visible.empty
+
+        assertDaemonsAreStopping()
     }
 
     def "functional test fails due to invalid JVM parameter for test execution"() {
@@ -181,6 +179,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         failureDescriptionContains("Execution failed for task ':test'.")
         failure.output.contains('Unrecognized option: -unknown')
+        assertDaemonsAreStopping()
     }
 
     def "can test plugin and custom task as external files by adding them to the build script's classpath"() {
@@ -297,13 +296,17 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(':test')
-        //daemonLogsAnalyzer.visible.empty
+        assertDaemonsAreStopping()
     }
 
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
         File gradleUserHomeDir = new IsolatedDaemonHomeTmpDirectoryProvider().createDir()
         File daemonBaseDir = new File(gradleUserHomeDir, 'daemon')
         DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, executer.distribution.version.version)
+    }
+
+    private void assertDaemonsAreStopping() {
+        createDaemonLogAnalyzer().daemons*.stops()
     }
 
     private static String buildFileForGroovyProject() {
