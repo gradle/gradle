@@ -1,3 +1,19 @@
+Gradle 2.6 is an exciting release with some shiny new features and many under the hood improvements.
+
+The new support for the [Play](https://www.playframework.com) framework is exciting for many reasons.
+If you build Play applications, you can now do so with Gradle and take advantage of all of Gradle's features and capabilities.
+Play developers with more sophisticated dependency management or orchestration requirements in particular may find building
+Play apps with Gradle to be particularly appealing.
+
+The Play support is also an exciting development for non-Play users as well.
+The development time reloading implementation leverages the continuous build capabilities in Gradle 2.5 to be “change aware”.
+This mechanism will eventually be generally available to be used by integrations with other web frameworks or indeed any
+long running “thing” being built.
+
+The new “Gradle TestKit” provides an official mechanism for testing custom plugins which will greatly improve the Gradle plugin development experience.
+This initial version of the TestKit focuses on executing real builds and asserting the result (i.e. functional testing).
+Expect the TestKit to improve and expand over coming releases.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
