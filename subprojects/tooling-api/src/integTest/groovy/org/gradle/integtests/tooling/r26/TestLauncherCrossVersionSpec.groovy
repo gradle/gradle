@@ -124,7 +124,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=2.6")
-    def "test task up-to-date when launched with same test descriptors again"() {
+    def "tests can be executed multiple times without task being up-to-date"() {
         given:
         collectDescriptorsFromBuild()
         and:
@@ -132,8 +132,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         when:
         launchTests(testDescriptors("example.MyTest", null, ":secondTest"));
         then:
-        assertTaskExecuted(":secondTest")
-        assertTaskUpToDate(":secondTest")
+        assertTaskNotUpToDate(":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTaskNotExecuted(":test")
     }
 
@@ -505,8 +506,8 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         true
     }
 
-    def assertTaskUpToDate(String taskPath) {
-        assert events.all.findAll { it instanceof TaskFinishEvent }.any { it.descriptor.taskPath == taskPath && it.result.upToDate }
+    def assertTaskNotUpToDate(String taskPath) {
+        assert events.all.findAll { it instanceof TaskFinishEvent }.any { it.descriptor.taskPath == taskPath && !it.result.upToDate }
         true
     }
 
