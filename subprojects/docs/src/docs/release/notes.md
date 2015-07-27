@@ -45,19 +45,6 @@ The mechanism empowering this “hot reloading” will be made generally availab
 
 See the [User Guide](userguide/play_plugin.html) as well as the sample builds delivered with the Gradle distribution for more information on using the `play` plugin.
 
-### Support for verifying Gradle wrapper distribution download against SHA-256 hash
-
-It is now possible to verify the integrity of the Gradle distribution used by the [Gradle wrapper](userguide/gradle_wrapper.html) against a known checksum.
-This provides an extra level of assurance that the Gradle runtime is exactly the intended version.
-
-To enable verification you need only specify a `distributionSha256Sum` property in your project's `gradle-wrapper.properties` file.
-
-    distributionSha256Sum=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-
-Please see section [Verification of downloaded Gradle distributions](userguide/gradle_wrapper.html#sec:verification) of the User Guide for more information.
-
-This feature was contributed by [Dominik Schürmann](https://github.com/dschuermann).
-
 ### Support for functionally testing Gradle plugins
 
 This release brings the initial version of, the long awaited, official support for functionally testing Gradle plugins.
@@ -156,6 +143,19 @@ The following model rules could not be applied due to unbound inputs and/or subj
 In the above example, the error occurred due to there being no model element at path `bar`.
 
 This is an area of active development and will continue to improve and evolve in coming Gradle releases.
+
+### Support for verifying Gradle wrapper distribution download against SHA-256 hash
+
+It is now possible to verify the integrity of the Gradle distribution used by the [Gradle wrapper](userguide/gradle_wrapper.html) against a known checksum.
+This provides an extra level of assurance that the Gradle runtime is exactly the intended version.
+
+To enable verification you need only specify a `distributionSha256Sum` property in your project's `gradle-wrapper.properties` file.
+
+    distributionSha256Sum=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+Please see section [Verification of downloaded Gradle distributions](userguide/gradle_wrapper.html#sec:verification) of the User Guide for more information.
+
+This feature was contributed by [Dominik Schürmann](https://github.com/dschuermann).
 
 ## Fixed issues
 
