@@ -22,9 +22,9 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitCoverage
 
-@TargetCoverage({JUnitCoverage.FILTERING})
-public class JUnitCustomRunnerFilteringIntegrationTest extends MultiVersionIntegrationSpec {
-    def "runs test class instead of method when runner is not filterable"() {
+@TargetCoverage({JUnitCoverage.LARGE_COVERAGE})
+public class JUnitClassLevelFilteringIntegrationTest extends MultiVersionIntegrationSpec {
+    def "runs all tests for class instead of method when runner is not filterable"() {
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }

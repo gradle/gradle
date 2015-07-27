@@ -135,7 +135,7 @@ public class JUnitTestClassExecuter {
 
         @Override
         public boolean shouldRun(Description description) {
-            return matcher.matchesTest(description.getClassName(), description.getMethodName());
+            return matcher.matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description));
         }
 
         public String describe() {

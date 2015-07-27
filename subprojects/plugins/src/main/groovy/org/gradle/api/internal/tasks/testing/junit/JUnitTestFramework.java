@@ -50,7 +50,6 @@ public class JUnitTestFramework implements TestFramework {
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         verifyJUnitCategorySupport();
-        verifyJUnitFilteringSupport();
         return new TestClassProcessorFactoryImpl(new JUnitSpec(options.getIncludeCategories(), options.getExcludeCategories(), filter.getIncludePatterns()));
     }
 
@@ -64,27 +63,8 @@ public class JUnitTestFramework implements TestFramework {
         }
     }
 
-    private void verifyJUnitFilteringSupport() {
-        if (!filter.getIncludePatterns().isEmpty()) {
-            try {
-                Class<?> descriptionClass = getTestClassLoader().loadClass("org.junit.runner.Description");
-                descriptionClass.getMethod("getClassName");
-            } catch (ClassNotFoundException e) { //JUnit 3.8.1
-                filteringNotSupported();
-            } catch (NoSuchMethodException e) { //JUnit 4.5-
-                filteringNotSupported();
-            } catch (Exception e) {
-                throw new RuntimeException("Problem encountered when detecting support for JUnit filtering.", e);
-            }
-        }
-    }
-
     private ClassLoader getTestClassLoader() {
         return classLoaderFactory.create();
-    }
-
-    private void filteringNotSupported() {
-        throw new GradleException("Test filtering is not supported for given version of JUnit. Please upgrade JUnit version to at least 4.6.");
     }
 
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
