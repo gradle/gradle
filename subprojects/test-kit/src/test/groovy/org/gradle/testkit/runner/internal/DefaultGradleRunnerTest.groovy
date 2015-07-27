@@ -162,9 +162,9 @@ $expectedReason
 
 Output:
 This is some output
------
+$DefaultGradleRunner.DIAGNOSTICS_MESSAGE_SEPARATOR
 Error:
 This is some error
------"""
+$DefaultGradleRunner.DIAGNOSTICS_MESSAGE_SEPARATOR"""
     }
 }

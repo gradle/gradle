@@ -30,6 +30,7 @@ import java.util.List;
 
 public class DefaultGradleRunner extends GradleRunner {
 
+    public static final String DIAGNOSTICS_MESSAGE_SEPARATOR = "-----";
     private final GradleExecutor gradleExecutor = new GradleExecutor();
     private final File gradleHome;
 
@@ -135,13 +136,13 @@ public class DefaultGradleRunner extends GradleRunner {
         message.append(lineBreak);
         message.append(gradleExecutionResult.getStandardOutput());
         message.append(lineBreak);
-        message.append("-----");
+        message.append(DIAGNOSTICS_MESSAGE_SEPARATOR);
         message.append(lineBreak);
         message.append("Error:");
         message.append(lineBreak);
         message.append(gradleExecutionResult.getStandardError());
         message.append(lineBreak);
-        message.append("-----");
+        message.append(DIAGNOSTICS_MESSAGE_SEPARATOR);
 
         if (gradleExecutionResult.getThrowable() != null) {
             message.append(lineBreak);
@@ -149,7 +150,7 @@ public class DefaultGradleRunner extends GradleRunner {
             message.append(lineBreak);
             message.append(determineExceptionMessage(gradleExecutionResult.getThrowable()));
             message.append(lineBreak);
-            message.append("-----");
+            message.append(DIAGNOSTICS_MESSAGE_SEPARATOR);
         }
 
         return message.toString();
