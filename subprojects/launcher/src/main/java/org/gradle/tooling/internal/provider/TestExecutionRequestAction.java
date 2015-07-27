@@ -16,17 +16,25 @@
 
 package org.gradle.tooling.internal.provider;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.StartParameter;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 
-public class TestExecutionRequestAction extends SubscribableBuildAction {
+import java.util.Collection;
+import java.util.Set;
+
+public class TestExecutionRequestAction extends SubscribableBuildAction implements InternalTestExecutionRequest {
     private final StartParameter startParameter;
-    private InternalTestExecutionRequest testExecutionRequest;
+    private final Set<InternalTestDescriptor> testDescriptors;
+    private final Set<String> testClassNames;
 
     public TestExecutionRequestAction(InternalTestExecutionRequest testExecutionRequest, StartParameter startParameter, BuildClientSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
-        this.testExecutionRequest = testExecutionRequest;
         this.startParameter = startParameter;
+        // Unpack the request to serialize across to the daemon
+        this.testDescriptors = ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors());
+        this.testClassNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
     }
 
     @Override
@@ -34,7 +42,17 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         return startParameter;
     }
 
+    @Override
+    public Collection<String> getTestClassNames() {
+        return testClassNames;
+    }
+
+    @Override
+    public Collection<InternalTestDescriptor> getTestExecutionDescriptors() {
+        return testDescriptors;
+    }
+
     public InternalTestExecutionRequest getTestExecutionRequest() {
-        return testExecutionRequest;
+        return this;
     }
 }

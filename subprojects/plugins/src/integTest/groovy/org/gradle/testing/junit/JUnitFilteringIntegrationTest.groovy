@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.JUnitCoverage
 
-@TargetCoverage({JUnitCoverage.FILTERING})
+@TargetCoverage({JUnitCoverage.LARGE_COVERAGE})
 public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
     void configureFramework() {

@@ -17,46 +17,41 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.fixture.JUnitCoverage
 
-public class JUnitFilteringSupportIntegrationTest extends AbstractIntegrationSpec {
-
-    void "informs that we dont support filtering for lower versions of JUnit 4.x"() {
+@TargetCoverage({JUnitCoverage.FILTER_JUNIT3_TESTS})
+public class JUnitFilteringSupportIntegrationTest extends MultiVersionIntegrationSpec {
+    void "filters tests implemented using 3.x test cases"() {
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.5' }
-            test.filter.includeTestsMatching "FooTest.pass"
-        """
-
-        file("src/test/java/FooTest.java") << """import org.junit.*;
-        public class FooTest {
-            @Test public void pass() {}
-        }
-        """
-
-        when: fails("test")
-
-        then:
-        failure.assertHasCause("Test filtering is not supported for given version of JUnit. Please upgrade JUnit version to at least 4.6.")
-    }
-
-    void "informs that we dont support filtering for JUnit 3.x"() {
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:3.8.1' }
-            test.filter.includeTestsMatching "FooTest.pass"
+            dependencies { testCompile 'junit:junit:${version}' }
         """
 
         file("src/test/java/FooTest.java") << """
-            public class FooTest {
+            import junit.framework.*;
+
+            public class FooTest extends TestCase {
                 public void testPass() {}
+                public void testOk() {}
             }
         """
 
-        when: fails("test")
+        when:
+        succeeds("test", "--tests", "FooTest.testPass")
 
-        then: failure.assertHasCause("Test filtering is not supported for given version of JUnit. Please upgrade JUnit version to at least 4.6.")
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("FooTest")
+        result.testClass("FooTest").assertTestsExecuted("testPass")
+
+        when:
+        fails("test", "--tests", "FooTest.unknown")
+
+        then:
+        failure.assertHasCause("No tests found for given includes: [FooTest.unknown]")
     }
 }

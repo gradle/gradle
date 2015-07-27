@@ -16,6 +16,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.tooling.events.OperationType;
 
 import java.io.File;
@@ -75,9 +76,6 @@ public interface LongRunningOperation {
     /**
      * Sets the {@link java.io.InputStream} that will be used as standard input for this operation.
      * Defaults to an empty input stream.
-     * <p>
-     * If the target Gradle version does not support it the long running operation will fail with
-     * {@link org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException} when the operation is started.
      *
      * @param inputStream The input stream
      * @return this
@@ -87,9 +85,6 @@ public interface LongRunningOperation {
 
     /**
      * Specifies the Java home directory to use for this operation.
-     * <p>
-     * If the target Gradle version does not support it the long running operation will fail eagerly with
-     * {@link org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException} when the operation is started.
      * <p>
      * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as Java or Gradle environment.
      * If you want to get hold of this information you can ask tooling API to build this model.
@@ -101,26 +96,35 @@ public interface LongRunningOperation {
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder.
      * @since 1.0-milestone-8
      */
-    LongRunningOperation setJavaHome(File javaHome) throws IllegalArgumentException;
+    LongRunningOperation setJavaHome(@Nullable File javaHome) throws IllegalArgumentException;
 
     /**
      * Specifies the Java VM arguments to use for this operation.
-     * <p>
-     * If the target Gradle version does not support it the long running operation will fail eagerly with
-     * {@link org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException} when the operation is started.
      * <p>
      * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as Java or Gradle environment.
      * If you want to get hold of this information you can ask tooling API to build this model.
      * <p>
      * If not configured, null, or an empty array is passed, then the reasonable default will be used.
      *
-     * <p>Requires Gradle 1.0-milestone-9 or later.</p>
+     * @param jvmArguments to use for the Gradle process
+     * @return this
+     * @since 1.0-milestone-8
+     */
+    LongRunningOperation setJvmArguments(@Nullable String... jvmArguments);
+
+    /**
+     * Specifies the Java VM arguments to use for this operation.
+     * <p>
+     * {@link org.gradle.tooling.model.build.BuildEnvironment} model contains information such as Java or Gradle environment.
+     * If you want to get hold of this information you can ask tooling API to build this model.
+     * <p>
+     * If not configured, null, or an empty list is passed, then the reasonable default will be used.
      *
      * @param jvmArguments to use for the Gradle process
      * @return this
-     * @since 1.0-milestone-9
+     * @since 2.6
      */
-    LongRunningOperation setJvmArguments(String... jvmArguments);
+    LongRunningOperation setJvmArguments(@Nullable Iterable<String> jvmArguments);
 
     /**
      * Specify the command line build arguments. Useful mostly for running tasks via {@link BuildLauncher}.
@@ -155,7 +159,20 @@ public interface LongRunningOperation {
      * @return this
      * @since 1.0
      */
-    LongRunningOperation withArguments(String... arguments);
+    LongRunningOperation withArguments(@Nullable String... arguments);
+
+    /**
+     * Specify the command line build arguments. Useful mostly for running tasks via {@link BuildLauncher}.
+     * <p>
+     * If not configured, null, or an empty list is passed, then the reasonable default will be used.
+     *
+     * <p>Requires Gradle 1.0 or later.</p>
+     *
+     * @param arguments Gradle command line arguments
+     * @return this
+     * @since 2.6
+     */
+    LongRunningOperation withArguments(@Nullable Iterable<String> arguments);
 
     /**
      * Adds a progress listener which will receive progress events as the operation runs.
@@ -204,6 +221,22 @@ public interface LongRunningOperation {
      */
     @Incubating
     LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener, Set<OperationType> operationTypes);
+
+    /**
+     * Adds a progress listener which will receive progress events as the operations of the requested type run.
+     *
+     * <p>This method is intended to replace {@link #addProgressListener(ProgressListener)}. You should prefer using the new progress listener method where possible,
+     * as the new interface provides much richer information and much better handling of parallel operations that run during the build.
+     * </p>
+     *
+     * <p>Supported by Gradle 2.5 or later. Gradle 2.4 supports {@link OperationType#TEST} operations only. Ignored for older versions.</p>
+     *
+     * @param listener The listener
+     * @param operationTypes The types of operations to receive progress events for.
+     * @return this
+     * @since 2.6
+     */
+    LongRunningOperation addProgressListener(org.gradle.tooling.events.ProgressListener listener, OperationType... operationTypes);
 
     /**
      * Sets the cancellation token to use to cancel the operation if required.

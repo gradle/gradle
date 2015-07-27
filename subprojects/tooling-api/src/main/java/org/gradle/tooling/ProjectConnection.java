@@ -87,6 +87,8 @@ public interface ProjectConnection {
     /**
      * Creates a launcher which can be used to execute a build.
      *
+     * <p>Requires Gradle 1.0-milestone-8 or later.</p>
+     *
      * @return The launcher.
      * @since 1.0-milestone-3
      */
@@ -122,6 +124,8 @@ public interface ProjectConnection {
      * </ul>
      *
      * <p>A build may also expose additional custom tooling models. You can use this method to query these models.
+     *
+     * <p>Requires Gradle 1.0-milestone-8 or later.</p>
      *
      * @param modelType The model type
      * @param <T> The model type.

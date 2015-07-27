@@ -17,17 +17,12 @@
 package org.gradle.integtests.tooling.m9
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import spock.lang.IgnoreIf
-import spock.lang.Issue
-import spock.lang.Timeout
 
-@TargetGradleVersion('>=1.0-milestone-9')
 class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -47,21 +42,6 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         env.java.javaHome
-    }
-
-    @Issue("GRADLE-1799")
-    @Timeout(25)
-    def "promptly discovers when java is not a valid installation"() {
-        def dummyJdk = file("wrong jdk location").createDir()
-
-        when:
-        withConnection {
-            it.newBuild().setJavaHome(dummyJdk).run()
-        }
-
-        then:
-        GradleConnectionException ex = thrown()
-        ex.cause.message.contains "wrong jdk location"
     }
 
     def "uses defaults when a variant of empty jvm args requested"() {

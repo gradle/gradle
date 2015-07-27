@@ -16,11 +16,12 @@ the project generated to compile the build classpath. This `GradleInternal` inst
 so when the test progress listener is added (in `BuildModelActionRunner`), the listener manager is not the one of
 `buildSrc`.
 
-### Listening to tests executed from a GradleBuild
+### Listening to progress events from a nested build
 
-A Gradle build may include a `GradleBuild` task which will itself execute tests. It should be possible
-to listen for those tests too. Implementation may depend on what we do with tests executed from the
-tooling API (see next point).
+- `buildSrc`
+- Run using `GradleBuild` task
+- Run using `CompareGradleBuilds` task
+- Run using the tooling API
 
 ### Listening to tests executed from the tooling API within a build
 

@@ -25,7 +25,7 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import spock.lang.Specification
 
-class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
+class UnsupportedOlderVersionConnectionTest extends Specification {
     final Distribution distribution = Mock(Distribution)
     final ConsumerOperationParameters parameters = Mock()
     final ConnectionVersion4 connection = Mock()
@@ -38,7 +38,7 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
     }
 
     def "run fails"() {
-        def connection = new ConnectionVersion4BackedConsumerConnection(distribution, connection, adapter)
+        def connection = new UnsupportedOlderVersionConnection(distribution, connection, adapter)
 
         when:
         connection.run(GradleProject.class, parameters)
@@ -49,7 +49,7 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
     }
 
     def "partial BuildEnvirnment"() {
-        def connection = new ConnectionVersion4BackedConsumerConnection(distribution, connection, adapter)
+        def connection = new UnsupportedOlderVersionConnection(distribution, connection, adapter)
 
         when:
         def buildEnv = connection.run(BuildEnvironment.class, parameters)

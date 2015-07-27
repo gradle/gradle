@@ -16,10 +16,17 @@
 
 package org.gradle.tooling.internal.protocol.test;
 
-import java.io.Serializable;
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
+
 import java.util.Collection;
 
-public interface InternalTestExecutionRequest extends Serializable {
-    Collection<InternalJvmTestExecutionDescriptor> getTestExecutionDescriptors();
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.6-rc-1
+ */
+public interface InternalTestExecutionRequest extends InternalProtocolInterface {
+    Collection<InternalTestDescriptor> getTestExecutionDescriptors();
     Collection<String> getTestClassNames();
 }

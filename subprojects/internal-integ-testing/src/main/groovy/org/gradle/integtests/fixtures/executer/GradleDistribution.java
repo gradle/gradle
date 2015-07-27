@@ -79,6 +79,11 @@ public interface GradleDistribution {
     boolean isToolingApiDaemonBaseDirSupported();
 
     /**
+     * Returns true if the tooling API of this distribution correctly implements progress events when in embedded mode.
+     */
+    boolean isToolingApiEventsInEmbeddedModeSupported();
+
+    /**
      * Returns the version of the artifact cache layout
      */
     VersionNumber getArtifactCacheLayoutVersion();

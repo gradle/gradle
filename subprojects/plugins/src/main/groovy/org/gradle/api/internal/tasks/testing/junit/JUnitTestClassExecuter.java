@@ -24,8 +24,15 @@ import org.gradle.util.CollectionUtils;
 import org.junit.runner.Description;
 import org.junit.runner.Request;
 import org.junit.runner.Runner;
+import org.junit.runner.manipulation.Filter;
+import org.junit.runner.manipulation.Filterable;
+import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class JUnitTestClassExecuter {
     private final ClassLoader applicationClassLoader;
@@ -56,7 +63,7 @@ public class JUnitTestClassExecuter {
 
     private void runTestClass(String testClassName) throws ClassNotFoundException {
         final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
-        Request request = Request.aClass(testClass);
+        List<Filter> filters = new ArrayList<Filter>();
         if (options.hasCategoryConfiguration()) {
             Transformer<Class<?>, String> transformer = new Transformer<Class<?>, String>() {
                 public Class<?> transform(final String original) {
@@ -67,24 +74,55 @@ public class JUnitTestClassExecuter {
                     }
                 }
             };
-            request = request.filterWith(new CategoryFilter(
+            filters.add(new CategoryFilter(
                     CollectionUtils.collect(options.getIncludeCategories(), transformer),
                     CollectionUtils.collect(options.getExcludeCategories(), transformer)
             ));
         }
 
         if (!options.getIncludedTests().isEmpty()) {
-            request = request.filterWith(new MethodNameFilter(options.getIncludedTests()));
+            filters.add(new MethodNameFilter(options.getIncludedTests()));
         }
 
+        Request request = Request.aClass(testClass);
         Runner runner = request.getRunner();
-        //In case of no matching methods junit will return a ErrorReportingRunner for org.junit.runner.manipulation.Filter.class.
-        //Will be fixed with adding class filters
-        if (!org.junit.runner.manipulation.Filter.class.getName().equals(runner.getDescription().getDisplayName())) {
-            RunNotifier notifier = new RunNotifier();
-            notifier.addListener(listener);
-            runner.run(notifier);
+        if (runner instanceof Filterable) {
+            Filterable filterable = (Filterable) runner;
+            for (Filter filter : filters) {
+                try {
+                    filterable.filter(filter);
+                } catch (NoTestsRemainException e) {
+                    // Ignore
+                    return;
+                }
+            }
+        } else if (allTestsFiltered(runner, filters)) {
+            return;
         }
+
+        RunNotifier notifier = new RunNotifier();
+        notifier.addListener(listener);
+        runner.run(notifier);
+    }
+
+    private boolean allTestsFiltered(Runner runner, List<Filter> filters) {
+        LinkedList<Description> queue = new LinkedList<Description>();
+        queue.add(runner.getDescription());
+        while (!queue.isEmpty()) {
+            Description description = queue.removeFirst();
+            queue.addAll(description.getChildren());
+            boolean run = true;
+            for (Filter filter : filters) {
+                if (!filter.shouldRun(description)) {
+                    run = false;
+                    break;
+                }
+            }
+            if (run) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static class MethodNameFilter extends org.junit.runner.manipulation.Filter {
@@ -97,7 +135,7 @@ public class JUnitTestClassExecuter {
 
         @Override
         public boolean shouldRun(Description description) {
-            return matcher.matchesTest(description.getClassName(), description.getMethodName());
+            return matcher.matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description));
         }
 
         public String describe() {

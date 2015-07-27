@@ -119,6 +119,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("2.2-rc-1");
     }
 
+    @Override
+    public boolean isToolingApiEventsInEmbeddedModeSupported() {
+        return isSameOrNewer("2.6-rc-1");
+    }
+
     public VersionNumber getArtifactCacheLayoutVersion() {
         if (isSameOrNewer("2.4-rc-1")) {
             return VersionNumber.parse("2.15");

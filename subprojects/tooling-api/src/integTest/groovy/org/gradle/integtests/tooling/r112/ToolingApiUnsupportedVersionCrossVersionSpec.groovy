@@ -25,7 +25,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiDeprecationsCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiUnsupportedVersionCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         file("build.gradle") << """
 task noop << {

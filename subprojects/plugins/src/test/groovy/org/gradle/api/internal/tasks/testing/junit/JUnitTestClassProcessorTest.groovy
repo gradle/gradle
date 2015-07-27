@@ -260,6 +260,31 @@ class JUnitTestClassProcessorTest extends Specification {
         0 * processor.started(_, _)
     }
 
+    def "executes all tests for class with test runner that is not filterable when any test description matches"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, [ATestClassWithRunner.name + ".ok"] as Set))
+
+        when: process(ATestClassWithRunner)
+
+        then: 1 * processor.started({ it.id == 1 }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 2 && it.name == "broken" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
+        then: 1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
+        then: 1 * processor.failure(2, CustomRunner.failure)
+        then: 1 * processor.completed(3, { it.resultType == null })
+        then: 1 * processor.completed(2, { it.resultType == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
+    }
+
+    def "does not execute class with test runner that is not filterable when no test description matches"() {
+        classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, [ATestClassWithRunner.name + ".ignoreme"] as Set))
+
+        when: process(ATestClassWithRunner)
+
+        then: 1 * processor.started({ it.id == 1 }, { it.parentId == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
+    }
+
     def "executes no methods when method name does not match"() {
         classProcessor = withSpec(new JUnitSpec([] as Set, [] as Set, ["does not exist"] as Set))
 

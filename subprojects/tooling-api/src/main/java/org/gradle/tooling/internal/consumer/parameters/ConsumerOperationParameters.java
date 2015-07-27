@@ -31,7 +31,10 @@ import org.gradle.tooling.model.Task;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class ConsumerOperationParameters implements BuildOperationParametersVersion1, BuildParametersVersion1, BuildParameters {
@@ -97,13 +100,13 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
-        public Builder setJvmArguments(String... jvmArguments) {
-            this.jvmArguments = rationalizeInput(jvmArguments);
+        public Builder setJvmArguments(List<String> jvmArguments) {
+            this.jvmArguments = jvmArguments;
             return this;
         }
 
-        public Builder setArguments(String[] arguments) {
-            this.arguments = rationalizeInput(arguments);
+        public Builder setArguments(List<String> arguments) {
+            this.arguments = arguments;
             return this;
         }
 
@@ -207,10 +210,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.progressListener = progressListener;
         this.buildProgressListener = buildProgressListener;
         this.cancellationToken = cancellationToken;
-    }
-
-    private static List<String> rationalizeInput(String[] arguments) {
-        return arguments != null && arguments.length > 0 ? Arrays.asList(arguments) : null;
     }
 
     private static void validateJavaHome(File javaHome) {

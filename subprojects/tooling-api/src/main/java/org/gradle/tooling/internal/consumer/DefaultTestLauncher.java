@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.TestLauncher;
@@ -26,13 +27,16 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTestLauncher> implements TestLauncher {
 
     private final AsyncConsumerActionExecutor connection;
-    private List<TestOperationDescriptor> operationDescriptors = new ArrayList<TestOperationDescriptor>();
-    private Set<String> testClassNames = new HashSet<String>();
+    private final Set<TestOperationDescriptor> operationDescriptors = new LinkedHashSet<TestOperationDescriptor>();
+    private final Set<String> testClassNames = new LinkedHashSet<String>();
 
     public DefaultTestLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
@@ -53,8 +57,20 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     }
 
     @Override
+    public TestLauncher withTests(Iterable<? extends TestOperationDescriptor> descriptors) {
+        operationDescriptors.addAll(CollectionUtils.toList(descriptors));
+        return this;
+    }
+
+    @Override
     public TestLauncher withJvmTestClasses(String... classNames) {
         testClassNames.addAll(CollectionUtils.toList(classNames));
+        return this;
+    }
+
+    @Override
+    public TestLauncher withJvmTestClasses(Iterable<String> testClasses) {
+        testClassNames.addAll(CollectionUtils.toList(testClasses));
         return this;
     }
 
@@ -69,12 +85,13 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
             throw new TestExecutionException("No test declared for execution.");
         }
         final ConsumerOperationParameters operationParameters = operationParamsBuilder.setParameters(connectionParameters).build();
+        final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(testClassNames));
         connection.run(new ConsumerAction<Void>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }
             public Void run(ConsumerConnection connection) {
-                connection.runTests(new TestExecutionRequest(operationDescriptors, testClassNames), getParameters());
+                connection.runTests(testExecutionRequest, getParameters());
                 return null;
             }
         }, new ResultHandlerAdapter(handler));

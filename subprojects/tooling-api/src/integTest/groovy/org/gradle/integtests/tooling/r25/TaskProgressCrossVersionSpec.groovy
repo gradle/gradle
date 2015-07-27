@@ -206,6 +206,9 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.5")
     def "receive task progress events when tasks are executed in parallel"() {
         given:
+        if (!targetDist.toolingApiEventsInEmbeddedModeSupported) {
+            toolingApi.requireDaemons()
+        }
         buildFile << """
             @ParallelizableTask
             class ParTask extends DefaultTask {

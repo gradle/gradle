@@ -25,49 +25,6 @@ import spock.lang.Specification
 
 class ConsumerOperationParametersTest extends Specification {
 
-    def "null or empty arguments have the same meaning"() {
-        def params = ConsumerOperationParameters.builder().setEntryPoint("entry-point")
-
-        when:
-        params.arguments = null
-
-        then:
-        params.build().arguments == null
-
-        when:
-        params.arguments = []
-
-        then:
-        params.build().arguments == null
-
-        when:
-        params.arguments = ['-Dfoo']
-
-        then:
-        params.build().arguments == ['-Dfoo']
-    }
-
-    def "null or empty jvm arguments have the same meaning"() {
-        def params = ConsumerOperationParameters.builder().setEntryPoint("entry-point")
-        when:
-        params.jvmArguments = null
-
-        then:
-        params.build().jvmArguments == null
-
-        when:
-        params.jvmArguments = []
-
-        then:
-        params.build().jvmArguments == null
-
-        when:
-        params.jvmArguments = ['-Xmx']
-
-        then:
-        params.build().jvmArguments == ['-Xmx']
-    }
-
     def "task names and empty launchables"() {
         def builder = ConsumerOperationParameters.builder().setEntryPoint("entry-point")
         when:

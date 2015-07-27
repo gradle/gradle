@@ -77,15 +77,25 @@ public interface ModelBuilder<T> extends ConfigurableLauncher<ModelBuilder<T>> {
     ModelBuilder<T> forTasks(String... tasks);
 
     /**
+     * Specifies the tasks to execute before building the model.
+     *
+     * If not configured, null, or an empty array is passed, then no tasks will be executed.
+     *
+     * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
+     * @return this
+     * @since 2.6
+     */
+    @Incubating
+    ModelBuilder<T> forTasks(Iterable<String> tasks);
+
+    /**
      * Fetch the model, blocking until it is available.
      *
      * @return The model.
      * @throws UnsupportedVersionException When the target Gradle version does not support building models.
      * @throws UnknownModelException When the target Gradle version or build does not support the requested model.
      * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
-     *          When the target Gradle version does not support some requested configuration option such as
-     *          {@link #setStandardInput(java.io.InputStream)}, {@link #setJavaHome(java.io.File)},
-     *          {@link #setJvmArguments(String...)}.
+     *          When the target Gradle version does not support some requested configuration option such as {@link #withArguments(String...)}.
      * @throws org.gradle.tooling.exceptions.UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
      * @throws BuildException On some failure executing the Gradle build.
      * @throws BuildCancelledException When the operation was cancelled before it completed successfully.
