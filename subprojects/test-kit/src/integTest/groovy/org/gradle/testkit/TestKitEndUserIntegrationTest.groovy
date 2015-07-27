@@ -300,8 +300,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
-        File gradleUserHomeDir = new IsolatedDaemonHomeTmpDirectoryProvider().createDir()
-        File daemonBaseDir = new File(gradleUserHomeDir, 'daemon')
+        File daemonBaseDir = new File(IsolatedDaemonHomeTmpDirectoryProvider.TMP_DIR, 'daemon')
         DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, executer.distribution.version.version)
     }
 
