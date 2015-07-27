@@ -83,6 +83,7 @@ public class GradleExecutor {
     private GradleConnector buildConnector(File gradleHome, File gradleUserHome, File projectDir) {
         DefaultGradleConnector gradleConnector = (DefaultGradleConnector) GradleConnector.newConnector();
         gradleConnector.useGradleUserHomeDir(gradleUserHome);
+        gradleConnector.daemonBaseDir(new File(gradleUserHome, "daemon"));
         gradleConnector.forProjectDirectory(projectDir);
         gradleConnector.searchUpwards(false);
         gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);

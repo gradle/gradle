@@ -167,6 +167,23 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         userDaemon.context.pid != testKitDaemon.context.pid
     }
 
+    def "executing a build with a -g option does not affect daemon mechanics"() {
+        given:
+        File customGradleUserHomeDir = createCustomGradleUserHomeDir()
+        buildFile << helloWorldTask()
+
+        when:
+        GradleRunner gradleRunner = runner('helloWorld', "-g $customGradleUserHomeDir.absolutePath")
+        gradleRunner.build()
+
+        then:
+        !customGradleUserHomeDir.exists()
+        !new File(customGradleUserHomeDir, 'daemon').exists()
+        new File(gradleRunner.gradleUserHomeDir, 'daemon').exists()
+        DaemonLogsAnalyzer daemonLogsAnalyzer = createDaemonLogsAnalyzer(gradleRunner.gradleUserHomeDir)
+        !daemonLogsAnalyzer.visible.empty
+    }
+
     private DaemonFixture expectSingleDaemon(DaemonLogsAnalyzer daemonLogsAnalyzer) {
         List<DaemonFixture> userDaemons = daemonLogsAnalyzer.visible
         assert userDaemons.size() == 1
