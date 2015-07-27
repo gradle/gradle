@@ -19,6 +19,7 @@ package org.gradle.testkit.runner
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.internal.id.UUIDGenerator
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.GradleExecutor
 import org.gradle.util.GFileUtils
@@ -29,6 +30,7 @@ import static org.gradle.testkit.runner.TaskOutcome.*
 
 class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerIntegrationTest {
     @Rule TemporaryFolder testUserHomeDir = new TemporaryFolder()
+    @Rule final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(15000)
 
     def "configuration in default Gradle user home directory is ignored for test execution with daemon"() {
         given:
@@ -182,6 +184,26 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         new File(gradleRunner.gradleUserHomeDir, 'daemon').exists()
         DaemonLogsAnalyzer daemonLogsAnalyzer = createDaemonLogsAnalyzer(gradleRunner.gradleUserHomeDir)
         !daemonLogsAnalyzer.visible.empty
+    }
+
+    def "runners executed concurrently can share the same Gradle user home directory"() {
+        given:
+        buildFile << helloWorldTask()
+
+        when:
+        Set<GradleRunner> usedGradleUserHomeDirs = [] as Set<GradleRunner>
+
+        3.times {
+            concurrent.start {
+                GradleRunner gradleRunner = runner('helloWorld')
+                usedGradleUserHomeDirs << gradleRunner.gradleUserHomeDir
+                gradleRunner.build()
+            }
+        }
+
+        then:
+        concurrent.finished()
+        usedGradleUserHomeDirs.size() == 1
     }
 
     private DaemonFixture expectSingleDaemon(DaemonLogsAnalyzer daemonLogsAnalyzer) {

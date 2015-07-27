@@ -51,7 +51,7 @@ public class DefaultGradleRunner extends GradleRunner {
         try {
             return tmpDirectoryProvider.createDir();
         } catch (UncheckedIOException e) {
-            throw new InvalidRunnerConfigurationException("Unable to create Gradle user home directory for test execution", e);
+            throw new InvalidRunnerConfigurationException("Unable to create or write to Gradle user home directory for test execution", e);
         }
     }
 

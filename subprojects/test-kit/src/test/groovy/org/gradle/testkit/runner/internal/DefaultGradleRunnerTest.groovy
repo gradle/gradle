@@ -52,7 +52,7 @@ class DefaultGradleRunnerTest extends Specification {
         then:
         1 * tmpDirectoryProvider.createDir() >> { throw new UncheckedIOException() }
         Throwable t = thrown(InvalidRunnerConfigurationException)
-        t.message == 'Unable to create Gradle user home directory for test execution'
+        t.message == 'Unable to create or write to Gradle user home directory for test execution'
     }
 
     def "returned arguments are unmodifiable"() {
