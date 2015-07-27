@@ -118,11 +118,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        def testClassNames = []
+        def testClassNames = (1..10).collect { "BuildLogicFunctionalTest$it" }
 
-        (1..10).each {
-            String testClassName = "BuildLogicFunctionalTest$it"
-            testClassNames << testClassName
+        testClassNames.each { testClassName ->
             writeTest successfulSpockTest(testClassName), testClassName
         }
 
