@@ -18,6 +18,7 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.internal.FileUtils
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.GradleExecutor
@@ -172,7 +173,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld', "-g ${customGradleUserHomeDir}")
+        GradleRunner gradleRunner = runner('helloWorld', "-g ${FileUtils.toSafeFileName(customGradleUserHomeDir.absolutePath)}")
         gradleRunner.build()
 
         then:
