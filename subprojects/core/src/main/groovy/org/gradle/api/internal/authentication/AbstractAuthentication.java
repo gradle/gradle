@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.connector;
+package org.gradle.api.internal.authentication;
 
-import org.gradle.api.authentication.Authentication;
-import org.gradle.internal.resource.transfer.ExternalResourceConnector;
+import org.gradle.api.credentials.Credentials;
 
-import java.util.Set;
+public abstract class AbstractAuthentication implements AuthenticationInternal {
+    private Credentials credentials;
 
-public interface ResourceConnectorFactory {
-    Set<String> getSupportedProtocols();
+    @Override
+    public Credentials getCredentials() {
+        return credentials;
+    }
 
-    Set<Class<? extends Authentication>> getSupportedAuthentication();
-
-    ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails);
+    @Override
+    public void setCredentials(Credentials credentials) {
+        this.credentials = credentials;
+    }
 }

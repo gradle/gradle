@@ -67,6 +67,7 @@ public class HttpClientConfigurerTest extends Specification {
         credentials.username >> "domain/user"
         credentials.password >> "pass"
         httpSettings.proxySettings >> proxySettings
+        httpSettings.authSchemes >> ([AuthScope.ANY_SCHEME] as Set)
 
         when:
         configurer.configure(httpClient)

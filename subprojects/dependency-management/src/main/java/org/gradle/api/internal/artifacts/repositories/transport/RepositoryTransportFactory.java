@@ -19,8 +19,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.authentication.Authentication;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.authentication.AuthenticationInternal;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
@@ -75,8 +77,8 @@ public class RepositoryTransportFactory {
         return validSchemes;
     }
 
-    public RepositoryTransport createTransport(String scheme, String name, Credentials credentials) {
-        return createTransport(Collections.singleton(scheme), name, credentials);
+    public RepositoryTransport createTransport(String scheme, String name, Credentials credentials, Set<Authentication> authentications) {
+        return createTransport(Collections.singleton(scheme), name, credentials, authentications);
     }
 
     /**
@@ -90,15 +92,20 @@ public class RepositoryTransportFactory {
         return new org.gradle.internal.resource.PasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
     }
 
-    public RepositoryTransport createTransport(Set<String> schemes, String name, Credentials credentials) {
+    public RepositoryTransport createTransport(Set<String> schemes, String name, Credentials credentials, Set<Authentication> authentications) {
         validateSchemes(schemes);
 
         // File resources are handled slightly differently at present.
         if (Collections.singleton("file").containsAll(schemes)) {
             return new FileTransport(name);
         }
-        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(credentials);
-        ExternalResourceConnector resourceConnector = findConnectorFactory(schemes).createResourceConnector(connectionDetails);
+        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(credentials, authentications);
+        ResourceConnectorFactory connectorFactory = findConnectorFactory(schemes);
+
+        // Ensure resource transport protocol, authentication types and credentials are all compatible
+        validateConnectorFactoryCredentials(connectorFactory, credentials, authentications);
+
+        ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
         return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector);
     }
 
@@ -107,6 +114,34 @@ public class RepositoryTransportFactory {
         for (String scheme : schemes) {
             if (!validSchemes.contains(scheme)) {
                 throw new InvalidUserDataException(String.format("Not a supported repository protocol '%s': valid protocols are %s", scheme, validSchemes));
+            }
+        }
+    }
+
+    private void validateConnectorFactoryCredentials(ResourceConnectorFactory factory, Credentials credentials, Set<Authentication> authentications) {
+        if (authentications.size() > 0 && credentials == null) {
+            throw new InvalidUserDataException("You cannot configure authentication protocols for a repository if no credentials are provided.");
+        }
+
+        for (Authentication authentication : authentications) {
+            boolean isAuthenticationSupported = false;
+            for (Class<?> authenticationType : factory.getSupportedAuthentication()) {
+                if (authenticationType.isAssignableFrom(authentication.getClass())) {
+                    isAuthenticationSupported = true;
+                    break;
+                }
+            }
+
+            if (!isAuthenticationSupported) {
+                throw new InvalidUserDataException(String.format("Authentication type of '%s' is not supported by protocols %s",
+                    authentication.getClass().getSimpleName(), factory.getSupportedProtocols()));
+            }
+
+            for (Class<? extends Credentials> credentialsType : ((AuthenticationInternal)authentication).getSupportedCredentials()) {
+                if (!credentialsType.isAssignableFrom(credentials.getClass())) {
+                    throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication protocol '%s'",
+                        credentials.getClass().getSimpleName(), authentication.getClass().getSimpleName()));
+                }
             }
         }
     }
@@ -122,9 +157,11 @@ public class RepositoryTransportFactory {
 
     private class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
         private final Credentials credentials;
+        private final Set<Authentication> authentications;
 
-        private DefaultResourceConnectorSpecification(Credentials credentials) {
+        private DefaultResourceConnectorSpecification(Credentials credentials, Set<Authentication> authentications) {
             this.credentials = credentials;
+            this.authentications = authentications;
         }
 
         @Override
@@ -140,6 +177,11 @@ public class RepositoryTransportFactory {
             } else {
                 throw new IllegalArgumentException(String.format("Credentials must be an instance of '%s'.", type.getCanonicalName()));
             }
+        }
+
+        @Override
+        public Set<Authentication> getAuthentications() {
+            return authentications;
         }
     }
 }

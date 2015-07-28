@@ -39,6 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
@@ -51,17 +53,17 @@ public class HttpClientConfigurer {
 
     public void configure(DefaultHttpClient httpClient) {
         NTLMSchemeFactory.register(httpClient);
-        configureCredentials(httpClient, httpSettings.getCredentials());
+        configureCredentials(httpClient, httpSettings.getCredentials(), httpSettings.getAuthSchemes());
         configureProxyCredentials(httpClient, httpSettings.getProxySettings());
         configureRetryHandler(httpClient);
         configureUserAgent(httpClient);
     }
 
-    private void configureCredentials(DefaultHttpClient httpClient, PasswordCredentials credentials) {
+    private void configureCredentials(DefaultHttpClient httpClient, PasswordCredentials credentials, Set<String> authSchemes) {
         if(credentials != null) {
             String username = credentials.getUsername();
             if (username != null && username.length() > 0) {
-                useCredentials(httpClient, credentials, AuthScope.ANY_HOST, AuthScope.ANY_PORT);
+                useCredentials(httpClient, credentials, AuthScope.ANY_HOST, AuthScope.ANY_PORT, authSchemes);
 
                 // Use preemptive authorisation if no other authorisation has been established
                 httpClient.addRequestInterceptor(new PreemptiveAuth(new BasicScheme()), 0);
@@ -72,13 +74,15 @@ public class HttpClientConfigurer {
     private void configureProxyCredentials(DefaultHttpClient httpClient, HttpProxySettings proxySettings) {
         HttpProxySettings.HttpProxy proxy = proxySettings.getProxy();
         if (proxy != null && proxy.credentials != null) {
-            useCredentials(httpClient, proxy.credentials, proxy.host, proxy.port);
+            useCredentials(httpClient, proxy.credentials, proxy.host, proxy.port, Collections.singleton(AuthScope.ANY_SCHEME));
         }
     }
 
-    private void useCredentials(DefaultHttpClient httpClient, PasswordCredentials credentials, String host, int port) {
+    private void useCredentials(DefaultHttpClient httpClient, PasswordCredentials credentials, String host, int port, Set<String> authSchemes) {
         Credentials basicCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
-        httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port), basicCredentials);
+        for (String scheme : authSchemes) {
+            httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), basicCredentials);
+        }
 
         NTLMCredentials ntlmCredentials = new NTLMCredentials(credentials);
         Credentials ntCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());

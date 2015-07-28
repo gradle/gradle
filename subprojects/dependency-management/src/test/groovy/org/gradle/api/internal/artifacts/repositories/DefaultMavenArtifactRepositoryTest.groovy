@@ -42,7 +42,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('file', 'repo', null) >> transport()
+        transportFactory.createTransport('file', 'repo', null, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -60,7 +60,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("http://localhost:9090/repo")
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createTransport('http', 'repo', null) >> transport()
+        transportFactory.createTransport('http', 'repo', null, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -82,7 +82,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createTransport('http', 'repo', null) >> transport()
+        transportFactory.createTransport('http', 'repo', null, _) >> transport()
 
         and:
         repository.name = 'repo'
@@ -105,7 +105,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         given:
         def uri = new URI("s3://localhost:9090/repo")
         _ * resolver.resolveUri(_) >> uri
-        transportFactory.createTransport(_, 'repo', _) >> transport()
+        transportFactory.createTransport(_, 'repo', _, _) >> transport()
 
         and:
         repository.name = 'repo'

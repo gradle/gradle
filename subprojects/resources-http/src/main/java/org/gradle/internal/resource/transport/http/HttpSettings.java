@@ -18,8 +18,12 @@ package org.gradle.internal.resource.transport.http;
 
 import org.gradle.internal.resource.PasswordCredentials;
 
+import java.util.Set;
+
 public interface HttpSettings {
     PasswordCredentials getCredentials();
 
     HttpProxySettings getProxySettings();
+
+    Set<String> getAuthSchemes();
 }

@@ -18,9 +18,14 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.authentication.Authentication
+import org.gradle.api.authentication.BasicAuthentication
+import org.gradle.api.authentication.DigestAuthentication
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.api.internal.authentication.DefaultBasicAuthentication
+import org.gradle.api.internal.authentication.DefaultDigestAuthentication
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -183,6 +188,33 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         thrown IllegalStateException
     }
 
+    @Unroll
+    def "authentication(Class) can instantiate #authenticationType"() {
+        Instantiator instantiator = Mock()
+        AuthSupportedRepository repo = new AuthSupportedRepository(instantiator)
+
+        when:
+        repo.authentication(authenticationType) == authentication
+
+        then:
+        1 * instantiator.newInstance(implementationType) >> authentication
+
+        where:
+        authenticationType   | implementationType          || authentication
+        BasicAuthentication  | DefaultBasicAuthentication  || Mock(BasicAuthentication)
+        DigestAuthentication | DefaultDigestAuthentication || Mock(DigestAuthentication)
+    }
+
+    def "authentication(Class) throws IAE with authentication of unknown type"() {
+        when:
+        repo().with {
+            authentication(UnsupportedAuthentication)
+        }
+
+        then:
+        thrown IllegalArgumentException
+    }
+
     private void enhanceCredentials(Credentials credentials, String... props) {
         props.each { prop ->
             credentials.metaClass."$prop" = { String val ->
@@ -198,4 +230,6 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     }
 
     interface UnsupportedCredentials extends Credentials {}
+
+    interface UnsupportedAuthentication extends Authentication {}
 }

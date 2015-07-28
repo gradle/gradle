@@ -17,11 +17,14 @@ package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.authentication.Authentication;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * An artifact repository which supports username/password authentication.
  */
+@HasInternalProtocol
 public interface AuthenticationSupported {
 
     /**
@@ -46,7 +49,7 @@ public interface AuthenticationSupported {
      * @throws IllegalArgumentException when the credentials assigned to this repository are not assignable to the specified type
      */
     @Incubating
-    public <T extends Credentials> T getCredentials(Class<T> credentialsType);
+    <T extends Credentials> T getCredentials(Class<T> credentialsType);
 
     /**
      * Configures the username and password credentials for this repository using the supplied action.
@@ -96,4 +99,31 @@ public interface AuthenticationSupported {
      */
     @Incubating
     <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action);
+
+    /**
+     * <p>
+     * Adds the given authentication protocol to this repository. When no authentication protocols are explicitly specified all protocols supported
+     * by the scheme specified in the repository url are used.
+     * </p>
+     * <pre autoTested=''>
+     * repositories {
+     *     maven {
+     *         url "${url}"
+     *         credentials {
+     *             username = 'joe'
+     *             password = 'secret'
+     *         }
+     *         authentication(BasicAuthentication)
+     *     }
+     * }
+     * </pre>
+     * <p>
+     * The following authentication types are currently supported for the {@code authenticationType} argument:
+     * </p>
+     * <ul>
+     *     <li>{@link org.gradle.api.authentication.BasicAuthentication}</li>
+     * </ul>
+     */
+    @Incubating
+    <T extends Authentication> void authentication(Class<T> authenticationType);
 }

@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.connector;
+package org.gradle.api.authentication;
 
-import org.gradle.api.authentication.Authentication;
-import org.gradle.internal.resource.transfer.ExternalResourceConnector;
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
-import java.util.Set;
-
-public interface ResourceConnectorFactory {
-    Set<String> getSupportedProtocols();
-
-    Set<Class<? extends Authentication>> getSupportedAuthentication();
-
-    ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails);
+/**
+ * Base interface for transport authentication protocols.
+ */
+@Incubating
+@HasInternalProtocol
+public interface Authentication {
 }

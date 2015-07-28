@@ -16,21 +16,39 @@
 package org.gradle.internal.resource.transport.http;
 
 
+import org.apache.http.auth.AuthScope;
 import org.gradle.internal.resource.PasswordCredentials;
+
+import java.util.Collections;
+import java.util.Set;
 
 public class DefaultHttpSettings implements HttpSettings {
     private final PasswordCredentials passwordCredentials;
     private final HttpProxySettings proxySettings = new JavaSystemPropertiesHttpProxySettings();
+    private final Set<String> authSchemes;
 
     public DefaultHttpSettings(PasswordCredentials passwordCredentials) {
         this.passwordCredentials = passwordCredentials;
+        this.authSchemes = Collections.singleton(AuthScope.ANY_SCHEME);
     }
 
+    public DefaultHttpSettings(PasswordCredentials passwordCredentials, Set<String> authSchemes) {
+        this.passwordCredentials = passwordCredentials;
+        this.authSchemes = authSchemes;
+    }
+
+    @Override
     public PasswordCredentials getCredentials() {
         return passwordCredentials;
     }
 
+    @Override
     public HttpProxySettings getProxySettings() {
         return proxySettings;
+    }
+
+    @Override
+    public Set<String> getAuthSchemes() {
+        return authSchemes;
     }
 }
