@@ -9,6 +9,41 @@ This spec does not cover more general features such as improving dependency reso
 
 Below is a list of stories, in approximate priority order:
 
+## Feature -  Improve IDE project naming deduplication strategy
+
+If we got a project structure like this:
+
+    :foo:app
+    :bar:app
+    :foobar:app
+
+it currently results in the following eclipse project names:
+
+    app
+    bar-app
+    foobar-app
+
+This behaviour can be quite confusing in the IDE. To make things clearer the deduplication strategy
+should be changed in a way that it results in:
+
+    foo-app
+    bar-app
+    foobar-app
+
+# Implementation Plan
+
+TODO
+
+# Test Coverage
+
+* `gradle eclipse` / `gradle idea` on root of multiproject with `:foo:app`, `:bar:app`, `:foobar:app` subprojects results in
+  eclipse / idea project names `foo-app`, `bar-app`, `foobar-app`
+* multiproject with no project name duplication results in original project names (`:foo:bar`, `foobar:app`-> `foo`, `bar`, `foobar`, `app`)
+* explicit configured eclipse project name take precedence over deduplication:
+    * given `:foo:app`, `:bar:app` with foo/app/build.gradle contains `eclipse.project.name = "custom-app-name"`
+    * results in eclipse project names `custom-app-name`, `app`
+* setting ide project name within `whenMerged` hook does not affect other eclipse project names.
+
 ## Feature - Tooling API parity with command-line for task visualisation and execution
 
 This feature exposes via the tooling API some task execution and reporting features that are currently available on the command-line.
