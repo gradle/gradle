@@ -25,6 +25,7 @@ import org.gradle.testkit.runner.internal.GradleExecutor
 import org.gradle.util.GFileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
@@ -169,6 +170,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         userDaemon.context.pid != testKitDaemon.context.pid
     }
 
+    @Ignore
     def "executing a build with a -g option does not affect daemon mechanics"() {
         given:
         File customGradleUserHomeDir = createCustomGradleUserHomeDir()
