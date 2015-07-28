@@ -22,6 +22,7 @@ import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Unroll
 
 class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegrationTest {
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
@@ -147,6 +148,48 @@ var message = "Hello JS";
         runningApp.playUrl('assets/helloworld.js').text.contains('Hello JS')
     }
 
+    @Unroll
+    def "should reload with exception when modify java in #path and #task"() {
+        when:
+        succeeds(":primary:runPlayBinary")
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        addBadJava(path)
+
+        then:
+        fails()
+        !executedTasks.contains(':primary:runPlayBinary')
+        errorPageHasTaskFailure(task)
+
+        when:
+        fixBadJava(path)
+        then:
+        succeeds()
+        appIsRunningAndDeployed()
+
+        where:
+        path                        | task
+        "primary/app"               | ":primary:compilePlayBinaryScala"
+        "submodule/app"             | ":submodule:compilePlayBinaryScala"
+        "javalibrary/src/main/java" | ":javalibrary:compileJava"
+    }
+
+    def addBadJava(path) {
+        file("$path/models/NewType.java") << """
+package models;
+
+public class NewType {
+"""
+    }
+
+    def fixBadJava(path) {
+        file("$path/models/NewType.java") << """
+}
+"""
+    }
+
     def "can add javascript file to sub module"() {
         when:
         succeeds(":primary:runPlayBinary")
@@ -162,5 +205,13 @@ var message = "Hello from submodule";
         then:
         succeeds()
         runningApp.playUrl('assets/helloworld.js').text.contains('Hello from submodule')
+    }
+
+    private errorPageHasTaskFailure(task) {
+        def error = runningApp.playUrlError()
+        assert error.httpCode == 500
+        assert error.text.contains("Gradle Build Failure")
+        assert error.text.contains("Execution failed for task &#x27;$task&#x27;.")
+        error
     }
 }

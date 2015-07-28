@@ -382,7 +382,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
             for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
                 // deployment registry is shared across all projects and binary name is not unique across all projects
-                String deploymentId = String.format("deploy%s@%s", binary.getName(), projectIdentifier.getPath());
+                String deploymentId = String.format("deployment%s @ %s", StringUtils.capitalize(binary.getName()), projectIdentifier.getPath());
 
                 DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
                 final PlayApplicationDeploymentHandle deploymentHandle = registerOrFindDeploymentHandle(deploymentRegistry, deploymentId);

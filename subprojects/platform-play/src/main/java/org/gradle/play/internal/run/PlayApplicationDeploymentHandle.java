@@ -60,8 +60,6 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle<PlayApp
         if (failure != null) {
             if (isRunning()) {
                 runnerToken.rebuildFailure(failure);
-            } else {
-                throw new IllegalStateException("Cannot reload a deployment handle that has already been stopped.");
             }
         }
     }
