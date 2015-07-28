@@ -179,7 +179,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         failureDescriptionContains("Execution failed for task ':test'.")
         // IBM JVM produces a slightly different error message
-        failure.output.contains('Unrecognized option: -unknown') || failure.output.contains('Unrecognized option: -unknown')
+        failure.output.contains('Unrecognized option: -unknown') || failure.output.contains('Command-line option unrecognised: -unknown')
         assertDaemonsAreStopping()
     }
 
