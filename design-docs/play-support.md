@@ -923,10 +923,10 @@ Adapt a generic build failure exception to a `PlayException` that renders the ex
 #### Test Coverage
 
 * After the Play application has started once successfully in continuous mode (`gradle -t runPlay`), when the source is changed in a way to cause a compilation error:
-   * `runPlay` should not run again
-   * Application should return an error page with build failed exception message
-   * Fixing compilation error should return application into "good" state
-   * Check Java, Scala, Asset, Route and Twirl compilation failures.
+   * ~~`runPlay` should not run again~~
+   * ~~Application should return an error page with build failed exception message~~
+   * ~~Fixing compilation error should return application into "good" state~~
+   * ~~Check Java, Scala, Asset, Route and Twirl compilation failures.~~
 
 ### Story: Developer views Java and Scala compilation failure in Play application
 
@@ -938,6 +938,15 @@ Failures in CoffeeScript compilation are rendered with content of the failing fi
 This mechanism will be generally applicable to custom asset compilation tasks.
 
 ### Story: Developer views build failure stack trace in Play application
+
+### Open Issues
+
+* Consider the case of `otherTask` that depends on `runPlay`. If `otherTask` fails, should the Play application report the build failure?
+* As above, `runPlay` currently tells the Play application that it should reload, so between `runPlay` executing and the overall build failing,
+you can see a working application. Should we wait to mark the Play application for reload until the end of the build (successful and failed)?
+* In the case of multi-project builds, if you have multiple Play applications that are configured so they can run at the same time (different ports), if one
+project fails to build, should we report that as failures in all of the other applications?
+* As above, should we wait to mark the Play applications for reload until the end of the build, so you can't have some projects that can load new code and others that cannot?
 
 ## Feature: Resources are built on demand when running Play application
 
