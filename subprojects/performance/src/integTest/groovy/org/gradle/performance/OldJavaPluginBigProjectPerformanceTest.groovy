@@ -16,13 +16,11 @@
 
 package org.gradle.performance
 
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(Experiment)
 class OldJavaPluginBigProjectPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll("#scenario build")

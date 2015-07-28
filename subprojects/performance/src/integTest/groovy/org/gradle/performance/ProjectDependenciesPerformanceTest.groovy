@@ -16,9 +16,6 @@
 
 package org.gradle.performance
 
-import org.junit.experimental.categories.Category
-
-@Category(Experiment)
 class ProjectDependenciesPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "resolving dependencies"() {
