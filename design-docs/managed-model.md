@@ -29,8 +29,9 @@ Moreover, we consider owning the implementation of model elements an enabler for
     - String
     - File 
     - All subtypes of Enum
+- *Managed property*: a property of a model element, whose implementation and state is managed by Gradle.
 
-## Stories
+## Feature: Support more types for managed properties
 
 ### Support managed properties with primitive type
 
@@ -96,6 +97,8 @@ TBD: make some kind of 'project layout' or 'file resolver' service available as 
             sourceDirs = ['a'] // same as sourceDirs.clear(); sourceDirs.add(convertToFile('a'))
         }
     }
+
+## Backlog
 
 ### Support managed types declaring properties of type `ModelMap<T>`
 
