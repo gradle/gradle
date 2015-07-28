@@ -66,6 +66,11 @@ the existing TestKit feature set by the following aspects:
 environmental configuration from the current user. The TestKit uses dedicated, reusable Gradle daemon processes. After executing the whole suite of
 functional tests existing daemon processes are stopped.
 
+### Improved Play exception reporting
+
+The initial release of Gradle's Play plugin supported running Play applications in continuous build.  When a build failure occurred, Gradle
+would leave the application running.  Now, after a build failure, the Play application will show you the exception message from Gradle.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
