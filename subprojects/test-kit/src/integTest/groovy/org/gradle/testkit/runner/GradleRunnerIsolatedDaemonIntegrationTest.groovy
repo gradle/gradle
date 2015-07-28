@@ -175,7 +175,10 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld', "-g ${customGradleUserHomeDir.absolutePath.replace('\\\\', '\\\\\\\\')}")
+        println "customGradleUserHomeDir.absolutePath: $customGradleUserHomeDir.absolutePath"
+        String escapedGradleUserHomePath = customGradleUserHomeDir.absolutePath.replace('\\', '\\\\')
+        println "escapedGradleUserHomePath: $escapedGradleUserHomePath"
+        GradleRunner gradleRunner = runner('helloWorld', "-g ${escapedGradleUserHomePath}")
         gradleRunner.build()
 
         then:
