@@ -81,6 +81,7 @@ class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegratio
     private errorPageHasTaskFailure(task) {
         def error = runningApp.playUrlError()
         assert error.httpCode == 500
+        assert error.text.contains("Gradle Build Failure")
         assert error.text.contains("Execution failed for task &#x27;:$task&#x27;.")
         error
     }

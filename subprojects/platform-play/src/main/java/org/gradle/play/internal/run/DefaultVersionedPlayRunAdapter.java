@@ -20,6 +20,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.play.internal.exceptions.DefaultExceptionAdapter;
+import org.gradle.play.internal.exceptions.ExceptionAdapter;
 import org.gradle.scala.internal.reflect.ScalaMethod;
 import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
@@ -56,6 +58,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final Iterable<File> changingClasspath, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
         final ClassLoader assetsClassLoader = createAssetsClassLoader(assetsJar, assetsDirs, classLoader);
         forceReloadNextTime(new RebuildReason());
+        final ExceptionAdapter exceptionAdapter = new DefaultExceptionAdapter(classLoader);
         return Proxy.newProxyInstance(classLoader, new Class<?>[]{getBuildLinkClass(classLoader)}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
@@ -73,14 +76,16 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                         // no reload needs to occur
                         return null;
                     } else if (reason.isSuccessful()) {
+                        // reload classpath
                         reload.compareAndSet(reason, null); // clear rebuild flag
                         ClassPath classpath = new DefaultClassPath(applicationJar).plus(new DefaultClassPath(changingClasspath));
                         URLClassLoader currentClassLoader = new URLClassLoader(classpath.getAsURLArray(), assetsClassLoader);
                         storeClassLoader(currentClassLoader);
                         return currentClassLoader;
                     } else {
-                        // failure
-                        return reason.getFailure();
+                        // present failure
+                        Throwable failure = reason.getFailure();
+                        return exceptionAdapter.adapt("Gradle Build Failure", failure.getMessage(), failure);
                     }
                 } else if (method.getName().equals("settings")) {
                     return new HashMap<String, String>();
