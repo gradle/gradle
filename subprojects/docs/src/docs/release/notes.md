@@ -57,6 +57,15 @@ annotated with `@Variant` which will declare it as a custom variant dimension:
 Those custom variant dimensions will participate into dependency resolution. Examples of how to define custom binaries can be found in
 the [integration tests](https://github.com/gradle/gradle/tree/master/subprojects/language-java/src/integTest/groovy/org/gradle/language/java).
 
+## Additions to the Gradle TestKit
+
+The last release of Gradle introduced the [Gradle TestKit](userguide/test_kit.html) for functionally testing Gradle plugins. This release extends
+the existing TestKit feature set by the following aspects:
+
+* **Test execution isolation:** Test execution is performed in an isolated "working space" in order to prevent builds under test inheriting any
+environmental configuration from the current user. The TestKit uses dedicated, reusable Gradle daemon processes. After executing the whole suite of
+functional tests existing daemon processes are stopped.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

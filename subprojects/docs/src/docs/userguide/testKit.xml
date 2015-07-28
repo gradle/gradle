@@ -131,10 +131,13 @@
         <section>
             <title>Controlling the build environment</title>
             <para>
-                The runner executes the test builds in an isolated environment by specifying a dedicated Gradle user home directory in  <literal>~/.gradle-test-kit</literal>.
+                The runner executes the test builds in an isolated environment by specifying a dedicated "working directory" in a directory inside the JVM's temp directory
+                (i.e. the location specified by the <literal>java.io.tmpdir</literal> system property, typically <literal>/tmp</literal>).
                 Any configuration in the default Gradle user home directory (e.g. <literal>~/.gradle/gradle.properties</literal>) is not used for test execution.
-                The TestKit does not expose mechanism for fine grained control of environment variables etc.
+                The TestKit does not expose a mechanism for fine grained control of environment variables etc.
                 Future versions of the TestKit will provide improved configuration options.
+                The TestKit uses dedicated, reusable Gradle daemon processes. When the forked JVM responsible for test execution is shut down, any existing daemon processes
+                are stopped.
             </para>
         </section>
         <section>
