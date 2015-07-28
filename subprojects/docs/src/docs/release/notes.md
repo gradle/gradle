@@ -1,19 +1,3 @@
-Gradle 2.6 is an exciting release with some shiny new features and many under the hood improvements.
-
-The new support for the [Play](https://www.playframework.com) framework is exciting for many reasons.
-If you build Play applications, you can now do so with Gradle and take advantage of all of Gradle's features and capabilities.
-Play developers with more sophisticated dependency management or orchestration requirements in particular may find building
-Play apps with Gradle to be particularly appealing.
-
-The Play support is also an exciting development for non-Play users as well.
-The development time reloading implementation leverages the continuous build capabilities in Gradle 2.5 to be “change aware”.
-This mechanism will eventually be generally available to be used by integrations with other web frameworks or indeed any
-long running “thing” being built.
-
-The new “Gradle TestKit” provides an official mechanism for testing custom plugins which will greatly improve the Gradle plugin development experience.
-This initial version of the TestKit focuses on executing real builds and asserting the result (i.e. functional testing).
-Expect the TestKit to improve and expand over coming releases.
-
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -73,18 +57,12 @@ annotated with `@Variant` which will declare it as a custom variant dimension:
 Those custom variant dimensions will participate into dependency resolution. Examples of how to define custom binaries can be found in
 the [integration tests](https://github.com/gradle/gradle/tree/master/subprojects/language-java/src/integTest/groovy/org/gradle/language/java).
 
-### Support for verifying Gradle wrapper distribution download against SHA-256 hash
+## Promoted features
 
-It is now possible to verify the integrity of the Gradle distribution used by the [Gradle wrapper](userguide/gradle_wrapper.html) against a known checksum.
-This provides an extra level of assurance that the Gradle runtime is exactly the intended version.
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
+See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
-To enable verification you need only specify a `distributionSha256Sum` property in your project's `gradle-wrapper.properties` file.
-
-    distributionSha256Sum=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-
-Please see section [Verification of downloaded Gradle distributions](userguide/gradle_wrapper.html#sec:verification) of the User Guide for more information.
-
-This feature was contributed by [Dominik Schürmann](https://github.com/dschuermann).
+The following are the features that have been promoted in this Gradle release.
 
 <!--
 ### Example promoted
