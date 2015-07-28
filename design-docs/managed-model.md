@@ -21,17 +21,6 @@ Moreover, we consider owning the implementation of model elements an enabler for
 
 ## Stories
 
-### Support properties of type `File`
-
-    @Managed
-    interface Thing {
-      File getFile();
-      void setFile(File file)
-    }
-
-- Similar to `String` etc., getter must be accompanied by setter
-- Similar to `String` etc. `setFile()` cannot be called when the object is read only
-
 ### Support managed types declaring properties of type `ModelMap<T>`
 
     @Managed

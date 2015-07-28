@@ -566,3 +566,14 @@ Runtime error received when trying to mutate an immutable object should include 
     }
 
 Runtime error received when trying to mutate an immutable object should include a reference to the rule that created the immutable object (i.e. not the model element, but that actual object).
+
+### Support properties of type `File`
+
+    @Managed
+    interface Thing {
+      File getFile();
+      void setFile(File file)
+    }
+
+- Similar to `String` etc., getter must be accompanied by setter
+- Similar to `String` etc. `setFile()` cannot be called when the object is read only
