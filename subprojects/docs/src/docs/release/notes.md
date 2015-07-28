@@ -55,6 +55,29 @@ Many community members stepped up and filled the void created by the absence of 
 Notably, the folks at [Netflix](http://netflix.com/) contributed the very popular [Nebula Test](https://github.com/nebula-plugins/nebula-test) as part of their [Nebula Project](https://github.com/nebula-plugins).
 The functionality provided by this and other similar projects will over time be rolled into the Gradle TestKit.
 
+The following example demonstrates the use of the TestKit API in a test method based on the test framework [Spock](https://code.google.com/p/spock/):
+
+    def "hello world task prints hello world"() {
+        given:
+        buildFile << """
+            task helloWorld {
+                doLast {
+                    println 'Hello world!'
+                }
+            }
+        """
+
+        when:
+        def result = GradleRunner.create()
+            .withProjectDir(testProjectDir.root)
+            .withArguments('helloWorld')
+            .build()
+
+        then:
+        result.standardOutput.contains('Hello world!')
+        result.task(":helloWorld").outcome == SUCCESS
+    }
+
 See the [new Gradle TestKit user guide chapter](userguide/test_kit.html) for more information.
 
 ### Tooling API TestLauncher (i)
