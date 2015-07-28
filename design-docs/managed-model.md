@@ -62,7 +62,9 @@ Moreover, we consider owning the implementation of model elements an enabler for
 - Read-only instances should be mutable when view is mutable (eg used as subject for rule).
 - Read-only instances should be immutable when view is immutable (eg used as input for rule, used as subject for validation rule).
 
-- TBD: should read-write properties instead default to non-null as well?
+- TBD: should read-write properties maintain a copy of, rather than a reference to, the input collection? This would work
+better wrt immutability when the view is immutable. That is, should read-write properties work the same as read-only properties,
+where the setter is simply a convenience for replacing the contents of the collection?
 
 ### Convenient configuration of scalar typed properties from Groovy
 
