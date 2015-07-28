@@ -103,10 +103,10 @@ class TcpConnectorTest extends ConcurrentSpec {
         e.cause instanceof java.net.ConnectException
     }
 
-    def "client cannot connect when server has requested stop"() {
+    def "client cannot connect after server stopped"() {
         when:
         def acceptor = incomingConnector.accept(Mock(Action), false)
-        acceptor.requestStop()
+        acceptor.stop()
         outgoingConnector.connect(acceptor.address)
 
         then:
