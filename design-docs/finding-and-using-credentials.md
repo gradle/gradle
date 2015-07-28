@@ -32,29 +32,29 @@ Also out of scope is any management of key material, though this of course could
 
 * A repository uses a _transport protocol_. This is the communications mechanism through which the resources of the repository are accessed, such as HTTP or SFTP.
 
-* A transport protocol supports zero or more _authentication protocols_. An 'authentication protocol' represents how authentication is carried out. e.g.
+* A transport protocol supports zero or more _authentication schemes_. An 'authentication scheme' represents how authentication is carried out. e.g.
     - Use EC2'S instance metadata service to authenticate with an AWS S3 repository.
     - Use basic, preemptive auth to authenticate with a repository over HTTPS.
     - Use public key authentication to authenticate with a repository over SFTP.
 
-An authentication protocol is __not__ a transport protocol (HTTP, FTP, etc.)
+An authentication scheme is __not__ a transport protocol (HTTP, FTP, etc.)
 
-* A particular repository will accept some subset of the authentication protocols supported by the transport protocol. For example, an SFTP server may be configured
+* A particular repository will accept some subset of the authentication schemes supported by the transport protocol. For example, an SFTP server may be configured
 to accept only public key authentication, and disallow password based authentication.
 
-* A Gradle build user will accept some subset of the authentication protocols supported by the transport. For example, a user or build agent may require that basic HTTP auth
+* A Gradle build user will accept some subset of the authentication schemes supported by the transport. For example, a user or build agent may require that basic HTTP auth
 must not be used. Often, build users are not particularly opinionated regarding specific protocols - 'whatever works' is probably the most common opinion.
 
-* Given this, a repository definition has associated with it a sequence of one or more authentication protocols in priority order.
-    - When a repository transport is configured with more than one authentication protocol, each protocol should be attempted until one succeeds.
+* Given this, a repository definition has associated with it a sequence of one or more authentication schemes in priority order.
+    - When a repository transport is configured with more than one authentication scheme, each scheme should be attempted until one succeeds.
 
-* An authentication protocol may accept zero or more _types of credentials_.
-    - For our purposes, credentials are the input data provided by the build logic to the authentication protocol.
-    - When the protocol does not accept any credentials it implies that the protocol implementation knows how to authenticate without any build configuration. e.g. AWS Instance Metadata.
-    - When the protocol is configured with more than one type of credentials the protocol should attempt to authenticate using each type of credentials until one succeeds.
+* An authentication scheme may accept zero or more _types of credentials_.
+    - For our purposes, credentials are the input data provided by the build logic to the authentication scheme.
+    - When the scheme does not accept any credentials it implies that the protocol implementation knows how to authenticate without any build configuration. e.g. AWS Instance Metadata.
+    - When the scheme is configured with more than one type of credentials the scheme should attempt to authenticate using each type of credentials until one succeeds.
 
-* An authentication protocol may accept zero or more _instances of_ the same type of credentials.
-    - When an authentication protocol is configured with multiple instances of the same type of credentials the protocol should attempt to use each instance until one succeeds.
+* An authentication scheme may accept zero or more _instances of_ the same type of credentials.
+    - When an authentication scheme is configured with multiple instances of the same type of credentials the scheme should attempt to use each instance until one succeeds.
 
 * A given type of credentials may be supplied from one or more sources, or _providers_. For example:
     - Encoded as data in the repository definition, eg username and password
@@ -91,14 +91,14 @@ must not be used. Often, build users are not particularly opinionated regarding 
 
 # Stories
 
-## Story: Build author configures the set of authentication protocols to use for an HTTP repository
+## Story: Build author configures the set of authentication schemes to use for an HTTP repository
 
-- If user specifies one or more auth protocols for a repository, limit attempts to those protocols only.
-- Where no auth protocols are configured, attempt all supported auth protocols for HTTP (current behaviour).
-- Use the credentials supplied for the repository for all attempted authentication protocols
-- Fail if an authentication protocol is specified that is not supported by the configured repository transport
-    - Only define `BasicAuth` and `DigestAuth` protocols for now, which apply only to HTTP repository transports
-    - All other repository transports disallow _all_ authentication protocols
+- If user specifies one or more auth schemes for a repository, limit attempts to those schemes only.
+- Where no auth schemes are configured, attempt all supported auth protocols for HTTP (current behaviour).
+- Use the credentials supplied for the repository for all attempted authentication schemes
+- Fail if an authentication scheme is specified that is not supported by the configured repository transport
+    - Only define `BasicAuthentication`, `DigestAuthentication` and `NtlmAuthentication` schemes for now, which apply only to HTTP repository transports
+    - All other repository transports disallow _all_ authentication schemes
 
 ```
     maven {
@@ -107,42 +107,44 @@ must not be used. Often, build users are not particularly opinionated regarding 
             username 'user'
             password 'pwd'
         }
-        authentication(BasicAuth)
-        authentication(DigestAuth)
+        authentication {
+            basic(BasicAuthentication)
+            digest(DigestAuthentication)
+        }
     }
 ```
 
 ### Implementation
 
 - Remove the use of "all" scheme in HTTP Client, and explicitly configure the supported credential types when none defined by user
-    - Investigate whether the Kerberos and SPNEGO authentication protocols currently work with Gradle. 
+    - Investigate whether the Kerberos and SPNEGO authentication schemes currently work with Gradle.
       This will guide whether we should explicitly enable them in HTTP client
-- Model an authentication protocol instance as having a single Credentials instance. 
-  We can later extend this to support multiple credentials for certain protocols.
-    - Configure the HTTPClient by supplying with the configured AuthenticationProtocol instances.
-- Order of `authentication` calls is not significant: retain default ordering defined by HTTPClient (`org.apache.http.impl.client.AuthenticationStrategyImpl.DEFAULT_SCHEME_PRIORITY`)
+- Model an authentication scheme instance as having a single Credentials instance.
+  We can later extend this to support multiple credentials for certain schemes.
+    - Configure the HTTPClient by supplying with the configured `Authentication` instances.
+- Order of configuration in `authentication { }` block is not significant: retain default ordering defined by HTTPClient (`org.apache.http.impl.client.AuthenticationStrategyImpl.DEFAULT_SCHEME_PRIORITY`)
 
 ### Test Coverage
 
-- Can configure and resolve from HTTP repository using a single authentication protocol (others are _not_ attempted):
+- Can configure and resolve from HTTP repository using a single authentication scheme (others are _not_ attempted):
     - Basic Auth with password credentials
     - Digest Auth with password credentials
-- Can configure and resolve from HTTP repository using Basic & Digest authentication protocols with common password credentials
-    - Other protocols are _not_ attempted: can inspect the HTTP header for supported protocols
+- Can configure and resolve from HTTP repository using Basic & Digest authentication schemes with common password credentials
+    - Other schemes are _not_ attempted: can inspect the HTTP header for supported schemes
     - Will attempt Basic authentication only if Digest authentication fails, even if `BasicAuth` is specified first
-- All supported authentication protocols for HTTP are attempted when none explicitly specified: existing test coverage may suffice
+- All supported authentication schemes for HTTP are attempted when none explicitly specified: existing test coverage may suffice
 - Configuration failure when specifying:
-    - authentication protocol for a repository with a transport other than HTTP/HTTPS
-    - authentication protocol for a repository when no credentials have been specified
-    - multiple authentication protocols of the same type
+    - authentication scheme for a repository with a transport other than HTTP/HTTPS
+    - authentication scheme for a repository when no credentials have been specified
+    - multiple authentication schemes of the same type
     - custom credentials type or AwsCredentials for an HTTP repository
 
 ### Out of scope
 
 - Adding support or automated test coverage for NTLM, Kerberos or SPNEGO authentication
 - Exposing an NTLM-specific credentials type
-- Allowing credentials to be configured per authentication protocol
-- Configuration of the order that authentication protocols are attempted
+- Allowing credentials to be configured per authentication scheme
+- Configuration of the order that authentication schemes are attempted
 
 ## Story: Build author configures Basic Auth to send credentials preemptively
 
@@ -162,9 +164,9 @@ must not be used. Often, build users are not particularly opinionated regarding 
 
 ## Candidate Stories
 
-* Implement an authentication protocol to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.
-* Implement an authentication protocol to facilitate preemptive basic authentication with HTTP repositories.
-* Implement an authentication protocol to facilitate public key authentication with SFTP repositories.
+* Implement an authentication scheme to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.
+* Implement an authentication scheme to facilitate preemptive basic authentication with HTTP repositories.
+* Implement an authentication scheme to facilitate public key authentication with SFTP repositories.
 
 * Add a `CredentialsContainer` to `org.gradle.api.internal.project.AbstractProject` similar to `org.gradle.api.artifacts.ConfigurationContainer`
 * Credentials, for the most part, should represent where the credentials data lives e.g. 'the private key is located at ~/.ssh/id_rsa'

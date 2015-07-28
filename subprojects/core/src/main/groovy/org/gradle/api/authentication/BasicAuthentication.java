@@ -17,7 +17,7 @@
 package org.gradle.api.authentication;
 
 /**
- * Authentication protocol for basic access authentication over HTTP.
+ * Authentication scheme for basic access authentication over HTTP.
  */
 public interface BasicAuthentication extends Authentication {
 }

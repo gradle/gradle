@@ -37,7 +37,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     private Credentials credentials;
     private final Instantiator instantiator;
-    private Set<Authentication> authenticationProtocols = new HashSet<Authentication>();
+    private Set<Authentication> authenticationSchemes = new HashSet<Authentication>();
 
     AbstractAuthenticationSupportedRepository(Instantiator instantiator) {
         this.instantiator = instantiator;
@@ -94,12 +94,12 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     @Override
     public <T extends Authentication> void authentication(Class<T> authenticationType) {
-        authenticationProtocols.add(newAuthentication(authenticationType));
+        authenticationSchemes.add(newAuthentication(authenticationType));
     }
 
     @Override
     public Set<Authentication> getConfiguredAuthentications() {
-        return authenticationProtocols;
+        return authenticationSchemes;
     }
 
     private <T extends Authentication> T newAuthentication(Class<T> clazz) {
@@ -108,7 +108,7 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     private void populateAuthenticationCredentials() {
         // TODO: This will have to be changed when we support setting credentials directly on the authentication
-        for (Authentication authentication : authenticationProtocols) {
+        for (Authentication authentication : authenticationSchemes) {
             ((AuthenticationInternal)authentication).setCredentials(getConfiguredCredentials());
         }
     }

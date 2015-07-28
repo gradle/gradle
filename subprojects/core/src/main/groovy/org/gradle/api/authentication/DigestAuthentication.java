@@ -17,7 +17,7 @@
 package org.gradle.api.authentication;
 
 /**
- * Authentication protocol for digest access authentication over HTTP.
+ * Authentication scheme for digest access authentication over HTTP.
  */
 public interface DigestAuthentication extends Authentication {
 }

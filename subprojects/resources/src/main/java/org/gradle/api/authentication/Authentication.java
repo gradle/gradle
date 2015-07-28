@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Base interface for transport authentication protocols.
+ * Base interface for transport authentication schemes.
  */
 @Incubating
 @HasInternalProtocol
