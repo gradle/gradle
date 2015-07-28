@@ -86,6 +86,10 @@ public class SystemProperties {
         return System.getProperty("user.home");
     }
 
+    public String getUserName() {
+        return System.getProperty("user.name");
+    }
+
     public String getJavaVersion() {
         return System.getProperty("java.version");
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner.internal
 
+import org.gradle.internal.SystemProperties
 import org.gradle.util.GFileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -28,7 +29,7 @@ class IsolatedDaemonHomeTmpDirectoryProviderTest extends Specification {
 
     def setup() {
         tmpDirectoryProvider = new IsolatedDaemonHomeTmpDirectoryProvider(tmpParentDir.root)
-        expectedTmpDir = new File(tmpParentDir.root, IsolatedDaemonHomeTmpDirectoryProvider.DIR_NAME)
+        expectedTmpDir = new File(tmpParentDir.root, ".gradle-test-kit-${SystemProperties.instance.userName}")
     }
 
     def "can create temporary directory"() {

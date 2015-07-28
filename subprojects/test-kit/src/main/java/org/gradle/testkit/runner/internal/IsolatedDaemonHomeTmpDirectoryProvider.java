@@ -22,19 +22,17 @@ import org.gradle.internal.SystemProperties;
 import java.io.File;
 
 public class IsolatedDaemonHomeTmpDirectoryProvider implements TmpDirectoryProvider {
-    public final static String DIR_NAME = ".gradle-test-kit";
-    private final File parentDir;
+    private final File tmpDir;
 
     public IsolatedDaemonHomeTmpDirectoryProvider() {
-        this(new File(SystemProperties.getInstance().getUserHome()));
+        this(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
     }
 
-    IsolatedDaemonHomeTmpDirectoryProvider(File parentDir) {
-        this.parentDir = parentDir;
+    IsolatedDaemonHomeTmpDirectoryProvider(File tmpDir) {
+        this.tmpDir = new File(tmpDir, String.format(".gradle-test-kit-%s", SystemProperties.getInstance().getUserName()));
     }
 
     public File createDir() {
-        File tmpDir = new File(parentDir, DIR_NAME);
         if (!tmpDir.mkdirs() && !tmpDir.isDirectory()) {
             throw new UncheckedIOException(String.format("Unable to create temporary directory %s", tmpDir.getAbsolutePath()));
         }
