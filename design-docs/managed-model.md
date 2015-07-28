@@ -73,6 +73,7 @@ Moreover, we consider owning the implementation of model elements an enabler for
 
 - TBD: support the 'setter method' pattern from legacy domain types? eg
 
+<!-- -->
 
     model {
         thing {
@@ -90,6 +91,7 @@ TBD: make some kind of 'project layout' or 'file resolver' service available as 
 - TBD: convert input values? eg add String values to a List<File>?
 - TBD: support the 'adder method' and 'setter replaces content' patterns from legacy domain types? eg
 
+<!-- -->
 
     model {
         thing {
