@@ -117,6 +117,7 @@ The views defined for the general type should also be applied to the specialized
 - Allow for all types that support registration.
 - Change all usages of `@ComponentType` and `@BinaryType` in core plugins to declare internal view types.
 - Add a rule to the base plugins, to declare internal view types for `ComponentSpec` and `BinarySpec`.
+- Change node creation so that implementation is no longer available as a view type.
 
 ## Plugin author declares default implementation for extensible type
 
@@ -151,6 +152,9 @@ Given a plugin defines a `@Managed` subtype of a general type, allow the plugin 
 
 - Allow for all types that support registration.
 - Each internal view must be an interface. The interface does not need to extend the public type.
+- Each internal view must be `@Managed` when no default implementation is declared.
+- Allow an internal view to specialize the type of a property.
+- Allow an internal view to declare additional properties for a node.
 - Generate a proxy type for each view type.
 - Remove constraint the default implementation should implement the internal view types. Instead, use the proxy type.
 - toString() and missing property/method error messages should reflect view type rather than implementation type, for generated views.
