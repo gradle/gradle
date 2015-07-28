@@ -116,28 +116,25 @@ The new format presents vital debugging information such as:
 e.g.
 Consider the following rule configuration which is invalid because of an unsatisfied input: `bar`.
 
-```groovy
-class Rules extends RuleSource {
-    @Model
-    Integer foo(@Path("bar") Integer bar) {
-        return 22
-    }
-}
+	class Rules extends RuleSource {
+		@Model
+		Integer foo(@Path("bar") Integer bar) {
+			return 22
+		}
+	}
 
-apply type: Rules
-```
+	apply type: Rules
 
 The resulting error message gives some clear insight into what went wrong and why:
 
-```
-The following model rules could not be applied due to unbound inputs and/or subjects:
 
-  Rules#foo
-    inputs:
-      - bar Integer (parameter 1) [*]
+	The following model rules could not be applied due to unbound inputs and/or subjects:
 
-[*] - indicates that a model item could not be found for the path or type.
-```
+	  Rules#foo
+		inputs:
+		  - bar Integer (parameter 1) [*]
+
+	[*] - indicates that a model item could not be found for the path or type.
 
 In the above example, the error occurred due to there being no model element at path `bar`.
 
