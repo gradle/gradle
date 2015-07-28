@@ -60,7 +60,114 @@ This is being targeted first as it is needed to continue the dependency manageme
 - Subtype cannot be created via `BinaryContainer` (i.e. top level `binaries` node) - (requires node backing)
 - Can successfully create binary represented by `JarBinarySpec` subtype
 
-# Feature 5: Managed Model usability
+# Feature 5: Plugin author declares internal views for model element types
+
+Allow a plugin author to declare internal views for a particular type.
+
+## Plugin author declares internal view for custom component type
+
+Given a `ComponentSpec` subtype with default implementation extending `BaseComponentSpec`, allow one or more internal views to be
+registered when the component type is registered:
+
+    @ComponentType
+    public void registerMyType(ComponentTypeBuilder<MyType> builder) {
+        builder.defaultImplementation(MyTypeImpl.class);
+        builder.internalView(MyTypeInternal.class);
+        builder.internalView(MyInternalThing.class);
+    }
+
+- Each internal view must be an interface. The interface does not need to extend the public type.
+- For this story, the default implementation must implement each of the internal view types. Fail at registration if this is not the case.
+- Model report does not show internal view types.
+- Internal view type can be used with `ComponentSpecContainer` methods that filter components by type, eg can do `components { withType(MyTypeInternal) { ... } }`.
+
+## Plugin author declares internal view for custom binary and source set types
+
+Generalise the previous story to also work with `BinarySpec` and `LanguageSourceSet` subtypes that provide a default implementation.
+
+### Implementation
+
+- Should start to unify the type registration infrastructure, so that registration for all types are treated the same way and there are few or no differences
+between the implementation of component, binary and source set type registration rules. This will be required for the next stories.
+
+## Plugin author declares internal views for extensible type
+
+Given a plugin defines a general purpose type that is then extended by another plugin, allow internal views to be declared for the general type as well as the 
+specialized type. For example:
+
+    class BasePlugin extends RuleSource {
+        @ComponentType
+        public void registerBaseType(ComponentTypeBuilder<BaseType> builder) {
+            builder.internalView(BaseTypeInternal.class);
+        }
+    }
+
+    interface CustomType extends BaseType { }
+
+    class CustomPlugin extends RuleSource {
+        @ComponentType
+        public void registerCustomType(ComponentTypeBuilder<CustomType> builder) {
+            builder.internalView(MyCustomTypeInternal.class);
+        }
+    }
+
+The views defined for the general type should also be applied to the specialized type. So, in the example above, every instance of `CustomType` should have the 
+`BaseTypeInternal` view applied to it.
+
+- Allow for all types that support registration.
+- Change all usages of `@ComponentType` and `@BinaryType` in core plugins to declare internal view types.
+- Add a rule to the base plugins, to declare internal view types for `ComponentSpec` and `BinarySpec`.
+
+## Plugin author declares default implementation for extensible type
+
+Given a plugin defines a general type, allow the plugin to provide a default implementation the general type.
+This default implementation is then used as the super class for all `@Managed` subtype of the general type. For example: 
+
+    class BasePlugin extends RuleSource {
+        @ComponentType
+        public void registerBaseType(ComponentTypeBuilder<BaseType> builder) {
+            builder.defaultImplementation(BaseTypeInternal.class);
+        }
+    }
+    
+    @Managed 
+    interface CustomType extends BaseType { }
+    
+    class CustomPlugin extends RuleSource {
+        @ComponentType
+        public void registerCustomType(ComponentTypeBuilder<CustomType> builder) {
+            // No default implementation required
+        }
+    }
+
+- Generalise the work done to allow `@Managed` subtypes of `JarBinarySpec` to support this.
+- Allow for all types that support registration.
+- Change core plugins to declare default implementations for `ComponentSpec`, `BinarySpec` and `LanguageSourceSet`. This will allow `@Managed` subtypes of each
+of these types.
+
+## Plugin author declares internal views for custom managed component type
+
+Given a plugin defines a `@Managed` subtype of a general type, allow the plugin to define internal views for that type.
+
+- Allow for all types that support registration.
+- Each internal view must be an interface. The interface does not need to extend the public type.
+- Generate a proxy type for each view type.
+- Remove constraint the default implementation should implement the internal view types. Instead, use the proxy type.
+- toString() and missing property/method error messages should reflect view type rather than implementation type, for generated views.
+
+## Plugin author declares internal views for custom managed type
+
+Allow a rule to declare internal views for any `@Managed` type.
+
+## Model report does not show internal properties of an element
+
+Infer a model element's hidden properties based on the parent's views:
+
+- When a property is declared on any of the parent's public view types, that property should be considered public.
+- When a property is declared only on the parent's internal view types, that property should be considered hidden and not shown.
+- Add an option to model report to show all hidden elements and types.
+
+# Feature 6: Managed Model usability
 
 Some candidates:
 
@@ -77,13 +184,6 @@ Some candidates:
 - Add methods (or a view) that allows iteration over collection when it is immutable.
 - Rename (via add-deprecate-remove) `@Mutate` to `@Configure`.
 - Allow empty managed subtypes of ModelSet and ModelMap. This is currently available internally, eg for `ComponentSpecContainer`.
-
-# Feature 6: Internal views for managed types
-
-- Open question: should we introduce some concept of internal model elements as well? That is, elements whose path (and existence) are an internal implementation detail
-  for a plugin. These may or may not have view types which are public or internal.
-    - To some degree this could be inferred, such that an element reachable only via properties of internal views could be considered an internal element.
-- Model report should not show internal types or internal model elements, at least by default.
 
 # Feature 7: Plugin author attaches source sets to managed type
 
