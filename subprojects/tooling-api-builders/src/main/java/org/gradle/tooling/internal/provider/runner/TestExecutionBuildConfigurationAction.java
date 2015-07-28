@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestExecutionException;
@@ -50,8 +51,20 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         final GradleInternal gradleInternal = context.getGradle();
         allTestTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal, testExecutionRequest));
         allTestTasksToRun.addAll(configureBuildForTestClasses(gradleInternal, testExecutionRequest));
-        registerGlobalTestListener(allTestTasksToRun);
+
+        configureTestTasks(allTestTasksToRun);
         gradle.getTaskGraph().addTasks(allTestTasksToRun);
+    }
+
+    private void configureTestTasks(Set<Test> allTestTasksToRun) {
+        registerGlobalTestListener(allTestTasksToRun);
+        forceTaskExecution(allTestTasksToRun);
+    }
+
+    private void forceTaskExecution(Set<? extends Task> allTestTasksToRun) {
+        for (Task task : allTestTasksToRun) {
+            task.getOutputs().upToDateWhen(Specs.SATISFIES_NONE);
+        }
     }
 
     private List<Test> configureBuildForTestDescriptors(GradleInternal gradle, final InternalTestExecutionRequest testExecutionRequestAction) {

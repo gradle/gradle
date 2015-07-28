@@ -26,7 +26,7 @@ import org.gradle.util.TextUtil
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.is
 
-@TargetCoverage({JUnitCoverage.LARGE_COVERAGE})
+@TargetCoverage({JUnitCoverage.LOGGING})
 class JUnitLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         buildFile << """
