@@ -19,7 +19,83 @@ The term “model caching” refers to the ability to safely reuse a previously 
 
 Moreover, we consider owning the implementation of model elements an enabler for the general dependency based configuration model.
 
+### Terminology
+
+- *Scalar type*: a type that represents a single immutable value. Supported types:
+    - all primitive types
+    - all subtypes of Number in java.lang and java.math
+    - Boolean
+    - Character
+    - String
+    - File 
+    - All subtypes of Enum
+
 ## Stories
+
+### Support managed properties with primitive type
+
+- Add support for all primitive types.
+- Add support for missing boxed types (Byte, Short, Float).
+
+#### Test cases
+
+- Does something sensible when getter uses primitive type and setter uses boxed type (and vice versa).
+- Cannot have read only properties of scalar types.
+- Cannot mutate properties of scalar types when view is immutable (eg used as input for rule, used as subject for validation rule).
+
+### Support `is` style getters for managed properties of type boolean
+
+- TBD: also for `Boolean` type properties?
+
+### Test cases
+
+- Does something sensible when `get` and `is` getters are both defined for a property.
+
+### Support for managed properties with collection of scalar types 
+
+- Add support for `List<T>` and `Set<T>` where `T` is any scalar type (as defined above)
+- Support read-only and read-write properties.
+- Read-only properties default to some empty implementation
+- Read-write properties default to `null`
+- Read-only `Set` instance should retain insertion order.
+- Read-only instances should be mutable when view is mutable (eg used as subject for rule).
+- Read-only instances should be immutable when view is immutable (eg used as input for rule, used as subject for validation rule).
+
+- TBD: should read-write properties instead default to non-null as well?
+
+### Convenient configuration of scalar typed properties from Groovy
+
+- Convert input value:
+    - CharSequence to any scalar type (eg GString to Long, GString to String)
+    - CharSequence to File conversion relative to project directory, as per `Project.file()`.
+    - Any scalar type to String.
+
+- TBD: support the 'setter method' pattern from legacy domain types? eg
+
+
+    model {
+        thing {
+            baseDir 'some/dir' // same as baseDir = 'some/dir'
+            retries 12 // same as retries = 12
+        }
+    }
+
+### Convenient configuration of File typed properties from Java
+
+TBD: make some kind of 'project layout' or 'file resolver' service available as input to rules, which can convert String and friends to File.
+
+### Convenient configuration of collection typed properties from Groovy
+
+- TBD: convert input values? eg add String values to a List<File>?
+- TBD: support the 'adder method' and 'setter replaces content' patterns from legacy domain types? eg
+
+
+    model {
+        thing {
+            sourceDirs 'a', 'b' // same as sourceDirs.addAll([convertToFile('a'), convertToFile('b')])
+            sourceDirs = ['a'] // same as sourceDirs.clear(); sourceDirs.add(convertToFile('a'))
+        }
+    }
 
 ### Support managed types declaring properties of type `ModelMap<T>`
 
