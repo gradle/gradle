@@ -18,14 +18,12 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.internal.id.UUIDGenerator
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.GradleExecutor
 import org.gradle.util.GFileUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
@@ -108,10 +106,9 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         buildFile << helloWorldTask()
 
         when:
-        File customGradleUserHomeDir = createCustomGradleUserHomeDir()
-        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(customGradleUserHomeDir)
+        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testUserHomeDir.root)
         assert testKitDaemonLogsAnalyzer.visible.empty
-        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(customGradleUserHomeDir, 'helloWorld')
+        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(testUserHomeDir.root, 'helloWorld')
         gradleRunner.build()
 
         then:
@@ -124,10 +121,9 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         buildFile << helloWorldTask()
 
         when:
-        File customGradleUserHomeDir = createCustomGradleUserHomeDir()
-        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(customGradleUserHomeDir)
+        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testUserHomeDir.root)
         assert testKitDaemonLogsAnalyzer.visible.empty
-        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(customGradleUserHomeDir, 'helloWorld')
+        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(testUserHomeDir.root, 'helloWorld')
         gradleRunner.build()
 
         then:
@@ -148,7 +144,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         buildFile << helloWorldTask()
 
         when:
-        File testKitGradleUserHomeDir = createCustomGradleUserHomeDir()
+        File testKitGradleUserHomeDir = testUserHomeDir.root
         DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testKitGradleUserHomeDir)
         assert testKitDaemonLogsAnalyzer.visible.empty
         GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(testKitGradleUserHomeDir, 'helloWorld')
@@ -159,7 +155,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         testKitDaemon.assertIdle()
 
         when:
-        File userGradleUserHomeDir = createCustomGradleUserHomeDir()
+        File userGradleUserHomeDir = File.createTempDir()
         DaemonLogsAnalyzer userDaemonLogsAnalyzer = createDaemonLogsAnalyzer(userGradleUserHomeDir)
         assert userDaemonLogsAnalyzer.visible.empty
         new GradleExecutor().run(buildContext.gradleHomeDir, userGradleUserHomeDir, testProjectDir.testDirectory, ['helloWorld'], [])
@@ -170,21 +166,17 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         userDaemon.context.pid != testKitDaemon.context.pid
     }
 
-    @Ignore
     def "executing a build with a -g option does not affect daemon mechanics"() {
         given:
-        File customGradleUserHomeDir = createCustomGradleUserHomeDir()
+        File customGradleUserHomeDir = File.createTempDir()
         buildFile << helloWorldTask()
 
         when:
-        println "customGradleUserHomeDir.absolutePath: $customGradleUserHomeDir.absolutePath"
-        String escapedGradleUserHomePath = customGradleUserHomeDir.absolutePath.replace('\\', '\\\\')
-        println "escapedGradleUserHomePath: $escapedGradleUserHomePath"
-        GradleRunner gradleRunner = runner('helloWorld', "-g ${escapedGradleUserHomePath}")
+        GradleRunner gradleRunner = runner('helloWorld', "-g ${customGradleUserHomeDir}")
         gradleRunner.build()
 
         then:
-        !customGradleUserHomeDir.exists()
+        customGradleUserHomeDir.exists()
         !new File(customGradleUserHomeDir, 'daemon').exists()
         new File(gradleRunner.gradleUserHomeDir, 'daemon').exists()
         DaemonLogsAnalyzer daemonLogsAnalyzer = createDaemonLogsAnalyzer(gradleRunner.gradleUserHomeDir)
@@ -217,10 +209,6 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         DaemonFixture daemon = userDaemons[0]
         assert daemon.context.pid
         daemon
-    }
-
-    private File createCustomGradleUserHomeDir() {
-        new File(testUserHomeDir.root, new UUIDGenerator().generateId().toString())
     }
 
     private DaemonLogsAnalyzer createDaemonLogsAnalyzer(File customGradleUserHomeDir)  {
