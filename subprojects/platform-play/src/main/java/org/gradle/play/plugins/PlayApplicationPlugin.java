@@ -91,12 +91,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ScalaLanguagePlugin.class);
         project.getExtensions().create("playConfigurations", PlayPluginConfigurations.class, project.getConfigurations(), project.getDependencies());
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(PlayApplicationSpec.class), PlaySourceSetRules.class);
-
-        project.getGradle().addBuildListener(new BuildAdapter() {
-            @Override
-            public void buildFinished(BuildResult result) {
-            }
-        });
     }
 
     @SuppressWarnings("UnusedDeclaration")
