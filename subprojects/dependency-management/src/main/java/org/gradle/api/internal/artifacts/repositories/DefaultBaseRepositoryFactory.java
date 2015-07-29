@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.authentication.BasicAuthentication;
 import org.gradle.api.authentication.DigestAuthentication;
+import org.gradle.api.authentication.NtlmAuthentication;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.api.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.api.internal.authentication.DefaultDigestAuthentication;
+import org.gradle.api.internal.authentication.DefaultNtlmAuthentication;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
@@ -107,6 +109,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         DefaultAuthenticationContainer container = instantiator.newInstance(DefaultAuthenticationContainer.class, instantiator);
         container.registerBinding(BasicAuthentication.class, DefaultBasicAuthentication.class);
         container.registerBinding(DigestAuthentication.class, DefaultDigestAuthentication.class);
+        container.registerBinding(NtlmAuthentication.class, DefaultNtlmAuthentication.class);
 
         return container;
     }

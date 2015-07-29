@@ -79,16 +79,22 @@ public class HttpClientConfigurer {
     }
 
     private void useCredentials(DefaultHttpClient httpClient, PasswordCredentials credentials, String host, int port, Set<String> authSchemes) {
-        Credentials basicCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
+        Credentials httpCredentials;
+
         for (String scheme : authSchemes) {
-            httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), basicCredentials);
+            if (scheme.equals(AuthPolicy.NTLM)) {
+                NTLMCredentials ntlmCredentials = new NTLMCredentials(credentials);
+                httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
+
+                LOGGER.debug("Using {} and {} for authenticating against '{}:{}'", new Object[]{credentials, ntlmCredentials, host, port});
+            } else {
+                httpCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
+
+                LOGGER.debug("Using {} for authenticating against '{}:{}'", new Object[]{credentials, host, port});
+            }
+
+            httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
         }
-
-        NTLMCredentials ntlmCredentials = new NTLMCredentials(credentials);
-        Credentials ntCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
-        httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthPolicy.NTLM), ntCredentials);
-
-        LOGGER.debug("Using {} and {} for authenticating against '{}:{}'", new Object[]{credentials, ntlmCredentials, host, port});
     }
 
     private void configureRetryHandler(DefaultHttpClient httpClient) {
