@@ -25,12 +25,12 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Specification
 
 class DefaultGradleLauncherFactoryTest extends Specification {
+    def startParameter = new StartParameter()
     final ServiceRegistry globalServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false))
-    final ServiceRegistry sessionServices = new BuildSessionScopeServices(globalServices)
+    final ServiceRegistry sessionServices = new BuildSessionScopeServices(globalServices, startParameter)
     final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(globalServices)
 
     def "makes services from build context available as build scoped services"() {
-        def startParameter = new StartParameter()
         def cancellationToken = Stub(BuildCancellationToken)
         def eventConsumer = Stub(BuildEventConsumer)
         def requestContext = Stub(BuildRequestContext) {
@@ -48,8 +48,6 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     }
 
     def "provides default build context when no outer build is running"() {
-        def startParameter = new StartParameter()
-
         expect:
         def launcher = factory.newInstance(startParameter)
         launcher.gradle.parent == null
@@ -59,7 +57,6 @@ class DefaultGradleLauncherFactoryTest extends Specification {
     }
 
     def "reuses build context services for nested build"() {
-        def startParameter = new StartParameter()
         def cancellationToken = Stub(BuildCancellationToken)
         def clientMetaData = Stub(BuildClientMetaData)
         def eventConsumer = Stub(BuildEventConsumer)

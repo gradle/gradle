@@ -39,6 +39,7 @@ public class JavaToolChainServiceRegistry implements PluginServiceRegistry {
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new BuildSessionScopeCompileServices());
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
@@ -52,11 +53,13 @@ public class JavaToolChainServiceRegistry implements PluginServiceRegistry {
         registration.addProvider(new ProjectScopeCompileServices());
     }
 
-    private static class BuildScopeCompileServices {
+    private static class BuildSessionScopeCompileServices {
         CompilerDaemonManager createCompilerDaemonManager(Factory<WorkerProcessBuilder> workerFactory, StartParameter startParameter) {
             return new CompilerDaemonManager(new CompilerClientsManager(new CompilerDaemonStarter(workerFactory, startParameter)));
         }
+    }
 
+    private static class BuildScopeCompileServices {
         Factory<JavaCompiler> createJavaHomeBasedJavaCompilerFactory() {
             return new JavaHomeBasedJavaCompilerFactory();
         }

@@ -43,9 +43,6 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
-import org.gradle.cache.internal.CacheFactory;
-import org.gradle.cache.internal.DefaultCacheRepository;
-import org.gradle.cache.internal.DefaultCacheScopeMapping;
 import org.gradle.configuration.*;
 import org.gradle.configuration.project.*;
 import org.gradle.execution.ProjectConfigurer;
@@ -57,7 +54,6 @@ import org.gradle.groovy.scripts.internal.*;
 import org.gradle.initialization.*;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -65,7 +61,6 @@ import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -82,26 +77,20 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
-import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
-import org.gradle.process.internal.DefaultWorkerProcessFactory;
-import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
-import org.gradle.util.GradleVersion;
 
 /**
  * Contains the singleton services for a single build invocation.
  */
 public class BuildScopeServices extends DefaultServiceRegistry {
 
-    public BuildScopeServices(final ServiceRegistry parent, final StartParameter startParameter) {
+    public BuildScopeServices(final ServiceRegistry parent) {
         super(parent);
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
-                add(StartParameter.class, startParameter);
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                     pluginServiceRegistry.registerBuildServices(registration);
                 }
@@ -133,13 +122,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultClassPathRegistry(
                 new DefaultClassPathProvider(get(ModuleRegistry.class)),
                 new DependencyClassPathProvider(get(ModuleRegistry.class),
-                        get(PluginModuleRegistry.class)),
-                get(WorkerProcessClassPathProvider.class)
+                        get(PluginModuleRegistry.class))
         );
-    }
-
-    protected WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
-        return new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry);
     }
 
     protected IsolatedAntBuilder createIsolatedAntBuilder() {
@@ -158,15 +142,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new ProjectPropertySettingBuildLoader(
                 get(IGradlePropertiesLoader.class),
                 new InstantiatingBuildLoader(get(IProjectFactory.class)));
-    }
-
-    protected CacheRepository createCacheRepository() {
-        CacheFactory factory = get(CacheFactory.class);
-        StartParameter startParameter = get(StartParameter.class);
-        DefaultCacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(), GradleVersion.current());
-        return new DefaultCacheRepository(
-                scopeMapping,
-                factory);
     }
 
     protected ProjectEvaluator createProjectEvaluator() {
@@ -291,17 +266,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 get(FileResolver.class),
                 get(DependencyMetaDataProvider.class)
         );
-    }
-
-    protected Factory<WorkerProcessBuilder> createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
-                                                                       FileResolver fileResolver) {
-        return new DefaultWorkerProcessFactory(
-                startParameter.getLogLevel(),
-                messagingServer,
-                classPathRegistry,
-                fileResolver,
-                new LongIdGenerator(),
-                startParameter.getGradleUserHomeDir());
     }
 
     protected ProjectConfigurer createProjectConfigurer(BuildCancellationToken cancellationToken) {

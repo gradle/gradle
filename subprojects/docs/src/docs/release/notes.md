@@ -49,6 +49,12 @@ model.
 
 - Can use a link property as input for a rule.
 
+### Compiler daemon reuse in continuous builds
+
+Many gradle compilers are spawned as separate daemons to accommodate special heap size settings, classpath configurations, etc.  These compiler daemons are started on use, and stopped at
+the end of the build.  With Gradle 2.8, these compiler daemons are kept running during the lifetime of a continuous build session and only stopped when the continuous build is canceled.
+This provides a performance improvement as the cost of re-spawning these compilers is avoided in between builds.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -83,8 +89,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 Investigation of our PMD support revealed that newer PMD plugin features do not work with PMD 4.3,
 and the PMD check task does not fail when finding violations.
-Because of this, we do not recommend the use Gradle with PMD versions earlier than 5.0, 
-and we have removed any integration test coverage for these versions.  
+Because of this, we do not recommend the use Gradle with PMD versions earlier than 5.0,
+and we have removed any integration test coverage for these versions.
 
 ### New PMD violations due to type resolution changes
 

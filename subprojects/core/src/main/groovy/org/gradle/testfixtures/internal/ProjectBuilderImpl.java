@@ -73,7 +73,7 @@ public class ProjectBuilderImpl {
 
         NativeServices.initialize(userHomeDir);
 
-        ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(getGlobalServices());
+        ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(getGlobalServices(), startParameter);
         ServiceRegistry topLevelRegistry = new TestBuildScopeServices(buildSessionScopeServices, startParameter, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 

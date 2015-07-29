@@ -36,6 +36,7 @@ import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.logging.LoggingManagerInternal;
@@ -83,7 +84,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             cancellationToken = new DefaultBuildCancellationToken();
             buildEventConsumer = new NoOpBuildEventConsumer();
         }
-        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, sharedServices);
+        BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(sharedServices, startParameter);
+        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, sessionScopeServices);
     }
 
     @Override
@@ -97,7 +99,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, ServiceRegistry parentRegistry) {
-        BuildScopeServices serviceRegistry = new BuildScopeServices(parentRegistry, startParameter);
+        BuildScopeServices serviceRegistry = new BuildScopeServices(parentRegistry);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
