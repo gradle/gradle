@@ -24,6 +24,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultDigestAuthentication extends AbstractAuthentication implements DigestAuthentication {
+    public DefaultDigestAuthentication(String name) {
+        super(name);
+    }
+
     @Override
     public Set<Class<? extends Credentials>> getSupportedCredentials() {
         Set<Class<? extends Credentials>> supported = new HashSet<Class<? extends Credentials>>();

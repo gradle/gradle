@@ -82,7 +82,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def "should create transport for known scheme, authentication and credentials"() {
         def credentials = Mock(GoodCredentials)
-        def authentication = new GoodCredentialsAuthentication()
+        def authentication = new GoodCredentialsAuthentication('good')
 
         when:
         def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, ([authentication] as Set))
@@ -100,12 +100,12 @@ class RepositoryTransportFactoryTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "Authentication type of '${authentication.class.simpleName}' is not supported by protocols ${protocols}"
+        ex.message == "Authentication scheme of '${authentication.class.simpleName}' is not supported by protocols ${protocols}"
 
         where:
-        authentication                      | protocols
-        new NoCredentialsAuthentication()   | ['protocol1']
-        new GoodCredentialsAuthentication() | ['protocol2a', 'protocol2b']
+        authentication                            | protocols
+        new NoCredentialsAuthentication('none')   | ['protocol1']
+        new GoodCredentialsAuthentication('good') | ['protocol2a', 'protocol2b']
     }
 
     @Unroll
@@ -115,24 +115,28 @@ class RepositoryTransportFactoryTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication protocol '${invalidType.simpleName}'"
+        ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication scheme '${invalidType.simpleName}'"
 
         where:
-        credentials           | authentication                                                                   || invalidType
-        Mock(BadCredentials)  | [new GoodCredentialsAuthentication()] as Set                                     || GoodCredentialsAuthentication
-        Mock(GoodCredentials) | [new GoodCredentialsAuthentication(), new BadCredentialsAuthentication()] as Set || BadCredentialsAuthentication
+        credentials           | authentication                                                                              || invalidType
+        Mock(BadCredentials)  | [new GoodCredentialsAuthentication('good')] as Set                                          || GoodCredentialsAuthentication
+        Mock(GoodCredentials) | [new GoodCredentialsAuthentication('good'), new BadCredentialsAuthentication('bad')] as Set || BadCredentialsAuthentication
     }
 
     def "should throw when specifying authentication types with null credentials"() {
         when:
-        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, null, ([new GoodCredentialsAuthentication()] as Set))
+        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, null, ([new GoodCredentialsAuthentication('good')] as Set))
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "You cannot configure authentication protocols for a repository if no credentials are provided."
+        ex.message == "You cannot configure authentication schemes for a repository if no credentials are provided."
     }
 
     private class GoodCredentialsAuthentication extends AbstractAuthentication {
+        GoodCredentialsAuthentication(String name) {
+            super(name)
+        }
+
         @Override
         Set<Class<? extends Credentials>> getSupportedCredentials() {
             return ([GoodCredentials] as Set)
@@ -140,6 +144,10 @@ class RepositoryTransportFactoryTest extends Specification {
     }
 
     private class BadCredentialsAuthentication extends AbstractAuthentication {
+        BadCredentialsAuthentication(String name) {
+            super(name)
+        }
+
         @Override
         Set<Class<? extends Credentials>> getSupportedCredentials() {
             return ([BadCredentials] as Set)
@@ -147,6 +155,10 @@ class RepositoryTransportFactoryTest extends Specification {
     }
 
     private class NoCredentialsAuthentication extends AbstractAuthentication {
+        NoCredentialsAuthentication(String name) {
+            super(name)
+        }
+
         @Override
         Set<Class<? extends Credentials>> getSupportedCredentials() {
             return ([] as Set)

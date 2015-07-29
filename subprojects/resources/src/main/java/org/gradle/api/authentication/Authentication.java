@@ -17,6 +17,7 @@
 package org.gradle.api.authentication;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -24,5 +25,5 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface Authentication {
+public interface Authentication extends Named {
 }

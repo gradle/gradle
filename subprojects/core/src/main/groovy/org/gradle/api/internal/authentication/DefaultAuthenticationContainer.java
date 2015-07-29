@@ -16,28 +16,14 @@
 
 package org.gradle.api.internal.authentication;
 
-import org.gradle.api.credentials.Credentials;
+import org.gradle.api.authentication.Authentication;
+import org.gradle.api.artifacts.repositories.AuthenticationContainer;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.internal.reflect.Instantiator;
 
-public abstract class AbstractAuthentication implements AuthenticationInternal {
-    private Credentials credentials;
-    private String name;
+public class DefaultAuthenticationContainer extends DefaultPolymorphicDomainObjectContainer<Authentication> implements AuthenticationContainer {
 
-    public AbstractAuthentication(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public Credentials getCredentials() {
-        return credentials;
-    }
-
-    @Override
-    public void setCredentials(Credentials credentials) {
-        this.credentials = credentials;
-    }
-
-    @Override
-    public String getName() {
-        return name;
+    public DefaultAuthenticationContainer(Instantiator instantiator) {
+        super(Authentication.class, instantiator);
     }
 }

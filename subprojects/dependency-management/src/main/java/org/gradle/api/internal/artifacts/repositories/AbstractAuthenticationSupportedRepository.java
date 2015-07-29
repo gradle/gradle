@@ -15,32 +15,29 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.authentication.Authentication;
-import org.gradle.api.authentication.BasicAuthentication;
-import org.gradle.api.authentication.DigestAuthentication;
+import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.authentication.AuthenticationInternal;
-import org.gradle.api.internal.authentication.DefaultBasicAuthentication;
-import org.gradle.api.internal.authentication.DefaultDigestAuthentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
 import org.gradle.internal.reflect.Instantiator;
-
-import java.util.HashSet;
-import java.util.Set;
+import org.gradle.util.ConfigureUtil;
 
 public abstract class AbstractAuthenticationSupportedRepository extends AbstractArtifactRepository implements AuthenticationSupportedInternal {
 
     private Credentials credentials;
     private final Instantiator instantiator;
-    private Set<Authentication> authenticationSchemes = new HashSet<Authentication>();
+    private AuthenticationContainer authenticationContainer;
 
-    AbstractAuthenticationSupportedRepository(Instantiator instantiator) {
+    AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
         this.instantiator = instantiator;
+        this.authenticationContainer = authenticationContainer;
     }
 
     @Override
@@ -93,22 +90,18 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     }
 
     @Override
-    public <T extends Authentication> void authentication(Class<T> authenticationType) {
-        authenticationSchemes.add(newAuthentication(authenticationType));
+    public void authentication(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getAuthentication());
     }
 
     @Override
-    public Set<Authentication> getConfiguredAuthentications() {
-        return authenticationSchemes;
-    }
-
-    private <T extends Authentication> T newAuthentication(Class<T> clazz) {
-        return instantiator.newInstance(getAuthenticationImplType(clazz));
+    public AuthenticationContainer getAuthentication() {
+        return authenticationContainer;
     }
 
     private void populateAuthenticationCredentials() {
         // TODO: This will have to be changed when we support setting credentials directly on the authentication
-        for (Authentication authentication : authenticationSchemes) {
+        for (Authentication authentication : authenticationContainer) {
             ((AuthenticationInternal)authentication).setCredentials(getConfiguredCredentials());
         }
     }
@@ -123,16 +116,6 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
             return Cast.uncheckedCast(DefaultAwsCredentials.class);
         } else {
             throw new IllegalArgumentException(String.format("Unknown credentials type: '%s' (supported types: %s and %s).", publicType.getName(), PasswordCredentials.class.getName(), AwsCredentials.class.getName()));
-        }
-    }
-
-    private static <T extends Authentication> Class<? extends T> getAuthenticationImplType(Class<T> publicType) {
-        if (publicType == BasicAuthentication.class) {
-            return Cast.uncheckedCast(DefaultBasicAuthentication.class);
-        } else if (publicType == DigestAuthentication.class) {
-            return Cast.uncheckedCast(DefaultDigestAuthentication.class);
-        } else {
-            throw new IllegalArgumentException(String.format("Unknown authentication type: '%s' (supported types: %s).", publicType.getName(), BasicAuthentication.class.getName()));
         }
     }
 

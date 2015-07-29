@@ -77,7 +77,7 @@ public class RepositoryTransportFactory {
         return validSchemes;
     }
 
-    public RepositoryTransport createTransport(String scheme, String name, Credentials credentials, Set<Authentication> authentications) {
+    public RepositoryTransport createTransport(String scheme, String name, Credentials credentials, Collection<Authentication> authentications) {
         return createTransport(Collections.singleton(scheme), name, credentials, authentications);
     }
 
@@ -92,7 +92,7 @@ public class RepositoryTransportFactory {
         return new org.gradle.internal.resource.PasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
     }
 
-    public RepositoryTransport createTransport(Set<String> schemes, String name, Credentials credentials, Set<Authentication> authentications) {
+    public RepositoryTransport createTransport(Set<String> schemes, String name, Credentials credentials, Collection<Authentication> authentications) {
         validateSchemes(schemes);
 
         // File resources are handled slightly differently at present.
@@ -118,9 +118,9 @@ public class RepositoryTransportFactory {
         }
     }
 
-    private void validateConnectorFactoryCredentials(ResourceConnectorFactory factory, Credentials credentials, Set<Authentication> authentications) {
+    private void validateConnectorFactoryCredentials(ResourceConnectorFactory factory, Credentials credentials, Collection<Authentication> authentications) {
         if (authentications.size() > 0 && credentials == null) {
-            throw new InvalidUserDataException("You cannot configure authentication protocols for a repository if no credentials are provided.");
+            throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
         }
 
         for (Authentication authentication : authentications) {
@@ -133,13 +133,13 @@ public class RepositoryTransportFactory {
             }
 
             if (!isAuthenticationSupported) {
-                throw new InvalidUserDataException(String.format("Authentication type of '%s' is not supported by protocols %s",
+                throw new InvalidUserDataException(String.format("Authentication scheme of '%s' is not supported by protocols %s",
                     authentication.getClass().getSimpleName(), factory.getSupportedProtocols()));
             }
 
             for (Class<? extends Credentials> credentialsType : ((AuthenticationInternal)authentication).getSupportedCredentials()) {
                 if (!credentialsType.isAssignableFrom(credentials.getClass())) {
-                    throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication protocol '%s'",
+                    throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme '%s'",
                         credentials.getClass().getSimpleName(), authentication.getClass().getSimpleName()));
                 }
             }
@@ -157,9 +157,9 @@ public class RepositoryTransportFactory {
 
     private class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
         private final Credentials credentials;
-        private final Set<Authentication> authentications;
+        private final Collection<Authentication> authentications;
 
-        private DefaultResourceConnectorSpecification(Credentials credentials, Set<Authentication> authentications) {
+        private DefaultResourceConnectorSpecification(Credentials credentials, Collection<Authentication> authentications) {
             this.credentials = credentials;
             this.authentications = authentications;
         }
@@ -180,7 +180,7 @@ public class RepositoryTransportFactory {
         }
 
         @Override
-        public Set<Authentication> getAuthentications() {
+        public Collection<Authentication> getAuthentications() {
             return authentications;
         }
     }

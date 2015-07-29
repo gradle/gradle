@@ -15,9 +15,9 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.authentication.Authentication;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -101,29 +101,19 @@ public interface AuthenticationSupported {
     <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action);
 
     /**
-     * <p>
-     * Adds the given authentication protocol to this repository. When no authentication protocols are explicitly specified all protocols supported
-     * by the scheme specified in the repository url are used.
-     * </p>
-     * <pre autoTested=''>
-     * repositories {
-     *     maven {
-     *         url "${url}"
-     *         credentials {
-     *             username = 'joe'
-     *             password = 'secret'
-     *         }
-     *         authentication(BasicAuthentication)
-     *     }
-     * }
-     * </pre>
-     * <p>
-     * The following authentication types are currently supported for the {@code authenticationType} argument:
-     * </p>
-     * <ul>
-     *     <li>{@link org.gradle.api.authentication.BasicAuthentication}</li>
-     * </ul>
+     * <p>Configures the authentication schemes for this repository.
+     *
+     * <p>This method executes the given closure against the {@link AuthenticationContainer} for this project. The {@link
+     * AuthenticationContainer} is passed to the closure as the closure's delegate.
+     *
+     * @param configureClosure the closure to use to configure the authentication schemes.
      */
-    @Incubating
-    <T extends Authentication> void authentication(Class<T> authenticationType);
+    void authentication(Closure configureClosure);
+
+    /**
+     * Returns the authentication schemes for this repository.
+     *
+     * @return the authentication schemes for this repository
+     */
+    AuthenticationContainer getAuthentication();
 }

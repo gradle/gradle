@@ -18,10 +18,10 @@ package org.gradle.internal.resource.connector;
 
 import org.gradle.api.authentication.Authentication;
 
-import java.util.Set;
+import java.util.Collection;
 
 public interface ResourceConnectorSpecification {
     <T> T getCredentials(Class<T> type);
 
-    Set<Authentication> getAuthentications();
+    Collection<Authentication> getAuthentications();
 }

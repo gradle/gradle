@@ -14,30 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.authentication;
+package org.gradle.api.artifacts.repositories;
 
-import org.gradle.api.credentials.Credentials;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.authentication.Authentication;
 
-public abstract class AbstractAuthentication implements AuthenticationInternal {
-    private Credentials credentials;
-    private String name;
-
-    public AbstractAuthentication(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public Credentials getCredentials() {
-        return credentials;
-    }
-
-    @Override
-    public void setCredentials(Credentials credentials) {
-        this.credentials = credentials;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
+/**
+ * Container for configuring repository authentication schemes.
+ */
+public interface AuthenticationContainer extends ExtensiblePolymorphicDomainObjectContainer<Authentication> {
 }

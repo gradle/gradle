@@ -28,6 +28,7 @@ import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.DefaultExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -55,7 +56,7 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
         return new DefaultExternalResourceConnector(accessor, lister, uploader);
     }
 
-    private Set<String> getAuthSchemes(Set<Authentication> authenticationTypes) {
+    private Set<String> getAuthSchemes(Collection<Authentication> authenticationTypes) {
         Set<String> authSchemes = Sets.newHashSet();
         for (Authentication authenticationType : authenticationTypes) {
             if (BasicAuthentication.class.isAssignableFrom(authenticationType.getClass())) {
