@@ -11,6 +11,8 @@ Below is a list of stories, in approximate priority order:
 
 ## Feature -  Improve IDE project naming deduplication strategy
 
+### Motivation
+
 If we got a project structure like this:
 
     :foo:app
@@ -30,19 +32,115 @@ should be changed in a way that it results in:
     bar-app
     foobar-app
 
+
 # Implementation Plan
 
-TODO
+The general algorithm will look like this:
+1. if no duplicate of project name is found in the hierarchy, use the original name as IDE project name
+2. root project name keeps the original name in IDE
+3. if a project with the same name is found
+    3.1 the IDE project name candidate is changed to be _deduplicated_ `project.parent.name` + `-` + `project.name`
+    3.2 the words in the IDE project name candidate are de-duped.( eg `gradle-gradle-core` becomes `gradle-core`
+    3.3 skip 3.2 for identical parent and child project name
 
 # Test Coverage
 
-* `gradle eclipse` / `gradle idea` on root of multiproject with `:foo:app`, `:bar:app`, `:foobar:app` subprojects results in
-  eclipse / idea project names `foo-app`, `bar-app`, `foobar-app`
-* multiproject with no project name duplication results in original project names (`:foo:bar`, `foobar:app`-> `foo`, `bar`, `foobar`, `app`)
+* `gradle eclipse` / `gradle idea` on root of multiproject with given project layout containing duplicate names:
+
+    root
+    \- foo
+       \- app
+    \- bar
+       \- app
+
+    results in IDE project names
+
+    root
+    \- foo
+       \- foo-app
+    \- bar
+       \- bar-app
+
+* `gradle eclipse` / `gradle idea` on root of multiproject with given project layout containing with no duplicate names:
+
+    root
+    \- foo
+       \- bar
+    \- foobar
+       \- app
+
+    results in IDE project names
+
+    root
+    \- foo
+       \- bar
+    \- foobar
+       \- app
+
+
 * explicit configured eclipse project name take precedence over deduplication:
-    * given `:foo:app`, `:bar:app` with foo/app/build.gradle contains `eclipse.project.name = "custom-app-name"`
-    * results in eclipse project names `custom-app-name`, `app`
+    given
+
+     root
+     \- foo
+        \- app
+           \-build.gradle contains `eclipse.project.name = "custom-app"`
+     \- bar
+        \- app
+
+    results in
+
+     root
+     \- foo
+        \- custom-app
+     \- bar
+        \- app
+
+
+* given project layout
+
+    app
+    \- app
+    \- util
+
+  results in
+
+    app
+    \- app-app
+    \- util
+
+* given project layout
+
+    root
+    \- app
+    \- services
+       \- bar
+          \- app
+
+  results in
+
+    root
+    \- root-app
+    \- services
+       \- bar
+          \- bar-app
+
+* given project layout
+
+    myproject
+    \- myproject-app
+    \- myproject-bar
+       \- myproject-app
+
+  results in
+
+    myproject
+    \- myproject-app (instead of myproject-myproject-app)
+    \- myproject-bar
+       \- myproject-bar-app (instead of myproject-bar-myproject-app)
+
 * setting ide project name within `whenMerged` hook does not affect other eclipse project names.
+* tests work with IDE gradle plugins and with IDE model queried via tooling api
 
 ## Feature - Tooling API parity with command-line for task visualisation and execution
 
