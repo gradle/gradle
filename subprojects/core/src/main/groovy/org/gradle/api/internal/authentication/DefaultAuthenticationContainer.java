@@ -16,14 +16,37 @@
 
 package org.gradle.api.internal.authentication;
 
-import org.gradle.api.authentication.Authentication;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
+import org.gradle.api.authentication.Authentication;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultAuthenticationContainer extends DefaultPolymorphicDomainObjectContainer<Authentication> implements AuthenticationContainer {
 
     public DefaultAuthenticationContainer(Instantiator instantiator) {
         super(Authentication.class, instantiator);
+    }
+
+    @Override
+    public boolean add(Authentication o) {
+        assertCanAdd(o);
+        return super.add(o);
+    }
+
+    @Override
+    protected void assertCanAdd(Authentication authentication) {
+        super.assertCanAdd(authentication);
+
+        Class authType = new DslObject(authentication).getDeclaredType();
+
+        for (Authentication existing : getStore()) {
+            Class existingType = new DslObject(existing).getDeclaredType();
+
+            if (authType.equals(existingType)) {
+                throw new InvalidUserDataException(String.format("Cannot configure multiple authentication schemes of type '%s'", authType.getSimpleName()));
+            }
+        }
     }
 }
