@@ -36,4 +36,11 @@ public class RebuildReason implements Serializable {
     public boolean isSuccessful() {
         return failure == null;
     }
+
+    public String toString() {
+        if (isSuccessful()) {
+            return "successful";
+        }
+        return "failure: " + failure.getMessage();
+    }
 }
