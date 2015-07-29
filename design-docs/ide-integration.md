@@ -43,6 +43,8 @@ The general algorithm will look like this:
     3.2 the words in the IDE project name candidate are de-duped.( eg `gradle-gradle-core` becomes `gradle-core`
     3.3 skip 3.2 for identical parent and child project name
 
+* deprecate setting ide project name in whenMerged/beforeMerged hook.
+
 # Test Coverage
 
 * `gradle eclipse` / `gradle idea` on root of multiproject with given project layout containing duplicate names:
@@ -139,7 +141,8 @@ The general algorithm will look like this:
     \- myproject-bar
        \- myproject-bar-app (instead of myproject-bar-myproject-app)
 
-* setting ide project name within `whenMerged` hook does not affect other eclipse project names.
+* setting ide project name within `whenMerged` results in a deprecation warning.
+* setting ide project name within `beforeMerged` results in a deprecation warning.
 * tests work with IDE gradle plugins and with IDE model queried via tooling api
 
 ## Feature - Tooling API parity with command-line for task visualisation and execution
