@@ -16,12 +16,11 @@
 
 package org.gradle.play.internal.run;
 
-import org.gradle.deployment.internal.RunnerToken;
 import org.gradle.process.internal.WorkerProcess;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PlayApplicationRunnerToken implements RunnerToken {
+public class PlayApplicationRunnerToken {
 
     private final PlayWorkerClient clientCallBack;
     private final PlayRunWorkerServerProtocol workerServer;

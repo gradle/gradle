@@ -16,11 +16,8 @@
 
 package org.gradle.deployment.internal;
 
-import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.concurrent.Stoppable;
 
-public interface DeploymentHandle<T extends RunnerToken> extends Stoppable {
-    void start(T runnerToken);
+public interface DeploymentHandle extends Stoppable {
     boolean isRunning();
-    void newBuild(Gradle gradle);
 }

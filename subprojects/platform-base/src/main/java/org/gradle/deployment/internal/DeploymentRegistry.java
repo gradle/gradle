@@ -28,7 +28,7 @@ public interface DeploymentRegistry extends Stoppable {
     /**
      * Registers a given deployment handle in the registry.
      */
-    void register(String id, DeploymentHandle<? extends RunnerToken> handle);
+    void register(String id, DeploymentHandle handle);
 
     /**
      * Retrieves a deployment handle from the registry with the given id and type.
@@ -36,5 +36,5 @@ public interface DeploymentRegistry extends Stoppable {
      * @return the registered deployment handle; null if no deployment is registered with the given id
      */
     @Nullable
-    <T extends DeploymentHandle<? extends RunnerToken>> T get(Class<T> handleType, String id);
+    <T extends DeploymentHandle> T get(Class<T> handleType, String id);
 }

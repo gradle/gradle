@@ -37,7 +37,6 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
         buildFile << """
             import javax.inject.Inject
             import org.gradle.deployment.internal.DeploymentHandle
-            import org.gradle.deployment.internal.RunnerToken
             import org.gradle.deployment.internal.DeploymentRegistry
 
             task runDeployment(type: RunTestDeployment) {
@@ -56,12 +55,6 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
 
                 public boolean isRunning() {
                     return running
-                }
-
-                public void start(RunnerToken runnerToken) {
-                }
-
-                public void newBuild(Gradle gradle) {
                 }
 
                 public void stop() {
