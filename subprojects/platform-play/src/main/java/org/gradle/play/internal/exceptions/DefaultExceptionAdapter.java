@@ -33,10 +33,15 @@ public class DefaultExceptionAdapter implements ExceptionAdapter {
             Constructor<?> constructor = playExceptionClass.getConstructor(String.class, String.class, Throwable.class);
             return (Throwable) constructor.newInstance(title, description, cause);
         } catch (ClassNotFoundException e) {
+            /* fall through */
         } catch (InvocationTargetException e) {
+            /* fall through */
         } catch (NoSuchMethodException e) {
+            /* fall through */
         } catch (InstantiationException e) {
+            /* fall through */
         } catch (IllegalAccessException e) {
+            /* fall through */
         }
         // cannot convert for some reason
         return cause;

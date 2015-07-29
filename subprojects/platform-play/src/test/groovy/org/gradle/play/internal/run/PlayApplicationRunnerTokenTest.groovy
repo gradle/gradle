@@ -42,7 +42,7 @@ class PlayApplicationRunnerTokenTest extends Specification {
 
         then:
         1 * server.rebuild({ RebuildReason reason ->
-            assert reason.successful
+            reason.successful
         })
     }
 
@@ -54,8 +54,7 @@ class PlayApplicationRunnerTokenTest extends Specification {
 
         then:
         1 * server.rebuild({ RebuildReason reason ->
-            assert !reason.successful
-            assert reason.failure == failure
+            !reason.successful && reason.failure == failure
         })
     }
 }
