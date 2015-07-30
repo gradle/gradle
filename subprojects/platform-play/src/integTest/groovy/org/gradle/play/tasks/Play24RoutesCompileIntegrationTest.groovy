@@ -16,6 +16,7 @@
 
 package org.gradle.play.tasks
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.play.integtest.fixtures.PlayCoverage
 import org.gradle.util.Requires
@@ -45,5 +46,21 @@ class Play24RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegratio
             {packageName, namespace -> "${namespace ? namespace + '/' :''}controllers/${packageName ? packageName + '/' :''}javascript/JavaScriptReverseRoutes.scala" },
             {packageName, namespace -> "${packageName?:'router'}/RoutesPrefix.scala" }
         ]
+    }
+
+    @NotYetImplemented
+    def "can specify route compiler type as injected"() {
+        given:
+        buildFile << """
+model {
+    components {
+        play {
+            tasks.withType(RoutesCompile) {
+                // routesGenerator = "injected"
+            }
+        }
+    }
+}
+"""
     }
 }

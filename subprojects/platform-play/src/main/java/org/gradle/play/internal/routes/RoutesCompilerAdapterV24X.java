@@ -28,6 +28,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAdapter {
+    private static final String PLAY_ROUTES_COMPILER_STATIC_ROUTES_GENERATOR = "play.routes.compiler.StaticRoutesGenerator";
+    private static final String PLAY_ROUTES_COMPILER_INJECTED_ROUTES_GENERATOR = "play.routes.compiler.InjectedRoutesGenerator";
+
     private final List<String> defaultScalaImports = Lists.newArrayList("controllers.Assets.Asset");
     private final List<String> defaultJavaImports = Lists.newArrayList("controllers.Assets.Asset", "play.libs.F");
 
@@ -48,7 +51,7 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
     }
 
     @Override
-    public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean staticRoutesGenerator) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Object routesCompilerTask = DirectInstantiator.instantiate(cl.loadClass("play.routes.compiler.RoutesCompiler$RoutesCompilerTask"),
             file,
             ScalaListBuffer.fromList(cl, javaProject ? defaultJavaImports : defaultScalaImports),
@@ -57,9 +60,15 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
             namespaceReverseRouter
         );
 
+        String routeGenerator;
+        if (staticRoutesGenerator) {
+            routeGenerator = PLAY_ROUTES_COMPILER_STATIC_ROUTES_GENERATOR;
+        } else {
+            routeGenerator = PLAY_ROUTES_COMPILER_INJECTED_ROUTES_GENERATOR;
+        }
         return new Object[]{
             routesCompilerTask,
-            new ScalaObject(cl, "play.routes.compiler.StaticRoutesGenerator").getInstance(),
+            new ScalaObject(cl, routeGenerator).getInstance(),
             destinationDir
         };
     }

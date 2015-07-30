@@ -29,4 +29,6 @@ public interface RoutesCompileSpec extends PlayCompileSpec, Serializable {
     boolean isNamespaceReverseRouter();
 
     boolean isGenerateReverseRoutes();
+
+    boolean isStaticRoutesGenerator();
 }

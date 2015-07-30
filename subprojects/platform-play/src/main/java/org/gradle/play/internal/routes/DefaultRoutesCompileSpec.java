@@ -27,14 +27,16 @@ public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
     private final boolean javaProject;
     private final boolean namespaceReverseRouter;
     private final boolean generateReverseRoutes;
+    private final boolean staticRoutesGenerator;
 
-    public DefaultRoutesCompileSpec(Iterable<File> sourceFiles, File outputDirectory, BaseForkOptions forkOptions, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes) {
+    public DefaultRoutesCompileSpec(Iterable<File> sourceFiles, File outputDirectory, BaseForkOptions forkOptions, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean staticRoutesGenerator) {
         this.sourceFiles = sourceFiles;
         this.outputDirectory = outputDirectory;
         this.forkOptions = forkOptions;
         this.javaProject = javaProject;
         this.namespaceReverseRouter = namespaceReverseRouter;
         this.generateReverseRoutes = generateReverseRoutes;
+        this.staticRoutesGenerator = staticRoutesGenerator;
     }
 
     public Iterable<File> getSources() {
@@ -59,5 +61,10 @@ public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
 
     public boolean isGenerateReverseRoutes() {
         return generateReverseRoutes;
+    }
+
+    @Override
+    public boolean isStaticRoutesGenerator() {
+        return staticRoutesGenerator;
     }
 }
