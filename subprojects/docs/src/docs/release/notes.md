@@ -72,10 +72,10 @@ The initial release of Gradle's Play plugin supported running Play applications 
 would leave the application running.  Now, after a build failure, the Play application will show you the exception message from Gradle.
 
 In this release, Gradle's Play plugin supports more Play 2.4.x features.  You can configure the routes compiler to use the
-[injected routes generator](https://www.playframework.com/documentation/2.4.x/JavaDependencyInjection#Dependency-injecting-controllers).
+[injected routes generator](https://www.playframework.com/documentation/2.4.x/Migration24#Routing).
 By default, Gradle will still use the static routes generator.
 
-To configure your Play application to use the injected routes generator, you'll need to configure the [PlayApplicationSpec](dsl/org.gradle.play.PlayApplicationSpec.html) task:
+To configure your Play application to use the injected routes generator, you'll need to configure your [PlayApplicationSpec](dsl/org.gradle.play.PlayApplicationSpec.html) component:
 
     model {
         components {
