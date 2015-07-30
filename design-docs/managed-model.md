@@ -38,7 +38,7 @@ Moreover, we consider owning the implementation of model elements an enabler for
 - Add support for all primitive types.
 - Add support for missing boxed types (Byte, Short, Float).
 
-#### Test cases
+##### Test cases
 
 - Does something sensible when getter uses primitive type and setter uses boxed type (and vice versa).
 - Cannot have read only properties of scalar types.
@@ -48,7 +48,7 @@ Moreover, we consider owning the implementation of model elements an enabler for
 
 - TBD: also for `Boolean` type properties?
 
-### Test cases
+#### Test cases
 
 - Does something sensible when `get` and `is` getters are both defined for a property.
 
