@@ -16,8 +16,6 @@
 package org.gradle.play.plugins;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.BuildAdapter;
-import org.gradle.BuildResult;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
