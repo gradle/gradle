@@ -72,7 +72,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         disableUrlConnectionCaching();
         final Thread thread = Thread.currentThread();
         final ClassLoader previousContextClassLoader = thread.getContextClassLoader();
-        final ClassLoader classLoader = new URLClassLoader(new DefaultClassPath(runSpec.getClasspath()).getAsURLArray());
+        final ClassLoader classLoader = new URLClassLoader(new DefaultClassPath(runSpec.getClasspath()).getAsURLArray(), null);
         thread.setContextClassLoader(classLoader);
         try {
             ClassLoader docsClassLoader = classLoader;
