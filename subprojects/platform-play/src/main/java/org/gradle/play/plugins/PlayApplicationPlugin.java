@@ -291,6 +291,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         routesCompile.setAdditionalImports(new ArrayList<String>());
                         routesCompile.setSource(routesSourceSet.getSource());
                         routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
+                        routesCompile.setStaticRoutesGenerator(binary.getApplication().getUseStaticRouter());
 
                         ScalaLanguageSourceSet routesScalaSources = binary.getGeneratedScala().get(routesSourceSet);
                         routesScalaSources.getSource().srcDir(routesCompilerOutputDirectory);

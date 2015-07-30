@@ -56,7 +56,7 @@ public class RoutesCompile extends SourceTask {
     private boolean generateReverseRoutes = true;
     private PlayPlatform platform;
     private BaseForkOptions forkOptions;
-    private boolean staticRoutesGenerator = true;
+    private boolean staticRoutesGenerator;
 
     /**
      * Returns the directory to generate the parser source files into.

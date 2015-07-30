@@ -20,15 +20,19 @@ dependencies {
     playTest "com.google.guava:guava:17.0"
 }
 
-// START SNIPPET play-injected-routes-compiler
 model {
     components {
         play {
             targetPlatform 'play-2.4.0'
+        }
+    }
+}
 
-            tasks.withType(RoutesCompile) {
-                staticRoutesGenerator = false
-            }
+// START SNIPPET play-injected-routes-compiler
+model {
+    components {
+        play {
+            useStaticRouter = false
         }
     }
 }

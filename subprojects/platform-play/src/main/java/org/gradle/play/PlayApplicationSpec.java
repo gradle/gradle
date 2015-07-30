@@ -45,4 +45,29 @@ public interface PlayApplicationSpec extends PlatformAwareComponentSpec {
      * @param platformRequirements Map of Play requirements or the name of an Play platform.
      */
     void platform(Object platformRequirements);
+
+    /**
+     * Configures the style of router to use with this application.
+     *
+     * <p>
+     * By default, a static routes generator is used to generate a singleton router.  This requires that all the actions
+     * that the router invokes on the application's controllers are either Scala singleton objects, or Java static methods.
+     * </p>
+     *
+     * <p>
+     * In Play 2.4+, a injected routes generator is recommended.  This requires that the Routes class declares its
+     * dependencies to the application's controllers in its constructor.  The controllers methods need to be instance methods.
+     * </p>
+     *
+     * @param useStaticRouter true if a static router should be generated.
+     */
+    void setUseStaticRouter(boolean useStaticRouter);
+
+    /**
+     * Will a static router be generated for this application?
+     *
+     * @return true if a static router will be generated for the application,
+     * false if an injected router will be generated.
+     */
+    boolean getUseStaticRouter();
 }

@@ -412,14 +412,16 @@
             </sample>
         </section>
         <section>
-            <title>Configuring routes compiler</title>
+            <title>Configuring routes style</title>
             <note>
-                The injected routes generator is only supported in Play Framework 2.4 or better.
+                The injected router is only supported in Play Framework 2.4 or better.
             </note>
             <para>
-                If your Play application's controllers uses non-static methods for routes, you'll need to configure the routes compiler to use the <literal>InjectedRoutesGenerator</literal> instead of the default <literal>StaticRoutesGenerator</literal>.
+                If your Play application's router uses dependency injection to access your controllers, you'll need to configure your application to <emphasis>not</emphasis> use the default static router.
+
+                Under the covers, the Play plugin is using the <literal>InjectedRoutesGenerator</literal> instead of the default <literal>StaticRoutesGenerator</literal> to generate the router classes.
             </para>
-            <sample id="configureRoutesCompiler" dir="play/injected-routes" title="Configuring routes compiler">
+            <sample id="configureRoutesCompiler" dir="play/injected-routes" title="Configuring routes style">
                 <sourcefile file="build.gradle" snippet="play-injected-routes-compiler"/>
             </sample>
         </section>

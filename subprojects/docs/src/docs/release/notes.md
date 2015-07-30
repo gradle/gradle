@@ -75,14 +75,12 @@ In this release, Gradle's Play plugin supports more Play 2.4.x features.  You ca
 [injected routes generator](https://www.playframework.com/documentation/2.4.x/JavaDependencyInjection#Dependency-injecting-controllers).
 By default, Gradle will still use the static routes generator.
 
-To configure your Play application to use the injected routes generator, you'll need to configure the [RoutesCompile](dsl/org.gradle.play.tasks.RoutesCompile.html) task:
+To configure your Play application to use the injected routes generator, you'll need to configure the [PlayApplicationSpec](dsl/org.gradle.play.PlayApplicationSpec.html) task:
 
     model {
         components {
             play {
-                tasks.withType(RoutesCompile) {
-                    staticRoutesGenerator = false
-                }
+                useStaticRouter = false
             }
         }
     }
