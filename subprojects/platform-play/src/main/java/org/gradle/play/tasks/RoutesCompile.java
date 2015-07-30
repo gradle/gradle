@@ -109,6 +109,10 @@ public class RoutesCompile extends SourceTask {
         return javaProject;
     }
 
+    public PlayPlatform getPlatform() {
+        return platform;
+    }
+
     public void setPlatform(PlayPlatform platform) {
         this.platform = platform;
     }

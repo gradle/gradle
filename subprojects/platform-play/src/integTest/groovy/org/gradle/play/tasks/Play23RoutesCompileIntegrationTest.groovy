@@ -43,4 +43,23 @@ class Play23RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegratio
     def getOtherRoutesFilesTemplates() {
         return []
     }
+
+    def "trying to use injected router with older versions of Play produces reasonable error"() {
+        given:
+        withRoutesTemplate()
+
+        buildFile << """
+model {
+    components {
+        play {
+            useStaticRouter = false
+        }
+    }
+}
+"""
+        expect:
+        fails("assemble")
+        and:
+        errorOutput.contains("Injected routers are only supported in Play 2.4 or newer.")
+    }
 }

@@ -55,7 +55,7 @@ public interface PlayApplicationSpec extends PlatformAwareComponentSpec {
      * </p>
      *
      * <p>
-     * In Play 2.4+, a injected routes generator is recommended.  This requires that the Routes class declares its
+     * In Play 2.4+, a injected routes generator is recommended.  This requires that the router declares its
      * dependencies to the application's controllers in its constructor.  The controllers methods need to be instance methods.
      * </p>
      *

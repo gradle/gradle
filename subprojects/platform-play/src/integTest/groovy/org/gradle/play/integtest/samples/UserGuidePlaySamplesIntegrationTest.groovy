@@ -98,6 +98,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "injected routes sample is buildable" () {
         when:
         sample injectedRoutesPlaySample

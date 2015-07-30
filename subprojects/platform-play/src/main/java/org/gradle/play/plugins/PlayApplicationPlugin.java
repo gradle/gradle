@@ -62,6 +62,7 @@ import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
 import org.gradle.play.tasks.RoutesCompile;
 import org.gradle.play.tasks.TwirlCompile;
+import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -154,6 +155,23 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                     PlayApplicationSpecInternal playApplicationInternal = (PlayApplicationSpecInternal) playApplication;
                     if (playApplicationInternal.getTargetPlatforms().size() > 1) {
                         throw new GradleException("Multiple target platforms for 'PlayApplicationSpec' is not (yet) supported.");
+                    }
+                }
+            });
+        }
+
+        @Validate
+        void failIfInjectedRouterIsUsedwithOldVersion(ModelMap<Task> tasks) {
+            tasks.withType(RoutesCompile.class).afterEach(new Action<RoutesCompile>() {
+                @Override
+                public void execute(RoutesCompile task) {
+                    PlayPlatform playPlatform = task.getPlatform();
+                    if (!task.getStaticRoutesGenerator()) {
+                        VersionNumber minSupportedVersion = VersionNumber.parse("2.4.0");
+                        VersionNumber playVersion = VersionNumber.parse(playPlatform.getPlayVersion());
+                        if (playVersion.compareTo(minSupportedVersion) < 0) {
+                            throw new GradleException("Injected routers are only supported in Play 2.4 or newer.");
+                        }
                     }
                 }
             });
