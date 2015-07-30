@@ -31,16 +31,16 @@ class GradleInvocationSpec {
     final File workingDirectory
     final List<String> tasksToRun
     final List<String> args
-    final List<String> gradleOpts
+    final List<String> jvmOpts
     final boolean useDaemon
     final boolean useToolingApi
 
-    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> gradleOpts, boolean useDaemon, boolean useToolingApi) {
+    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> jvmOpts, boolean useDaemon, boolean useToolingApi) {
         this.gradleDistribution = gradleDistribution
         this.workingDirectory = workingDirectory
         this.tasksToRun = tasksToRun
         this.args = args
-        this.gradleOpts = gradleOpts
+        this.jvmOpts = jvmOpts
         this.useDaemon = useDaemon
         this.useToolingApi = useToolingApi
     }
@@ -49,12 +49,12 @@ class GradleInvocationSpec {
         return new Builder()
     }
 
-    GradleInvocationSpec withAdditionalGradleOpts(List<String> additionalGradleOpts) {
-        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, args, ImmutableList.builder().addAll(gradleOpts).addAll(additionalGradleOpts).build(), useDaemon, useToolingApi)
+    GradleInvocationSpec withAdditionalJvmOpts(List<String> additionalJvmOpts) {
+        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, args, ImmutableList.builder().addAll(jvmOpts).addAll(additionalJvmOpts).build(), useDaemon, useToolingApi)
     }
 
     GradleInvocationSpec withAdditionalArgs(List<String> additionalArgs) {
-        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, ImmutableList.builder().addAll(args).addAll(additionalArgs).build(), gradleOpts, useDaemon, useToolingApi)
+        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, ImmutableList.builder().addAll(args).addAll(additionalArgs).build(), jvmOpts, useDaemon, useToolingApi)
     }
 
     static class Builder {

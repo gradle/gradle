@@ -34,7 +34,7 @@ public class BuildEventTimestampCollector implements DataCollector {
     }
 
     @Override
-    public List<String> getAdditionalGradleOpts(File workingDir) {
+    public List<String> getAdditionalJvmOpts(File workingDir) {
         return Collections.emptyList();
     }
 

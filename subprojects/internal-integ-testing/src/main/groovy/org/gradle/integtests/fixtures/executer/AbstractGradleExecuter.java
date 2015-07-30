@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
@@ -27,7 +28,6 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.listener.ActionBroadcast;
-import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.DeprecationLogger;
@@ -40,6 +40,8 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static org.gradle.util.CollectionUtils.collect;
+import static org.gradle.util.CollectionUtils.join;
 import static org.gradle.util.Matchers.containsLine;
 import static org.gradle.util.Matchers.matchesRegexp;
 
@@ -85,7 +87,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private int daemonIdleTimeoutSecs = 60;
     private boolean requireDaemon;
     private File daemonBaseDir = buildContext.getDaemonBaseDir();
-    private final List<String> gradleOpts = new ArrayList<String>();
+    private final List<String> buildJvmOpts = new ArrayList<String>();
     private boolean noDefaultJvmArgs;
     private boolean requireGradleHome;
     private boolean daemonStartingMessageDisabled = true;
@@ -199,7 +201,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         executer.withTasks(tasks);
         executer.withArguments(args);
-        executer.withEnvironmentVars(getMergedEnvironmentVars());
+        executer.withEnvironmentVars(environmentVars);
         executer.usingExecutable(executable);
         if (quiet) {
             executer.withQuietLogging();
@@ -226,7 +228,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (defaultLocale != null) {
             executer.withDefaultLocale(defaultLocale);
         }
-        executer.withGradleOpts(gradleOpts.toArray(new String[gradleOpts.size()]));
+        executer.withBuildJvmOpts(buildJvmOpts.toArray(new String[buildJvmOpts.size()]));
         if (noDefaultJvmArgs) {
             executer.withNoDefaultJvmArgs();
         }
@@ -294,22 +296,40 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     /**
-     * Returns the gradle opts set with withGradleOpts() (does not consider any set via withEnvironmentVars())
+     * Returns the JVM opts that should be used to start a forked JVM.
      */
-    protected List<String> getGradleOpts() {
-        List<String> gradleOpts = new ArrayList<String>(this.gradleOpts);
+    protected List<String> getLauncherJvmOpts() {
+        List<String> jvmOpts = new ArrayList<String>();
+        if (requireDaemon) {
+            String quotedArgs = join(" ", collect(getBuildJvmOpts(), new Transformer<String, String>() {
+                public String transform(String input) {
+                    return String.format("'%s'", input);
+                }
+            }));
+            jvmOpts.add("-Dorg.gradle.jvmargs=" + quotedArgs);
+        } else {
+            jvmOpts.addAll(getBuildJvmOpts());
+        }
         for (Map.Entry<String, String> entry : getImplicitJvmSystemProperties().entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
-            gradleOpts.add(String.format("-D%s=%s", key, value));
+            jvmOpts.add(String.format("-D%s=%s", key, value));
         }
-        gradleOpts.add("-ea");
+        jvmOpts.add("-ea");
+        return jvmOpts;
+    }
+
+    /**
+     * Returns the JVM opts that should be used to start the build JVM (does not consider any set via withEnvironmentVars())
+     */
+    protected List<String> getBuildJvmOpts() {
+        List<String> buildJvmOpts = new ArrayList<String>(this.buildJvmOpts);
 
         if (isDebug()) {
-            gradleOpts.addAll(DEBUG_ARGS);
+            buildJvmOpts.addAll(DEBUG_ARGS);
         }
 
-        return gradleOpts;
+        return buildJvmOpts;
     }
 
     public GradleExecuter withUserHomeDir(File userHomeDir) {
@@ -419,20 +439,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    /**
-     * Returns the effective env vars, having merged in specific settings.
-     *
-     * For example, GRADLE_OPTS will be anything that was specified via withEnvironmentVars() and withGradleOpts(). JAVA_HOME will also be set according to getJavaHome().
-     */
-    protected Map<String, String> getMergedEnvironmentVars() {
-        Map<String, String> environmentVars = new HashMap<String, String>(getEnvironmentVars());
-        environmentVars.put("GRADLE_OPTS", toJvmArgsString(getMergedGradleOpts()));
-        if (!environmentVars.containsKey("JAVA_HOME")) {
-            environmentVars.put("JAVA_HOME", getJavaHome().getAbsolutePath());
-        }
-        return environmentVars;
-    }
-
     protected String toJvmArgsString(Iterable<String> jvmArgs) {
         StringBuilder result = new StringBuilder();
         for (String jvmArg : jvmArgs) {
@@ -450,16 +456,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         return result.toString();
-    }
-
-    private List<String> getMergedGradleOpts() {
-        List<String> gradleOpts = new ArrayList<String>(getGradleOpts());
-        String gradleOptsEnv = getEnvironmentVars().get("GRADLE_OPTS");
-        if (gradleOptsEnv != null) {
-            gradleOpts.addAll(JvmOptions.fromString(gradleOptsEnv));
-        }
-
-        return gradleOpts;
     }
 
     protected Map<String, String> getEnvironmentVars() {
@@ -667,8 +663,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     /**
      * {@inheritDoc}
      */
-    public AbstractGradleExecuter withGradleOpts(String... gradleOpts) {
-        this.gradleOpts.addAll(asList(gradleOpts));
+    public AbstractGradleExecuter withBuildJvmOpts(String... jvmOpts) {
+        buildJvmOpts.addAll(asList(jvmOpts));
         return this;
     }
 

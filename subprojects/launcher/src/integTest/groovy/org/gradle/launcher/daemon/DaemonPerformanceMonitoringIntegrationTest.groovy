@@ -33,7 +33,7 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
     }
 
     private boolean daemonIsExpiredEagerly(String xmx) {
-        executer.withGradleOpts("-D${DaemonStatus.EXPIRE_AT_PROPERTY}=80", "-Dorg.gradle.jvmargs=$xmx", "-Dorg.gradle.daemon.performance.logging=true")
+        executer.withBuildJvmOpts("-D${DaemonStatus.EXPIRE_AT_PROPERTY}=80", xmx, "-Dorg.gradle.daemon.performance.logging=true")
 
         setupLeakyBuild()
         int newDaemons = 0

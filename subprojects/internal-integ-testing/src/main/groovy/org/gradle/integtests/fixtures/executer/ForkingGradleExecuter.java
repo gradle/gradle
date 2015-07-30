@@ -26,10 +26,7 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.fail;
 
@@ -54,6 +51,29 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
                 }
             }
         }
+    }
+
+    /**
+     * Returns the effective env vars, having merged in specific settings.
+     *
+     * For example, GRADLE_OPTS will be anything that was specified via withEnvironmentVars() and withBuildJvmOpts(). JAVA_HOME will also be set according to getJavaHome().
+     */
+    protected Map<String, String> getMergedEnvironmentVars() {
+        Map<String, String> environmentVars = new HashMap<String, String>(getEnvironmentVars());
+        environmentVars.put("GRADLE_OPTS", toJvmArgsString(getMergedGradleOpts()));
+        if (!environmentVars.containsKey("JAVA_HOME")) {
+            environmentVars.put("JAVA_HOME", getJavaHome().getAbsolutePath());
+        }
+        return environmentVars;
+    }
+
+    private List<String> getMergedGradleOpts() {
+        List<String> gradleOpts = new ArrayList<String>(getLauncherJvmOpts());
+        String gradleOptsEnv = getEnvironmentVars().get("GRADLE_OPTS");
+        if (gradleOptsEnv != null) {
+            gradleOpts.addAll(JvmOptions.fromString(gradleOptsEnv));
+        }
+        return gradleOpts;
     }
 
     @Override

@@ -33,7 +33,7 @@ class DaemonOutputToggleIntegrationTest extends DaemonIntegrationSpec {
 
     def "output is not received when toggle is on"() {
         when:
-        executer.withGradleOpts("-D$LogToClient.DISABLE_OUTPUT=true").noExtraLogging()
+        executer.withBuildJvmOpts("-D$LogToClient.DISABLE_OUTPUT=true").noExtraLogging()
         run "help"
 
         then:

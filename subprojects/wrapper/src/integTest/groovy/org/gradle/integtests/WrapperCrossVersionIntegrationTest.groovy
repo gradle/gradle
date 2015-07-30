@@ -93,7 +93,7 @@ task hello {
                     executer.withTmpDir(buildDirTmp.absolutePath)
                 }
             }
-            executer.withGradleOpts("-Dgradle.user.home=${executer.gradleUserHomeDir}")
+            executer.withBuildJvmOpts("-Dgradle.user.home=${executer.gradleUserHomeDir}")
         }
         return executer
     }

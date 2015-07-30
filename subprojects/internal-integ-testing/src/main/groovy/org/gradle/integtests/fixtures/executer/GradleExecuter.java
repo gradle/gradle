@@ -104,7 +104,7 @@ public interface GradleExecuter {
     GradleExecuter withJavaHome(File userHomeDir);
 
     /**
-     * Sets the executable to use. Set to null to use the read default executable (if any) rather than the default used for testing.
+     * Sets the executable to use. Set to null to use the real default executable (if any) rather than the default used for testing.
      */
     GradleExecuter usingExecutable(String script);
 
@@ -145,12 +145,13 @@ public interface GradleExecuter {
     GradleHandle start();
 
     /**
-     * Adds options that should be used to start the JVM, if a JVM is to be started. Ignored if not.
+     * Adds options that should be used to start the build VM. Does not necessarily imply that the build is run in a separate process, or that a new build JVM is started,
+     * only that the build runs in a VM that was started with the specified options.
      *
-     * @param gradleOpts the jvm opts
+     * @param jvmOpts the JVM opts
      * @return this executer
      */
-    GradleExecuter withGradleOpts(String... gradleOpts);
+    GradleExecuter withBuildJvmOpts(String... jvmOpts);
 
     /**
      * Sets the default character encoding to use.
@@ -194,7 +195,7 @@ public interface GradleExecuter {
     GradleExecuter withDaemonBaseDir(File baseDir);
 
     /**
-     * Requires that the build run in a daemon.
+     * Requires that the build run in a separate daemon process.
      */
     GradleExecuter requireDaemon();
 

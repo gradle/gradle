@@ -42,10 +42,10 @@ public class BuildExperimentRunner {
         System.out.println();
 
         File workingDirectory = experiment.getInvocation().getWorkingDirectory();
-        final List<String> additionalGradleOpts = dataCollector.getAdditionalGradleOpts(workingDirectory);
+        final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
         final List<String> additionalArgs = dataCollector.getAdditionalArgs(workingDirectory);
 
-        GradleInvocationSpec buildSpec = experiment.getInvocation().withAdditionalGradleOpts(additionalGradleOpts).withAdditionalArgs(additionalArgs);
+        GradleInvocationSpec buildSpec = experiment.getInvocation().withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
         GradleSession session = executerProvider.session(buildSpec);
 
         session.prepare();

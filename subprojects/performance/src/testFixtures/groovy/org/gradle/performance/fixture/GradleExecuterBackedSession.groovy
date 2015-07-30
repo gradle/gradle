@@ -60,17 +60,13 @@ class GradleExecuterBackedSession implements GradleSession {
                 withTasks(invocation.tasksToRun)
 
         if (withGradleOpts) {
-            if (invocation.useDaemon) {
-                executer.withGradleOpts("-Dorg.gradle.jvmargs=" + invocation.gradleOpts.join(" "))
-            } else {
-                executer.withGradleOpts(invocation.gradleOpts as String[])
-            }
+            executer.withBuildJvmOpts(invocation.jvmOpts as String[])
         }
 
         invocation.args.each { executer.withArgument(it) }
 
         if (invocation.useDaemon) {
-            executer.withArgument('--daemon')
+            executer.requireDaemon()
         }
 
         executer

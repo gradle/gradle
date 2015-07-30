@@ -32,7 +32,7 @@ task verify << {
         """
 
         expect:
-        executer.withGradleOpts("-Djava.vendor=hollywood", "-Dsun.sunny=california").withTasks("verify").run()
+        executer.withBuildJvmOpts("-Djava.vendor=hollywood", "-Dsun.sunny=california").withTasks("verify").run()
     }
 
     def "other client JVM system properties are carried over to daemon JVM"() {
@@ -44,7 +44,7 @@ task verify << {
         """
 
         expect:
-        executer.withGradleOpts("-Dfoo.bar=baz").withTasks("verify").run()
+        executer.withBuildJvmOpts("-Dfoo.bar=baz").withTasks("verify").run()
 
     }
 }

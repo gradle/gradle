@@ -23,7 +23,7 @@ public class MemoryInfoCollector implements DataCollector {
     String outputFileName
 
     @Override
-    List<String> getAdditionalGradleOpts(File workingDir) {
+    List<String> getAdditionalJvmOpts(File workingDir) {
         return Collections.emptyList();
     }
 
