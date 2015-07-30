@@ -38,6 +38,9 @@
             <tr>
                 <td>namespaceReverseRouter</td>
             </tr>
+            <tr>
+                <td>staticRoutesGenerator</td>
+            </tr>
         </table>
     </section>
     <section>

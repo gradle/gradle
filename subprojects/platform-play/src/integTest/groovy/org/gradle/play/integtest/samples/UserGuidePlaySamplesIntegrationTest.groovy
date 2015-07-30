@@ -30,6 +30,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample compilerPlaySample = new Sample(temporaryFolder, "play/configure-compiler")
     @Rule Sample distributionPlaySample = new Sample(temporaryFolder, "play/custom-distribution")
     @Rule Sample customAssetsPlaySample = new Sample(temporaryFolder, "play/custom-assets")
+    @Rule Sample injectedRoutesPlaySample = new Sample(temporaryFolder, "play/injected-routes")
 
     def "sourcesets sample is buildable" () {
         when:
@@ -95,6 +96,22 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
         assetsJar(customAssetsPlaySample).containsDescendants(
             "public/sample.js"
         )
+    }
+
+    def "injected routes sample is buildable" () {
+        when:
+        sample injectedRoutesPlaySample
+
+        then:
+        succeeds "build"
+
+        and:
+        injectedRoutesPlaySample.dir.file("build/playBinary/src/compilePlayBinaryRoutes").assertHasDescendants(
+            "controllers/routes.java",
+            "controllers/ReverseRoutes.scala",
+            "router/Routes.scala",
+            "controllers/javascript/JavaScriptReverseRoutes.scala",
+            "router/RoutesPrefix.scala")
     }
 
     JarTestFixture applicationJar(Sample sample) {

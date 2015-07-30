@@ -57,7 +57,7 @@ annotated with `@Variant` which will declare it as a custom variant dimension:
 Those custom variant dimensions will participate into dependency resolution. Examples of how to define custom binaries can be found in
 the [integration tests](https://github.com/gradle/gradle/tree/master/subprojects/language-java/src/integTest/groovy/org/gradle/language/java).
 
-## Additions to the Gradle TestKit
+### Additions to the Gradle TestKit
 
 The last release of Gradle introduced the [Gradle TestKit](userguide/test_kit.html) for functionally testing Gradle plugins. This release extends
 the existing TestKit feature set by the following aspects:
@@ -66,10 +66,26 @@ the existing TestKit feature set by the following aspects:
 environmental configuration from the current user. The TestKit uses dedicated, reusable Gradle daemon processes. After executing the whole suite of
 functional tests existing daemon processes are stopped.
 
-### Improved Play exception reporting
+### Improved Play Support
 
 The initial release of Gradle's Play plugin supported running Play applications in continuous build.  When a build failure occurred, Gradle
 would leave the application running.  Now, after a build failure, the Play application will show you the exception message from Gradle.
+
+In this release, Gradle's Play plugin supports more Play 2.4.x features.  You can configure the routes compiler to use the
+[injected routes generator](https://www.playframework.com/documentation/2.4.x/JavaDependencyInjection#Dependency-injecting-controllers).
+By default, Gradle will still use the static routes generator.
+
+To configure your Play application to use the injected routes generator, you'll need to configure the [RoutesCompile](dsl/org.gradle.play.tasks.RoutesCompile.html) task:
+
+    model {
+        components {
+            play {
+                tasks.withType(RoutesCompile) {
+                    staticRoutesGenerator = false
+                }
+            }
+        }
+    }
 
 ## Promoted features
 

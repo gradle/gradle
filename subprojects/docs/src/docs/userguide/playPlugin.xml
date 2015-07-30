@@ -43,7 +43,7 @@
                 <para>
                     Full support is limited to Play 2.3.x applications.
                     Limited support is available for Play 2.4.x applications. Gradle does not include support for a few new build-related features in 2.4.
-                    Specifically, Gradle does not yet support aggregate reverse routes or the use of "injected" routes generators.
+                    Specifically, Gradle does not yet support aggregate reverse routes.
                     Future Gradle versions will add more support for Play 2.4.x and 3.0.x.
                 </para>
             </listitem>
@@ -409,6 +409,18 @@
             </para>
             <sample id="configureScalaCompiler" dir="play/configure-compiler" title="Configuring Scala compiler options">
                 <sourcefile file="build.gradle" snippet="play-configure-compiler"/>
+            </sample>
+        </section>
+        <section>
+            <title>Configuring routes compiler</title>
+            <note>
+                The injected routes generator is only supported in Play Framework 2.4 or better.
+            </note>
+            <para>
+                If your Play application's controllers uses non-static methods for routes, you'll need to configure the routes compiler to use the <literal>InjectedRoutesGenerator</literal> instead of the default <literal>StaticRoutesGenerator</literal>.
+            </para>
+            <sample id="configureRoutesCompiler" dir="play/injected-routes" title="Configuring routes compiler">
+                <sourcefile file="build.gradle" snippet="play-injected-routes-compiler"/>
             </sample>
         </section>
         <section>
