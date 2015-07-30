@@ -97,3 +97,6 @@ This command generates Eclipse metadata that allows importing the project into E
 With [Gradle(Enide) Eclipse plugin](http://marketplace.eclipse.org/content/gradle), you can import as general plugin or prepare before with `./gradlew eclipse`. 
 
 Build is run via right-click on `build.gradle` <kbd>Run As -> gradle build Gradle Build</kbd>
+
+Trying EC2 pull-request builds in TC.
+
