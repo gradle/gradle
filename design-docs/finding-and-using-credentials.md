@@ -148,6 +148,10 @@ must not be used. Often, build users are not particularly opinionated regarding 
 
 ## Story: Build author configures Basic Auth to send credentials preemptively
 
+- If user configures basic auth scheme as preemptive, credentials are sent preemptively on every request.
+- When other authentication schemes are configured, those are used only when server responds with a 401 to the preemptive basic auth request.
+- If `preemptive` flag is not specified, default to **not** using preemptive authentication.
+
 ```
     maven {
         url 'https://repo.somewhere.com/maven'
@@ -155,12 +159,26 @@ must not be used. Often, build users are not particularly opinionated regarding 
             username 'user'
             password 'pwd'
         }
-        authentication(BasicAuth) {
-            preemptive = true
+        authentication {
+            basic(BasicAuthentication) {
+                preemptive = true
+            }
+            digest(DigestAuthentication)
         }
-        authentication(DigestAuth)
     }
 ```
+
+### Implementation
+
+- Add `preemptive` flag to `BasicAuthentication`.
+- Modify `PreemptiveAuth` request interceptor to add basic credentials to _all_ requests when `preemptive` flag is `true`.
+
+### Test Coverage
+
+- Can configure basic authentication to send credentials preemptively
+    - Credentials are sent on all requests (including GET/HEAD)
+- Can configure preemptive basic auth in conjunction with digest auth scheme
+    - Should attempt digest auth if a 401 is received requesting digest auth
 
 ## Candidate Stories
 
