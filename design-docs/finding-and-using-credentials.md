@@ -97,7 +97,7 @@ must not be used. Often, build users are not particularly opinionated regarding 
 - Where no auth schemes are configured, attempt all supported auth protocols for HTTP (current behaviour).
 - Use the credentials supplied for the repository for all attempted authentication schemes
 - Fail if an authentication scheme is specified that is not supported by the configured repository transport
-    - Only define `BasicAuthentication`, `DigestAuthentication` and `NtlmAuthentication` schemes for now, which apply only to HTTP repository transports
+    - Only define `BasicAuthentication` and `DigestAuthentication` schemes for now, which apply only to HTTP repository transports
     - All other repository transports disallow _all_ authentication schemes
 
 ```
@@ -148,9 +148,12 @@ must not be used. Often, build users are not particularly opinionated regarding 
 
 ## Story: Build author configures Basic Auth to send credentials preemptively
 
-- If user configures basic auth scheme as preemptive, credentials are sent preemptively on every request.
+- Allow user to specify preemptive behavior when using basic auth
+    - ALWAYS - Always send credentials (all HTTP methods)
+    - PUT_ONLY - Only preemptively send credentials on PUT requests
+    - NEVER - Never preemptively send credentials
 - When other authentication schemes are configured, those are used only when server responds with a 401 to the preemptive basic auth request.
-- If `preemptive` flag is not specified, default to **not** using preemptive authentication.
+- If `preemptive` flag is not specified, default to `PUT_ONLY`.
 
 ```
     maven {
@@ -161,7 +164,7 @@ must not be used. Often, build users are not particularly opinionated regarding 
         }
         authentication {
             basic(BasicAuthentication) {
-                preemptive = true
+                preemptive = ALWAYS
             }
             digest(DigestAuthentication)
         }
@@ -170,25 +173,57 @@ must not be used. Often, build users are not particularly opinionated regarding 
 
 ### Implementation
 
+- Create `PREEMPTIVE_STRATEGY` enum with `ALWAYS`, `PUT_ONLY` and `NEVER` values.
 - Add `preemptive` flag to `BasicAuthentication`.
-- Modify `PreemptiveAuth` request interceptor to add basic credentials to _all_ requests when `preemptive` flag is `true`.
+- Modify `PreemptiveAuth` request interceptor
+    - Add basic credentials to _all_ requests when `preemptive` flag is `ALWAYS`.
+    - Use existing behavior when set to `PUT_ONLY`
+    - Disable preemptive auth entirely when set to `NEVER`
 
 ### Test Coverage
 
 - Can configure basic authentication to send credentials preemptively
-    - Credentials are sent on all requests (including GET/HEAD)
+    - Credentials are sent on all requests (including GET/HEAD) when set to `ALWAYS`
+    - Credentials are sent only on "upload" requests when using `PUT_ONLY`
+    - Credentials are sent only when challenged when set to `NEVER`
 - Can configure preemptive basic auth in conjunction with digest auth scheme
     - Should attempt digest auth if a 401 is received requesting digest auth
+
+## Story: Build author configures repository for Windows authentication
+
+- If user configures repository for windows authentication the appropriate HTTP auth schemes are enabled (NTLM, SPNEGO, Kerberos)
+
+```
+    maven {
+        url 'https://repo.somewhere.com/maven'
+        credentials {
+            username 'user'
+            password 'pwd'
+        }
+        authentication {
+            basic(WindowsAuthentication)
+        }
+    }
+```
+
+### Implementation
+
+- Investigate HttpClient support for NTLM w/o explicitly providing credentials
+
+### Test Coverage
+
+- Add coverage for NTLM based authentication, perhaps as provided by this [pull request](https://github.com/gradle/gradle/pull/444)
 
 ## Candidate Stories
 
 * Implement an authentication scheme to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.
 * Implement an authentication scheme to facilitate preemptive basic authentication with HTTP repositories.
 * Implement an authentication scheme to facilitate public key authentication with SFTP repositories.
-
 * Add a `CredentialsContainer` to `org.gradle.api.internal.project.AbstractProject` similar to `org.gradle.api.artifacts.ConfigurationContainer`
 * Credentials, for the most part, should represent where the credentials data lives e.g. 'the private key is located at ~/.ssh/id_rsa'
 * `org.gradle.api.artifacts.repositories.AuthenticationSupported` must remain backward compatible to support the existing DSL for configuring repositories.
+* Upgrade HttpClient to latest version, possibly leveraging improved NTLM support rather than current JCIFS implementation
+* Add support for SNI (may simply come for free as part of HttpClient upgrade)
 
 ## Proposed DSL
 
