@@ -134,6 +134,7 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         scenario                      | tasks
         "single variant"              | [":project1:flavour1type1_t1"]
         "all variants single project" | [":project1:allVariants"]
-        "all variants all projects"   | ["allVariants"]
+        // This is causing the performance test process to die and the build to hang: disabling for now.
+//        "all variants all projects"   | ["allVariants"]
     }
 }
