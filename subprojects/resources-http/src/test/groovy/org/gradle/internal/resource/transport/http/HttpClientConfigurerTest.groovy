@@ -43,6 +43,7 @@ public class HttpClientConfigurerTest extends Specification {
     def "configures http client with proxy credentials"() {
         httpSettings.credentials >> credentials
         httpSettings.proxySettings >> proxySettings
+        httpSettings.authSchemes >> ([AuthScope.ANY_SCHEME] as Set)
         proxySettings.proxy >> new HttpProxySettings.HttpProxy("host", 1111, "domain/proxyUser", "proxyPass")
 
         when:

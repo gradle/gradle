@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.resource.transport.http;
 
+import com.google.common.collect.Sets;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -32,9 +33,9 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.internal.resource.UriResource;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
-import org.gradle.internal.resource.UriResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,9 +81,16 @@ public class HttpClientConfigurer {
 
     private void useCredentials(DefaultHttpClient httpClient, PasswordCredentials credentials, String host, int port, Set<String> authSchemes) {
         Credentials httpCredentials;
+        Set<String> effectiveSchemes = authSchemes;
 
-        for (String scheme : authSchemes) {
-            if (scheme.equals(AuthPolicy.NTLM)) {
+        // Make sure we configure NTLM credentials when using default auth schemes
+        if (authSchemes.size() == 1 && authSchemes.iterator().next() == null) {
+            effectiveSchemes = Sets.newHashSet(authSchemes);
+            effectiveSchemes.add(AuthPolicy.NTLM);
+        }
+
+        for (String scheme : effectiveSchemes) {
+            if (scheme != null && scheme.equals(AuthPolicy.NTLM)) {
                 NTLMCredentials ntlmCredentials = new NTLMCredentials(credentials);
                 httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
 

@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transport.http;
 
 import com.google.common.collect.Sets;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.client.params.AuthPolicy;
 import org.gradle.api.authentication.Authentication;
 import org.gradle.api.authentication.BasicAuthentication;
@@ -72,9 +73,7 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
         }
 
         if (authSchemes.size() == 0) {
-            authSchemes.add(AuthPolicy.BASIC);
-            authSchemes.add(AuthPolicy.DIGEST);
-            authSchemes.add(AuthPolicy.NTLM);
+            authSchemes.add(AuthScope.ANY_SCHEME);
         }
 
         return authSchemes;
