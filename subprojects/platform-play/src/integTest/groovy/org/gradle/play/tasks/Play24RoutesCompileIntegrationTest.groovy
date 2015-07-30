@@ -16,7 +16,6 @@
 
 package org.gradle.play.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.play.integtest.fixtures.PlayCoverage
 import org.gradle.util.Requires
@@ -48,19 +47,27 @@ class Play24RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegratio
         ]
     }
 
-    @NotYetImplemented
     def "can specify route compiler type as injected"() {
         given:
+        withRoutesTemplate()
+        file("app/controllers/Application.scala").with {
+            // change Scala companion object into a regular class
+            text = text.replaceFirst(/object/, "class")
+        }
         buildFile << """
 model {
     components {
         play {
             tasks.withType(RoutesCompile) {
-                // routesGenerator = "injected"
+                staticRoutesGenerator = false
             }
         }
     }
 }
 """
+        expect:
+        succeeds("compilePlayBinaryScala")
+        and:
+        destinationDir.assertHasDescendants(createRouteFileList() as String[])
     }
 }

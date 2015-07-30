@@ -56,6 +56,7 @@ public class RoutesCompile extends SourceTask {
     private boolean generateReverseRoutes = true;
     private PlayPlatform platform;
     private BaseForkOptions forkOptions;
+    private boolean staticRoutesGenerator = true;
 
     /**
      * Returns the directory to generate the parser source files into.
@@ -95,7 +96,7 @@ public class RoutesCompile extends SourceTask {
 
     @TaskAction
     void compile() {
-        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject(), isNamespaceReverseRouter(), isGenerateReverseRoutes(), true);
+        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject(), isNamespaceReverseRouter(), isGenerateReverseRoutes(), staticRoutesGenerator);
         new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs()).execute(spec);
     }
 
@@ -163,5 +164,26 @@ public class RoutesCompile extends SourceTask {
      */
     public void setGenerateReverseRoutes(boolean generateReverseRoutes) {
         this.generateReverseRoutes = generateReverseRoutes;
+    }
+
+    /**
+     * Is the static routes generator (<code>play.routes.compiler.StaticRoutesGenerator</code>) used for
+     * generating routes?  Default is true.
+     *
+     * @return true if StaticRoutesGenerator will be used to generate routes,
+     * false if InjectedRoutesGenerator will be used to generate routes.
+     */
+    public boolean getStaticRoutesGenerator() {
+        return staticRoutesGenerator;
+    }
+
+    /**
+     * Configure if the static routes generator should be used to generate routes.
+     *
+     * @param staticRoutesGenerator true - use StaticRoutesGenerator
+     * false - use InjectedRoutesGenerator
+     */
+    public void setStaticRoutesGenerator(boolean staticRoutesGenerator) {
+        this.staticRoutesGenerator = staticRoutesGenerator;
     }
 }
