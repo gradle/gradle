@@ -152,7 +152,7 @@ public class RoutesCompile extends SourceTask {
     }
 
     /**
-     * Whether a reverse router should be generated.
+     * Whether a reverse router should be generated.  Default is true.
      */
     public boolean isGenerateReverseRoutes() {
         return generateReverseRoutes;
