@@ -130,3 +130,14 @@ Implementation notes
     -the feature is not enabled by default (can be turned on)
 
 2. Reuse build script and plugin classloaders.
+
+# Open issues
+
+## Disabled variants performance test
+
+The `VariantsPerformanceTest."multiproject using variants #scenario build"` has been disabled for the
+"all variants all projects" scenario.
+
+This test caused builds to stall/crash. One example was in the 'old model' scenario: not sure if this is consistent.
+
+The first example I can find is: https://builds.gradle.org/viewLog.html?buildTypeId=Gradle_Master_Performance_Linux&buildId=364897 but there are many subsequent failures.
