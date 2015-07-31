@@ -17,7 +17,6 @@ package org.gradle.initialization;
 
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.StandardOutputListener;
@@ -196,8 +195,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
         loggingManager.addStandardErrorListener(listener);
     }
 
-    public void registerBuildConfigurationTransformer(Transformer<List<BuildConfigurationAction>, List<BuildConfigurationAction>> transformer) {
-        buildConfigurationActionExecuter.registerBuildConfigurationTransformer(transformer);
+    public void setTaskSelectors(List<BuildConfigurationAction> taskSelectors) {
+        buildConfigurationActionExecuter.setTaskSelectors(taskSelectors);
     }
 
     public void stop() {

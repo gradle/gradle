@@ -16,7 +16,6 @@
 
 package org.gradle.execution
 
-import org.gradle.api.Transformer
 import org.gradle.api.internal.GradleInternal
 import spock.lang.Specification
 
@@ -24,42 +23,42 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
     final GradleInternal gradleInternal = Mock()
 
     def "select method calls configure method on first configuration action"() {
-        BuildConfigurationAction action1 = Mock()
-        BuildConfigurationAction action2 = Mock()
+        BuildConfigurationAction configurationAction = Mock()
+        BuildConfigurationAction taskSelectionAction = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1, action2])
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction], [taskSelectionAction])
 
         when:
         buildExecution.select(gradleInternal)
 
         then:
-        1 * action1.configure(!null)
+        1 * configurationAction.configure(!null)
         0 * _._
     }
 
     def "calls next action in chain when configuration action calls proceed"() {
-        BuildConfigurationAction action1 = Mock()
-        BuildConfigurationAction action2 = Mock()
+        BuildConfigurationAction configurationAction = Mock()
+        BuildConfigurationAction taskSelectionAction = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1, action2])
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction], [taskSelectionAction])
 
         when:
         buildExecution.select(gradleInternal)
 
         then:
-        1 * action1.configure(!null) >> { it[0].proceed() }
+        1 * configurationAction.configure(!null) >> { it[0].proceed() }
 
         and:
-        1 * action2.configure(!null)
+        1 * taskSelectionAction.configure(!null)
     }
 
     def "does nothing when last configuration action calls proceed"() {
         BuildConfigurationAction action1 = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1])
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([action1],[])
 
         when:
         buildExecution.select(gradleInternal)
@@ -73,7 +72,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         BuildConfigurationAction configurationAction = Mock()
 
         given:
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction])
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([configurationAction],[])
 
         when:
         buildExecution.select(gradleInternal)
@@ -84,22 +83,32 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
         }
     }
 
-    def "can register configuration actions transformer"() {
+    def "can overwrite default task selectors"() {
         setup:
-        BuildConfigurationAction givenAction = Mock()
-        BuildConfigurationAction newAction = Mock()
-        def buildExecution = new DefaultBuildConfigurationActionExecuter([givenAction])
-        def transformer = { incoming ->
-            return [newAction]
-        } as Transformer
+        BuildConfigurationAction configAction1 = Mock()
+        BuildConfigurationAction configAction2 = Mock()
+        BuildConfigurationAction givenTaskSelector2 = Mock()
+        BuildConfigurationAction givenTaskSelector1 = Mock()
+
+        BuildConfigurationAction newTaskSelector = Mock()
+
+
+        def buildExecution = new DefaultBuildConfigurationActionExecuter([configAction1, configAction2],[givenTaskSelector1, givenTaskSelector2])
+
         when:
-        buildExecution.registerBuildConfigurationTransformer(transformer)
+        buildExecution.setTaskSelectors([newTaskSelector])
         buildExecution.select(gradleInternal)
 
         then:
-        0 * givenAction.configure(!null)
-        1 * newAction.configure(!null) >> {
+
+        0 * givenTaskSelector1.configure(!null)
+        0 * givenTaskSelector2.configure(!null)
+        1 * configAction1.configure(!null) >> {it[0].proceed()}
+        1 * configAction2.configure(!null) >> {it[0].proceed()}
+
+        1 * newTaskSelector.configure(!null) >> {
             assert it[0].gradle ==gradleInternal
+
         }
     }
 }

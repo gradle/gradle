@@ -16,7 +16,6 @@
 package org.gradle.initialization;
 
 import org.gradle.BuildResult;
-import org.gradle.api.Transformer;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.internal.concurrent.Stoppable;
@@ -69,5 +68,5 @@ public abstract class GradleLauncher implements Stoppable {
     /**
      * Allows registration of transformations for customizing the list configuration action fired just before the list is processed.
      */
-    public abstract void registerBuildConfigurationTransformer(Transformer<List<BuildConfigurationAction>, List<BuildConfigurationAction>> custumizationAction);
+    public abstract void setTaskSelectors(List<BuildConfigurationAction> taskSelectors);
 }

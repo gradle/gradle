@@ -16,14 +16,12 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.execution.DefaultTasksBuildExecutionAction;
-import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
+import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -31,6 +29,8 @@ import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
+
+import java.util.Arrays;
 
 public class TestExecutionRequestActionRunner implements BuildActionRunner {
 
@@ -72,12 +72,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
 
     private void doRun(TestExecutionRequestAction action, BuildController buildController, TestCountListener testCountListener) {
         TestExecutionBuildConfigurationAction testTasksConfigurationAction = new TestExecutionBuildConfigurationAction(action.getTestExecutionRequest(), buildController.getGradle(), testCountListener);
-        @SuppressWarnings("unchecked")
-        ReplaceBuildConfigurationTransformer replaceBuildConfigurationTransformer = new ReplaceBuildConfigurationTransformer(testTasksConfigurationAction,
-            Lists.newArrayList(TaskNameResolvingBuildConfigurationAction.class, DefaultTasksBuildExecutionAction.class));
-
-        buildController.registerBuildConfigurationTransformer(replaceBuildConfigurationTransformer);
-
+        buildController.setTaskSelectors(Arrays.<BuildConfigurationAction>asList(testTasksConfigurationAction));
         buildController.run();
     }
 

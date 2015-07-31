@@ -64,5 +64,5 @@ public interface BuildController {
     /**
      * Allows registration of transformations for customizing the list configuration action fired just before the list is processed.
      */
-    void registerBuildConfigurationTransformer(org.gradle.api.Transformer<List<BuildConfigurationAction>, List<BuildConfigurationAction>> customizationTransformation);
+    void setTaskSelectors(List<BuildConfigurationAction> taskSelectors);
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 
 import java.util.List;
@@ -34,5 +33,5 @@ public interface BuildConfigurationActionExecuter {
     /**
      * registers actions allowing late customization of handled BuildConfigurationActions, if any. This method is called before any other methods on this executer.
      */
-    void registerBuildConfigurationTransformer(Transformer<List<BuildConfigurationAction>, List<BuildConfigurationAction>> transformer);
+    void setTaskSelectors(List<BuildConfigurationAction> taskSelectors);
 }

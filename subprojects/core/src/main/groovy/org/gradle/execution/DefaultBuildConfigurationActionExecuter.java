@@ -17,31 +17,28 @@
 package org.gradle.execution;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
 public class DefaultBuildConfigurationActionExecuter implements BuildConfigurationActionExecuter {
     private final List<BuildConfigurationAction> configurationActions;
-    private final List<Transformer<List<BuildConfigurationAction>, List<BuildConfigurationAction>>> configurationActionsTransformations;
+    private List<BuildConfigurationAction> taskSelectors;
 
-    public DefaultBuildConfigurationActionExecuter(Iterable<? extends BuildConfigurationAction> configurationActions) {
+    public DefaultBuildConfigurationActionExecuter(Iterable<? extends BuildConfigurationAction> configurationActions, Iterable<? extends BuildConfigurationAction> defaultTaskSelectors) {
+        this.taskSelectors = Lists.newArrayList(defaultTaskSelectors);
         this.configurationActions = Lists.newArrayList(configurationActions);
-        this.configurationActionsTransformations = Lists.newArrayList();
-    }
-
-    @Override
-    public void registerBuildConfigurationTransformer(Transformer<List<BuildConfigurationAction>, List<BuildConfigurationAction>> transformer) {
-        configurationActionsTransformations.add(transformer);
     }
 
     public void select(GradleInternal gradle) {
-        List<BuildConfigurationAction> processingBuildActions = configurationActions;
-        for (Transformer<List<BuildConfigurationAction>, List<BuildConfigurationAction>> customizationAction : configurationActionsTransformations) {
-            processingBuildActions = customizationAction.transform(processingBuildActions);
-        }
+        List<BuildConfigurationAction> processingBuildActions = CollectionUtils.flattenCollections(BuildConfigurationAction.class, configurationActions, taskSelectors);
         configure(processingBuildActions, gradle, 0);
+    }
+
+    @Override
+    public void setTaskSelectors(List<BuildConfigurationAction> taskSelectors) {
+        this.taskSelectors = taskSelectors;
     }
 
     private void configure(final List<BuildConfigurationAction> processingConfigurationActions, final GradleInternal gradle, final int index) {

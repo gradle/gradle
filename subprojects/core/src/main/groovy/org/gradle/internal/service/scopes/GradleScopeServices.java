@@ -40,6 +40,7 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -84,11 +85,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     BuildConfigurationActionExecuter createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector, ProjectConfigurer projectConfigurer) {
-        List<BuildConfigurationAction> configs = new LinkedList<BuildConfigurationAction>();
-        configs.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
-        configs.add(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector));
-        configs.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
-        return new DefaultBuildConfigurationActionExecuter(configs);
+        List<BuildConfigurationAction> taskSelectionActions = new LinkedList<BuildConfigurationAction>();
+        taskSelectionActions.add(new DefaultTasksBuildExecutionAction(projectConfigurer));
+        taskSelectionActions.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser));
+        return new DefaultBuildConfigurationActionExecuter(Arrays.asList(new ExcludedTaskFilteringBuildConfigurationAction(taskSelector)), taskSelectionActions);
     }
 
     ProjectFinder createProjectFinder(final GradleInternal gradle) {
