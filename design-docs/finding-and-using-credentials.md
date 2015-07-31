@@ -148,12 +148,7 @@ must not be used. Often, build users are not particularly opinionated regarding 
 
 ## Story: Build author configures Basic Auth to send credentials preemptively
 
-- Allow user to specify preemptive behavior when using basic auth
-    - ALWAYS - Always send credentials (all HTTP methods)
-    - PUT_ONLY - Only preemptively send credentials on PUT requests
-    - NEVER - Never preemptively send credentials
-- When other authentication schemes are configured, those are used only when server responds with a 401 to the preemptive basic auth request.
-- If `preemptive` flag is not specified, default to `PUT_ONLY`.
+- If repository is explicitly configured to use basic auth, preemptively send credentials
 
 ```
     maven {
@@ -163,29 +158,21 @@ must not be used. Often, build users are not particularly opinionated regarding 
             password 'pwd'
         }
         authentication {
-            basic(BasicAuthentication) {
-                preemptive = ALWAYS
-            }
-            digest(DigestAuthentication)
+            basic(BasicAuthentication)
         }
     }
 ```
 
 ### Implementation
 
-- Create `PREEMPTIVE_STRATEGY` enum with `ALWAYS`, `PUT_ONLY` and `NEVER` values.
-- Add `preemptive` flag to `BasicAuthentication`.
 - Modify `PreemptiveAuth` request interceptor
-    - Add basic credentials to _all_ requests when `preemptive` flag is `ALWAYS`.
-    - Use existing behavior when set to `PUT_ONLY`
-    - Disable preemptive auth entirely when set to `NEVER`
+    - Add basic credentials to _all_ requests when `BasicAuthentication` is specified
+    - Use existing behavior (only on PUT and POST) when using defaults
 
 ### Test Coverage
 
 - Can configure basic authentication to send credentials preemptively
-    - Credentials are sent on all requests (including GET/HEAD) when set to `ALWAYS`
-    - Credentials are sent only on "upload" requests when using `PUT_ONLY`
-    - Credentials are sent only when challenged when set to `NEVER`
+    - Credentials are sent on all requests (including GET/HEAD)
 - Can configure preemptive basic auth in conjunction with digest auth scheme
     - Should attempt digest auth if a 401 is received requesting digest auth
 
@@ -201,7 +188,7 @@ must not be used. Often, build users are not particularly opinionated regarding 
             password 'pwd'
         }
         authentication {
-            basic(WindowsAuthentication)
+            windows(WindowsAuthentication)
         }
     }
 ```
