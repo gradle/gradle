@@ -16,15 +16,15 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.play.integtest.fixtures.CancellableGradleBuild
 import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
-import org.gradle.util.TextUtil
 
 
 class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
     PlayApp playApp = new BasicPlayApp()
+    def build = new CancellableGradleBuild(executer)
 
     def setup() {
         buildFile << """
@@ -45,18 +45,15 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
         withGuavaJarController()
 
         when:
-        def userInput = new PipedOutputStream();
-        executer.withStdIn(new PipedInputStream(userInput))
-        GradleHandle gradleHandle = executer.withTasks("runPlayBinary").start()
+        build.start("runPlayBinary")
 
         then:
         runningApp.verifyStarted()
+        // The following should get the configured version of guava and not the version in the worker process classloader
         runningApp.playUrl("guavaJar").text.contains("guava-13.0.jar")
 
         cleanup:
-        userInput.write(4)
-        userInput.write(TextUtil.toPlatformLineSeparators("\n").bytes)
-        gradleHandle.waitForFinish()
+        build.cancel()
         runningApp.verifyStopped()
     }
 
