@@ -37,6 +37,7 @@ import org.gradle.api.authentication.BasicAuthentication;
 import org.gradle.api.authentication.DigestAuthentication;
 import org.gradle.api.internal.authentication.AllSchemesAuthentication;
 import org.gradle.api.internal.authentication.AuthenticationInternal;
+import org.gradle.internal.Cast;
 import org.gradle.internal.resource.UriResource;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
@@ -85,7 +86,7 @@ public class HttpClientConfigurer {
 
         for (Authentication authentication : authentications) {
             String scheme = getAuthScheme(authentication);
-            PasswordCredentials credentials = (PasswordCredentials) ((AuthenticationInternal) authentication).getCredentials();
+            PasswordCredentials credentials = getPasswordCredentials(authentication);
 
             if (authentication instanceof AllSchemesAuthentication) {
                 NTLMCredentials ntlmCredentials = new NTLMCredentials(credentials);
@@ -103,6 +104,15 @@ public class HttpClientConfigurer {
 
     public void configureUserAgent(DefaultHttpClient httpClient) {
         HttpProtocolParams.setUserAgent(httpClient.getParams(), UriResource.getUserAgentString());
+    }
+
+    private PasswordCredentials getPasswordCredentials(Authentication authentication) {
+        org.gradle.api.credentials.Credentials credentials = ((AuthenticationInternal) authentication).getCredentials();
+        if (!(credentials instanceof PasswordCredentials)) {
+            throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s", PasswordCredentials.class.getCanonicalName()));
+        }
+
+        return Cast.uncheckedCast(credentials);
     }
 
     private void configureRetryHandler(DefaultHttpClient httpClient) {
