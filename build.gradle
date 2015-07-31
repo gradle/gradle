@@ -47,7 +47,7 @@ buildTypes {
     platformTest "runtimeTests", "runtimeIntegTests", "performance:test", useIncomingDistributions: true, defaultIntegTestExecuter: "forking", testAllVersions: true, testAllPlatforms: true
 
     // Tests using the daemon mode
-    daemonTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "daemon"
+    daemonTest "runtimeDaemonIntegTests", useIncomingDistributions: true
 
     // Run the integration tests using the parallel executer
     parallelTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "parallel"
