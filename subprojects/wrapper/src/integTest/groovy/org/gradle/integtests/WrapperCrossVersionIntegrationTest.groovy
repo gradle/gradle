@@ -95,6 +95,8 @@ task hello {
             }
             executer.withBuildJvmOpts("-Dgradle.user.home=${executer.gradleUserHomeDir}")
         }
+        // To verify that using the installed distro works, and that the daemons aren't visible to other tests, as the installed distro is deleted at the end of this test
+        executer.requireIsolatedDaemons()
         return executer
     }
 }
