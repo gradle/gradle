@@ -22,7 +22,6 @@ import org.apache.http.client.params.AuthPolicy;
 import org.gradle.api.authentication.Authentication;
 import org.gradle.api.authentication.BasicAuthentication;
 import org.gradle.api.authentication.DigestAuthentication;
-import org.gradle.api.authentication.NtlmAuthentication;
 import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
@@ -44,7 +43,6 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
         Set<Class<? extends Authentication>> supported = new HashSet<Class<? extends Authentication>>();
         supported.add(BasicAuthentication.class);
         supported.add(DigestAuthentication.class);
-        supported.add(NtlmAuthentication.class);
         return supported;
     }
 
@@ -65,8 +63,6 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
                 authSchemes.add(AuthPolicy.BASIC);
             } else if (DigestAuthentication.class.isAssignableFrom(authenticationType.getClass())) {
                 authSchemes.add(AuthPolicy.DIGEST);
-            } else if (NtlmAuthentication.class.isAssignableFrom(authenticationType.getClass())) {
-                authSchemes.add(AuthPolicy.NTLM);
             } else {
                 throw new IllegalArgumentException(String.format("Authentication type of '%s' is not supported.", authenticationType.getClass().getSimpleName()));
             }
