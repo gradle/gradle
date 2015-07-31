@@ -16,14 +16,11 @@
 package org.gradle.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 class ScalaPluginIntegrationTest extends AbstractIntegrationSpec {
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @Issue("https://issues.gradle.org/browse/GRADLE-3094")
-    def "can apply scala plugin when running under java 8"() {
+    def "can apply scala plugin"() {
         file("build.gradle") << """
 apply plugin: "scala"
 
