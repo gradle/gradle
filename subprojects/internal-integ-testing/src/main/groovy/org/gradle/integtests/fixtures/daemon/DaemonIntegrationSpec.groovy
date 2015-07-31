@@ -40,9 +40,8 @@ abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
         result = executer.withArguments("--stop", "--info").run()
     }
 
-    void buildSucceeds(String script = '') {
-        file('build.gradle') << script
-        result = executer.withArguments("--info").withNoDefaultJvmArgs().run()
+    void buildSucceeds() {
+        result = executer.withArguments("--info").run()
     }
 
     DaemonsFixture getDaemons() {

@@ -30,6 +30,7 @@ import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TextUtil;
 
@@ -39,7 +40,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.*;
 
-import static java.util.Arrays.asList;
+import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 import static org.gradle.util.Matchers.containsLine;
@@ -55,8 +56,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
 
     protected static final List<String> DEBUG_ARGS = ImmutableList.of(
-        "-Xdebug",
-        "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
+            "-Xdebug",
+            "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
     );
 
     private final Logger logger;
@@ -88,7 +89,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean requireDaemon;
     private File daemonBaseDir = buildContext.getDaemonBaseDir();
     private final List<String> buildJvmOpts = new ArrayList<String>();
-    private boolean noDefaultJvmArgs;
+    private boolean defaultJvmArgs;
     private boolean requireGradleHome;
     private boolean daemonStartingMessageDisabled = true;
 
@@ -134,14 +135,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         defaultCharacterEncoding = null;
         tmpDir = null;
         defaultLocale = null;
-        noDefaultJvmArgs = false;
+        buildJvmOpts.clear();
+        defaultJvmArgs = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
         interactive = false;
         return this;
     }
-
 
     public GradleDistribution getDistribution() {
         return distribution;
@@ -228,9 +229,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (defaultLocale != null) {
             executer.withDefaultLocale(defaultLocale);
         }
-        executer.withBuildJvmOpts(buildJvmOpts.toArray(new String[buildJvmOpts.size()]));
-        if (noDefaultJvmArgs) {
-            executer.withNoDefaultJvmArgs();
+        executer.withBuildJvmOpts(buildJvmOpts);
+        if (defaultJvmArgs) {
+            executer.useDefaultBuildJvmArgs();
         }
         executer.noExtraLogging();
 
@@ -300,21 +301,24 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      */
     protected List<String> getLauncherJvmOpts() {
         List<String> jvmOpts = new ArrayList<String>();
-        if (requireDaemon) {
+        if (isUseDaemon() && !defaultJvmArgs) {
             String quotedArgs = join(" ", collect(getBuildJvmOpts(), new Transformer<String, String>() {
                 public String transform(String input) {
                     return String.format("'%s'", input);
                 }
             }));
             jvmOpts.add("-Dorg.gradle.jvmargs=" + quotedArgs);
-        } else {
+        } else if (!defaultJvmArgs) {
             jvmOpts.addAll(getBuildJvmOpts());
         }
+
+        // Set the implicit system properties regardless of whether default JVM args are required or not
         for (Map.Entry<String, String> entry : getImplicitJvmSystemProperties().entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
             jvmOpts.add(String.format("-D%s=%s", key, value));
         }
+
         jvmOpts.add("-ea");
         return jvmOpts;
     }
@@ -477,8 +481,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    public GradleExecuter withNoDefaultJvmArgs() {
-        noDefaultJvmArgs = true;
+    public GradleExecuter useDefaultBuildJvmArgs() {
+        defaultJvmArgs = true;
         return this;
     }
 
@@ -501,12 +505,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    protected boolean isRequireDaemon() {
+    protected boolean isUseDaemon() {
+        for (int i = args.size() - 1; i >= 0; i--) {
+            if (args.get(i).equals("--daemon")) {
+                return true;
+            }
+            if (args.get(i).equals("--no-daemon")) {
+                return false;
+            }
+        }
         return requireDaemon;
-    }
-
-    protected boolean isNoDefaultJvmArgs() {
-        return noDefaultJvmArgs;
     }
 
     protected List<String> getAllArgs() {
@@ -530,7 +538,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (quiet) {
             allArgs.add("--quiet");
         }
-        if (requireDaemon) {
+        if (isUseDaemon()) {
             allArgs.add("--daemon");
         }
         if (taskList) {
@@ -606,6 +614,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put(DaemonParameters.INTERACTIVE_TOGGLE, "true");
         }
 
+        if (daemonStartingMessageDisabled) {
+            properties.put(DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY, "true");
+        }
+
         return properties;
     }
 
@@ -664,7 +676,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * {@inheritDoc}
      */
     public AbstractGradleExecuter withBuildJvmOpts(String... jvmOpts) {
-        buildJvmOpts.addAll(asList(jvmOpts));
+        CollectionUtils.addAll(buildJvmOpts, jvmOpts);
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withBuildJvmOpts(Iterable<String> jvmOpts) {
+        CollectionUtils.addAll(buildJvmOpts, jvmOpts);
         return this;
     }
 
@@ -757,10 +775,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter withDaemonStartingMessageEnabled() {
         daemonStartingMessageDisabled = false;
         return this;
-    }
-
-    public boolean isDaemonStartingMessageDisabled() {
-        return daemonStartingMessageDisabled;
     }
 
     @Override

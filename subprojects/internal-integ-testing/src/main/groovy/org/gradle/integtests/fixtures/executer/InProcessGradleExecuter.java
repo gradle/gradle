@@ -96,7 +96,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected ExecutionResult doRun() {
-        if (isRequireDaemon()) {
+        if (isUseDaemon()) {
             return doStart().waitForFinish();
         }
 
@@ -115,7 +115,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected ExecutionFailure doRunWithFailure() {
-        if (isRequireDaemon()) {
+        if (isUseDaemon()) {
             return doStart().waitForFailure();
         }
 
@@ -149,9 +149,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
                 builder.setMain(Main.class.getName());
                 builder.args(getAllArgs());
                 builder.setStandardInput(getStdin());
-                if (isDebug()) {
-                    builder.jvmArgs(DEBUG_ARGS);
-                }
+
                 return builder;
             }
         }).start();

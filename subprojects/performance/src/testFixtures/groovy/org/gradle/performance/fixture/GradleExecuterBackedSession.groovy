@@ -60,7 +60,7 @@ class GradleExecuterBackedSession implements GradleSession {
                 withTasks(invocation.tasksToRun)
 
         if (withGradleOpts) {
-            executer.withBuildJvmOpts(invocation.jvmOpts as String[])
+            executer.withBuildJvmOpts(invocation.jvmOpts)
         }
 
         invocation.args.each { executer.withArgument(it) }

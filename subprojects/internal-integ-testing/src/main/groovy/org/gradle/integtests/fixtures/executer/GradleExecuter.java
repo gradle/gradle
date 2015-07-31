@@ -119,11 +119,6 @@ public interface GradleExecuter {
     GradleExecuter withStdIn(InputStream stdin);
 
     /**
-     * Specifies that the executer should not set any default jvm args.
-     */
-    GradleExecuter withNoDefaultJvmArgs();
-
-    /**
      * Executes the requested build, asserting that the build succeeds. Resets the configuration of this executer.
      *
      * @return The result.
@@ -145,13 +140,23 @@ public interface GradleExecuter {
     GradleHandle start();
 
     /**
-     * Adds options that should be used to start the build VM. Does not necessarily imply that the build is run in a separate process, or that a new build JVM is started,
-     * only that the build runs in a VM that was started with the specified options.
+     * Adds JVM args that should be used to start the build VM. Does not necessarily imply that the build will be run in a separate process, or that a new build JVM will
+     * be started, only that the build will run in a VM that was started with the specified args.
      *
      * @param jvmOpts the JVM opts
      * @return this executer
      */
     GradleExecuter withBuildJvmOpts(String... jvmOpts);
+
+    /**
+     * See {@link #withBuildJvmOpts(String...)}.
+     */
+    GradleExecuter withBuildJvmOpts(Iterable<String> jvmOpts);
+
+    /**
+     * Specifies that the executer should use the real default JVM args for the build JVM and not attempt to inject any.
+     */
+    GradleExecuter useDefaultBuildJvmArgs();
 
     /**
      * Sets the default character encoding to use.

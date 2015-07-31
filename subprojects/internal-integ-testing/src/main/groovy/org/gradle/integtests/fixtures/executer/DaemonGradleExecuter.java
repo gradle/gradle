@@ -22,7 +22,6 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections.CollectionUtils.containsAny;
-import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
@@ -50,19 +49,15 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
     @Override
     protected List<String> getBuildJvmOpts() {
-        List<String> buildJvmOpts = new ArrayList<String>(super.getBuildJvmOpts());
+        if (!isUseDaemon()) {
+            return super.getBuildJvmOpts();
+        }
 
-        if (isDaemonStartingMessageDisabled()) {
-            buildJvmOpts.add("-D" + DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY + "=true");
-        }
-        if (isNoDefaultJvmArgs()) {
-            return buildJvmOpts;
-        } else {
-            buildJvmOpts.add("-XX:MaxPermSize=320m");
-            buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
-            buildJvmOpts.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir().getAbsolutePath());
-            return buildJvmOpts;
-        }
+        List<String> buildJvmOpts = new ArrayList<String>(super.getBuildJvmOpts());
+        buildJvmOpts.add("-XX:MaxPermSize=320m");
+        buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
+        buildJvmOpts.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir().getAbsolutePath());
+        return buildJvmOpts;
     }
 
 }
