@@ -44,6 +44,10 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
         """
         withGuavaJarController()
 
+        setup:
+        // build once to speed up the playRun build and avoid spurious timeouts
+        succeeds "assemble"
+
         when:
         build.start("runPlayBinary")
 
