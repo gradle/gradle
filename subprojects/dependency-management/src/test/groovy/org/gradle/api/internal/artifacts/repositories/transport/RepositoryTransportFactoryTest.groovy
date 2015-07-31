@@ -20,7 +20,6 @@ import com.google.common.collect.Lists
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.credentials.Credentials
-import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.api.internal.authentication.AbstractAuthentication
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
@@ -45,7 +44,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def "cannot create a transport for url with unsupported scheme"() {
         when:
-        repositoryTransportFactory.createTransport(['unsupported'] as Set, null, null, ([] as Set))
+        repositoryTransportFactory.createTransport(['unsupported'] as Set, null, [])
 
         then:
         InvalidUserDataException e = thrown()
@@ -54,7 +53,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
     def "cannot creates a transport for mixed url scheme"() {
         when:
-        repositoryTransportFactory.createTransport(['protocol1', 'protocol2b'] as Set, null, null, ([] as Set))
+        repositoryTransportFactory.createTransport(['protocol1', 'protocol2b'] as Set, null, [])
 
         then:
         InvalidUserDataException e = thrown()
@@ -62,10 +61,11 @@ class RepositoryTransportFactoryTest extends Specification {
     }
 
     def "should create a transport for known scheme"() {
-        def credentials = Mock(DefaultPasswordCredentials)
+        def authentication = new GoodCredentialsAuthentication('good')
+        authentication.credentials = Mock(GoodCredentials)
 
         when:
-        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, ([] as Set))
+        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [authentication])
 
         then:
         transport.class == ResourceConnectorRepositoryTransport
@@ -81,11 +81,11 @@ class RepositoryTransportFactoryTest extends Specification {
     }
 
     def "should create transport for known scheme, authentication and credentials"() {
-        def credentials = Mock(GoodCredentials)
         def authentication = new GoodCredentialsAuthentication('good')
+        authentication.credentials = Mock(GoodCredentials)
 
         when:
-        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, ([authentication] as Set))
+        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [authentication])
 
         then:
         transport.class == ResourceConnectorRepositoryTransport
@@ -94,9 +94,10 @@ class RepositoryTransportFactoryTest extends Specification {
     @Unroll
     def "should throw when using invalid authentication type"() {
         def credentials = Mock(GoodCredentials)
+        authentication.credentials = credentials
 
         when:
-        repositoryTransportFactory.createTransport(protocols as Set, null, credentials, ([authentication] as Set))
+        repositoryTransportFactory.createTransport(protocols as Set, null, [authentication])
 
         then:
         def ex = thrown(InvalidUserDataException)
@@ -110,22 +111,24 @@ class RepositoryTransportFactoryTest extends Specification {
 
     @Unroll
     def "should throw when using invalid credentials type"() {
+        authentication*.credentials = credentials
+
         when:
-        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, credentials, authentication)
+        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, authentication)
 
         then:
         def ex = thrown(InvalidUserDataException)
         ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication scheme '${invalidType.simpleName}'"
 
         where:
-        credentials           | authentication                                                                              || invalidType
-        Mock(BadCredentials)  | [new GoodCredentialsAuthentication('good')] as Set                                          || GoodCredentialsAuthentication
-        Mock(GoodCredentials) | [new GoodCredentialsAuthentication('good'), new BadCredentialsAuthentication('bad')] as Set || BadCredentialsAuthentication
+        credentials           | authentication                                                                       || invalidType
+        Mock(BadCredentials)  | [new GoodCredentialsAuthentication('good')]                                          || GoodCredentialsAuthentication
+        Mock(GoodCredentials) | [new GoodCredentialsAuthentication('good'), new BadCredentialsAuthentication('bad')] || BadCredentialsAuthentication
     }
 
     def "should throw when specifying authentication types with null credentials"() {
         when:
-        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, null, ([new GoodCredentialsAuthentication('good')] as Set))
+        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [new GoodCredentialsAuthentication('good')])
 
         then:
         def ex = thrown(InvalidUserDataException)

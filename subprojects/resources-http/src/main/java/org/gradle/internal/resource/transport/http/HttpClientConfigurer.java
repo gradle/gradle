@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-import com.google.common.collect.Sets;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -32,7 +31,12 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
-import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.authentication.Authentication;
+import org.gradle.api.authentication.BasicAuthentication;
+import org.gradle.api.authentication.DigestAuthentication;
+import org.gradle.api.internal.authentication.AllSchemesAuthentication;
+import org.gradle.api.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.resource.UriResource;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
@@ -40,8 +44,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
@@ -54,55 +58,51 @@ public class HttpClientConfigurer {
 
     public void configure(DefaultHttpClient httpClient) {
         NTLMSchemeFactory.register(httpClient);
-        configureCredentials(httpClient, httpSettings.getCredentials(), httpSettings.getAuthSchemes());
+        configureCredentials(httpClient, httpSettings.getAuthenticationSettings());
         configureProxyCredentials(httpClient, httpSettings.getProxySettings());
         configureRetryHandler(httpClient);
         configureUserAgent(httpClient);
     }
 
-    private void configureCredentials(DefaultHttpClient httpClient, PasswordCredentials credentials, Set<String> authSchemes) {
-        if(credentials != null) {
-            String username = credentials.getUsername();
-            if (username != null && username.length() > 0) {
-                useCredentials(httpClient, credentials, AuthScope.ANY_HOST, AuthScope.ANY_PORT, authSchemes);
+    private void configureCredentials(DefaultHttpClient httpClient, Collection<Authentication> authentications) {
+        if(authentications != null && authentications.size() > 0) {
+            useCredentials(httpClient, AuthScope.ANY_HOST, AuthScope.ANY_PORT, authentications);
 
-                // Use preemptive authorisation if no other authorisation has been established
-                httpClient.addRequestInterceptor(new PreemptiveAuth(new BasicScheme()), 0);
-            }
+            // Use preemptive authorisation if no other authorisation has been established
+            httpClient.addRequestInterceptor(new PreemptiveAuth(new BasicScheme()), 0);
         }
     }
 
     private void configureProxyCredentials(DefaultHttpClient httpClient, HttpProxySettings proxySettings) {
         HttpProxySettings.HttpProxy proxy = proxySettings.getProxy();
         if (proxy != null && proxy.credentials != null) {
-            useCredentials(httpClient, proxy.credentials, proxy.host, proxy.port, Collections.singleton(AuthScope.ANY_SCHEME));
+            useCredentials(httpClient, proxy.host, proxy.port, Collections.singleton(new AllSchemesAuthentication(null, proxy.credentials)));
         }
     }
 
-    private void useCredentials(DefaultHttpClient httpClient, PasswordCredentials credentials, String host, int port, Set<String> authSchemes) {
+    private void useCredentials(DefaultHttpClient httpClient, String host, int port, Collection<? extends Authentication> authentications) {
         Credentials httpCredentials;
-        Set<String> effectiveSchemes = authSchemes;
 
-        // Make sure we configure NTLM credentials when using default auth schemes
-        if (authSchemes.size() == 1 && authSchemes.iterator().next() == null) {
-            effectiveSchemes = Sets.newHashSet(authSchemes);
-            effectiveSchemes.add(AuthPolicy.NTLM);
-        }
+        for (Authentication authentication : authentications) {
+            String scheme = getAuthScheme(authentication);
+            PasswordCredentials credentials = (PasswordCredentials) ((AuthenticationInternal) authentication).getCredentials();
 
-        for (String scheme : effectiveSchemes) {
-            if (scheme != null && scheme.equals(AuthPolicy.NTLM)) {
+            if (authentication instanceof AllSchemesAuthentication) {
                 NTLMCredentials ntlmCredentials = new NTLMCredentials(credentials);
                 httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
+                httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthPolicy.NTLM), httpCredentials);
 
                 LOGGER.debug("Using {} and {} for authenticating against '{}:{}'", new Object[]{credentials, ntlmCredentials, host, port});
-            } else {
-                httpCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
-
-                LOGGER.debug("Using {} for authenticating against '{}:{}'", new Object[]{credentials, host, port});
             }
 
+            httpCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
             httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
+            LOGGER.debug("Using {} for authenticating against '{}:{}'", new Object[]{credentials, host, port});
         }
+    }
+
+    public void configureUserAgent(DefaultHttpClient httpClient) {
+        HttpProtocolParams.setUserAgent(httpClient.getParams(), UriResource.getUserAgentString());
     }
 
     private void configureRetryHandler(DefaultHttpClient httpClient) {
@@ -113,8 +113,16 @@ public class HttpClientConfigurer {
         });
     }
 
-    public void configureUserAgent(DefaultHttpClient httpClient) {
-        HttpProtocolParams.setUserAgent(httpClient.getParams(), UriResource.getUserAgentString());
+    private String getAuthScheme(Authentication authentication) {
+        if (authentication instanceof BasicAuthentication) {
+            return AuthPolicy.BASIC;
+        } else if (authentication instanceof DigestAuthentication) {
+            return AuthPolicy.DIGEST;
+        } else if (authentication instanceof AllSchemesAuthentication) {
+            return AuthScope.ANY_SCHEME;
+        } else {
+            throw new IllegalArgumentException(String.format("Authentication scheme of '%s' is not supported.", authentication.getClass().getSimpleName()));
+        }
     }
 
     static class PreemptiveAuth implements HttpRequestInterceptor {

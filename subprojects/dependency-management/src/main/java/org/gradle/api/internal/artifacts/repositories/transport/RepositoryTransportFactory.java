@@ -77,8 +77,8 @@ public class RepositoryTransportFactory {
         return validSchemes;
     }
 
-    public RepositoryTransport createTransport(String scheme, String name, Credentials credentials, Collection<Authentication> authentications) {
-        return createTransport(Collections.singleton(scheme), name, credentials, authentications);
+    public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications) {
+        return createTransport(Collections.singleton(scheme), name, authentications);
     }
 
     /**
@@ -92,18 +92,18 @@ public class RepositoryTransportFactory {
         return new org.gradle.internal.resource.PasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
     }
 
-    public RepositoryTransport createTransport(Set<String> schemes, String name, Credentials credentials, Collection<Authentication> authentications) {
+    public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications) {
         validateSchemes(schemes);
 
         // File resources are handled slightly differently at present.
         if (Collections.singleton("file").containsAll(schemes)) {
             return new FileTransport(name);
         }
-        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(credentials, authentications);
+        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
         ResourceConnectorFactory connectorFactory = findConnectorFactory(schemes);
 
         // Ensure resource transport protocol, authentication types and credentials are all compatible
-        validateConnectorFactoryCredentials(connectorFactory, credentials, authentications);
+        validateConnectorFactoryCredentials(connectorFactory, authentications);
 
         ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
         return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector);
@@ -118,13 +118,13 @@ public class RepositoryTransportFactory {
         }
     }
 
-    private void validateConnectorFactoryCredentials(ResourceConnectorFactory factory, Credentials credentials, Collection<Authentication> authentications) {
-        if (authentications.size() > 0 && credentials == null) {
-            throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
-        }
+    private void validateConnectorFactoryCredentials(ResourceConnectorFactory factory, Collection<Authentication> authentications) {
+        boolean nullCredentials = true;
 
         for (Authentication authentication : authentications) {
             boolean isAuthenticationSupported = false;
+            Credentials credentials = ((AuthenticationInternal) authentication).getCredentials();
+
             for (Class<?> authenticationType : factory.getSupportedAuthentication()) {
                 if (authenticationType.isAssignableFrom(authentication.getClass())) {
                     isAuthenticationSupported = true;
@@ -137,12 +137,20 @@ public class RepositoryTransportFactory {
                     authentication.getClass().getSimpleName(), factory.getSupportedProtocols()));
             }
 
-            for (Class<? extends Credentials> credentialsType : ((AuthenticationInternal)authentication).getSupportedCredentials()) {
-                if (!credentialsType.isAssignableFrom(credentials.getClass())) {
-                    throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme '%s'",
-                        credentials.getClass().getSimpleName(), authentication.getClass().getSimpleName()));
+            if (credentials != null) {
+                for (Class<? extends Credentials> credentialsType : ((AuthenticationInternal) authentication).getSupportedCredentials()) {
+                    if (!credentialsType.isAssignableFrom(credentials.getClass())) {
+                        throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme '%s'",
+                            credentials.getClass().getSimpleName(), authentication.getClass().getSimpleName()));
+                    }
                 }
+
+                nullCredentials = false;
             }
+        }
+
+        if (nullCredentials && authentications.size() > 0) {
+            throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
         }
     }
 
@@ -156,17 +164,21 @@ public class RepositoryTransportFactory {
     }
 
     private class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
-        private final Credentials credentials;
         private final Collection<Authentication> authentications;
 
-        private DefaultResourceConnectorSpecification(Credentials credentials, Collection<Authentication> authentications) {
-            this.credentials = credentials;
+        private DefaultResourceConnectorSpecification(Collection<Authentication> authentications) {
             this.authentications = authentications;
         }
 
         @Override
         public <T> T getCredentials(Class<T> type) {
-            if(credentials == null){
+            if (authentications == null || authentications.size() < 1) {
+                return null;
+            }
+
+            Credentials credentials = ((AuthenticationInternal)authentications.iterator().next()).getCredentials();
+
+            if(credentials == null) {
                 return null;
             }
             if (org.gradle.internal.resource.PasswordCredentials.class.isAssignableFrom(type)) {

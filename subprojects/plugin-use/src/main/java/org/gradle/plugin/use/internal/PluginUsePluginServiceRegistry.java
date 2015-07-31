@@ -34,7 +34,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.internal.resource.PasswordCredentials;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
@@ -66,7 +65,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
 
     private static class BuildScopeServices {
         PluginResolutionServiceClient createPluginResolutionServiceClient(CacheRepository cacheRepository, StartParameter startParameter) {
-            HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(new PasswordCredentials()));
+            HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(null));
             HttpResourceAccessor accessor = new HttpResourceAccessor(http);
             PluginResolutionServiceClient httpClient = startParameter.isOffline()
                     ? new OfflinePluginResolutionServiceClient()

@@ -22,12 +22,16 @@ import org.gradle.api.authentication.Authentication;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.api.internal.authentication.AllSchemesAuthentication;
 import org.gradle.api.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
+
+import java.util.Collection;
+import java.util.Collections;
 
 public abstract class AbstractAuthenticationSupportedRepository extends AbstractArtifactRepository implements AuthenticationSupportedInternal {
 
@@ -38,6 +42,14 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
         this.instantiator = instantiator;
         this.authenticationContainer = authenticationContainer;
+
+        // TODO: This will have to be changed when we support setting credentials directly on the authentication
+        this.authenticationContainer.all(new Action<Authentication>() {
+            @Override
+            public void execute(Authentication authentication) {
+                ((AuthenticationInternal)authentication).setCredentials(getConfiguredCredentials());
+            }
+        });
     }
 
     @Override
@@ -97,6 +109,15 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     @Override
     public AuthenticationContainer getAuthentication() {
         return authenticationContainer;
+    }
+
+    @Override
+    public Collection<Authentication> getConfiguredAuthentication() {
+        if (getConfiguredCredentials() != null & authenticationContainer.size() == 0) {
+            return Collections.<Authentication>singleton(new AllSchemesAuthentication("all", getConfiguredCredentials()));
+        } else {
+            return getAuthentication();
+        }
     }
 
     private void populateAuthenticationCredentials() {

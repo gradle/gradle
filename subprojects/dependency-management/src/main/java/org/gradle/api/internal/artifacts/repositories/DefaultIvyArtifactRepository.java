@@ -95,7 +95,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         if (schemes.isEmpty()) {
             throw new InvalidUserDataException("You must specify a base url or at least one artifact pattern for an Ivy repository.");
         }
-        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredCredentials(), getAuthentication()));
+        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication()));
     }
 
     private IvyResolver createResolver(RepositoryTransport transport) {

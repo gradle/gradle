@@ -16,14 +16,12 @@
 package org.gradle.internal.resource.transport.http;
 
 
-import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.api.authentication.Authentication;
 
-import java.util.Set;
+import java.util.Collection;
 
 public interface HttpSettings {
-    PasswordCredentials getCredentials();
-
     HttpProxySettings getProxySettings();
 
-    Set<String> getAuthSchemes();
+    Collection<Authentication> getAuthenticationSettings();
 }
