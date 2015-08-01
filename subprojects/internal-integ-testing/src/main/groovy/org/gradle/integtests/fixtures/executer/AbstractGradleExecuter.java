@@ -28,6 +28,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.listener.ActionBroadcast;
+import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.CollectionUtils;
@@ -52,6 +53,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public static void propagateSystemProperty(String name) {
         propagatedSystemProperties.add(name);
     }
+
+    /**
+     * Environment variable to set JVM options only for integration tests.
+     */
+    private static final String TEST_GRADLE_OPTS = "TEST_GRADLE_OPTS";
 
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
 
@@ -301,6 +307,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      */
     protected List<String> getLauncherJvmOpts() {
         List<String> jvmOpts = new ArrayList<String>();
+
+        String testGradleOptions = System.getenv(TEST_GRADLE_OPTS);
+        if (testGradleOptions != null) {
+            jvmOpts.addAll(JvmOptions.fromString(testGradleOptions));
+        }
+
         if (isUseDaemon() && !defaultJvmArgs) {
             String quotedArgs = join(" ", collect(getBuildJvmOpts(), new Transformer<String, String>() {
                 public String transform(String input) {
