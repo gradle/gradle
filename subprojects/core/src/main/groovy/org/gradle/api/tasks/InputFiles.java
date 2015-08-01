@@ -22,7 +22,7 @@ import java.lang.annotation.*;
  *
  * <p>This annotation should be attached to the getter method or the field for the property.</p>
  *
- * <p>This will cause the task to fail the up-to-date check when the file paths or contents
+ * <p>This will cause the task to be considered out-of-date when the file paths or contents
  * have changed. Also see {@link org.gradle.api.tasks.InputDirectory}.
  */
 @Documented

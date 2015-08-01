@@ -22,7 +22,7 @@ import java.lang.annotation.*;
  *
  * <p>This annotation should be attached to the getter method or the field for the property.</p>
  *
- * <p>The task will fail the up-to-date check when the directory location or contents
+ * <p>This will cause the task to be considered out-of-date when the directory location or contents
  * have changed. To make the task dependent on the directory location but not the
  * contents, use an {@link org.gradle.api.tasks.Input} annotation instead.</p>
  */
