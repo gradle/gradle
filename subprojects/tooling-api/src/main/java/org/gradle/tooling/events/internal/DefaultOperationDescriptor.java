@@ -23,7 +23,7 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 /**
  * Implementation of the {@code BuildOperationDescriptor} interface.
  */
-public class DefaultOperationDescriptor implements OperationDescriptor, OperationDescriptorInternal {
+public class DefaultOperationDescriptor implements OperationDescriptor, OperationDescriptorWrapper {
 
     private final String name;
     private final String displayName;
