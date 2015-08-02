@@ -21,8 +21,6 @@ import org.gradle.api.internal.GradleInternal;
  * Executes the tasks requested for a build.
  */
 public interface BuildExecuter {
-
-
     /**
      * Executes the selected tasks.
      */

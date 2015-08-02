@@ -33,5 +33,5 @@ public interface BuildConfigurationActionExecuter {
     /**
      * registers actions allowing late customization of handled BuildConfigurationActions, if any. This method is called before any other methods on this executer.
      */
-    void setTaskSelectors(List<BuildConfigurationAction> taskSelectors);
+    void setTaskSelectors(List<? extends BuildConfigurationAction> taskSelectors);
 }

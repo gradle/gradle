@@ -17,7 +17,6 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultGradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -25,8 +24,6 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.ServiceRegistry;
-
-import java.util.List;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -86,10 +83,6 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         public void setResult(Object result) {
             this.hasResult = true;
             this.result = result;
-        }
-
-        public void setTaskSelectors(List<BuildConfigurationAction> taskSelectors) {
-            getLauncher().setTaskSelectors(taskSelectors);
         }
 
         public GradleInternal getGradle() {

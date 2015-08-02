@@ -21,7 +21,6 @@ import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
-import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
@@ -30,7 +29,6 @@ import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.Closeable;
-import java.util.List;
 
 public class DefaultGradleLauncher extends GradleLauncher {
 
@@ -48,8 +46,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final ModelConfigurationListener modelConfigurationListener;
     private final BuildCompletionListener buildCompletionListener;
     private final BuildOperationExecutor buildOperationExecutor;
-    private BuildConfigurationActionExecuter buildConfigurationActionExecuter;
-    private BuildExecuter buildExecuter;
+    private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
+    private final BuildExecuter buildExecuter;
     private final Closeable buildServices;
 
     /**
@@ -193,10 +191,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
     @Override
     public void addStandardErrorListener(StandardOutputListener listener) {
         loggingManager.addStandardErrorListener(listener);
-    }
-
-    public void setTaskSelectors(List<BuildConfigurationAction> taskSelectors) {
-        buildConfigurationActionExecuter.setTaskSelectors(taskSelectors);
     }
 
     public void stop() {

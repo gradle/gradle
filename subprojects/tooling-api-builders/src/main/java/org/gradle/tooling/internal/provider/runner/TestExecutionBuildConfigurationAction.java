@@ -36,8 +36,8 @@ import java.util.*;
 
 class TestExecutionBuildConfigurationAction implements BuildConfigurationAction {
     private final GradleInternal gradle;
-    private List<TestListener> globalTestListeners;
-    private InternalTestExecutionRequest testExecutionRequest;
+    private final List<TestListener> globalTestListeners;
+    private final InternalTestExecutionRequest testExecutionRequest;
 
     public TestExecutionBuildConfigurationAction(InternalTestExecutionRequest testExecutionRequest, GradleInternal gradle, TestListener... globalTestListeners) {
         this.testExecutionRequest = testExecutionRequest;

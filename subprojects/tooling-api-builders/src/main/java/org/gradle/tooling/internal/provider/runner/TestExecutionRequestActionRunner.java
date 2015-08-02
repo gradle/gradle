@@ -21,7 +21,7 @@ import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.execution.BuildConfigurationAction;
+import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -30,7 +30,7 @@ import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 public class TestExecutionRequestActionRunner implements BuildActionRunner {
 
@@ -72,7 +72,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
 
     private void doRun(TestExecutionRequestAction action, BuildController buildController, TestCountListener testCountListener) {
         TestExecutionBuildConfigurationAction testTasksConfigurationAction = new TestExecutionBuildConfigurationAction(action.getTestExecutionRequest(), buildController.getGradle(), testCountListener);
-        buildController.setTaskSelectors(Arrays.<BuildConfigurationAction>asList(testTasksConfigurationAction));
+        buildController.getGradle().getServices().get(BuildConfigurationActionExecuter.class).setTaskSelectors(Collections.singletonList(testTasksConfigurationAction));
         buildController.run();
     }
 

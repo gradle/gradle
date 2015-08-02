@@ -24,7 +24,7 @@ import java.util.List;
 
 public class DefaultBuildConfigurationActionExecuter implements BuildConfigurationActionExecuter {
     private final List<BuildConfigurationAction> configurationActions;
-    private List<BuildConfigurationAction> taskSelectors;
+    private List<? extends BuildConfigurationAction> taskSelectors;
 
     public DefaultBuildConfigurationActionExecuter(Iterable<? extends BuildConfigurationAction> configurationActions, Iterable<? extends BuildConfigurationAction> defaultTaskSelectors) {
         this.taskSelectors = Lists.newArrayList(defaultTaskSelectors);
@@ -37,7 +37,7 @@ public class DefaultBuildConfigurationActionExecuter implements BuildConfigurati
     }
 
     @Override
-    public void setTaskSelectors(List<BuildConfigurationAction> taskSelectors) {
+    public void setTaskSelectors(List<? extends BuildConfigurationAction> taskSelectors) {
         this.taskSelectors = taskSelectors;
     }
 
