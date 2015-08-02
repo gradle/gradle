@@ -140,8 +140,19 @@ public interface GradleExecuter {
     GradleHandle start();
 
     /**
-     * Adds JVM args that should be used to start the build VM. Does not necessarily imply that the build will be run in a separate process, or that a new build JVM will
-     * be started, only that the build will run in a VM that was started with the specified args.
+     * Adds JVM args that should be used to start any command-line `gradle` executable used to run the build. Note that this may be different to the build JVM,
+     * for example the build may run in a daemon process. You should prefer using {@link #withBuildJvmOpts(String...)} over this method.
+     */
+    GradleExecuter withCommandLineGradleOpts(String... jvmOpts);
+
+    /**
+     * See {@link #withCommandLineGradleOpts(String...)}.
+     */
+    GradleExecuter withCommandLineGradleOpts(Iterable<String> jvmOpts);
+
+    /**
+     * Adds JVM args that should be used by the build JVM. Does not necessarily imply that the build will be run in a separate process, or that a new build JVM will
+     * be started, only that the build will run in a JVM that was started with the specified args.
      *
      * @param jvmOpts the JVM opts
      * @return this executer
@@ -154,7 +165,8 @@ public interface GradleExecuter {
     GradleExecuter withBuildJvmOpts(Iterable<String> jvmOpts);
 
     /**
-     * Specifies that the executer should use the real default JVM args for the build JVM and not attempt to inject any.
+     * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)}
+     * (where appropriate) for the build JVM and not attempt to provide any others.
      */
     GradleExecuter useDefaultBuildJvmArgs();
 

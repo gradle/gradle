@@ -26,7 +26,10 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.fail;
 
@@ -38,42 +41,60 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     public void assertCanExecute() throws AssertionError {
         if (!getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
-            Map<String, String> mergedEnvironmentVars = getMergedEnvironmentVars();
+            Map<String, String> environmentVars = buildInvocation().environmentVars;
             for (String envVarName : Arrays.asList("JAVA_OPTS", "GRADLE_OPTS")) {
-                String envVarValue = mergedEnvironmentVars.get(envVarName);
+                String envVarValue = environmentVars.get(envVarName);
                 if (envVarValue == null) {
                     continue;
                 }
                 for (String arg : JvmOptions.fromString(envVarValue)) {
                     if (arg.contains(" ")) {
-                        throw new AssertionError(String.format("Env var %s contains arg with space (%s) which is not supported", envVarName, arg));
+                        throw new AssertionError(String.format("Env var %s contains arg with space (%s) which is not supported by Gradle %s", envVarName, arg, getDistribution().getVersion().getVersion()));
                     }
                 }
             }
         }
     }
 
-    /**
-     * Returns the effective env vars, having merged in specific settings.
-     *
-     * For example, GRADLE_OPTS will be anything that was specified via withEnvironmentVars() and withBuildJvmOpts(). JAVA_HOME will also be set according to getJavaHome().
-     */
-    protected Map<String, String> getMergedEnvironmentVars() {
-        Map<String, String> environmentVars = new HashMap<String, String>(getEnvironmentVars());
-        environmentVars.put("GRADLE_OPTS", toJvmArgsString(getMergedGradleOpts()));
+    @Override
+    protected void transformInvocation(GradleInvocation invocation) {
+        if (getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
+            // Mix the implicit launcher JVM args in with the requested JVM args
+            invocation.launcherJvmArgs.addAll(invocation.implicitLauncherJvmArgs);
+        } else {
+            // Need to move those implicit JVM args that contain a space to the Gradle command-line (if possible)
+            // Note that this isn't strictly correct as some system properties can only be set on JVM start up.
+            // Should change the implementation to deal with these properly
+            for (String jvmArg : invocation.implicitLauncherJvmArgs) {
+                if (!jvmArg.contains(" ")) {
+                    invocation.launcherJvmArgs.add(jvmArg);
+                } else if (jvmArg.startsWith("-D")) {
+                    invocation.args.add(jvmArg);
+                } else {
+                    throw new UnsupportedOperationException(String.format("Cannot handle launcher JVM arg '%s' as it contains whitespace. This is not supported by Gradle %s.",
+                            jvmArg, getDistribution().getVersion().getVersion()));
+                }
+            }
+        }
+        invocation.implicitLauncherJvmArgs.clear();
+
+        // Inject the launcher JVM args via one of the environment variables
+        Map<String, String> environmentVars = invocation.environmentVars;
+        String jvmOptsEnvVar;
+        if (!environmentVars.containsKey("GRADLE_OPTS")) {
+            jvmOptsEnvVar = "GRADLE_OPTS";
+        } else if (!environmentVars.containsKey("JAVA_OPTS")) {
+            jvmOptsEnvVar = "JAVA_OPTS";
+        } else {
+            // This could be handled, just not implemented yet
+            throw new UnsupportedOperationException(String.format("Both GRADLE_OPTS and JAVA_OPTS environment variables are being used. Cannot provide JVM args %s to Gradle command.", invocation.launcherJvmArgs));
+        }
+        environmentVars.put(jvmOptsEnvVar, toJvmArgsString(invocation.launcherJvmArgs));
+
+        // Add a JAVA_HOME if none provided
         if (!environmentVars.containsKey("JAVA_HOME")) {
             environmentVars.put("JAVA_HOME", getJavaHome().getAbsolutePath());
         }
-        return environmentVars;
-    }
-
-    private List<String> getMergedGradleOpts() {
-        List<String> gradleOpts = new ArrayList<String>(getLauncherJvmOpts());
-        String gradleOptsEnv = getEnvironmentVars().get("GRADLE_OPTS");
-        if (gradleOptsEnv != null) {
-            gradleOpts.addAll(JvmOptions.fromString(gradleOptsEnv));
-        }
-        return gradleOpts;
     }
 
     @Override
@@ -117,11 +138,13 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.environment("GRADLE_OPTS", "");
         builder.environment("JAVA_OPTS", "");
 
-        builder.environment(getMergedEnvironmentVars());
+        GradleInvocation invocation = buildInvocation();
+
+        builder.environment(invocation.environmentVars);
         builder.workingDir(getWorkingDir());
         builder.setStandardInput(getStdin());
 
-        builder.args(getAllArgs());
+        builder.args(invocation.args);
 
         ExecHandlerConfigurer configurer = OperatingSystem.current().isWindows() ? new WindowsConfigurer() : new UnixConfigurer();
         configurer.configure(builder);

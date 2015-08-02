@@ -48,12 +48,12 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     }
 
     @Override
-    protected List<String> getBuildJvmOpts() {
+    protected List<String> getImplicitBuildJvmArgs() {
         if (!isUseDaemon()) {
-            return super.getBuildJvmOpts();
+            return super.getImplicitBuildJvmArgs();
         }
 
-        List<String> buildJvmOpts = new ArrayList<String>(super.getBuildJvmOpts());
+        List<String> buildJvmOpts = new ArrayList<String>(super.getImplicitBuildJvmArgs());
         buildJvmOpts.add("-XX:MaxPermSize=320m");
         buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
         buildJvmOpts.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir().getAbsolutePath());

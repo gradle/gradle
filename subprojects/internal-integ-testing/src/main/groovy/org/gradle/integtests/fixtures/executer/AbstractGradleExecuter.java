@@ -89,7 +89,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean requireDaemon;
     private File daemonBaseDir = buildContext.getDaemonBaseDir();
     private final List<String> buildJvmOpts = new ArrayList<String>();
-    private boolean defaultJvmArgs;
+    private final List<String> commandLineJvmOpts = new ArrayList<String>();
+    private boolean useOnlyRequestedJvmOpts;
     private boolean requireGradleHome;
     private boolean daemonStartingMessageDisabled = true;
 
@@ -135,8 +136,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         defaultCharacterEncoding = null;
         tmpDir = null;
         defaultLocale = null;
+        commandLineJvmOpts.clear();
         buildJvmOpts.clear();
-        defaultJvmArgs = false;
+        useOnlyRequestedJvmOpts = false;
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
@@ -229,8 +231,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (defaultLocale != null) {
             executer.withDefaultLocale(defaultLocale);
         }
+        executer.withCommandLineGradleOpts(commandLineJvmOpts);
         executer.withBuildJvmOpts(buildJvmOpts);
-        if (defaultJvmArgs) {
+        if (useOnlyRequestedJvmOpts) {
             executer.useDefaultBuildJvmArgs();
         }
         executer.noExtraLogging();
@@ -296,43 +299,73 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return userHomeDir;
     }
 
+    protected GradleInvocation buildInvocation() {
+        GradleInvocation gradleInvocation = new GradleInvocation();
+        gradleInvocation.environmentVars.putAll(environmentVars);
+        gradleInvocation.buildJvmArgs.addAll(buildJvmOpts);
+        if (!useOnlyRequestedJvmOpts) {
+            gradleInvocation.buildJvmArgs.addAll(getImplicitBuildJvmArgs());
+        }
+        calculateLauncherJvmArgs(gradleInvocation);
+        gradleInvocation.args.addAll(getAllArgs());
+
+        transformInvocation(gradleInvocation);
+
+        if (!gradleInvocation.implicitLauncherJvmArgs.isEmpty()) {
+            throw new IllegalStateException("Implicit JVM args have not been handled.");
+        }
+
+        return gradleInvocation;
+    }
+
+    /**
+     * Adjusts the calculated invocation prior to execution. This method is responsible for handling the implicit launcher JVM args in some way, by
+     * mutating the invocation appropriately.
+     */
+    protected void transformInvocation(GradleInvocation gradleInvocation) {
+        gradleInvocation.launcherJvmArgs.addAll(gradleInvocation.implicitLauncherJvmArgs);
+        gradleInvocation.implicitLauncherJvmArgs.clear();
+    }
+
     /**
      * Returns the JVM opts that should be used to start a forked JVM.
      */
-    protected List<String> getLauncherJvmOpts() {
-        List<String> jvmOpts = new ArrayList<String>();
-        if (isUseDaemon() && !defaultJvmArgs) {
-            String quotedArgs = join(" ", collect(getBuildJvmOpts(), new Transformer<String, String>() {
+    private void calculateLauncherJvmArgs(GradleInvocation gradleInvocation) {
+        // Add JVM args that were explicitly requested
+        gradleInvocation.launcherJvmArgs.addAll(commandLineJvmOpts);
+
+        if (isUseDaemon() && !gradleInvocation.buildJvmArgs.isEmpty()) {
+            // Pass build JVM args through to daemon via system property on the launcher JVM
+            String quotedArgs = join(" ", collect(gradleInvocation.buildJvmArgs, new Transformer<String, String>() {
                 public String transform(String input) {
                     return String.format("'%s'", input);
                 }
             }));
-            jvmOpts.add("-Dorg.gradle.jvmargs=" + quotedArgs);
-        } else if (!defaultJvmArgs) {
-            jvmOpts.addAll(getBuildJvmOpts());
+            gradleInvocation.implicitLauncherJvmArgs.add("-Dorg.gradle.jvmargs=" + quotedArgs);
+        } else {
+            // Have to pass build JVM args directly to launcher JVM
+            gradleInvocation.launcherJvmArgs.addAll(gradleInvocation.buildJvmArgs);
         }
 
-        // Set the implicit system properties regardless of whether default JVM args are required or not
+        // Set the implicit system properties regardless of whether default JVM args are required or not, this should not interfere with tests' intentions
+        // These will also be copied across to any daemon used
         for (Map.Entry<String, String> entry : getImplicitJvmSystemProperties().entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
-            jvmOpts.add(String.format("-D%s=%s", key, value));
+            gradleInvocation.implicitLauncherJvmArgs.add(String.format("-D%s=%s", key, value));
         }
 
-        jvmOpts.add("-ea");
-        return jvmOpts;
+        gradleInvocation.implicitLauncherJvmArgs.add("-ea");
     }
 
     /**
-     * Returns the JVM opts that should be used to start the build JVM (does not consider any set via withEnvironmentVars())
+     * Returns additional JVM args that should be used to start the build JVM.
      */
-    protected List<String> getBuildJvmOpts() {
-        List<String> buildJvmOpts = new ArrayList<String>(this.buildJvmOpts);
-
+    protected List<String> getImplicitBuildJvmArgs() {
+        List<String> buildJvmOpts = new ArrayList<String>();
         if (isDebug()) {
             buildJvmOpts.addAll(DEBUG_ARGS);
         }
-
         return buildJvmOpts;
     }
 
@@ -462,10 +495,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return result.toString();
     }
 
-    protected Map<String, String> getEnvironmentVars() {
-        return environmentVars;
-    }
-
     public GradleExecuter withTasks(String... names) {
         return withTasks(Arrays.asList(names));
     }
@@ -482,7 +511,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter useDefaultBuildJvmArgs() {
-        defaultJvmArgs = true;
+        useOnlyRequestedJvmOpts = true;
         return this;
     }
 
@@ -579,6 +608,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return allArgs;
     }
 
+    /**
+     * Returns the set of system properties that should be set on every JVM used by this executer.
+     */
     protected Map<String, String> getImplicitJvmSystemProperties() {
         Map<String, String> properties = new LinkedHashMap<String, String>();
 
@@ -672,9 +704,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected abstract ExecutionFailure doRunWithFailure();
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
+    public GradleExecuter withCommandLineGradleOpts(Iterable<String> jvmOpts) {
+        CollectionUtils.addAll(commandLineJvmOpts, jvmOpts);
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withCommandLineGradleOpts(String... jvmOpts) {
+        CollectionUtils.addAll(commandLineJvmOpts, jvmOpts);
+        return this;
+    }
+
+    @Override
     public AbstractGradleExecuter withBuildJvmOpts(String... jvmOpts) {
         CollectionUtils.addAll(buildJvmOpts, jvmOpts);
         return this;
@@ -793,4 +835,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public boolean isDebug() {
         return debug;
     }
+
+    protected static class GradleInvocation {
+        final Map<String, String> environmentVars = new HashMap<String, String>();
+        final List<String> args = new ArrayList<String>();
+        // JVM args that must be used for the build JVM
+        final List<String> buildJvmArgs = new ArrayList<String>();
+        // JVM args that must be used to fork a JVM
+        final List<String> launcherJvmArgs = new ArrayList<String>();
+        // Implicit JVM args that should be used to fork a JVM
+        final List<String> implicitLauncherJvmArgs = new ArrayList<String>();
+    }
+
 }

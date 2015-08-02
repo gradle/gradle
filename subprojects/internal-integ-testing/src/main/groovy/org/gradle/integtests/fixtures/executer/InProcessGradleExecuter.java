@@ -140,14 +140,15 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
     protected GradleHandle doStart() {
         return new ForkingGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), new Factory<JavaExecHandleBuilder>() {
             public JavaExecHandleBuilder create() {
+                GradleInvocation invocation = buildInvocation();
                 JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver());
                 builder.workingDir(getWorkingDir());
                 Collection<File> classpath = GLOBAL_SERVICES.get(ModuleRegistry.class).getAdditionalClassPath().getAsFiles();
                 builder.classpath(classpath);
-                builder.jvmArgs(getLauncherJvmOpts());
+                builder.jvmArgs(invocation.launcherJvmArgs);
 
                 builder.setMain(Main.class.getName());
-                builder.args(getAllArgs());
+                builder.args(invocation.args);
                 builder.setStandardInput(getStdin());
 
                 return builder;
@@ -163,10 +164,12 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         File originalUserDir = new File(originalSysProperties.getProperty("user.dir"));
         Map<String, String> originalEnv = new HashMap<String, String>(System.getenv());
 
+        GradleInvocation invocation = buildInvocation();
+
         // Augment the environment for the execution
         System.setIn(getStdin());
         processEnvironment.maybeSetProcessDir(getWorkingDir());
-        for (Map.Entry<String, String> entry : getEnvironmentVars().entrySet()) {
+        for (Map.Entry<String, String> entry : invocation.environmentVars.entrySet()) {
             processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), entry.getValue());
         }
         Map<String, String> implicitJvmSystemProperties = getImplicitJvmSystemProperties();
@@ -213,7 +216,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             // Restore the environment
             System.setProperties(originalSysProperties);
             processEnvironment.maybeSetProcessDir(originalUserDir);
-            for (String envVar : getEnvironmentVars().keySet()) {
+            for (String envVar : invocation.environmentVars.keySet()) {
                 String oldValue = originalEnv.get(envVar);
                 if (oldValue != null) {
                     processEnvironment.maybeSetEnvironmentVariable(envVar, oldValue);
