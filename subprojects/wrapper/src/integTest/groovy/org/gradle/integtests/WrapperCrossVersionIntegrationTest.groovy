@@ -71,7 +71,7 @@ task hello {
         def result = executer.usingExecutable('gradlew').withTasks('hello').run()
 
         assert result.output.contains("hello from $executionVersion.version.version")
-        assert result.output.contains("using distribution at $executer.gradleUserHomeDir/wrapper/dists")
+        assert result.output.contains("using distribution at ${executer.gradleUserHomeDir.file("wrapper/dists")}")
         assert result.output.contains("using Gradle user home at $executer.gradleUserHomeDir")
     }
 
