@@ -41,16 +41,16 @@ buildTypes {
     quickTest "runtimeTests", "runtimeIntegTests", "performance:test"
 
     // Used for builds to run all tests, but not necessarily on all platforms
-    fullTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking", testAllVersions: true
+    fullTest "runtimeTests", "runtimeForkingIntegTests", useIncomingDistributions: true, testAllVersions: true
 
     // Used for builds to test the code on certain platforms
-    platformTest "runtimeTests", "runtimeIntegTests", "performance:test", useIncomingDistributions: true, defaultIntegTestExecuter: "forking", testAllVersions: true, testAllPlatforms: true
+    platformTest "runtimeTests", "runtimeForkingIntegTests", "performance:test", useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true
 
     // Tests using the daemon mode
     daemonTest "runtimeDaemonIntegTests", useIncomingDistributions: true
 
     // Run the integration tests using the parallel executer
-    parallelTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "parallel"
+    parallelTest "runtimeParallelIntegTests", useIncomingDistributions: true
 
     // Run the performance tests
     performanceTest "performance:performanceTest", useIncomingDistributions: true
