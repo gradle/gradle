@@ -15,9 +15,7 @@
  */
 
 package org.gradle.play.tasks
-
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.play.internal.run.PlayApplicationDeploymentHandle
 import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
@@ -44,7 +42,6 @@ class PlayRunTest extends Specification {
         playRun.applicationJar = new File("application.jar")
         playRun.runtimeClasspath = new SimpleFileCollection()
         playRun.playToolProvider = playToolProvider
-        playRun.deployment = new PlayApplicationDeploymentHandle("test")
         System.in = systemInputStream
     }
 

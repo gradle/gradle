@@ -392,12 +392,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
             for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
-                // deployment registry is shared across all projects and binary name is not unique across all projects
-                String deploymentId = String.format("deployment%s @ %s", StringUtils.capitalize(binary.getName()), projectIdentifier.getPath());
-
-                DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
-                final PlayApplicationDeploymentHandle deploymentHandle = registerOrFindDeploymentHandle(deploymentRegistry, deploymentId);
-                deploymentHandle.registerBuildListener(serviceRegistry.get(Gradle.class));
 
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {
@@ -410,20 +404,15 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         playRun.setAssetsDirs(binary.getAssets().getAssetDirs());
                         playRun.setRuntimeClasspath(configurations.getPlayRun().getNonChangingArtifacts());
                         playRun.setChangingClasspath(configurations.getPlayRun().getChangingArtifacts());
-                        playRun.setDeployment(deploymentHandle);
                         playRun.dependsOn(binary.getBuildTask());
+
+                        DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
+                        PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(PlayApplicationDeploymentHandle.class, playRun.getPath());
+                        deploymentHandle.registerBuildListener(serviceRegistry.get(Gradle.class));
+
                     }
                 });
             }
-        }
-
-        private PlayApplicationDeploymentHandle registerOrFindDeploymentHandle(DeploymentRegistry deploymentRegistry, String deploymentId) {
-            PlayApplicationDeploymentHandle deploymentHandle  = deploymentRegistry.get(PlayApplicationDeploymentHandle.class, deploymentId);
-            if (deploymentHandle == null) {
-                deploymentHandle = new PlayApplicationDeploymentHandle(deploymentId);
-                deploymentRegistry.register(deploymentId, deploymentHandle);
-            }
-            return deploymentHandle;
         }
 
         private File srcOutputDirectory(File buildDir, PlayApplicationBinarySpec binary, String taskName) {
