@@ -408,7 +408,9 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
                         DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
                         PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(PlayApplicationDeploymentHandle.class, playRun.getPath());
-                        deploymentHandle.registerBuildListener(serviceRegistry.get(Gradle.class));
+                        if (deploymentHandle!=null) {
+                            deploymentHandle.registerBuildListener(serviceRegistry.get(Gradle.class));
+                        }
 
                     }
                 });
