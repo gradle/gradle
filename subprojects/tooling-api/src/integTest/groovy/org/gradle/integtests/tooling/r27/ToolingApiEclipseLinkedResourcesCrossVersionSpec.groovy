@@ -34,39 +34,65 @@ subprojects {
     apply plugin: 'java'
 }
 '''
-        def srcSiblingFolder = file('subprojectB/src-sibling')
-        def srcRootFolder = file('src-root')
+        def projectBsrcSiblingFolder = file('subprojectB/src-sibling')
+        def projectBsrcFolder = file('subprojectB/src')
+        def srcRootFolder1 = file('src-root')
+        def srcRootFolder2 = file('src')
         def srcFolder = file('subprojectA/src')
-        srcSiblingFolder.mkdirs()
+        projectBsrcSiblingFolder.mkdirs()
+        projectBsrcFolder.mkdirs()
         srcFolder.mkdirs()
-        srcRootFolder.mkdirs()
+        srcRootFolder1.mkdirs()
+        srcRootFolder2.mkdirs()
         file('subprojectA/build.gradle').text = """
 sourceSets {
     main {
         java {
-            srcDirs = ['src', '../subprojectB/src-sibling', '../src-root']
+            srcDirs = ['src', '../subprojectB/src-sibling', '../src-root', '../src', '../subprojectB/src']
         }
     }
 }
 """
-
-
         when:
         EclipseProject rootProject = withConnection { it.getModel(EclipseProject.class) }
         EclipseProject subprojectA = rootProject.children.find {EclipseProject project -> project.name == "subprojectA"}
         then:
-        subprojectA.linkedResources.size() == 2
-        subprojectA.sourceDirectories.size() == 3
+        subprojectA.linkedResources.size() == 4
+        subprojectA.sourceDirectories.size() == 5
+
         subprojectA.linkedResources[0].name == 'src-sibling'
         subprojectA.linkedResources[0].type == '2'
-        subprojectA.linkedResources[0].location == normaliseFileSeparators(srcSiblingFolder.getAbsolutePath())
+        subprojectA.linkedResources[0].location == normaliseFileSeparators(projectBsrcSiblingFolder.getAbsolutePath())
         subprojectA.linkedResources[0].locationUri == null
+
+        subprojectA.linkedResources[1].name == 'src-root'
+        subprojectA.linkedResources[1].type == '2'
+        subprojectA.linkedResources[1].location == normaliseFileSeparators(srcRootFolder1.getAbsolutePath())
+        subprojectA.linkedResources[1].locationUri == null
+
+        subprojectA.linkedResources[2].name == 'src'
+        subprojectA.linkedResources[2].type == '2'
+        subprojectA.linkedResources[2].location == normaliseFileSeparators(srcRootFolder2.getAbsolutePath())
+        subprojectA.linkedResources[2].locationUri == null
+
+        subprojectA.linkedResources[3].name == 'src'
+        subprojectA.linkedResources[3].type == '2'
+        subprojectA.linkedResources[3].location == normaliseFileSeparators(projectBsrcFolder.getAbsolutePath())
+        subprojectA.linkedResources[3].locationUri == null
 
         subprojectA.sourceDirectories[0].path == "src"
         subprojectA.sourceDirectories[0].directory == srcFolder
+
         subprojectA.sourceDirectories[1].path == "src-sibling"
-        subprojectA.sourceDirectories[1].directory == srcSiblingFolder
+        subprojectA.sourceDirectories[1].directory == projectBsrcSiblingFolder
+
         subprojectA.sourceDirectories[2].path == "src-root"
-        subprojectA.sourceDirectories[2].directory == srcRootFolder
+        subprojectA.sourceDirectories[2].directory == srcRootFolder1
+
+        subprojectA.sourceDirectories[3].path == "src"
+        subprojectA.sourceDirectories[3].directory == srcRootFolder2
+
+        subprojectA.sourceDirectories[4].path == "src"
+        subprojectA.sourceDirectories[4].directory == projectBsrcFolder
     }
 }
