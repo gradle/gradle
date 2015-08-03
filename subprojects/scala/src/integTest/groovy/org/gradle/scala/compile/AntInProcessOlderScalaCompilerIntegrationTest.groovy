@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
+@TargetCoverage({ScalaCoverage.OLDER})
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
 @LeaksFileHandles
 class AntInProcessOlderScalaCompilerIntegrationTest extends AbstractAntInProcessScalaCompilerIntegrationTest {}
