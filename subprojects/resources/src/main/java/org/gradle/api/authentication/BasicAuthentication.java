@@ -17,7 +17,7 @@
 package org.gradle.api.authentication;
 
 /**
- * Authentication scheme for basic access authentication over HTTP.
+ * Authentication scheme for basic access authentication over HTTP. When using this scheme, credentials are sent preemptively.
  */
 public interface BasicAuthentication extends Authentication {
 }

@@ -57,7 +57,7 @@ class HttpServer extends ServerWithExpectations {
     List<ServerExpectation> expectations = []
 
     enum AuthScheme {
-        BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler())
+        BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler()), PREEMPTIVE_BASIC(new PreemptiveBasicAuthHandler())
 
         final AuthSchemeHandler handler;
 
@@ -714,6 +714,23 @@ class HttpServer extends ServerWithExpectations {
         @Override
         protected Authenticator getAuthenticator() {
             return new BasicAuthenticator()
+        }
+    }
+
+    public static class PreemptiveBasicAuthHandler extends AuthSchemeHandler {
+        @Override
+        protected String constraintName() {
+            return Constraint.__BASIC_AUTH
+        }
+
+        @Override
+        protected Authenticator getAuthenticator() {
+            return new BasicAuthenticator() {
+                @Override
+                void sendChallenge(UserRealm realm, Response response) throws IOException {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                }
+            }
         }
     }
 

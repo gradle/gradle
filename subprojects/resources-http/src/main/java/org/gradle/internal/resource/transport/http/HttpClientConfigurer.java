@@ -37,10 +37,12 @@ import org.gradle.api.authentication.BasicAuthentication;
 import org.gradle.api.authentication.DigestAuthentication;
 import org.gradle.api.internal.authentication.AllSchemesAuthentication;
 import org.gradle.api.internal.authentication.AuthenticationInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.resource.UriResource;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
+import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +72,7 @@ public class HttpClientConfigurer {
             useCredentials(httpClient, AuthScope.ANY_HOST, AuthScope.ANY_PORT, authentications);
 
             // Use preemptive authorisation if no other authorisation has been established
-            httpClient.addRequestInterceptor(new PreemptiveAuth(new BasicScheme()), 0);
+            httpClient.addRequestInterceptor(new PreemptiveAuth(new BasicScheme(), isPreemptiveEnabled(authentications)), 0);
         }
     }
 
@@ -100,6 +102,15 @@ public class HttpClientConfigurer {
             httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
             LOGGER.debug("Using {} for authenticating against '{}:{}'", new Object[]{credentials, host, port});
         }
+    }
+
+    private boolean isPreemptiveEnabled(Collection<Authentication> authentications) {
+        return CollectionUtils.any(authentications, new Spec<Authentication>() {
+            @Override
+            public boolean isSatisfiedBy(Authentication element) {
+                return element instanceof BasicAuthentication;
+            }
+        });
     }
 
     public void configureUserAgent(DefaultHttpClient httpClient) {
@@ -137,9 +148,11 @@ public class HttpClientConfigurer {
 
     static class PreemptiveAuth implements HttpRequestInterceptor {
         private final AuthScheme authScheme;
+        private final boolean always;
 
-        PreemptiveAuth(AuthScheme authScheme) {
+        PreemptiveAuth(AuthScheme authScheme, boolean always) {
             this.authScheme = authScheme;
+            this.always = always;
         }
 
         public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException {
@@ -152,7 +165,7 @@ public class HttpClientConfigurer {
 
             // If no authState has been established and this is a PUT or POST request, add preemptive authorisation
             String requestMethod = request.getRequestLine().getMethod();
-            if (requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
+            if (always || requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
                 CredentialsProvider credentialsProvider = (CredentialsProvider) context.getAttribute(ClientContext.CREDS_PROVIDER);
                 HttpHost targetHost = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
                 Credentials credentials = credentialsProvider.getCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()));

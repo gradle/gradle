@@ -72,9 +72,13 @@ task listJars << {
         succeeds('listJars')
 
         where:
-        authSchemeType << ['auth(BasicAuthentication)', 'auth(DigestAuthentication)', '', '']
-        authSchemeName << ['BasicAuthentication', 'DigestAuthentication', 'default', 'default']
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        authSchemeName         | authSchemeType                                             | authScheme
+        'basic'                | 'auth(BasicAuthentication)'                                | HttpServer.AuthScheme.BASIC
+        'digest'               | 'auth(DigestAuthentication)'                               | HttpServer.AuthScheme.DIGEST
+        'default'              | ''                                                         | HttpServer.AuthScheme.BASIC
+        'default'              | ''                                                         | HttpServer.AuthScheme.DIGEST
+        'basic'                | 'auth(BasicAuthentication)'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC
+        'basic and digest'     | 'basic(BasicAuthentication)\ndigest(DigestAuthentication)' | HttpServer.AuthScheme.DIGEST
     }
 
     @Unroll
@@ -99,7 +103,7 @@ repositories {
         }
 
         authentication {
-            auth(${authSchemeType})
+            ${authSchemeType}
         }
     }
 }
@@ -137,8 +141,13 @@ task listJars << {
         succeeds('listJars')
 
         where:
-        authSchemeType << ['BasicAuthentication', 'DigestAuthentication']
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        authSchemeName         | authSchemeType                                             | authScheme
+        'basic'                | 'auth(BasicAuthentication)'                                | HttpServer.AuthScheme.BASIC
+        'digest'               | 'auth(DigestAuthentication)'                               | HttpServer.AuthScheme.DIGEST
+        'default'              | ''                                                         | HttpServer.AuthScheme.BASIC
+        'default'              | ''                                                         | HttpServer.AuthScheme.DIGEST
+        'basic'                | 'auth(BasicAuthentication)'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC
+        'basic and digest'     | 'basic(BasicAuthentication)\ndigest(DigestAuthentication)' | HttpServer.AuthScheme.DIGEST
     }
 
     @Unroll
@@ -317,5 +326,84 @@ task listJars << {
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
         configuredAuthScheme << ['DigestAuthentication', 'BasicAuthentication']
+    }
+
+    def "fails resolving from preemptive authenticated HTTP ivy repository"() {
+        given:
+        def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
+        when:
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+repositories {
+    ivy {
+        url "${ivyHttpRepo.uri}"
+        credentials {
+            username = 'username'
+            password = 'password'
+        }
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+}
+"""
+
+        and:
+        server.authenticationScheme = HttpServer.AuthScheme.PREEMPTIVE_BASIC
+        server.allowGetOrHead('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
+        server.allowGetOrHead('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
+
+        then:
+        fails 'listJars'
+
+        and:
+        failure
+            .assertHasDescription('Execution failed for task \':listJars\'.')
+            .assertResolutionFailure(':compile')
+            .assertThatCause(Matchers.containsString('Could not find group:projectA:1.2'))
+    }
+
+    def "fails resolving from preemptive authenticated HTTP maven repository"() {
+        given:
+        def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
+
+        when:
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+repositories {
+    maven {
+        url "${mavenHttpRepo.uri}"
+        credentials {
+            username = 'username'
+            password = 'password'
+        }
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+}
+"""
+
+        and:
+        server.authenticationScheme = HttpServer.AuthScheme.PREEMPTIVE_BASIC
+        module.pom.allowGetOrHead('username', 'password')
+        module.artifact.allowGetOrHead('username', 'password')
+
+        then:
+        fails 'listJars'
+
+        and:
+        failure
+            .assertHasDescription('Execution failed for task \':listJars\'.')
+            .assertResolutionFailure(':compile')
+            .assertThatCause(Matchers.containsString('Could not find group:projectA:1.2'))
     }
 }
