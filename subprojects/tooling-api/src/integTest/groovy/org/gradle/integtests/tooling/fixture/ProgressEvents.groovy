@@ -200,6 +200,11 @@ class ProgressEvents implements ProgressListener {
             this.descriptor = descriptor
         }
 
+        @Override
+        String toString() {
+            return descriptor.displayName
+        }
+
         boolean isTest() {
             return descriptor instanceof TestOperationDescriptor
         }

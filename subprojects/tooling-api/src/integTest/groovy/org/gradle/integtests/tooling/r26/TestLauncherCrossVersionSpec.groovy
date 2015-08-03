@@ -30,7 +30,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @ToolingApiVersion(">=2.6")
-@TargetGradleVersion(">=1.0-milestone-8")
+@TargetGradleVersion(">=2.6")
 class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     TestOutputStream stderr = new TestOutputStream()
     TestOutputStream stdout = new TestOutputStream()
@@ -41,7 +41,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         testCode()
     }
 
-    @TargetGradleVersion(">=2.6")
     def "test launcher api fires progress events"() {
         given:
         collectDescriptorsFromBuild()
@@ -65,11 +64,10 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         events.tests.findAll { it.descriptor.displayName == "Test class example.MyTest" }.size() == 2
         events.tests.findAll { it.descriptor.displayName == "Test foo(example.MyTest)"  }.size() == 2
         events.tests.findAll { it.descriptor.displayName == "Test foo2(example.MyTest)" }.size() == 2
-        events.tests.findAll { it.descriptor.displayName == "Test foo2(example.MyTest)" }.size() == 2
         events.tests.findAll { it.descriptor.displayName == "Test class example2.MyOtherTest"}.size() == 2
+        events.tests.size() == 12
     }
 
-    @TargetGradleVersion(">=2.6")
     def "can run specific test class passed via test descriptor"() {
         given:
         collectDescriptorsFromBuild()
@@ -84,12 +82,12 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestExecuted(className: "example2.MyOtherTest", methodName: null) // TODO clarify if this is by design
+        events.tests.size() == 12
 
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
     }
 
-    @TargetGradleVersion(">=2.6")
     def "can run specific test method passed via test descriptor"() {
         given:
         collectDescriptorsFromBuild()
@@ -101,12 +99,12 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        events.tests.size() == 10
 
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
     }
 
-    @TargetGradleVersion(">=2.6")
     def "runs only test task linked in test descriptor"() {
         given:
         collectDescriptorsFromBuild()
@@ -118,12 +116,12 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        events.tests.size() == 6
 
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
     }
 
-    @TargetGradleVersion(">=2.6")
     def "tests can be executed multiple times without task being up-to-date"() {
         given:
         collectDescriptorsFromBuild()
@@ -138,7 +136,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTaskNotExecuted(":test")
     }
 
-    @TargetGradleVersion(">=2.6")
     @Requires(TestPrecondition.JDK7_OR_LATER)
     def "can run and cancel testlauncher in continuous mode"() {
         given:
@@ -159,6 +156,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
             assertTestNotExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
             assertTestNotExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
+            assert events.tests.size() == 6
             events.clear()
             changeTestSource()
             waitingForBuild()
@@ -174,9 +172,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
+        events.tests.size() == 8
     }
 
-    @TargetGradleVersion(">=2.6")
     def "listener errors are rethrown on client side"() {
         given:
         collectDescriptorsFromBuild()
@@ -194,7 +192,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message == "failing progress listener"
     }
 
-    @TargetGradleVersion(">=2.6")
     def "fails with meaningful error when no tests declared"() {
         when:
         launchTests([])
@@ -203,7 +200,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.message == "No test declared for execution."
     }
 
-    @TargetGradleVersion(">=2.6")
     def "fails with meaningful error when declared class has not tests"() {
         given:
         file("src/test/java/util/TestUtil.java") << """
@@ -221,7 +217,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message == "Tests configured in TestLauncher not found in any candidate test task."
     }
 
-    @TargetGradleVersion(">=2.6")
     def "fails with meaningful error when test no longer exists"() {
         given:
         collectDescriptorsFromBuild()
@@ -237,7 +232,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message == "No tests found for given includes: [example.MyTest.*]"
     }
 
-    @TargetGradleVersion(">=2.6")
     def "build succeeds if test class is only available in one test task"() {
         given:
         file("src/moreTests/java/more/MoreTest.java") << """
@@ -257,7 +251,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTaskExecuted(":test")
     }
 
-    @TargetGradleVersion(">=2.6")
     def "fails with meaningful error when test class not available for any test task"() {
         when:
         withConnection { ProjectConnection connection ->
@@ -273,7 +266,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message == "Tests configured in TestLauncher not found in any candidate test task."
     }
 
-    @TargetGradleVersion(">=2.6")
     def "fails with meaningful error when test task no longer exists"() {
         given:
         collectDescriptorsFromBuild()
@@ -289,19 +281,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message == "Requested test task with path ':secondTest' cannot be found."
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8 <2.6")
-    def "fails with meaningful error when running against unsupported target version"() {
-        when:
-        withConnection { ProjectConnection connection ->
-            connection.newTestLauncher().withJvmTestClasses("org.acme.Test").run()
-        }
-
-        then:
-        def e = thrown(UnsupportedVersionException)
-        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the TestLauncher API. Support for this is available in Gradle 2.6 and all later versions."
-    }
-
-    @TargetGradleVersion(">=2.6")
     def "fails with meaningful error when passing invalid arguments"() {
         when:
         launchTests { TestLauncher launcher ->
@@ -313,7 +292,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.message.contains("Unknown command-line option '--someInvalidArgument'.")
     }
 
-    @TargetGradleVersion(">=2.6")
     def "fails with BuildException when build fails"() {
         given:
         buildFile << "some invalid build code"
@@ -325,7 +303,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         thrown(BuildException)
     }
 
-    @TargetGradleVersion(">=2.6")
     def "throws BuildCancelledException when build canceled"() {
         given:
         buildFile << "some invalid build code"
@@ -341,7 +318,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         thrown(BuildCancelledException)
     }
 
-    @TargetGradleVersion(">=2.6")
     def "can execute test class passed by name"() {
         when:
         launchTests { TestLauncher testLauncher ->
@@ -355,12 +331,12 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        events.tests.size() == 12
 
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
     }
 
-    @TargetGradleVersion(">=2.6")
     def "can execute multiple test classes passed by name"() {
         setup: "add testcase that should not be exeucted"
         file("src/test/java/example/MyFailingTest.java") << """
@@ -387,12 +363,12 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
         assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
+        events.tests.size() == 16
 
         assertTestNotExecuted(className: "example.MyFailingTest", methodName: "failing1", task: ":test")
         assertTestNotExecuted(className: "example.MyFailingTest", methodName: "failing1", task: ":secondTest")
     }
 
-    @TargetGradleVersion(">=2.6")
     def "runs all test tasks in multi project build when test class passed by name"() {
         setup:
         settingsFile << "include ':sub1', 'sub2', ':sub2:sub3', ':sub4'"
@@ -437,10 +413,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":sub1:test")
         assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":sub2:test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":sub2:sub3:test")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        events.tests.size() == 10 + 7 + 9
     }
 
-    @TargetGradleVersion(">=2.6")
     def "compatible with configure on demand"() {
         setup:
         10.times {
@@ -481,7 +456,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             }
         }
     }
-
 
     def assertBuildCancelled() {
         stdout.toString().contains("Build cancelled.")
@@ -548,7 +522,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         testDescriptors(descriptors, className, null)
     }
 
-
     private boolean hasTestDescriptor(testInfo) {
         def collect = events.tests.collect { it.descriptor }
         !testDescriptors(collect, testInfo.className, testInfo.methodName, testInfo.task).isEmpty()
@@ -556,7 +529,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     void launchTests(Collection<TestOperationDescriptor> testsToLaunch) {
         launchTests { TestLauncher testLauncher ->
-            testLauncher.withTests(testsToLaunch.toArray(new TestOperationDescriptor[testsToLaunch.size()]))
+            testLauncher.withTests(testsToLaunch)
         }
     }
 
@@ -566,7 +539,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    void launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationTokenSource cancellationTokenSource, Closure confgurationClosure) {
+    void launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationTokenSource cancellationTokenSource, Closure configurationClosure) {
 
         TestLauncher testLauncher = connection.newTestLauncher()
             .withCancellationToken(cancellationTokenSource.token())
@@ -582,7 +555,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                 .setStandardError(new TeeOutputStream(stderr, System.err))
         }
 
-        confgurationClosure.call(testLauncher)
+        configurationClosure.call(testLauncher)
 
         events.clear()
         if (resultHandler == null) {
@@ -645,7 +618,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-
     def changeTestSource() {
         // adding two more test methods
         file("src/test/java/example/MyTest.java").text = """
@@ -666,7 +638,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             }
         """
     }
-
 
     def simpleJavaProject() {
         """
