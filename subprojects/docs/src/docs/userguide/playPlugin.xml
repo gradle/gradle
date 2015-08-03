@@ -334,7 +334,7 @@
             When not run as part of a continuous build, the <literal>runPlayBinary</literal> task will <emphasis>block</emphasis> the build.
             That is, the task will not complete as long as the application is running.
             When running as part of a continuous build, the task will start the application if not running and otherwise propagate any changes to the code of the application to the running instance.
-            This is useful for quickly iterating on your Play application with an edit->rebuild->refresh cycle.
+            This is useful for quickly iterating on your Play application with an edit->rebuild->refresh cycle.  Changes to your application will not take affect until the end of the overall build.
         </para>
         <para>
             To enable continuous build, run Gradle with <userinput>-t runPlayBinary</userinput> or <userinput>--continuous runPlayBinary</userinput>.
