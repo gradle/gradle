@@ -44,7 +44,7 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
         return false;
     }
 
-    public void newBuild(Gradle gradle) {
+    public void registerBuildListener(Gradle gradle) {
         gradle.addBuildListener(new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
@@ -54,19 +54,13 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
     }
 
     void reloadFromResult(BuildResult result) {
-        Throwable failure = result.getFailure();
-        if (failure != null) {
-            if (isRunning()) {
-                runnerToken.rebuildFailure(failure);
-            }
-        }
-    }
-
-    public void reload() {
         if (isRunning()) {
-            runnerToken.rebuildSuccess();
-        } else {
-            throw new IllegalStateException("Cannot reload a deployment handle that has already been stopped.");
+            Throwable failure = result.getFailure();
+            if (failure != null) {
+                runnerToken.rebuildFailure(failure);
+            } else {
+                runnerToken.rebuildSuccess();
+            }
         }
     }
 

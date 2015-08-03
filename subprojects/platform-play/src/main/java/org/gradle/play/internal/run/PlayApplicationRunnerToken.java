@@ -43,10 +43,10 @@ public class PlayApplicationRunnerToken {
     }
 
     public void rebuildSuccess() {
-        workerServer.rebuild(new RebuildReason());
+        workerServer.rebuild(BuildStatus.SUCCESS);
     }
     public void rebuildFailure(Throwable failure) {
-        workerServer.rebuild(new RebuildReason(failure));
+        workerServer.rebuild(new BuildStatus(failure));
     }
 
     public boolean isRunning() {

@@ -75,19 +75,4 @@ class PlayRunTest extends Specification {
             runnerToken
         }
     }
-
-    def "reloads runner token when deployment is already registered" () {
-        playRun.project.gradle.startParameter.continuous = true
-        when:
-        playRun.run();
-        then:
-        1 * playToolProvider.get(PlayApplicationRunner) >> playApplicationRunner
-        1 * playApplicationRunner.start(_) >> { runnerToken }
-
-        when:
-        playRun.run();
-        then:
-        2 * runnerToken.isRunning() >> true
-        1 * runnerToken.rebuildSuccess()
-    }
 }

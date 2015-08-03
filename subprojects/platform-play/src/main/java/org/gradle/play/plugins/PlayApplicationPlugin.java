@@ -397,7 +397,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
                 DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
                 final PlayApplicationDeploymentHandle deploymentHandle = registerOrFindDeploymentHandle(deploymentRegistry, deploymentId);
-                deploymentHandle.newBuild(serviceRegistry.get(Gradle.class));
+                deploymentHandle.registerBuildListener(serviceRegistry.get(Gradle.class));
 
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
                     public void execute(PlayRun playRun) {

@@ -91,8 +91,6 @@ public class PlayRun extends ConventionTask {
             } finally {
                 progressLogger.completed();
             }
-        } else {
-            deploymentHandle.reload();
         }
 
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)

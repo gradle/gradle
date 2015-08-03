@@ -100,34 +100,6 @@ class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegratio
         file("app/controllers/Application.scala") << "}"
     }
 
-    def "should reload with exception when modify routes"() {
-        when:
-        succeeds("runPlayBinary")
-        then:
-        appIsRunningAndDeployed()
-
-        when:
-        addBadRoute()
-        then:
-        fails()
-        !executedTasks.contains('runPlayBinary')
-        errorPageHasTaskFailure("compilePlayBinaryRoutes")
-
-        when:
-        fixBadRoute()
-        then:
-        succeeds()
-        appIsRunningAndDeployed()
-    }
-
-    def addBadRoute() {
-        file("conf/routes") << "\nGET     /badroute"
-    }
-
-    def fixBadRoute() {
-        file("conf/routes") << " controllers.Application.index"
-    }
-
     def "should reload modified coffeescript"() {
         when:
         succeeds("runPlayBinary")
@@ -149,39 +121,6 @@ alert message
         runningApp.playUrl('assets/javascripts/test.min.js').text.contains('Hello coffeescript')
     }
 
-    def "should reload with exception when modify CoffeeScript"() {
-        when:
-        succeeds("runPlayBinary")
-        then:
-        appIsRunningAndDeployed()
-
-        when:
-        addBadCoffeeScript()
-
-        then:
-        fails()
-        !executedTasks.contains('runPlayBinary')
-        errorPageHasTaskFailure("compilePlayBinaryCoffeeScript")
-
-        when:
-        fixBadCoffeeScript()
-        then:
-        succeeds()
-        appIsRunningAndDeployed()
-    }
-
-    def addBadCoffeeScript() {
-        // missing closing quote
-        file("app/assets/javascripts/bad.coffee") << """
-message = "Hello CoffeeScript"""
-    }
-
-    def fixBadCoffeeScript() {
-        file("app/assets/javascripts/bad.coffee") << """ "
-alert message
-"""
-    }
-
     def "should detect new javascript files"() {
         when:
         succeeds("runPlayBinary")
@@ -198,39 +137,6 @@ var message = "Hello JS";
         succeeds()
         runningApp.playUrl('assets/javascripts/helloworld.js').text.contains('Hello JS')
         runningApp.playUrl('assets/javascripts/helloworld.min.js').text.contains('Hello JS')
-    }
-
-    def "should reload with exception when modify javascript"() {
-        when:
-        succeeds("runPlayBinary")
-        then:
-        appIsRunningAndDeployed()
-
-        when:
-        addBadJavaScript()
-
-        then:
-        fails()
-        !executedTasks.contains('runPlayBinary')
-        errorPageHasTaskFailure("minifyPlayBinaryJavaScript")
-
-        when:
-        fixBadJavaScript()
-        then:
-        succeeds()
-        appIsRunningAndDeployed()
-    }
-
-    def addBadJavaScript() {
-        // missing closing quote
-        file("app/assets/javascripts/bad.js") << '''
-var message = "Hello JS'''
-    }
-
-    def fixBadJavaScript() {
-        file("app/assets/javascripts/bad.js") << """ ";
-alert(message);
-"""
     }
 
     def "should reload modified java model"() {
@@ -251,41 +157,6 @@ alert(message);
         assert runningApp.playUrl().text.contains("<li>Hello foo:1 !</li>")
     }
 
-    def "should reload with exception when modify java"() {
-        when:
-        succeeds("runPlayBinary")
-        then:
-        appIsRunningAndDeployed()
-
-        when:
-        addBadJava()
-
-        then:
-        fails()
-        !executedTasks.contains('runPlayBinary')
-        errorPageHasTaskFailure("compilePlayBinaryScala")
-
-        when:
-        fixBadJava()
-        then:
-        succeeds()
-        appIsRunningAndDeployed()
-    }
-
-    def addBadJava() {
-        file("app/models/NewType.java") << """
-package models;
-
-public class NewType {
-"""
-    }
-
-    def fixBadJava() {
-        file("app/models/NewType.java") << """
-}
-"""
-    }
-
     def "should reload twirl template"() {
         when:
         succeeds("runPlayBinary")
@@ -301,44 +172,5 @@ public class NewType {
         then:
         succeeds()
         assert runningApp.playUrl().text.contains("Welcome to Play with Gradle")
-    }
-
-
-    def "should reload with exception when modify twirl template"() {
-        when:
-        succeeds("runPlayBinary")
-        then:
-        appIsRunningAndDeployed()
-
-        when:
-        addBadTwirlTemplate()
-
-        then:
-        fails()
-        !executedTasks.contains('runPlayBinary')
-        errorPageHasTaskFailure("compilePlayBinaryTwirlTemplates")
-
-        when:
-        fixBadTwirlTemplate()
-        then:
-        succeeds()
-        appIsRunningAndDeployed()
-    }
-
-    def addBadTwirlTemplate() {
-        file("app/views/bad.scala.html") << """
-@(name: String)
-<!DOCTYPE html>
-<html>
-<head></head>
-<body>
-Hello @{name"""
-    }
-
-    def fixBadTwirlTemplate() {
-        file("app/views/bad.scala.html") << """}!
-</body>
-</html>
-"""
     }
 }

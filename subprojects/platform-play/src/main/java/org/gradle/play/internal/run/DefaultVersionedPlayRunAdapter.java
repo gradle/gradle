@@ -45,7 +45,7 @@ import java.util.jar.JarFile;
 
 public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRunAdapter, Serializable {
 
-    private final AtomicReference<RebuildReason> reload = new AtomicReference<RebuildReason>();
+    private final AtomicReference<BuildStatus> reload = new AtomicReference<BuildStatus>();
     private final AtomicReference<ClassLoader> currentClassloader = new AtomicReference<ClassLoader>();
     private final Queue<SoftReference<Closeable>> loadersToClose = new ConcurrentLinkedQueue<SoftReference<Closeable>>();
 
@@ -57,7 +57,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
     public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final Iterable<File> changingClasspath, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
         final ClassLoader assetsClassLoader = createAssetsClassLoader(assetsJar, assetsDirs, classLoader);
-        forceReloadNextTime(new RebuildReason());
+        forceReloadNextTime(BuildStatus.SUCCESS);
         final ExceptionAdapter exceptionAdapter = new DefaultExceptionAdapter(classLoader);
         return Proxy.newProxyInstance(classLoader, new Class<?>[]{getBuildLinkClass(classLoader)}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -71,7 +71,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
                     // We have no way of knowing when the loader is actually done with, so we use the request after the request
                     // that triggered the reload as the trigger point to close the replaced loader.
                     closeOldLoaders();
-                    RebuildReason reason = reload.get();
+                    BuildStatus reason = reload.get();
                     if (reason == null) {
                         // no reload needs to occur
                         return null;
@@ -125,7 +125,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
     }
 
     @Override
-    public void forceReloadNextTime(RebuildReason reason) {
+    public void forceReloadNextTime(BuildStatus reason) {
         reload.set(reason);
     }
 

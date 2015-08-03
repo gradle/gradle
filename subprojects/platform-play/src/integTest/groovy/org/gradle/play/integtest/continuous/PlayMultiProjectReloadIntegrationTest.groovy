@@ -15,14 +15,12 @@
  */
 
 package org.gradle.play.integtest.continuous
-
 import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayReloadIntegrationTest
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
 
 class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegrationTest {
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
@@ -148,32 +146,25 @@ var message = "Hello JS";
         runningApp.playUrl('assets/helloworld.js').text.contains('Hello JS')
     }
 
-    @Unroll
-    def "should reload with exception when modify java in #path and #task"() {
+    def "should reload with exception when modify java in submodule"() {
         when:
         succeeds(":primary:runPlayBinary")
         then:
         appIsRunningAndDeployed()
 
         when:
-        addBadJava(path)
+        addBadJava("submodule/app")
 
         then:
         fails()
         !executedTasks.contains(':primary:runPlayBinary')
-        errorPageHasTaskFailure(task)
+        errorPageHasTaskFailure(":submodule:compilePlayBinaryScala")
 
         when:
-        fixBadJava(path)
+        fixBadJava("submodule/app")
         then:
         succeeds()
         appIsRunningAndDeployed()
-
-        where:
-        path                        | task
-        "primary/app"               | ":primary:compilePlayBinaryScala"
-        "submodule/app"             | ":submodule:compilePlayBinaryScala"
-        "javalibrary/src/main/java" | ":javalibrary:compileJava"
     }
 
     def addBadJava(path) {

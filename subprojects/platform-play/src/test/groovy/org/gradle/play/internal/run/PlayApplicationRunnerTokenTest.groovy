@@ -41,7 +41,7 @@ class PlayApplicationRunnerTokenTest extends Specification {
         runnerToken.rebuildSuccess()
 
         then:
-        1 * server.rebuild({ RebuildReason reason ->
+        1 * server.rebuild({ BuildStatus reason ->
             reason.successful
         })
     }
@@ -53,7 +53,7 @@ class PlayApplicationRunnerTokenTest extends Specification {
         runnerToken.rebuildFailure(failure)
 
         then:
-        1 * server.rebuild({ RebuildReason reason ->
+        1 * server.rebuild({ BuildStatus reason ->
             !reason.successful && reason.failure == failure
         })
     }

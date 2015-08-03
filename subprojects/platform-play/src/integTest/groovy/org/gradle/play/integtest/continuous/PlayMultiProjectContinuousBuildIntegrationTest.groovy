@@ -104,4 +104,71 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
         runningChildApp.verifyStopped()
         true
     }
+
+    def "show build failures in play apps in multiple projects in multiproject continuous build" () {
+        childApp.writeSources(childDirectory)
+        childDirectory.file('build.gradle') << """
+            model {
+                tasks.runPlayBinary {
+                    httpPort = ${runningChildApp.selectPort()}
+                }
+            }
+        """
+        file('settings.gradle') << """
+            include ':child'
+        """
+
+        when:
+        succeeds(":primary:runPlayBinary", ":child:runPlayBinary")
+
+        then:
+        appIsRunningAndDeployed()
+        childAppIsRunningAndDeployed()
+
+        when:
+        addBadJava("primary/app")
+
+        then:
+        fails()
+        notExecuted(":primary:runPlayBinary", ":child:runPlayBinary")
+        errorPageHasTaskFailure(":primary:compilePlayBinaryScala")
+        childErrorPageHasTaskFailure(":primary:compilePlayBinaryScala")
+
+        when:
+        fixBadJava("primary/app")
+        then:
+        succeeds()
+        appIsRunningAndDeployed()
+        childAppIsRunningAndDeployed()
+    }
+
+
+    def addBadJava(path) {
+        file("$path/models/NewType.java") << """
+package models;
+
+public class NewType {
+"""
+    }
+
+    def fixBadJava(path) {
+        file("$path/models/NewType.java") << """
+}
+"""
+    }
+
+    private errorPageHasTaskFailure(task) {
+        def error = runningApp.playUrlError()
+        assert error.httpCode == 500
+        assert error.text.contains("Gradle Build Failure")
+        assert error.text.contains("Execution failed for task &#x27;$task&#x27;.")
+        error
+    }
+    private childErrorPageHasTaskFailure(task) {
+        def error = runningChildApp.playUrlError()
+        assert error.httpCode == 500
+        assert error.text.contains("Gradle Build Failure")
+        assert error.text.contains("Execution failed for task &#x27;$task&#x27;.")
+        error
+    }
 }

@@ -18,15 +18,13 @@ package org.gradle.play.internal.run;
 
 import java.io.Serializable;
 
-public class RebuildReason implements Serializable {
+public class BuildStatus implements Serializable {
+    public static final BuildStatus SUCCESS = new BuildStatus(null);
+
     private final Throwable failure;
 
-    public RebuildReason(Throwable failure) {
+    public BuildStatus(Throwable failure) {
         this.failure = failure;
-    }
-
-    public RebuildReason() {
-        this.failure = null;
     }
 
     public Throwable getFailure() {
