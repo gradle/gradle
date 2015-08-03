@@ -95,6 +95,10 @@ public interface GradleExecuter {
 
     /**
      * Sets the <em>Gradle</em> user home dir. Setting to null requests that the executer use the real default Gradle user home dir rather than the default used for testing.
+     *
+     * This value is persistent across executions by this executer.
+     *
+     * <p>Note: does not affect the daemon base dir.</p>
      */
     GradleExecuter withGradleUserHomeDir(File userHomeDir);
 
@@ -205,7 +209,11 @@ public interface GradleExecuter {
     GradleExecuter withDaemonIdleTimeoutSecs(int secs);
 
     /**
-     * Set the working space for the daemon and launched daemons
+     * Set the working space for any daemons used by the builds.
+     *
+     * This value is persistent across executions by this executer.
+     *
+     * <p>Note: this does not affect the Gradle user home directory.</p>
      *
      * @return this executer
      */
@@ -272,13 +280,18 @@ public interface GradleExecuter {
 
     /**
      * Requires that there is a gradle home for the execution, which in process execution does not.
+     *
+     * <p>Note: try to avoid using this method. It has some major drawbacks when it comes to development: 1. It requires a Gradle distribution or installation, and this will
+     * need to be rebuilt after each change in order to use the test, and 2. it requires that the build run in a different JVM, which makes it very difficult to debug.</p>
      */
     GradleExecuter requireGradleHome();
 
     /**
-     * Configures that any daemons launched by or during the execution are unique to the test.
+     * Configures that any daemons used by the execution are unique to the test.
      *
-     * This value is persistent across executions in the same test.
+     * This value is persistent across executions by this executer.
+     *
+     * <p>Note: this does not affect the Gradle user home directory.</p>
      */
     GradleExecuter requireIsolatedDaemons();
 
@@ -287,7 +300,9 @@ public interface GradleExecuter {
      *
      * The gradle user home dir used will be underneath the {@link #getTestDirectoryProvider()} directory.
      *
-     * This value is persistent across executions in the same test.
+     * This value is persistent across executions by this executer.
+     *
+     * <p>Note: does not affect the daemon base dir.</p>
      */
     GradleExecuter requireOwnGradleUserHomeDir();
 
