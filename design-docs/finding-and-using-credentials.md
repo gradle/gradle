@@ -174,7 +174,7 @@ must not be used. Often, build users are not particularly opinionated regarding 
 - Can configure basic authentication to send credentials preemptively
     - Credentials are sent on all requests (including GET/HEAD)
 - Can configure preemptive basic auth in conjunction with digest auth scheme
-    - Should attempt digest auth if a 401 is received requesting digest auth
+    - Should attempt digest auth if a 401 is received requesting basic auth
 
 ## Story: Build author configures repository for Windows authentication
 
