@@ -26,7 +26,7 @@ import java.util.Set;
 
 public class DefaultResolvedArtifactResults implements ResolvedArtifactResults {
     // Transient state: held between resolving graph and resolving actual artifacts
-    private Map<Long, ArtifactSet> artifactSets = Maps.newHashMap();
+    private Map<Long, ArtifactSet> artifactSets = Maps.newLinkedHashMap();
 
     // Artifact State : held for the life of a build
     private Set<ResolvedArtifact> artifacts;
