@@ -31,6 +31,11 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     }
 
     @Override
+    protected void validateDaemonVisibility() {
+        // Ignore. Should really ignore only when daemon has not been explicitly enabled or disabled
+    }
+
+    @Override
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<String>(super.getAllArgs());
         if(!isQuiet() && isAllowExtraLogging()) {
@@ -49,10 +54,11 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
     @Override
     protected List<String> getImplicitBuildJvmArgs() {
-        if (!isUseDaemon()) {
+        if (!isUseDaemon() || !isSharedDaemons()) {
             return super.getImplicitBuildJvmArgs();
         }
 
+        // Add JVM heap settings only for shared daemons
         List<String> buildJvmOpts = new ArrayList<String>(super.getImplicitBuildJvmArgs());
         buildJvmOpts.add("-XX:MaxPermSize=320m");
         buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");

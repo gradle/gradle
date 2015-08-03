@@ -300,6 +300,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected GradleInvocation buildInvocation() {
+        validateDaemonVisibility();
+
         GradleInvocation gradleInvocation = new GradleInvocation();
         gradleInvocation.environmentVars.putAll(environmentVars);
         gradleInvocation.buildJvmArgs.addAll(buildJvmOpts);
@@ -316,6 +318,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         return gradleInvocation;
+    }
+
+    protected void validateDaemonVisibility() {
+        if (isUseDaemon() && isSharedDaemons()) {
+            throw new IllegalStateException("Daemon that will be visible to other tests has been requested.");
+        }
     }
 
     /**
@@ -363,6 +371,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      */
     protected List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOpts = new ArrayList<String>();
+        buildJvmOpts.add("-ea");
         if (isDebug()) {
             buildJvmOpts.addAll(DEBUG_ARGS);
         }
@@ -532,6 +541,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     public GradleExecuter requireDaemon() {
         requireDaemon = true;
         return this;
+    }
+
+    protected boolean isSharedDaemons() {
+        return daemonBaseDir.equals(buildContext.getDaemonBaseDir());
     }
 
     protected boolean isUseDaemon() {
