@@ -37,16 +37,19 @@ Moreover, we consider owning the implementation of model elements an enabler for
 
 - Add support for all primitive types.
 - Add support for missing boxed types (Byte, Short, Float).
+- Update user guide and Javadocs
 
 ##### Test cases
 
 - Does something sensible when getter uses primitive type and setter uses boxed type (and vice versa).
 - Cannot have read only properties of scalar types.
 - Cannot mutate properties of scalar types when view is immutable (eg used as input for rule, used as subject for validation rule).
+- Model report renderes primitive values
 
 ### Support `is` style getters for managed properties of type boolean
 
 - TBD: also for `Boolean` type properties?
+- Update user guide and Javadocs
 
 #### Test cases
 
@@ -61,10 +64,15 @@ Moreover, we consider owning the implementation of model elements an enabler for
 - Read-only `Set` instance should retain insertion order.
 - Read-only instances should be mutable when view is mutable (eg used as subject for rule).
 - Read-only instances should be immutable when view is immutable (eg used as input for rule, used as subject for validation rule).
+- Update user guide and Javadocs, add sample
 
 - TBD: should read-write properties maintain a copy of, rather than a reference to, the input collection? This would work
 better wrt immutability when the view is immutable. That is, should read-write properties work the same as read-only properties,
 where the setter is simply a convenience for replacing the contents of the collection?
+
+#### Test cases
+
+- Model report renders collection values.
 
 ### Convenient configuration of scalar typed properties from Groovy
 
@@ -72,6 +80,8 @@ where the setter is simply a convenience for replacing the contents of the colle
     - CharSequence to any scalar type (eg GString to Long, GString to String)
     - CharSequence to File conversion relative to project directory, as per `Project.file()`.
     - Any scalar type to String.
+- Update user guide, Javadocs and sample
+- Implementation must reuse `NotationConverter` infrastructure.
 
 - TBD: support the 'setter method' pattern from legacy domain types? eg
 
@@ -84,6 +94,11 @@ where the setter is simply a convenience for replacing the contents of the colle
         }
     }
 
+#### Test cases
+
+- Nice error message when configuring a property that does not exist, for each supported pattern.
+- Nice error message when input value cannot be converted.
+
 ### Convenient configuration of File typed properties from Java
 
 TBD: make some kind of 'project layout' or 'file resolver' service available as input to rules, which can convert String and friends to File.
@@ -92,6 +107,7 @@ TBD: make some kind of 'project layout' or 'file resolver' service available as 
 
 - TBD: convert input values? eg add String values to a List<File>?
 - TBD: support the 'adder method' and 'setter replaces content' patterns from legacy domain types? eg
+- Update user guide, Javadocs and samples
 
 <!-- -->
 
@@ -101,6 +117,11 @@ TBD: make some kind of 'project layout' or 'file resolver' service available as 
             sourceDirs = ['a'] // same as sourceDirs.clear(); sourceDirs.add(convertToFile('a'))
         }
     }
+
+#### Test cases
+
+- Nice error message when configuring a property that does not exist, for each supported pattern.
+- Nice error message when input value cannot be converted.
 
 ## Backlog
 
