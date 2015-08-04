@@ -44,10 +44,6 @@
         <section>
             <title>How do I enable the Gradle Daemon?</title>
             <para>
-                The <literal>--daemon</literal> and <literal>--no-daemon</literal> command line switches enable and disable usage of the Daemon for individual build invocations when using the Gradle command line interface.
-                Typically, it is more convenient to enable the Daemon for an environment (e.g. a user account) so that all builds use the Daemon without requiring to remember to supply the <literal>--daemon</literal> switch.
-            </para>
-            <para>
                 There are two recommended ways to enable the Daemon persistently for an environment:
             </para>
             <itemizedlist>
@@ -78,6 +74,10 @@
                     touch ~/.gradle/gradle.properties &amp;&amp; echo "org.gradle.daemon=true" >> ~/.gradle/gradle.properties
                 </programlisting>
                 Once the Daemon is enabled for a build environment in this way, all builds will implicitly use a Daemon.
+            </para>
+            <para>
+                The <literal>--daemon</literal> and <literal>--no-daemon</literal> command line switches enable and disable usage of the Daemon for individual build invocations when using the Gradle command line interface.
+                Typically, it is more convenient to enable the Daemon for an environment (e.g. a user account) so that all builds use the Daemon without requiring to remember to supply the <literal>--daemon</literal> switch.
             </para>
         </section>
         <section>
