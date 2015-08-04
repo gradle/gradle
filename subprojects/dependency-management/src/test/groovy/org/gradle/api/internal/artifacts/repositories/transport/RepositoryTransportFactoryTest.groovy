@@ -137,34 +137,19 @@ class RepositoryTransportFactoryTest extends Specification {
 
     private class GoodCredentialsAuthentication extends AbstractAuthentication {
         GoodCredentialsAuthentication(String name) {
-            super(name)
-        }
-
-        @Override
-        Set<Class<? extends Credentials>> getSupportedCredentials() {
-            return ([GoodCredentials] as Set)
+            super(name, GoodCredentials)
         }
     }
 
     private class BadCredentialsAuthentication extends AbstractAuthentication {
         BadCredentialsAuthentication(String name) {
-            super(name)
-        }
-
-        @Override
-        Set<Class<? extends Credentials>> getSupportedCredentials() {
-            return ([BadCredentials] as Set)
+            super(name, BadCredentials)
         }
     }
 
     private class NoCredentialsAuthentication extends AbstractAuthentication {
         NoCredentialsAuthentication(String name) {
             super(name)
-        }
-
-        @Override
-        Set<Class<? extends Credentials>> getSupportedCredentials() {
-            return ([] as Set)
         }
     }
 

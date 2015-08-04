@@ -43,9 +43,7 @@ repositories {
             username 'username'
         }
 
-        authentication {
-            ${authSchemeType}
-        }
+        ${authSchemeType}
     }
 }
 configurations { compile }
@@ -72,13 +70,13 @@ task listJars << {
         succeeds('listJars')
 
         where:
-        authSchemeName         | authSchemeType                                             | authScheme
-        'basic'                | 'auth(BasicAuthentication)'                                | HttpServer.AuthScheme.BASIC
-        'digest'               | 'auth(DigestAuthentication)'                               | HttpServer.AuthScheme.DIGEST
-        'default'              | ''                                                         | HttpServer.AuthScheme.BASIC
-        'default'              | ''                                                         | HttpServer.AuthScheme.DIGEST
-        'basic'                | 'auth(BasicAuthentication)'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC
-        'basic and digest'     | 'basic(BasicAuthentication)\ndigest(DigestAuthentication)' | HttpServer.AuthScheme.DIGEST
+        authSchemeName         | authSchemeType                                                                | authScheme
+        'basic'                | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.BASIC
+        'digest'               | 'authentication { auth(DigestAuthentication) }'                               | HttpServer.AuthScheme.DIGEST
+        'default'              | ''                                                                            | HttpServer.AuthScheme.BASIC
+        'default'              | ''                                                                            | HttpServer.AuthScheme.DIGEST
+        'basic'                | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC
+        'basic and digest'     | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | HttpServer.AuthScheme.DIGEST
     }
 
     @Unroll
@@ -102,9 +100,7 @@ repositories {
             username 'username'
         }
 
-        authentication {
-            ${authSchemeType}
-        }
+        ${authSchemeType}
     }
 }
 configurations { compile }
@@ -141,13 +137,13 @@ task listJars << {
         succeeds('listJars')
 
         where:
-        authSchemeName         | authSchemeType                                             | authScheme
-        'basic'                | 'auth(BasicAuthentication)'                                | HttpServer.AuthScheme.BASIC
-        'digest'               | 'auth(DigestAuthentication)'                               | HttpServer.AuthScheme.DIGEST
-        'default'              | ''                                                         | HttpServer.AuthScheme.BASIC
-        'default'              | ''                                                         | HttpServer.AuthScheme.DIGEST
-        'basic'                | 'auth(BasicAuthentication)'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC
-        'basic and digest'     | 'basic(BasicAuthentication)\ndigest(DigestAuthentication)' | HttpServer.AuthScheme.DIGEST
+        authSchemeName         | authSchemeType                                                                | authScheme
+        'basic'                | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.BASIC
+        'digest'               | 'authentication { auth(DigestAuthentication) }'                               | HttpServer.AuthScheme.DIGEST
+        'default'              | ''                                                                            | HttpServer.AuthScheme.BASIC
+        'default'              | ''                                                                            | HttpServer.AuthScheme.DIGEST
+        'basic'                | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC
+        'basic and digest'     | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | HttpServer.AuthScheme.DIGEST
     }
 
     @Unroll

@@ -16,14 +16,24 @@
 
 package org.gradle.api.internal.authentication;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.credentials.Credentials;
+
+import java.util.Set;
 
 public abstract class AbstractAuthentication implements AuthenticationInternal {
     private Credentials credentials;
     private String name;
+    private Set<Class<? extends Credentials>> supportedCredentials;
 
     public AbstractAuthentication(String name) {
         this.name = name;
+        this.supportedCredentials = Sets.newHashSet();
+    }
+
+    public AbstractAuthentication(String name, Class<? extends Credentials>... supportedCredentials) {
+        this.name = name;
+        this.supportedCredentials = Sets.newHashSet(supportedCredentials);
     }
 
     @Override
@@ -39,5 +49,9 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
     @Override
     public String getName() {
         return name;
+    }
+
+    public Set<Class<? extends Credentials>> getSupportedCredentials() {
+        return supportedCredentials;
     }
 }

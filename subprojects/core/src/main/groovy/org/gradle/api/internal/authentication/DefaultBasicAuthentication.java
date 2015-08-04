@@ -18,20 +18,9 @@ package org.gradle.api.internal.authentication;
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.authentication.BasicAuthentication;
-import org.gradle.api.credentials.Credentials;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class DefaultBasicAuthentication extends AbstractAuthentication implements BasicAuthentication {
     public DefaultBasicAuthentication(String name) {
-        super(name);
-    }
-
-    @Override
-    public Set<Class<? extends Credentials>> getSupportedCredentials() {
-        Set<Class<? extends Credentials>> supported = new HashSet<Class<? extends Credentials>>();
-        supported.add(PasswordCredentials.class);
-        return supported;
+        super(name, PasswordCredentials.class);
     }
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.repositories;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.credentials.Credentials;
@@ -103,12 +102,12 @@ public interface AuthenticationSupported {
     /**
      * <p>Configures the authentication schemes for this repository.
      *
-     * <p>This method executes the given closure against the {@link AuthenticationContainer} for this project. The {@link
+     * <p>This method executes the given action against the {@link AuthenticationContainer} for this project. The {@link
      * AuthenticationContainer} is passed to the closure as the closure's delegate.
      *
-     * @param configureClosure the closure to use to configure the authentication schemes.
+     * @param action the action to use to configure the authentication schemes.
      */
-    void authentication(Closure configureClosure);
+    void authentication(Action<? super AuthenticationContainer> action);
 
     /**
      * Returns the authentication schemes for this repository.

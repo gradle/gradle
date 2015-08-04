@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.repositories;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.authentication.Authentication;
-import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.authentication.AllSchemesAuthentication;
@@ -28,7 +27,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.credentials.DefaultAwsCredentials;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.ConfigureUtil;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -42,14 +40,6 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
         this.instantiator = instantiator;
         this.authenticationContainer = authenticationContainer;
-
-        // TODO: This will have to be changed when we support setting credentials directly on the authentication
-        this.authenticationContainer.all(new Action<Authentication>() {
-            @Override
-            public void execute(Authentication authentication) {
-                ((AuthenticationInternal)authentication).setCredentials(getConfiguredCredentials());
-            }
-        });
     }
 
     @Override
@@ -79,12 +69,10 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
             throw new IllegalStateException("Can not use credentials(Action) method when not using PasswordCredentials; please use credentials(Class, Action)");
         }
         credentials(PasswordCredentials.class, action);
-        populateAuthenticationCredentials();
     }
 
     public <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action) throws IllegalStateException {
         action.execute(getCredentials(credentialsType));
-        populateAuthenticationCredentials();
     }
 
     private <T extends Credentials> T setCredentials(Class<T> clazz) {
@@ -102,8 +90,8 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     }
 
     @Override
-    public void authentication(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getAuthentication());
+    public void authentication(Action<? super AuthenticationContainer> action) {
+        action.execute(getAuthentication());
     }
 
     @Override
@@ -113,8 +101,9 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
 
     @Override
     public Collection<Authentication> getConfiguredAuthentication() {
+        populateAuthenticationCredentials();
         if (getConfiguredCredentials() != null & authenticationContainer.size() == 0) {
-            return Collections.<Authentication>singleton(new AllSchemesAuthentication("all", getConfiguredCredentials()));
+            return Collections.<Authentication>singleton(new AllSchemesAuthentication(getConfiguredCredentials()));
         } else {
             return getAuthentication();
         }

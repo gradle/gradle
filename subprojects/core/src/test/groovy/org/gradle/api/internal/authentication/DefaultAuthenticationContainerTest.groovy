@@ -18,7 +18,6 @@ package org.gradle.api.internal.authentication
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.authentication.Authentication
-import org.gradle.api.credentials.Credentials
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 import spock.lang.Subject
@@ -65,11 +64,6 @@ public class DefaultAuthenticationContainerTest extends Specification {
     static class DefaultTestAuthentication extends AbstractAuthentication implements TestAuthentication {
         DefaultTestAuthentication(String name) {
             super(name)
-        }
-
-        @Override
-        Set<Class<? extends Credentials>> getSupportedCredentials() {
-            return null
         }
     }
 

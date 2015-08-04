@@ -25,6 +25,10 @@ public class DefaultHttpSettings implements HttpSettings {
     private final Collection<Authentication> authenticationSettings;
 
     public DefaultHttpSettings(Collection<Authentication> authenticationSettings) {
+        if (authenticationSettings == null) {
+            throw new IllegalArgumentException("Authentication settings cannot be null.");
+        }
+
         this.authenticationSettings = authenticationSettings;
     }
 

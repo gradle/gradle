@@ -18,6 +18,7 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.authentication.Authentication;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -40,6 +41,8 @@ import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.plugin.use.resolve.service.internal.*;
+
+import java.util.Collections;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -65,7 +68,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
 
     private static class BuildScopeServices {
         PluginResolutionServiceClient createPluginResolutionServiceClient(CacheRepository cacheRepository, StartParameter startParameter) {
-            HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(null));
+            HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(Collections.<Authentication>emptySet()));
             HttpResourceAccessor accessor = new HttpResourceAccessor(http);
             PluginResolutionServiceClient httpClient = startParameter.isOffline()
                     ? new OfflinePluginResolutionServiceClient()

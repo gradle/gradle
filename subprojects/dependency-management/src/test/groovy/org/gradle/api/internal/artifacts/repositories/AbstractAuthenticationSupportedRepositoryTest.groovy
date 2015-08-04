@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.authentication.Authentication
-import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.ClosureBackedAction
@@ -168,7 +168,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         repo.credentials(AwsCredentials, action)
 
         then:
-        repo.configuredCredentials instanceof AwsCredentials
+        repo.getCredentials(AwsCredentials) instanceof AwsCredentials
     }
 
     def "get credentials throws ISE if not using password credentials"() {
@@ -194,11 +194,16 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     }
 
     def "authentication container throws IUD with authentication of unknown type"() {
+        def action = new Action<AuthenticationContainer>() {
+            @Override
+            void execute(AuthenticationContainer authentications) {
+                authentications.create('basic', UnsupportedAuthentication)
+            }
+        }
+
         when:
         repo().with {
-            authentication {
-                'basic'(UnsupportedAuthentication)
-            }
+            authentication(action)
         }
 
         then:

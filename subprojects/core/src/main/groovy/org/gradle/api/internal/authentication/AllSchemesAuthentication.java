@@ -25,8 +25,8 @@ import java.util.Set;
  * Authentication scheme representing all supported schemes for a given protocol
  */
 public class AllSchemesAuthentication extends AbstractAuthentication {
-    public AllSchemesAuthentication(String name, Credentials credentials) {
-        super(name);
+    public AllSchemesAuthentication(Credentials credentials) {
+        super("all");
         this.setCredentials(credentials);
     }
 

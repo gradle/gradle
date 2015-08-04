@@ -16,11 +16,11 @@
 
 package org.gradle.api.artifacts.repositories;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.authentication.Authentication;
 
 /**
  * Container for configuring repository authentication schemes.
  */
-public interface AuthenticationContainer extends ExtensiblePolymorphicDomainObjectContainer<Authentication> {
+public interface AuthenticationContainer extends PolymorphicDomainObjectContainer<Authentication> {
 }

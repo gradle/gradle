@@ -68,7 +68,7 @@ public class HttpClientConfigurer {
     }
 
     private void configureCredentials(DefaultHttpClient httpClient, Collection<Authentication> authentications) {
-        if(authentications != null && authentications.size() > 0) {
+        if(authentications.size() > 0) {
             useCredentials(httpClient, AuthScope.ANY_HOST, AuthScope.ANY_PORT, authentications);
 
             // Use preemptive authorisation if no other authorisation has been established
@@ -79,7 +79,7 @@ public class HttpClientConfigurer {
     private void configureProxyCredentials(DefaultHttpClient httpClient, HttpProxySettings proxySettings) {
         HttpProxySettings.HttpProxy proxy = proxySettings.getProxy();
         if (proxy != null && proxy.credentials != null) {
-            useCredentials(httpClient, proxy.host, proxy.port, Collections.singleton(new AllSchemesAuthentication(null, proxy.credentials)));
+            useCredentials(httpClient, proxy.host, proxy.port, Collections.singleton(new AllSchemesAuthentication(proxy.credentials)));
         }
     }
 
