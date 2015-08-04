@@ -15,11 +15,11 @@
  */
 
 package org.gradle.play.integtest.fixtures
-
 import com.google.common.collect.Lists
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
+import org.gradle.test.fixtures.ConcurrentTestUtil
 
 class DistributionTestExecHandleBuilder extends ExecHandleBuilder {
     final String port
@@ -60,16 +60,29 @@ class DistributionTestExecHandleBuilder extends ExecHandleBuilder {
 
         void shutdown() {
             try {
-                new URL("http://localhost:${port}/shutdown").bytes
-            } catch (SocketException e) {
-                // Expected
-            }
+                try {
+                    new URL("http://localhost:${port}/shutdown").bytes
+                } catch (SocketException e) {
+                    // Expected
+                }
 
-            try {
-                abort()
-            } catch (IllegalStateException e) {
-                // Ignore if process is already not running
-                println "Did not abort play process since current state is: ${state.toString()}"
+                ConcurrentTestUtil.poll(30) {
+                    try {
+                        def connection = new URL("http://localhost:${port}/").openConnection()
+                        connection.connect()
+                        // we can still connect to the application
+                        assert false : "Waiting for application to finally die"
+                    } catch (IOException e) {
+                        // Application is dead
+                    }
+                }
+            } finally {
+                try {
+                    abort()
+                } catch (IllegalStateException e) {
+                    // Ignore if process is already not running
+                    println "Did not abort play process since current state is: ${state.toString()}"
+                }
             }
         }
     }
