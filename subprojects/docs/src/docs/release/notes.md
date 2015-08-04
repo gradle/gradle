@@ -85,6 +85,43 @@ To configure your Play application to use the injected routes generator, you'll 
         }
     }
 
+### Explicit configuration of HTTP authentication schemes (i)
+
+Support has been added for explicitly configuring the authentication schemes that should be used when authenticating to Maven or Ivy repositories over HTTP/HTTPS. By default,
+Gradle will attempt to use all [schemes supported by the HttpClient library](http://hc.apache.org/httpcomponents-client-ga/tutorial/html/authentication.html#d5e625). To
+override the default behavior, a new API has been added to allow configuring which authentication schemes should be used. For increased security, a repository can be configured
+to only use digest authentication so as to never transmit credentials in plaintext:
+
+    repositories {
+        maven {
+            url 'https://repo.mycompany.com/maven2'
+            credentials {
+                username 'user'
+                password 'password'
+            }
+            authentication {
+                digest(DigestAuthentication)
+            }
+        }
+    }
+
+Currently, only basic and digest authentication schemes for HTTP transports can be explicitly configured. More details can be found in the Gradle
+[User Guide](userguide/dependency_management.html#sub:authentication_schemes).
+
+### Support for preemptive authentication (i)
+
+Building on the [new support for configuring authentication schemes](#explicit-configuration-of-http-authentication-schemes), support for preemptive authentication has been added.
+
+Gradle's default behavior is to only submit credentials when a server responds with an authentication challenge in the form of a HTTP 401 response. In some cases, the server will
+respond with a different code (ex. for repositories hosted on GitHub a 404 is returned) causing dependency resolution to fail. To get around this behavior, credentials may be sent
+to the server preemptively. To enable preemptive authentication simply configure your repository to explicitly use the
+[`BasicAuthentication`](javadoc/org/gradle/api/authentication/BasicAuthentication.html) scheme:
+
+    authentication {
+        basic(BasicAuthentication) // enable preemptive authentication
+    }
+
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

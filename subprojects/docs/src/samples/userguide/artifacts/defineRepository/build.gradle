@@ -241,3 +241,33 @@ repositories.localRepository {
     dirs 'lib'
 }
 //END SNIPPET configure-resolver
+
+//START SNIPPET digest-authentication
+repositories {
+    maven {
+        url 'https://repo.mycompany.com/maven2'
+        credentials {
+            username 'user'
+            password 'password'
+        }
+        authentication {
+            digest(DigestAuthentication)
+        }
+    }
+}
+//END SNIPPET digest-authentication
+
+//START SNIPPET preemptive-authentication
+repositories {
+    maven {
+        url 'https://repo.mycompany.com/maven2'
+        credentials {
+            username 'user'
+            password 'password'
+        }
+        authentication {
+            basic(BasicAuthentication)
+        }
+    }
+}
+//END SNIPPET preemptive-authentication

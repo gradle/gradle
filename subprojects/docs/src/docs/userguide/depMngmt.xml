@@ -840,7 +840,7 @@
                 <thead>
                     <tr>
                         <td>Type</td>
-                        <td>Authentication schemes</td>
+                        <td>Credential types</td>
                     </tr>
                 </thead>
                 <tr>
@@ -981,6 +981,54 @@
                         <listitem><literal>Increased likelihood of transmission failures.</literal></listitem>
                     </itemizedlist>
                 </note>
+            </section>
+
+            <section id="sub:authentication_schemes">
+                <title>Configuring HTTP authentication schemes</title>
+                <para>
+                    When configuring a repository using HTTP or HTTPS transport protocols, multiple authentication schemes are available. By default, Gradle will attempt to use all schemes that
+                    are supported by the Apache HttpClient library, <ulink url="http://hc.apache.org/httpcomponents-client-ga/tutorial/html/authentication.html#d5e625">documented here</ulink>.
+                    In some cases, it may be preferable to explicitly specify which authentication schemes should be used when exchanging credentials with a remote server. When explicitly
+                    declared, only those schemes are used when authenticating to a remote repository. The following example show how to configure a repository to use only digest authentication:
+                </para>
+                <sample id="digestAuthentication" dir="userguide/artifacts/defineRepository" title="Configure repository to use only digest authentication">
+                    <sourcefile file="build.gradle" snippet="digest-authentication"/>
+                </sample>
+                <para>
+                    Currently supported authentication schemes are:
+                </para>
+                <table>
+                    <title>Authentication schemes</title>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><apilink class="org.gradle.api.authentication.BasicAuthentication"/></td>
+                            <td>Basic access authentication over HTTP. When using this scheme, credentials are sent preemptively.</td>
+                        </tr>
+                        <tr>
+                            <td><apilink class="org.gradle.api.authentication.DigestAuthentication"/></td>
+                            <td>Digest access authentication over HTTP.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="sub:preemptive_authentication">
+                <title>Using preemptive authentication</title>
+                <para>
+                    Gradle's default behavior is to only submit credentials when a server responds with an authentication challenge in the form of a HTTP 401 response. In some cases,
+                    the server will respond with a different code (ex. for repositories hosted on GitHub a 404 is returned) causing dependency resolution to fail. To get around this
+                    behavior, credentials may be sent to the server preemptively. To enable preemptive authentication simply configure your repository to explicitly use the
+                    <apilink class="org.gradle.api.authentication.BasicAuthentication"/> scheme:
+                </para>
+                <sample id="preemptiveAuthentication" dir="userguide/artifacts/defineRepository" title="Configure repository to use preemptive authentication">
+                    <sourcefile file="build.gradle" snippet="preemptive-authentication"/>
+                </sample>
             </section>
         </section>
 
