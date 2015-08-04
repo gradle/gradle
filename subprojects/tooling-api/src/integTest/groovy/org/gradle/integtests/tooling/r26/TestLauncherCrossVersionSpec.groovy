@@ -15,9 +15,13 @@
  */
 
 package org.gradle.integtests.tooling.r26
+
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.GradleException
 import org.gradle.integtests.tooling.fixture.*
+import org.gradle.integtests.tooling.fixture.GradleBuildCancellation
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.tooling.*
 import org.gradle.tooling.events.ProgressEvent
@@ -28,6 +32,7 @@ import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
 
 @ToolingApiVersion(">=2.6")
 @TargetGradleVersion(">=2.6")
@@ -36,6 +41,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
     TestOutputStream stdout = new TestOutputStream()
 
     ProgressEvents events = new ProgressEvents()
+
+    @Rule
+    GradleBuildCancellation cancellationTokenSource
 
     def setup() {
         testCode()
@@ -62,9 +70,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         events.operation("Gradle Test Run :secondTest").successful
         events.operation("Gradle Test Executor 2").successful
         events.tests.findAll { it.descriptor.displayName == "Test class example.MyTest" }.size() == 2
-        events.tests.findAll { it.descriptor.displayName == "Test foo(example.MyTest)"  }.size() == 2
+        events.tests.findAll { it.descriptor.displayName == "Test foo(example.MyTest)" }.size() == 2
         events.tests.findAll { it.descriptor.displayName == "Test foo2(example.MyTest)" }.size() == 2
-        events.tests.findAll { it.descriptor.displayName == "Test class example2.MyOtherTest"}.size() == 2
+        events.tests.findAll { it.descriptor.displayName == "Test class example2.MyOtherTest" }.size() == 2
         events.tests.size() == 12
     }
 
@@ -141,27 +149,27 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         given:
         collectDescriptorsFromBuild()
         when:
-        withConnection {
-            def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
-            launchTests(it, new TestResultHandler(), cancellationTokenSource) { TestLauncher launcher ->
-                def testsToLaunch = testDescriptors("example.MyTest", null, ":secondTest")
-                launcher
-                    .withTests(testsToLaunch.toArray(new TestOperationDescriptor[testsToLaunch.size()]))
-                    .withArguments("-t")
-            }
-            waitingForBuild()
-            assertTaskExecuted(":secondTest")
-            assertTaskNotExecuted(":test")
-            assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
-            assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
-            assertTestNotExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
-            assertTestNotExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
-            assert events.tests.size() == 6
-            events.clear()
-            changeTestSource()
-            waitingForBuild()
+        withConnection { connection ->
+            withCancellation { cancellationToken ->
+                launchTests(connection, new TestResultHandler(), cancellationToken) { TestLauncher launcher ->
+                    def testsToLaunch = testDescriptors("example.MyTest", null, ":secondTest")
+                    launcher
+                        .withTests(testsToLaunch.toArray(new TestOperationDescriptor[testsToLaunch.size()]))
+                        .withArguments("-t")
+                }
 
-            cancellationTokenSource.cancel()
+                waitingForBuild()
+                assertTaskExecuted(":secondTest")
+                assertTaskNotExecuted(":test")
+                assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+                assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+                assertTestNotExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
+                assertTestNotExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
+                assert events.tests.size() == 6
+                events.clear()
+                changeTestSource()
+                waitingForBuild()
+            }
         }
 
         then:
@@ -173,6 +181,10 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
         events.tests.size() == 8
+    }
+
+    public <T> T withCancellation(@ClosureParams(value = SimpleType, options = ["org.gradle.tooling.CancellationToken"]) Closure<T> cl) {
+        return cancellationTokenSource.withCancellation(cl)
     }
 
     def "listener errors are rethrown on client side"() {
@@ -209,7 +221,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             }
         """
         when:
-        launchTests{ TestLauncher launcher ->
+        launchTests { TestLauncher launcher ->
             launcher.withJvmTestClasses("util.TestUtil")
         }
         then:
@@ -285,7 +297,7 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         when:
         launchTests { TestLauncher launcher ->
             launcher.withJvmTestClasses("example.MyTest")
-                    .withArguments("--someInvalidArgument")
+                .withArguments("--someInvalidArgument")
         }
         then:
         def e = thrown(UnsupportedBuildArgumentException)
@@ -309,10 +321,8 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         when:
         launchTests { TestLauncher launcher ->
             launcher.withJvmTestClasses("example.MyTest")
-
-            def tokenSource = GradleConnector.newCancellationTokenSource()
-            launcher.withCancellationToken(tokenSource.token())
-            tokenSource.cancel()
+            launcher.withCancellationToken(cancellationTokenSource.token())
+            cancellationTokenSource.cancel()
         }
         then:
         thrown(BuildCancelledException)
@@ -535,14 +545,13 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
 
     void launchTests(Closure configurationClosure) {
         withConnection { ProjectConnection connection ->
-            launchTests(connection, null, GradleConnector.newCancellationTokenSource(), configurationClosure)
+            launchTests(connection, null, cancellationTokenSource.token(), configurationClosure)
         }
     }
 
-    void launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationTokenSource cancellationTokenSource, Closure configurationClosure) {
-
+    void launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationToken cancellationToken, Closure configurationClosure) {
         TestLauncher testLauncher = connection.newTestLauncher()
-            .withCancellationToken(cancellationTokenSource.token())
+            .withCancellationToken(cancellationToken)
             .addProgressListener(events)
 
         if (toolingApi.isEmbedded()) {

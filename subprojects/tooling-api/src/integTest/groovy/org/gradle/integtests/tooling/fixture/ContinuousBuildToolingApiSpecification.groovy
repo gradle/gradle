@@ -23,10 +23,11 @@ import org.gradle.integtests.fixtures.executer.*
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
-import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
 import spock.lang.Timeout
 
 @Timeout(180)
@@ -44,8 +45,9 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     ExecutionFailure failure
 
     int buildTimeout = 10
-    def cancellationTokenSource = GradleConnector.newCancellationTokenSource()
 
+    @Rule
+    GradleBuildCancellation cancellationTokenSource
     TestResultHandler buildResult
     TestFile sourceDir
 
@@ -70,9 +72,9 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     public <T> T runBuild(List<String> tasks = ["build"], Closure<T> underBuild) {
         if (projectConnection) {
-            cancellationTokenSource = GradleConnector.newCancellationTokenSource()
             buildResult = new TestResultHandler()
-            try {
+
+            cancellationTokenSource.withCancellation { CancellationToken token ->
                 // this is here to ensure that the lastModified() timestamps actually change in between builds.
                 // if the build is very fast, the timestamp of the file will not change and the JDK file watch service won't see the change.
                 def initScript = file("init.gradle")
@@ -89,7 +91,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                 BuildLauncher launcher = projectConnection.newBuild()
                     .withArguments("--continuous", "-I", initScript.absolutePath)
                     .forTasks(tasks as String[])
-                    .withCancellationToken(cancellationTokenSource.token())
+                    .withCancellationToken(token)
 
                 if (toolingApi.isEmbedded()) {
                     launcher
@@ -108,8 +110,6 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                 cancellationTokenSource.cancel()
                 buildResult.finished(buildTimeout)
                 t
-            } finally {
-                cancellationTokenSource.cancel()
             }
         } else {
             withConnection { runBuild(tasks, underBuild) }
@@ -180,4 +180,5 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
         cancellationTokenSource.cancel()
         true
     }
+
 }
