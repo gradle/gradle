@@ -59,7 +59,7 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
     }
 
     @Override
-    public <T extends Credentials> boolean supports(final T credentials) {
+    public boolean supports(final Credentials credentials) {
         return CollectionUtils.any(getSupportedCredentials(), new Spec<Class<? extends Credentials>>() {
             @Override
             public boolean isSatisfiedBy(Class<? extends Credentials> element) {
