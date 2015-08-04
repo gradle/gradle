@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve
+
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -570,5 +572,49 @@ project('c') {
 
         then:
         output.contains "Changed dependencies of configuration ':api:conf' after it has been included in dependency resolution"
+    }
+
+    @Issue("GRADLE-3330")
+    @NotYetImplemented
+    def "can depend on two different configurations from the same project"() {
+        settingsFile << "include 'a'; include 'b'"
+
+        buildFile << """
+            project(":a") {
+                configurations {
+                    custom1
+                    custom2
+                }
+                task jar1(type: Jar) {
+                    archiveName "jar1.jar"
+                }
+                task jar2(type: Jar) {
+                    archiveName "jar2.jar"
+                }
+                artifacts {
+                    custom1 jar1
+                    custom2 jar2
+                }
+            }
+
+            project(":b") {
+                configurations {
+                    test
+                }
+                dependencies {
+                    test project(path: ":a", configuration: "custom1")
+                    test project(path: ":a", configuration: "custom2")
+                }
+                task check {
+                    dependsOn configurations.test
+                    doLast {
+                        assert configurations.test.files == [ "jar1.jar", "jar2.jar" ]
+                    }
+                }
+            }
+"""
+        expect:
+        executer.withDeprecationChecksDisabled()
+        succeeds("b:check")
     }
 }
