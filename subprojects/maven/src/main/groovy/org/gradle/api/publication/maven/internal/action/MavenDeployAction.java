@@ -89,9 +89,9 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
             UncheckedException.throwAsUncheckedException(e);
         }
 
-        //This is a workaround for https://issues.gradle.org/browse/GRADLE-3324.
+        // This is a workaround for https://issues.gradle.org/browse/GRADLE-3324.
         // Somehow the ArrayList 'result' in `org.sonatype.aether.impl.internal.Utils#sortMetadataGeneratorFactories` ends up
-        // being a list of nulls on windows and the IBM's 1.6 JDK.
+        // being a list of nulls on windows and IBM's 1.6 JDK.
         deployer.setMetadataFactories(null);
         deployer.addMetadataGeneratorFactory(new VersionsMetadataGeneratorFactory());
         deployer.addMetadataGeneratorFactory(new SnapshotMetadataGeneratorFactory());
