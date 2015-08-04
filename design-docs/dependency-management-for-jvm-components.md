@@ -493,24 +493,28 @@ abstract class SomeManagedType implements JarBinarySpec {
         - property `b` with `managed = false`
 - properties are extracted from managed subtype of unmanaged type
     - unmanaged type has properties `a` and `b`
-    - managed subtype has non-abstract property `u`
-    - managed subtype has abstract property `m`
+    - unmanaged type also has method `boolean isBuildable()`
+    - managed subtype has non-abstract read-only property `calculatedProp`
+    - managed subtype has abstract property `managedProp`
     - extracted schema contains the following properties:
         - property `a` with `managed = false`
         - property `b` with `managed = false`
-        - property `u` has `managed = false`
-        - property `m` has `managed = true`
+        - property `calculatedProp` has `managed = false`
+        - property `managedProp` has `managed = true`
+        - method `isBuildable()` is ignored because we cannot handle the return type
 - unmanaged methods we cannot handle are ignored
     - unmanaged type has properties `a` and `b`
-    - it also has method `boolean isBuildable()`
-    - and method `int getTime()`
+    - unmanaged type also has method `boolean isBuildable()`
+    - unmanaged type also has method `int getTime()`
     - extracted schema contains the following properties:
         - property `a` with `managed = false`
         - property `b` with `managed = false`
+        - method `isBuildable()` is ignored because we cannot handle the return type
 - annotations are collected from getters
     - unmanaged type has property `a` with `@Custom("unmanaged")` annotation on getter
-    - managed subtype has property `b` with `@Custom("managed")` annotation on getter
-    - managed subtype has property `b` with `@Custom("setter")` annotation on setter
+    - managed subtype has property `b` with
+        - `@Custom("managed")` annotation on getter
+        - `@Custom("setter")` annotation on setter
     - extracted schema contains both `a` and `b` with corresponding getter annotations, setter annotations are ignored
 - fail when managed type tries to override method from unmanaged super-type
 
@@ -520,8 +524,8 @@ abstract class SomeManagedType implements JarBinarySpec {
 - Implement unmanaged property schema extraction as alternative strategy to managed property extraction. Unmanaged properties should not be checked for validity.
 - Store annotation information for each extracted property in the struct schema.
 - Process all methods in hierarchy for annotations. Currently used `Class.getMethods()` folds declarations, losing annotation info on overridden methods with same return type.
-- Rename `ModelProperty.isUnmanaged()` to `ModelProperty.isDeclaredAsHavingUnmanagedType()`.
-- Introduce new `ModelProperty.isManaged()` to tell if property is managed or not.
+- Remove `ModelProperty.unmanaged`, `ModelProperty.isUnmanaged()` can be emulated via `ModelProperty.isAnnotationPresent(Unmanaged.class)`.
+- Introduce new `ModelProperty.isManaged()` to tell if property state is managed or not.
 
 #### Current process for extracting schema from type:
 
