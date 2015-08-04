@@ -80,11 +80,24 @@ class SourceFolderTest extends Specification {
         given:
         def one = createSourceFolder()
         one.dir = new File('/some/path/to/foo')
-
+        one.name = "foo"
         when:
-        one.trimPath()
+        one.trim()
 
         then:
         one.path == 'foo'
+    }
+
+    def "trims path with provided prefix"() {
+        given:
+        def one = createSourceFolder()
+        one.dir = new File('/some/path/to/foo')
+        one.name = "foo"
+        when:
+        one.trim("prefix")
+
+        then:
+        one.path == 'prefix-foo'
+        one.name== 'prefix-foo'
     }
 }

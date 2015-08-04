@@ -25,14 +25,9 @@ import org.gradle.plugins.ide.eclipse.model.SourceFolder
 class SourceFoldersCreator {
     void populateForClasspath(List<ClasspathEntry> entries, EclipseClasspath classpath) {
         def provideRelativePath = { classpath.project.relativePath(it) }
-        List regulars = getRegularSourceFolders(classpath.sourceSets, provideRelativePath)
+        List<SourceFolder> regulars = getRegularSourceFolders(classpath.sourceSets, provideRelativePath)
 
-        //externals are mapped to linked resources so we just need a name of the resource, without full path
-        List trimmedExternals = getExternalSourceFolders(classpath.sourceSets, provideRelativePath).collect { SourceFolder folder ->
-            folder.trimPath()
-            folder
-        }
-
+        List trimmedExternals = getExternalSourceFolders(classpath.sourceSets, provideRelativePath)
         entries.addAll(regulars)
         entries.addAll(trimmedExternals)
     }
@@ -55,12 +50,32 @@ class SourceFoldersCreator {
      */
     List<SourceFolder> getExternalSourceFolders(Iterable<SourceSet> sourceSets, Closure provideRelativePath) {
         def sourceFolders = projectRelativeFolders(sourceSets, provideRelativePath)
-        return sourceFolders.findAll { it.path.contains('..') }
+        def externalSourceFolders = sourceFolders.findAll { it.path.contains('..') }
+
+        List<SourceFolder> trimmedSourceFolders = trimAndDedup(externalSourceFolders, getRegularSourceFolders(sourceSets, provideRelativePath).collect { it.name })
+        trimmedSourceFolders
+    }
+
+    private List<SourceFolder> trimAndDedup(ArrayList<SourceFolder> externalSourceFolders, givenSources) {
+        // externals are mapped to linked resources so we just need a name of the resource, without full path
+        // non unique folder names are naively deduped by adding parent filename as a prefix till unique
+        // since this seems like a rare edge case this simple approach should be enough
+        def trimmedSourceFolders = externalSourceFolders.collect { folder ->
+            folder.trim()
+            def parentFile = folder.dir.parentFile
+            while (givenSources.contains(folder.name) && parentFile != null) {
+                folder.trim(parentFile.name)
+                parentFile = parentFile.parentFile
+            }
+            givenSources.add(folder.name)
+            folder
+        }
+        trimmedSourceFolders
     }
 
     private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Closure provideRelativePath) {
         def entries = []
-        def sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets.collect{it})
+        def sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets.collect { it })
 
         sortedSourceSets.each { SourceSet sourceSet ->
             def sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.allSource.srcDirTrees)
@@ -70,6 +85,7 @@ class SourceFoldersCreator {
                 if (dir.isDirectory()) {
                     def folder = new SourceFolder(provideRelativePath(dir), null)
                     folder.dir = dir
+                    folder.name = dir.name
                     folder.includes = tree.patterns.includes as List
                     folder.excludes = tree.patterns.excludes as List
                     entries.add(folder)
@@ -81,7 +97,7 @@ class SourceFoldersCreator {
 
     private List<SourceSet> sortSourceSetsAsPerUsualConvention(Collection<SourceSet> sourceSets) {
         return sourceSets.sort { sourceSet ->
-            switch(sourceSet.name) {
+            switch (sourceSet.name) {
                 case SourceSet.MAIN_SOURCE_SET_NAME: return 0
                 case SourceSet.TEST_SOURCE_SET_NAME: return 1
                 default: return 2
@@ -91,9 +107,13 @@ class SourceFoldersCreator {
 
     private List<DirectoryTree> sortSourceDirsAsPerUsualConvention(Collection<DirectoryTree> sourceDirs) {
         return sourceDirs.sort { sourceDir ->
-            if (sourceDir.dir.path.endsWith("java")) { 0 }
-            else if (sourceDir.dir.path.endsWith("resources")) { 2 }
-            else { 1 }
+            if (sourceDir.dir.path.endsWith("java")) {
+                0
+            } else if (sourceDir.dir.path.endsWith("resources")) {
+                2
+            } else {
+                1
+            }
         }
     }
 }

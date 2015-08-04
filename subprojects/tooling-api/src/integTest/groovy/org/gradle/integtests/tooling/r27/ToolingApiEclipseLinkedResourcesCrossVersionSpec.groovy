@@ -70,12 +70,12 @@ sourceSets {
         subprojectA.linkedResources[1].location == normaliseFileSeparators(srcRootFolder1.getAbsolutePath())
         subprojectA.linkedResources[1].locationUri == null
 
-        subprojectA.linkedResources[2].name == 'src'
+        subprojectA.linkedResources[2].name == srcRootFolder1.parentFile.name + "-src"
         subprojectA.linkedResources[2].type == '2'
         subprojectA.linkedResources[2].location == normaliseFileSeparators(srcRootFolder2.getAbsolutePath())
         subprojectA.linkedResources[2].locationUri == null
 
-        subprojectA.linkedResources[3].name == 'src'
+        subprojectA.linkedResources[3].name == projectBsrcFolder.parentFile.name + "-src"
         subprojectA.linkedResources[3].type == '2'
         subprojectA.linkedResources[3].location == normaliseFileSeparators(projectBsrcFolder.getAbsolutePath())
         subprojectA.linkedResources[3].locationUri == null
@@ -89,10 +89,10 @@ sourceSets {
         subprojectA.sourceDirectories[2].path == "src-root"
         subprojectA.sourceDirectories[2].directory == srcRootFolder1
 
-        subprojectA.sourceDirectories[3].path == "src"
+        subprojectA.sourceDirectories[3].path == srcRootFolder1.parentFile.name + "-src"
         subprojectA.sourceDirectories[3].directory == srcRootFolder2
 
-        subprojectA.sourceDirectories[4].path == "src"
+        subprojectA.sourceDirectories[4].path == projectBsrcFolder.parentFile.name + "-src"
         subprojectA.sourceDirectories[4].directory == projectBsrcFolder
     }
 }
