@@ -189,7 +189,67 @@ Some candidates:
 - Rename (via add-deprecate-remove) `@Mutate` to `@Configure`.
 - Allow empty managed subtypes of ModelSet and ModelMap. This is currently available internally, eg for `ComponentSpecContainer`.
 
-# Feature 7: Plugin author attaches source sets to managed type
+# Feature 7: Build author applies cross-cutting rules for software model types
+
+Link all `ComponentSpec`, `LanguageSourceSet`, `BinarySpec` and `Task` instances into top level containers where rules can be
+applied to them regardless of their location in the model.
+
+## Linked element can be used as input for a rule 
+
+For example:
+
+    @Managed
+    interface Person {
+        Address getAddress()
+        void setAddress(Address address)
+    }
+    
+    model {
+        person(Person) {
+            address = $(...)
+        }
+        delivery {
+            sendTo = $(person.address)
+            destinationCity = $(person.address.city)
+        }
+    }
+
+- When binding a path for input, need to realize enough of each element to finalize references so that links can be traversed.
+- Support binding by type.
+- Need to handle `null` value in both instances.
+- Error messages on binding failures.
+- Link value can be changed while mutation is allowed. Treat link change as remove and add.
+
+## Linked element can be used as subject for a rule
+
+- For defaults, finalization and validation rules.
+- Can only be applied when the target of the link still allows these rules to be applied.
+- Error messages when rule cannot be applied.
+
+## Model containers allow elements to be added as links 
+
+- Adding a managed element to a model container should be treated as adding a link to the target element.
+
+## Model report shows links between elements
+
+- Creator and mutator rules should be those that affected the value of the link, not the target.
+
+## Language source sets are linked into top level container
+
+- Change `LanguageSourceSet` implementations so that they are node backed.
+- Apply the above capabilities to the `sources` top level container.
+
+## Binaries are linked into top level container
+
+- Change `BinarySpec` implementations so that they are node backed.
+- Apply the above capabilities to the `binaries` top level container.
+
+## Backlog
+
+- Apply to `ComponentSpec`, `Task`, etc.
+- Conveniences to apply rules to any thing of a given type.
+
+# Feature 8: Plugin author attaches source sets to managed type
 
 This feature allows source sets to be added to arbitrary locations in the model. For example, it should be possible to model Android
 build types and flavors each with an associated source set.
