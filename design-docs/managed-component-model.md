@@ -153,13 +153,14 @@ Given a plugin defines a `@Managed` subtype of a general type, allow the plugin 
 - Allow for all types that support registration.
 - Each internal view must be an interface. The interface does not need to extend the public type.
 - Each internal view must be `@Managed` when no default implementation is declared.
-- Allow an internal view to specialize the type of a property.
-- Allow an internal view to declare additional properties for a node.
+- Allow an internal view to make a property mutable.
+- Allow an internal view to specialize the type of a property. This implicitly adds a view to the property node.
+- Allow an internal view to declare additional properties for a node. These properties should be hidden.
 - Generate a proxy type for each view type.
 - Remove constraint the default implementation should implement the internal view types. Instead, use the proxy type.
 - toString() and missing property/method error messages should reflect view type rather than implementation type, for generated views.
 
-## Plugin author declares internal views for custom managed type
+## Plugin author declares internal views for any managed type
 
 Allow a rule to declare internal views for any `@Managed` type.
 
