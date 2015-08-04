@@ -161,7 +161,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     @Nullable
     protected MutableModuleComponentResolveMetaData parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
         ModuleComponentArtifactMetaData artifact = getMetaDataArtifactFor(moduleComponentIdentifier);
-        LocallyAvailableExternalResource metaDataResource = artifactResolver.resolveMetaDataArtifact(artifact, result);
+        LocallyAvailableExternalResource metaDataResource = artifactResolver.resolveArtifact(artifact, result);
         if (metaDataResource == null) {
             return null;
         }
@@ -222,9 +222,10 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return Collections.emptySet();
     }
 
-    private ModuleComponentArtifactMetaData getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
+    private ModuleDescriptorArtifactMetaData getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
         IvyArtifactName ivyArtifactName = getMetaDataArtifactName(moduleComponentIdentifier.getModule());
-        return new DefaultModuleComponentArtifactMetaData(moduleComponentIdentifier, ivyArtifactName);
+        DefaultModuleComponentArtifactMetaData defaultModuleComponentArtifactMetaData = new DefaultModuleComponentArtifactMetaData(moduleComponentIdentifier, ivyArtifactName);
+        return new DefaultModuleDescriptorArtifactMetaData(defaultModuleComponentArtifactMetaData);
     }
 
     protected abstract IvyArtifactName getMetaDataArtifactName(String moduleName);
@@ -385,7 +386,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
 
         protected final void resolveMetaDataArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
-            ModuleComponentArtifactMetaData artifact = getMetaDataArtifactFor(module.getComponentId());
+            ModuleDescriptorArtifactMetaData artifact = getMetaDataArtifactFor(module.getComponentId());
             result.resolved(Collections.singleton(artifact));
         }
 
