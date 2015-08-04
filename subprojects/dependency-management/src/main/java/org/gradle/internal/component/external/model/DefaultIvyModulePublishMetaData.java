@@ -99,7 +99,7 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
     @Override
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
-            MDArtifact ivyArtifact = getOrCreate(DefaultIvyArtifactName.forPublishArtifact(artifact, getId().getName()));
+            MDArtifact ivyArtifact = getOrCreate(DefaultIvyArtifactName.forPublishArtifact(artifact));
             ivyArtifact.addConfiguration(configuration);
             addArtifact(ivyArtifact, artifact.getFile());
         }

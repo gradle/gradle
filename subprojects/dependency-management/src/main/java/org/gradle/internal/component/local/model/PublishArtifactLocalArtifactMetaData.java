@@ -29,14 +29,12 @@ import java.io.File;
 
 public class PublishArtifactLocalArtifactMetaData implements LocalComponentArtifactIdentifier, ComponentArtifactMetaData, Buildable {
     private final ComponentIdentifier componentIdentifier;
-    private final String moduleName;
     private final String componentDisplayName;
     private final PublishArtifact publishArtifact;
 
     // The componentDisplayName parameter is temporary
-    public PublishArtifactLocalArtifactMetaData(ComponentIdentifier componentIdentifier, String moduleName, String componentDisplayName, PublishArtifact publishArtifact) {
+    public PublishArtifactLocalArtifactMetaData(ComponentIdentifier componentIdentifier, String componentDisplayName, PublishArtifact publishArtifact) {
         this.componentIdentifier = componentIdentifier;
-        this.moduleName = moduleName;
         this.componentDisplayName = componentDisplayName;
         this.publishArtifact = publishArtifact;
     }
@@ -86,7 +84,7 @@ public class PublishArtifactLocalArtifactMetaData implements LocalComponentArtif
 
     @Override
     public IvyArtifactName getName() {
-        return DefaultIvyArtifactName.forPublishArtifact(publishArtifact, moduleName);
+        return DefaultIvyArtifactName.forPublishArtifact(publishArtifact);
     }
 
     @Override

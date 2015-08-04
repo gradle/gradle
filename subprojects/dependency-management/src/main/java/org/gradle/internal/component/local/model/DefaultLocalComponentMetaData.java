@@ -221,7 +221,7 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         }
 
         public Set<ComponentArtifactMetaData> getArtifacts() {
-            return DefaultLocalComponentMetaData.getArtifacts(componentIdentifier, id, getHierarchy(), allArtifacts);
+            return DefaultLocalComponentMetaData.getArtifacts(componentIdentifier, getHierarchy(), allArtifacts);
         }
 
         public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
@@ -235,8 +235,7 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         }
     }
 
-    static Set<ComponentArtifactMetaData> getArtifacts(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier,
-                                                       Set<String> configurationHierarchy, Map<String, Iterable<? extends PublishArtifact>> allArtifacts) {
+    static Set<ComponentArtifactMetaData> getArtifacts(ComponentIdentifier componentIdentifier, Set<String> configurationHierarchy, Map<String, Iterable<? extends PublishArtifact>> allArtifacts) {
         Set<PublishArtifact> seen = Sets.newHashSet();
         Set<ComponentArtifactMetaData> artifacts = Sets.newLinkedHashSet();
 
@@ -245,7 +244,7 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
             if (publishArtifacts != null) {
                 for (PublishArtifact publishArtifact : publishArtifacts) {
                     if (seen.add(publishArtifact)) {
-                        artifacts.add(new PublishArtifactLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), moduleVersionIdentifier.getName(), publishArtifact));
+                        artifacts.add(new PublishArtifactLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), publishArtifact));
                     }
                 }
             }

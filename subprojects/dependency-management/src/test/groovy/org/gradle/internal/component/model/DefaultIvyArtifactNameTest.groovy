@@ -75,7 +75,7 @@ class DefaultIvyArtifactNameTest extends Specification {
         1 * publishArtifact.getName() >> "art-name"
 
         then:
-        def name = DefaultIvyArtifactName.forPublishArtifact(publishArtifact, "default-name")
+        def name = DefaultIvyArtifactName.forPublishArtifact(publishArtifact)
         name.name == "art-name"
         name.extension == "art-ext"
         name.type == "art-type"
@@ -84,9 +84,10 @@ class DefaultIvyArtifactNameTest extends Specification {
 
         when:
         1 * publishArtifact.getName() >> null
+        1 * publishArtifact.getFile() >> new File("file-name")
 
         then:
-        def nameWithDefault = DefaultIvyArtifactName.forPublishArtifact(publishArtifact, "default-name")
-        nameWithDefault.name == "default-name"
+        def missingName = DefaultIvyArtifactName.forPublishArtifact(publishArtifact)
+        missingName.name == "file-name"
     }
 }

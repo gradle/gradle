@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -156,7 +155,7 @@ project(":b") {
     }
 
     @Issue("GRADLE-2899")
-    public void "consuming project can refer to multiple configurations of target project"() {
+    public void "multiple project configurations can refer to different configurations of target project"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
 
@@ -575,46 +574,45 @@ project('c') {
     }
 
     @Issue("GRADLE-3330")
-    @NotYetImplemented
-    def "can depend on two different configurations from the same project"() {
-        settingsFile << "include 'a'; include 'b'"
+    public void "single project configuration can refer to multiple configurations of target project"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
 
+        and:
         buildFile << """
-            project(":a") {
-                configurations {
-                    custom1
-                    custom2
-                }
-                task jar1(type: Jar) {
-                    archiveName "jar1.jar"
-                }
-                task jar2(type: Jar) {
-                    archiveName "jar2.jar"
-                }
-                artifacts {
-                    custom1 jar1
-                    custom2 jar2
-                }
-            }
+project(':a') {
+    configurations {
+        configA1
+        configA2
+    }
+    task A1jar(type: Jar) {
+        archiveName = 'A1.jar'
+    }
+    task A2jar(type: Jar) {
+        archiveName = 'A2.jar'
+    }
+    artifacts {
+        configA1 A1jar
+        configA2 A2jar
+    }
+}
 
-            project(":b") {
-                configurations {
-                    test
-                }
-                dependencies {
-                    test project(path: ":a", configuration: "custom1")
-                    test project(path: ":a", configuration: "custom2")
-                }
-                task check {
-                    dependsOn configurations.test
-                    doLast {
-                        assert configurations.test.files == [ "jar1.jar", "jar2.jar" ]
-                    }
-                }
-            }
+project(':b') {
+    configurations {
+        configB
+    }
+    dependencies {
+        configB project(path:':a', configuration:'configA1')
+        configB project(path:':a', configuration:'configA2')
+    }
+    task check(dependsOn: configurations.configB) << {
+        assert configurations.configB.collect { it.name } == ['A1.jar', 'A2.jar']
+    }
+}
 """
+
         expect:
-        executer.withDeprecationChecksDisabled()
-        succeeds("b:check")
+        succeeds ":b:check"
+        executedAndNotSkipped ":a:A1jar", ":a:A2jar"
     }
 }
