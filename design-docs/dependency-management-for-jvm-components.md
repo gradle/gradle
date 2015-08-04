@@ -458,7 +458,7 @@ Allow model schema to store information about properties defined in any unmanage
 - property information is extracted about any unmanaged type as a `ModelStrutSchema`
 - property information is extracted from unmanaged super-types of managed types and included in the `ModelStructSchema`
 - annotations on properties (both managed and unmanaged, defined on getters) are available in the `ModelStructSchema`
-- properties defined in unmanaged types annotated with `@IgnoreSchema` are ignored
+- unmanaged methods that cannot be handled by the schema are silently ignored
 - properties defined in an unmanaged super-type cannot be overridden in managed type
 
 Examples:
@@ -477,11 +477,6 @@ abstract class SomeManagedType implements JarBinarySpec {
     return getFlavor() == “paid” ? “production” : “debug”;
   }
 
-
-  // Ignored property - inherited from JarBinarySpec
-  // @IgnoreSchema
-  // BinaryTasksCollection getTasks();
-
   // delegated property — inherited from JarBinarySpec
   // @Variant
   // JavaPlatform getTargetPlatform();
@@ -492,14 +487,12 @@ abstract class SomeManagedType implements JarBinarySpec {
 ### Test cases
 
 - properties are extracted from unmanaged type
-    - unmanaged type has properties `a`, `b` and `i`
-    - property `i` is annotated with `@IgnoreSchema`
+    - unmanaged type has properties `a` and `b`
     - extracted schema contains the following properties:
         - property `a` with `managed = false`
         - property `b` with `managed = false`
 - properties are extracted from managed subtype of unmanaged type
-    - unmanaged type has properties `a`, `b` and `i`
-    - property `i` is annotated with `@IgnoreSchema`
+    - unmanaged type has properties `a` and `b`
     - managed subtype has non-abstract property `u`
     - managed subtype has abstract property `m`
     - extracted schema contains the following properties:
@@ -507,6 +500,13 @@ abstract class SomeManagedType implements JarBinarySpec {
         - property `b` with `managed = false`
         - property `u` has `managed = false`
         - property `m` has `managed = true`
+- unmanaged methods we cannot handle are ignored
+    - unmanaged type has properties `a` and `b`
+    - it also has method `boolean isBuildable()`
+    - and method `int getTime()`
+    - extracted schema contains the following properties:
+        - property `a` with `managed = false`
+        - property `b` with `managed = false`
 - annotations are collected from getters
     - unmanaged type has property `a` with `@Custom("unmanaged")` annotation on getter
     - managed subtype has property `b` with `@Custom("managed")` annotation on getter
@@ -525,7 +525,7 @@ abstract class SomeManagedType implements JarBinarySpec {
 
 #### Current process for extracting schema from type:
 
-- Managed types (with potential unmanaged super-type):
+- Pure managed types and specific managed types with unmanaged super-type:
     - get methods via Class.getMethods() — loses overridden method annotations
     - ignore Object and GroovyObject methods and their overrides
     - ignore all methods from unmanaged super-type (e.g. `JarBinarySpec`)
@@ -541,29 +541,28 @@ abstract class SomeManagedType implements JarBinarySpec {
     - fail if any methods were left uncovered
     - validate all properties
 
-- Unmanaged types: opaque schema, do not record any properties
+- Pure unmanaged types: opaque schema, do not record any properties
 
 #### Intended process:
 
-- Managed types (with potential unmanaged super-type) and unmanaged types:
-    - get all methods by crawling ancestry and using Clazz.getDeclaredMethods() (so that we don’t miss annotations on overridden methods with the same return type—this is to future-proof for variant detection). Also record whether the method is declared in a managed or unmanaged type.
+- All struct-types (i.e. pure managed types, managed types with specific unmanaged super-type and pure unmanaged types):
+    - get all methods by crawling ancestry and using `Class.getDeclaredMethods()`; also record whether the method is declared in a managed or unmanaged type
     - *ignore Object and GroovyObject methods and their overrides*
     - ~~ignore all methods from unmanaged super-type (e.g. `JarBinarySpec`)~~
     - *verify no overloads*
     - *process all getters*
-        - throw error if there are mixed managed and unmanaged getter declarations
+        - throw error if getter is defined both in managed type and unmanaged super-type
         - *validate getter (no type parameter, no parameters etc.)*
             - for unmanaged: ignore property if there's a validation problem
-        - *determine if getter is abstract*
-        - determine if getter has implementation, always true for methods from unmanaged types
+        - getter is considered managed only if it is defined in a managed type and has no implementation
         - *find setter, and if found:*
-            - throw error if there are mixed managed and unmanaged setter declarations
+            - throw error if setter is defined both in managed type and unmanaged super-type
             - *validate setter (no type parameters, single parameter matches getter, void return type)*
                 - for unmanaged: ignore setter if there's a validation problem
-            - determine if setter has implementation, always true for methods from unmanaged types
-            - ensure that either both getter and setter are abstract, or both of them have implementation
+                - setter is considered managed only if it is defined in a managed type and has no implementation
+                - ensure that either both getter and setter are managed or unmanaged
         - get all annotations from getter
-        - record property and its annotations, `managed = false` if property has implementation
+        - record property with its annotations
         - mark **managed** property methods as covered
     - fail if any **managed** methods were left uncovered
     - validate all **managed** properties
