@@ -18,16 +18,16 @@ package org.gradle.play.integtest.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.util.AvailablePortFinder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
+import org.gradle.util.ports.MulticastAvailablePortAllocator
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec {
-    def portFinder = AvailablePortFinder.createPrivate()
+    def portFinder = MulticastAvailablePortAllocator.getInstance()
     def initScript
     int httpPort
 
@@ -41,7 +41,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
     }
 
     def setup() {
-        httpPort = portFinder.nextAvailable
+        httpPort = portFinder.assignPort()
         initScript = file("initFile") << """
             gradle.allprojects {
                 tasks.withType(PlayRun) {
@@ -49,6 +49,10 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         """
+    }
+
+    def cleanup() {
+        portFinder.releasePort(httpPort)
     }
 
     def "produces usable application" () {

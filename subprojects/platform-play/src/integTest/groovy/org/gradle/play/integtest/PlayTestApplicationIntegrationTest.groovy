@@ -19,14 +19,22 @@ package org.gradle.play.integtest
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.play.integtest.fixtures.PlayMultiVersionApplicationIntegrationTest
-import org.gradle.util.AvailablePortFinder
+import org.gradle.util.ports.MulticastAvailablePortAllocator
 
 abstract class PlayTestApplicationIntegrationTest extends PlayMultiVersionApplicationIntegrationTest {
-    def portFinder = AvailablePortFinder.createPrivate()
+    def portFinder = MulticastAvailablePortAllocator.getInstance()
+    int testPort
+
+    def setup() {
+        testPort = portFinder.assignPort()
+    }
+
+    def cleanup() {
+        portFinder.releasePort(testPort)
+    }
 
     def "can run play app tests"() {
         setup:
-        int testPort = portFinder.nextAvailable
         buildFile << """
         model {
             tasks.testPlayBinary {

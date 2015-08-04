@@ -140,6 +140,9 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
         succeeds()
         appIsRunningAndDeployed()
         childAppIsRunningAndDeployed()
+
+        cleanup:
+        runningChildApp.cleanup()
     }
 
 

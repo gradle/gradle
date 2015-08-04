@@ -22,9 +22,10 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.ServletContainer
-import org.gradle.util.AvailablePortFinder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.ports.MulticastAvailablePortAllocator
+import org.gradle.util.ports.PortAllocator
 import org.junit.Rule
 import spock.lang.AutoCleanup
 import spock.lang.Shared
@@ -32,7 +33,7 @@ import spock.lang.Shared
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
 class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
     @Shared
-    AvailablePortFinder portFinder = AvailablePortFinder.createPrivate()
+    PortAllocator portFinder = MulticastAvailablePortAllocator.getInstance()
 
     @AutoCleanup("stop")
     ServletContainer container
@@ -56,7 +57,7 @@ class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
         System.setProperty("SONAR_HOME", sonarHome.path)
         new AntBuilder().unzip(src: zipFile, dest: sonarHome, overwrite: true)
 
-        databasePort = portFinder.nextAvailable
+        databasePort = portFinder.assignPort()
         sonarHome.file("conf/sonar.properties") << """
 sonar.jdbc.username=sonar
 sonar.jdbc.password=sonar
@@ -66,6 +67,10 @@ sonar.embeddedDatabase.port=$databasePort
 
         container = new ServletContainer(warFile)
         container.start()
+    }
+
+    def cleanup() {
+        portFinder.releasePort(databasePort)
     }
 
     @LeaksFileHandles

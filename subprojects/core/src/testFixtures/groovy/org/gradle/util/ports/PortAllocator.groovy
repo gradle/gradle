@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.play.integtest.fixtures
+package org.gradle.util.ports
 
-abstract class PlayMultiVersionRunApplicationIntegrationTest extends PlayMultiVersionApplicationIntegrationTest {
-    RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
 
-    def cleanup() {
-        runningApp.cleanup()
-    }
+interface PortAllocator {
+    public static final int MIN_PRIVATE_PORT = 49152
+    public static final int MAX_PRIVATE_PORT = 65535
+    public static final int RANGE_SIZE = 100
+
+    int assignPort()
+    void releasePort(int port)
+    List<ReservedPortRange> getReservations()
+    void peerReservation(int startPort, int endPort)
+    void releasePeerReservation(int startPort, int endPort)
 }

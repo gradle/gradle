@@ -35,7 +35,7 @@ import org.gradle.test.fixtures.server.ExpectOne
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.ServerExpectation
 import org.gradle.test.fixtures.server.ServerWithExpectations
-import org.gradle.util.AvailablePortFinder
+import org.gradle.util.ports.MulticastAvailablePortAllocator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -47,6 +47,7 @@ import java.security.SecureRandom
 class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
     private final static Logger logger = LoggerFactory.getLogger(SFTPServer)
+    def portFinder = MulticastAvailablePortAllocator.getInstance()
     final String hostAddress
     int port
 
@@ -93,8 +94,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         baseDir = testDirectoryProvider.getTestDirectory().createDir("sshd/files")
         configDir = testDirectoryProvider.getTestDirectory().createDir("sshd/config")
 
-        def portFinder = AvailablePortFinder.createPrivate()
-        port = portFinder.nextAvailable
+        port = portFinder.assignPort()
         sshd = setupConfiguredTestSshd()
         sshd.start()
         allowInit()
@@ -102,6 +102,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
     public void stop(boolean immediately = false) {
         sshd?.stop(immediately);
+        portFinder.releasePort(port)
     }
 
     public void restart() {

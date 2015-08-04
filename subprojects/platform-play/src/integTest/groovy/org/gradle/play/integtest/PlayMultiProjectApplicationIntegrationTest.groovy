@@ -41,6 +41,10 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         playApp.writeSources(testDirectory)
     }
 
+    def cleanup() {
+        runningApp.cleanup()
+    }
+
     def "can build play app binary"() {
         when:
         succeeds(":primary:assemble")

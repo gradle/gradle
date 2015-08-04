@@ -18,13 +18,13 @@ package org.gradle.play.integtest.fixtures
 import org.apache.http.HttpStatus
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.AvailablePortFinder
+import org.gradle.util.ports.MulticastAvailablePortAllocator
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
 class RunningPlayApp {
     int httpPort
-    def portFinder = AvailablePortFinder.createPrivate()
+    def portFinder = MulticastAvailablePortAllocator.getInstance()
     TestFile testDirectory
 
     RunningPlayApp(TestFile testDirectory) {
@@ -48,7 +48,8 @@ class RunningPlayApp {
     }
 
     int selectPort() {
-        httpPort = portFinder.nextAvailable
+        portFinder.releasePort(httpPort)
+        httpPort = portFinder.assignPort()
         return httpPort
     }
 
@@ -67,5 +68,11 @@ class RunningPlayApp {
         assertUrlContent playUrl("assets/stylesheets/main.css"), testDirectory.file("public/stylesheets/main.css")
         assertUrlContent playUrl("assets/javascripts/hello.js"), testDirectory.file("public/javascripts/hello.js")
         assertBinaryUrlContent playUrl("assets/images/favicon.svg"), testDirectory.file("public/images/favicon.svg")
+    }
+
+    void cleanup() {
+        if (httpPort) {
+            portFinder.releasePort(httpPort)
+        }
     }
 }
