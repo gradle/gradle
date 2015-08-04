@@ -113,6 +113,36 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
+    def "request an ivy descriptor for an ivy module with a custom ivy pattern"() {
+        given:
+        httpRepo = server.getRemoteIvyRepo(true, "[module]/[revision]", "alternate-ivy.xml", "[artifact](.[ext])")
+
+        buildFile.text = """
+repositories {
+    ivy {
+        url '${httpRepo.uri}'
+        layout 'pattern', {
+            artifact '[module]/[revision]/[artifact](.[ext])'
+            ivy '[module]/[revision]/alternate-ivy.xml'
+        }
+    }
+}
+"""
+        fixture = new MetadataArtifactResolveTestFixture(buildFile)
+        fixture.basicSetup()
+        IvyHttpModule module = publishModule()
+
+        when:
+        fixture.requestComponent('IvyModule').requestArtifact('IvyDescriptorArtifact')
+                .expectResolvedComponentResult().expectMetadataFiles(file("ivy-${fixture.id.version}.xml"))
+                .createVerifyTaskModuleComponentIdentifier()
+
+        module.ivy.expectGet()
+
+        then:
+        checkArtifactsResolvedAndCached()
+    }
+
     @Unroll
     def "updates artifacts for module #condition"() {
         given:

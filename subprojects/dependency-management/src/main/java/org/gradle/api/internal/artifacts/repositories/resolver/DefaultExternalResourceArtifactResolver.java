@@ -57,6 +57,9 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
     }
 
     public LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
+        if (artifact.getName().getType().equals("ivy")) {
+            return resolveMetaDataArtifact(artifact, result);
+        }
         return downloadStaticResource(artifactPatterns, artifact, result);
     }
 
