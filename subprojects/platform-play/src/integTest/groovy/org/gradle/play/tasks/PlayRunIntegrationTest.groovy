@@ -37,11 +37,6 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
     }
 
     def "play run container classloader is isolated from the worker process classloader"() {
-        buildFile << """
-            dependencies {
-                play 'com.google.guava:guava:13.0'
-            }
-        """
         withGuavaJarController()
 
         setup:
@@ -53,8 +48,7 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
 
         then:
         runningApp.verifyStarted()
-        // The following should get the configured version of guava and not the version in the worker process classloader
-        runningApp.playUrl("guavaJar").text.contains("guava-13.0.jar")
+        runningApp.playUrl("loadProjectClass").text.contains("SUCCESS: class not found")
 
         cleanup:
         build.cancel()
@@ -63,25 +57,28 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
 
     void withGuavaJarController() {
         file("app/controllers/jva").mkdirs()
-        file("app/controllers/jva/GuavaJar.java").text = guavaJarController
+        file("app/controllers/jva/LoadProjectClass.java").text = loadProjectClassController
         file("conf/routes") << """
-GET        /guavaJar         controllers.jva.GuavaJar.index
+GET        /loadProjectClass         controllers.jva.LoadProjectClass.index
 """
     }
 
-    String getGuavaJarController() {
+    String getLoadProjectClassController() {
         return """
 package controllers.jva;
 
 import play.*;
 import play.mvc.*;
-import views.html.*;
 
-public class GuavaJar extends Controller {
+public class LoadProjectClass extends Controller {
 
     public static Result index() {
-        String guavaJar = com.google.common.util.concurrent.MoreExecutors.class.getResource("MoreExecutors.class").toString();
-        return ok(guavaJar);
+        try {
+            LoadProjectClass.class.getClassLoader().loadClass("org.gradle.api.Project");
+        } catch (ClassNotFoundException e) {
+            return ok("SUCCESS: class not found");
+        }
+        return ok("FAILED: class was found");
     }
 
 }
