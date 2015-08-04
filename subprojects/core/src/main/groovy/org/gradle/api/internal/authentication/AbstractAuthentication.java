@@ -18,6 +18,8 @@ package org.gradle.api.internal.authentication;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
 
 import java.util.Set;
 
@@ -51,7 +53,18 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
         return name;
     }
 
+    @Override
     public Set<Class<? extends Credentials>> getSupportedCredentials() {
         return supportedCredentials;
+    }
+
+    @Override
+    public <T extends Credentials> boolean supports(final T credentials) {
+        return CollectionUtils.any(getSupportedCredentials(), new Spec<Class<? extends Credentials>>() {
+            @Override
+            public boolean isSatisfiedBy(Class<? extends Credentials> element) {
+                return element.isAssignableFrom(credentials.getClass());
+            }
+        });
     }
 }

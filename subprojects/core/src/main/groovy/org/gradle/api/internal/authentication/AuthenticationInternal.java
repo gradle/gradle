@@ -26,6 +26,8 @@ import java.util.Set;
 public interface AuthenticationInternal extends Authentication {
     Set<Class<? extends Credentials>> getSupportedCredentials();
 
+    <T extends Credentials> boolean supports(T credentials);
+
     Credentials getCredentials();
 
     void setCredentials(Credentials credentials);

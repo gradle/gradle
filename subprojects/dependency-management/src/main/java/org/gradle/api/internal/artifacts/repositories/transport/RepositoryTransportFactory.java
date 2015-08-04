@@ -119,8 +119,6 @@ public class RepositoryTransportFactory {
     }
 
     private void validateConnectorFactoryCredentials(ResourceConnectorFactory factory, Collection<Authentication> authentications) {
-        boolean nullCredentials = true;
-
         for (Authentication authentication : authentications) {
             boolean isAuthenticationSupported = false;
             Credentials credentials = ((AuthenticationInternal) authentication).getCredentials();
@@ -138,19 +136,13 @@ public class RepositoryTransportFactory {
             }
 
             if (credentials != null) {
-                for (Class<? extends Credentials> credentialsType : ((AuthenticationInternal) authentication).getSupportedCredentials()) {
-                    if (!credentialsType.isAssignableFrom(credentials.getClass())) {
-                        throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme '%s'",
-                            credentials.getClass().getSimpleName(), authentication.getClass().getSimpleName()));
-                    }
+                if (!((AuthenticationInternal) authentication).supports(credentials)) {
+                    throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme '%s'",
+                        credentials.getClass().getSimpleName(), authentication.getClass().getSimpleName()));
                 }
-
-                nullCredentials = false;
+            } else {
+                throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
             }
-        }
-
-        if (nullCredentials && authentications.size() > 0) {
-            throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
         }
     }
 
