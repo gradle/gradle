@@ -16,19 +16,14 @@
 
 package org.gradle.api.publication.maven.internal.action;
 
-import org.gradle.internal.UncheckedException;
-import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
 import org.sonatype.aether.deployment.DeployRequest;
 import org.sonatype.aether.impl.MetadataGenerator;
 import org.sonatype.aether.impl.MetadataGeneratorFactory;
-import org.sonatype.aether.impl.internal.DefaultDeployer;
-import org.sonatype.aether.impl.internal.DefaultRepositorySystem;
 import org.sonatype.aether.installation.InstallRequest;
 import org.sonatype.aether.metadata.Metadata;
 
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -37,19 +32,6 @@ class SnapshotVersionManager implements MetadataGeneratorFactory, MetadataGenera
 
     public void setUniqueVersion(boolean uniqueVersion) {
         this.uniqueVersion = uniqueVersion;
-    }
-
-    public void install(RepositorySystem repositorySystem) {
-        try {
-            Field field = DefaultRepositorySystem.class.getDeclaredField("deployer");
-            field.setAccessible(true);
-            DefaultDeployer deployer = (DefaultDeployer) field.get(repositorySystem);
-            deployer.addMetadataGeneratorFactory(this);
-        } catch (NoSuchFieldException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (IllegalAccessException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 
     @Override

@@ -15,21 +15,27 @@
  */
 package org.gradle.api.publication.maven.internal.action;
 
-import java.io.File;
-import java.util.Collection;
-
 import org.apache.maven.artifact.ant.RemoteRepository;
+import org.apache.maven.repository.internal.SnapshotMetadataGeneratorFactory;
+import org.apache.maven.repository.internal.VersionsMetadataGeneratorFactory;
+import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.gradle.api.GradleException;
+import org.gradle.internal.UncheckedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
 import org.sonatype.aether.deployment.DeployRequest;
 import org.sonatype.aether.deployment.DeploymentException;
+import org.sonatype.aether.impl.Deployer;
+import org.sonatype.aether.impl.internal.DefaultDeployer;
 import org.sonatype.aether.repository.Authentication;
 import org.sonatype.aether.repository.Proxy;
 import org.sonatype.aether.util.repository.DefaultProxySelector;
-import org.gradle.api.GradleException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.Collection;
 
 public class MavenDeployAction extends AbstractMavenPublishAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeployAction.class);
@@ -69,15 +75,31 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
             request.addArtifact(artifact);
         }
 
-        snapshotVersionManager.install(repositorySystem);
+        configureDeployer();
 
         LOGGER.info("Deploying to " + gradleRepo.getUrl());
         repositorySystem.deploy(session, request);
     }
 
+    private void configureDeployer() {
+        DefaultDeployer deployer = null;
+        try {
+            deployer = (DefaultDeployer) getContainer().lookup(Deployer.class);
+        } catch (ComponentLookupException e) {
+            UncheckedException.throwAsUncheckedException(e);
+        }
+
+        //This is a workaround for https://issues.gradle.org/browse/GRADLE-3324.
+        // Somehow the ArrayList 'result' in `org.sonatype.aether.impl.internal.Utils#sortMetadataGeneratorFactories` ends up
+        // being a list of nulls on windows and the IBM's 1.6 JDK.
+        deployer.setMetadataFactories(null);
+        deployer.addMetadataGeneratorFactory(new VersionsMetadataGeneratorFactory());
+        deployer.addMetadataGeneratorFactory(new SnapshotMetadataGeneratorFactory());
+        deployer.addMetadataGeneratorFactory(snapshotVersionManager);
+    }
+
     private org.sonatype.aether.repository.RemoteRepository createRepository(RemoteRepository gradleRepo) {
-        org.sonatype.aether.repository.RemoteRepository repo = new org.sonatype.aether.repository.RemoteRepository("remote",
-                        gradleRepo.getLayout(), gradleRepo.getUrl());
+        org.sonatype.aether.repository.RemoteRepository repo = new org.sonatype.aether.repository.RemoteRepository("remote", gradleRepo.getLayout(), gradleRepo.getUrl());
 
         org.apache.maven.artifact.ant.Authentication auth = gradleRepo.getAuthentication();
         if (auth != null) {
