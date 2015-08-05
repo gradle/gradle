@@ -26,7 +26,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultGradleDistributionLocatorTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     TestFile distDir
 
     def setup() {
@@ -92,8 +93,18 @@ class DefaultGradleDistributionLocatorTest extends Specification {
     }
 
     private Class loadClassFromJar(TestFile jar) {
-        URL[] urls = [new URL("jar:${jar.toURI().toURL()}!/")] as URL[]
-        URLClassLoader ucl = new URLClassLoader(urls)
-        Class.forName('org.gradle.MyClass', true, ucl)
+        // This is to prevent the jar file being held open
+        URL url = new URL("jar:file://valid_jar_url_syntax.jar!/")
+        URLConnection urlConnection = url.openConnection()
+        def original = urlConnection.getDefaultUseCaches()
+        urlConnection.setDefaultUseCaches(false)
+
+        try {
+            URL[] urls = [new URL("jar:${jar.toURI().toURL()}!/")] as URL[]
+            URLClassLoader ucl = new URLClassLoader(urls)
+            Class.forName('org.gradle.MyClass', true, ucl)
+        } finally {
+            urlConnection.setDefaultUseCaches(original)
+        }
     }
 }
