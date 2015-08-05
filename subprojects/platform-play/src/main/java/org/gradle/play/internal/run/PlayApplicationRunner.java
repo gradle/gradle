@@ -57,6 +57,7 @@ public class PlayApplicationRunner {
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMinHeapSize(spec.getForkOptions().getMemoryInitialSize());
         javaCommand.setMaxHeapSize(spec.getForkOptions().getMemoryMaximumSize());
+        javaCommand.setJvmArgs(spec.getForkOptions().getJvmArgs());
         return builder.worker(new PlayWorkerServer(spec, adapter)).build();
     }
 }
