@@ -38,6 +38,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
+import java.net.URI;
 import java.util.List;
 
 @ThreadSafe
@@ -160,8 +161,13 @@ public class TransformedModelDslBacking {
         @Override
         public SourceLocation transform(Closure<?> closure) {
             RuleMetadata ruleMetadata = getRuleMetadata(closure);
-            String relativePath = relativeFilePathResolver.resolveAsRelativePath(ruleMetadata.absoluteScriptSourceLocation());
-            return new SourceLocation(relativePath, relativePath, ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
+            URI uri = URI.create(ruleMetadata.absoluteScriptSourceLocation());
+            String scheme = uri.getScheme();
+            if(null != scheme && scheme.equalsIgnoreCase("file")){
+                String relativePath = relativeFilePathResolver.resolveAsRelativePath(ruleMetadata.absoluteScriptSourceLocation());
+                return new SourceLocation(uri.toString(), relativePath, ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
+            }
+            return new SourceLocation(uri.toString(), uri.toString(), ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
         }
     }
 }

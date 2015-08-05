@@ -92,7 +92,7 @@ class HttpServer extends ServerWithExpectations {
         HandlerCollection handlers = new HandlerCollection()
         handlers.addHandler(new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-                println("handling http request: $request.method $target")
+//                println("handling http request: $request.method $target")
             }
         })
         handlers.addHandler(collection)

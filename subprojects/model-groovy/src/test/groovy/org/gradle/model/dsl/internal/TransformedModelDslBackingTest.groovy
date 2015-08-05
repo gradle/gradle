@@ -121,6 +121,5 @@ class TransformedModelDslBackingTest extends Specification {
         then:
         modelRegistry.realize(ModelPath.path("foo"), ModelType.of(List)) == ["123"]
     }
-
 }
 
