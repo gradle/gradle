@@ -19,14 +19,14 @@ package org.gradle.play.internal.run
 import org.gradle.process.internal.WorkerProcess
 import spock.lang.Specification
 
-
 class PlayApplicationRunnerTokenTest extends Specification {
-    WorkerProcess process = Mock(WorkerProcess)
-    PlayWorkerClient client = Mock(PlayWorkerClient)
-    PlayRunWorkerServerProtocol server = Mock(PlayRunWorkerServerProtocol)
-    PlayApplicationRunnerToken runnerToken = new PlayApplicationRunnerToken(server, client, process)
 
-    def "stops all participants when stopped" () {
+    def process = Mock(WorkerProcess)
+    def client = Mock(PlayWorkerClient)
+    def server = Mock(PlayRunWorkerServerProtocol)
+    def runnerToken = new PlayApplicationRunnerToken(server, client, process)
+
+    def "stops all participants when stopped"() {
         when:
         runnerToken.stop()
 
@@ -41,9 +41,7 @@ class PlayApplicationRunnerTokenTest extends Specification {
         runnerToken.rebuildSuccess()
 
         then:
-        1 * server.rebuild({ BuildStatus reason ->
-            reason.successful
-        })
+        1 * server.reload()
     }
 
     def "rebuildFailure sends failure build result to server"() {
@@ -53,8 +51,6 @@ class PlayApplicationRunnerTokenTest extends Specification {
         runnerToken.rebuildFailure(failure)
 
         then:
-        1 * server.rebuild({ BuildStatus reason ->
-            !reason.successful && reason.failure == failure
-        })
+        1 * server.buildError(failure)
     }
 }

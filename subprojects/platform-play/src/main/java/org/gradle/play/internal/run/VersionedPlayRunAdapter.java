@@ -22,7 +22,9 @@ import java.io.File;
 import java.io.IOException;
 
 public interface VersionedPlayRunAdapter {
-    void forceReloadNextTime(BuildStatus reason);
+    void reload();
+
+    void buildError(Throwable throwable);
 
     Object getBuildLink(ClassLoader classLoader, File projectPath, File applicationJar, Iterable<File> changingClasspath, File assetsJar, Iterable<File> assetsDirs) throws ClassNotFoundException;
 

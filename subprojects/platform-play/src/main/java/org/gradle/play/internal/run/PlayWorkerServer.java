@@ -75,12 +75,9 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         final ClassLoader classLoader = new URLClassLoader(new DefaultClassPath(runSpec.getClasspath()).getAsURLArray(), null);
         thread.setContextClassLoader(classLoader);
         try {
-            ClassLoader docsClassLoader = classLoader;
-
-            Object buildDocHandler = runAdapter.getBuildDocHandler(docsClassLoader, runSpec.getClasspath());
-
+            Object buildDocHandler = runAdapter.getBuildDocHandler(classLoader, runSpec.getClasspath());
             Object buildLink = runAdapter.getBuildLink(classLoader, runSpec.getProjectPath(), runSpec.getApplicationJar(), runSpec.getChangingClasspath(), runSpec.getAssetsJar(), runSpec.getAssetsDirs());
-            runAdapter.runDevHttpServer(classLoader, docsClassLoader, buildLink, buildDocHandler, runSpec.getHttpPort());
+            runAdapter.runDevHttpServer(classLoader, classLoader, buildLink, buildDocHandler, runSpec.getHttpPort());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
@@ -98,9 +95,9 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
             URLConnection urlConnection = url.openConnection();
             urlConnection.setDefaultUseCaches(false);
         } catch (MalformedURLException e) {
-            UncheckedException.throwAsUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } catch (IOException e) {
-            UncheckedException.throwAsUncheckedException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -108,7 +105,14 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         stop.countDown();
     }
 
-    public void rebuild(BuildStatus reason) {
-        runAdapter.forceReloadNextTime(reason);
+    @Override
+    public void reload() {
+        runAdapter.reload();
     }
+
+    @Override
+    public void buildError(Throwable throwable) {
+        runAdapter.buildError(throwable);
+    }
+
 }
