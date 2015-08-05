@@ -68,14 +68,14 @@ functional tests existing daemon processes are stopped.
 
 ### Improved Play Support
 
-The initial release of Gradle's Play plugin supported running Play applications in continuous build.  When a build failure occurred, Gradle
-would leave the application running.  Now, after a build failure, the Play application will show you the exception message from Gradle.
+The initial release of [Gradle's Play plugin](https://docs.gradle.org/current/release-notes#play-framework-support) supported running Play applications in continuous build.
+When a build failure occurred, Gradle would leave the application running.  Now, after a build failure, the Play application will show you the exception message from Gradle.
 
 In this release, Gradle's Play plugin supports more Play 2.4.x features.  You can configure the routes compiler to use the
 [injected routes generator](https://www.playframework.com/documentation/2.4.x/Migration24#Routing).
 By default, Gradle will still use the static routes generator.
 
-To configure your Play application to use the injected routes generator, you'll need to configure your [PlayApplicationSpec](dsl/org.gradle.play.PlayApplicationSpec.html) component:
+To make your Play application build use the injected routes generator, you'll need to configure your [PlayApplicationSpec](dsl/org.gradle.play.PlayApplicationSpec.html) component:
 
     model {
         components {
@@ -84,6 +84,9 @@ To configure your Play application to use the injected routes generator, you'll 
             }
         }
     }
+
+We have [design specs](https://github.com/gradle/gradle/blob/master/design-docs/play-support.md#feature-developer-views-compile-and-other-build-failures-in-play-application) for improving
+developer feedback even more in future Gradle releases.
 
 ### Explicit configuration of HTTP authentication schemes (i)
 
@@ -121,7 +124,7 @@ to the server preemptively. To enable preemptive authentication simply configure
         basic(BasicAuthentication) // enable preemptive authentication
     }
 
-### Managed model improvements 
+### Managed model improvements
 
 TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with links between parts of the
 model.

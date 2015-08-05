@@ -174,4 +174,31 @@ var message = "Hello JS";
         succeeds()
         assert runningApp.playUrl().text.contains("Welcome to Play with Gradle")
     }
+
+    def "should reload with exception when task that depends on runPlayBinary fails"() {
+        given:
+        buildFile << """
+task otherTask {
+   dependsOn 'runPlayBinary'
+   doLast {
+      // second time through this route exists
+      if (file("conf/routes").text.contains("/hello")) {
+         throw new GradleException("always fails")
+      }
+   }
+}
+"""
+        when:
+        succeeds("otherTask")
+        then:
+        appIsRunningAndDeployed()
+
+        when:
+        addHelloWorld()
+
+        then:
+        fails()
+        !executedTasks.contains('runPlayBinary')
+        errorPageHasTaskFailure("otherTask")
+    }
 }

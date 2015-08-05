@@ -342,7 +342,7 @@
         <para>
             Users of Play used to such a workflow with Play's default build system should note that compile errors are handled differently.
             If a build failure occurs during a continuous build, the Play application will not be reloaded. Instead, you will be presented with an exception
-            message. The exception message will only contain the overall cause of the build failure (usually a task will fail execution).
+            message. The exception message will only contain the overall cause of the build failure.
             More detailed information will only be available from the console.
         </para>
     </section>

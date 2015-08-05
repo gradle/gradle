@@ -941,12 +941,9 @@ This mechanism will be generally applicable to custom asset compilation tasks.
 
 ### Open Issues
 
-* Consider the case of `otherTask` that depends on `runPlay`. If `otherTask` fails, should the Play application report the build failure?
-* As above, `runPlay` currently tells the Play application that it should reload, so between `runPlay` executing and the overall build failing,
-you can see a working application. Should we wait to mark the Play application for reload until the end of the build (successful and failed)?
+* Consider the case of `otherTask` that depends on `runPlay`. If `otherTask` fails, should the Play application report the build failure? (Yes)
 * In the case of multi-project builds, if you have multiple Play applications that are configured so they can run at the same time (different ports), if one
-project fails to build, should we report that as failures in all of the other applications?
-* As above, should we wait to mark the Play applications for reload until the end of the build, so you can't have some projects that can load new code and others that cannot?
+project fails to build, should we report that as failures in all of the other applications? (Yes)
 
 ## Feature: Resources are built on demand when running Play application
 
