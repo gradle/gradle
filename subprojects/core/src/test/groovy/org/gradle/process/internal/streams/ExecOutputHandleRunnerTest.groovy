@@ -16,16 +16,16 @@
 
 package org.gradle.process.internal.streams
 
+import groovy.transform.NotYetImplemented
 import org.gradle.internal.io.TextStream
 import org.gradle.util.LineBufferingOutputStream
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Specification
 
 class ExecOutputHandleRunnerTest extends Specification {
 
     @Issue("GRADLE-3329")
-    @Ignore("Not yet fixed")
+    @NotYetImplemented
     def "passes long Unicode line as single line"() {
         def bufferLength = 8
         def text = "a" * (bufferLength - 1) + "\u0151"
