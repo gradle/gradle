@@ -60,6 +60,10 @@ Currently, we include the absolute path to the script containing the rule.
 - This should be relative to the project root - the path to the script defining the rule, relative to the “root project dir” (i.e. `Project.getRootDir()`).
 - Must include the relative path, line number and column number to 'applied' scripts. i.e. `apply from: '../../../someScript.gradle'`
 
+### Test scenarios
+ - apply from a script somewhere inside the project's root dir
+ - apply from a script via http
+ - apply from a script somewhere outside the project's root dir (a subproject with it's project dir outside of base dir)
 
 # Story: Rule binding failure errors use consistent terminology
 
