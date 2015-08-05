@@ -44,10 +44,6 @@ class RegistrySpec extends Specification {
             binder
         }
 
-        @Override
-        ModelNodeInternal getTarget() {
-            return this
-        }
 
         @Override
         Iterable<? extends ModelNodeInternal> getLinks() {

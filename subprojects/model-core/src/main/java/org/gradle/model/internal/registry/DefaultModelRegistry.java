@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Nullable;
+import org.gradle.internal.Actions;
 import org.gradle.internal.BiActions;
 import org.gradle.internal.Cast;
 import org.gradle.model.ConfigurationCycleException;
@@ -570,19 +571,26 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private class ModelReferenceNode extends ModelNodeInternal {
         private ModelNodeInternal target;
+        private final MutableModelNode parent;
 
-        public ModelReferenceNode(CreatorRuleBinder creatorBinder) {
+        public ModelReferenceNode(CreatorRuleBinder creatorBinder, MutableModelNode parent) {
             super(creatorBinder);
-        }
-
-        @Override
-        public ModelNodeInternal getTarget() {
-            return target;
+            this.parent = parent;
         }
 
         @Override
         public void setTarget(ModelNode target) {
             this.target = (ModelNodeInternal) target;
+        }
+
+        @Override
+        public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
+            return target == null ? new InstanceModelView<T>(getPath(), type, null, Actions.doNothing()) : target.asWritable(type, ruleDescriptor, implicitDependencies);
+        }
+
+        @Override
+        public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
+            return target == null ? new InstanceModelView<T>(getPath(), type, null, Actions.doNothing()) : target.asReadOnly(type, ruleDescriptor);
         }
 
         @Override
@@ -725,7 +733,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public MutableModelNode getParent() {
-            throw new UnsupportedOperationException();
+            return parent;
         }
     }
 
@@ -749,6 +757,24 @@ public class DefaultModelRegistry implements ModelRegistry {
         public ModelNodeInternal addLink(ModelNodeInternal node) {
             links.put(node.getPath().getName(), node);
             return node;
+        }
+
+        @Override
+        public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
+            ModelView<? extends T> modelView = getAdapter().asReadOnly(type, this, ruleDescriptor);
+            if (modelView == null) {
+                throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a read-only view of type " + type);
+            }
+            return modelView;
+        }
+
+        @Override
+        public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
+            ModelView<? extends T> modelView = getAdapter().asWritable(type, this, ruleDescriptor, inputs);
+            if (modelView == null) {
+                throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
+            }
+            return modelView;
         }
 
         @Override
@@ -992,7 +1018,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(creator.getPath())) {
                 throw new IllegalArgumentException(String.format("Reference element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
             }
-            registerNode(this, new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT)));
+            registerNode(this, new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT), this));
         }
 
         @Override
@@ -1008,11 +1034,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (links.remove(name) != null) {
                 remove(getPath().child(name));
             }
-        }
-
-        @Override
-        public ModelNodeInternal getTarget() {
-            return this;
         }
 
         @Override

@@ -121,9 +121,6 @@ public interface MutableModelNode extends ModelNode {
 
     Object getPrivateData();
 
-    @Nullable
-    MutableModelNode getTarget();
-
     void setTarget(ModelNode target);
 
     /**

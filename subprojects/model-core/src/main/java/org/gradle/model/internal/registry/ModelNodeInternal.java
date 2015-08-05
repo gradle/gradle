@@ -23,7 +23,6 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
-import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -140,10 +139,6 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return state.mutable;
     }
 
-    public boolean canApply(ModelNode.State targetState) {
-        return state.compareTo(targetState) < 0;
-    }
-
     public ModelPromise getPromise() {
         return creatorBinder.getCreator().getPromise();
     }
@@ -157,29 +152,9 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return getPath().toString();
     }
 
-    public abstract ModelNodeInternal getTarget();
-
     public abstract Iterable<? extends ModelNodeInternal> getLinks();
 
     public abstract ModelNodeInternal addLink(ModelNodeInternal node);
-
-    @Override
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
-        ModelView<? extends T> modelView = getAdapter().asReadOnly(type, this, ruleDescriptor);
-        if (modelView == null) {
-            throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a read-only view of type " + type);
-        }
-        return modelView;
-    }
-
-    @Override
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
-        ModelView<? extends T> modelView = getAdapter().asWritable(type, this, ruleDescriptor, inputs);
-        if (modelView == null) {
-            throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
-        }
-        return modelView;
-    }
 
     public void reset() {
         if (getState() != State.Known) {

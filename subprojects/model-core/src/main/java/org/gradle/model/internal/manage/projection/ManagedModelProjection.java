@@ -98,28 +98,19 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                 private <T> T doGet(ModelProperty<T> property, String propertyName) {
                     ModelType<T> propertyType = property.getType();
-                    ModelSchema<T> schema = schemaStore.getSchema(propertyType);
 
                     // TODO we are relying on the creator having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(propertyName);
                     propertyNode.ensureUsable();
 
-                    MutableModelNode targetNode = propertyNode;
-                    if (property.isWritable() && schema.getKind().isManaged()) {
-                        targetNode = propertyNode.getTarget();
-                        if (targetNode == null) {
-                            return null;
-                        }
-                    }
-
                     if (writable) {
-                        ModelView<? extends T> modelView = targetNode.asWritable(propertyType, ruleDescriptor, null);
+                        ModelView<? extends T> modelView = propertyNode.asWritable(propertyType, ruleDescriptor, null);
                         if (closed) {
                             modelView.close();
                         }
                         return modelView.getInstance();
                     } else {
-                        return targetNode.asReadOnly(propertyType, ruleDescriptor).getInstance();
+                        return propertyNode.asReadOnly(propertyType, ruleDescriptor).getInstance();
                     }
                 }
 
