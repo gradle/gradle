@@ -49,16 +49,14 @@ public class ModelSchemaExtractor {
     public ModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies) {
         this.strategies = ImmutableList.<ModelSchemaExtractionStrategy>builder()
             .addAll(strategies)
-            .add(
-                new PrimitiveStrategy(),
-                new EnumStrategy(),
-                new JdkValueTypeStrategy(),
-                new ModelSetStrategy(),
-                new ManagedSetStrategy(),
-                new StructStrategy(),
-                new SpecializedMapStrategy(),
-                new ModelMapStrategy()
-            )
+            .add(new PrimitiveStrategy())
+            .add(new EnumStrategy())
+            .add(new JdkValueTypeStrategy())
+            .add(new ModelSetStrategy())
+            .add(new ManagedSetStrategy())
+            .add(new StructStrategy())
+            .add(new SpecializedMapStrategy())
+            .add(new ModelMapStrategy())
             .add(new UnmanagedStrategy())
             .build();
     }
