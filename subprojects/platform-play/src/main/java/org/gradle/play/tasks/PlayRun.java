@@ -95,8 +95,8 @@ public class PlayRun extends ConventionTask {
         }
 
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
-                .start(String.format("Run Play App at http://localhost:%d/", httpPort),
-                    String.format("Running at http://localhost:%d/", httpPort));
+            .start(String.format("Run Play App at http://localhost:%d/", httpPort),
+                String.format("Running at http://localhost:%d/", httpPort));
         try {
             if (!getProject().getGradle().getStartParameter().isContinuous()) {
                 waitForCtrlD();
@@ -188,7 +188,7 @@ public class PlayRun extends ConventionTask {
 
     private PlayApplicationDeploymentHandle registerOrFindDeploymentHandle(String deploymentId) {
         DeploymentRegistry deploymentRegistry = getDeploymentRegistry();
-        PlayApplicationDeploymentHandle deploymentHandle  = deploymentRegistry.get(PlayApplicationDeploymentHandle.class, deploymentId);
+        PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(PlayApplicationDeploymentHandle.class, deploymentId);
         if (deploymentHandle == null) {
             deploymentHandle = new PlayApplicationDeploymentHandle(deploymentId);
             deploymentRegistry.register(deploymentId, deploymentHandle);
