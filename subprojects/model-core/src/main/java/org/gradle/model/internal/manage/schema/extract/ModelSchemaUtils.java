@@ -60,7 +60,35 @@ public class ModelSchemaUtils {
      * </ul>
      */
     public static List<Method> getCandidateMethods(Class<?> clazz) {
-        List<Method> methods = Lists.newArrayList();
+        final List<Method> methods = Lists.newArrayList();
+        walkTypeHierarchy(clazz, new TypeVisitor() {
+            @Override
+            public void visitType(Class<?> type) {
+                for (Method method : type.getDeclaredMethods()) {
+                    // Ignore generated methods
+                    if (method.isSynthetic()) {
+                        continue;
+                    }
+
+                    // Ignore overrides of Object and GroovyObject methods
+                    if (IGNORED_METHODS.contains(METHOD_EQUIVALENCE.wrap(method))) {
+                        continue;
+                    }
+
+                    methods.add(method);
+                }
+            }
+        });
+        return methods;
+    }
+
+    /**
+     * Visits all types in a type hierarchy in breadth-first order, super-classes first and then implemented interfaces.
+     *
+     * @param clazz the type of whose type hierarchy to visit.
+     * @param visitor the visitor to call for each type in the hierarchy.
+     */
+    public static void walkTypeHierarchy(Class<?> clazz, TypeVisitor visitor) {
         Set<Class<?>> seenInterfaces = Sets.newHashSet();
         Deque<Class<?>> queue = new ArrayDeque<Class<?>>();
         queue.add(clazz);
@@ -72,19 +100,7 @@ public class ModelSchemaUtils {
                 continue;
             }
 
-            for (Method method : type.getDeclaredMethods()) {
-                // Ignore generated methods
-                if (method.isSynthetic()) {
-                    continue;
-                }
-
-                // Ignore overrides of Object and GroovyObject methods
-                if (IGNORED_METHODS.contains(METHOD_EQUIVALENCE.wrap(method))) {
-                    continue;
-                }
-
-                methods.add(method);
-            }
+            visitor.visitType(type);
 
             Class<?> superclass = type.getSuperclass();
             if (superclass != null) {
@@ -96,7 +112,10 @@ public class ModelSchemaUtils {
                 }
             }
         }
-        return methods;
+    }
+
+    interface TypeVisitor {
+        void visitType(Class<?> type);
     }
 
     public static InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Method method) {
