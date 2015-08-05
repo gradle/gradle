@@ -227,9 +227,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         }
         then:
         def e = thrown(TestExecutionException)
-        e.cause.message == org.gradle.util.TextUtil.toPlatformLineSeparators("""No matching tests found in any candidate test task.
+        org.gradle.util.TextUtil.normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
     Requested Tests:
-        Test class util.TestUtil""")
+        Test class util.TestUtil"""
     }
 
     def "fails with meaningful error when test no longer exists"() {
@@ -244,9 +244,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTaskNotExecuted(":secondTest")
 
         def e = thrown(TestExecutionException)
-        e.cause.message == org.gradle.util.TextUtil.toPlatformLineSeparators("""No matching tests found in any candidate test task.
+        org.gradle.util.TextUtil.normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
     Requested Tests:
-        Test class example.MyTest (Task: ':test')""")
+        Test class example.MyTest (Task: ':test')"""
     }
 
     def "build succeeds if test class is only available in one test task"() {
@@ -280,9 +280,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTaskNotExecuted(":secondTest")
 
         def e = thrown(TestExecutionException)
-        e.cause.message == org.gradle.util.TextUtil.toPlatformLineSeparators("""No matching tests found in any candidate test task.
+        org.gradle.util.TextUtil.normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
     Requested Tests:
-        Test class org.acme.NotExistingTestClass""")
+        Test class org.acme.NotExistingTestClass"""
     }
 
     def "fails with meaningful error when test task no longer exists"() {
