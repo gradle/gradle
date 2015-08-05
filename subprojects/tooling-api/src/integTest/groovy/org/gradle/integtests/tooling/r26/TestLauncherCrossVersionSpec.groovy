@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r26
 
+import groovy.transform.NotYetImplemented
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
@@ -226,7 +227,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         }
         then:
         def e = thrown(TestExecutionException)
-        e.cause.message == "Tests configured in TestLauncher not found in any candidate test task."
+        e.cause.message == org.gradle.util.TextUtil.toPlatformLineSeparators("""No matching tests found in any candidate test task.
+    Requested Tests:
+        Test class util.TestUtil""")
     }
 
     def "fails with meaningful error when test no longer exists"() {
@@ -241,7 +244,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTaskNotExecuted(":secondTest")
 
         def e = thrown(TestExecutionException)
-        e.cause.message == "No tests found for given includes: [example.MyTest.*]"
+        e.cause.message == org.gradle.util.TextUtil.toPlatformLineSeparators("""No matching tests found in any candidate test task.
+    Requested Tests:
+        Test class example.MyTest (Task: ':test')""")
     }
 
     def "build succeeds if test class is only available in one test task"() {
@@ -275,7 +280,9 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTaskNotExecuted(":secondTest")
 
         def e = thrown(TestExecutionException)
-        e.cause.message == "Tests configured in TestLauncher not found in any candidate test task."
+        e.cause.message == org.gradle.util.TextUtil.toPlatformLineSeparators("""No matching tests found in any candidate test task.
+    Requested Tests:
+        Test class org.acme.NotExistingTestClass""")
     }
 
     def "fails with meaningful error when test task no longer exists"() {
@@ -347,16 +354,24 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
     }
 
+    @NotYetImplemented
+    def "test launcher does not fail on failing tests"() {
+        setup:
+        withFailingTest()
+        when:
+        launchTests { TestLauncher testLauncher ->
+            testLauncher.withJvmTestClasses("example.MyFailingTest")
+        }
+        then:
+        assertTaskExecuted(":test")
+        assertTaskExecuted(":secondTest")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":test")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":secondTest")
+    }
+
     def "can execute multiple test classes passed by name"() {
         setup: "add testcase that should not be exeucted"
-        file("src/test/java/example/MyFailingTest.java") << """
-            package example;
-            public class MyFailingTest {
-                @org.junit.Test public void failing1() throws Exception {
-                     org.junit.Assert.assertEquals(1, 2);
-                }
-            }
-        """
+        withFailingTest()
 
         when:
         launchTests { TestLauncher testLauncher ->
@@ -375,8 +390,8 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
         events.tests.size() == 16
 
-        assertTestNotExecuted(className: "example.MyFailingTest", methodName: "failing1", task: ":test")
-        assertTestNotExecuted(className: "example.MyFailingTest", methodName: "failing1", task: ":secondTest")
+        assertTestNotExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":test")
+        assertTestNotExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":secondTest")
     }
 
     def "runs all test tasks in multi project build when test class passed by name"() {
@@ -625,6 +640,17 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
+    }
+
+    def withFailingTest() {
+        file("src/test/java/example/MyFailingTest.java").text = """
+            package example;
+            public class MyFailingTest {
+                @org.junit.Test public void fail() throws Exception {
+                     org.junit.Assert.assertEquals(1, 2);
+                }
+            }"""
+
     }
 
     def changeTestSource() {

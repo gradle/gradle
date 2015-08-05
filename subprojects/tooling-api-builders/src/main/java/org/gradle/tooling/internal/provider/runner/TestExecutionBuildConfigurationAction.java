@@ -107,6 +107,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
     private void registerGlobalTestListener(Set<Test> testTasks) {
         for (TestListener globalTestListener : globalTestListeners) {
             for (Test task : testTasks) {
+                task.getFilter().setFailOnNoMatchingTests(false);
                 task.addTestListener(globalTestListener);
             }
         }
@@ -133,7 +134,6 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         for (String testClassName : testClassNames) {
             final TestFilter filter = testTask.getFilter();
             filter.includeTest(testClassName, null);
-            filter.setFailOnNoMatchingTests(false);
         }
     }
 }

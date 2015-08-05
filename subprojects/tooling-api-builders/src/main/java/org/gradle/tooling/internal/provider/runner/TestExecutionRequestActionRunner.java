@@ -25,14 +25,17 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
+import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 
 import java.util.Collections;
 
 public class TestExecutionRequestActionRunner implements BuildActionRunner {
+    private static final String INDENT = "    ";
 
     @Override
     public void run(BuildAction action, BuildController buildController) {
@@ -44,8 +47,9 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
 
         Throwable failure = null;
         try {
-            doRun((TestExecutionRequestAction) action, buildController, testCountListener);
-            evaluateTestCount(testCountListener);
+            final TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
+            doRun(testExecutionRequestAction, buildController, testCountListener);
+            evaluateTestCount(testExecutionRequestAction, testCountListener);
         } catch (RuntimeException rex) {
             Throwable throwable = findRootCause(rex);
             if (throwable instanceof TestExecutionException) {
@@ -64,10 +68,24 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         buildController.setResult(buildActionResult);
     }
 
-    private void evaluateTestCount(TestCountListener testCountListener) {
+    private void evaluateTestCount(TestExecutionRequestAction testExecutionRequestAction, TestCountListener testCountListener) {
         if (testCountListener.hasUnmatchedTests()) {
-            throw new TestExecutionException("Tests configured in TestLauncher not found in any candidate test task.");
+            String formattedTestRequest = formatInternalTestExecutionRequest(testExecutionRequestAction);
+
+            throw new TestExecutionException("No matching tests found in any candidate test task.\n" + formattedTestRequest);
         }
+    }
+
+    private String formatInternalTestExecutionRequest(TestExecutionRequestAction testExecutionRequestAction) {
+        StringBuffer requestDetails = new StringBuffer(INDENT).append("Requested Tests:");
+        for (InternalTestDescriptor internalTestDescriptor : testExecutionRequestAction.getTestExecutionDescriptors()) {
+            requestDetails.append("\n").append(INDENT).append(INDENT).append(internalTestDescriptor.getDisplayName());
+            requestDetails.append(" (Task: '").append(((DefaultTestDescriptor) internalTestDescriptor).getTaskPath()).append("')");
+        }
+        for (String testClass : testExecutionRequestAction.getTestClassNames()) {
+            requestDetails.append("\n").append(INDENT).append(INDENT).append("Test class ").append(testClass);
+        }
+        return requestDetails.toString();
     }
 
     private void doRun(TestExecutionRequestAction action, BuildController buildController, TestCountListener testCountListener) {
