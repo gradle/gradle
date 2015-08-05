@@ -130,7 +130,7 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
 
         then:
         fails()
-        notExecuted(":primary:runPlayBinary", ":child:runPlayBinary")
+        notExecuted(":primary:runPlayBinary")
         errorPageHasTaskFailure(":primary:compilePlayBinaryScala")
         childErrorPageHasTaskFailure(":primary:compilePlayBinaryScala")
 
