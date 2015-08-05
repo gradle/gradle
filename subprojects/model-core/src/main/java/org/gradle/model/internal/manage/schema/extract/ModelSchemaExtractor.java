@@ -54,9 +54,9 @@ public class ModelSchemaExtractor {
             .add(new JdkValueTypeStrategy())
             .add(new ModelSetStrategy())
             .add(new ManagedSetStrategy())
-            .add(new StructStrategy())
             .add(new SpecializedMapStrategy())
             .add(new ModelMapStrategy())
+            .add(new StructStrategy())
             .add(new UnmanagedStrategy())
             .build();
     }
