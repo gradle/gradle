@@ -117,7 +117,7 @@ model {
         }
 """
 
-        buildFile << "apply from: '${modelFile.getAbsolutePath()}'"
+        buildFile << "apply from: '${normaliseFileSeparators(modelFile.getAbsolutePath())}'"
         when:
         run "model"
 
