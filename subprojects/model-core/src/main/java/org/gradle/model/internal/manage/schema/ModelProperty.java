@@ -32,20 +32,22 @@ public class ModelProperty<T> {
 
     private final String name;
     private final ModelType<T> type;
+    private final boolean managed;
     private final boolean writable;
     private final Set<ModelType<?>> declaredBy;
     private final Map<Class<? extends Annotation>, Annotation> annotations;
 
-    private ModelProperty(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, Map<Class<? extends Annotation>, Annotation> annotations) {
+    private ModelProperty(ModelType<T> type, String name, boolean managed, boolean writable, Set<ModelType<?>> declaredBy, Map<Class<? extends Annotation>, Annotation> annotations) {
         this.name = name;
         this.type = type;
+        this.managed = managed;
         this.writable = writable;
         this.declaredBy = ImmutableSet.copyOf(declaredBy);
         this.annotations = ImmutableMap.copyOf(annotations);
     }
 
-    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, Map<Class<? extends Annotation>, Annotation> annotations) {
-        return new ModelProperty<T>(type, name, writable, declaredBy, annotations);
+    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean managed, boolean writable, Set<ModelType<?>> declaredBy, Map<Class<? extends Annotation>, Annotation> annotations) {
+        return new ModelProperty<T>(type, name, managed, writable, declaredBy, annotations);
     }
 
     public String getName() {
@@ -54,6 +56,13 @@ public class ModelProperty<T> {
 
     public ModelType<T> getType() {
         return type;
+    }
+
+    /**
+     * Returns whether the state of the property is managed or not.
+     */
+    public boolean isManaged() {
+        return managed;
     }
 
     public boolean isWritable() {
