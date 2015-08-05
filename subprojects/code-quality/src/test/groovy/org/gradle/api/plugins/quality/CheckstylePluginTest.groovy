@@ -38,17 +38,17 @@ class CheckstylePluginTest extends Specification {
         expect:
         project.plugins.hasPlugin(ReportingBasePlugin)
     }
-    
+
     def "configures checkstyle configuration"() {
-        def config = project.configurations.findByName("checkstyle")    
-        
+        def config = project.configurations.findByName("checkstyle")
+
         expect:
         config != null
         !config.visible
         config.transitive
         config.description == 'The Checkstyle libraries to be used for this project.'
     }
-    
+
     def "configures checkstyle extension"() {
         expect:
         CheckstyleExtension extension = project.extensions.checkstyle
@@ -86,9 +86,10 @@ class CheckstylePluginTest extends Specification {
             assert reports.xml.destination == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
             assert !ignoreFailures
             assert showViolations
+            assert antClassName == 'com.puppycrawl.tools.checkstyle.CheckStyleTask'
         }
     }
-    
+
     def "configures any additional checkstyle tasks"() {
         def task = project.tasks.create("checkstyleCustom", Checkstyle)
 
@@ -110,11 +111,11 @@ class CheckstylePluginTest extends Specification {
             test
             other
         }
-        
+
         expect:
         that(project.tasks['check'], dependsOn(hasItems("checkstyleMain", "checkstyleTest", "checkstyleOther")))
     }
-    
+
     def "can customize settings via extension"() {
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
@@ -122,7 +123,7 @@ class CheckstylePluginTest extends Specification {
             test
             other
         }
-        
+
         project.checkstyle {
             sourceSets = [project.sourceSets.main]
             config = project.resources.text.fromFile("checkstyle-config")
@@ -131,7 +132,7 @@ class CheckstylePluginTest extends Specification {
             ignoreFailures = true
             showViolations = true
         }
-        
+
         expect:
         hasCustomizedSettings("checkstyleMain", project.sourceSets.main)
         hasCustomizedSettings("checkstyleTest", project.sourceSets.test)
@@ -163,6 +164,7 @@ class CheckstylePluginTest extends Specification {
             configProperties = [foo: "foo"]
             reportsDir = project.file("checkstyle-reports")
             ignoreFailures = true
+            toolVersion = '6.8'
         }
 
         expect:
@@ -174,6 +176,7 @@ class CheckstylePluginTest extends Specification {
         task.configProperties == [foo: "foo"]
         task.reports.xml.destination == project.file("checkstyle-reports/custom.xml")
         task.ignoreFailures
+        task.antClassName == 'com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask'
     }
 
     def "can use legacy configFile extension property"() {

@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
+import org.gradle.util.VersionNumber
 
 class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     public static final String DEFAULT_CHECKSTYLE_VERSION = "5.9"
@@ -57,6 +58,11 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             configProperties = { extension.configProperties }
             ignoreFailures = { extension.ignoreFailures }
             showViolations = { extension.showViolations }
+            antClassName = { if(VersionNumber.parse(extension.toolVersion) >= VersionNumber.parse('6.8')) {
+                return 'com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask'
+            } else {
+                return 'com.puppycrawl.tools.checkstyle.CheckStyleTask'
+            }}
         }
 
         task.reports.xml.conventionMapping.with {

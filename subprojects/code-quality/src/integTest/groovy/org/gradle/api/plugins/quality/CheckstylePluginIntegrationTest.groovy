@@ -64,6 +64,20 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/checkstyle/test.xml").assertContents(containsClass("org.gradle.TestClass2"))
     }
 
+    def "runs with checkstyle 6.8"() {
+
+        when:
+        buildFile << """
+            checkstyle {
+                toolVersion = '6.8'
+            }
+        """
+        goodCode()
+
+        then:
+        succeeds('check')
+    }
+
     def "analyze bad code"() {
         defaultLanguage('en')
         badCode()
@@ -125,16 +139,16 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         then:
         succeeds("checkstyleMain") && ":checkstyleMain" in nonSkippedTasks
     }
-    
+
     def "can configure reporting"() {
         given:
         goodCode()
-        
+
         when:
         buildFile << """
             checkstyleMain.reports { xml.destination "foo.xml" }
         """
-        
+
         then:
         succeeds "checkstyleMain"
         file("foo.xml").exists()
