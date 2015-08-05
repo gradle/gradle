@@ -25,7 +25,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         EnableModelDsl.enable(executer)
     }
 
-    def "rule can target reference property of managed element as input"() {
+    def "rule can target nested element of managed element as input"() {
         when:
         buildScript '''
             @Managed
@@ -72,7 +72,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         output.contains("fromScript: foo")
     }
 
-    def "rule can target reference property of managed element as subject"() {
+    def "rule can target nested element of managed element as subject"() {
         when:
         buildScript '''
             @Managed
@@ -125,7 +125,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         output.contains("fromScript: foo os")
     }
 
-    def "rule can target mutable reference property of managed element as input"() {
+    def "rule can target reference property of managed element as input"() {
         when:
         buildScript '''
             @Managed
