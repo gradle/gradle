@@ -20,10 +20,18 @@ import org.gradle.api.Nullable
 import spock.lang.Specification
 
 class ModelSchemaUtilsTest extends Specification {
-    def "empty"() {
+    def "base object types have no candidate methods"() {
         expect:
         ModelSchemaUtils.getCandidateMethods(Object) == []
         ModelSchemaUtils.getCandidateMethods(GroovyObject) == []
+    }
+
+    def "base object types are not visited"() {
+        when: ModelSchemaUtils.walkTypeHierarchy(Object, Mock(ModelSchemaUtils.TypeVisitor))
+        then: 0 * _
+
+        when: ModelSchemaUtils.walkTypeHierarchy(GroovyObject, Mock(ModelSchemaUtils.TypeVisitor))
+        then: 0 * _
     }
 
     class Base {
@@ -31,9 +39,21 @@ class ModelSchemaUtilsTest extends Specification {
         Object doSomething() { null }
     }
 
-    class Child extends Base {
+    class Child extends Base implements Serializable {
         @Nullable
         Object doSomething() { null }
+    }
+
+    def "walking type hierarchy happens breadth-first"() {
+        def visitor = Mock(ModelSchemaUtils.TypeVisitor)
+        when:
+        ModelSchemaUtils.walkTypeHierarchy(Child, visitor)
+
+        then: 1 * visitor.visitType(Child)
+        then: 1 * visitor.visitType(Base)
+        then: 1 * visitor.visitType(Serializable)
+        then: 0 * _
+
     }
 
     def "overridden methods retain annotations"() {
