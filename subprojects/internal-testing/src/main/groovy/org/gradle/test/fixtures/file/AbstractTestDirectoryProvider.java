@@ -16,8 +16,8 @@
 
 package org.gradle.test.fixtures.file;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.os.OperatingSystem;
 import org.junit.rules.MethodRule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -55,14 +55,14 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
         Class<?> testClass = target.getClass();
         init(method.getName(), testClass.getSimpleName());
         boolean leaksHandles = testClass.getAnnotation(LeaksFileHandles.class) != null || method.getAnnotation(LeaksFileHandles.class) != null;
-        return new TestDirectoryCleaningStatement(base, getTestDirectory(), leaksHandles);
+        return new TestDirectoryCleaningStatement(base, getTestDirectory(), leaksHandles, method.toString());
     }
 
     public Statement apply(final Statement base, Description description) {
         Class<?> testClass = description.getTestClass();
         init(description.getMethodName(), testClass.getSimpleName());
         boolean leaksHandles = testClass.getAnnotation(LeaksFileHandles.class) != null || description.getAnnotation(LeaksFileHandles.class) != null;
-        return new TestDirectoryCleaningStatement(base, getTestDirectory(), leaksHandles);
+        return new TestDirectoryCleaningStatement(base, getTestDirectory(), leaksHandles, description.getDisplayName());
     }
 
     private static class TestDirectoryCleaningStatement extends Statement {
@@ -70,11 +70,13 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
         private final Statement base;
         private final TestFile testDirectory;
         private final boolean leaksHandles;
+        private final String displayName;
 
-        private TestDirectoryCleaningStatement(Statement base, TestFile testDirectory, boolean leaksHandles) {
+        private TestDirectoryCleaningStatement(Statement base, TestFile testDirectory, boolean leaksHandles, String displayName) {
             this.base = base;
             this.testDirectory = testDirectory;
             this.leaksHandles = leaksHandles;
+            this.displayName = displayName;
         }
 
         @Override
@@ -82,11 +84,11 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
             base.evaluate();
             // Don't delete on failure
             try {
-                testDirectory.deleteDir();
+                FileUtils.forceDelete(testDirectory);
             } catch (Exception e) {
-                boolean suppressException = leaksHandles && OperatingSystem.current().isWindows();
-                if (suppressException) {
-                    e.printStackTrace();
+                if (leaksHandles) {
+                    System.err.println("Couldn't delete test dir for " + displayName + " (test is holding files open)");
+                    e.printStackTrace(System.err);
                 } else {
                     throw e;
                 }
