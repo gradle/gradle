@@ -25,8 +25,6 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
-import org.junit.runners.model.FrameworkMethod
-import org.junit.runners.model.Statement
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.normalizedLineSeparators
@@ -40,17 +38,8 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider() {
         @Override
-        Statement apply(Statement base, FrameworkMethod method, Object target) {
-            return super.apply(new Statement() {
-                @Override
-                void evaluate() throws Throwable {
-                    try {
-                        base.evaluate()
-                    } finally {
-                        cleanupWhileTestFilesExist()
-                    }
-                }
-            }, method, target)
+        protected void cleanup() {
+            cleanupWhileTestFilesExist()
         }
     }
 

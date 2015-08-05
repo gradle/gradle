@@ -65,7 +65,7 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
         return new TestDirectoryCleaningStatement(base, getTestDirectory(), leaksHandles, description.getDisplayName());
     }
 
-    private static class TestDirectoryCleaningStatement extends Statement {
+    private class TestDirectoryCleaningStatement extends Statement {
 
         private final Statement base;
         private final TestFile testDirectory;
@@ -81,8 +81,11 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
 
         @Override
         public void evaluate() throws Throwable {
-            base.evaluate();
-            // Don't delete on failure
+            try {
+                base.evaluate();
+            } finally {
+                cleanup();
+            }
             try {
                 FileUtils.forceDelete(testDirectory);
             } catch (Exception e) {
@@ -142,5 +145,9 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
 
     public TestFile createDir(Object... path) {
         return file((Object[]) path).createDir();
+    }
+
+    protected void cleanup() {
+
     }
 }

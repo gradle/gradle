@@ -29,8 +29,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import org.junit.runners.model.FrameworkMethod
-import org.junit.runners.model.Statement
 import spock.lang.Specification
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
@@ -40,19 +38,8 @@ abstract class AbstractFileLockManagerTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider() {
         @Override
-        Statement apply(Statement base, FrameworkMethod method, Object target) {
-            return super.apply(new Statement() {
-                @Override
-                void evaluate() throws Throwable {
-                    try {
-                        base.evaluate()
-                    } finally {
-                        if (openedLocks) {
-                            CompositeStoppable.stoppable(openedLocks.toArray()).stop()
-                        }
-                    }
-                }
-            }, method, target)
+        protected void cleanup() {
+            CompositeStoppable.stoppable(openedLocks.toArray()).stop()
         }
     }
 
