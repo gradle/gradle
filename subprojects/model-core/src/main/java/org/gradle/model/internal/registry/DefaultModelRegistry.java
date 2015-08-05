@@ -647,43 +647,43 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public int getLinkCount(ModelType<?> type) {
-            return 0;
+            return target == null ? 0 : target.getLinkCount(type);
         }
 
         @Override
         public Set<String> getLinkNames(ModelType<?> type) {
-            return Collections.emptySet();
+            return target == null ? Collections.<String>emptySet() : target.getLinkNames(type);
         }
 
         @Nullable
         @Override
         public MutableModelNode getLink(String name) {
-            return null;
+            return target == null ? null : target.getLink(name);
         }
 
         @Override
         public Iterable<? extends ModelNodeInternal> getLinks() {
-            return Collections.emptySet();
+            return target == null ? Collections.<ModelNodeInternal>emptyList() : target.getLinks();
         }
 
         @Override
         public Iterable<? extends MutableModelNode> getLinks(ModelType<?> type) {
-            return Collections.emptySet();
+            return target == null ? Collections.<MutableModelNode>emptyList() : target.getLinks(type);
         }
 
         @Override
         public int getLinkCount() {
-            return 0;
+            return target == null ? 0 : target.getLinkCount();
         }
 
         @Override
         public boolean hasLink(String name, ModelType<?> type) {
-            return false;
+            return target != null && target.hasLink(name, type);
         }
 
         @Override
         public boolean hasLink(String name) {
-            return false;
+            return target != null && target.hasLink(name);
         }
 
         @Override
@@ -713,16 +713,19 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void ensureUsable() {
+            if (target != null) {
+                target.ensureUsable();
+            }
         }
 
         @Override
         public void realize() {
-
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public MutableModelNode getParent() {
-            return null;
+            throw new UnsupportedOperationException();
         }
     }
 

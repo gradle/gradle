@@ -25,7 +25,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         EnableModelDsl.enable(executer)
     }
 
-    def "rule can target structured property of managed element"() {
+    def "rule can target reference property of managed element as input"() {
         when:
         buildScript '''
             @Managed
@@ -72,7 +72,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         output.contains("fromScript: foo")
     }
 
-    def "rule can target structured property of managed element as subject"() {
+    def "rule can target reference property of managed element as subject"() {
         when:
         buildScript '''
             @Managed
@@ -106,9 +106,65 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
             apply type: RulePlugin
 
             model {
+                platform.operatingSystem {
+                    name = "$name os"
+                }
                 tasks {
                   create("fromScript") {
                     it.doLast { println "fromScript: " + $("platform.operatingSystem.name") }
+                  }
+                }
+            }
+        '''
+
+        then:
+        succeeds "fromPlugin", "fromScript"
+
+        and:
+        output.contains("fromPlugin: foo os")
+        output.contains("fromScript: foo os")
+    }
+
+    def "rule can target mutable reference property of managed element as input"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Platform {
+                OperatingSystem getOperatingSystem()
+                void setOperatingSystem(OperatingSystem os)
+            }
+
+            @Managed
+            interface OperatingSystem {
+                String getName()
+                void setName(String name)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void os(OperatingSystem os) {
+                  os.name = "foo"
+                }
+
+                @Model
+                void platform(Platform platform, OperatingSystem os) {
+                  platform.operatingSystem = os
+                }
+
+                @Mutate
+                void addTask(ModelMap<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
+                  tasks.create("fromPlugin") {
+                    doLast { println "fromPlugin: $os.name" }
+                  }
+                }
+            }
+
+            apply type: RulePlugin
+
+            model {
+                tasks {
+                  create("fromScript") {
+                    it.doLast { println "fromScript: " + $("platform.operatingSystem").name }
                   }
                 }
             }
@@ -122,7 +178,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         output.contains("fromScript: foo")
     }
 
-    def "rule can target simple property of managed element"() {
+    def "rule can target scalar property of managed element as input"() {
         when:
         buildScript '''
             @Managed
@@ -164,7 +220,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         output.contains("fromScript: foo")
     }
 
-    def "mutation rule can target property of managed element"() {
+    def "rule can configure scalar property of managed element"() {
         when:
         buildScript '''
             @Managed
@@ -195,6 +251,9 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
             apply type: RulePlugin
 
             model {
+                platform {
+                    operatingSystem.name = "$operatingSystem.name os"
+                }
                 tasks {
                   create("fromScript") {
                     it.doLast { println "fromScript: " + $("platform.operatingSystem.name") }
@@ -207,11 +266,11 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         succeeds "fromPlugin", "fromScript"
 
         and:
-        output.contains("fromPlugin: foo")
-        output.contains("fromScript: foo")
+        output.contains("fromPlugin: foo os")
+        output.contains("fromScript: foo os")
     }
 
-    def "creation rule can target property of managed element"() {
+    def "creation rule can target scalar property of managed element as input"() {
         when:
         buildScript '''
             @Managed
