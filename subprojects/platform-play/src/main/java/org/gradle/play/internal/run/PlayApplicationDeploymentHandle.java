@@ -24,9 +24,11 @@ import org.gradle.api.logging.Logging;
 import org.gradle.deployment.internal.DeploymentHandle;
 
 public class PlayApplicationDeploymentHandle implements DeploymentHandle {
+
+    private static final Logger LOGGER = Logging.getLogger(PlayApplicationDeploymentHandle.class);
+
     private PlayApplicationRunnerToken runnerToken;
     private final String id;
-    private static Logger logger = Logging.getLogger(PlayApplicationDeploymentHandle.class);
 
     public PlayApplicationDeploymentHandle(String id) {
         this.id = id;
@@ -38,10 +40,7 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
 
     @Override
     public boolean isRunning() {
-        if (runnerToken!=null) {
-            return runnerToken.isRunning();
-        }
-        return false;
+        return runnerToken != null && runnerToken.isRunning();
     }
 
     public void registerBuildListener(Gradle gradle) {
@@ -67,7 +66,7 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
     @Override
     public void stop() {
         if (isRunning()) {
-            logger.info("Stopping Play deployment handle for " + id);
+            LOGGER.info("Stopping Play deployment handle for " + id);
             runnerToken.stop();
         }
     }
