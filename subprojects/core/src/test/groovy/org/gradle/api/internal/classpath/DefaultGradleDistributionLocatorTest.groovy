@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.classpath
 
+import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
@@ -25,9 +28,19 @@ import org.objectweb.asm.tree.ClassNode
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@Requires(TestPrecondition.JDK7_OR_LATER)
+// so we can close the classloaders and allow files to be cleaned up
 class DefaultGradleDistributionLocatorTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider() {
+        @Override
+        protected void cleanup() {
+            CompositeStoppable.stoppable(loaders).stop()
+        }
+    }
+
+    List<Closeable> loaders = []
+
     TestFile distDir
 
     def setup() {
@@ -102,6 +115,9 @@ class DefaultGradleDistributionLocatorTest extends Specification {
         try {
             URL[] urls = [new URL("jar:${jar.toURI().toURL()}!/")] as URL[]
             URLClassLoader ucl = new URLClassLoader(urls)
+            if (ucl instanceof Closeable) {
+                loaders << ucl
+            }
             Class.forName('org.gradle.MyClass', true, ucl)
         } finally {
             urlConnection.setDefaultUseCaches(original)
