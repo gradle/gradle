@@ -134,7 +134,7 @@ public abstract class ManagedImplTypeSchemaExtractionStrategySupport implements 
                             }
                         }
 
-                        properties.add(ModelProperty.of(returnType, propertyName, isWritable, declaringClasses, annotations));
+                        properties.add(ModelProperty.of(returnType, propertyName, true, isWritable, declaringClasses, annotations));
                     }
                     handled.addAll(getterMethods);
                 }
@@ -200,6 +200,11 @@ public abstract class ManagedImplTypeSchemaExtractionStrategySupport implements 
     private <R, P> ModelSchemaExtractionContext<P> toPropertyExtractionContext(final ModelSchemaExtractionContext<R> parentContext, final ModelProperty<P> property, final ModelSchemaCache modelSchemaCache) {
         return parentContext.child(property.getType(), propertyDescription(parentContext, property), new Action<ModelSchemaExtractionContext<P>>() {
             public void execute(ModelSchemaExtractionContext<P> propertyExtractionContext) {
+                // Do not validate unmanaged properties
+                if (!property.isManaged()) {
+                    return;
+                }
+
                 ModelSchema<P> propertySchema = modelSchemaCache.get(property.getType());
 
                 if (property.getName().equals("name") && Named.class.isAssignableFrom(parentContext.getType().getRawClass())) {
