@@ -107,16 +107,4 @@ class DefaultDeploymentRegistryTest extends Specification {
         def e = thrown(IllegalStateException)
         e.message == "Cannot modify deployment handles once the registry has been stopped."
     }
-
-    def "cannot handle new build once the registry is stopped" () {
-        given:
-        registry.stop()
-
-        when:
-        registry.onNewBuild(Mock(Gradle))
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == "Cannot modify deployment handles once the registry has been stopped."
-    }
 }

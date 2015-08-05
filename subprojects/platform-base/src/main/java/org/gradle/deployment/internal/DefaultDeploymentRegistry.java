@@ -18,6 +18,7 @@ package org.gradle.deployment.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.BuildAdapter;
+import org.gradle.BuildListener;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -28,12 +29,15 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultDeploymentRegistry implements DeploymentRegistry {
+    private final ListenerManager listenerManager;
     private final Lock lock = new ReentrantLock();
     private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
+    private final BuildListener buildListener = new NewBuildListener();
     private boolean stopped;
 
     public DefaultDeploymentRegistry(ListenerManager listenerManager) {
-        listenerManager.addListener(new NewBuildListener());
+        this.listenerManager = listenerManager;
+        listenerManager.addListener(buildListener);
     }
 
     @Override
@@ -65,7 +69,6 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
     public void onNewBuild(Gradle gradle) {
         lock.lock();
         try {
-            failIfStopped();
             for (DeploymentHandle handle : handles.values()) {
                 handle.onNewBuild(gradle);
             }
@@ -78,6 +81,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
     public void stop() {
         lock.lock();
         try {
+            listenerManager.removeListener(buildListener);
             CompositeStoppable.stoppable(handles.values()).stop();
         } finally {
             stopped = true;
