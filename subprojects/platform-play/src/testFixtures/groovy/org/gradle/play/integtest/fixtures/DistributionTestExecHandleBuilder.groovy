@@ -60,28 +60,32 @@ class DistributionTestExecHandleBuilder extends ExecHandleBuilder {
 
         void shutdown() {
             try {
-                try {
-                    new URL("http://localhost:${port}/shutdown").bytes
-                } catch (SocketException e) {
-                    // Expected
-                }
-
-                ConcurrentTestUtil.poll(30) {
-                    try {
-                        def connection = new URL("http://localhost:${port}/").openConnection()
-                        connection.connect()
-                        // we can still connect to the application
-                        assert false : "Waiting for application to finally die"
-                    } catch (IOException e) {
-                        // Application is dead
-                    }
-                }
+                stop()
             } finally {
                 try {
                     abort()
                 } catch (IllegalStateException e) {
                     // Ignore if process is already not running
                     println "Did not abort play process since current state is: ${state.toString()}"
+                }
+            }
+        }
+
+        private stop() {
+            try {
+                new URL("http://localhost:${port}/shutdown").bytes
+            } catch (SocketException e) {
+                // Expected
+            }
+
+            ConcurrentTestUtil.poll(30) {
+                try {
+                    def connection = new URL("http://localhost:${port}/").openConnection()
+                    connection.connect()
+                    // we can still connect to the application
+                    assert false: "Waiting for application to finally die"
+                } catch (IOException e) {
+                    // Application is dead
                 }
             }
         }
