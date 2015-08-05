@@ -135,7 +135,13 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         System.getenv("TERM")?.toUpperCase() != "DUMB"
     }),
     NOT_PULL_REQUEST_BUILD({
-        System.getenv("TRAVIS")?.toUpperCase() != "TRUE"
+        if (System.getenv("TRAVIS")?.toUpperCase() == "TRUE") {
+            return false
+        }
+        if (System.getProperty("vcsroot.teamcity:branchSpec")?.contains("/pull/")) {
+            return false
+        }
+        return true
     });
 
     /**
