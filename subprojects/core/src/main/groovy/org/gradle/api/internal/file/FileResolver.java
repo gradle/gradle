@@ -19,13 +19,14 @@ import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.internal.Factory;
+import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import java.io.File;
 import java.net.URI;
 import java.util.List;
 
-public interface FileResolver {
+public interface FileResolver extends RelativeFilePathResolver {
     File resolve(Object path);
 
     ReadableResource resolveResource(Object path);
@@ -41,8 +42,6 @@ public interface FileResolver {
     FileTreeInternal compositeFileTree(List<? extends FileTree> fileTrees);
 
     URI resolveUri(Object path);
-
-    String resolveAsRelativePath(Object path);
 
     NotationParser<Object, File> asNotationParser();
 }

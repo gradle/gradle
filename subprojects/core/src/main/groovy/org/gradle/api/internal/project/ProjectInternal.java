@@ -97,6 +97,4 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
     void addDeferredConfiguration(Runnable configuration);
 
     void fireDeferredConfiguration();
-
-    String getRelativeDirectoryPath();
 }

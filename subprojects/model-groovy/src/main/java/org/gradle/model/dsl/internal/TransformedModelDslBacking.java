@@ -24,6 +24,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.BiAction;
+import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking;
 import org.gradle.model.dsl.internal.transform.InputReferences;
@@ -57,8 +58,8 @@ public class TransformedModelDslBacking {
     private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
     private final ModelSchemaStore schemaStore;
 
-    public TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, String relativeProjectPath) {
-        this(modelRegistry, schemaStore, INPUT_PATHS_EXTRACTOR, new RelativePathSourceLocationTransformer(relativeProjectPath));
+    public TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, RelativeFilePathResolver relativeFilePathResolver) {
+        this(modelRegistry, schemaStore, INPUT_PATHS_EXTRACTOR, new RelativePathSourceLocationTransformer(relativeFilePathResolver));
     }
 
     TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor, Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
@@ -150,16 +151,17 @@ public class TransformedModelDslBacking {
     }
 
     private static class RelativePathSourceLocationTransformer implements Transformer<SourceLocation, Closure<?>> {
-        private final String path;
+        private final RelativeFilePathResolver relativeFilePathResolver;
 
-        public RelativePathSourceLocationTransformer(String path) {
-            this.path = path;
+        public RelativePathSourceLocationTransformer(RelativeFilePathResolver relativeFilePathResolver) {
+            this.relativeFilePathResolver = relativeFilePathResolver;
         }
 
         @Override
         public SourceLocation transform(Closure<?> closure) {
             RuleMetadata ruleMetadata = getRuleMetadata(closure);
-            return new SourceLocation(path, ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
+            String relativePath = relativeFilePathResolver.resolveAsRelativePath(ruleMetadata.absoluteScriptSourceLocation());
+            return new SourceLocation(relativePath, relativePath, ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
         }
     }
 }

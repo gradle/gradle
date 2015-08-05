@@ -72,7 +72,9 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         if (sourceLocation != null) {
             AnnotationNode metadataAnnotation = new AnnotationNode(ANNOTATION_CLASS_NODE);
 
+
             metadataAnnotation.addMember("scriptSourceDescription", new ConstantExpression(sourceLocation.getScriptSourceDescription()));
+            metadataAnnotation.addMember("absoluteScriptSourceLocation", new ConstantExpression(sourceLocation.getUri()));
             metadataAnnotation.addMember("lineNumber", new ConstantExpression(sourceLocation.getLineNumber()));
             metadataAnnotation.addMember("columnNumber", new ConstantExpression(sourceLocation.getColumnNumber()));
 

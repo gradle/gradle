@@ -33,6 +33,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -55,6 +56,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -145,7 +147,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private final Path path;
 
-    private final String relativeDirectoryPath;
+    private final FileResolver baseDirFileResolver;
 
     public AbstractProject(String name,
                            ProjectInternal parent,
@@ -186,9 +188,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
-        populateModelRegistry(services.get(ModelRegistry.class));
+        this.baseDirFileResolver = new BaseDirFileResolver(services.get(FileSystem.class), getRootDir());
 
-        this.relativeDirectoryPath = new RelativeBuildScriptLocationTransformer().transform(this).orNull();
+        populateModelRegistry(services.get(ModelRegistry.class));
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
@@ -969,9 +971,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     public void model(Closure<?> modelRules) {
         ModelRegistry modelRegistry = getModelRegistry();
         ModelSchemaStore modelSchemaStore = getModelSchemaStore();
-
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
-            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, modelSchemaStore, relativeDirectoryPath), modelRules);
+            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, modelSchemaStore, this.baseDirFileResolver), modelRules);
         } else {
             new NonTransformedModelDslBacking(modelRegistry, modelSchemaStore).configure(modelRules);
         }
@@ -990,10 +991,5 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     @Override
     public void fireDeferredConfiguration() {
         getDeferredProjectConfiguration().fire();
-    }
-
-    @Override
-    public String getRelativeDirectoryPath() {
-        return relativeDirectoryPath;
     }
 }

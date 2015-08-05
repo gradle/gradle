@@ -29,6 +29,7 @@ import org.gradle.api.Nullable;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 import org.gradle.groovy.scripts.internal.ScriptSourceDescriptionTransformer;
+import org.gradle.groovy.scripts.internal.ScriptSourceLocationTransformer;
 import org.gradle.internal.Pair;
 import org.gradle.model.internal.core.ModelPath;
 
@@ -114,7 +115,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         call.setImplicitThis(true);
         call.setObjectExpression(new MethodCallExpression(VariableExpression.THIS_EXPRESSION, "getDelegate", ArgumentListExpression.EMPTY_ARGUMENTS));
 
-        SourceLocation sourceLocation = new SourceLocation(getScriptSourceDescription(), call.getLineNumber(), call.getColumnNumber());
+        SourceLocation sourceLocation = new SourceLocation(getScriptSourceLocation(), getScriptSourceDescription(), call.getLineNumber(), call.getColumnNumber());
         closureExpression.getCode().setNodeMetaData(RuleVisitor.AST_NODE_METADATA_LOCATION_KEY, sourceLocation);
 
         closureExpression.visit(ruleVisitor);
@@ -131,7 +132,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         call.setImplicitThis(true);
         call.setObjectExpression(new MethodCallExpression(VariableExpression.THIS_EXPRESSION, "getDelegate", ArgumentListExpression.EMPTY_ARGUMENTS));
 
-        SourceLocation sourceLocation = new SourceLocation(getScriptSourceDescription(), call.getLineNumber(), call.getColumnNumber());
+        SourceLocation sourceLocation = new SourceLocation(getScriptSourceLocation(), getScriptSourceDescription(), call.getLineNumber(), call.getColumnNumber());
         closureExpression.getCode().setNodeMetaData(RuleVisitor.AST_NODE_METADATA_LOCATION_KEY, sourceLocation);
 
         closureExpression.visit(ruleVisitor);
@@ -139,6 +140,10 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
 
     private String getScriptSourceDescription() {
         return sourceUnit.getAST().getNodeMetaData(ScriptSourceDescriptionTransformer.AST_NODE_METADATA_KEY);
+    }
+
+    private String getScriptSourceLocation() {
+        return sourceUnit.getAST().getNodeMetaData(ScriptSourceLocationTransformer.AST_NODE_METADATA_KEY);
     }
 
     @Nullable // if the target was invalid

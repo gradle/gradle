@@ -94,7 +94,7 @@ model {
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "model.numbers @ build.gradle line 9, column 13"
+        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "model.numbers @ my-model.gradle line 9, column 13"
     }
 
     private String managedNumbers() {

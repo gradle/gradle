@@ -43,4 +43,6 @@ public @interface RuleMetadata {
     int lineNumber();
 
     int columnNumber();
+
+    String absoluteScriptSourceLocation();
 }
