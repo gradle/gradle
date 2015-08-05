@@ -22,10 +22,8 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
-import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
@@ -55,7 +53,6 @@ import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.*;
 import org.gradle.play.internal.platform.PlayPlatformInternal;
-import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
 import org.gradle.play.internal.run.PlayApplicationRunnerFactory;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
@@ -89,6 +86,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaLanguagePlugin.class);
         project.getPluginManager().apply(ScalaLanguagePlugin.class);
         project.getExtensions().create("playConfigurations", PlayPluginConfigurations.class, project.getConfigurations(), project.getDependencies());
+
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelType.of(PlayApplicationSpec.class), PlaySourceSetRules.class);
     }
 
@@ -405,13 +403,6 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         playRun.setRuntimeClasspath(configurations.getPlayRun().getNonChangingArtifacts());
                         playRun.setChangingClasspath(configurations.getPlayRun().getChangingArtifacts());
                         playRun.dependsOn(binary.getBuildTask());
-
-                        DeploymentRegistry deploymentRegistry = serviceRegistry.get(DeploymentRegistry.class);
-                        PlayApplicationDeploymentHandle deploymentHandle = deploymentRegistry.get(PlayApplicationDeploymentHandle.class, playRun.getPath());
-                        if (deploymentHandle!=null) {
-                            deploymentHandle.registerBuildListener(serviceRegistry.get(Gradle.class));
-                        }
-
                     }
                 });
             }

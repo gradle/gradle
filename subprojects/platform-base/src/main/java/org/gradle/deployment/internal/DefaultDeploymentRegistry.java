@@ -17,8 +17,11 @@
 package org.gradle.deployment.internal;
 
 import com.google.common.collect.Maps;
+import org.gradle.BuildAdapter;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.event.ListenerManager;
 
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -28,6 +31,10 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
     private final Lock lock = new ReentrantLock();
     private final Map<String, DeploymentHandle> handles = Maps.newHashMap();
     private boolean stopped;
+
+    public DefaultDeploymentRegistry(ListenerManager listenerManager) {
+        listenerManager.addListener(new NewBuildListener());
+    }
 
     @Override
     public void register(String id, DeploymentHandle handle) {
@@ -55,6 +62,18 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
         }
     }
 
+    public void onNewBuild(Gradle gradle) {
+        lock.lock();
+        try {
+            failIfStopped();
+            for (DeploymentHandle handle : handles.values()) {
+                handle.onNewBuild(gradle);
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
     @Override
     public void stop() {
         lock.lock();
@@ -69,7 +88,14 @@ public class DefaultDeploymentRegistry implements DeploymentRegistry {
 
     private void failIfStopped() {
         if (stopped) {
-            throw new IllegalStateException("Cannot register or get deployment handles once the registry has been stopped.");
+            throw new IllegalStateException("Cannot modify deployment handles once the registry has been stopped.");
+        }
+    }
+
+    private class NewBuildListener extends BuildAdapter {
+        @Override
+        public void buildStarted(Gradle gradle) {
+            onNewBuild(gradle);
         }
     }
 }

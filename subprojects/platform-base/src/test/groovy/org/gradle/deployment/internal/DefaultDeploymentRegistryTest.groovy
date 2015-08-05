@@ -16,10 +16,12 @@
 
 package org.gradle.deployment.internal
 
+import org.gradle.api.invocation.Gradle
+import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
 
 class DefaultDeploymentRegistryTest extends Specification {
-    DeploymentRegistry registry = new DefaultDeploymentRegistry()
+    DefaultDeploymentRegistry registry = new DefaultDeploymentRegistry(Mock(ListenerManager))
 
     def "can register and retrieve a deployment handle" () {
         DeploymentHandle handle = Mock(DeploymentHandle)
@@ -29,6 +31,21 @@ class DefaultDeploymentRegistryTest extends Specification {
 
         then:
         registry.get(DeploymentHandle.class, "test") == handle
+    }
+
+    def "notifies all handles when new build starts"() {
+        DeploymentHandle handle = Mock(DeploymentHandle)
+        Gradle gradle = Mock(Gradle)
+
+        when:
+        (1..10).each {
+            registry.register("test$it", handle)
+        }
+        and:
+        registry.onNewBuild(gradle)
+
+        then:
+        10 * handle.onNewBuild(gradle)
     }
 
     def "cannot register a duplicate deployment handle" () {
@@ -76,7 +93,7 @@ class DefaultDeploymentRegistryTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Cannot register or get deployment handles once the registry has been stopped."
+        e.message == "Cannot modify deployment handles once the registry has been stopped."
     }
 
     def "cannot register a handle once the registry is stopped" () {
@@ -88,6 +105,18 @@ class DefaultDeploymentRegistryTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Cannot register or get deployment handles once the registry has been stopped."
+        e.message == "Cannot modify deployment handles once the registry has been stopped."
+    }
+
+    def "cannot handle new build once the registry is stopped" () {
+        given:
+        registry.stop()
+
+        when:
+        registry.onNewBuild(Mock(Gradle))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot modify deployment handles once the registry has been stopped."
     }
 }

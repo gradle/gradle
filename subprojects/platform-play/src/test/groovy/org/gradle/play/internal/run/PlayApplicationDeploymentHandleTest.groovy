@@ -90,7 +90,7 @@ class PlayApplicationDeploymentHandleTest extends Specification {
 
     def "registers for build finished events" () {
         when:
-        deploymentHandle.registerBuildListener(gradle)
+        deploymentHandle.onNewBuild(gradle)
         then:
         1 * gradle.addBuildListener({ it instanceof BuildListener })
     }

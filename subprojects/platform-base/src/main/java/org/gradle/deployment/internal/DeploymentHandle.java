@@ -16,8 +16,10 @@
 
 package org.gradle.deployment.internal;
 
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.concurrent.Stoppable;
 
 public interface DeploymentHandle extends Stoppable {
     boolean isRunning();
+    void onNewBuild(Gradle gradle);
 }

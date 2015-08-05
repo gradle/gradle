@@ -43,7 +43,8 @@ public class PlayApplicationDeploymentHandle implements DeploymentHandle {
         return runnerToken != null && runnerToken.isRunning();
     }
 
-    public void registerBuildListener(Gradle gradle) {
+    @Override
+    public void onNewBuild(Gradle gradle) {
         gradle.addBuildListener(new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
