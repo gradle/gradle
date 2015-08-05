@@ -18,9 +18,11 @@ package org.gradle.util.ports
 
 import org.gradle.messaging.remote.internal.inet.SocketInetAddress
 import org.gradle.util.ConcurrentSpecification
+import spock.lang.Ignore
 
 import java.util.concurrent.CountDownLatch
 
+@Ignore
 class MulticastPortReservationServiceTest extends ConcurrentSpecification {
     PortAllocator portAllocator = Mock(PortAllocator)
     PortAllocator peerPortAllocator = Mock(PortAllocator)
