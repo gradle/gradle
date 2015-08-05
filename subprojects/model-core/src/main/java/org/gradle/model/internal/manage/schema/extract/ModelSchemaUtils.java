@@ -18,11 +18,14 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Nullable;
+import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -94,5 +97,26 @@ public class ModelSchemaUtils {
             }
         }
         return methods;
+    }
+
+    public static InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Method method) {
+        return invalidMethod(extractionContext, message, MethodDescription.of(method));
+    }
+
+    public static InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Constructor<?> constructor) {
+        return invalidMethod(extractionContext, message, MethodDescription.of(constructor));
+    }
+
+    public static InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, MethodDescription methodDescription) {
+        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid method: " + methodDescription.toString() + ").");
+    }
+
+    public static InvalidManagedModelElementTypeException invalidMethods(ModelSchemaExtractionContext<?> extractionContext, String message, Iterable<Method> methods) {
+        final ImmutableSortedSet<String> descriptions = ImmutableSortedSet.copyOf(Iterables.transform(methods, new Function<Method, String>() {
+            public String apply(Method method) {
+                return MethodDescription.of(method).toString();
+            }
+        }));
+        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid methods: " + Joiner.on(", ").join(descriptions) + ").");
     }
 }

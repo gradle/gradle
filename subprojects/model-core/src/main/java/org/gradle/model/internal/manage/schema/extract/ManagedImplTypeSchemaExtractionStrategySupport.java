@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.Nullable;
-import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
@@ -40,6 +39,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.invalidMethod;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.invalidMethods;
 
 public abstract class ManagedImplTypeSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
 
@@ -359,27 +361,6 @@ public abstract class ManagedImplTypeSchemaExtractionStrategySupport implements 
             //this should never happen
             throw new RuntimeException(String.format("Expected a constructor taking at least one argument in %s but no such constructors were found", typeClass.getName()));
         }
-    }
-
-    private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Method method) {
-        return invalidMethod(extractionContext, message, MethodDescription.of(method));
-    }
-
-    private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Constructor<?> constructor) {
-        return invalidMethod(extractionContext, message, MethodDescription.of(constructor));
-    }
-
-    private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, MethodDescription methodDescription) {
-        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid method: " + methodDescription.toString() + ").");
-    }
-
-    private InvalidManagedModelElementTypeException invalidMethods(ModelSchemaExtractionContext<?> extractionContext, String message, final Iterable<Method> methods) {
-        final ImmutableSortedSet<String> descriptions = ImmutableSortedSet.copyOf(Iterables.transform(methods, new Function<Method, String>() {
-            public String apply(Method method) {
-                return MethodDescription.of(method).toString();
-            }
-        }));
-        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid methods: " + Joiner.on(", ").join(descriptions) + ").");
     }
 
     static private class ReturnTypeSpecializationOrdering extends Ordering<Method> {
