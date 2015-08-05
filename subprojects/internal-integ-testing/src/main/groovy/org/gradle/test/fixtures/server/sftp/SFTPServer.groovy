@@ -100,7 +100,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         allowInit()
     }
 
-    public void stop(boolean immediately = false) {
+    public void stop(boolean immediately = true) {
         sshd?.stop(immediately);
         portFinder.releasePort(port)
     }
