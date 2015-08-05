@@ -16,10 +16,15 @@
 
 package org.gradle.model.internal.manage.schema;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 @ThreadSafe
@@ -29,26 +34,22 @@ public class ModelProperty<T> {
     private final ModelType<T> type;
     private final boolean writable;
     private final Set<ModelType<?>> declaredBy;
-    private final boolean unmanaged;
+    private final Map<Class<? extends Annotation>, Annotation> annotations;
 
-    private ModelProperty(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, boolean unmanaged) {
+    private ModelProperty(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, Map<Class<? extends Annotation>, Annotation> annotations) {
         this.name = name;
         this.type = type;
         this.writable = writable;
         this.declaredBy = ImmutableSet.copyOf(declaredBy);
-        this.unmanaged = unmanaged;
+        this.annotations = ImmutableMap.copyOf(annotations);
     }
 
-    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, boolean unmanaged) {
-        return new ModelProperty<T>(type, name, writable, declaredBy, unmanaged);
+    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean writable, Set<ModelType<?>> declaredBy, Map<Class<? extends Annotation>, Annotation> annotations) {
+        return new ModelProperty<T>(type, name, writable, declaredBy, annotations);
     }
 
     public String getName() {
         return name;
-    }
-
-    public boolean isUnmanaged() {
-        return unmanaged;
     }
 
     public ModelType<T> getType() {
@@ -61,6 +62,18 @@ public class ModelProperty<T> {
 
     public Set<ModelType<?>> getDeclaredBy() {
         return declaredBy;
+    }
+
+    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+        return annotations.containsKey(annotationType);
+    }
+
+    public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
+        return Cast.uncheckedCast(annotations.get(annotationType));
+    }
+
+    public Collection<Annotation> getAnnotations() {
+        return annotations.values();
     }
 
     @Override

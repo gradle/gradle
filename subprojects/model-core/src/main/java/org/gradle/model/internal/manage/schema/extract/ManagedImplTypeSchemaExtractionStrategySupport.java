@@ -34,9 +34,11 @@ import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public abstract class ManagedImplTypeSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
@@ -123,13 +125,16 @@ public abstract class ManagedImplTypeSchemaExtractionStrategySupport implements 
                             }
                         }));
 
-                        boolean unmanaged = Iterables.any(getterMethods, new Predicate<Method>() {
-                            public boolean apply(Method input) {
-                                return input.getAnnotation(Unmanaged.class) != null;
+                        Map<Class<? extends Annotation>, Annotation> annotations = Maps.newLinkedHashMap();
+                        for (Method getterMethod : getterMethods) {
+                            for (Annotation annotation : getterMethod.getDeclaredAnnotations()) {
+                                if (!annotations.containsKey(annotation.annotationType())) {
+                                    annotations.put(annotation.annotationType(), annotation);
+                                }
                             }
-                        });
+                        }
 
-                        properties.add(ModelProperty.of(returnType, propertyName, isWritable, declaringClasses, unmanaged));
+                        properties.add(ModelProperty.of(returnType, propertyName, isWritable, declaringClasses, annotations));
                     }
                     handled.addAll(getterMethods);
                 }
@@ -208,14 +213,16 @@ public abstract class ManagedImplTypeSchemaExtractionStrategySupport implements 
                     }
                 }
 
-                if (propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && property.isUnmanaged()) {
+                boolean isDeclaredAsHavingUnmanagedType = property.isAnnotationPresent(Unmanaged.class);
+
+                if (propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && isDeclaredAsHavingUnmanagedType) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                         "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation.%n",
                         property.getName(), property.getType()
                     ));
                 }
 
-                if (!propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && !property.isUnmanaged()) {
+                if (!propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && !isDeclaredAsHavingUnmanagedType) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                         "type %s cannot be used for property '%s' as it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged).%n%s",
                         property.getType(), property.getName(), ModelSchemaExtractor.getManageablePropertyTypesDescription()
@@ -223,7 +230,7 @@ public abstract class ManagedImplTypeSchemaExtractionStrategySupport implements 
                 }
 
                 if (!property.isWritable()) {
-                    if (property.isUnmanaged()) {
+                    if (isDeclaredAsHavingUnmanagedType) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                             "unmanaged property '%s' cannot be read only, unmanaged properties must have setters",
                             property.getName())
