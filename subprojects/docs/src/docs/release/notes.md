@@ -121,6 +121,12 @@ to the server preemptively. To enable preemptive authentication simply configure
         basic(BasicAuthentication) // enable preemptive authentication
     }
 
+### Managed model improvements 
+
+TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with links between parts of the
+model.
+
+- Can use a link property as input for a rule.
 
 ## Promoted features
 
