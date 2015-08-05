@@ -68,7 +68,12 @@ public abstract class ManagedImplTypeSchemaExtractionStrategySupport implements 
         if (isTarget(type)) {
             validateType(type, extractionContext);
 
-            Iterable<Method> methods = getManagedMethods(clazz);
+            Iterable<Method> methods = Iterables.filter(ModelSchemaUtils.getCandidateMethods(clazz), new Predicate<Method>() {
+                @Override
+                public boolean apply(Method method) {
+                    return !ignoreMethod(method);
+                }
+            });
             ImmutableListMultimap<String, Method> methodsByName = Multimaps.index(methods, new Function<Method, String>() {
                 public String apply(Method method) {
                     return method.getName();
@@ -162,23 +167,6 @@ public abstract class ManagedImplTypeSchemaExtractionStrategySupport implements 
     }
 
     protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, Class<R> concreteClass);
-
-    private Iterable<Method> getManagedMethods(final Class<?> clazz) {
-        return Iterables.filter(Arrays.asList(clazz.getMethods()), new Predicate<Method>() {
-            @Override
-            public boolean apply(Method method) {
-                boolean include = true;
-                if (!clazz.isInterface()) {
-                    include = !method.isSynthetic()
-                        && !IGNORED_METHODS.contains(METHOD_EQUIVALENCE.wrap(method));
-                }
-                if (include) {
-                    include = !ignoreMethod(method);
-                }
-                return include;
-            }
-        });
-    }
 
     protected boolean ignoreMethod(Method method) {
         return false;
