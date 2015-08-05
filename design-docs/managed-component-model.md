@@ -221,19 +221,42 @@ For example:
 - Error messages on binding failures.
 - Link value can be changed while mutation is allowed. Treat link change as remove and add.
 
+### Test cases
+
+- Can bind to target element 
+    - via link path.
+    - by element type.
+- Nice error message when link is `null`.
+    - via link path.
+    - by element type.
+- Nice error message when binding to unknown element.
+- Can bind to child of target element via link path.
+- When link is attached in `@Defaults` rule, configuration rules are applied to target element.
+- Can bind element via path that contains several links.
+- Can link to ancestor.
+- Can mutate link.
+
+## Model report shows links between elements
+
+- Creator and mutator rules should be those that affected the value of the link, not the target.
+
+### Test cases
+
+- Link is `null`.
+- Link is not `null`.
+- Can mutate link value.
+
 ## Linked element can be used as subject for a rule
 
 - For defaults, finalization and validation rules.
 - Can only be applied when the target of the link still allows these rules to be applied.
 - Error messages when rule cannot be applied.
+- Out of scope: locating linking elements in the model, in order to inject rules via the links. This is intended to be used internally
+only to implement the top level containers.
 
 ## Model containers allow elements to be added as links 
 
 - Adding a managed element to a model container should be treated as adding a link to the target element.
-
-## Model report shows links between elements
-
-- Creator and mutator rules should be those that affected the value of the link, not the target.
 
 ## Language source sets are linked into top level container
 

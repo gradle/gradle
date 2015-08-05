@@ -29,7 +29,10 @@ Moreover, we consider owning the implementation of model elements an enabler for
     - String
     - File 
     - All subtypes of Enum
-- *Managed property*: a property of a model element, whose implementation and state is managed by Gradle.
+- *Managed property*: a property of a model element, whose implementation and state is managed by Gradle. Generally only available for `@Managed` types, but there
+may also be internal mechanisms to define such properties on other types.
+- *Scalar property*: a property of a model element whose type is a scalar type.
+- *Reference property*: a property of a model element whose value references another model element.
 
 ## Feature: Support more types for managed properties
 
