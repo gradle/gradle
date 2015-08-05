@@ -57,6 +57,8 @@ class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToo
                     return running
                 }
 
+                public void onNewBuild(Gradle gradle) {}
+
                 public void stop() {
                     running = false
                     keyFile.delete()
