@@ -55,13 +55,11 @@ Biggest one so far
 - Ensure that rules methods from enclosed classes include the top level class in the description (e.g. `ComponentModelPlugin$Rules`)
 
 # Story: DSL based rules include relative path to script, from project root
-
 When we toggle `org.gradle.model.dsl` we provide better descriptors for DSL rules.
 Currently, we include the absolute path to the script containing the rule.
-This should be relative to the project root.
+- This should be relative to the project root - the path to the script defining the rule, relative to the “root project dir” (i.e. `Project.getRootDir()`).
+- Must include the relative path, line number and column number to 'applied' scripts. i.e. `apply from: '../../../someScript.gradle'`
 
-_Not in scope_
-- Presenting the relative path, line number and column number, to a transitive build script. i.e. `apply from: '../../../someScript.gradle'`
 
 # Story: Rule binding failure errors use consistent terminology
 
