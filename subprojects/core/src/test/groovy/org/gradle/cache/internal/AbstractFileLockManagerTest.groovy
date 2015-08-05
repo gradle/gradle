@@ -29,6 +29,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import org.junit.runners.model.FrameworkMethod
+import org.junit.runners.model.Statement
 import spock.lang.Specification
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
@@ -36,7 +38,24 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 
 abstract class AbstractFileLockManagerTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider() {
+        @Override
+        Statement apply(Statement base, FrameworkMethod method, Object target) {
+            return super.apply(new Statement() {
+                @Override
+                void evaluate() throws Throwable {
+                    try {
+                        base.evaluate()
+                    } finally {
+                        if (openedLocks) {
+                            CompositeStoppable.stoppable(openedLocks.toArray()).stop()
+                        }
+                    }
+                }
+            }, method, target)
+        }
+    }
+
     def metaDataProvider = Mock(ProcessMetaDataProvider)
     def generator = Stub(IdGenerator)
     def contentionHandler = Stub(FileLockContentionHandler)
@@ -60,12 +79,6 @@ abstract class AbstractFileLockManagerTest extends Specification {
         metaDataProvider.processDisplayName >> 'process'
         contentionHandler.reservePort() >> 34
         generator.generateId() >> 678L
-    }
-
-    def cleanup() {
-        if (openedLocks) {
-            CompositeStoppable.stoppable(openedLocks.toArray()).stop()
-        }
     }
 
     def "readFile throws integrity exception when not cleanly unlocked file"() {
