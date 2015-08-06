@@ -23,6 +23,8 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.TestLauncher
 
+import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
+
 @ToolingApiVersion(">=2.7")
 @TargetGradleVersion(">=2.7")
 class TestLauncherCrossVersionSpec extends TestLauncherSpec {
@@ -41,7 +43,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         }
         then:
         def e = thrown(TestExecutionException)
-        org.gradle.util.TextUtil.normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
+        normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
     Requested Tests:
         Test class util.TestUtil"""
     }
@@ -58,7 +60,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskNotExecuted(":secondTest")
 
         def e = thrown(TestExecutionException)
-        org.gradle.util.TextUtil.normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
+        normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
     Requested Tests:
         Test class example.MyTest (Task: ':test')"""
     }
@@ -75,10 +77,8 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskNotExecuted(":secondTest")
 
         def e = thrown(TestExecutionException)
-        org.gradle.util.TextUtil.normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
+        normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
     Requested Tests:
         Test class org.acme.NotExistingTestClass"""
     }
-
-
 }
