@@ -20,7 +20,9 @@ import spock.lang.Specification
 
 
 class ReservedPortRangeTest extends Specification {
-    ReservedPortRange range = new ReservedPortRange(1, 10)
+    static final int FIRST_PORT = 101
+    static final int LAST_PORT = 110
+    ReservedPortRange range = new ReservedPortRange(FIRST_PORT, LAST_PORT)
     PortDetector portDetector = Mock(PortDetector)
 
     def setup() {
@@ -39,7 +41,7 @@ class ReservedPortRangeTest extends Specification {
         10 * portDetector.isAvailable(_) >> { true }
 
         and:
-        reserved.sort() == 1..10
+        reserved.sort() == FIRST_PORT..LAST_PORT
     }
 
     def "cannot allocate more ports than in range" () {
@@ -52,7 +54,21 @@ class ReservedPortRangeTest extends Specification {
         10 * portDetector.isAvailable(_) >> { true }
 
         and:
-        range.allocate()  == -1
+        range.allocate() == -1
+    }
+
+    def "ports are allocated in sequence" () {
+        when:
+        def port1 = range.allocate()
+        def port2 = range.allocate()
+        def port3 = range.allocate()
+
+        then:
+        port2 == next(port1)
+        port3 == next(port2)
+
+        and:
+        3 * portDetector.isAvailable(_) >> { true }
     }
 
     def "detects when ports are unavailable" () {
@@ -64,11 +80,11 @@ class ReservedPortRangeTest extends Specification {
         }
 
         then:
-        _ * portDetector.isAvailable(_) >> { int port -> return ! (port in [3,7]) }
+        _ * portDetector.isAvailable(_) >> { int port -> return ! (port in [103,107]) }
 
         and:
-        ! reserved.contains(3)
-        ! reserved.contains(7)
+        ! reserved.contains(103)
+        ! reserved.contains(107)
 
         and:
         range.allocate() == -1
@@ -84,7 +100,6 @@ class ReservedPortRangeTest extends Specification {
         }
 
         then:
-        range.unallocated.size() == 6
         range.allocated.size() == 4
 
         when:
@@ -93,7 +108,6 @@ class ReservedPortRangeTest extends Specification {
         }
 
         then:
-        range.unallocated.size() == 10
         range.allocated.size() == 0
     }
 
@@ -109,11 +123,15 @@ class ReservedPortRangeTest extends Specification {
         range.allocate() == -1
 
         when:
-        range.deallocate(3)
-        range.deallocate(9)
-        range.deallocate(2)
+        range.deallocate(103)
+        range.deallocate(109)
+        range.deallocate(102)
 
         then:
-        (0..2).collect { range.allocate() }.sort() == [2, 3, 9]
+        (0..2).collect { range.allocate() }.sort() == [102, 103, 109]
+    }
+
+    int next(int port) {
+        return port == LAST_PORT ? FIRST_PORT : port+1
     }
 }

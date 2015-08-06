@@ -16,8 +16,10 @@
 
 package org.gradle.util.ports
 
+import spock.lang.Ignore
 import spock.lang.Specification
 
+@Ignore
 class MulticastAvailablePortAllocatorTest extends Specification {
     def "no public constructors on MulticastAvailablePortAllocator"() {
         def constructors = MulticastAvailablePortAllocator.getConstructors()

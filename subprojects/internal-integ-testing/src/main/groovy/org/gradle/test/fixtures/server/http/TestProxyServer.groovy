@@ -15,7 +15,7 @@
  */
 package org.gradle.test.fixtures.server.http
 
-import org.gradle.util.ports.MulticastAvailablePortAllocator
+import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.jboss.netty.handler.codec.http.HttpRequest
 import org.junit.rules.ExternalResource
 import org.littleshoot.proxy.DefaultHttpProxyServer
@@ -31,7 +31,7 @@ import org.littleshoot.proxy.ProxyAuthorizationHandler
 class TestProxyServer extends ExternalResource {
     private HttpProxyServer proxyServer
     private HttpServer httpServer
-    private portFinder = MulticastAvailablePortAllocator.getInstance()
+    private portFinder = FixedAvailablePortAllocator.getInstance()
 
     int port
     int requestCount

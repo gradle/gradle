@@ -16,13 +16,7 @@
 
 package org.gradle.util.ports
 
-import spock.lang.Specification
-
-class AvailablePortAllocatorTest extends Specification {
-    final PortDetector noPortsAvailable = Stub(PortDetector) { isAvailable(_) >> { false } }
-    final PortDetector portsAlwaysAvailable = Stub(PortDetector) { isAvailable(_) >> { true } }
-
-    ReservedPortRangeFactory portRangeFactory = Mock(ReservedPortRangeFactory)
+class AvailablePortAllocatorTest extends AbstractPortAllocatorTest {
     AvailablePortAllocator portAllocator = AvailablePortAllocator.getInstance()
 
     def setup() {
@@ -83,7 +77,7 @@ class AvailablePortAllocatorTest extends Specification {
     }
 
     def "can assign more ports than in a range"() {
-        def assignments = PortAllocator.RANGE_SIZE + 1
+        def assignments = portAllocator.rangeSize + 1
 
         when:
         assignments.times {
@@ -96,7 +90,7 @@ class AvailablePortAllocatorTest extends Specification {
     }
 
     def "releasing the last assigned port in a range shrinks the reserved ranges"() {
-        def assignments = PortAllocator.RANGE_SIZE
+        def assignments = portAllocator.rangeSize
 
         when:
         assignments.times {
@@ -129,42 +123,5 @@ class AvailablePortAllocatorTest extends Specification {
 
         then:
         portAllocator.reservations.size() == 1
-    }
-
-    def "peer allocated port ranges will not be assigned"() {
-        when:
-        portAllocator.peerReservation(PortAllocator.MIN_PRIVATE_PORT, PortAllocator.MAX_PRIVATE_PORT)
-        portAllocator.assignPort()
-
-        then:
-        1 * portRangeFactory.getReservedPortRange(_, _) >> {int startPort, int endPort -> getPortRange(portsAlwaysAvailable, startPort, endPort)}
-        def e = thrown(NoSuchElementException)
-        e.message == "Unable to find a port range to reserve"
-    }
-
-    def "peer allocated ports can be reused after being released"() {
-        when:
-        portAllocator.peerReservation(PortAllocator.MIN_PRIVATE_PORT, PortAllocator.MIN_PRIVATE_PORT + PortAllocator.RANGE_SIZE)
-        portAllocator.peerReservation(PortAllocator.MIN_PRIVATE_PORT + PortAllocator.RANGE_SIZE, PortAllocator.MAX_PRIVATE_PORT)
-        portAllocator.assignPort()
-
-        then:
-        2 * portRangeFactory.getReservedPortRange(_, _) >> {int startPort, int endPort -> getPortRange(portsAlwaysAvailable, startPort, endPort)}
-        thrown(NoSuchElementException)
-
-        when:
-        portAllocator.releasePeerReservation(PortAllocator.MIN_PRIVATE_PORT, PortAllocator.MIN_PRIVATE_PORT + PortAllocator.RANGE_SIZE)
-        def port = portAllocator.assignPort()
-
-        then:
-        1 * portRangeFactory.getReservedPortRange(_, _) >> {int startPort, int endPort -> getPortRange(portsAlwaysAvailable, startPort, endPort)}
-        port >= PortAllocator.MIN_PRIVATE_PORT
-        port <= PortAllocator.MIN_PRIVATE_PORT + PortAllocator.RANGE_SIZE
-    }
-
-    static ReservedPortRange getPortRange(PortDetector portDetector, int startPort, int endPort) {
-        ReservedPortRange portRange = new ReservedPortRange(startPort, endPort)
-        portRange.portDetector = portDetector
-        return portRange
     }
 }

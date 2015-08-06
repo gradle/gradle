@@ -44,8 +44,7 @@ if (!javaVersion.java7Compatible) {
 testTasks.all { task ->
     if (isCiServer) {
         maxParallelForks = rootProject.maxParallelForks
-    }
-    if (isCiServer) {
+        systemProperties['org.gradle.test.maxParallelForks'] = maxParallelForks
         doFirst {
             println "maxParallelForks for '$task.path' is $task.maxParallelForks"
         }

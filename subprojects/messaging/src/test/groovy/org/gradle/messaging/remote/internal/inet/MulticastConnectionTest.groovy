@@ -18,7 +18,7 @@ package org.gradle.messaging.remote.internal.inet
 
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.util.AvailablePortFinder
+import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.junit.internal.AssumptionViolatedException
 import spock.lang.Timeout
 
@@ -27,7 +27,9 @@ class MulticastConnectionTest extends ConcurrentSpec {
     def addressFactory = new InetAddressFactory()
 
     def "can send multicast messages between peers"() {
-        def address = new SocketInetAddress(InetAddress.getByName("233.253.17.122"), AvailablePortFinder.createPrivate().nextAvailable)
+        def portFinder = FixedAvailablePortAllocator.getInstance()
+        def port = portFinder.assignPort()
+        def address = new SocketInetAddress(InetAddress.getByName("233.253.17.122"), port)
         def serializer = new DefaultMessageSerializer<String>(getClass().classLoader)
 
         given:
@@ -44,6 +46,7 @@ class MulticastConnectionTest extends ConcurrentSpec {
         cleanup:
         connection1?.stop()
         connection2?.stop()
+        portFinder.releasePort(port)
     }
 
     void multicastAvailable(SocketInetAddress address) {

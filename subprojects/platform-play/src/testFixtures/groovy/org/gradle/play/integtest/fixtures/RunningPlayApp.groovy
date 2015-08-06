@@ -18,13 +18,13 @@ package org.gradle.play.integtest.fixtures
 import org.apache.http.HttpStatus
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.ports.MulticastAvailablePortAllocator
+import org.gradle.util.ports.FixedAvailablePortAllocator
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
 class RunningPlayApp {
     int httpPort
-    def portFinder = MulticastAvailablePortAllocator.getInstance()
+    def portFinder = FixedAvailablePortAllocator.getInstance()
     TestFile testDirectory
 
     RunningPlayApp(TestFile testDirectory) {

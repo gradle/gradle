@@ -21,13 +21,13 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
-import org.gradle.util.ports.MulticastAvailablePortAllocator
+import org.gradle.util.ports.FixedAvailablePortAllocator
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec {
-    def portFinder = MulticastAvailablePortAllocator.getInstance()
+    def portFinder = FixedAvailablePortAllocator.getInstance()
     def initScript
     int httpPort
 

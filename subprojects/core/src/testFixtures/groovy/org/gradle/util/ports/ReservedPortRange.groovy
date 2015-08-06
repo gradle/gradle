@@ -26,14 +26,12 @@ class ReservedPortRange {
     private final Lock lock = new ReentrantLock()
     PortDetector portDetector = new DefaultPortDetector()
     final List<Integer> allocated = []
-    final List<Integer> unallocated = []
+    int current
 
     public ReservedPortRange(int startPort, int endPort) {
         this.startPort = startPort
         this.endPort = endPort
-        for (int i=startPort; i <= endPort; i++) {
-            unallocated.add(i)
-        }
+        current = startPort + new Random().nextInt(endPort - startPort)
     }
 
     /**
@@ -50,11 +48,6 @@ class ReservedPortRange {
         }
     }
 
-    private void allocatePort(int port) {
-        unallocated.removeAll(port)
-        allocated.add(port)
-    }
-
     /**
      * Deallocate the given port
      *
@@ -64,31 +57,26 @@ class ReservedPortRange {
         try {
             lock.lock()
             allocated.removeAll(port)
-            unallocated.add(port)
         } finally {
             lock.unlock()
         }
     }
 
     private int getAvailablePort() {
-        if (unallocated.isEmpty()) {
-            return -1
-        }
-
-        int startIndex = new Random().nextInt(unallocated.size())
-        int current = startIndex + 1
+        int first = current
         while (true) {
-            if (current >= unallocated.size()) {
-                current = 0
+            current++
+            if (current > endPort) {
+                current = startPort
             }
 
-            int candidate = unallocated[current];
+            int candidate = current
 
-            if (portDetector.isAvailable(candidate)) {
-                allocatePort(candidate)
+            if (!(candidate in allocated) && portDetector.isAvailable(candidate)) {
+                allocated.add(candidate)
                 return candidate
             } else {
-                if (current++ == startIndex) {
+                if (current == first) {
                     return -1
                 }
             }

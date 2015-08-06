@@ -17,26 +17,7 @@
 package org.gradle.util.ports
 
 
-interface PortAllocator {
-    public static final int MIN_PRIVATE_PORT = 49152
-    public static final int MAX_PRIVATE_PORT = 65535
-
-    /**
-     * Assign and reserve a port
-     * @return the port assigned
-     */
-    int assignPort()
-
-    /**
-     * Release a previously assigned port
-     * @param port
-     */
-    void releasePort(int port)
-
-    /**
-     * Get all port range reservations
-     *
-     * @return the port ranges that have been reserved
-     */
-    List<ReservedPortRange> getReservations()
+interface PeerAwarePortAllocator extends PortAllocator {
+    void peerReservation(int startPort, int endPort)
+    void releasePeerReservation(int startPort, int endPort)
 }

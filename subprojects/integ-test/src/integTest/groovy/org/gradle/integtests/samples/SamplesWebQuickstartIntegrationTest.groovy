@@ -18,7 +18,7 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.ports.MulticastAvailablePortAllocator
+import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.junit.Rule
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -52,7 +52,7 @@ class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
     @Timeout(120)
     @Unroll
     def "can use #jettyTask for testing"() {
-        def portFinder = MulticastAvailablePortAllocator.getInstance()
+        def portFinder = FixedAvailablePortAllocator.getInstance()
         def httpPort = portFinder.assignPort()
         def stopPort = portFinder.assignPort()
 

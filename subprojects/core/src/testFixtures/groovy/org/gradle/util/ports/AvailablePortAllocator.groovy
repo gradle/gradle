@@ -21,11 +21,13 @@ import java.util.concurrent.locks.ReentrantLock
 
 
 class AvailablePortAllocator implements PortAllocator {
+    public static final int RANGE_SIZE = 100
     List<ReservedPortRange> reservations = []
-    List<ReservedPortRange> peerReservations = []
     private final static INSTANCE = new AvailablePortAllocator()
-    private final Lock lock = new ReentrantLock()
+    protected final Lock lock = new ReentrantLock()
     ReservedPortRangeFactory portRangeFactory = new DefaultReservedPortRangeFactory()
+    int rangeSize = RANGE_SIZE
+    int rangeCount = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / RANGE_SIZE
 
     protected AvailablePortAllocator() {
     }
@@ -66,36 +68,12 @@ class AvailablePortAllocator implements PortAllocator {
         }
     }
 
-    @Override
-    void peerReservation(int startPort, int endPort) {
-        try {
-            lock.lock()
-            ReservedPortRange range = new ReservedPortRange(startPort, endPort)
-            if (! peerReservations.contains(range)) {
-                peerReservations.add(portRangeFactory.getReservedPortRange(startPort, endPort))
-            }
-        } finally {
-            lock.unlock()
-        }
-    }
-
-    @Override
-    void releasePeerReservation(int startPort, int endPort) {
-        try {
-            lock.lock()
-            peerReservations.remove(new ReservedPortRange(startPort, endPort))
-        } finally {
-            lock.unlock()
-        }
-    }
-
     protected void releaseRange(ReservedPortRange range) {
         reservations.remove(range)
     }
 
     void clear() {
         reservations.clear()
-        peerReservations.clear()
     }
 
     private int reservePort() {
@@ -113,25 +91,30 @@ class AvailablePortAllocator implements PortAllocator {
     }
 
     protected ReservedPortRange reservePortRange() {
-        int rangeCount = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / RANGE_SIZE
         int candidateRange = new Random().nextInt(rangeCount)
+        return reservePortRange(candidateRange)
+    }
+
+    protected ReservedPortRange reservePortRange(int candidateRange) {
         int startRange = candidateRange
         int startPort
         int endPort
         while(true) {
             candidateRange++
-            if (candidateRange >= rangeCount) {
+            if (candidateRange > rangeCount) {
                 candidateRange = 0
             }
 
-            startPort = MIN_PRIVATE_PORT + (candidateRange * RANGE_SIZE)
-            endPort = startPort + RANGE_SIZE - 1
-            // if this is the last range in the total list of ports, make the range whatever ports are remaining
+            startPort = MIN_PRIVATE_PORT + (candidateRange * rangeSize)
+            endPort = startPort + rangeSize - 1
+            // if this is the last range in the total list of ports, and its smaller than a rangeSize, skip it and reset to 0
             if (endPort > MAX_PRIVATE_PORT) {
-                endPort = MAX_PRIVATE_PORT
+                candidateRange = 0
+                startPort = MIN_PRIVATE_PORT + (candidateRange * rangeSize)
+                endPort = startPort + rangeSize - 1
             }
 
-            if (!(isReserved(startPort, endPort) || isPeerReserved(startPort, endPort))) {
+            if (!isReserved(startPort, endPort)) {
                 break
             } else {
                 if (candidateRange == startRange) {
@@ -139,20 +122,17 @@ class AvailablePortAllocator implements PortAllocator {
                 }
             }
         }
+
         ReservedPortRange range = portRangeFactory.getReservedPortRange(startPort, endPort)
         reservations.add(range)
         return range
     }
 
-    private boolean isReserved(int startPort, int endPort) {
+    protected boolean isReserved(int startPort, int endPort) {
         return isReservedInList(reservations, startPort, endPort)
     }
 
-    private boolean isPeerReserved(int startPort, int endPort) {
-        return isReservedInList(peerReservations, startPort, endPort)
-    }
-
-    private static boolean isReservedInList(List<ReservedPortRange> reservationList, int startPort, int endPort) {
+    static boolean isReservedInList(List<ReservedPortRange> reservationList, int startPort, int endPort) {
         for (int i=0; i<reservationList.size(); i++) {
             ReservedPortRange range = reservationList.get(i)
             if ((startPort <= range.endPort && startPort >= range.startPort)

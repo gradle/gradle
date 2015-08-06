@@ -16,27 +16,18 @@
 
 package org.gradle.util.ports
 
+import spock.lang.Specification
 
-interface PortAllocator {
-    public static final int MIN_PRIVATE_PORT = 49152
-    public static final int MAX_PRIVATE_PORT = 65535
 
-    /**
-     * Assign and reserve a port
-     * @return the port assigned
-     */
-    int assignPort()
+abstract class AbstractPortAllocatorTest extends Specification {
+    final PortDetector noPortsAvailable = Stub(PortDetector) { isAvailable(_) >> { false } }
+    final PortDetector portsAlwaysAvailable = Stub(PortDetector) { isAvailable(_) >> { true } }
 
-    /**
-     * Release a previously assigned port
-     * @param port
-     */
-    void releasePort(int port)
+    ReservedPortRangeFactory portRangeFactory = Mock(ReservedPortRangeFactory)
 
-    /**
-     * Get all port range reservations
-     *
-     * @return the port ranges that have been reserved
-     */
-    List<ReservedPortRange> getReservations()
+    static ReservedPortRange getPortRange(PortDetector portDetector, int startPort, int endPort) {
+        ReservedPortRange portRange = new ReservedPortRange(startPort, endPort)
+        portRange.portDetector = portDetector
+        return portRange
+    }
 }

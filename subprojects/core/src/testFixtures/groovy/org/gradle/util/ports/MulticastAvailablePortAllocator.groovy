@@ -19,7 +19,7 @@ package org.gradle.util.ports
 import org.gradle.messaging.remote.internal.inet.SocketInetAddress
 
 
-class MulticastAvailablePortAllocator extends AvailablePortAllocator {
+class MulticastAvailablePortAllocator extends PeerAwareAvailablePortAllocator {
     private final static INSTANCE = new MulticastAvailablePortAllocator()
     final MulticastPortReservationService portReservationService
 

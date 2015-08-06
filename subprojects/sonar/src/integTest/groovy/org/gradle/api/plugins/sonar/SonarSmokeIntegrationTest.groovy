@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.ServletContainer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ports.MulticastAvailablePortAllocator
+import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.gradle.util.ports.PortAllocator
 import org.junit.Rule
 import spock.lang.AutoCleanup
@@ -33,7 +33,7 @@ import spock.lang.Shared
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
 class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
     @Shared
-    PortAllocator portFinder = MulticastAvailablePortAllocator.getInstance()
+    PortAllocator portFinder = FixedAvailablePortAllocator.getInstance()
 
     @AutoCleanup("stop")
     ServletContainer container
