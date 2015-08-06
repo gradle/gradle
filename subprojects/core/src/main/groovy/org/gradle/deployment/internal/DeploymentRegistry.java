@@ -18,6 +18,7 @@ package org.gradle.deployment.internal;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.concurrent.Stoppable;
 
 /**
@@ -37,4 +38,11 @@ public interface DeploymentRegistry extends Stoppable {
      */
     @Nullable
     <T extends DeploymentHandle> T get(Class<T> handleType, String id);
+
+    /**
+     * Passes the new Gradle build to all registered handles.
+     *
+     * @param gradle new Gradle build
+     */
+    void onNewBuild(Gradle gradle);
 }

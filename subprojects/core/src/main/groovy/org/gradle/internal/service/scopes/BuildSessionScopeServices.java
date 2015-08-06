@@ -17,6 +17,8 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
+import org.gradle.deployment.internal.DefaultDeploymentRegistry;
+import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -35,5 +37,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
+    }
+
+    DeploymentRegistry createDeploymentRegistry() {
+        return new DefaultDeploymentRegistry();
     }
 }

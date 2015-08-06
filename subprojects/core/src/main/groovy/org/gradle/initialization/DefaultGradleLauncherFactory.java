@@ -24,6 +24,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
+import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.internal.event.ListenerManager;
@@ -89,7 +90,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
         // This should only be used for top-level builds
         assert tracker.getCurrentBuild() == null;
-        return doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), parentRegistry);
+        DefaultGradleLauncher launcher = doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), parentRegistry);
+        DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
+        deploymentRegistry.onNewBuild(launcher.getGradle());
+        return launcher;
     }
 
     private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, ServiceRegistry parentRegistry) {
