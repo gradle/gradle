@@ -24,7 +24,7 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec {
 
     @NotYetImplemented
     @Unroll
-    def "can apply an action to a rule task referenced #reference"() {
+    def "can apply an action to a rule task referenced via #reference"() {
         given:
         buildFile << """
 
@@ -56,10 +56,35 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'actionMan'
 
         then:
-        //TODO assumed this should hav failed to begin with (without the '!')
+        //TODO assumed this should have failed to begin with (without the '!')
         !output.contains("actionMan This is your commander speaking")
 
         where:
         reference << ['tasks.withType(EchoTask)', "tasks.matching { it.name == 'actionMan'}.all() "]
+    }
+
+    @NotYetImplemented
+    def "can reference a model rule task created in a plugin"() {
+        given:
+        buildFile << """
+        apply plugin: "java"
+        apply plugin: "maven-publish"
+
+        task echo << {
+            println "welcome to the rock"
+        }
+
+        task customPublish { }
+        customPublish.dependsOn echo
+        customPublish.dependsOn tasks.withType(PublishToMavenRepository)
+        """
+
+        when:
+        succeeds 'customPublish'
+
+        then:
+        output.contains("welcome to the rock")
+        //There's no publication in the project but the publish task should report up to date
+        output.contains(":publish UP-TO-DATE")
     }
 }
