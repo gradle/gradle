@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-/**
- * Classes related to transport authentication protocols.
- *
- * @since 2.7
- */
-@Incubating
-package org.gradle.api.authentication;
+package org.gradle.api.authentication.http;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.authentication.Authentication;
+
+/**
+ * Authentication scheme for digest access authentication over HTTP.
+ */
+public interface DigestAuthentication extends Authentication {
+}

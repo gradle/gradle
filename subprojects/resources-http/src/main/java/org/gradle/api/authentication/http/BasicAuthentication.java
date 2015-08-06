@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.authentication;
+package org.gradle.api.authentication.http;
+
+import org.gradle.api.authentication.Authentication;
 
 /**
  * Authentication scheme for basic access authentication over HTTP. When using this scheme, credentials are sent preemptively.

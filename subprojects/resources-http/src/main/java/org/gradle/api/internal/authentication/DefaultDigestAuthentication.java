@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.authentication;
+package org.gradle.api.internal.authentication;
 
-/**
- * Authentication scheme for digest access authentication over HTTP.
- */
-public interface DigestAuthentication extends Authentication {
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.authentication.http.DigestAuthentication;
+
+public class DefaultDigestAuthentication extends AbstractAuthentication implements DigestAuthentication {
+    public DefaultDigestAuthentication(String name) {
+        super(name, PasswordCredentials.class);
+    }
 }

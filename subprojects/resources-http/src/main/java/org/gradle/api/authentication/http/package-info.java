@@ -15,11 +15,11 @@
  */
 
 /**
- * Classes related to transport authentication protocols.
+ * Classes related to transport authentication protocols for HTTP.
  *
  * @since 2.7
  */
 @Incubating
-package org.gradle.api.authentication;
+package org.gradle.api.authentication.http;
 
 import org.gradle.api.Incubating;

@@ -21,8 +21,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.authentication.BasicAuthentication;
-import org.gradle.api.authentication.DigestAuthentication;
+import org.gradle.api.authentication.Authentication;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
@@ -30,9 +29,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Resolver
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.authentication.DefaultAuthenticationContainer;
-import org.gradle.api.internal.authentication.DefaultBasicAuthentication;
-import org.gradle.api.internal.authentication.DefaultDigestAuthentication;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.reflect.Instantiator;
@@ -40,6 +38,7 @@ import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.io.File;
+import java.util.Map;
 
 public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
@@ -50,6 +49,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final ResolverStrategy resolverStrategy;
     private final FileStore<ModuleComponentArtifactMetaData> artifactFileStore;
     private final MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser;
+    private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -57,7 +57,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
                                         ResolverStrategy resolverStrategy,
-                                        FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser) {
+                                        FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser,
+                                        AuthenticationSchemeRegistry authenticationSchemeRegistry) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
@@ -66,6 +67,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.resolverStrategy = resolverStrategy;
         this.artifactFileStore = artifactFileStore;
         this.pomParser = pomParser;
+        this.authenticationSchemeRegistry = authenticationSchemeRegistry;
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
@@ -105,8 +107,10 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     protected AuthenticationContainer createAuthenticationContainer() {
         DefaultAuthenticationContainer container = instantiator.newInstance(DefaultAuthenticationContainer.class, instantiator);
-        container.registerBinding(BasicAuthentication.class, DefaultBasicAuthentication.class);
-        container.registerBinding(DigestAuthentication.class, DefaultDigestAuthentication.class);
+
+        for (Map.Entry<Class<Authentication>, Class<? extends Authentication>> e : authenticationSchemeRegistry.getRegisteredSchemes().entrySet()) {
+            container.registerBinding(e.getKey(), e.getValue());
+        }
 
         return container;
     }

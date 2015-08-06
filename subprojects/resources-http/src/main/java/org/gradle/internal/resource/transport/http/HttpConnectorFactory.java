@@ -18,8 +18,8 @@ package org.gradle.internal.resource.transport.http;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.authentication.Authentication;
-import org.gradle.api.authentication.BasicAuthentication;
-import org.gradle.api.authentication.DigestAuthentication;
+import org.gradle.api.authentication.http.BasicAuthentication;
+import org.gradle.api.authentication.http.DigestAuthentication;
 import org.gradle.api.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;

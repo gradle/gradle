@@ -60,6 +60,8 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
+import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -354,6 +356,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected BuildOperationLoggerFactory createBuildOperationLoggerFactory() {
         return new DefaultBuildOperationLoggerFactory();
+    }
+
+    AuthenticationSchemeRegistry createAuthenticationSchemeRegistry() {
+        return new DefaultAuthenticationSchemeRegistry();
     }
 
 }

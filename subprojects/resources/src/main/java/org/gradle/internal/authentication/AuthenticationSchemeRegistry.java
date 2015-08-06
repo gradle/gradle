@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.authentication;
+package org.gradle.internal.authentication;
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.authentication.DigestAuthentication;
+import org.gradle.api.authentication.Authentication;
 
-public class DefaultDigestAuthentication extends AbstractAuthentication implements DigestAuthentication {
-    public DefaultDigestAuthentication(String name) {
-        super(name, PasswordCredentials.class);
-    }
+import java.util.Map;
+
+public interface AuthenticationSchemeRegistry {
+    <T extends Authentication> void registerScheme(Class<T> type, final Class<? extends T> implementationType);
+    <T extends Authentication> Map<Class<T>, Class<? extends T>> getRegisteredSchemes();
 }

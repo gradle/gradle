@@ -33,6 +33,11 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
         this.supportedCredentials = Sets.newHashSet();
     }
 
+    public AbstractAuthentication(String name, Class<? extends Credentials> supportedCredential) {
+        this.name = name;
+        this.supportedCredentials = Sets.<Class<? extends Credentials>>newHashSet(supportedCredential);
+    }
+
     public AbstractAuthentication(String name, Class<? extends Credentials>... supportedCredentials) {
         this.name = name;
         this.supportedCredentials = Sets.newHashSet(supportedCredentials);
