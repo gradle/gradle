@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.authentication
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.authentication.Authentication
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
@@ -30,16 +29,6 @@ public class DefaultAuthenticationContainerTest extends Specification {
     def setup() {
         container.registerBinding(TestAuthentication, DefaultTestAuthentication)
         container.registerBinding(CustomTestAuthentication, DefaultCustomTestAuthentication)
-    }
-
-    def "cannot add multiple authentication schemes of the same type"() {
-        when:
-        container.create('auth1', TestAuthentication)
-        container.create('auth2', TestAuthentication)
-
-        then:
-        def ex = thrown(InvalidUserDataException)
-        ex.message == "Cannot configure multiple authentication schemes of type 'DefaultTestAuthentication'"
     }
 
     @Unroll
