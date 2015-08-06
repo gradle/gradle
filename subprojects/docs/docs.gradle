@@ -334,6 +334,7 @@ task javadocAll(type: Javadoc) {
     classpath = files(publicGroovyProjects.collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
     include 'org/gradle/*'
     include 'org/gradle/api/**'
+    include 'org/gradle/authentication/**'
     include 'org/gradle/buildinit/**'
     include 'org/gradle/external/javadoc/**'
     include 'org/gradle/ide/**'
