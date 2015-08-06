@@ -31,6 +31,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         InternalTestExecutionRequest testExecutionRequest = Mock()
         1 * testExecutionRequest.getTestExecutionDescriptors() >> []
         1 * testExecutionRequest.getTestClassNames() >> []
+        1 * testExecutionRequest.getTestMethods() >> []
         setup:
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
         when:
