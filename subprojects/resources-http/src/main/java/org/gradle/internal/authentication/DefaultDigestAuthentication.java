@@ -18,7 +18,6 @@ package org.gradle.internal.authentication;
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.authentication.http.DigestAuthentication;
-import org.gradle.internal.authentication.AbstractAuthentication;
 
 public class DefaultDigestAuthentication extends AbstractAuthentication implements DigestAuthentication {
     public DefaultDigestAuthentication(String name) {
