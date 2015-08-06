@@ -20,6 +20,8 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
+import static org.gradle.util.TextUtil.normaliseFileSeparators
+
 class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec {
 
     @NotYetImplemented
@@ -64,27 +66,59 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @NotYetImplemented
+    @Unroll
     def "can reference a model rule task created in a plugin"() {
         given:
+        def source = file("src", "main", "java", "Something.java").createFile()
+        def repo = file("maven").createDir()
+        source.text = 'public class Something{}'
+
         buildFile << """
         apply plugin: "java"
         apply plugin: "maven-publish"
 
-        task echo << {
-            println "welcome to the rock"
+        publishing {
+            repositories{ maven{ url '${normaliseFileSeparators(repo.getAbsolutePath())}'}}
+
+            publications {
+                maven(MavenPublication) {
+                    groupId 'org.gradle.sample'
+                    artifactId 'project1-sample'
+                    version '1.1'
+                    from components.java
+                }
+            }
         }
 
         task customPublish { }
-        customPublish.dependsOn echo
-        customPublish.dependsOn tasks.withType(PublishToMavenRepository)
+        $reference
         """
-
         when:
-        succeeds 'customPublish'
+        succeeds('clean', 'build', 'customPublish')
 
         then:
-        output.contains("welcome to the rock")
-        //There's no publication in the project but the publish task should report up to date
-        output.contains(":publish UP-TO-DATE")
+        output.contains(":generatePomFileForMavenPublication")
+        output.contains(":publishMavenPublicationToMavenLocal")
+        output.contains(":publishMavenPublicationToMavenRepository")
+        output.contains(":customPublish")
+
+        where:
+        reference << [
+            """
+                    //Has no effect
+                    customPublish.dependsOn tasks.withType(PublishToMavenLocal)
+                    customPublish.dependsOn tasks.withType(PublishToMavenRepository)""",
+            """
+                    //Has no effect
+                    afterEvaluate {
+                          customPublish.dependsOn tasks.names.findAll { it.startsWith("publishMaven") }*.path
+                    }
+                """,
+            """
+                    //These cause a NPE on TaskMutator.mutate
+                    customPublish.dependsOn tasks.findByName('publishMavenPublicationToMavenLocal')
+                    customPublish.dependsOn tasks.findByName('publishMavenPublicationToMavenRepository')
+                """
+        ]
     }
 }
