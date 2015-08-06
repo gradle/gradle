@@ -195,7 +195,9 @@ Some candidates:
 Link all `ComponentSpec`, `LanguageSourceSet`, `BinarySpec` and `Task` instances into top level containers where rules can be
 applied to them regardless of their location in the model.
 
-## Linked element can be used as input for a rule 
+Non-goal is to provide this as a general capability for arbitrary types.
+
+## Referenced element can be used as input for a rule 
 
 For example:
 
@@ -215,48 +217,50 @@ For example:
         }
     }
 
-- When binding a path for input, need to realize enough of each element to finalize references so that links can be traversed.
+- When binding a path for input, need to realize enough of each element to finalize references so that references can be traversed.
 - Support binding by type.
 - Need to handle `null` value in both instances.
 - Error messages on binding failures.
-- Link value can be changed while mutation is allowed. Treat link change as remove and add.
+- Reference value can be changed while mutation is allowed. Treat reference change as remove and add.
+- Can't remove an element when it is the target of a reference.
 
 ### Test cases
 
 - Can bind to target element 
-    - via link path.
+    - via reference path.
     - by element type.
-- Nice error message when link is `null`.
-    - via link path.
+- Nice error message when reference is `null`.
+    - via reference path.
     - by element type.
 - Nice error message when binding to unknown element.
-- Can bind to child of target element via link path.
-- When link is attached in `@Defaults` rule, configuration rules are applied to target element.
-- Can bind element via path that contains several links.
-- Can link to ancestor.
-- Can mutate link.
+- Can bind to child of target element via reference path.
+- When reference is attached in `@Defaults` rule, configuration rules are applied to target element.
+- Can bind element via path that contains several references.
+- Can reference to ancestor.
+- Can mutate reference.
 
-## Model report shows links between elements
+## Model report shows references between elements
 
-- Creator and mutator rules should be those that affected the value of the link, not the target.
+- Creator and mutator rules should be those that affected the value of the reference, not the target.
 
 ### Test cases
 
-- Link is `null`.
-- Link is not `null`.
-- Can mutate link value.
+- Reference is `null`.
+- Reference is not `null`.
+- Can mutate reference value during configuration.
+- Cycle from child to parent.
 
-## Linked element can be used as subject for a rule
+## Referenced element can be used as subject for a rule
 
 - For defaults, finalization and validation rules.
-- Can only be applied when the target of the link still allows these rules to be applied.
+- Can only be applied when the target of the reference still allows these rules to be applied.
 - Error messages when rule cannot be applied.
-- Out of scope: locating linking elements in the model, in order to inject rules via the links. This is intended to be used internally
+- Out of scope: locating referencing elements in the model, in order to inject rules via the references. This is intended to be used internally
 only to implement the top level containers.
 
-## Model containers allow elements to be added as links 
+## Model containers allow elements to be added as references 
 
-- Adding a managed element to a model container should be treated as adding a link to the target element.
+- Adding a managed element to a model container should be treated as adding a reference to the target element.
 
 ## Language source sets are linked into top level container
 
