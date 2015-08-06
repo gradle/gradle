@@ -135,6 +135,18 @@ class RepositoryTransportFactoryTest extends Specification {
         ex.message == "You cannot configure authentication schemes for a repository if no credentials are provided."
     }
 
+    def "should throw when specifying multiple authentication schemes of the same type"() {
+        def authentication = new GoodCredentialsAuthentication('good')
+        authentication.credentials = Mock(GoodCredentials)
+
+        when:
+        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [authentication, authentication])
+
+        then:
+        def ex = thrown(InvalidUserDataException)
+        ex.message == "You cannot configure multiple authentication schemes of the same type 'GoodCredentialsAuthentication'."
+    }
+
     private class GoodCredentialsAuthentication extends AbstractAuthentication {
         GoodCredentialsAuthentication(String name) {
             super(name, GoodCredentials)
