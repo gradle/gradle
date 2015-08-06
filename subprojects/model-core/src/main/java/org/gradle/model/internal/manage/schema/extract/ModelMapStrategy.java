@@ -19,8 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Action;
-import org.gradle.model.Managed;
+import org.gradle.internal.Actions;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.core.NodeInitializer;
@@ -77,19 +76,7 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
                 return new ProjectionOnlyNodeInitializer(ModelMapModelProjection.managed(input.getElementType(), childCreator));
             }
         });
-        ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", new Action<ModelSchemaExtractionContext<?>>() {
-            public void execute(ModelSchemaExtractionContext<?> context) {
-                ModelType<?> elementType = context.getType();
-                ModelSchema<?> typeParamSchema = cache.get(elementType);
-
-                if (!typeParamSchema.getKind().isManaged()) {
-                    throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
-                        "cannot create a model map of type %s as it is not a %s type.",
-                        elementType, Managed.class.getName()
-                    ));
-                }
-            }
-        });
+        ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", Actions.doNothing());
         return new ModelSchemaExtractionResult<T>(schema, ImmutableList.of(typeParamExtractionContext));
     }
 

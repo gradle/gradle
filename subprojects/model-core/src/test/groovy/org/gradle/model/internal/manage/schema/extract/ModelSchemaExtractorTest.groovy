@@ -15,7 +15,6 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
-
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
@@ -914,4 +913,28 @@ interface Managed${typeName} {
         store.getSchema(CustomThing).kind == ModelSchema.Kind.VALUE
         store.getSchema(UnmanagedThing).kind == ModelSchema.Kind.UNMANAGED
     }
+
+    @Managed
+    static abstract class UnmanagedModelMapInManagedType {
+        abstract ModelMap<InputStream> getThings()
+    }
+
+    def "model map type must be managed in a managed type"() {
+        expect:
+        fail UnmanagedModelMapInManagedType, "property 'things' cannot be a model map of type $InputStream.name as it is not a $Managed.name type."
+    }
+
+//    static abstract class UnmanagedModelMapInUnmanagedType {
+//        ModelMap<InputStream> getThings() { null }
+//    }
+//
+//    def "model map type doesn't have to be managed type in an unmanaged type"() {
+//        when:
+//        def schema = extract(UnmanagedModelMapInUnmanagedType)
+//        println schema.properties
+//
+//        then:
+//        schema.properties.get("things").type.rawClass == ModelMap
+//    }
+
 }
