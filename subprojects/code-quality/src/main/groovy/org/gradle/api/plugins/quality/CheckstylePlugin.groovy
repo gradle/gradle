@@ -58,16 +58,20 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             configProperties = { extension.configProperties }
             ignoreFailures = { extension.ignoreFailures }
             showViolations = { extension.showViolations }
-            antClassName = { if(VersionNumber.parse(extension.toolVersion) >= VersionNumber.parse('6.8')) {
-                return 'com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask'
-            } else {
-                return 'com.puppycrawl.tools.checkstyle.CheckStyleTask'
-            }}
+            antClassName = { getAntClassForToolVersion(extension.toolVersion) }
         }
 
         task.reports.xml.conventionMapping.with {
             enabled = { true }
             destination = { new File(extension.reportsDir, "${baseName}.xml") }
+        }
+    }
+
+    protected String getAntClassForToolVersion(String toolVersion) {
+        if(VersionNumber.parse(toolVersion) >= VersionNumber.parse('6.8')) {
+            return 'com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask'
+        } else {
+            return 'com.puppycrawl.tools.checkstyle.CheckStyleTask'
         }
     }
 
