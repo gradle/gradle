@@ -20,6 +20,13 @@ import spock.lang.Unroll
 
 
 class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
+    def "no public constructors on AvailablePortAllocator"() {
+        def constructors = AvailablePortAllocator.getConstructors()
+
+        expect:
+        constructors.size() == 0
+    }
+
     @Unroll
     def "assigns a fixed port range based on worker id (maxForks: #maxForks, workerId: #workerId" () {
         FixedAvailablePortAllocator portAllocator = new FixedAvailablePortAllocator(maxForks, workerId)
