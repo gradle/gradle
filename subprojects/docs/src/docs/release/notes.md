@@ -118,7 +118,7 @@ Building on the [new support for configuring authentication schemes](#explicit-c
 Gradle's default behavior is to only submit credentials when a server responds with an authentication challenge in the form of a HTTP 401 response. In some cases, the server will
 respond with a different code (ex. for repositories hosted on GitHub a 404 is returned) causing dependency resolution to fail. To get around this behavior, credentials may be sent
 to the server preemptively. To enable preemptive authentication simply configure your repository to explicitly use the
-[`BasicAuthentication`](javadoc/org/gradle/api/authentication/BasicAuthentication.html) scheme:
+[`BasicAuthentication`](javadoc/org/gradle/authentication/http/BasicAuthentication.html) scheme:
 
     authentication {
         basic(BasicAuthentication) // enable preemptive authentication

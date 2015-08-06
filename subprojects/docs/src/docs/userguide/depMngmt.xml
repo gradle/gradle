@@ -1007,11 +1007,11 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><apilink class="org.gradle.api.authentication.http.BasicAuthentication"/></td>
+                            <td><apilink class="org.gradle.authentication.http.BasicAuthentication"/></td>
                             <td>Basic access authentication over HTTP. When using this scheme, credentials are sent preemptively.</td>
                         </tr>
                         <tr>
-                            <td><apilink class="org.gradle.api.authentication.http.DigestAuthentication"/></td>
+                            <td><apilink class="org.gradle.authentication.http.DigestAuthentication"/></td>
                             <td>Digest access authentication over HTTP.</td>
                         </tr>
                     </tbody>
@@ -1024,7 +1024,7 @@
                     Gradle's default behavior is to only submit credentials when a server responds with an authentication challenge in the form of a HTTP 401 response. In some cases,
                     the server will respond with a different code (ex. for repositories hosted on GitHub a 404 is returned) causing dependency resolution to fail. To get around this
                     behavior, credentials may be sent to the server preemptively. To enable preemptive authentication simply configure your repository to explicitly use the
-                    <apilink class="org.gradle.api.authentication.http.BasicAuthentication"/> scheme:
+                    <apilink class="org.gradle.authentication.http.BasicAuthentication"/> scheme:
                 </para>
                 <sample id="preemptiveAuthentication" dir="userguide/artifacts/defineRepository" title="Configure repository to use preemptive authentication">
                     <sourcefile file="build.gradle" snippet="preemptive-authentication"/>
