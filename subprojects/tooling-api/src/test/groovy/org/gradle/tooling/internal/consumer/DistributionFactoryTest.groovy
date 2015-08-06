@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.DistributionLocator
@@ -136,6 +137,7 @@ class DistributionFactoryTest extends Specification {
         dist.getToolingImplementationClasspath(progressLoggerFactory, null, cancellationToken).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
     }
 
+    @LeaksFileHandles
     def usesWrapperDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
         1 * executorFactory.create() >> executor
         File customUserHome = tmpDir.file('customUserHome')
@@ -154,6 +156,7 @@ class DistributionFactoryTest extends Specification {
         (result.asFiles.path as Set).every { it.contains('customUserHome')}
     }
 
+    @LeaksFileHandles
     def usesZipDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
         1 * executorFactory.create() >> executor
         File customUserHome = tmpDir.file('customUserHome')
@@ -171,6 +174,7 @@ class DistributionFactoryTest extends Specification {
         (result.asFiles.path as Set).every { it.contains('customUserHome')}
     }
 
+    @LeaksFileHandles
     def reportsZipDownload() {
         File customUserHome = tmpDir.file('customUserHome')
         def zipFile = createZip {

@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -68,6 +69,7 @@ model {
         executable.exec().out == "Hello!"
     }
 
+    @LeaksFileHandles("can't delete build/binaries/mainExecutable")
     def "can build debug binaries for a C++ executable"() {
         given:
         buildFile << """

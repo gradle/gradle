@@ -19,6 +19,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -98,6 +99,7 @@ model {
         installation("build/install/mainExecutable/german").assertInstalled()
     }
 
+    @LeaksFileHandles("can't delete build/install/mainExecutable/french")
     def "executable with flavors depends on library with matching flavors"() {
         when:
         buildFile << """
