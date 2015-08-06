@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 /**
  * A JUnit rule which provides a unique temporary folder for the test.
  */
-abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, TestDirectoryProvider {
+abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
     private TestFile dir;
     private String prefix;
     protected static TestFile root;
@@ -49,13 +49,6 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
             }
         }
         return "unknown-test-class";
-    }
-
-    protected Statement doApply(final Statement base, FrameworkMethod method, Object target) {
-        Class<?> testClass = target.getClass();
-        init(method.getName(), testClass.getSimpleName());
-        boolean leaksHandles = testClass.getAnnotation(LeaksFileHandles.class) != null || method.getAnnotation(LeaksFileHandles.class) != null;
-        return new TestDirectoryCleaningStatement(base, getTestDirectory(), leaksHandles, method.toString());
     }
 
     public Statement apply(final Statement base, Description description) {
