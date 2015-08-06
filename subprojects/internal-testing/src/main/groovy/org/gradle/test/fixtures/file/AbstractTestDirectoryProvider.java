@@ -87,7 +87,9 @@ abstract class AbstractTestDirectoryProvider implements MethodRule, TestRule, Te
                 cleanup();
             }
             try {
-                FileUtils.forceDelete(testDirectory);
+                if (testDirectory.exists()) {
+                    FileUtils.forceDelete(testDirectory);
+                }
             } catch (Exception e) {
                 if (leaksHandles) {
                     System.err.println("Couldn't delete test dir for " + displayName + " (test is holding files open)");
