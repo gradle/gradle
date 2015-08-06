@@ -107,4 +107,9 @@ public class ModelProperty<T> {
         result = 31 * result + Boolean.valueOf(writable).hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return (managed ? "" : "unmanaged ") + getName() + "(" + getType().getSimpleName() + ")";
+    }
 }
