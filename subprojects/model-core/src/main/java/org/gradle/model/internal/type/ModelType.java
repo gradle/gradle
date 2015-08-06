@@ -225,6 +225,10 @@ public abstract class ModelType<T> {
             for (Type type : ((WildcardType) runtimeType).getUpperBounds()) {
                 ModelType.of(type).addAllClasses(builder);
             }
+        } else if (runtimeType instanceof TypeVariable) {
+            for (Type type : ((TypeVariable) runtimeType).getBounds()) {
+                ModelType.of(type).addAllClasses(builder);
+            }
         } else {
             throw new IllegalArgumentException("Unable to deal with type " + runtimeType + " (" + runtimeType.getClass() + ")");
         }
@@ -346,6 +350,9 @@ public abstract class ModelType<T> {
                     toWrappers(wildcardType.getLowerBounds()),
                     type.hashCode()
             );
+        } else if (type instanceof TypeVariable) {
+            TypeVariable<?> typeVariable = (TypeVariable<?>) type;
+            return new TypeVariableTypeWrapper(typeVariable);
         } else {
             throw new IllegalArgumentException("cannot wrap type of type " + type.getClass());
         }
