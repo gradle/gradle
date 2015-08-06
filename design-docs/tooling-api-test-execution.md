@@ -151,6 +151,7 @@ Add methods to `TestLauncher` to request specific JVM test classes be executed.
 	* class does not exist
 	* class does not define any tests
 	* class does not define any matching test methods
+* failing tests let the test launcher run throw an exception with a meaningful error message.
 
 ## Story: Run only those test tasks that match the test execution request
 
