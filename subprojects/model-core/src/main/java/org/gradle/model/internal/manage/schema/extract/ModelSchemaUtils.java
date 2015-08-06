@@ -90,11 +90,10 @@ public class ModelSchemaUtils {
      */
     public static void walkTypeHierarchy(Class<?> clazz, TypeVisitor visitor) {
         Set<Class<?>> seenInterfaces = Sets.newHashSet();
-        Deque<Class<?>> queue = new ArrayDeque<Class<?>>();
+        Queue<Class<?>> queue = new ArrayDeque<Class<?>>();
         queue.add(clazz);
-        while (!queue.isEmpty()) {
-            Class<?> type = queue.removeFirst();
-
+        Class<?> type;
+        while ((type = queue.poll()) != null) {
             // Do not process Object's or GroovyObject's methods
             if (type.equals(Object.class) || type.equals(GroovyObject.class)) {
                 continue;
@@ -104,11 +103,11 @@ public class ModelSchemaUtils {
 
             Class<?> superclass = type.getSuperclass();
             if (superclass != null) {
-                queue.addLast(superclass);
+                queue.add(superclass);
             }
             for (Class<?> iface : type.getInterfaces()) {
                 if (seenInterfaces.add(iface)) {
-                    queue.addLast(iface);
+                    queue.add(iface);
                 }
             }
         }
