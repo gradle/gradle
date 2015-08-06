@@ -26,6 +26,7 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
+import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -244,6 +245,18 @@ public abstract class ManagedImplTypeSchemaExtractionStrategySupport implements 
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                             "property '%s' cannot have a setter (%s properties must be read only).",
                             property.getName(), property.getType().toString()));
+                    }
+
+                    ModelCollectionSchema<P, ?> propertyCollectionsSchema = (ModelCollectionSchema<P, ?>) propertySchema;
+
+                    ModelType<?> elementType = propertyCollectionsSchema.getElementType();
+                    ModelSchema<?> elementTypeSchema = modelSchemaCache.get(elementType);
+
+                    if (!elementTypeSchema.getKind().isManaged()) {
+                        throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                            "property '%s' cannot be a model map of type %s as it is not a %s type.",
+                            property.getName(), elementType, Managed.class.getName()
+                        ));
                     }
                 }
             }

@@ -38,15 +38,6 @@ class ManagedModelMapTypesTest extends Specification {
         noExceptionThrown()
     }
 
-    def "type must be managed struct"() {
-        when:
-        schemaStore.getSchema(ModelTypes.modelMap(String))
-
-        then:
-        def e = thrown InvalidManagedModelElementTypeException
-        e.message == "Invalid managed model type $ModelMap.name<$String.name>: cannot create a model map of type $String.name as it is not a $Managed.name type."
-    }
-
     def "must have type param"() {
         when:
         schemaStore.getSchema(ModelType.of(ModelMap))
