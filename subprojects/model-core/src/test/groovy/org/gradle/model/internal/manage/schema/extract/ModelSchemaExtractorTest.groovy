@@ -327,6 +327,7 @@ class ModelSchemaExtractorTest extends Specification {
         properties*.name == ["count", "name"]
     }
 
+    @Managed
     static interface SingleIntegerValueProperty {
         Integer getValue()
 
@@ -388,6 +389,7 @@ class ModelSchemaExtractorTest extends Specification {
         void setValue(String value)
     }
 
+    @Managed
     static interface SingleFloatValueProperty {
         Float getValue()
 
@@ -411,6 +413,7 @@ class ModelSchemaExtractorTest extends Specification {
         fail ConflictingPropertiesInParents, message
     }
 
+    @Managed
     static interface AnotherSingleStringValueProperty {
         String getValue()
 
@@ -429,6 +432,7 @@ class ModelSchemaExtractorTest extends Specification {
         properties*.name == ["value"]
     }
 
+    @Managed
     static interface ReadOnlyProperty {
         SingleStringValueProperty getSingleStringValueProperty()
     }
@@ -473,6 +477,7 @@ class ModelSchemaExtractorTest extends Specification {
     @Managed
     interface SpecialThing extends Thing {}
 
+    @Managed
     interface SimpleModel {
         Thing getThing()
     }
@@ -596,7 +601,7 @@ $type
         void setThing(InputStream inputStream);
     }
 
-    def "unamanaged types must be annotated with unmanaged"() {
+    def "unmanaged types must be annotated with unmanaged"() {
         expect:
         fail MissingUnmanaged, Pattern.quote("it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged)")
     }
