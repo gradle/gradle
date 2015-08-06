@@ -49,17 +49,23 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec {
 
         apply type: Rules
 
+        task actionWoman << {
+            println "actionWoman I'm really the commander"
+        }
+
+        actionWoman.dependsOn tasks.withType(EchoTask)
+
         $reference {
          it.text = 'This is your commander speaking'
         }
         """
 
         when:
-        succeeds 'actionMan'
+        succeeds('actionMan')
 
         then:
-        //TODO assumed this should have failed to begin with (without the '!')
-        !output.contains("actionMan This is your commander speaking")
+        output.contains("actionMan This is your commander speaking")
+        output.contains("actionWoman I'm the real commander")
 
         where:
         reference << ['tasks.withType(EchoTask)', "tasks.matching { it.name == 'actionMan'}.all() "]
