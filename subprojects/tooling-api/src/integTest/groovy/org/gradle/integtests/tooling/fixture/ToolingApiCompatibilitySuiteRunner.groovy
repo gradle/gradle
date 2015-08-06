@@ -147,7 +147,6 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowPackage('org.gradle.launcher.daemon.testing')
             sharedClassLoader.allowClass(OperatingSystem)
             sharedClassLoader.allowClass(Requires)
-            sharedClassLoader.allowClass(org.gradle.util.TextUtil)
             sharedClassLoader.allowClass(TestPrecondition)
             sharedClassLoader.allowClass(TargetGradleVersion)
             sharedClassLoader.allowClass(ToolingApiVersion)

@@ -18,9 +18,9 @@ package org.gradle.integtests.tooling.m9
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
 @TargetGradleVersion('>=1.0-milestone-9')

@@ -17,10 +17,10 @@
 package org.gradle.integtests.tooling.m9
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
 class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
