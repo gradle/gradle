@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling.r26
-
 import groovy.transform.NotYetImplemented
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType

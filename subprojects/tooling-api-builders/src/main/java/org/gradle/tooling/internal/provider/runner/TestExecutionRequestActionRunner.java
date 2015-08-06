@@ -27,6 +27,7 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
+import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
@@ -84,6 +85,9 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         }
         for (String testClass : testExecutionRequestAction.getTestClassNames()) {
             requestDetails.append("\n").append(INDENT).append(INDENT).append("Test class ").append(testClass);
+        }
+        for (InternalTestMethod testMethod : testExecutionRequestAction.getTestMethods()) {
+            requestDetails.append("\n").append(INDENT).append(INDENT).append("Test method ").append(testMethod.getDescription());
         }
         return requestDetails.toString();
     }

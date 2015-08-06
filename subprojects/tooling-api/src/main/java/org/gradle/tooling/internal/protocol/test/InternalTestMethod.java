@@ -16,22 +16,15 @@
 
 package org.gradle.tooling.internal.protocol.test;
 
-import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
-import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
-
-import java.util.Collection;
-
 /**
+ * Specifies a method to be tested.
+ *
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
- * @since 2.6-rc-1
+ * @since 2.7-rc-1
  */
-public interface InternalTestExecutionRequest extends InternalProtocolInterface {
-    Collection<InternalTestDescriptor> getTestExecutionDescriptors();
-    Collection<String> getTestClassNames();
-
-    /**
-     * @since 2.7-rc-1
-     */
-    Collection<InternalTestMethod> getTestMethods();
+public interface InternalTestMethod {
+    String getClassName();
+    String getMethodName();
+    String getDescription();
 }

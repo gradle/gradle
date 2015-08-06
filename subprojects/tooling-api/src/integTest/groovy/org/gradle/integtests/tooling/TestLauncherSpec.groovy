@@ -223,7 +223,6 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
         """
     }
 
-
     def simpleJavaProject() {
         """
         allprojects{
@@ -232,9 +231,5 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
             dependencies { testCompile 'junit:junit:4.12' }
         }
         """
-    }
-
-    def testClassRemoved() {
-        file("src/test/java/example/MyTest.java").delete()
     }
 }

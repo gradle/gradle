@@ -15,11 +15,9 @@
  */
 
 package org.gradle.integtests.tooling.r27
-
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.TestLauncher
 
@@ -28,6 +26,44 @@ import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSepara
 @ToolingApiVersion(">=2.7")
 @TargetGradleVersion(">=2.7")
 class TestLauncherCrossVersionSpec extends TestLauncherSpec {
+
+    def "can specify test by class and method name"() {
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestMethods("example.MyTest", "foo")
+        }
+        then:
+
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+
+        assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+    }
+
+    def "fails with meaningful error when requested tests not found"() {
+        given:
+        collectDescriptorsFromBuild()
+        and:
+        testClassRemoved()
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestMethods("example.MyTest", "unknownMethod")
+            launcher.withJvmTestMethods("example.MyTest", "unknownMethod2")
+            launcher.withJvmTestClasses("org.acme.NotExistingTestClass")
+            launcher.withTests(testDescriptors("example2.MyOtherTest", null, ":test"))
+        }
+        then:
+        assertTaskExecuted(":test")
+        assertTaskExecuted(":secondTest")
+        def e = thrown(TestExecutionException)
+        normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
+    Requested Tests:
+        Test class example2.MyOtherTest (Task: ':test')
+        Test class org.acme.NotExistingTestClass
+        Test method example.MyTest#unknownMethod
+        Test method example.MyTest#unknownMethod2"""
+    }
 
     def "fails with meaningful error when declared class has no tests"() {
         given:
@@ -48,37 +84,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         Test class util.TestUtil"""
     }
 
-    def "fails with meaningful error when test no longer exists"() {
-        given:
-        collectDescriptorsFromBuild()
-        and:
-        testClassRemoved()
-        when:
-        launchTests(testDescriptors("example.MyTest", null, ":test"));
-        then:
-        assertTaskExecuted(":test")
-        assertTaskNotExecuted(":secondTest")
-
-        def e = thrown(TestExecutionException)
-        normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
-    Requested Tests:
-        Test class example.MyTest (Task: ':test')"""
-    }
-
-    def "fails with meaningful error when test class not available for any test task"() {
-        when:
-        withConnection { ProjectConnection connection ->
-            def testLauncher = connection.newTestLauncher()
-            testLauncher.withJvmTestClasses("org.acme.NotExistingTestClass")
-            testLauncher.run()
-        };
-        then:
-        assertTaskNotExecuted(":test")
-        assertTaskNotExecuted(":secondTest")
-
-        def e = thrown(TestExecutionException)
-        normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
-    Requested Tests:
-        Test class org.acme.NotExistingTestClass"""
+    def testClassRemoved() {
+        file("src/test/java/example2/MyOtherTest.java").delete()
     }
 }

@@ -17,6 +17,9 @@
 package org.gradle.tooling.internal.consumer;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.TestLauncher;
@@ -37,6 +40,8 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     private final AsyncConsumerActionExecutor connection;
     private final Set<TestOperationDescriptor> operationDescriptors = new LinkedHashSet<TestOperationDescriptor>();
     private final Set<String> testClassNames = new LinkedHashSet<String>();
+
+    private final Multimap<String, String> testMethods = LinkedListMultimap.create();
 
     public DefaultTestLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
@@ -74,6 +79,18 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
         return this;
     }
 
+    @Override
+    public TestLauncher withJvmTestMethods(String testClass, String... methods) {
+        withJvmTestMethods(testClass, CollectionUtils.toList(methods));
+        return this;
+    }
+
+    @Override
+    public TestLauncher withJvmTestMethods(String testClass, Iterable<String> methods) {
+        this.testMethods.putAll(testClass, methods);
+        return this;
+    }
+
     public void run() {
         BlockingResultHandler<Void> handler = new BlockingResultHandler<Void>(Void.class);
         run(handler);
@@ -81,11 +98,11 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     }
 
     public void run(final ResultHandler<? super Void> handler) {
-        if(operationDescriptors.isEmpty() && testClassNames.isEmpty()){
+        if(operationDescriptors.isEmpty() && testClassNames.isEmpty() && testMethods.isEmpty()){
             throw new TestExecutionException("No test declared for execution.");
         }
         final ConsumerOperationParameters operationParameters = operationParamsBuilder.setParameters(connectionParameters).build();
-        final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(testClassNames));
+        final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(testClassNames), ImmutableMultimap.copyOf(testMethods));
         connection.run(new ConsumerAction<Void>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;

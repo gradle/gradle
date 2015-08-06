@@ -30,6 +30,7 @@ import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildExecutionContext;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
+import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 
 import java.util.*;
@@ -51,9 +52,38 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         final GradleInternal gradleInternal = context.getGradle();
         allTestTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal, testExecutionRequest));
         allTestTasksToRun.addAll(configureBuildForTestClasses(gradleInternal, testExecutionRequest));
-
+        allTestTasksToRun.addAll(configureBuildForTestMethods(gradleInternal, testExecutionRequest));
         configureTestTasks(allTestTasksToRun);
         gradle.getTaskGraph().addTasks(allTestTasksToRun);
+    }
+
+    private Collection<? extends Test> configureBuildForTestMethods(GradleInternal gradleInternal, InternalTestExecutionRequest testExecutionRequest) {
+        if (testExecutionRequest.getTestMethods().isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Test> tasksToExecute = new ArrayList<Test>();
+
+        final Collection<InternalTestMethod> testMethods = testExecutionRequest.getTestMethods();
+
+        final Set<Project> allprojects = gradleInternal.getRootProject().getAllprojects();
+        for (Project project : allprojects) {
+            final TaskCollection<Test> testTasks = project.getTasks().withType(Test.class);
+            for (Test testTask : testTasks) {
+                configureTestMethodFilter(testTask, testMethods);
+            }
+            tasksToExecute.addAll(testTasks);
+        }
+
+        return tasksToExecute;
+
+    }
+
+    private void configureTestMethodFilter(Test testTask, Collection<InternalTestMethod> testMethods) {
+        for (InternalTestMethod testMethod : testMethods) {
+            final TestFilter filter = testTask.getFilter();
+            filter.includeTest(testMethod.getClassName(), testMethod.getMethodName());
+            filter.setFailOnNoMatchingTests(false);
+        }
     }
 
     private void configureTestTasks(Set<Test> allTestTasksToRun) {

@@ -65,6 +65,26 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     TestLauncher withJvmTestClasses(Iterable<String> testClasses);
 
     /**
+     * Adds tests to be executed declared by class name.
+     *
+     * @param testClass The class names of the tests methods to be executed.
+     * @param methods The method names to be executed.
+     * @return this
+     * @since 2.7
+     */
+    TestLauncher withJvmTestMethods(String testClass, String... methods);
+
+    /**
+     * Adds tests to be executed declared by class name.
+     *
+     * @param testClass The class names of the tests methods to be executed.
+     * @param methods The method names to be executed.
+     * @return this
+     * @since 2.7
+     */
+    TestLauncher withJvmTestMethods(String testClass, Iterable<String> methods);
+
+    /**
      * Executes the build, blocking until it is complete.
      *
      * @throws TestExecutionException when no tests for execution declared or can be found.
