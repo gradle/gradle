@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.authentication;
+package org.gradle.internal.authentication;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.artifacts.repositories.AuthenticationContainer;
+import org.gradle.authentication.Authentication;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.internal.reflect.Instantiator;
 
-/**
- * Base interface for transport authentication schemes.
- */
-@Incubating
-@HasInternalProtocol
-public interface Authentication extends Named {
+public class DefaultAuthenticationContainer extends DefaultPolymorphicDomainObjectContainer<Authentication> implements AuthenticationContainer {
+
+    public DefaultAuthenticationContainer(Instantiator instantiator) {
+        super(Authentication.class, instantiator);
+    }
 }

@@ -19,7 +19,7 @@ import org.apache.http.auth.AuthScope
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.params.HttpProtocolParams
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.api.internal.authentication.AllSchemesAuthentication
+import org.gradle.internal.authentication.AllSchemesAuthentication
 import org.gradle.internal.resource.UriResource
 import spock.lang.Specification
 

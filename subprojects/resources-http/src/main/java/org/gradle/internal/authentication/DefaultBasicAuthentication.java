@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-/**
- * Classes related to transport authentication protocols.
- *
- * @since 2.7
- */
-@Incubating
-package org.gradle.api.authentication;
+package org.gradle.internal.authentication;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.authentication.http.BasicAuthentication;
+
+public class DefaultBasicAuthentication extends AbstractAuthentication implements BasicAuthentication {
+    public DefaultBasicAuthentication(String name) {
+        super(name, PasswordCredentials.class);
+    }
+}

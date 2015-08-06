@@ -16,7 +16,7 @@
 package org.gradle.internal.resource.transport.http;
 
 
-import org.gradle.api.authentication.Authentication;
+import org.gradle.authentication.Authentication;
 
 import java.util.Collection;
 

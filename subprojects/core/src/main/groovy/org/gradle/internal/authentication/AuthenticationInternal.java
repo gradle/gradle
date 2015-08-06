@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.authentication.http;
+package org.gradle.internal.authentication;
 
-import org.gradle.api.authentication.Authentication;
+import org.gradle.api.NonExtensible;
+import org.gradle.authentication.Authentication;
+import org.gradle.api.credentials.Credentials;
 
-/**
- * Authentication scheme for digest access authentication over HTTP.
- */
-public interface DigestAuthentication extends Authentication {
+import java.util.Set;
+
+@NonExtensible
+public interface AuthenticationInternal extends Authentication {
+    Set<Class<? extends Credentials>> getSupportedCredentials();
+
+    boolean supports(Credentials credentials);
+
+    Credentials getCredentials();
+
+    void setCredentials(Credentials credentials);
 }

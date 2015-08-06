@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.authentication;
+package org.gradle.internal.authentication;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.credentials.Credentials;

@@ -16,10 +16,10 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.gradle.api.authentication.http.BasicAuthentication;
-import org.gradle.api.authentication.http.DigestAuthentication;
-import org.gradle.api.internal.authentication.DefaultBasicAuthentication;
-import org.gradle.api.internal.authentication.DefaultDigestAuthentication;
+import org.gradle.authentication.http.BasicAuthentication;
+import org.gradle.authentication.http.DigestAuthentication;
+import org.gradle.internal.authentication.DefaultBasicAuthentication;
+import org.gradle.internal.authentication.DefaultDigestAuthentication;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;

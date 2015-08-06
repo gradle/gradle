@@ -18,7 +18,7 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.authentication.Authentication;
+import org.gradle.authentication.Authentication;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;

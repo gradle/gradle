@@ -20,11 +20,11 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.api.authentication.Authentication
+import org.gradle.authentication.Authentication
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.ClosureBackedAction
-import org.gradle.api.internal.authentication.DefaultAuthenticationContainer
+import org.gradle.internal.authentication.DefaultAuthenticationContainer
 import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator

@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.authentication;
+package org.gradle.authentication.http;
 
-import org.gradle.api.artifacts.repositories.AuthenticationContainer;
-import org.gradle.api.authentication.Authentication;
-import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.authentication.Authentication;
 
-public class DefaultAuthenticationContainer extends DefaultPolymorphicDomainObjectContainer<Authentication> implements AuthenticationContainer {
-
-    public DefaultAuthenticationContainer(Instantiator instantiator) {
-        super(Authentication.class, instantiator);
-    }
+/**
+ * Authentication scheme for basic access authentication over HTTP. When using this scheme, credentials are sent preemptively.
+ */
+public interface BasicAuthentication extends Authentication {
 }

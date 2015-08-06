@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.authentication.http;
+package org.gradle.authentication;
 
-import org.gradle.api.authentication.Authentication;
+import org.gradle.api.Incubating;
+import org.gradle.api.Named;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Authentication scheme for basic access authentication over HTTP. When using this scheme, credentials are sent preemptively.
+ * Base interface for transport authentication schemes.
  */
-public interface BasicAuthentication extends Authentication {
+@Incubating
+@HasInternalProtocol
+public interface Authentication extends Named {
 }

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.authentication
+package org.gradle.internal.authentication
 
-import org.gradle.api.authentication.Authentication
+import org.gradle.authentication.Authentication
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 import spock.lang.Subject

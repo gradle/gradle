@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.authentication;
+/**
+ * Classes related to transport authentication protocols.
+ *
+ * @since 2.7
+ */
+@Incubating
+package org.gradle.authentication;
 
-import org.gradle.api.NonExtensible;
-import org.gradle.api.authentication.Authentication;
-import org.gradle.api.credentials.Credentials;
-
-import java.util.Set;
-
-@NonExtensible
-public interface AuthenticationInternal extends Authentication {
-    Set<Class<? extends Credentials>> getSupportedCredentials();
-
-    boolean supports(Credentials credentials);
-
-    Credentials getCredentials();
-
-    void setCredentials(Credentials credentials);
-}
+import org.gradle.api.Incubating;

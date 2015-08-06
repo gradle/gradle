@@ -17,7 +17,7 @@
 package org.gradle.internal.authentication;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.authentication.Authentication;
+import org.gradle.authentication.Authentication;
 
 import java.util.Collections;
 import java.util.Map;
