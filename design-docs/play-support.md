@@ -838,15 +838,18 @@ In a multi-project Play application, the "changing" application resources are co
 ### Story: Scala compile process is reused across continuous build instances
 
 This is a performance optimization to the implementation of Play reload, that decreases compile times by reusing compiler daemons.
-This story also supersedes the `BuildSession` concept added in earlier stories with a service registry scope serving the same purpose.
 
 #### Implementation
 
-- Move `CompilerDaemonManager` to session scope
+- Move `CompilerDaemonManager` to session scope.  This will pull along:
+  - WorkerProcessFactory
+  - CacheRepository
+  - ClassPathRegistry
+  - WorkerProcessClasspathProvider
 
 #### Test coverage
 
-TBD.
+- Verify that an ad-hoc compiler registered in a continuous build is re-used on the next build invocation.
 
 ### Backlog & Open Issues
 
