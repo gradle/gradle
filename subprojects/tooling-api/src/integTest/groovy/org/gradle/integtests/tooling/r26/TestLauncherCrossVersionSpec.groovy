@@ -19,36 +19,22 @@ package org.gradle.integtests.tooling.r26
 import groovy.transform.NotYetImplemented
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.GradleException
-import org.gradle.integtests.tooling.fixture.*
-import org.gradle.integtests.tooling.fixture.GradleBuildCancellation
-import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.integtests.tooling.TestLauncherSpec
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TestResultHandler
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.*
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.task.TaskFinishEvent
-import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
 
 @ToolingApiVersion(">=2.6")
 @TargetGradleVersion(">=2.6")
-class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
-    TestOutputStream stderr = new TestOutputStream()
-    TestOutputStream stdout = new TestOutputStream()
-
-    ProgressEvents events = new ProgressEvents()
-
-    @Rule
-    GradleBuildCancellation cancellationTokenSource
-
-    def setup() {
-        testCode()
-    }
+class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
     def "test launcher api fires progress events"() {
         given:
@@ -213,42 +199,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         e.message == "No test declared for execution."
     }
 
-    def "fails with meaningful error when declared class has not tests"() {
-        given:
-        file("src/test/java/util/TestUtil.java") << """
-            package util;
-            public class TestUtil {
-                static void someUtilsMethod(){}
-            }
-        """
-        when:
-        launchTests { TestLauncher launcher ->
-            launcher.withJvmTestClasses("util.TestUtil")
-        }
-        then:
-        def e = thrown(TestExecutionException)
-        org.gradle.util.TextUtil.normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
-    Requested Tests:
-        Test class util.TestUtil"""
-    }
-
-    def "fails with meaningful error when test no longer exists"() {
-        given:
-        collectDescriptorsFromBuild()
-        and:
-        testClassRemoved()
-        when:
-        launchTests(testDescriptors("example.MyTest", null, ":test"));
-        then:
-        assertTaskExecuted(":test")
-        assertTaskNotExecuted(":secondTest")
-
-        def e = thrown(TestExecutionException)
-        org.gradle.util.TextUtil.normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
-    Requested Tests:
-        Test class example.MyTest (Task: ':test')"""
-    }
-
     def "build succeeds if test class is only available in one test task"() {
         given:
         file("src/moreTests/java/more/MoreTest.java") << """
@@ -266,23 +216,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
         then:
         assertTaskExecuted(":secondTest")
         assertTaskExecuted(":test")
-    }
-
-    def "fails with meaningful error when test class not available for any test task"() {
-        when:
-        withConnection { ProjectConnection connection ->
-            def testLauncher = connection.newTestLauncher()
-            testLauncher.withJvmTestClasses("org.acme.NotExistingTestClass")
-            testLauncher.run()
-        };
-        then:
-        assertTaskNotExecuted(":test")
-        assertTaskNotExecuted(":secondTest")
-
-        def e = thrown(TestExecutionException)
-        org.gradle.util.TextUtil.normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
-    Requested Tests:
-        Test class org.acme.NotExistingTestClass"""
     }
 
     def "fails with meaningful error when test task no longer exists"() {
@@ -479,123 +412,6 @@ class TestLauncherCrossVersionSpec extends ToolingApiSpecification {
             void statusChanged(ProgressEvent event) {
                 throw new GradleException("failing progress listener")
             }
-        }
-    }
-
-    def assertBuildCancelled() {
-        stdout.toString().contains("Build cancelled.")
-        true
-    }
-
-    private void waitingForBuild() {
-        ConcurrentTestUtil.poll {
-            assert stdout.toString().contains("Waiting for changes to input files of tasks...");
-        }
-        stdout.reset()
-        stderr.reset()
-    }
-
-    boolean assertTaskExecuted(String taskPath) {
-        assert events.all.findAll { it instanceof TaskFinishEvent }.any { it.descriptor.taskPath == taskPath }
-        true
-    }
-
-    def assertTaskNotExecuted(String taskPath) {
-        assert !events.all.findAll { it instanceof TaskFinishEvent }.any { it.descriptor.taskPath == taskPath }
-        true
-    }
-
-    def assertTaskNotUpToDate(String taskPath) {
-        assert events.all.findAll { it instanceof TaskFinishEvent }.any { it.descriptor.taskPath == taskPath && !it.result.upToDate }
-        true
-    }
-
-    def assertTestNotExecuted(Map testInfo) {
-        assert !hasTestDescriptor(testInfo)
-        true
-    }
-
-    def assertTestExecuted(Map testInfo) {
-        assert hasTestDescriptor(testInfo)
-        true
-    }
-
-    Collection<TestOperationDescriptor> testDescriptors(List<TestOperationDescriptor> descriptors = events.tests.collect { it.descriptor }, String className, String methodName, String taskpath) {
-
-        def descriptorByClassAndMethod = descriptors.findAll { it.className == className && it.methodName == methodName }
-        if (taskpath == null) {
-            return descriptorByClassAndMethod
-        }
-
-        return descriptorByClassAndMethod.findAll {
-            def parent = it.parent
-            while (parent.parent != null) {
-                parent = parent.parent
-                if (parent instanceof TaskOperationDescriptor) {
-                    return parent.taskPath == taskpath
-                }
-            }
-            false
-        }
-    }
-
-    Collection<TestOperationDescriptor> testDescriptors(List<TestOperationDescriptor> descriptors = events.tests.collect { it.descriptor }, String className, String methodName) {
-        testDescriptors(descriptors, className, methodName, null)
-    }
-
-    Collection<TestOperationDescriptor> testDescriptors(List<TestOperationDescriptor> descriptors = events.tests.collect { it.descriptor }, String className) {
-        testDescriptors(descriptors, className, null)
-    }
-
-    private boolean hasTestDescriptor(testInfo) {
-        def collect = events.tests.collect { it.descriptor }
-        !testDescriptors(collect, testInfo.className, testInfo.methodName, testInfo.task).isEmpty()
-    }
-
-    void launchTests(Collection<TestOperationDescriptor> testsToLaunch) {
-        launchTests { TestLauncher testLauncher ->
-            testLauncher.withTests(testsToLaunch)
-        }
-    }
-
-    void launchTests(Closure configurationClosure) {
-        withConnection { ProjectConnection connection ->
-            launchTests(connection, null, cancellationTokenSource.token(), configurationClosure)
-        }
-    }
-
-    void launchTests(ProjectConnection connection, ResultHandler<Void> resultHandler, CancellationToken cancellationToken, Closure configurationClosure) {
-        TestLauncher testLauncher = connection.newTestLauncher()
-            .withCancellationToken(cancellationToken)
-            .addProgressListener(events)
-
-        if (toolingApi.isEmbedded()) {
-            testLauncher
-                .setStandardOutput(stdout)
-                .setStandardError(stderr)
-        } else {
-            testLauncher
-                .setStandardOutput(new TeeOutputStream(stdout, System.out))
-                .setStandardError(new TeeOutputStream(stderr, System.err))
-        }
-
-        configurationClosure.call(testLauncher)
-
-        events.clear()
-        if (resultHandler == null) {
-            testLauncher.run()
-        } else {
-            testLauncher.run(resultHandler)
-        }
-    }
-
-    private collectDescriptorsFromBuild() {
-        try {
-            withConnection {
-                ProjectConnection connection ->
-                    connection.newBuild().forTasks('build').withArguments("--continue").addProgressListener(events).run()
-            }
-        } catch (BuildException e) {
         }
     }
 
