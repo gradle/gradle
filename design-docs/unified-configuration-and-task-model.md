@@ -11,7 +11,7 @@ Specific sub streams have been broken out into other concurrent specs.
 
 We do not currently enforce that all ancestors of an input are realised, which means that there may still be pending mutations for the child (as a mutation of the parent).
 
-## Test Coverage
+### Test Coverage
 
 - Rule using child of managed node as input node has all mutations applied, that were expressed as mutations of the parent node
 - Rule using child of managed node can depend on a sibling, that has all mutations applied, that were expressed as mutations of the parent node
@@ -37,15 +37,15 @@ class Rules extends RuleSource {
     // in cycle…
     @Mutate void m3ToM1(@Path("m1") m1, @Path("m3") m3) {}
     @Mutate void m1ToM3(@Path("m3") m3, @Path("m1") m1) {}
-    
+
     @Mutate void addTask(ModelMap<Task> tasks, @Path("m1") m1) {}
 }
 ```
 
-The build will fail because the `m2ToM1` is indeed executed twice. 
+The build will fail because the `m2ToM1` is indeed executed twice.
 What should happen is that a cycle should be reported between `m3ToM1` and `m1ToM3`.
 
-The implementation should be done in such a way 
+The implementation should be done in such a way
 
 ### Test Coverage
 
@@ -127,6 +127,38 @@ The feature will depend on the classloader caching feature.
 - How to order mutations that may derive properties from the subject
 - How to add item to collection in Java API, using inputs just for its configuration (i.e. not the parent containers)
 - Pattern for declaring rules that directly add items to containers (e.g. a rule that directly creates a task, i.e. inserts into `tasks`)
+
+## Tasks produced by rules cannot be reliably referred to
+Tasks created via the new rule infrastructure are only ever `realised` when they are asked for by name or path. This has caused backwards compatibility issues because tasks created via
+rules and referenced by type or with live collections (i.e. `tasks.withType(Foo)` and `tasks.matching { ..}`) are not interpreted as being required during the configuration phase
+and are therefore not realised in time. Tasks __not__ created using the new rule infrastructure are always created during the configuration phase.
+
+This story assures that regardless of how a task was created, using the rule based mechanism or otherwise, a build author can reliably reference and configure that task during the configuration phase.
+
+### Approach
+Assuming tasks are created via rules and referenced via `.withType()` or `.matching()` there are 2 general use cases:
+
+1. An action is applied to each task
+    - when `.withType(Foo)` is used all tasks of type `Foo` will be realised before the `afterEvaluate` lifecycle phase and the action will be called during the configuration phase.
+    - when `.matching()` is used all child nodes, of the model node representing the task container, will be realized before the `afterEvaluate` lifecycle phase and the action will be called
+    during the configuration phase.. This is a performance hit and should be highlighted appropriately.
+
+2. Tasks are iterated over using `.iterator()` or `.all()`
+TBD
+    - `tasks.withType(type).iterator()`
+    - `tasks.matching(predicate).iterator()`
+
+### Tests cases
+
+- Verify that an action is applied to a rule generated task during configuration when the following constructs are used:
+1. `tasks.withType(type, action)`
+1. `tasks.withType(type).all(action)`
+1. `tasks.matching(predicate).all(action)`
+
+- When `tasks.withType(Foo)` is used, verify that the only realized rule generate tasks are of type `Foo`.
+- Rule sources can have _rules_ with tasks as the subject _after_ the use of the `.withType()` and `.matching()` constructs.
+- TBD test cases dealing with iteration
+
 
 # Backlog
 
