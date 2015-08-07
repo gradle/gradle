@@ -18,46 +18,48 @@ package org.gradle.execution.taskgraph
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
+import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec {
 
-    @NotYetImplemented
-    @Unroll
-    def "can apply an action to a rule task referenced via #reference"() {
-        given:
-        buildFile << """
 
+    String echoTask = """
         class EchoTask extends DefaultTask {
             String text = "default"
-
             @TaskAction
             void print() {
                 println(name + ' ' + text)
             }
         }
+"""
+
+    @NotYetImplemented
+    def "an action is applied to a rule-source task "() {
+        given:
+        buildFile << """
+        class OverruleTask extends EchoTask {}
+
+        $echoTask
 
         class Rules extends RuleSource {
             @Mutate
             void addTasks(ModelMap<Task> tasks) {
-                tasks.create("actionMan", EchoTask) {
+                tasks.create("actionMan", EchoTask) {}
+                tasks.create("overruleTask", OverruleTask) {
+                 it.text = "Overruled!"
                 }
             }
         }
-
         apply type: Rules
 
-        task actionWoman << {
-            println "actionWoman I'm really the commander"
+        tasks.withType(OverruleTask) {
+            it.text = "actionWoman I'm the real commander"
         }
 
-        actionWoman.dependsOn tasks.withType(EchoTask)
-
-        $reference {
-         it.text = 'This is your commander speaking'
-        }
+        //It should be possible to reference the task
+        assert overruleTask.text == "actionWoman I'm the real commander"
         """
 
         when:
@@ -65,66 +67,69 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains("actionMan This is your commander speaking")
-        output.contains("actionWoman I'm the real commander")
-
-        where:
-        reference << ['tasks.withType(EchoTask)', "tasks.matching { it.name == 'actionMan'}.all() "]
     }
 
     @NotYetImplemented
-    @Unroll
-    def "can reference a model rule task created in a plugin"() {
+    def "a non-rule-source task can depend on a rule-source task "() {
         given:
-        def source = file("src", "main", "java", "Something.java").createFile()
+        buildFile << """
+        $echoTask
+
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("actionMan", EchoTask) {}
+            }
+        }
+        apply type: Rules
+
+        task actionWoman << {
+            println "actionWoman I'm the real commander"
+        }
+        actionWoman.dependsOn tasks.withType(EchoTask)
+        """
+
+        when:
+        succeeds('actionMan')
+
+        then:
+        output.contains("actionWoman I'm the real commander")
+    }
+
+    @NotYetImplemented
+    @Issue("GRADLE-3318")
+    def "can reference rule-source tasks from sub-projects"() {
+        given:
         def repo = file("maven").createDir()
-        source.text = 'public class Something{}'
+        settingsFile << 'include "sub1", "sub2"'
 
         buildFile << """
-        apply plugin: "java"
-        apply plugin: "maven-publish"
+        subprojects{
+            apply plugin: "java"
+            apply plugin: "maven-publish"
 
-        publishing {
-            repositories{ maven{ url '${normaliseFileSeparators(repo.getAbsolutePath())}'}}
-
-            publications {
-                maven(MavenPublication) {
-                    groupId 'org.gradle.sample'
-                    artifactId 'project1-sample'
-                    version '1.1'
-                    from components.java
+            publishing {
+                repositories{ maven{ url '${normaliseFileSeparators(repo.getAbsolutePath())}'}}
+                publications {
+                    maven(MavenPublication) {
+                        groupId 'org.gradle.sample'
+                        version '1.1'
+                        from components.java
+                    }
                 }
             }
         }
 
-        task customPublish { }
-        $reference
-        """
+        task customPublish(dependsOn:  subprojects.collect { Project p -> p.tasks.withType(PublishToMavenLocal)})
+"""
         when:
         succeeds('clean', 'build', 'customPublish')
 
         then:
-        output.contains(":generatePomFileForMavenPublication")
-        output.contains(":publishMavenPublicationToMavenLocal")
-        output.contains(":publishMavenPublicationToMavenRepository")
+        output.contains(":sub1:generatePomFileForMavenPublication")
+        output.contains(":sub1:publishMavenPublicationToMavenRepository")
+        output.contains(":sub2:generatePomFileForMavenPublication")
+        output.contains(":sub2:publishMavenPublicationToMavenRepository")
         output.contains(":customPublish")
-
-        where:
-        reference << [
-            """
-                    //Has no effect
-                    customPublish.dependsOn tasks.withType(PublishToMavenLocal)
-                    customPublish.dependsOn tasks.withType(PublishToMavenRepository)""",
-            """
-                    //Has no effect
-                    afterEvaluate {
-                          customPublish.dependsOn tasks.names.findAll { it.startsWith("publishMaven") }*.path
-                    }
-                """,
-            """
-                    //These cause a NPE on TaskMutator.mutate
-                    customPublish.dependsOn tasks.findByName('publishMavenPublicationToMavenLocal')
-                    customPublish.dependsOn tasks.findByName('publishMavenPublicationToMavenRepository')
-                """
-        ]
     }
 }
