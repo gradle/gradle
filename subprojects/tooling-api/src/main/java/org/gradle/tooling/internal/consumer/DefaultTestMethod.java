@@ -18,7 +18,9 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
 
-public class DefaultTestMethod implements InternalTestMethod {
+import java.io.Serializable;
+
+public class DefaultTestMethod implements InternalTestMethod, Serializable {
     private final String className;
     private final String methodName;
 
