@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.r27
+
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -82,6 +83,23 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
     Requested Tests:
         Test class util.TestUtil"""
+    }
+
+    def "throws exception with meaningful error message on failing tests"() {
+        setup:
+        withFailingTest()
+        when:
+        launchTests { TestLauncher testLauncher ->
+            testLauncher.withJvmTestClasses("example.MyFailingTest")
+        }
+
+        then:
+        assertTaskExecuted(":test")
+        assertTaskExecuted(":secondTest")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":test")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":secondTest")
+        def e = thrown(TestExecutionException)
+        normaliseLineSeparators(e.cause.message) == """Test(s) failed!"""
     }
 
     def testClassRemoved() {
