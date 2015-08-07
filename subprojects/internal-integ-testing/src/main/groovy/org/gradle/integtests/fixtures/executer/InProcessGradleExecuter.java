@@ -138,7 +138,11 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected GradleHandle doStart() {
-        return new ForkingGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), new Factory<JavaExecHandleBuilder>() {
+        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), getResultAssertion(), getDefaultCharacterEncoding(), getJavaExecBuilder()).start();
+    }
+
+    private Factory<JavaExecHandleBuilder> getJavaExecBuilder() {
+        return new Factory<JavaExecHandleBuilder>() {
             public JavaExecHandleBuilder create() {
                 GradleInvocation invocation = buildInvocation();
                 JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver());
@@ -153,7 +157,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
                 return builder;
             }
-        }).start();
+        };
     }
 
     private BuildResult doRun(StandardOutputListener outputListener, StandardOutputListener errorListener, BuildListenerImpl listener) {

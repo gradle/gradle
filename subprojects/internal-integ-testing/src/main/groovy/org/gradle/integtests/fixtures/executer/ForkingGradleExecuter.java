@@ -164,7 +164,7 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     protected ForkingGradleHandle createGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<ExecHandleBuilder> execHandleFactory) {
-        return new ForkingGradleHandle(resultAssertion, encoding, execHandleFactory);
+        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory);
     }
 
     protected ExecutionResult doRun() {

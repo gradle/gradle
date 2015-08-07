@@ -34,9 +34,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TextUtil;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -81,6 +79,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File buildScript;
     private File projectDir;
     private File settingsFile;
+    private PipedOutputStream stdinPipe;
     private InputStream stdin;
     private String defaultCharacterEncoding;
     private String tmpDir;
@@ -132,6 +131,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         executable = null;
         javaHome = null;
         environmentVars.clear();
+        stdinPipe = null;
         stdin = null;
         defaultCharacterEncoding = null;
         tmpDir = null;
@@ -219,6 +219,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (userHomeDir != null) {
             executer.withUserHomeDir(userHomeDir);
         }
+
+        if (stdinPipe != null) {
+            executer.withStdInPipe(stdinPipe);
+        }
+
         if (stdin != null) {
             executer.withStdIn(stdin);
         }
@@ -411,8 +416,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    @Override
+    public GradleExecuter withStdInPipe(PipedOutputStream stdInPipe) {
+        this.stdinPipe = stdInPipe;
+        return this;
+    }
+
     public InputStream getStdin() {
         return stdin == null ? new ByteArrayInputStream(new byte[0]) : stdin;
+    }
+
+    public PipedOutputStream getStdinPipe() {
+        return stdinPipe;
     }
 
     public GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding) {

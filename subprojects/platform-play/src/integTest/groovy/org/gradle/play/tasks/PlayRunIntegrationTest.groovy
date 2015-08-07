@@ -16,15 +16,12 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.play.integtest.fixtures.CancellableGradleBuild
 import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 
-
 class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
     PlayApp playApp = new BasicPlayApp()
-    def build = new CancellableGradleBuild(executer)
 
     def setup() {
         buildFile << """
@@ -37,25 +34,25 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
     }
 
     def "play run container classloader is isolated from the worker process classloader"() {
-        withGuavaJarController()
+        withLoadProjectClassController()
 
         setup:
         // build once to speed up the playRun build and avoid spurious timeouts
         succeeds "assemble"
 
         when:
-        build.start("runPlayBinary")
+        startBuild "runPlayBinary"
 
         then:
         runningApp.verifyStarted()
         runningApp.playUrl("loadProjectClass").text.contains("SUCCESS: class not found")
 
         cleanup:
-        build.cancel()
+        build.cancelWithEOT().waitForFinish()
         runningApp.verifyStopped()
     }
 
-    void withGuavaJarController() {
+    void withLoadProjectClassController() {
         file("app/controllers/jva").mkdirs()
         file("app/controllers/jva/LoadProjectClass.java").text = loadProjectClassController
         file("conf/routes") << """

@@ -91,13 +91,9 @@ class PlayContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinu
         appIsRunningAndDeployed()
 
         when:
-        cancelBuild()
+        gradle.cancel()
 
         then:
         cancelsAndExits()
-    }
-
-    def cancelBuild() {
-        closeStdIn()
     }
 }

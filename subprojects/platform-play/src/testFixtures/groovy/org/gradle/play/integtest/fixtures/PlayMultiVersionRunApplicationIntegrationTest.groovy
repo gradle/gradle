@@ -16,8 +16,21 @@
 
 package org.gradle.play.integtest.fixtures
 
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.util.RedirectStdIn
+import org.junit.Rule
+
 abstract class PlayMultiVersionRunApplicationIntegrationTest extends PlayMultiVersionApplicationIntegrationTest {
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
+    GradleHandle build
+
+    @Rule
+    RedirectStdIn redirectStdIn = new RedirectStdIn()
+    PipedOutputStream stdinPipe = redirectStdIn.getStdinPipe()
+
+    def startBuild(tasks) {
+        build = executer.withTasks(tasks).withForceInteractive(true).withStdIn(System.in).withStdInPipe(stdinPipe).start()
+    }
 
     def cleanup() {
         runningApp.cleanup()

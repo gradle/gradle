@@ -16,7 +16,6 @@
 
 package org.gradle.play.integtest
 
-import org.gradle.play.integtest.fixtures.CancellableGradleBuild
 import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 
 abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
@@ -46,8 +45,6 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
     }
 
     def "can run play app"() {
-        def build = new CancellableGradleBuild(executer)
-
         setup:
         buildFile << """
             model {
@@ -59,7 +56,7 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
         run "assemble"
 
         when:
-        build.start("runPlayBinary")
+        startBuild "runPlayBinary"
 
         then:
         runningApp.verifyStarted()
@@ -68,7 +65,7 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
         runningApp.verifyContent()
 
         when: "stopping gradle"
-        build.cancel()
+        build.cancelWithEOT().waitForFinish()
 
         then: "play server is stopped too"
         runningApp.verifyStopped()
