@@ -459,7 +459,6 @@ Allow model schema to store information about properties defined in any unmanage
 - property information is extracted from unmanaged super-types of managed types and included in the `ModelStructSchema`
 - annotations on properties (both managed and unmanaged, defined on getters) are available in the `ModelStructSchema`
 - unmanaged methods that cannot be handled by the schema are silently ignored
-- properties defined in an unmanaged super-type cannot be overridden in managed type
 
 Examples:
 
@@ -516,7 +515,6 @@ abstract class SomeManagedType implements JarBinarySpec {
         - `@Custom("managed")` annotation on getter
         - `@Custom("setter")` annotation on setter
     - extracted schema contains both `a` and `b` with corresponding getter annotations, setter annotations are ignored
-- fail when managed type tries to override method from unmanaged super-type
 
 ### Implementation
 
@@ -571,6 +569,10 @@ abstract class SomeManagedType implements JarBinarySpec {
     - fail if any **managed** methods were left uncovered
     - validate all **managed** properties
 
+### Open issues
+
+- We should have some validation around unmanaged types overriding managed types.
+- Test that a managed property of type `ModelMap<ModelMap<UnmanagedType>>` throws an error.
 
 ## Story: Plugin author defines variants for custom Jar binary
 
