@@ -30,8 +30,8 @@ public class ModelStructSchema<T> extends ModelSchema<T> {
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
     private final NodeInitializer nodeInitializer;
 
-    public ModelStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
-        super(type, Kind.STRUCT);
+    public ModelStructSchema(Kind kind, ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
+        super(type, kind);
         this.nodeInitializer = nodeInitializer.apply(this);
         ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : properties) {

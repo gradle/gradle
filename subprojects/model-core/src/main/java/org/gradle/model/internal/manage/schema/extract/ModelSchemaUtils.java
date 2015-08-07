@@ -24,6 +24,8 @@ import groovy.lang.GroovyObject;
 import org.gradle.api.Nullable;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
+import org.gradle.model.Managed;
+import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -46,7 +48,7 @@ public class ModelSchemaUtils {
     );
 
     /**
-     * Returns all candidate methods for schema generation declared by the given type and its super-types.
+     * Returns all candidate methods for schema generation declared by the given type and its super-types indexed by name.
      *
      * <p>Overriding methods are <em>not</em> folded like in the case of {@link Class#getMethods()}. This allows
      * the caller to identify annotations declared at different levels in the hierarchy, and also to identify all
@@ -58,9 +60,11 @@ public class ModelSchemaUtils {
      *     <li>methods defined by {@link GroovyObject} and their overrides</li>
      *     <li>synthetic methods</li>
      * </ul>
+     *
+     * <p>Methods are returned in the order of their specialization, most specialized methods first.</p>
      */
-    public static List<Method> getCandidateMethods(Class<?> clazz) {
-        final List<Method> methods = Lists.newArrayList();
+    public static Multimap<String, Method> getCandidateMethods(Class<?> clazz) {
+        final ImmutableListMultimap.Builder<String, Method> methodsBuilder = ImmutableListMultimap.builder();
         walkTypeHierarchy(clazz, new TypeVisitor() {
             @Override
             public void visitType(Class<?> type) {
@@ -75,11 +79,11 @@ public class ModelSchemaUtils {
                         continue;
                     }
 
-                    methods.add(method);
+                    methodsBuilder.put(method.getName(), method);
                 }
             }
         });
-        return methods;
+        return methodsBuilder.build();
     }
 
     /**
@@ -115,6 +119,32 @@ public class ModelSchemaUtils {
 
     interface TypeVisitor {
         void visitType(Class<?> type);
+    }
+
+    /**
+     * Returns whether the method has been declared in a <code>@</code>{@link Managed} type or not.
+     */
+    public static boolean isMethodDeclaredInManagedType(Collection<Method> declarations) {
+        if (declarations.isEmpty()) {
+            throw new IllegalArgumentException("no declarations given");
+        }
+
+        Method mostSpecificDeclaration = declarations.iterator().next();
+        return mostSpecificDeclaration.getDeclaringClass().isAnnotationPresent(Managed.class);
+    }
+
+    /**
+     * Returns the different overloaded versions of a method, or null if there are no overloads.
+     */
+    @Nullable
+    public static List<Method> getOverloadedMethods(Collection<Method> methods) {
+        if (methods.size() > 1) {
+            List<Method> deduped = CollectionUtils.dedup(methods, METHOD_EQUIVALENCE);
+            if (deduped.size() > 1) {
+                return deduped;
+            }
+        }
+        return null;
     }
 
     public static InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Method method) {

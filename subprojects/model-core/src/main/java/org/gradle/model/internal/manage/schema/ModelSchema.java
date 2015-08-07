@@ -20,6 +20,8 @@ import com.google.common.base.Function;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.UnmanagedModelProjection;
+import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
 @ThreadSafe
@@ -61,7 +63,16 @@ public class ModelSchema<T> {
     }
 
     public static <T> ModelStructSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
-        return new ModelStructSchema<T>(type, properties, managedImpl, delegateType, nodeInitializer);
+        return new ModelStructSchema<T>(Kind.STRUCT, type, properties, managedImpl, delegateType, nodeInitializer);
+    }
+
+    public static <T> ModelStructSchema<T> unmanaged(final ModelType<T> type, Iterable<ModelProperty<?>> properties) {
+        return new ModelStructSchema<T>(Kind.UNMANAGED, type, properties, type.getConcreteClass(), null, new Function<ModelStructSchema<T>, NodeInitializer>() {
+            @Override
+            public NodeInitializer apply(@Nullable ModelStructSchema<T> input) {
+                return new ProjectionOnlyNodeInitializer(new UnmanagedModelProjection<T>(type));
+            }
+        });
     }
 
     public static <T, E> ModelCollectionSchema<T, E> collection(ModelType<T> type, ModelType<E> elementType, Function<ModelCollectionSchema<T, E>, NodeInitializer> nodeInitializer) {
@@ -70,10 +81,6 @@ public class ModelSchema<T> {
 
     public static <T> ModelMapSchema<T> specializedMap(ModelType<T> type, ModelType<?> elementType, Class<?> managedImpl) {
         return new ModelMapSchema<T>(type, elementType, managedImpl);
-    }
-
-    public static <T> ModelSchema<T> unmanaged(ModelType<T> type) {
-        return new ModelSchema<T>(type, Kind.UNMANAGED);
     }
 
     protected ModelSchema(ModelType<T> type, Kind kind) {
