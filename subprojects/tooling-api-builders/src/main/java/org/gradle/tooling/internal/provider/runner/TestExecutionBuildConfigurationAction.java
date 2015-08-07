@@ -30,6 +30,7 @@ import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildExecutionContext;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequestVersion2;
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 
@@ -38,9 +39,9 @@ import java.util.*;
 class TestExecutionBuildConfigurationAction implements BuildConfigurationAction {
     private final GradleInternal gradle;
     private final List<TestListener> globalTestListeners;
-    private final InternalTestExecutionRequest testExecutionRequest;
+    private final InternalTestExecutionRequestVersion2 testExecutionRequest;
 
-    public TestExecutionBuildConfigurationAction(InternalTestExecutionRequest testExecutionRequest, GradleInternal gradle, TestListener... globalTestListeners) {
+    public TestExecutionBuildConfigurationAction(InternalTestExecutionRequestVersion2 testExecutionRequest, GradleInternal gradle, TestListener... globalTestListeners) {
         this.testExecutionRequest = testExecutionRequest;
         this.gradle = gradle;
         this.globalTestListeners = Arrays.asList(globalTestListeners);
@@ -57,7 +58,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         gradle.getTaskGraph().addTasks(allTestTasksToRun);
     }
 
-    private Collection<? extends Test> configureBuildForTestMethods(GradleInternal gradleInternal, InternalTestExecutionRequest testExecutionRequest) {
+    private Collection<? extends Test> configureBuildForTestMethods(GradleInternal gradleInternal, InternalTestExecutionRequestVersion2 testExecutionRequest) {
         if (testExecutionRequest.getTestMethods().isEmpty()) {
             return Collections.emptyList();
         }
@@ -97,7 +98,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         }
     }
 
-    private List<Test> configureBuildForTestDescriptors(GradleInternal gradle, final InternalTestExecutionRequest testExecutionRequestAction) {
+    private List<Test> configureBuildForTestDescriptors(GradleInternal gradle, InternalTestExecutionRequest testExecutionRequestAction) {
         final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequestAction.getTestExecutionDescriptors();
 
         final List<String> testTaskPaths = org.gradle.util.CollectionUtils.collect(testDescriptors, new Transformer<String, InternalTestDescriptor>() {

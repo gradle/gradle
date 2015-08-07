@@ -20,12 +20,13 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.StartParameter;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequestVersion2;
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
 
 import java.util.Collection;
 import java.util.Set;
 
-public class TestExecutionRequestAction extends SubscribableBuildAction implements InternalTestExecutionRequest {
+public class TestExecutionRequestAction extends SubscribableBuildAction implements InternalTestExecutionRequestVersion2 {
     private final StartParameter startParameter;
     private final Set<InternalTestDescriptor> testDescriptors;
     private final Set<String> testClassNames;
@@ -37,7 +38,12 @@ public class TestExecutionRequestAction extends SubscribableBuildAction implemen
         // Unpack the request to serialize across to the daemon
         this.testDescriptors = ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors());
         this.testClassNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
-        this.testMethods = ImmutableSet.copyOf(testExecutionRequest.getTestMethods());
+        if(testExecutionRequest instanceof InternalTestExecutionRequestVersion2){
+            this.testMethods = ImmutableSet.copyOf((((InternalTestExecutionRequestVersion2)testExecutionRequest).getTestMethods()));
+        }
+        else{
+            this.testMethods = ImmutableSet.of();
+        }
     }
 
     @Override
@@ -60,7 +66,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction implemen
         return testDescriptors;
     }
 
-    public InternalTestExecutionRequest getTestExecutionRequest() {
+    public InternalTestExecutionRequestVersion2 getTestExecutionRequest() {
         return this;
     }
 }
