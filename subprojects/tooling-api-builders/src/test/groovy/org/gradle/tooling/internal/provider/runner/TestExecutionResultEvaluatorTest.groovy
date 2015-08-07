@@ -15,9 +15,14 @@
  */
 
 package org.gradle.tooling.internal.provider.runner
-import org.gradle.api.tasks.testing.TestDescriptor
+
+import org.gradle.api.execution.internal.TaskOperationInternal
+import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.tasks.testing.TestExecutionException
 import org.gradle.api.tasks.testing.TestResult
+import org.gradle.internal.progress.OperationStartEvent
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequestVersion2
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor
@@ -31,7 +36,7 @@ class TestExecutionResultEvaluatorTest extends Specification {
         def testExecutionRequest = Mock(InternalTestExecutionRequestVersion2)
         TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(testExecutionRequest)
 
-        def testDescriptor = Mock(TestDescriptor)
+        def testDescriptorInternal = Mock(TestDescriptorInternal)
         def defaultTestDescriptor = Mock(DefaultTestDescriptor)
         1 * defaultTestDescriptor.getDisplayName() >> "Some Test Descriptor"
         1 * defaultTestDescriptor.getTaskPath() >> ":someTestTask"
@@ -41,18 +46,18 @@ class TestExecutionResultEvaluatorTest extends Specification {
         1 * internalTestMethod.getDescription() >> "Test Method org.acme.SomeOtherTest#someTestMethod()"
 
         when:
-        evaluator.afterSuite(testDescriptor, testResult)
+        evaluator.completed(testDescriptorInternal, testResult, Mock(TestCompleteEvent))
         evaluator.evaluate();
         then:
         def e = thrown(TestExecutionException)
         normaliseLineSeparators(e.message) == """No matching tests found in any candidate test task.
-    Requested Tests:
+    Requested tests:
         Some Test Descriptor (Task: ':someTestTask')
         Test class acme.SomeTestClass
         Test method Test Method org.acme.SomeOtherTest#someTestMethod()"""
 
         and:
-        1 * testExecutionRequest.getTestExecutionDescriptors() >> [defaultTestDescriptor]
+        1 * testExecutionRequest.getTestExecutionDescriptors()>> [defaultTestDescriptor]
         1 * testExecutionRequest.getTestClassNames() >> ["acme.SomeTestClass"]
         1 * testExecutionRequest.getTestMethods() >> [internalTestMethod]
     }
@@ -61,15 +66,32 @@ class TestExecutionResultEvaluatorTest extends Specification {
         given:
         def testExecutionRequest = Mock(InternalTestExecutionRequestVersion2)
         TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(testExecutionRequest)
-        def testDescriptor = Mock(TestDescriptor)
+
+        def testDescriptorInternal = Mock(TestDescriptorInternal)
+
+        testDescriptorInternal.getName() >> "someTest"
+        testDescriptorInternal.getClassName() >> "acme.SomeTestClass"
+        testDescriptorInternal.getOwnerBuildOperationId() >> 1
+
         def testResult = Mock(TestResult)
         1 * testResult.getTestCount() >> 1
         1 * testResult.getFailedTestCount() >> 1
+        1 * testResult.getExceptions() >> []
+
+
+        def testTask = Mock(TaskInternal)
+        1 * testTask.getPath() >> ":someproject:someTestTask"
+        TaskOperationInternal taskOperationInternal = new TaskOperationInternal(1, 2, testTask)
+
         when:
-        evaluator.afterSuite(testDescriptor, testResult)
+        evaluator.beforeExecute(taskOperationInternal, Mock(OperationStartEvent))
+        evaluator.completed(testDescriptorInternal, testResult, Mock(TestCompleteEvent))
         evaluator.evaluate()
+
         then:
         def e = thrown(TestExecutionException)
-        e.message == "Test(s) failed!"
+        normaliseLineSeparators(e.message) == """Test failed.
+    Failed tests:
+        Test acme.SomeTestClass#someTest (Task: :someproject:someTestTask)"""
     }
 }

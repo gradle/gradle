@@ -18,6 +18,11 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.internal.exceptions.MultiCauseException;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * <p>A <code>TestExecutionException</code> is thrown when no tests can be found that match the specified test filters.
@@ -25,8 +30,21 @@ import org.gradle.api.Incubating;
  * @since 2.6
  */
 @Incubating
-public class TestExecutionException extends GradleException {
+public class TestExecutionException extends GradleException implements MultiCauseException {
+
+    List<Throwable> causes = new ArrayList<Throwable>();
+
     public TestExecutionException(String message) {
         super(message);
+    }
+
+    public TestExecutionException(String message, Collection<Throwable> causes) {
+        super(message);
+        this.causes.addAll(causes);
+    }
+
+    @Override
+    public List<? extends Throwable> getCauses() {
+        return causes;
     }
 }
