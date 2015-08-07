@@ -86,7 +86,6 @@ class CheckstylePluginTest extends Specification {
             assert reports.xml.destination == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
             assert !ignoreFailures
             assert showViolations
-            assert antClassName == 'com.puppycrawl.tools.checkstyle.CheckStyleTask'
         }
     }
 
@@ -176,7 +175,6 @@ class CheckstylePluginTest extends Specification {
         task.configProperties == [foo: "foo"]
         task.reports.xml.destination == project.file("checkstyle-reports/custom.xml")
         task.ignoreFailures
-        task.antClassName == 'com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask'
     }
 
     def "can use legacy configFile extension property"() {

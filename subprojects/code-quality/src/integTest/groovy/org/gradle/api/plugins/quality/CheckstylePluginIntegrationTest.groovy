@@ -64,20 +64,6 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/checkstyle/test.xml").assertContents(containsClass("org.gradle.TestClass2"))
     }
 
-    def "runs with checkstyle 6.8"() {
-
-        when:
-        buildFile << """
-            checkstyle {
-                toolVersion = '6.8'
-            }
-        """
-        goodCode()
-
-        then:
-        succeeds('check')
-    }
-
     def "analyze bad code"() {
         defaultLanguage('en')
         badCode()
