@@ -23,7 +23,7 @@ import org.gradle.tooling.internal.protocol.test.InternalTestMethod
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor
 import spock.lang.Specification
 
-import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class TestExecutionResultEvaluatorTest extends Specification {
     def "evaluate throws exception if no results tracked"() {
