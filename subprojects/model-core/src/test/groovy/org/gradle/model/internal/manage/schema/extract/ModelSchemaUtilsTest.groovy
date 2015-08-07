@@ -15,15 +15,18 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
+
 import org.gradle.api.Incubating
 import org.gradle.api.Nullable
+import org.gradle.model.Managed
 import spock.lang.Specification
 
+@SuppressWarnings("GroovyPointlessBoolean")
 class ModelSchemaUtilsTest extends Specification {
     def "base object types have no candidate methods"() {
         expect:
-        ModelSchemaUtils.getCandidateMethods(Object) == []
-        ModelSchemaUtils.getCandidateMethods(GroovyObject) == []
+        ModelSchemaUtils.getCandidateMethods(Object).isEmpty()
+        ModelSchemaUtils.getCandidateMethods(GroovyObject).isEmpty()
     }
 
     def "base object types are not visited"() {
@@ -61,8 +64,29 @@ class ModelSchemaUtilsTest extends Specification {
         def methods = ModelSchemaUtils.getCandidateMethods(Child)
 
         then:
-        methods*.name == ["doSomething", "doSomething"]
-        methods*.declaringClass == [Child, Base]
-        methods*.declaredAnnotations.flatten()*.annotationType() == [Nullable, Incubating]
+        methods.keySet() == (["doSomething"] as Set)
+        methods.values()*.name == ["doSomething", "doSomething"]
+        methods.values()*.declaringClass == [Child, Base]
+        methods.values()*.declaredAnnotations.flatten()*.annotationType() == [Nullable, Incubating]
+    }
+
+    @Managed
+    abstract class ManagedType  {
+        abstract String getValue()
+        abstract void setValue(String value)
+    }
+
+    def "detects managed property"() {
+        expect:
+        ModelSchemaUtils.isMethodDeclaredInManagedType(ModelSchemaUtils.getCandidateMethods(ManagedType).get("getValue")) == true
+    }
+
+    class UnmanagedType  {
+        String value
+    }
+
+    def "detects unmanaged property"() {
+        expect:
+        ModelSchemaUtils.isMethodDeclaredInManagedType(ModelSchemaUtils.getCandidateMethods(UnmanagedType).get("getValue")) == false
     }
 }

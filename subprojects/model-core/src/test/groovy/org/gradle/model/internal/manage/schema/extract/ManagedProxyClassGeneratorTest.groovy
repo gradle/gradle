@@ -16,11 +16,16 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.instance.ModelElementState
+import org.gradle.model.internal.manage.schema.ModelProperty
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Ignore
 import spock.lang.Specification
+
+import java.lang.reflect.Type
 
 class ManagedProxyClassGeneratorTest extends Specification {
     static def generator = new ManagedProxyClassGenerator()
@@ -169,7 +174,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         e.message.startsWith("No signature of method: ${SomeType.name}.setValue() is applicable")
     }
 
-    def newInstance(Class<?> type) {
+    def <T> T newInstance(Class<T> type) {
         def generated = generate(type)
         return generated.newInstance(Stub(ModelElementState))
     }
@@ -182,13 +187,18 @@ class ManagedProxyClassGeneratorTest extends Specification {
         }
         Class<? extends T> generated = generatedForDelegateType[delegateType] as Class<? extends T>
         if (generated == null) {
-            generated = generator.generate(managedType, delegateType)
+            def properties = managedProperties[managedType]
+            generated = generator.generate(managedType, delegateType, properties)
             generatedForDelegateType[delegateType] = generated
         }
         return generated
     }
 
-    interface SomeType {
+    static def property(String name, Type type, boolean managed, boolean writable = true) {
+        return ModelProperty.of(ModelType.of(type), name, managed, writable, Collections.emptySet(), Collections.emptyMap())
+    }
+
+    static interface SomeType {
         Integer getValue()
 
         void setValue(Integer value)
@@ -196,18 +206,18 @@ class ManagedProxyClassGeneratorTest extends Specification {
         String getReadOnly()
     }
 
-    interface PublicUnmanagedType {
+    static interface PublicUnmanagedType {
         String getUnmanagedValue()
         void setUnmanagedValue(String unmanagedValue)
         String sayHello()
     }
 
-    interface InternalUnmanagedType extends PublicUnmanagedType {
+    static interface InternalUnmanagedType extends PublicUnmanagedType {
         Integer add(Integer a, Integer b)
         void throwError()
     }
 
-    class UnmanagedImplType implements InternalUnmanagedType {
+    static class UnmanagedImplType implements InternalUnmanagedType {
         String unmanagedValue
 
         @Override
@@ -226,8 +236,22 @@ class ManagedProxyClassGeneratorTest extends Specification {
         }
     }
 
-    interface ManagedSubType extends PublicUnmanagedType {
+    static interface ManagedSubType extends PublicUnmanagedType {
         String getManagedValue()
         void setManagedValue(String managedValue)
     }
+
+    static Map<Class<?>, Collection<ModelProperty<?>>> managedProperties = ImmutableMap.builder()
+        .put(SomeType, [
+            property("value", Integer, true),
+            property("readOnly", String, true, false)
+        ])
+        .put(PublicUnmanagedType, [
+            property("unmanagedValue", String, false)
+        ])
+        .put(ManagedSubType, [
+            property("unmanagedValue", String, false),
+            property("managedValue", String, true)
+        ])
+        .build()
 }

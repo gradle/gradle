@@ -28,19 +28,15 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 // Needed as a separate Java class because Groovy compiler won't recognize type parameter <R>
 public class BinarySpecSpecializationSchemaExtractionStrategy extends ManagedImplTypeSchemaExtractionStrategySupport {
+
     @Override
-    protected boolean ignoreMethod(Method method) {
-        try {
-            BinarySpec.class.getMethod(method.getName(), method.getParameterTypes());
-            return true;
-        } catch (NoSuchMethodException ignore) {
-            return false;
-        }
+    protected boolean isTarget(ModelType<?> type) {
+        return super.isTarget(type)
+            && BinarySpec.class.isAssignableFrom(type.getRawClass());
     }
 
     @Override

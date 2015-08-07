@@ -16,12 +16,58 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import org.gradle.api.Action;
+import org.gradle.internal.Actions;
+import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
+import org.gradle.model.internal.type.ModelType;
 
-public class UnmanagedStrategy implements ModelSchemaExtractionStrategy {
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
-        return new ModelSchemaExtractionResult<T>(ModelSchema.unmanaged(extractionContext.getType()));
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+public class UnmanagedStrategy extends ImplTypeSchemaExtractionStrategySupport {
+
+    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, Class<R> concreteClass) {
+        return ModelSchema.unmanaged(type, properties);
+    }
+
+    @Override
+    protected boolean isTarget(ModelType<?> type) {
+        // Everything is an unmanaged struct that hasn't been handled before
+        return true;
+    }
+
+    @Override
+    protected <R> void validateTypeHierarchy(ModelSchemaExtractionContext<R> extractionContext, ModelType<R> type) {
+    }
+
+    @Override
+    protected boolean hasOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, String methodName, Collection<Method> methods) {
+        return ModelSchemaUtils.getOverloadedMethods(methods) != null;
+    }
+
+    @Override
+    protected void validateAllNecessaryMethodsHandled(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> allMethods, Set<Method> handledMethods) {
+    }
+
+    @Override
+    protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelProperty<P> property, ModelSchemaCache modelSchemaCache) {
+        return Actions.doNothing();
+    }
+
+    @Override
+    protected void invalidGetterHasParameterTypes(ModelSchemaExtractionContext<?> extractionContext, Method getter) {
+    }
+
+    @Override
+    protected void invalidGetterNoUppercase(ModelSchemaExtractionContext<?> extractionContext, Method getter) {
+    }
+
+    @Override
+    protected void invalidGetterHasPrimitiveType(ModelSchemaExtractionContext<?> extractionContext, Method getter) {
     }
 }

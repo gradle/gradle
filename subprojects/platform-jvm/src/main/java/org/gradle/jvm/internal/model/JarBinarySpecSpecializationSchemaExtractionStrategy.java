@@ -29,7 +29,6 @@ import org.gradle.model.internal.manage.schema.extract.ManagedProxyClassGenerato
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionContext;
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 public class JarBinarySpecSpecializationSchemaExtractionStrategy extends ManagedImplTypeSchemaExtractionStrategySupport {
@@ -44,18 +43,8 @@ public class JarBinarySpecSpecializationSchemaExtractionStrategy extends Managed
     }
 
     @Override
-    protected boolean ignoreMethod(Method method) {
-        try {
-            JarBinarySpec.class.getMethod(method.getName(), method.getParameterTypes());
-            return true;
-        } catch (NoSuchMethodException e) {
-            return false;
-        }
-    }
-
-    @Override
     protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, Class<R> concreteClass) {
-        Class<? extends R> implClass = classGenerator.generate(concreteClass, JarBinarySpecInternal.class);
+        Class<? extends R> implClass = classGenerator.generate(concreteClass, JarBinarySpecInternal.class, properties);
         return ModelSchema.struct(type, properties, implClass, JarBinarySpecInternal.class, new Function<ModelStructSchema<R>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelStructSchema<R> schema) {

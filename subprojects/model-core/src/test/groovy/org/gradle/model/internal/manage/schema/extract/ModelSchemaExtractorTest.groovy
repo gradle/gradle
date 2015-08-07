@@ -929,17 +929,17 @@ interface Managed${typeName} {
         fail UnmanagedModelMapInManagedType, "property 'things' cannot be a model map of type $InputStream.name as it is not a $Managed.name type."
     }
 
-//    static abstract class UnmanagedModelMapInUnmanagedType {
-//        ModelMap<InputStream> getThings() { null }
-//    }
-//
-//    def "model map type doesn't have to be managed type in an unmanaged type"() {
-//        when:
-//        def schema = extract(UnmanagedModelMapInUnmanagedType)
-//        println schema.properties
-//
-//        then:
-//        schema.properties.get("things").type.rawClass == ModelMap
-//    }
+    static abstract class UnmanagedModelMapInUnmanagedType {
+        ModelMap<InputStream> getThings() { null }
+    }
+
+    def "model map type doesn't have to be managed type in an unmanaged type"() {
+        when:
+        def schema = extract(UnmanagedModelMapInUnmanagedType)
+        println schema.properties
+
+        then:
+        schema.properties.get("things").type.rawClass == ModelMap
+    }
 
 }
