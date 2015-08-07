@@ -25,7 +25,6 @@ import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.TestFilter;
-import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildExecutionContext;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
@@ -38,13 +37,11 @@ import java.util.*;
 
 class TestExecutionBuildConfigurationAction implements BuildConfigurationAction {
     private final GradleInternal gradle;
-    private final List<TestListener> globalTestListeners;
     private final InternalTestExecutionRequestVersion2 testExecutionRequest;
 
-    public TestExecutionBuildConfigurationAction(InternalTestExecutionRequestVersion2 testExecutionRequest, GradleInternal gradle, TestListener... globalTestListeners) {
+    public TestExecutionBuildConfigurationAction(InternalTestExecutionRequestVersion2 testExecutionRequest, GradleInternal gradle) {
         this.testExecutionRequest = testExecutionRequest;
         this.gradle = gradle;
-        this.globalTestListeners = Arrays.asList(globalTestListeners);
     }
 
     @Override
@@ -88,13 +85,9 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
     }
 
     private void configureTestTasks(Set<Test> allTestTasksToRun) {
-        registerGlobalTestListener(allTestTasksToRun);
-        forceTaskExecution(allTestTasksToRun);
-    }
-
-    private void forceTaskExecution(Set<Test> allTestTasksToRun) {
         for (Test task : allTestTasksToRun) {
             task.setIgnoreFailures(true);
+            task.getFilter().setFailOnNoMatchingTests(false);
             task.getOutputs().upToDateWhen(Specs.SATISFIES_NONE);
         }
     }
@@ -134,15 +127,6 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
             }
         }
         return testTasksToRun;
-    }
-
-    private void registerGlobalTestListener(Set<Test> testTasks) {
-        for (TestListener globalTestListener : globalTestListeners) {
-            for (Test task : testTasks) {
-                task.getFilter().setFailOnNoMatchingTests(false);
-                task.addTestListener(globalTestListener);
-            }
-        }
     }
 
     private List<Test> configureBuildForTestClasses(GradleInternal gradle, final InternalTestExecutionRequest testExecutionRequest) {

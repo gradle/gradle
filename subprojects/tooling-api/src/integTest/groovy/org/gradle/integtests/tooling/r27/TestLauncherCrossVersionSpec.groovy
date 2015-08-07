@@ -59,7 +59,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskExecuted(":secondTest")
         def e = thrown(TestExecutionException)
         normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
-    Requested Tests:
+    Requested tests:
         Test class example2.MyOtherTest (Task: ':test')
         Test class org.acme.NotExistingTestClass
         Test method example.MyTest#unknownMethod
@@ -81,7 +81,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         then:
         def e = thrown(TestExecutionException)
         normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
-    Requested Tests:
+    Requested tests:
         Test class util.TestUtil"""
     }
 
@@ -99,7 +99,10 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":test")
         assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":secondTest")
         def e = thrown(TestExecutionException)
-        normaliseLineSeparators(e.cause.message) == """Test(s) failed!"""
+        normaliseLineSeparators(e.cause.message) == """Test failed.
+    Failed tests:
+        Test example.MyFailingTest#fail (Task: :secondTest)
+        Test example.MyFailingTest#fail (Task: :test)"""
     }
 
     def testClassRemoved() {

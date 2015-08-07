@@ -40,10 +40,12 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         }
         final GradleInternal gradle = buildController.getGradle();
 
+
         Throwable failure = null;
         try {
             final TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
             final TestExecutionResultEvaluator testExecutionResultEvaluator = new TestExecutionResultEvaluator(testExecutionRequestAction);
+            gradle.addListener(testExecutionResultEvaluator);
             doRun(testExecutionRequestAction, buildController, testExecutionResultEvaluator);
             testExecutionResultEvaluator.evaluate();
         } catch (RuntimeException rex) {
@@ -65,7 +67,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
     }
 
     private void doRun(TestExecutionRequestAction action, BuildController buildController, TestExecutionResultEvaluator testEvaluationListener) {
-        TestExecutionBuildConfigurationAction testTasksConfigurationAction = new TestExecutionBuildConfigurationAction(action.getTestExecutionRequest(), buildController.getGradle(), testEvaluationListener);
+        TestExecutionBuildConfigurationAction testTasksConfigurationAction = new TestExecutionBuildConfigurationAction(action.getTestExecutionRequest(), buildController.getGradle());
         buildController.getGradle().getServices().get(BuildConfigurationActionExecuter.class).setTaskSelectors(Collections.singletonList(testTasksConfigurationAction));
         buildController.run();
     }
