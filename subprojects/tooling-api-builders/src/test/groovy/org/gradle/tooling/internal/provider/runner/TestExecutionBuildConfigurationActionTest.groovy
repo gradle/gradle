@@ -15,11 +15,10 @@
  */
 
 package org.gradle.tooling.internal.provider.runner
-
 import org.gradle.api.internal.GradleInternal
 import org.gradle.execution.BuildExecutionContext
 import org.gradle.execution.TaskGraphExecuter
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequestVersion2
 import spock.lang.Specification
 
 class TestExecutionBuildConfigurationActionTest extends Specification {
@@ -28,7 +27,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         GradleInternal gradleInternal = Mock()
         BuildExecutionContext buildContext = Mock()
         TaskGraphExecuter taskGraphExecuter = Mock()
-        InternalTestExecutionRequest testExecutionRequest = Mock()
+        InternalTestExecutionRequestVersion2 testExecutionRequest = Mock()
         1 * testExecutionRequest.getTestExecutionDescriptors() >> []
         1 * testExecutionRequest.getTestClassNames() >> []
         1 * testExecutionRequest.getTestMethods() >> []
