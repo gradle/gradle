@@ -16,17 +16,27 @@
 
 package org.gradle.nativeplatform.test.plugins
 
+import org.gradle.api.Action
+import org.gradle.api.Task
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.model.ModelMap
+import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec
 import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.binary.BaseBinarySpec
 import org.gradle.platform.base.internal.BinaryNamingScheme
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
+import static org.hamcrest.core.IsNot.not
 
 class NativeBinariesTestPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
@@ -56,9 +66,71 @@ class NativeBinariesTestPluginTest extends Specification {
         then:
         binary.tasks.withType(RunTestExecutable).size() == 1
         binary.tasks.run != null
+    }
 
-        and:
-        project.tasks.getByName("check") dependsOn("runTestBinary")
+    def "check task depends only on buildable test binaries"() {
+        given:
+        def buildableNamingScheme = Mock(BinaryNamingScheme)
+        buildableNamingScheme.getTaskName("run") >> "runBuildableTestBinary"
+
+        def unbuildableNamingScheme = Mock(BinaryNamingScheme)
+        unbuildableNamingScheme.getTaskName("run") >> "runUnbuildableTestBinary"
+
+        def taskFactory = Mock(ITaskFactory)
+
+        def installBuildableTestBinaryTask = project.tasks.create("installBuildableTestBinary", InstallExecutable.class)
+        installBuildableTestBinaryTask.destinationDir = project.projectDir
+        installBuildableTestBinaryTask.executable = project.file("executable1")
+
+        def installUnbuildableTestBinaryTask = project.tasks.create("installUnbuildableTestBinary", InstallExecutable.class)
+        installUnbuildableTestBinaryTask.destinationDir = project.projectDir
+        installUnbuildableTestBinaryTask.executable = project.file("executable2")
+
+        def buildableBinary = BaseBinarySpec.create(TestSpec, "testBuildableBinary", project.services.get(Instantiator), taskFactory)
+        buildableBinary.setNamingScheme(buildableNamingScheme)
+        buildableBinary.tasks.add(installBuildableTestBinaryTask)
+        buildableBinary.toolChain = mockToolChain(true)
+
+        def unbuildableBinary = BaseBinarySpec.create(TestSpec, "testUnbuildableBinary", project.services.get(Instantiator), taskFactory)
+        unbuildableBinary.setNamingScheme(unbuildableNamingScheme)
+        unbuildableBinary.tasks.add(installUnbuildableTestBinaryTask)
+        unbuildableBinary.toolChain = mockToolChain(false)
+
+        project.binaries.add(buildableBinary)
+        project.binaries.add(unbuildableBinary)
+
+        ModelMap<Task> tasksModelMap = DomainObjectCollectionBackedModelMap.wrap(
+            Task.class,
+            project.tasks,
+            taskFactory,
+            new Task.Namer(),
+            new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    project.tasks.add(task)
+                }
+            })
+
+        project.task(LifecycleBasePlugin.CHECK_TASK_NAME)
+
+        when:
+        new NativeBinariesTestPlugin.Rules().createTestTasks(project.tasks, project.binaries)
+        new NativeBinariesTestPlugin.Rules().attachBinariesToCheckLifecycle(tasksModelMap, project.binaries)
+
+        then:
+        def checkTask = project.tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME)
+        checkTask dependsOn("runBuildableTestBinary")
+        checkTask not(dependsOn("runUnbuildableTestBinary"))
+    }
+
+    def mockToolChain(available) {
+        def toolChain = Mock(NativeToolChainInternal)
+        toolChain.select(_) >> {
+            def provider = Mock(PlatformToolProvider)
+            provider.isAvailable() >> available
+            return provider
+        }
+        return toolChain
     }
 
     static class TestSpec extends DefaultNativeTestSuiteBinarySpec {
