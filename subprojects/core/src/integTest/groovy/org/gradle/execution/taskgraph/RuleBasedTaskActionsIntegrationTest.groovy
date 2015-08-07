@@ -57,4 +57,31 @@ class RuleBasedTaskActionsIntegrationTest extends AbstractIntegrationSpec implem
         then:
         output.contains("actionMan This is your commander speaking")
     }
+
+    @NotYetImplemented
+    def "rule sources can have a task with some action applied to it as a rule subject"() {
+        given:
+        buildFile << """
+        ${ruleBasedTasks()}
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("climbTask", ClimbTask) {}
+            }
+
+            @Mutate
+            void plusOne(@Path("tasks.climbTask") ClimbTask climbTask){
+                climbTask.steps += 1
+            }
+        }
+        apply type: Rules
+        tasks.withType(ClimbTask).all { it.steps = 2 }
+
+        //It should be possible to reference the tasks without having to do tasks.realize()
+        assert climbTask.steps == 3
+        """
+
+        expect:
+        succeeds('help')
+    }
 }

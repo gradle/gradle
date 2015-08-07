@@ -8,13 +8,36 @@ configuration phase of a build.
 
 # Stories
 
+## rule-source created tasks cannot be referenced outside of the rule source
+When a rule-source created task is not on the execution graph it should be possible to reference that task from the build script. This story should be played
+before any of the others. 
+
+### Implementation
+TBD
+
+### Test coverage
+- A rule-source created task, not on in the execution graph can be referenced outside of the rule source. e.g.
+    ```groovy
+    class Rules extends RuleSource {
+        @Mutate
+        void addTasks(ModelMap<Task> tasks) {
+            tasks.create("climbTask", ClimbTask) {}
+        }
+    }
+    apply type: Rules
+    assert climbTask.steps == 0
+
+    >./gradlew help
+    ```
+
+- A sub project can access a rule-source task which was created in another sub-project.
+
 ## Actions are not being applied to rule-source created tasks at configuration time.
 
 ### Implementation
   - when `.withType(Foo)` is used all tasks of type `Foo` will be realised before the `afterEvaluate` lifecycle phase and the action will be called during the configuration phase.
   - when `.matching()` is used all child nodes, of the model node representing the task container, will be realized before the `afterEvaluate` lifecycle phase and the action will
   be called during the configuration phase.. This is a performance hit and should be highlighted appropriately.
-
 
 ### Test coverage
 
@@ -41,7 +64,3 @@ configuration phase of a build.
 TBD
     - `tasks.withType(type).iterator()`
     - `tasks.matching(predicate).iterator()`
-
-
-
-
