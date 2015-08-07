@@ -223,6 +223,17 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
         """
     }
 
+    def withFailingTest() {
+        file("src/test/java/example/MyFailingTest.java").text = """
+            package example;
+            public class MyFailingTest {
+                @org.junit.Test public void fail() throws Exception {
+                     org.junit.Assert.assertEquals(1, 2);
+                }
+            }"""
+
+    }
+
     def simpleJavaProject() {
         """
         allprojects{

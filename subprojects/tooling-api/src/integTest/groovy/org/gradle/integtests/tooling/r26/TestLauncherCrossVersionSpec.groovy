@@ -15,7 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.r26
-import groovy.transform.NotYetImplemented
+
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.api.GradleException
@@ -286,21 +286,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
     }
 
-    @NotYetImplemented
-    def "test launcher does not fail on failing tests"() {
-        setup:
-        withFailingTest()
-        when:
-        launchTests { TestLauncher testLauncher ->
-            testLauncher.withJvmTestClasses("example.MyFailingTest")
-        }
-        then:
-        assertTaskExecuted(":test")
-        assertTaskExecuted(":secondTest")
-        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":test")
-        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":secondTest")
-    }
-
     def "can execute multiple test classes passed by name"() {
         setup: "add testcase that should not be exeucted"
         withFailingTest()
@@ -455,17 +440,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
                 }
             }
         """
-    }
-
-    def withFailingTest() {
-        file("src/test/java/example/MyFailingTest.java").text = """
-            package example;
-            public class MyFailingTest {
-                @org.junit.Test public void fail() throws Exception {
-                     org.junit.Assert.assertEquals(1, 2);
-                }
-            }"""
-
     }
 
     def changeTestSource() {

@@ -92,8 +92,9 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         forceTaskExecution(allTestTasksToRun);
     }
 
-    private void forceTaskExecution(Set<? extends Task> allTestTasksToRun) {
-        for (Task task : allTestTasksToRun) {
+    private void forceTaskExecution(Set<Test> allTestTasksToRun) {
+        for (Test task : allTestTasksToRun) {
+            task.setIgnoreFailures(true);
             task.getOutputs().upToDateWhen(Specs.SATISFIES_NONE);
         }
     }
