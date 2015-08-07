@@ -39,7 +39,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction implemen
         this.testDescriptors = ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors());
         this.testClassNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
         if (testExecutionRequest instanceof InternalTestExecutionRequestVersion2) {
-            this.testMethods = ImmutableSet.copyOf((((InternalTestExecutionRequestVersion2) testExecutionRequest).getTestMethods()));
+            this.testMethods = ImmutableSet.copyOf(((InternalTestExecutionRequestVersion2) testExecutionRequest).getTestMethods());
         } else {
             this.testMethods = ImmutableSet.of();
         }
