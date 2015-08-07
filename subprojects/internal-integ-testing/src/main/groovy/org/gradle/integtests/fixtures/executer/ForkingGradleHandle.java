@@ -18,14 +18,18 @@ package org.gradle.integtests.fixtures.executer;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleState;
+import org.gradle.util.TextUtil;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
 
 class ForkingGradleHandle extends OutputScrapingGradleHandle {
@@ -34,14 +38,18 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     final private ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
     final private ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
     private final Action<ExecutionResult> resultAssertion;
+    private final PipedOutputStream stdinPipe;
+    private final boolean isDaemon;
 
     private ExecHandle execHandle;
     private final String outputEncoding;
 
-    public ForkingGradleHandle(Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
+    public ForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
         this.resultAssertion = resultAssertion;
         this.execHandleFactory = execHandleFactory;
         this.outputEncoding = outputEncoding;
+        this.isDaemon = isDaemon;
+        this.stdinPipe = stdinPipe;
     }
 
     public String getStandardOutput() {
@@ -71,6 +79,41 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         execHandle = execBuilder.build();
 
         execHandle.start();
+
+        return this;
+    }
+
+    @Override
+    public GradleHandle cancel() {
+        if (stdinPipe == null) {
+            throw new UnsupportedOperationException("Handle must be started using GradleExecuter.withStdinPipe() to use cancel()");
+        }
+
+        try {
+            stdinPipe.close();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        return this;
+    }
+
+    @Override
+    public GradleHandle cancelWithEOT() {
+        if (stdinPipe == null) {
+            throw new UnsupportedOperationException("Handle must be started using GradleExecuter.withStdinPipe() to use cancelwithEOT()");
+        }
+
+        try {
+            stdinPipe.write(4);
+            if (isDaemon) {
+                // When running a test in a daemon executer, the input is buffered until a
+                // newline char is received
+                stdinPipe.write(TextUtil.toPlatformLineSeparators("\n").getBytes());
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
         return this;
     }

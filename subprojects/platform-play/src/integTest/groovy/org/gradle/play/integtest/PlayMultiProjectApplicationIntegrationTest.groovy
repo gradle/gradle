@@ -27,15 +27,20 @@ import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
+import org.gradle.util.RedirectStdIn
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
+import org.junit.Rule
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
 class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec {
     PlayApp playApp = new PlayMultiProject()
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
+
+    @Rule
+    RedirectStdIn redirectStdIn = new RedirectStdIn()
+    PipedOutputStream stdinPipe = redirectStdIn.getStdinPipe()
 
     def setup() {
         playApp.writeSources(testDirectory)
@@ -110,9 +115,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         run ":primary:assemble"
 
         when:
-        def userInput = new PipedOutputStream();
-        executer.withStdIn(new PipedInputStream(userInput))
-        GradleHandle gradleHandle = executer.withTasks(":primary:runPlayBinary").start()
+        GradleHandle build = executer.withTasks(":primary:runPlayBinary").withForceInteractive(true).withStdIn(System.in).withStdInPipe(stdinPipe).start()
 
         then:
         def url = runningApp.playUrl().toString()
@@ -122,10 +125,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         runningApp.verifyContent();
 
         when: "stopping gradle"
-        userInput.write(4) // ctrl+d
-        userInput.write(TextUtil.toPlatformLineSeparators("\n").bytes) // For some reason flush() doesn't get the keystroke to the DaemonExecuter
-
-        gradleHandle.waitForFinish()
+        build.cancelWithEOT().waitForFinish()
 
         then: "play server is stopped too"
         notAvailable(url)

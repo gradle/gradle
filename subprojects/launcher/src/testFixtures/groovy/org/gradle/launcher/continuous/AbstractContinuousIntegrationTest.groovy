@@ -114,7 +114,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         standardOutputBuildMarker = 0
         errorOutputBuildMarker = 0
 
-        executer.withStdIn(System.in)
+        executer.withStdIn(System.in).withStdInPipe(stdinPipe)
         gradle = executer.withTasks(tasks).withForceInteractive(true).withArgument("--continuous").start()
     }
 
@@ -204,12 +204,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     }
 
     void sendEOT() {
-        stdinPipe.write(4)
-        if (executer.isDaemon()) {
-            // When running a test in a daemon executer, the input is buffered until a
-            // newline char is received
-            stdinPipe.write(TextUtil.toPlatformLineSeparators("\n").bytes)
-        }
+        gradle.cancelWithEOT()
     }
 
     private static class UnexpectedBuildStartedException extends Exception {

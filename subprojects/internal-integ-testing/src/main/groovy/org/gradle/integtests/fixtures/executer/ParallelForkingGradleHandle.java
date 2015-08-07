@@ -21,6 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
 import org.gradle.util.SingleMessageLogger;
 
+import java.io.PipedOutputStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -31,8 +32,8 @@ import static org.junit.Assert.assertThat;
 
 public class ParallelForkingGradleHandle extends ForkingGradleHandle {
 
-    public ParallelForkingGradleHandle(Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
-        super(resultAssertion, outputEncoding, execHandleFactory);
+    public ParallelForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
+        super(stdinPipe, isDaemon, resultAssertion, outputEncoding, execHandleFactory);
     }
 
     @Override

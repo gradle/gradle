@@ -47,6 +47,6 @@ class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
 
     @Override
     protected ForkingGradleHandle createGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<ExecHandleBuilder> execHandleFactory) {
-        return new ParallelForkingGradleHandle(resultAssertion, encoding, execHandleFactory);
+        return new ParallelForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory);
     }
 }
