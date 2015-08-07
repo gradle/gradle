@@ -22,58 +22,13 @@ import spock.lang.Issue
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
-class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec {
-
-
-    String echoTask = """
-        class EchoTask extends DefaultTask {
-            String text = "default"
-            @TaskAction
-            void print() {
-                println(name + ' ' + text)
-            }
-        }
-"""
-
-    @NotYetImplemented
-    def "an action is applied to a rule-source task "() {
-        given:
-        buildFile << """
-        class OverruleTask extends EchoTask {}
-
-        $echoTask
-
-        class Rules extends RuleSource {
-            @Mutate
-            void addTasks(ModelMap<Task> tasks) {
-                tasks.create("actionMan", EchoTask) {}
-                tasks.create("overruleTask", OverruleTask) {
-                 it.text = "Overruled!"
-                }
-            }
-        }
-        apply type: Rules
-
-        tasks.withType(OverruleTask) {
-            it.text = "actionWoman I'm the real commander"
-        }
-
-        //It should be possible to reference the task
-        assert overruleTask.text == "actionWoman I'm the real commander"
-        """
-
-        when:
-        succeeds('actionMan')
-
-        then:
-        output.contains("actionMan This is your commander speaking")
-    }
+class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
     @NotYetImplemented
     def "a non-rule-source task can depend on a rule-source task "() {
         given:
         buildFile << """
-        $echoTask
+        ${ruleBasedTasks()}
 
         class Rules extends RuleSource {
             @Mutate
