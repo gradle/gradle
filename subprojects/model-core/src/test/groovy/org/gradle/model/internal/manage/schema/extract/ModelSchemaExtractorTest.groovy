@@ -1023,6 +1023,38 @@ interface Managed${typeName} {
         schema.properties["managedCalculatedProp"].isManaged() == false
         schema.properties["managedCalculatedProp"].isWritable() == false
     }
+
+    @Managed
+    static abstract class SimplePurelyManagedType {
+        @CustomTestAnnotation("managed")
+        abstract String getManagedProp()
+        @CustomTestAnnotation("managedSetter")
+        abstract void setManagedProp(String managedProp)
+
+        @CustomTestAnnotation("managedCalculated")
+        String getManagedCalculatedProp() {
+            return "calc"
+        }
+    }
+
+    def "properties are extracted from managed type"() {
+        when:
+        def schema = extract(SimplePurelyManagedType)
+
+        then:
+        assert schema instanceof ModelStructSchema
+        schema.properties.keySet() == (["managedProp", "managedCalculatedProp"] as Set)
+
+        schema.properties["managedProp"].annotations*.annotationType() == [CustomTestAnnotation]
+        schema.properties["managedProp"].annotations*.value() == ["managed"]
+        schema.properties["managedProp"].isManaged() == true
+        schema.properties["managedProp"].isWritable() == true
+
+        schema.properties["managedCalculatedProp"].annotations*.annotationType() == [CustomTestAnnotation]
+        schema.properties["managedCalculatedProp"].annotations*.value() == ["managedCalculated"]
+        schema.properties["managedCalculatedProp"].isManaged() == false
+        schema.properties["managedCalculatedProp"].isWritable() == false
+    }
 }
 
 @Retention(RetentionPolicy.RUNTIME)

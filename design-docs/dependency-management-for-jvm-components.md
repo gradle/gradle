@@ -485,36 +485,44 @@ abstract class SomeManagedType implements JarBinarySpec {
 
 ### Test cases
 
-- properties are extracted from unmanaged type
-    - unmanaged type has properties `a` and `b`
-    - extracted schema contains the following properties:
-        - property `a` with `managed = false`
-        - property `b` with `managed = false`
-- properties are extracted from managed subtype of unmanaged type
-    - unmanaged type has properties `a` and `b`
-    - unmanaged type also has method `boolean isBuildable()`
-    - managed subtype has non-abstract read-only property `calculatedProp`
-    - managed subtype has abstract property `managedProp`
-    - extracted schema contains the following properties:
-        - property `a` with `managed = false`
-        - property `b` with `managed = false`
-        - property `calculatedProp` has `managed = false`
-        - property `managedProp` has `managed = true`
-        - method `isBuildable()` is ignored because we cannot handle the return type
-- unmanaged methods we cannot handle are ignored
-    - unmanaged type has properties `a` and `b`
-    - unmanaged type also has method `boolean isBuildable()`
-    - unmanaged type also has method `int getTime()`
-    - extracted schema contains the following properties:
-        - property `a` with `managed = false`
-        - property `b` with `managed = false`
-        - method `isBuildable()` is ignored because we cannot handle the return type
-- annotations are collected from getters
-    - unmanaged type has property `a` with `@Custom("unmanaged")` annotation on getter
-    - managed subtype has property `b` with
+- properties are extracted from purely managed type, getter annotations are available in schema
+    - managed type has property `managedProp`
         - `@Custom("managed")` annotation on getter
         - `@Custom("setter")` annotation on setter
-    - extracted schema contains both `a` and `b` with corresponding getter annotations, setter annotations are ignored
+    - managed type has read-only property `managedCalculatedProp` with `@Custom("managedCalculated")` annotation
+    - extracted schema contains the following properties:
+        - property `managedProp` with `managed = true`, `writable = true`, `@Custom("managed")` annotation available (setter annotation ignored)
+        - property `managedCalculatedProp` with `managed = true`, `writable = false`, `@Custom("managedCalculated")` annotation
+- properties are extracted from purely unmanaged type, getter annotations are available in schema
+    - unmanaged type has property `unmanagedProp`
+        - `@Custom("unmanaged")` annotation on getter
+        - `@Custom("setter")` annotation on setter
+    - unmanaged type has read-only property `unmanagedCalculatedProp` with `@Custom("unmanagedCalculated")` annotation
+    - unmanaged type has method `boolean isBuildable()`
+    - unmanaged type also has method `int getTime()`
+    - extracted schema contains the following properties:
+        - property `unmanagedProp` with `managed = false`, `writable = true`, `@Custom("unmanaged")` annotation available (setter annotation ignored)
+        - property `unmanagedCalculatedProp` with `managed = false`, ``writable = false`, `@Custom("unmanagedCalculated")` annotation
+        - method `isBuildable()` is ignored because it's not a property (we don't handle `is` prefixes yet)
+        - method `getTime()` is ignored because we cannot handle return type
+- properties are extracted from managed subtype of unmanaged type,
+    - unmanaged type has property `unmanagedProp`
+        - `@Custom("unmanaged")` annotation on getter
+        - `@Custom("setter")` annotation on setter
+    - unmanaged type has read-only property `unmanagedCalculatedProp` with `@Custom("unmanagedCalculated")` annotation
+    - unmanaged type has method `boolean isBuildable()`
+    - unmanaged type also has method `int getTime()`
+    - managed subtype has property `managedProp`
+        - `@Custom("managed")` annotation on getter
+        - `@Custom("setter")` annotation on setter
+    - managed subtype has read-only property `managedCalculatedProp` with `@Custom("managedCalculated")` annotation
+    - extracted schema contains the following properties:
+        - property `unmanagedProp` with `managed = false`, `writable = true`, `@Custom("unmanaged")` annotation available (setter annotation ignored)
+        - property `unmanagedCalculatedProp` with `managed = false`, ``writable = false`, `@Custom("unmanagedCalculated")` annotation
+        - property `managedProp` with `managed = true`, `writable = true`, `@Custom("managed")` annotation available (setter annotation ignored)
+        - property `managedCalculatedProp` with `managed = true`, `writable = false`, `@Custom("managedCalculated")` annotation
+        - method `isBuildable()` is ignored because it's not a property (we don't handle `is` prefixes yet)
+        - method `getTime()` is ignored because we cannot handle return type
 
 ### Implementation
 
