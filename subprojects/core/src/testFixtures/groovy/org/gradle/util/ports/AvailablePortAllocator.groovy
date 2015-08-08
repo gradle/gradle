@@ -100,7 +100,6 @@ class AvailablePortAllocator implements PortAllocator {
         int startPort
         int endPort
         while(true) {
-            candidateRange++
             if (candidateRange > rangeCount) {
                 candidateRange = 0
             }
@@ -112,6 +111,8 @@ class AvailablePortAllocator implements PortAllocator {
                 candidateRange = 0
                 startPort = MIN_PRIVATE_PORT + (candidateRange * rangeSize)
                 endPort = startPort + rangeSize - 1
+            } else {
+                candidateRange++
             }
 
             if (!isReserved(startPort, endPort)) {

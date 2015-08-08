@@ -28,8 +28,8 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
     }
 
     @Unroll
-    def "assigns a fixed port range based on worker id (maxForks: #maxForks, workerId: #workerId" () {
-        FixedAvailablePortAllocator portAllocator = new FixedAvailablePortAllocator(maxForks, workerId)
+    def "assigns a fixed port range based on worker id (maxForks: #maxForks, workerId: #workerId, agentNum: #agentNum, totalAgents: #totalAgents)" () {
+        FixedAvailablePortAllocator portAllocator = new FixedAvailablePortAllocator(maxForks, workerId, agentNum, totalAgents)
 
         when:
         portAllocator.assignPort()
@@ -40,23 +40,48 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
         portAllocator.reservations.get(0).endPort == endPort
 
         where:
-        maxForks | workerId | startPort | endPort
-        4        | 3        | 49152     | 53246
-        4        | 4        | 53247     | 57341
-        4        | 1        | 57342     | 61436
-        4        | 2        | 61437     | 65531
-        4        | 10       | 61437     | 65531
-        6        | 5        | 49152     | 51881
-        6        | 6        | 51882     | 54611
-        6        | 1        | 54612     | 57341
-        6        | 2        | 57342     | 60071
-        6        | 3        | 60072     | 62801
-        6        | 4        | 62802     | 65531
-        6        | 7        | 54612     | 57341
+        maxForks | workerId | agentNum | totalAgents | startPort | endPort
+        2        | 1        | 1        | 2           | 49152     | 53246
+        2        | 2        | 1        | 2           | 53247     | 57341
+        2        | 1        | 2        | 2           | 57342     | 61436
+        2        | 2        | 2        | 2           | 61437     | 65531
+        2        | 5        | 2        | 2           | 57342     | 61436
+
+        4        | 1        | 1        | 1           | 49152     | 53246
+        4        | 2        | 1        | 1           | 53247     | 57341
+        4        | 3        | 1        | 1           | 57342     | 61436
+        4        | 4        | 1        | 1           | 61437     | 65531
+        4        | 10       | 1        | 1           | 53247     | 57341
+
+        4        | 1        | 1        | 2           | 49152     | 51198
+        4        | 2        | 1        | 2           | 51199     | 53245
+        4        | 3        | 1        | 2           | 53246     | 55292
+        4        | 4        | 1        | 2           | 55293     | 57339
+        4        | 11       | 1        | 2           | 53246     | 55292
+        4        | 1        | 2        | 2           | 57340     | 59386
+        4        | 2        | 2        | 2           | 59387     | 61433
+        4        | 3        | 2        | 2           | 61434     | 63480
+        4        | 4        | 2        | 2           | 63481     | 65527
+        4        | 10       | 2        | 2           | 59387     | 61433
+
+        6        | 1        | 1        | 2           | 49152     | 50516
+        6        | 2        | 1        | 2           | 50517     | 51881
+        6        | 3        | 1        | 2           | 51882     | 53246
+        6        | 4        | 1        | 2           | 53247     | 54611
+        6        | 5        | 1        | 2           | 54612     | 55976
+        6        | 6        | 1        | 2           | 55977     | 57341
+        6        | 7        | 1        | 2           | 49152     | 50516
+        6        | 1        | 2        | 2           | 57342     | 58706
+        6        | 2        | 2        | 2           | 58707     | 60071
+        6        | 3        | 2        | 2           | 60072     | 61436
+        6        | 4        | 2        | 2           | 61437     | 62801
+        6        | 5        | 2        | 2           | 62802     | 64166
+        6        | 6        | 2        | 2           | 64167     | 65531
+        6        | 9        | 2        | 2           | 60072     | 61436
     }
 
     def "uses all ports when maxForks and workerId are not available" () {
-        FixedAvailablePortAllocator portAllocator = new FixedAvailablePortAllocator(1, -1)
+        FixedAvailablePortAllocator portAllocator = new FixedAvailablePortAllocator(1, -1, 1, 1)
 
         when:
         portAllocator.assignPort()
@@ -69,7 +94,7 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
 
     def "throws an exception when all ports in range are exhausted" () {
         ReservedPortRangeFactory portRangeFactory = Mock(ReservedPortRangeFactory)
-        FixedAvailablePortAllocator portAllocator = new FixedAvailablePortAllocator(6, 1)
+        FixedAvailablePortAllocator portAllocator = new FixedAvailablePortAllocator(6, 1, 1, 1)
         portAllocator.portRangeFactory = portRangeFactory
 
         when:

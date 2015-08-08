@@ -19,18 +19,29 @@ package org.gradle.util.ports
 class FixedAvailablePortAllocator extends AvailablePortAllocator {
     static final String MAX_FORKS_SYSTEM_PROPERTY = "org.gradle.test.maxParallelForks"
     static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker";
+    static final String AGENT_NUM_SYS_PROPERTY = "org.gradle.ci.agentNum";
+    static final String TOTAL_AGENTS_SYS_PROPERTY = "org.gradle.ci.agentCount";
     private static final FixedAvailablePortAllocator INSTANCE = new FixedAvailablePortAllocator()
     int workerId
+    int agentNum
+    int maxForks
+    int totalAgents
 
     private FixedAvailablePortAllocator() {
-        rangeCount = Integer.getInteger(MAX_FORKS_SYSTEM_PROPERTY, 1);
-        workerId = Integer.getInteger(WORKER_ID_SYS_PROPERTY, -1);
+        maxForks = Integer.getInteger(MAX_FORKS_SYSTEM_PROPERTY, 1)
+        totalAgents = Integer.getInteger(TOTAL_AGENTS_SYS_PROPERTY, 1)
+        agentNum = Integer.getInteger(AGENT_NUM_SYS_PROPERTY, 1)
+        workerId = Integer.getInteger(WORKER_ID_SYS_PROPERTY, -1)
+        rangeCount = maxForks * totalAgents
         rangeSize = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / rangeCount
     }
 
-    FixedAvailablePortAllocator(int maxForks, int workerId) {
-        this.rangeCount = maxForks
+    FixedAvailablePortAllocator(int maxForks, int workerId, int agentNum, int totalAgents) {
+        this.agentNum = agentNum
         this.workerId = workerId
+        this.maxForks = maxForks
+        this.totalAgents = totalAgents
+        this.rangeCount = maxForks * totalAgents
         rangeSize = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / rangeCount
     }
 
@@ -47,7 +58,7 @@ class FixedAvailablePortAllocator extends AvailablePortAllocator {
         int fixedRange = 0
         if (rangeCount > 1) {
             if (workerId != -1) {
-                fixedRange = workerId % rangeCount
+                fixedRange = ((workerId - 1) % maxForks) + ((agentNum - 1) * maxForks)
             } else {
                 throw new IllegalStateException("${MAX_FORKS_SYSTEM_PROPERTY} is set, but ${WORKER_ID_SYS_PROPERTY} was not!")
             }
