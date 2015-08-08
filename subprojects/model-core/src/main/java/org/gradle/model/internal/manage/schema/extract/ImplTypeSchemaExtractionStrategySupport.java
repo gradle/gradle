@@ -148,6 +148,7 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
         Map<Class<? extends Annotation>, Annotation> annotations = Maps.newLinkedHashMap();
         for (Method getterMethod : getterMethods) {
             for (Annotation annotation : getterMethod.getDeclaredAnnotations()) {
+                // Make sure more specific annotation doesn't get overwritten with less specific one
                 if (!annotations.containsKey(annotation.annotationType())) {
                     annotations.put(annotation.annotationType(), annotation);
                 }

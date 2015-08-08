@@ -458,6 +458,7 @@ Allow model schema to store information about properties defined in any unmanage
 - property information is extracted about any unmanaged type as a `ModelStrutSchema`
 - property information is extracted from unmanaged super-types of managed types and included in the `ModelStructSchema`
 - annotations on properties (both managed and unmanaged, defined on getters) are available in the `ModelStructSchema`
+    - if both a subtype and a super-type declares the same annotation on a getter, the subtype annotation is retained
 - unmanaged methods that cannot be handled by the schema are silently ignored
 
 Examples:
@@ -523,6 +524,10 @@ abstract class SomeManagedType implements JarBinarySpec {
         - property `managedCalculatedProp` with `managed = true`, `writable = false`, `@Custom("managedCalculated")` annotation
         - method `isBuildable()` is ignored because it's not a property (we don't handle `is` prefixes yet)
         - method `getTime()` is ignored because we cannot handle return type
+- subtype annotation is retained in schema over matching super-type annotation
+    - managed super-type has a property annotated with `@Custom("managed")`
+    - managed subtype has the same property annotated with `@Custom("overridden-managed`)`
+    - extracted schema contains the annotation specified for the subtype property
 
 ### Implementation
 

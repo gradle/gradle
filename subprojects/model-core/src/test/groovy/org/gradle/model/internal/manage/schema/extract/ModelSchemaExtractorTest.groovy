@@ -1055,9 +1055,43 @@ interface Managed${typeName} {
         schema.properties["managedCalculatedProp"].isManaged() == false
         schema.properties["managedCalculatedProp"].isWritable() == false
     }
+
+    @Managed
+    static abstract class OverridingManagedSubtype extends SimplePurelyManagedType {
+        @Override
+        @CustomTestAnnotation("overriddenManaged")
+        @CustomTestAnnotation2
+        abstract String getManagedProp()
+
+        @Override
+        @CustomTestAnnotation2
+        String getManagedCalculatedProp() { return "overridden " }
+    }
+
+    def "property annotations when overridden retain most significant value"() {
+        when:
+        def schema = extract(OverridingManagedSubtype)
+
+        then:
+        assert schema instanceof ModelStructSchema
+        schema.properties.keySet() == (["managedProp", "managedCalculatedProp"] as Set)
+
+        schema.properties["managedProp"].annotations*.annotationType() == [CustomTestAnnotation, CustomTestAnnotation2]
+        schema.properties["managedProp"].getAnnotation(CustomTestAnnotation).value() == "overriddenManaged"
+        schema.properties["managedProp"].isManaged() == true
+        schema.properties["managedProp"].isWritable() == true
+
+        schema.properties["managedCalculatedProp"].annotations*.annotationType() == [CustomTestAnnotation2, CustomTestAnnotation]
+        schema.properties["managedCalculatedProp"].getAnnotation(CustomTestAnnotation).value() == "managedCalculated"
+        schema.properties["managedCalculatedProp"].isManaged() == false
+        schema.properties["managedCalculatedProp"].isWritable() == false
+    }
 }
 
 @Retention(RetentionPolicy.RUNTIME)
 @interface CustomTestAnnotation {
     String value();
 }
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface CustomTestAnnotation2 {}
