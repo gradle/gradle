@@ -139,17 +139,23 @@ abstract public class ManagedImplTypeSchemaExtractionStrategySupport extends Imp
 
     @Override
     protected void invalidGetterHasParameterTypes(ModelSchemaExtractionContext<?> extractionContext, Method getter) {
-        throw invalidMethod(extractionContext, "getter methods cannot take parameters", getter);
+        if (isMethodDeclaredInManagedType(getter)) {
+            throw invalidMethod(extractionContext, "getter methods cannot take parameters", getter);
+        }
     }
 
     @Override
     protected void invalidGetterNoUppercase(ModelSchemaExtractionContext<?> extractionContext, Method getter) {
-        throw invalidMethod(extractionContext, "the 4th character of the getter method name must be an uppercase character", getter);
+        if (isMethodDeclaredInManagedType(getter)) {
+            throw invalidMethod(extractionContext, "the 4th character of the getter method name must be an uppercase character", getter);
+        }
     }
 
     @Override
     protected void invalidGetterHasPrimitiveType(ModelSchemaExtractionContext<?> extractionContext, Method getter) {
-        throw invalidMethod(extractionContext, "managed properties cannot have primitive types", getter);
+        if (isMethodDeclaredInManagedType(getter)) {
+            throw invalidMethod(extractionContext, "managed properties cannot have primitive types", getter);
+        }
     }
 
     @Override

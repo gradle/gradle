@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
+
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
@@ -23,6 +24,7 @@ import org.gradle.model.Unmanaged
 import org.gradle.model.internal.manage.schema.ModelMapSchema
 import org.gradle.model.internal.manage.schema.ModelSchema
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
+import org.gradle.model.internal.manage.schema.ModelStructSchema
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
@@ -30,8 +32,11 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
 import java.util.regex.Pattern
 
+@SuppressWarnings("GroovyPointlessBoolean")
 class ModelSchemaExtractorTest extends Specification {
 
     def classLoader = new GroovyClassLoader(getClass().classLoader)
@@ -934,12 +939,93 @@ interface Managed${typeName} {
     }
 
     def "model map type doesn't have to be managed type in an unmanaged type"() {
-        when:
-        def schema = extract(UnmanagedModelMapInUnmanagedType)
-        println schema.properties
-
-        then:
-        schema.properties.get("things").type.rawClass == ModelMap
+        expect:
+        extract(UnmanagedModelMapInUnmanagedType).properties.get("things").type.rawClass == ModelMap
     }
 
+    static abstract class SimpleUnmanagedTypeWithAnnotations {
+        @CustomTestAnnotation("unmanaged")
+        abstract String getUnmanagedProp()
+        @CustomTestAnnotation("unmanagedSetter")
+        abstract void setUnmanagedProp(String value)
+
+        @CustomTestAnnotation("unmanagedCalculated")
+        String getUnmanagedCalculatedProp() {
+            return "unmanaged-calculated"
+        }
+
+        boolean isBuildable() { true }
+        int getTime() { 0 }
+    }
+
+    def "properties are extracted from unmanaged type"() {
+        when:
+        def schema = extract(SimpleUnmanagedTypeWithAnnotations)
+
+        then:
+        assert schema instanceof ModelStructSchema
+        schema.properties.keySet() == (["unmanagedProp", "unmanagedCalculatedProp"] as Set)
+
+        schema.properties["unmanagedProp"].annotations*.annotationType() == [CustomTestAnnotation]
+        schema.properties["unmanagedProp"].annotations*.value() == ["unmanaged"]
+        schema.properties["unmanagedProp"].isManaged() == false
+        schema.properties["unmanagedProp"].isWritable() == true
+
+        schema.properties["unmanagedCalculatedProp"].annotations*.annotationType() == [CustomTestAnnotation]
+        schema.properties["unmanagedCalculatedProp"].annotations*.value() == ["unmanagedCalculated"]
+        schema.properties["unmanagedCalculatedProp"].isManaged() == false
+        schema.properties["unmanagedCalculatedProp"].isWritable() == false
+    }
+
+    @Managed
+    static abstract class ManagedTypeWithAnnotationsExtendingUnmanagedType extends SimpleUnmanagedTypeWithAnnotations {
+        @CustomTestAnnotation("managed")
+        abstract String getManagedProp()
+        @CustomTestAnnotation("managedSetter")
+        abstract void setManagedProp(String managedProp)
+
+        @CustomTestAnnotation("managedCalculated")
+        String getManagedCalculatedProp() {
+            return "calc"
+        }
+    }
+
+    def "properties are extracted from unmanaged type with managed super-type"() {
+        def extractor = new ModelSchemaExtractor([
+            new TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(SimpleUnmanagedTypeWithAnnotations)
+        ])
+        def store = new DefaultModelSchemaStore(extractor)
+
+        when:
+        def schema = store.getSchema(ManagedTypeWithAnnotationsExtendingUnmanagedType)
+
+        then:
+        assert schema instanceof ModelStructSchema
+        schema.properties.keySet() == (["unmanagedProp", "unmanagedCalculatedProp", "managedProp", "managedCalculatedProp"] as Set)
+
+        schema.properties["unmanagedProp"].annotations*.annotationType() == [CustomTestAnnotation]
+        schema.properties["unmanagedProp"].annotations*.value() == ["unmanaged"]
+        schema.properties["unmanagedProp"].isManaged() == false
+        schema.properties["unmanagedProp"].isWritable() == true
+
+        schema.properties["unmanagedCalculatedProp"].annotations*.annotationType() == [CustomTestAnnotation]
+        schema.properties["unmanagedCalculatedProp"].annotations*.value() == ["unmanagedCalculated"]
+        schema.properties["unmanagedCalculatedProp"].isManaged() == false
+        schema.properties["unmanagedCalculatedProp"].isWritable() == false
+
+        schema.properties["managedProp"].annotations*.annotationType() == [CustomTestAnnotation]
+        schema.properties["managedProp"].annotations*.value() == ["managed"]
+        schema.properties["managedProp"].isManaged() == true
+        schema.properties["managedProp"].isWritable() == true
+
+        schema.properties["managedCalculatedProp"].annotations*.annotationType() == [CustomTestAnnotation]
+        schema.properties["managedCalculatedProp"].annotations*.value() == ["managedCalculated"]
+        schema.properties["managedCalculatedProp"].isManaged() == false
+        schema.properties["managedCalculatedProp"].isWritable() == false
+    }
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface CustomTestAnnotation {
+    String value();
 }

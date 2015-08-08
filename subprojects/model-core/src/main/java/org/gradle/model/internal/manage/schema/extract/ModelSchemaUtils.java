@@ -130,7 +130,14 @@ public class ModelSchemaUtils {
         }
 
         Method mostSpecificDeclaration = declarations.iterator().next();
-        return mostSpecificDeclaration.getDeclaringClass().isAnnotationPresent(Managed.class);
+        return isMethodDeclaredInManagedType(mostSpecificDeclaration);
+    }
+
+    /**
+     * Returns whether the method has been declared in a <code>@</code>{@link Managed} type or not.
+     */
+    public static boolean isMethodDeclaredInManagedType(Method method) {
+        return method.getDeclaringClass().isAnnotationPresent(Managed.class);
     }
 
     /**
