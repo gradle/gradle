@@ -31,14 +31,13 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.getOverloadedMethods;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.isMethodDeclaredInManagedType;
 
 public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
 
@@ -52,39 +51,9 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
 
         validateTypeHierarchy(extractionContext, type);
 
-        Multimap<String, Method> methodsByName = ModelSchemaUtils.getCandidateMethods(type.getRawClass());
+        List<ModelProperty<?>> properties = extractPropertySchemas(extractionContext, ModelSchemaUtils.getCandidateMethods(type.getRawClass()));
 
-        List<ModelProperty<?>> properties = Lists.newArrayList();
-        final Set<Method> handledMethods = Sets.newHashSet();
-
-        for (String methodName : methodsByName.keySet()) {
-            Collection<Method> methods = methodsByName.get(methodName);
-            if (hasOverloadedMethods(extractionContext, methodName, methods)) {
-                continue;
-            }
-
-            if (methodName.startsWith("get") && !methodName.equals("get")) {
-                Character getterPropertyNameFirstChar = methodName.charAt(3);
-                if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
-                    invalidGetterNoUppercase(extractionContext, methods.iterator().next());
-                    return null;
-                }
-
-                String propertyNameCapitalized = methodName.substring(3);
-                String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
-                String setterName = "set" + propertyNameCapitalized;
-                Collection<Method> setterMethods = methodsByName.get(setterName);
-
-                ModelProperty<?> property = createProperty(extractionContext, propertyName, methodName, methods, setterMethods, handledMethods);
-                if (property != null) {
-                    properties.add(property);
-                }
-            }
-        }
-
-        validateAllNecessaryMethodsHandled(extractionContext, methodsByName.values(), handledMethods);
-
-        final ModelSchema<R> schema = createSchema(extractionContext, store, type, properties, type.getConcreteClass());
+        ModelSchema<R> schema = createSchema(extractionContext, store, type, properties);
         Iterable<ModelSchemaExtractionContext<?>> propertyDependencies = Iterables.transform(properties, new Function<ModelProperty<?>, ModelSchemaExtractionContext<?>>() {
             public ModelSchemaExtractionContext<?> apply(final ModelProperty<?> property) {
                 return toPropertyExtractionContext(extractionContext, property, cache);
@@ -94,59 +63,78 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
         return new ModelSchemaExtractionResult<R>(schema, propertyDependencies);
     }
 
-    protected abstract boolean hasOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, String methodName, Collection<Method> methods);
+    private <R, P> ModelSchemaExtractionContext<P> toPropertyExtractionContext(ModelSchemaExtractionContext<R> parentContext, ModelProperty<P> property, ModelSchemaCache modelSchemaCache) {
+        return parentContext.child(property.getType(), propertyDescription(parentContext, property), createPropertyValidator(property, modelSchemaCache));
+    }
 
-    protected abstract void validateAllNecessaryMethodsHandled(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> allMethods, final Set<Method> handledMethods);
+    private <R> List<ModelProperty<?>> extractPropertySchemas(ModelSchemaExtractionContext<R> extractionContext, Multimap<String, Method> methodsByName) {
+        List<ModelProperty<?>> properties = Lists.newArrayList();
+        Set<Method> handledMethods = Sets.newHashSet();
 
-    protected abstract <R> void validateTypeHierarchy(ModelSchemaExtractionContext<R> extractionContext, ModelType<R> type);
+        for (String methodName : methodsByName.keySet()) {
+            Collection<Method> methods = methodsByName.get(methodName);
+
+            List<Method> overloadedMethods = getOverloadedMethods(methods);
+            if (overloadedMethods != null) {
+                handleOverloadedMethods(extractionContext, overloadedMethods);
+                continue;
+            }
+
+            if (methodName.startsWith("get") && !methodName.equals("get")) {
+                PropertyAccessorExtractionContext getterContext = new PropertyAccessorExtractionContext(methods, isGetterDefinedInManagedType(extractionContext, methodName, methods));
+
+                Character getterPropertyNameFirstChar = methodName.charAt(3);
+                if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
+                    handleInvalidGetter(extractionContext, getterContext, "the 4th character of the getter method name must be an uppercase character");
+                    continue;
+                }
+
+                String propertyNameCapitalized = methodName.substring(3);
+                String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
+                String setterName = "set" + propertyNameCapitalized;
+                Collection<Method> setterMethods = methodsByName.get(setterName);
+                PropertyAccessorExtractionContext setterContext = !setterMethods.isEmpty() ? new PropertyAccessorExtractionContext(setterMethods) : null;
+
+                ModelProperty<?> property = extractPropertySchema(extractionContext, propertyName, getterContext, setterContext, handledMethods);
+                if (property != null) {
+                    properties.add(property);
+
+                    handledMethods.addAll(getterContext.getDeclaringMethods());
+                    if (setterContext != null) {
+                        handledMethods.addAll(setterContext.getDeclaringMethods());
+                    }
+                }
+            }
+        }
+
+        validateAllNecessaryMethodsHandled(extractionContext, methodsByName.values(), handledMethods);
+        return properties;
+    }
 
     @Nullable
-    protected ModelProperty<?> createProperty(ModelSchemaExtractionContext<?> extractionContext, String propertyName, String methodName, Collection<Method> getterMethods, Collection<Method> setterMethods, Set<Method> handledMethods) {
+    private ModelProperty<?> extractPropertySchema(ModelSchemaExtractionContext<?> extractionContext, String propertyName, PropertyAccessorExtractionContext getterContext, PropertyAccessorExtractionContext setterContext, Set<Method> handledMethods) {
         // Take the most specific declaration of the getter
-        Method mostSpecificGetter = getterMethods.iterator().next();
-        boolean getterDeclaredInManagedType = isGetterDefinedInManagedType(extractionContext, methodName, getterMethods);
-
+        Method mostSpecificGetter = getterContext.getMostSpecificDeclaration();
         if (mostSpecificGetter.getParameterTypes().length != 0) {
-            invalidGetterHasParameterTypes(extractionContext, mostSpecificGetter);
+            handleInvalidGetter(extractionContext, getterContext, "getter methods cannot take parameters");
             return null;
         }
 
-        boolean abstractGetter = Modifier.isAbstract(mostSpecificGetter.getModifiers());
-        if (!getterDeclaredInManagedType && mostSpecificGetter.getReturnType().isPrimitive()) {
-            invalidGetterHasPrimitiveType(extractionContext, mostSpecificGetter);
+        if (!getterContext.isDeclaredInManagedType() && mostSpecificGetter.getReturnType().isPrimitive()) {
+            handleInvalidGetter(extractionContext, getterContext, "managed properties cannot have primitive types");
             return null;
         }
 
-        boolean managedProperty = getterDeclaredInManagedType && abstractGetter;
+        boolean managedProperty = getterContext.isDeclaredInManagedType() && getterContext.isDeclaredAsAbstract();
         ModelType<?> returnType = ModelType.returnType(mostSpecificGetter);
 
-        boolean writable = !setterMethods.isEmpty();
+        boolean writable = setterContext != null;
         if (writable) {
-            // Get most specific setter
-            Method setter = setterMethods.iterator().next();
-
-            boolean abstractSetter = Modifier.isAbstract(setter.getModifiers());
-            if (!abstractGetter && abstractSetter) {
-                throw invalidMethod(extractionContext, "setters are not allowed for non-abstract getters", setter);
-            }
-
-            boolean setterDeclaredInManagedType = isMethodDeclaredInManagedType(setterMethods);
-            if (getterDeclaredInManagedType && !setterDeclaredInManagedType) {
-                throw invalidMethods(extractionContext, "unmanaged setter for managed getter", Iterables.concat(getterMethods, setterMethods));
-            } else if (!getterDeclaredInManagedType && setterDeclaredInManagedType) {
-                throw invalidMethods(extractionContext, "managed setter for unmanaged getter", Iterables.concat(getterMethods, setterMethods));
-            }
-
-            if (setterDeclaredInManagedType) {
-                validateSetter(extractionContext, returnType, setter);
-            }
-            handledMethods.addAll(setterMethods);
+            validateSetter(extractionContext, returnType, getterContext, setterContext);
         }
 
-        handledMethods.addAll(getterMethods);
-
         Map<Class<? extends Annotation>, Annotation> annotations = Maps.newLinkedHashMap();
-        for (Method getterMethod : getterMethods) {
+        for (Method getterMethod : getterContext.getDeclaringMethods()) {
             for (Annotation annotation : getterMethod.getDeclaredAnnotations()) {
                 // Make sure more specific annotation doesn't get overwritten with less specific one
                 if (!annotations.containsKey(annotation.annotationType())) {
@@ -155,7 +143,7 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
             }
         }
 
-        ImmutableSet<ModelType<?>> declaringClasses = ImmutableSet.copyOf(Iterables.transform(getterMethods, new Function<Method, ModelType<?>>() {
+        ImmutableSet<ModelType<?>> declaringClasses = ImmutableSet.copyOf(Iterables.transform(getterContext.getDeclaringMethods(), new Function<Method, ModelType<?>>() {
             public ModelType<?> apply(Method input) {
                 return ModelType.of(input.getDeclaringClass());
             }
@@ -164,23 +152,21 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
         return ModelProperty.of(returnType, propertyName, managedProperty, writable, declaringClasses, annotations);
     }
 
-    protected abstract void invalidGetterHasParameterTypes(ModelSchemaExtractionContext<?> extractionContext, Method getter);
-
-    protected abstract void invalidGetterNoUppercase(ModelSchemaExtractionContext<?> extractionContext, Method getter);
-
-    protected abstract void invalidGetterHasPrimitiveType(ModelSchemaExtractionContext<?> extractionContext, Method getter);
-
     protected boolean isGetterDefinedInManagedType(ModelSchemaExtractionContext<?> extractionContext, String methodName, Collection<Method> getterMethods) {
         return isMethodDeclaredInManagedType(getterMethods);
     }
 
-    protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, Class<R> concreteClass);
+    protected abstract void validateAllNecessaryMethodsHandled(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> allMethods, final Set<Method> handledMethods);
 
-    private <R, P> ModelSchemaExtractionContext<P> toPropertyExtractionContext(ModelSchemaExtractionContext<R> parentContext, ModelProperty<P> property, ModelSchemaCache modelSchemaCache) {
-        return parentContext.child(property.getType(), propertyDescription(parentContext, property), createPropertyValidator(property, modelSchemaCache));
-    }
+    protected abstract <R> void validateTypeHierarchy(ModelSchemaExtractionContext<R> extractionContext, ModelType<R> type);
 
-    protected abstract <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(final ModelProperty<P> property, final ModelSchemaCache modelSchemaCache);
+    protected abstract void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getter, String message);
+
+    protected abstract void handleOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> overloadedMethods);
+
+    protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties);
+
+    protected abstract <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelProperty<P> property, ModelSchemaCache modelSchemaCache);
 
     private String propertyDescription(ModelSchemaExtractionContext<?> parentContext, ModelProperty<?> property) {
         if (property.getDeclaredBy().size() == 1 && property.getDeclaredBy().contains(parentContext.getType())) {
@@ -191,24 +177,5 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
         }
     }
 
-    private void validateSetter(ModelSchemaExtractionContext<?> extractionContext, ModelType<?> propertyType, Method setter) {
-        if (!Modifier.isAbstract(setter.getModifiers())) {
-            throw invalidMethod(extractionContext, "non-abstract setters are not allowed", setter);
-        }
-
-        if (!setter.getReturnType().equals(void.class)) {
-            throw invalidMethod(extractionContext, "setter method must have void return type", setter);
-        }
-
-        Type[] setterParameterTypes = setter.getGenericParameterTypes();
-        if (setterParameterTypes.length != 1) {
-            throw invalidMethod(extractionContext, "setter method must have exactly one parameter", setter);
-        }
-
-        ModelType<?> setterType = ModelType.paramType(setter, 0);
-        if (!setterType.equals(propertyType)) {
-            String message = "setter method param must be of exactly the same type as the getter returns (expected: " + propertyType + ", found: " + setterType + ")";
-            throw invalidMethod(extractionContext, message, setter);
-        }
-    }
+    protected abstract void validateSetter(ModelSchemaExtractionContext<?> extractionContext, ModelType<?> propertyType, PropertyAccessorExtractionContext getterContext, PropertyAccessorExtractionContext setterContext);
 }

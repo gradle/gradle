@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
+import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
@@ -31,10 +32,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -51,12 +49,92 @@ abstract public class ManagedImplTypeSchemaExtractionStrategySupport extends Imp
     }
 
     @Override
+    protected <R> void validateTypeHierarchy(final ModelSchemaExtractionContext<R> extractionContext, ModelType<R> type) {
+        walkTypeHierarchy(type.getConcreteClass(), new ModelSchemaUtils.TypeVisitor() {
+            @Override
+            public void visitType(Class<?> type) {
+                if (type.isAnnotationPresent(Managed.class)) {
+                    validateManagedType(extractionContext, type);
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void handleOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> overloadedMethods) {
+        if (isMethodDeclaredInManagedType(overloadedMethods)) {
+            throw invalidMethods(extractionContext, "overloaded methods are not supported", overloadedMethods);
+        }
+    }
+
+    @Override
     @SuppressWarnings("SimplifiableIfStatement")
     protected boolean isGetterDefinedInManagedType(ModelSchemaExtractionContext<?> extractionContext, String methodName, Collection<Method> getterMethods) {
         if (methodName.equals("getName") && Named.class.isAssignableFrom(extractionContext.getType().getRawClass())) {
             return true;
         }
         return super.isGetterDefinedInManagedType(extractionContext, methodName, getterMethods);
+    }
+
+    @Override
+    protected void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getter, String message) {
+        if (getter.isDeclaredInManagedType()) {
+            throw invalidMethod(extractionContext, message, getter.getMostSpecificDeclaration());
+        }
+    }
+
+    @Override
+    protected void validateSetter(ModelSchemaExtractionContext<?> extractionContext, ModelType<?> propertyType, PropertyAccessorExtractionContext getterContext, PropertyAccessorExtractionContext setterContext) {
+        // Get most specific setter
+        Method mostSpecificSetter = setterContext.getMostSpecificDeclaration();
+
+        if (!getterContext.isDeclaredAsAbstract() && setterContext.isDeclaredAsAbstract()) {
+            throw invalidMethod(extractionContext, "setters are not allowed for non-abstract getters", mostSpecificSetter);
+        }
+
+        if (getterContext.isDeclaredInManagedType() && !setterContext.isDeclaredInManagedType()) {
+            throw invalidMethods(extractionContext, "unmanaged setter for managed getter", Iterables.concat(getterContext.getDeclaringMethods(), setterContext.getDeclaringMethods()));
+        } else if (!getterContext.isDeclaredInManagedType() && setterContext.isDeclaredInManagedType()) {
+            throw invalidMethods(extractionContext, "managed setter for unmanaged getter", Iterables.concat(getterContext.getDeclaringMethods(), setterContext.getDeclaringMethods()));
+        }
+
+        if (!setterContext.isDeclaredInManagedType()) {
+            return;
+        }
+
+        if (!Modifier.isAbstract(mostSpecificSetter.getModifiers())) {
+            throw invalidMethod(extractionContext, "non-abstract setters are not allowed", mostSpecificSetter);
+        }
+
+        if (!mostSpecificSetter.getReturnType().equals(void.class)) {
+            throw invalidMethod(extractionContext, "setter method must have void return type", mostSpecificSetter);
+        }
+
+        Type[] setterParameterTypes = mostSpecificSetter.getGenericParameterTypes();
+        if (setterParameterTypes.length != 1) {
+            throw invalidMethod(extractionContext, "setter method must have exactly one parameter", mostSpecificSetter);
+        }
+
+        ModelType<?> setterType = ModelType.paramType(mostSpecificSetter, 0);
+        if (!setterType.equals(propertyType)) {
+            String message = "setter method param must be of exactly the same type as the getter returns (expected: " + propertyType + ", found: " + setterType + ")";
+            throw invalidMethod(extractionContext, message, mostSpecificSetter);
+        }
+    }
+
+    @Override
+    protected void validateAllNecessaryMethodsHandled(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> allMethods, final Set<Method> handledMethods) {
+        Iterable<Method> notHandled = Iterables.filter(allMethods, new Predicate<Method>() {
+            @Override
+            public boolean apply(Method method) {
+                return method.getDeclaringClass().isAnnotationPresent(Managed.class) && !handledMethods.contains(method);
+            }
+        });
+
+        // TODO - should call out valid getters without setters
+        if (!Iterables.isEmpty(notHandled)) {
+            throw invalidMethods(extractionContext, "only paired getter/setter methods are supported", notHandled);
+        }
     }
 
     @Override
@@ -137,69 +215,7 @@ abstract public class ManagedImplTypeSchemaExtractionStrategySupport extends Imp
         };
     }
 
-    @Override
-    protected void invalidGetterHasParameterTypes(ModelSchemaExtractionContext<?> extractionContext, Method getter) {
-        if (isMethodDeclaredInManagedType(getter)) {
-            throw invalidMethod(extractionContext, "getter methods cannot take parameters", getter);
-        }
-    }
-
-    @Override
-    protected void invalidGetterNoUppercase(ModelSchemaExtractionContext<?> extractionContext, Method getter) {
-        if (isMethodDeclaredInManagedType(getter)) {
-            throw invalidMethod(extractionContext, "the 4th character of the getter method name must be an uppercase character", getter);
-        }
-    }
-
-    @Override
-    protected void invalidGetterHasPrimitiveType(ModelSchemaExtractionContext<?> extractionContext, Method getter) {
-        if (isMethodDeclaredInManagedType(getter)) {
-            throw invalidMethod(extractionContext, "managed properties cannot have primitive types", getter);
-        }
-    }
-
-    @Override
-    protected boolean hasOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, String methodName, Collection<Method> methods) {
-        List<Method> overloadedMethods = getOverloadedMethods(methods);
-        if (overloadedMethods != null) {
-            // Ignore overloaded methods defined in unmanaged types
-            if (isMethodDeclaredInManagedType(methods)) {
-                throw invalidMethods(extractionContext, "overloaded methods are not supported", overloadedMethods);
-            } else {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    protected void validateAllNecessaryMethodsHandled(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> allMethods, final Set<Method> handledMethods) {
-        Iterable<Method> notHandled = Iterables.filter(allMethods, new Predicate<Method>() {
-            @Override
-            public boolean apply(Method method) {
-                return method.getDeclaringClass().isAnnotationPresent(Managed.class) && !handledMethods.contains(method);
-            }
-        });
-
-        // TODO - should call out valid getters without setters
-        if (!Iterables.isEmpty(notHandled)) {
-            throw invalidMethods(extractionContext, "only paired getter/setter methods are supported", notHandled);
-        }
-    }
-
-    @Override
-    protected <R> void validateTypeHierarchy(final ModelSchemaExtractionContext<R> extractionContext, ModelType<R> type) {
-        walkTypeHierarchy(type.getConcreteClass(), new ModelSchemaUtils.TypeVisitor() {
-            @Override
-            public void visitType(Class<?> type) {
-                if (type.isAnnotationPresent(Managed.class)) {
-                    visitManagedType(extractionContext, type);
-                }
-            }
-        });
-    }
-
-    private void visitManagedType(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
+    private void validateManagedType(ModelSchemaExtractionContext<?> extractionContext, Class<?> typeClass) {
         if (!typeClass.isInterface() && !Modifier.isAbstract(typeClass.getModifiers())) {
             throw new InvalidManagedModelElementTypeException(extractionContext, "must be defined as an interface or an abstract class.");
         }
@@ -278,5 +294,26 @@ abstract public class ManagedImplTypeSchemaExtractionStrategySupport extends Imp
             //this should never happen
             throw new RuntimeException(String.format("Expected a constructor taking at least one argument in %s but no such constructors were found", typeClass.getName()));
         }
+    }
+
+    private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Method method) {
+        return invalidMethod(extractionContext, message, MethodDescription.of(method));
+    }
+
+    private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, Constructor<?> constructor) {
+        return invalidMethod(extractionContext, message, MethodDescription.of(constructor));
+    }
+
+    private InvalidManagedModelElementTypeException invalidMethod(ModelSchemaExtractionContext<?> extractionContext, String message, MethodDescription methodDescription) {
+        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid method: " + methodDescription.toString() + ").");
+    }
+
+    private InvalidManagedModelElementTypeException invalidMethods(ModelSchemaExtractionContext<?> extractionContext, String message, Iterable<Method> methods) {
+        final ImmutableSortedSet<String> descriptions = ImmutableSortedSet.copyOf(Iterables.transform(methods, new Function<Method, String>() {
+            public String apply(Method method) {
+                return MethodDescription.of(method).toString();
+            }
+        }));
+        return new InvalidManagedModelElementTypeException(extractionContext, message + " (invalid methods: " + Joiner.on(", ").join(descriptions) + ").");
     }
 }

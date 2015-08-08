@@ -31,7 +31,7 @@ import java.util.Set;
 
 public class UnmanagedStrategy extends ImplTypeSchemaExtractionStrategySupport {
 
-    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, Class<R> concreteClass) {
+    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties) {
         return ModelSchema.unmanaged(type, properties);
     }
 
@@ -46,8 +46,15 @@ public class UnmanagedStrategy extends ImplTypeSchemaExtractionStrategySupport {
     }
 
     @Override
-    protected boolean hasOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, String methodName, Collection<Method> methods) {
-        return ModelSchemaUtils.getOverloadedMethods(methods) != null;
+    protected void handleOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> overloadedMethods) {
+    }
+
+    @Override
+    protected void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getter, String message) {
+    }
+
+    @Override
+    protected void validateSetter(ModelSchemaExtractionContext<?> extractionContext, ModelType<?> propertyType, PropertyAccessorExtractionContext getterContext, PropertyAccessorExtractionContext setterContext) {
     }
 
     @Override
@@ -57,17 +64,5 @@ public class UnmanagedStrategy extends ImplTypeSchemaExtractionStrategySupport {
     @Override
     protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelProperty<P> property, ModelSchemaCache modelSchemaCache) {
         return Actions.doNothing();
-    }
-
-    @Override
-    protected void invalidGetterHasParameterTypes(ModelSchemaExtractionContext<?> extractionContext, Method getter) {
-    }
-
-    @Override
-    protected void invalidGetterNoUppercase(ModelSchemaExtractionContext<?> extractionContext, Method getter) {
-    }
-
-    @Override
-    protected void invalidGetterHasPrimitiveType(ModelSchemaExtractionContext<?> extractionContext, Method getter) {
     }
 }
