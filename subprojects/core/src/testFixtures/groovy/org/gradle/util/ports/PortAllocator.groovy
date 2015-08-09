@@ -32,11 +32,4 @@ interface PortAllocator {
      * @param port
      */
     void releasePort(int port)
-
-    /**
-     * Get all port range reservations
-     *
-     * @return the port ranges that have been reserved
-     */
-    List<ReservedPortRange> getReservations()
 }

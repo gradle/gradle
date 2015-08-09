@@ -20,21 +20,13 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
 
-class AvailablePortAllocator implements PortAllocator {
+abstract class AbstractAvailablePortAllocator implements PortAllocator {
     public static final int RANGE_SIZE = 100
     List<ReservedPortRange> reservations = []
-    private final static INSTANCE = new AvailablePortAllocator()
     protected final Lock lock = new ReentrantLock()
     ReservedPortRangeFactory portRangeFactory = new DefaultReservedPortRangeFactory()
     int rangeSize = RANGE_SIZE
     int rangeCount = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / RANGE_SIZE
-
-    protected AvailablePortAllocator() {
-    }
-
-    static AvailablePortAllocator getInstance() {
-        return INSTANCE
-    }
 
     @Override
     public int assignPort() {
@@ -68,6 +60,8 @@ class AvailablePortAllocator implements PortAllocator {
         }
     }
 
+    protected abstract ReservedPortRange reservePortRange()
+
     protected void releaseRange(ReservedPortRange range) {
         reservations.remove(range)
     }
@@ -90,40 +84,7 @@ class AvailablePortAllocator implements PortAllocator {
         }
     }
 
-    protected ReservedPortRange reservePortRange() {
-        int candidateRange = new Random().nextInt(rangeCount)
-        return reservePortRange(candidateRange)
-    }
-
-    protected ReservedPortRange reservePortRange(int candidateRange) {
-        int startRange = candidateRange
-        int startPort
-        int endPort
-        while(true) {
-            if (candidateRange > rangeCount) {
-                candidateRange = 0
-            }
-
-            startPort = MIN_PRIVATE_PORT + (candidateRange * rangeSize)
-            endPort = startPort + rangeSize - 1
-            // if this is the last range in the total list of ports, and its smaller than a rangeSize, skip it and reset to 0
-            if (endPort > MAX_PRIVATE_PORT) {
-                candidateRange = 0
-                startPort = MIN_PRIVATE_PORT + (candidateRange * rangeSize)
-                endPort = startPort + rangeSize - 1
-            } else {
-                candidateRange++
-            }
-
-            if (!isReserved(startPort, endPort)) {
-                break
-            } else {
-                if (candidateRange == startRange) {
-                    throw new NoSuchElementException("Unable to find a port range to reserve")
-                }
-            }
-        }
-
+    protected ReservedPortRange reservePortRange(int startPort, int endPort) {
         ReservedPortRange range = portRangeFactory.getReservedPortRange(startPort, endPort)
         reservations.add(range)
         return range

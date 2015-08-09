@@ -16,25 +16,16 @@
 
 package org.gradle.util.ports
 
-class FixedAvailablePortAllocator extends AvailablePortAllocator {
+class FixedAvailablePortAllocator extends AbstractAvailablePortAllocator {
     static final String MAX_FORKS_SYSTEM_PROPERTY = "org.gradle.test.maxParallelForks"
     static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker";
     static final String AGENT_NUM_SYS_PROPERTY = "org.gradle.ci.agentNum";
     static final String TOTAL_AGENTS_SYS_PROPERTY = "org.gradle.ci.agentCount";
-    private static final FixedAvailablePortAllocator INSTANCE = new FixedAvailablePortAllocator()
-    int workerId
-    int agentNum
-    int maxForks
-    int totalAgents
-
-    private FixedAvailablePortAllocator() {
-        maxForks = Integer.getInteger(MAX_FORKS_SYSTEM_PROPERTY, 1)
-        totalAgents = Integer.getInteger(TOTAL_AGENTS_SYS_PROPERTY, 1)
-        agentNum = Integer.getInteger(AGENT_NUM_SYS_PROPERTY, 1)
-        workerId = Integer.getInteger(WORKER_ID_SYS_PROPERTY, -1)
-        rangeCount = maxForks * totalAgents
-        rangeSize = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / rangeCount
-    }
+    private static FixedAvailablePortAllocator instance
+    final int workerId
+    final int agentNum
+    final int maxForks
+    final int totalAgents
 
     FixedAvailablePortAllocator(int maxForks, int workerId, int agentNum, int totalAgents) {
         this.agentNum = agentNum
@@ -42,17 +33,28 @@ class FixedAvailablePortAllocator extends AvailablePortAllocator {
         this.maxForks = maxForks
         this.totalAgents = totalAgents
         this.rangeCount = maxForks * totalAgents
-        rangeSize = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / rangeCount
+        this.rangeSize = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / rangeCount
     }
 
     public static FixedAvailablePortAllocator getInstance() {
-        return INSTANCE
+        if (instance == null) {
+            int maxForks = Integer.getInteger(MAX_FORKS_SYSTEM_PROPERTY, 1)
+            int totalAgents = Integer.getInteger(TOTAL_AGENTS_SYS_PROPERTY, 1)
+            int agentNum = Integer.getInteger(AGENT_NUM_SYS_PROPERTY, 1)
+            int workerId = Integer.getInteger(WORKER_ID_SYS_PROPERTY, -1)
+            instance = new FixedAvailablePortAllocator(maxForks, workerId, agentNum, totalAgents)
+        }
+        return instance
     }
 
     @Override
     protected ReservedPortRange reservePortRange() {
         if (reservations.size() >= 1) {
-            throw new NoSuchElementException("A fixed port range has already been assigned - cannot assign a new range.")
+            throw new NoSuchElementException("All available ports in the fixed port range for agent ${agentNum}, worker ${workerId} have been exhausted.")
+        }
+
+        if (agentNum > totalAgents) {
+            throw new IllegalArgumentException("Agent number was set to ${agentNum} but totalAgents was set to ${totalAgents}.")
         }
 
         int fixedRange = 0
@@ -64,6 +66,8 @@ class FixedAvailablePortAllocator extends AvailablePortAllocator {
             }
         }
 
-        return reservePortRange(fixedRange)
+        int startPort = MIN_PRIVATE_PORT + (fixedRange * rangeSize)
+        int endPort = startPort + rangeSize - 1
+        return reservePortRange(startPort, endPort)
     }
 }

@@ -20,12 +20,6 @@ import spock.lang.Unroll
 
 
 class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
-    def "no public constructors on AvailablePortAllocator"() {
-        def constructors = AvailablePortAllocator.getConstructors()
-
-        expect:
-        constructors.size() == 0
-    }
 
     @Unroll
     def "assigns a fixed port range based on worker id (maxForks: #maxForks, workerId: #workerId, agentNum: #agentNum, totalAgents: #totalAgents)" () {
@@ -110,6 +104,31 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
 
         then:
         def e = thrown(NoSuchElementException)
-        e.message == "A fixed port range has already been assigned - cannot assign a new range."
+        e.message == "All available ports in the fixed port range for agent 1, worker 1 have been exhausted."
+    }
+
+    def "can assign ports from the static instance"() {
+        PortAllocator portAllocator = FixedAvailablePortAllocator.getInstance()
+
+        when:
+        def port1 = portAllocator.assignPort()
+
+        then:
+        port1 >= PortAllocator.MIN_PRIVATE_PORT
+        port1 <= PortAllocator.MAX_PRIVATE_PORT
+
+        when:
+        def port2 = portAllocator.assignPort()
+
+        then:
+        port2 >= PortAllocator.MIN_PRIVATE_PORT
+        port2 <= PortAllocator.MAX_PRIVATE_PORT
+
+        and:
+        port2 != port1
+
+        cleanup:
+        portAllocator.releasePort(port1)
+        portAllocator.releasePort(port2)
     }
 }
