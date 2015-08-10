@@ -28,7 +28,7 @@ import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSepara
 @TargetGradleVersion(">=2.7")
 class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
-    def "can specify test by class and method name"() {
+    def "can execute test methods of JVM test class"() {
         when:
         launchTests { TestLauncher launcher ->
             launcher.withJvmTestMethods("example.MyTest", "foo")
@@ -40,6 +40,29 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
+        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
+
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestMethods("example.MyTest", "foo", "foo2")
+            launcher.withJvmTestMethods("example2.MyOtherTest", "bar")
+        }
+        then:
+
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+
+        assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
+        assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
+        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
+
     }
 
     def "fails with meaningful error when requested tests not found"() {
@@ -51,6 +74,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         launchTests { TestLauncher launcher ->
             launcher.withJvmTestMethods("example.MyTest", "unknownMethod")
             launcher.withJvmTestMethods("example.MyTest", "unknownMethod2")
+            launcher.withJvmTestMethods("example.UnknownClass", "unknownTestMethod3")
             launcher.withJvmTestClasses("org.acme.NotExistingTestClass")
             launcher.withTests(testDescriptors("example2.MyOtherTest", null, ":test"))
         }
@@ -63,7 +87,8 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         Test class example2.MyOtherTest (Task: ':test')
         Test class org.acme.NotExistingTestClass
         Test method example.MyTest#unknownMethod
-        Test method example.MyTest#unknownMethod2"""
+        Test method example.MyTest#unknownMethod2
+        Test method example.UnknownClass#unknownTestMethod3"""
     }
 
     def "fails with meaningful error when declared class has no tests"() {
@@ -83,6 +108,15 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
     Requested tests:
         Test class util.TestUtil"""
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestMethods("util.TestUtil", "someUtilMethod")
+        }
+        then:
+        e = thrown(TestExecutionException)
+        normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
+    Requested tests:
+        Test method util.TestUtil#someUtilMethod"""
     }
 
     def "throws exception with meaningful error message on failing tests"() {
@@ -97,8 +131,30 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskExecuted(":test")
         assertTaskExecuted(":secondTest")
         assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":test")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail2", task: ":test")
         assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":secondTest")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail2", task: ":secondTest")
         def e = thrown(TestExecutionException)
+        normaliseLineSeparators(e.cause.message) == """Test failed.
+    Failed tests:
+        Test example.MyFailingTest#fail (Task: :secondTest)
+        Test example.MyFailingTest#fail2 (Task: :secondTest)
+        Test example.MyFailingTest#fail (Task: :test)
+        Test example.MyFailingTest#fail2 (Task: :test)"""
+
+        when:
+        launchTests { TestLauncher testLauncher ->
+            testLauncher.withJvmTestMethods("example.MyFailingTest", "fail")
+        }
+
+        then:
+        assertTaskExecuted(":test")
+        assertTaskExecuted(":secondTest")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":test")
+        assertTestExecuted(className: "example.MyFailingTest", methodName: "fail", task: ":secondTest")
+        assertTestNotExecuted(className: "example.MyFailingTest", methodName: "fail2", task: ":test")
+        assertTestNotExecuted(className: "example.MyFailingTest", methodName: "fail2", task: ":secondTest")
+        e = thrown(TestExecutionException)
         normaliseLineSeparators(e.cause.message) == """Test failed.
     Failed tests:
         Test example.MyFailingTest#fail (Task: :secondTest)

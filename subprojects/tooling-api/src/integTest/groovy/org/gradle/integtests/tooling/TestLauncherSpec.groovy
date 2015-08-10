@@ -199,6 +199,14 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
                 }
             }
         """
+        file("src/test/java/example2/MyOtherTest2.java") << """
+            package example2;
+            public class MyOtherTest2 {
+                @org.junit.Test public void baz() throws Exception {
+                     org.junit.Assert.assertEquals(2, 2);
+                }
+            }
+        """
     }
 
 
@@ -230,6 +238,10 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
                 @org.junit.Test public void fail() throws Exception {
                      org.junit.Assert.assertEquals(1, 2);
                 }
+
+                @org.junit.Test public void fail2() throws Exception {
+                     org.junit.Assert.assertEquals(1, 2);
+                }
             }"""
 
     }
@@ -243,4 +255,5 @@ abstract class TestLauncherSpec extends ToolingApiSpecification {
         }
         """
     }
+
 }
