@@ -39,7 +39,7 @@
                 <td>namespaceReverseRouter</td>
             </tr>
             <tr>
-                <td>staticRoutesGenerator</td>
+                <td>useStaticRouter</td>
             </tr>
         </table>
     </section>

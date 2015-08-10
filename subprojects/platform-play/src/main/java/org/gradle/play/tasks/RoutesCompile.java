@@ -37,6 +37,11 @@ import java.util.List;
 
 /**
  * Task for compiling routes templates into Scala code.
+ * <p>
+ * This task is usually created as one of the build tasks when building a Play application with the {@link org.gradle.play.plugins.PlayPlugin} plugin.
+ *
+ * Explicit configuration of this task is not expected and should be performed on the equivalent settings at the {@link org.gradle.play.PlayApplicationSpec} level.
+ * </p>
  */
 @Incubating
 public class RoutesCompile extends SourceTask {
@@ -56,7 +61,7 @@ public class RoutesCompile extends SourceTask {
     private boolean generateReverseRoutes = true;
     private PlayPlatform platform;
     private BaseForkOptions forkOptions;
-    private boolean staticRoutesGenerator;
+    private boolean useStaticRouter;
 
     /**
      * Returns the directory to generate the parser source files into.
@@ -93,10 +98,9 @@ public class RoutesCompile extends SourceTask {
         this.additionalImports.addAll(additionalImports);
     }
 
-
     @TaskAction
     void compile() {
-        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject(), isNamespaceReverseRouter(), isGenerateReverseRoutes(), staticRoutesGenerator);
+        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject(), isNamespaceReverseRouter(), isGenerateReverseRoutes(), getUseStaticRouter());
         new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs()).execute(spec);
     }
 
@@ -107,10 +111,6 @@ public class RoutesCompile extends SourceTask {
 
     public boolean isJavaProject() {
         return javaProject;
-    }
-
-    public PlayPlatform getPlatform() {
-        return platform;
     }
 
     public void setPlatform(PlayPlatform platform) {
@@ -177,17 +177,17 @@ public class RoutesCompile extends SourceTask {
      * @return true if StaticRoutesGenerator will be used to generate routes,
      * false if InjectedRoutesGenerator will be used to generate routes.
      */
-    public boolean getStaticRoutesGenerator() {
-        return staticRoutesGenerator;
+    public boolean getUseStaticRouter() {
+        return useStaticRouter;
     }
 
     /**
      * Configure if the static routes generator should be used to generate routes.
      *
-     * @param staticRoutesGenerator true - use StaticRoutesGenerator
+     * @param useStaticRouter true - use StaticRoutesGenerator
      * false - use InjectedRoutesGenerator
      */
-    public void setStaticRoutesGenerator(boolean staticRoutesGenerator) {
-        this.staticRoutesGenerator = staticRoutesGenerator;
+    public void setUseStaticRouter(boolean useStaticRouter) {
+        this.useStaticRouter = useStaticRouter;
     }
 }

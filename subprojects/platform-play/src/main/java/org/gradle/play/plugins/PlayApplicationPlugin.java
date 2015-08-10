@@ -69,7 +69,6 @@ import java.util.Date;
 /**
  * Plugin for Play Framework component support. Registers the {@link org.gradle.play.PlayApplicationSpec} component type for the components container.
  */
-
 @Incubating
 public class PlayApplicationPlugin implements Plugin<Project> {
     public static final int DEFAULT_HTTP_PORT = 9000;
@@ -159,12 +158,12 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Validate
-        void failIfInjectedRouterIsUsedwithOldVersion(ModelMap<Task> tasks) {
-            tasks.withType(RoutesCompile.class).afterEach(new Action<RoutesCompile>() {
+        void failIfInjectedRouterIsUsedwithOldVersion(ModelMap<PlayApplicationSpec> playApplications, final PlatformResolvers platforms) {
+            playApplications.afterEach(new Action<PlayApplicationSpec>() {
                 @Override
-                public void execute(RoutesCompile task) {
-                    PlayPlatform playPlatform = task.getPlatform();
-                    if (!task.getStaticRoutesGenerator()) {
+                public void execute(PlayApplicationSpec playApplication) {
+                    if (!playApplication.getUseStaticRouter()) {
+                        final PlayPlatform playPlatform = resolveTargetPlatform(playApplication, platforms);
                         VersionNumber minSupportedVersion = VersionNumber.parse("2.4.0");
                         VersionNumber playVersion = VersionNumber.parse(playPlatform.getPlayVersion());
                         if (playVersion.compareTo(minSupportedVersion) < 0) {
@@ -307,7 +306,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         routesCompile.setAdditionalImports(new ArrayList<String>());
                         routesCompile.setSource(routesSourceSet.getSource());
                         routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
-                        routesCompile.setStaticRoutesGenerator(binary.getApplication().getUseStaticRouter());
+                        routesCompile.setUseStaticRouter(binary.getApplication().getUseStaticRouter());
 
                         ScalaLanguageSourceSet routesScalaSources = binary.getGeneratedScala().get(routesSourceSet);
                         routesScalaSources.getSource().srcDir(routesCompilerOutputDirectory);
