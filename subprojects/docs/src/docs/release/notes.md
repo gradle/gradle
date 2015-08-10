@@ -85,27 +85,29 @@ This releases introduces a new [`TestLauncher`](javadoc/org/gradle/tooling/TestL
 
 The following is an example of using the new API…
 
-		ProjectConnection connection = GradleConnector.newConnector()
-		   	.forProjectDirectory(new File("someFolder"))
-		   	.connect();
+    ProjectConnection connection = GradleConnector.newConnector()
+               .forProjectDirectory(new File("someFolder"))
+                .connect();
 
-		try {
-		   //run tests
-		   connection.newTestLauncher()
-			 .withTests(descriptor1, descriptor2)
-             .launcher.withJvmTestClasses("example.MyTest")
-			 .addProgressListener(new MyTestListener(), EnumSet.of(OperationType.TEST))
-		     .setStandardOutput(System.out)
-		     .run();
-		} finally {
-		   connection.close();
-	    }
+    try {
+       //run tests
+       connection.newTestLauncher()
+        .withTests(descriptor1, descriptor2)
+        .withJvmTestClasses("example.MyTest")
+        .addProgressListener(new MyTestListener(), EnumSet.of(OperationType.TEST))
+        .setStandardOutput(System.out)
+        .run();
+    } finally {
+       connection.close();
+    }
+
+
 
 See the Javadoc for [`ProjectConnection`](dsl/org.gradle.tooling.ProjectConnection.html) and [`TestLauncher`](dsl/org.gradle.tooling.TestLauncher.html) for more information on using the new TestLauncher API.
 
 ### Rule based model configuration reporting improvements (i)
 
-Gradle 2.5 brings significant usability enhancements to the new [Rule based model configuration mechanism](userguide/new_model.html),
+Gradle 2.6 brings significant usability enhancements to the new [Rule based model configuration mechanism](userguide/new_model.html),
 through better reporting.
 
 The [in-built “Model report”](userguide/new_model.html#N180B0) now exposes much more information about the build model, including:
