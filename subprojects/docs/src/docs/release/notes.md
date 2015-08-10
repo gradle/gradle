@@ -108,7 +108,7 @@ See the Javadoc for [`ProjectConnection`](dsl/org.gradle.tooling.ProjectConnecti
 Gradle 2.5 brings significant usability enhancements to the new [Rule based model configuration mechanism](userguide/new_model.html),
 through better reporting.
 
-The [in-built “Model report”](userguide/new_model.html#N18025) now exposes much more information about the build model, including:
+The [in-built “Model report”](userguide/new_model.html#N180B0) now exposes much more information about the build model, including:
 
 * The Java type of each model element
 * A string representation of the value of each model element
