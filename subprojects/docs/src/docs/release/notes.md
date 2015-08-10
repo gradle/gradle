@@ -164,6 +164,7 @@ We would like to thank the following community members for making contributions 
 
 * [Bruno Bowden](https://github.com/brunobowden) - Documentation improvements
 * [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements
+* [Ethan Hall](https://github.com/ethankhall) - Support for Checkstyle 6.8
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

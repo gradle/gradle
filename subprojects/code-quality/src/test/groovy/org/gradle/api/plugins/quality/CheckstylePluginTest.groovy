@@ -163,7 +163,6 @@ class CheckstylePluginTest extends Specification {
             configProperties = [foo: "foo"]
             reportsDir = project.file("checkstyle-reports")
             ignoreFailures = true
-            toolVersion = '6.8'
         }
 
         expect:
