@@ -425,11 +425,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    @Override
-    public void assertCanExecute() throws AssertionError {
-
-    }
-
     public InputStream getStdin() {
         return stdin == null ? new ByteArrayInputStream(new byte[0]) : stdin;
     }
