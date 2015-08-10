@@ -82,6 +82,11 @@ Note that due to an IDEA glitch, the first build of Gradle from IDEA will fail. 
 
 ### Eclipse
 
+#### Integration for Gradle into Eclipse with Buildship (by Gradleware)
+
+The [Buildship Eclipse project](https://github.com/eclipse/buildship) project can import and build Gradle. Use File -> Import -> Gradle and point to the cloned directory. Afterwards you can use the Gradle Tasks view to build the project.
+
+
 #### Gradle Integration for Eclipse (by Pivotal)
 
 The Gradle project is not currently buildable in Eclipse. This is something that will be rectified in the future.
