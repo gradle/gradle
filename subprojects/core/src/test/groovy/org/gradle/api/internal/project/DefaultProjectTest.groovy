@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project
 
+import groovy.lang.MissingMethodException
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.*
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -47,7 +48,6 @@ import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringResource
 import org.gradle.internal.service.ServiceRegistry
