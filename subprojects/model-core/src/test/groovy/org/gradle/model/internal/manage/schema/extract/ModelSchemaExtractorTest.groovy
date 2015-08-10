@@ -369,7 +369,6 @@ class ModelSchemaExtractorTest extends Specification {
         properties*.name == ["count", "flag", "name"]
     }
 
-    @Managed
     static interface WithInheritedPropertiesFromNotAnnotated extends SinglePropertyNotAnnotated {
         Integer getCount()
 
