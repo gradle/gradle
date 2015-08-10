@@ -85,8 +85,6 @@ To make your Play application build use the injected routes generator, you'll ne
         }
     }
 
-We have [design specs](https://github.com/gradle/gradle/blob/master/design-docs/play-support.md#feature-developer-views-compile-and-other-build-failures-in-play-application) for improving
-developer feedback even more in future Gradle releases.
 
 ### Explicit configuration of HTTP authentication schemes (i)
 
