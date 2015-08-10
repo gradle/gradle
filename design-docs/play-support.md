@@ -842,14 +842,27 @@ This is a performance optimization to the implementation of Play reload, that de
 #### Implementation
 
 - Move `CompilerDaemonManager` to session scope.  This will pull along:
-  - WorkerProcessFactory
-  - CacheRepository
-  - ClassPathRegistry
-  - WorkerProcessClasspathProvider
+  - WorkerProcessFactory - Only implication is that worker process id won't be reset on every build (i.e. it will continue to increment over subsequent builds).
+  - CacheRepository - No implications.
+  - ClassPathRegistry - This doesn't actually get pulled along, we just end up with a new classpath registry at build session scope containing WorkerProcessClassPathProvider.
+  - WorkerProcessClasspathProvider - No implications.
+- This will affect compilers for:
+  - Java
+  - Scala
+  - Groovy
+  - Play Routes
+  - Play Twirl
+  - Play Javascript
 
 #### Test coverage
 
-- Verify that an ad-hoc compiler registered in a continuous build is re-used on the next build invocation.
+- Verify that the following compilers are reused across continuous build invocations:
+  - ZincScalaCompiler
+  - JdkJavaCompiler
+  - ApiGroovyCompiler
+  - RoutesCompiler
+  - TwirlCompiler
+  - GoogleClosureCompiler
 
 ### Backlog & Open Issues
 
