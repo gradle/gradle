@@ -125,16 +125,16 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         then:
         succeeds("checkstyleMain") && ":checkstyleMain" in nonSkippedTasks
     }
-    
+
     def "can configure reporting"() {
         given:
         goodCode()
-        
+
         when:
         buildFile << """
             checkstyleMain.reports { xml.destination "foo.xml" }
         """
-        
+
         then:
         succeeds "checkstyleMain"
         file("foo.xml").exists()

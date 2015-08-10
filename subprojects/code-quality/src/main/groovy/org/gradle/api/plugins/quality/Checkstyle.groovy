@@ -136,8 +136,12 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     @TaskAction
     public void run() {
         def propertyName = "org.gradle.checkstyle.violations"
-        antBuilder.withClasspath(getCheckstyleClasspath()).execute {
-            ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
+    antBuilder.withClasspath(getCheckstyleClasspath()).execute {
+            try {
+                ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
+            } catch (ClassNotFoundException cnfe) {
+                ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask')
+            }
 
             ant.checkstyle(config: getConfig().asFile(), failOnViolation: false, failureProperty: propertyName) {
                 getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
