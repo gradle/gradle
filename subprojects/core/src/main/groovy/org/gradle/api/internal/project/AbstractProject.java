@@ -33,7 +33,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -56,7 +55,6 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -147,8 +145,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private final Path path;
 
-    private final FileResolver baseDirFileResolver;
-
     public AbstractProject(String name,
                            ProjectInternal parent,
                            File projectDir,
@@ -187,8 +183,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
-
-        this.baseDirFileResolver = new BaseDirFileResolver(services.get(FileSystem.class), getRootDir());
 
         populateModelRegistry(services.get(ModelRegistry.class));
     }
@@ -972,7 +966,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         ModelRegistry modelRegistry = getModelRegistry();
         ModelSchemaStore modelSchemaStore = getModelSchemaStore();
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
-            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, modelSchemaStore, this.baseDirFileResolver), modelRules);
+            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, modelSchemaStore, this.getRootProject().getFileResolver()), modelRules);
         } else {
             new NonTransformedModelDslBacking(modelRegistry, modelSchemaStore).configure(modelRules);
         }

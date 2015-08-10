@@ -169,9 +169,6 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) DeferredProjectConfiguration); will(returnValue(context.mock(DeferredProjectConfiguration)))
             allowing(serviceRegistryMock).get((Type) ProjectAccessListener); will(returnValue(context.mock(ProjectAccessListener)))
 
-            Object fileSystem = context.mock(FileSystem)
-            allowing(serviceRegistryMock).get(org.gradle.internal.nativeintegration.filesystem.FileSystem); will(returnValue(fileSystem))
-
             ITaskFactory taskFactoryMock = context.mock(ITaskFactory)
             allowing(serviceRegistryMock).get(ITaskFactory); will(returnValue(taskFactoryMock))
 
