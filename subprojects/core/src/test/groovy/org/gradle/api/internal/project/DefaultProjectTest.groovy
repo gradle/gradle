@@ -440,7 +440,7 @@ class DefaultProjectTest {
         project.unknownTask
     }
 
-    @Test(expected = MissingMethodException)
+    @Test(expected = groovy.lang.MissingMethodException)
     void testMethodShortCutForTaskCallWithNonExistingTask() {
         project.unknownTask([dependsOn: '/task2'])
     }
