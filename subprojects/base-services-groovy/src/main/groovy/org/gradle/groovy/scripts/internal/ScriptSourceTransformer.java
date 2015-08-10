@@ -20,13 +20,18 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 
-public class ScriptSourceDescriptionTransformer extends AbstractScriptTransformer {
-    public final static String AST_NODE_METADATA_KEY = ScriptSourceDescriptionTransformer.class.getName();
+import java.net.URI;
+
+public class ScriptSourceTransformer extends AbstractScriptTransformer {
+    public final static String AST_NODE_DESCRIPTION_METADATA_KEY = "AST_NODE_DESCRIPTION_METADATA_KEY";
+    public final static String AST_NODE_LOCATION_METADATA_KEY = "AST_NODE_LOCATION_METADATA_KEY";
 
     private final String scriptSourceDescription;
+    private final URI location;
 
-    ScriptSourceDescriptionTransformer(String scriptSourceDescription) {
+    ScriptSourceTransformer(String scriptSourceDescription, URI location) {
         this.scriptSourceDescription = scriptSourceDescription;
+        this.location = location;
     }
 
     @Override
@@ -35,7 +40,10 @@ public class ScriptSourceDescriptionTransformer extends AbstractScriptTransforme
     }
 
     public void call(SourceUnit source) throws CompilationFailedException {
-        source.getAST().setNodeMetaData(AST_NODE_METADATA_KEY, scriptSourceDescription);
+        source.getAST().setNodeMetaData(AST_NODE_DESCRIPTION_METADATA_KEY, scriptSourceDescription);
+        if (null != location) {
+            source.getAST().setNodeMetaData(AST_NODE_LOCATION_METADATA_KEY, location.toString());
+        }
     }
 
 }

@@ -28,8 +28,7 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.Nullable;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
-import org.gradle.groovy.scripts.internal.ScriptSourceDescriptionTransformer;
-import org.gradle.groovy.scripts.internal.ScriptSourceLocationTransformer;
+import org.gradle.groovy.scripts.internal.ScriptSourceTransformer;
 import org.gradle.internal.Pair;
 import org.gradle.model.internal.core.ModelPath;
 
@@ -139,11 +138,11 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
     }
 
     private String getScriptSourceDescription() {
-        return sourceUnit.getAST().getNodeMetaData(ScriptSourceDescriptionTransformer.AST_NODE_METADATA_KEY);
+        return sourceUnit.getAST().getNodeMetaData(ScriptSourceTransformer.AST_NODE_DESCRIPTION_METADATA_KEY);
     }
 
     private String getScriptSourceLocation() {
-        return sourceUnit.getAST().getNodeMetaData(ScriptSourceLocationTransformer.AST_NODE_METADATA_KEY);
+        return sourceUnit.getAST().getNodeMetaData(ScriptSourceTransformer.AST_NODE_LOCATION_METADATA_KEY);
     }
 
     @Nullable // if the target was invalid
