@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project
 
-import groovy.lang.MissingMethodException
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.*
 import org.gradle.api.artifacts.ConfigurationContainer
