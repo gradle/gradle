@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
@@ -80,7 +81,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File projectDir;
     private File settingsFile;
     private PipedOutputStream stdinPipe;
-    private InputStream stdin;
+    private PipedInputStream stdin;
     private String defaultCharacterEncoding;
     private String tmpDir;
     private Locale defaultLocale;
@@ -221,12 +222,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         if (stdinPipe != null) {
-            executer.withStdInPipe(stdinPipe);
+            executer.withStdinPipe(stdin, stdinPipe);
         }
 
-        if (stdin != null) {
-            executer.withStdIn(stdin);
-        }
         if (defaultCharacterEncoding != null) {
             executer.withDefaultCharacterEncoding(defaultCharacterEncoding);
         }
@@ -406,20 +404,30 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return executable;
     }
 
-    public GradleExecuter withStdIn(String text) {
-        this.stdin = new ByteArrayInputStream(TextUtil.toPlatformLineSeparators(text).getBytes());
-        return this;
+    @Override
+    public GradleExecuter withStdinPipe() {
+        return withStdinPipe(new PipedOutputStream());
     }
 
-    public GradleExecuter withStdIn(InputStream stdin) {
+    @Override
+    public GradleExecuter withStdinPipe(PipedOutputStream stdInPipe) {
+        try {
+            return withStdinPipe(new PipedInputStream(stdInPipe), stdInPipe);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public GradleExecuter withStdinPipe(PipedInputStream stdin, PipedOutputStream stdInPipe) {
         this.stdin = stdin;
+        this.stdinPipe = stdInPipe;
         return this;
     }
 
     @Override
-    public GradleExecuter withStdInPipe(PipedOutputStream stdInPipe) {
-        this.stdinPipe = stdInPipe;
-        return this;
+    public void assertCanExecute() throws AssertionError {
+
     }
 
     public InputStream getStdin() {

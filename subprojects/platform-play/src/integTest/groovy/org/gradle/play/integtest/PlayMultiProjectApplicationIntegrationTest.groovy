@@ -115,7 +115,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         run ":primary:assemble"
 
         when:
-        GradleHandle build = executer.withTasks(":primary:runPlayBinary").withForceInteractive(true).withStdIn(System.in).withStdInPipe(stdinPipe).start()
+        GradleHandle build = executer.withTasks(":primary:runPlayBinary").withForceInteractive(true).withStdinPipe(System.in, stdinPipe).start()
 
         then:
         def url = runningApp.playUrl().toString()

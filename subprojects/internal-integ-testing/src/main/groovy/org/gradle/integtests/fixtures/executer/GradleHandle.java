@@ -15,7 +15,14 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import java.io.PipedOutputStream;
+
 public interface GradleHandle {
+    /**
+     * Returns the stream for writing to stdin.
+     */
+    PipedOutputStream getStdinPipe();
+
     /**
      * Returns the stdout output currently received from the build. This is live.
      */

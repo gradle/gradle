@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
-import java.io.InputStream;
+import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.List;
 import java.util.Locale;
@@ -114,19 +114,19 @@ public interface GradleExecuter {
     GradleExecuter usingExecutable(String script);
 
     /**
-     * Sets the stdin to use for the build. Defaults to an empty string.
+     * Sets a stream to use for writing to stdin which can be retrieved with getStdinPipe().
      */
-    GradleExecuter withStdIn(String text);
+    GradleExecuter withStdinPipe();
 
     /**
-     * Sets the stdin to use for the build. Defaults to an empty string.
+     * Sets a stream to use for writing to stdin.
      */
-    GradleExecuter withStdIn(InputStream stdin);
+    GradleExecuter withStdinPipe(PipedOutputStream stdInPipe);
 
     /**
-     * Sets a stream to use for writing to stdin (assumes stdin is already wired to it)
+     * Sets an already connected set of streams to use for writing to stdin.
      */
-    GradleExecuter withStdInPipe(PipedOutputStream inputWriter);
+    GradleExecuter withStdinPipe(PipedInputStream stdin, PipedOutputStream stdInPipe);
 
     /**
      * Executes the requested build, asserting that the build succeeds. Resets the configuration of this executer.

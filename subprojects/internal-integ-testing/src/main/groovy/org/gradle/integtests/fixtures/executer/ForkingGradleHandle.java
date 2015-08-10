@@ -52,6 +52,11 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         this.stdinPipe = stdinPipe;
     }
 
+    @Override
+    public PipedOutputStream getStdinPipe() {
+        return stdinPipe;
+    }
+
     public String getStandardOutput() {
         try {
             return standardOutput.toString(outputEncoding);

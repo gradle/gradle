@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
 import org.gradle.util.ports.FixedAvailablePortAllocator
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
@@ -66,9 +65,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
 
         when:
         sample playSample
-        def userInput = new PipedOutputStream();
-        executer.withStdIn(new PipedInputStream(userInput))
-        executer.usingInitScript(initScript)
+        executer.usingInitScript(initScript).withStdinPipe()
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
 
         then:
@@ -78,16 +75,10 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
         checkContent()
 
         when:
-        stopWithCtrlD(userInput, gradleHandle)
+        gradleHandle.cancelWithEOT().waitForFinish()
 
         then: "play server is stopped too"
         notAvailable("http://localhost:$httpPort")
-    }
-
-    static stopWithCtrlD(PipedOutputStream userInput, GradleHandle gradleHandle) {
-        userInput.write(4) // ctrl+d
-        userInput.write(TextUtil.toPlatformLineSeparators("\n").bytes) // For some reason flush() doesn't get the keystroke to the DaemonExecuter
-        gradleHandle.waitForFinish()
     }
 
     URL playUrl(String path='') {

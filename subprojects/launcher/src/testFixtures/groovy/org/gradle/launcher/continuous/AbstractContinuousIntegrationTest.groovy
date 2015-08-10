@@ -20,7 +20,6 @@ import com.google.common.util.concurrent.SimpleTimeLimiter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.process.internal.streams.SafeStreams
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.RedirectStdIn
 import org.gradle.util.TextUtil
@@ -114,7 +113,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         standardOutputBuildMarker = 0
         errorOutputBuildMarker = 0
 
-        executer.withStdIn(System.in).withStdInPipe(stdinPipe)
+        executer.withStdinPipe(System.in, stdinPipe)
         gradle = executer.withTasks(tasks).withForceInteractive(true).withArgument("--continuous").start()
     }
 
@@ -159,7 +158,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
 
     void closeStdIn() {
         stdinPipe.close()
-        executer.withStdIn(SafeStreams.emptyInput())
+        executer.withStdinPipe(null, null)
         redirectStdIn.resetStdinPipe()
         stdinPipe = redirectStdIn.getStdinPipe()
     }

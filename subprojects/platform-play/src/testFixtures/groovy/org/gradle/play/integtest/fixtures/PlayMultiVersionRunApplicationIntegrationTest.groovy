@@ -29,7 +29,7 @@ abstract class PlayMultiVersionRunApplicationIntegrationTest extends PlayMultiVe
     PipedOutputStream stdinPipe = redirectStdIn.getStdinPipe()
 
     def startBuild(tasks) {
-        build = executer.withTasks(tasks).withForceInteractive(true).withStdIn(System.in).withStdInPipe(stdinPipe).start()
+        build = executer.withTasks(tasks).withForceInteractive(true).withStdinPipe(System.in, stdinPipe).start()
     }
 
     def cleanup() {

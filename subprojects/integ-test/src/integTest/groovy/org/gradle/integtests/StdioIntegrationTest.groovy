@@ -36,9 +36,13 @@ task echo << {
     }
 }
 '''
+        def stdinPipe = new PipedOutputStream()
+        executer.withStdinPipe(stdinPipe)
+        stdinPipe.write(TextUtil.toPlatformLineSeparators("abc\n123").bytes)
+        stdinPipe.close()
 
         when:
-        executer.withStdIn("abc\n123").withArguments("-s", "--info")
+        executer.withArguments("-s", "--info")
         run "echo"
 
         then:
@@ -67,7 +71,7 @@ task echo << {
         writeEnd.write(TextUtil.toPlatformLineSeparators("abc\n123\nclose\n").bytes)
 
         when:
-        executer.withStdIn(readEnd).withArguments("-s", "--info")
+        executer.withStdinPipe(readEnd, writeEnd).withArguments("-s", "--info")
         run "echo"
 
         then:
