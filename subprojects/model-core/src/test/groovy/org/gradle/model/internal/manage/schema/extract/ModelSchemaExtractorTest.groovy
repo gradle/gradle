@@ -21,10 +21,7 @@ import org.gradle.model.Managed
 import org.gradle.model.ModelMap
 import org.gradle.model.ModelSet
 import org.gradle.model.Unmanaged
-import org.gradle.model.internal.manage.schema.ModelMapSchema
-import org.gradle.model.internal.manage.schema.ModelSchema
-import org.gradle.model.internal.manage.schema.ModelSchemaStore
-import org.gradle.model.internal.manage.schema.ModelStructSchema
+import org.gradle.model.internal.manage.schema.*
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
@@ -963,7 +960,7 @@ interface Managed${typeName} {
         def schema = extract(SimpleUnmanagedTypeWithAnnotations)
 
         then:
-        assert schema instanceof ModelStructSchema
+        assert schema instanceof ModelUnmanagedSchema
         schema.properties.keySet() == (["unmanagedProp", "unmanagedCalculatedProp"] as Set)
 
         schema.properties["unmanagedProp"].annotations*.annotationType() == [CustomTestAnnotation]

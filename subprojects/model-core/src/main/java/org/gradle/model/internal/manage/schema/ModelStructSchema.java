@@ -17,33 +17,22 @@
 package org.gradle.model.internal.manage.schema;
 
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.ref.WeakReference;
 
-public class ModelStructSchema<T> extends ModelSchema<T> {
+public class ModelStructSchema<T> extends ModelImplTypeSchema<T> {
     private final WeakReference<Class<? extends T>> managedImpl;
     private final WeakReference<Class<?>> delegateType;
-    private final ImmutableSortedMap<String, ModelProperty<?>> properties;
     private final NodeInitializer nodeInitializer;
 
-    public ModelStructSchema(Kind kind, ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
-        super(type, kind);
+    public ModelStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
+        super(type, Kind.STRUCT, properties);
         this.nodeInitializer = nodeInitializer.apply(this);
-        ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
-        for (ModelProperty<?> property : properties) {
-            builder.put(property.getName(), property);
-        }
-        this.properties = builder.build();
         this.managedImpl = new WeakReference<Class<? extends T>>(managedImpl);
         this.delegateType = new WeakReference<Class<?>>(delegateType);
-    }
-
-    public ImmutableSortedMap<String, ModelProperty<?>> getProperties() {
-        return properties;
     }
 
     public Class<? extends T> getManagedImpl() {
