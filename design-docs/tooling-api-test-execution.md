@@ -52,7 +52,7 @@ From a client this API can be used like:
 	  ~~is in one place, rather than ad hoc per operation.~~
 * ~~Change filter interfaces for `Test` to allow test class and method filters to be applied. Do not use patterns (except perhaps to initially get something working).~~
 * ~~Run appropriate `Test` tasks based on the descriptors.~~
-* ~~Tests will not execute when test task is up-to-date.~~
+* ~~unchanged tests will reexecute without task marked as up-to-date.~~
 
 ### Test cases
 
@@ -115,21 +115,6 @@ Add methods to `TestLauncher` to request specific JVM test classes be executed.
 * ~~build should not fail if filter matches a single test task~~
 * ~~expected test progress events are received in each case~~
 
-## Story: Allow forced execution of up-to-date test tasks
-
-### Implementation
-
-* add flag to `TestLauncher` indicating a test tasks should always be executed (not matter of up-to-date or not)
-* allow configuration from client side via `TestLauncher#alwaysRunTests()`
-* configure candidate test tasks in `TestExecutionRequestActionRunner` as not up-to-date when always run flag is set
-    * dependend tasks on candiate test tasks stay up-to-date
-
-### Test Coverage
-
-* can force execution of up-to-date test
-* dependent tasks on test task keep being up-to-date
-* when multiple test task candidates are available, all got reexecuted.
-
 ## Story: Add ability to launch JVM tests by method
 
     interface TestLauncher extends LongRunningOperation {
@@ -142,16 +127,16 @@ Add methods to `TestLauncher` to request specific JVM test classes be executed.
 
 ### Test cases
 
-* can execute
-	* single test method of JVM test class
-	* multiple test methods of JVM test class
-* methods that do not match are not executed.
-* expected test progress events are received in each case
-* tooling api operation fails with meaningful error message when no matching tests can be found
-	* class does not exist
-	* class does not define any tests
-	* class does not define any matching test methods
-* failing tests let the test launcher run throw an exception with a meaningful error message.
+* ~~can execute~~
+	* ~~single test method of JVM test class~~
+	* ~~multiple test methods of JVM test class~~
+* ~~methods that do not match are not executed.~~
+* ~~expected test progress events are received in each case~~
+* ~~tooling api operation fails with meaningful error message when no matching tests can be found~~
+	* ~~class does not exist~~
+	* ~~class does not define any tests~~
+	* ~~class does not define any matching test methods~~
+* ~~failing tests let the test launcher run throw an exception with a meaningful error message.~
 
 ## Story: Run only those test tasks that match the test execution request
 
