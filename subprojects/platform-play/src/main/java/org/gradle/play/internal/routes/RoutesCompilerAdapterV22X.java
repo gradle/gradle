@@ -23,6 +23,7 @@ import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.List;
 
 class RoutesCompilerAdapterV22X extends DefaultVersionedRoutesCompilerAdapter {
@@ -47,11 +48,13 @@ class RoutesCompilerAdapterV22X extends DefaultVersionedRoutesCompilerAdapter {
         );
     }
 
-    public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean staticRoutesGenerator) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean staticRoutesGenerator, Collection<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        List<String> defaultImports = javaProject ? defaultJavaImports : defaultScalaImports;
+        defaultImports.addAll(additionalImports);
         return new Object[] {
                 file,
                 destinationDir,
-                ScalaListBuffer.fromList(cl, javaProject ? defaultJavaImports : defaultScalaImports),
+                ScalaListBuffer.fromList(cl, defaultImports),
                 generateReverseRoutes,
                 namespaceReverseRouter
         };

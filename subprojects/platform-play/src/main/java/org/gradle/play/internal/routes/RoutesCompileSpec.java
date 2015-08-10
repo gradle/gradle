@@ -20,6 +20,7 @@ import org.gradle.play.internal.spec.PlayCompileSpec;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Collection;
 
 public interface RoutesCompileSpec extends PlayCompileSpec, Serializable {
     Iterable<File> getSources();
@@ -31,4 +32,6 @@ public interface RoutesCompileSpec extends PlayCompileSpec, Serializable {
     boolean isGenerateReverseRoutes();
 
     boolean isStaticRoutesGenerator();
+
+    Collection<String> getAdditionalImports();
 }

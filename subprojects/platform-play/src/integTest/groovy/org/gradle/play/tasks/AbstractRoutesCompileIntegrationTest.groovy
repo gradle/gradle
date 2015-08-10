@@ -277,4 +277,26 @@ object Application extends Controller {
     JarTestFixture jar(String fileName) {
         new JarTestFixture(file(fileName))
     }
+
+    def "can add additional imports"() {
+        given:
+        withRoutesTemplate()
+        and:
+        buildFile << """
+model {
+    components {
+        play {
+            tasks.withType(RoutesCompile) {
+                additionalImports << "extra.package"
+            }
+        }
+    }
+}
+"""
+        expect:
+        succeeds("compilePlayBinaryRoutes")
+        and:
+        destinationDir.file(getRoutesReverseFileNameTemplate('', '')).text.contains("extra.package")
+        destinationDir.file(getRoutesScalaFileNameTemplate('', '')).text.contains("extra.package")
+    }
 }

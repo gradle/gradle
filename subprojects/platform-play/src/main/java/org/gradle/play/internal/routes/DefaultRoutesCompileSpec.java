@@ -19,6 +19,7 @@ package org.gradle.play.internal.routes;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 
 import java.io.File;
+import java.util.Collection;
 
 public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
     private final Iterable<File> sourceFiles;
@@ -28,8 +29,9 @@ public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
     private final boolean namespaceReverseRouter;
     private final boolean generateReverseRoutes;
     private final boolean staticRoutesGenerator;
+    private final Collection<String> additionalImports;
 
-    public DefaultRoutesCompileSpec(Iterable<File> sourceFiles, File outputDirectory, BaseForkOptions forkOptions, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean staticRoutesGenerator) {
+    public DefaultRoutesCompileSpec(Iterable<File> sourceFiles, File outputDirectory, BaseForkOptions forkOptions, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean staticRoutesGenerator, Collection<String> additionalImports) {
         this.sourceFiles = sourceFiles;
         this.outputDirectory = outputDirectory;
         this.forkOptions = forkOptions;
@@ -37,6 +39,7 @@ public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
         this.namespaceReverseRouter = namespaceReverseRouter;
         this.generateReverseRoutes = generateReverseRoutes;
         this.staticRoutesGenerator = staticRoutesGenerator;
+        this.additionalImports = additionalImports;
     }
 
     public Iterable<File> getSources() {
@@ -66,5 +69,10 @@ public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
     @Override
     public boolean isStaticRoutesGenerator() {
         return staticRoutesGenerator;
+    }
+
+    @Override
+    public Collection<String> getAdditionalImports() {
+        return additionalImports;
     }
 }

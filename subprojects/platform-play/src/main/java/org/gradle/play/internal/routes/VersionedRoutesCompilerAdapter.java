@@ -21,6 +21,7 @@ import org.gradle.scala.internal.reflect.ScalaMethod;
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.List;
 
 public interface VersionedRoutesCompilerAdapter extends Serializable {
@@ -28,7 +29,7 @@ public interface VersionedRoutesCompilerAdapter extends Serializable {
 
     ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
 
-    Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean staticRoutesGenerator) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
+    Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean staticRoutesGenerator, Collection<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
 
     List<String> getClassLoaderPackages();
 }
