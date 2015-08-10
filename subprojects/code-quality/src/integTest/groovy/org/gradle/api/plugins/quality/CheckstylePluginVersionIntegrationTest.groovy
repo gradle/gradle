@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.hamcrest.Matcher
-import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
