@@ -15,12 +15,14 @@
  */
 
 package org.gradle.api.reporting.model
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
+
 /**
  * Tests for more detailed output i.e. with the `org.gradle.model.dsl` flag enabled.
  */
@@ -43,7 +45,6 @@ model {
         value = 5
     }
 }
-
 """
         buildFile
         when:
@@ -149,6 +150,42 @@ model {
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
         normaliseFileSeparators(modelNode.numbers.@creator[0]) == "model.numbers @ ${server.getAddress()}/stub/my-model.gradle line 9, column 13"
+    }
+
+    def "can find the relative path to model rules defined in different scripts"() {
+        given:
+        def model1File = testDirectory.file("model1.gradle")
+        def model2File = testDirectory.file("model2.gradle")
+
+        model1File << """
+        ${managedNumbers()}
+        model {
+            numbers(Numbers){
+                value = 5
+            }
+        }
+"""
+
+        model2File << """
+        ${managedNumbers()}
+        model {
+            otherNumbers(Numbers){
+                value = 5
+            }
+        }
+"""
+
+        buildFile << """
+apply from: '${model1File}'
+apply from: '${model2File}'
+"""
+        when:
+        run "model"
+
+        then:
+        def modelNode = ModelReportOutput.from(output).modelNode
+        normaliseFileSeparators(modelNode.numbers.@creator[0]) == "model.numbers @ model1.gradle line 8, column 13"
+        normaliseFileSeparators(modelNode.otherNumbers.@creator[0]) == "model.otherNumbers @ model2.gradle line 8, column 13"
     }
 
     private String managedNumbers() {

@@ -153,6 +153,8 @@ public class TransformedModelDslBacking {
 
     private static class RelativePathSourceLocationTransformer implements Transformer<SourceLocation, Closure<?>> {
         private final RelativeFilePathResolver relativeFilePathResolver;
+        private URI uri;
+        private String description;
 
         public RelativePathSourceLocationTransformer(RelativeFilePathResolver relativeFilePathResolver) {
             this.relativeFilePathResolver = relativeFilePathResolver;
@@ -161,13 +163,16 @@ public class TransformedModelDslBacking {
         @Override
         public SourceLocation transform(Closure<?> closure) {
             RuleMetadata ruleMetadata = getRuleMetadata(closure);
-            URI uri = URI.create(ruleMetadata.absoluteScriptSourceLocation());
-            String scheme = uri.getScheme();
-            if(null != scheme && scheme.equalsIgnoreCase("file")){
-                String relativePath = relativeFilePathResolver.resolveAsRelativePath(ruleMetadata.absoluteScriptSourceLocation());
-                return new SourceLocation(uri.toString(), relativePath, ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
+            if (uri == null) {
+                uri = URI.create(ruleMetadata.absoluteScriptSourceLocation());
+                String scheme = uri.getScheme();
+                if (null != scheme && scheme.equalsIgnoreCase("file")) {
+                    description = relativeFilePathResolver.resolveAsRelativePath(ruleMetadata.absoluteScriptSourceLocation());
+                } else {
+                    description = uri.toString();
+                }
             }
-            return new SourceLocation(uri.toString(), uri.toString(), ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
+            return new SourceLocation(uri.toString(), description, ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
         }
     }
 }
