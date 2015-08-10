@@ -24,11 +24,10 @@ import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
-@TargetVersions(['6.8.2', '6.8', '6.7', '6.5', '6.1', '5.9'])
+@TargetVersions(['6.8.2', '6.8', '6.5', '6.0', '5.9', '5.5'])
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
-    @Unroll
-    def "can use different checkstyle versions: #version"() {
+    def "can use checkstyle version"() {
         given:
         badCode()
         goodCode()
