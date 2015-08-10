@@ -100,7 +100,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
             methodName = getClass().getSimpleName();
         }
         if (prefix == null) {
-            String safeMethodName = methodName.replaceAll("\\s", "_").replace(File.pathSeparator, "_").replace(":", "_").replace('"', '_');
+            String safeMethodName = methodName.replaceAll("[\\s:\"\\[\\]>]", "_");
             if (safeMethodName.length() > 60) {
                 safeMethodName = safeMethodName.substring(0, 29) + "..." + safeMethodName.substring(safeMethodName.length() - 29);
             }
