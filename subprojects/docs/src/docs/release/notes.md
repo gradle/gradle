@@ -164,6 +164,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Bruno Bowden](https://github.com/brunobowden) - Documentation improvements
+* [Chris Purcell](https://github.com/cjp39) - Documentation improvements
 * [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements
 * [Emmanuel Bourg](https://github.com/ebourg) - Use correct import for `Sets` in `ProjectDependencyArtifactIdExtractorHack`
 * [Ethan Hall](https://github.com/ethankhall) - Support for Checkstyle 6.8
