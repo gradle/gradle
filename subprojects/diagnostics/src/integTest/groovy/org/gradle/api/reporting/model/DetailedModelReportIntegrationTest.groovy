@@ -155,7 +155,7 @@ model {
     def "can find the relative path to model rules defined in different scripts"() {
         given:
         def model1File = testDirectory.file("model1.gradle")
-        def model2File = testDirectory.file("model2.gradle")
+        def model2File = testDirectory.file("sub-dir", "model2.gradle")
 
         model1File << """
         ${managedNumbers()}
@@ -176,8 +176,8 @@ model {
 """
 
         buildFile << """
-apply from: '${model1File}'
-apply from: '${model2File}'
+apply from: '${normaliseFileSeparators(model1File.absolutePath)}'
+apply from: '${normaliseFileSeparators(model2File.absolutePath)}'
 """
         when:
         run "model"
@@ -185,7 +185,7 @@ apply from: '${model2File}'
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
         normaliseFileSeparators(modelNode.numbers.@creator[0]) == "model.numbers @ model1.gradle line 8, column 13"
-        normaliseFileSeparators(modelNode.otherNumbers.@creator[0]) == "model.otherNumbers @ model2.gradle line 8, column 13"
+        normaliseFileSeparators(modelNode.otherNumbers.@creator[0]) == "model.otherNumbers @ sub-dir/model2.gradle line 8, column 13"
     }
 
     private String managedNumbers() {
