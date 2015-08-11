@@ -34,7 +34,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractIntegrationSpec {
         ruleUsingProject()
 
         then:
-        succeeds "build"
+        succeeds ":rule-using:pmdMain"
         // since the classpath for the main sourceset is automatically set, the rule will find the junit class and report this
         file("rule-using/build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.ruleusing.Class1"))
     }
@@ -44,7 +44,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractIntegrationSpec {
         ruleUsingProjectNoClasspath()
 
         then:
-        succeeds "build"
+        succeeds ":rule-using:pmdMain"
         // since the classpath is cleared, the rule will not find the junit class, and not report this
         file("rule-using/build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.ruleusing.Class1")))
     }
