@@ -16,7 +16,7 @@
 package org.gradle.ide.visualstudio.tasks
 
 import org.gradle.api.Incubating
-import org.gradle.api.internal.file.RelativeFileNameTransformer
+import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioFiltersFile

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.ide.visualstudio.tasks.internal;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.Transformer;
