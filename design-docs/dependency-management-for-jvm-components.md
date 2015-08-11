@@ -587,46 +587,6 @@ abstract class SomeManagedType implements JarBinarySpec {
 - We should have some validation around unmanaged types overriding managed types.
 - Test that a managed property of type `ModelMap<ModelMap<UnmanagedType>>` throws an error.
 
-## Story: Plugin author defines variants for custom Jar binary
-
-Plugin author extends `JarBinarySpec` to declare custom variant dimensions:
-
-    @Managed
-    interface CustomBinarySpec extends JarBinarySpec {
-        @Variant
-        String getFlavor()
-
-        @Variant
-        BuildType getBuildType() // Must extend `Named`
-    }
-
-Each property marked with `@Variant` defines a variant dimension for this kind of binary.
-
-- Property type must either be a String or a type that extends `Named`.
-- Annotate `JvmBinarySpec.targetPlatform`, the properties of `NativeBinarySpec` and `PlayApplicationBinarySpec`.
-- Component report shows variants for a binary in alphabetic order using the property name.
-
-### Implementation
-
-- Replace special case rendering of binary variant dimensions from the component report with general purpose reporting.
-- `ModelImplTypeSchema` provides the getter for the property, but does not hold a strong reference to it.
-- All annotations on setters are stored in the schema for the purpose of raising errors about them later on.
-
-### Test cases
-
-- Variants are displayed for binary in alphabetic order using the property names.
-    - managed type `A` has variant property `parentVariant`
-    - managed subtype `B` has variant property `childVariant1`
-    - managed subtype `B` has variant property `childVariant2`
-    - report displays variants with names in order:
-        - `childVariant1`
-        - `childVariant2`
-        - `parentVariant`
-- Error cases:
-    - Invalid property type raises error during rule execution.
-    - `@Variant` annotation placed on setter raises error during rule execution.
-
-
 ## Story: Java sources of custom component are compiled against matching binary variant
 
 Change dependency resolution to honor variant dimensions for a custom component with Jar binaries.
@@ -683,6 +643,46 @@ a binary `B` has a variant `buildType` of type `BuildType`, the variant dimensio
     an error message indicating that the binary didn't have a compatible type for `buildType`.
     - Binary `A {platform, buildType}` depends on Library `B {platform, buildType}` but type of `A#buildType` is `BuildType extends Named` and `B#buildType` is `DifferentBuildType extends Named`: fail (no compatible) and display
         an error message indicating that the binary didn't have a compatible type for `buildType`.
+
+
+## Story: Plugin author defines variants for custom Jar binary
+
+Plugin author extends `JarBinarySpec` to declare custom variant dimensions:
+
+    @Managed
+    interface CustomBinarySpec extends JarBinarySpec {
+        @Variant
+        String getFlavor()
+
+        @Variant
+        BuildType getBuildType() // Must extend `Named`
+    }
+
+Each property marked with `@Variant` defines a variant dimension for this kind of binary.
+
+- Property type must either be a String or a type that extends `Named`.
+- Annotate `JvmBinarySpec.targetPlatform`, the properties of `NativeBinarySpec` and `PlayApplicationBinarySpec`.
+- Component report shows variants for a binary in alphabetic order using the property name.
+
+### Implementation
+
+- Replace special case rendering of binary variant dimensions from the component report with general purpose reporting.
+- `ModelImplTypeSchema` provides the getter for the property, but does not hold a strong reference to it.
+- All annotations on setters are stored in the schema for the purpose of raising errors about them later on.
+
+### Test cases
+
+- Variants are displayed for binary in alphabetic order using the property names.
+    - managed type `A` has variant property `parentVariant`
+    - managed subtype `B` has variant property `childVariant1`
+    - managed subtype `B` has variant property `childVariant2`
+    - report displays variants with names in order:
+        - `childVariant1`
+        - `childVariant2`
+        - `parentVariant`
+- Error cases:
+    - Invalid property type raises error during rule execution.
+    - `@Variant` annotation placed on setter raises error during rule execution.
 
 
 ## Feature backlog
