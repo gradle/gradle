@@ -35,6 +35,10 @@ class EclipseProjectFixture {
         return project
     }
 
+    String getProjectName(){
+        getProject().'name'.text()
+    }
+
     void assertHasJavaFacetNatures() {
         assertHasNatures("org.eclipse.jdt.core.javanature",
                         "org.eclipse.wst.common.project.facet.core.nature",

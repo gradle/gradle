@@ -43,11 +43,13 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
 
         def settingsFile = file("master/settings.gradle")
         settingsFile << """
+rootProject.name = 'root'
 include 'api'
 include 'shared:api', 'shared:model'
 include 'services:utilities'
 include 'util'
 include 'contrib:services:util'
+
         """
 
         def buildFile = file("master/build.gradle")
@@ -91,7 +93,7 @@ project(':services:utilities') {
         List deps = parseEclipseProjectDependencies(project: 'master/services/utilities')
 
         assert deps.contains("/very-cool-model")
-        assert deps.contains("/util")
+        assert deps.contains("/root-util")
         assert deps.contains("/shared-api")
         assert deps.contains("/contrib-services-util")
     }

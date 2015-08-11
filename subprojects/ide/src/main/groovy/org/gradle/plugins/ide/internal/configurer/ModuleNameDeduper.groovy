@@ -15,6 +15,9 @@
  */
 package org.gradle.plugins.ide.internal.configurer
 
+import com.google.common.collect.Lists
+import org.gradle.api.Project
+
 /**
  * Able to deduplicate names. Useful for IDE plugins to make sure module names (IDEA) or project names (Eclipse) are unique.
  * <p>
@@ -22,13 +25,38 @@ package org.gradle.plugins.ide.internal.configurer
 class ModuleNameDeduper {
 
     void dedupe(Collection<DeduplicationTarget> targets) {
-        def allNames = []
+        List<String> givenEclipseProjectNames = targets.collect { it.moduleName }
         targets.each { target ->
-            def name = target.candidateNames.find { !allNames.contains(it) }
-            if (name) {
-                allNames << name
-                target.updateModuleName(name)
-            }
+            doDeduplication(givenEclipseProjectNames, targets, target)
         }
     }
+
+    private String doDeduplication(List<String> givenModuleNames, Collection<DeduplicationTarget> targets, DeduplicationTarget target) {
+        Project project = target.project
+        if (project.parent == null) {
+            return target.moduleName
+        }
+        String givenModuleName = target.moduleName
+        boolean isDuplicate = givenModuleNames.findAll { givenModuleName == it }.size() > 1
+        if (isDuplicate) {
+            def parentTarget = targets.find { it.project.equals(project.parent) }
+            if(parentTarget == null){
+                parentTarget = new DeduplicationTarget(project: project.parent, moduleName: project.name, updateModuleName: { })
+            }
+            givenModuleName = doDeduplication(givenModuleNames, targets, parentTarget) + "-" + givenModuleName
+        }
+
+        def deduplicatedModuleName = removeDuplicateWords(givenModuleName)
+        target.updateModuleName(deduplicatedModuleName)
+        return deduplicatedModuleName;
+    }
+
+    private String removeDuplicateWords(String givenProjectName) {
+        def wordlist = Lists.newArrayList(givenProjectName.split("-"))
+        if (wordlist.size() > 2) {
+            wordlist = wordlist.unique()
+        }
+        return wordlist.join("-")
+    }
+
 }

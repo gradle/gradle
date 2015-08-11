@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.configurer
 
+import com.google.common.collect.Lists
 import org.gradle.api.Project
 
 class ProjectDeduper {
@@ -26,8 +27,16 @@ class ProjectDeduper {
         //Deduper acts on first-come first-served basis.
         //Therefore it's better if the inputs are sorted that first items are least wanted to be prefixed
         //Hence I'm sorting by nesting level:
-        def sorted = projects.sort { (it.parent == null)? 0 : it.path.count(":") }
+        def sorted = projects.sort { (it.parent == null) ? 0 : it.path.count(":") }
         def deduplicationTargets = sorted.collect({ createDeduplicationTarget(it) })
         moduleNameDeduper.dedupe(deduplicationTargets)
+    }
+
+    String removeDuplicateWords(String givenProjectName) {
+        def wordlist = Lists.newArrayList(givenProjectName.split("-"))
+        if (wordlist.size() > 2) {
+            wordlist = wordlist.unique()
+        }
+        return wordlist.join("-")
     }
 }
