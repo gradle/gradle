@@ -109,6 +109,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         gradle = executer.withStdinPipe()
             .withTasks(tasks)
             .withForceInteractive(true)
+            .withArgument("--stacktrace")
             .withArgument("--continuous")
             .start()
     }
