@@ -33,6 +33,7 @@ class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainInteg
         EnableModelDsl.enable(executer)
     }
 
+    @LeaksFileHandles
     def "can configure the binaries of a C++ application"() {
         given:
         buildFile << """
@@ -112,6 +113,7 @@ model {
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @LeaksFileHandles
     def "can configure the binaries of a C++ library"() {
         given:
         buildFile << """
@@ -286,6 +288,7 @@ model {
 
     @Unroll
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @LeaksFileHandles
     def "can link to #linkage library binary with custom output file"() {
         given:
         def app = new CppHelloWorldApp()
