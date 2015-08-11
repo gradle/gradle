@@ -109,9 +109,8 @@ public class Matchers {
     public static <T extends CharSequence> Matcher<T> containsText(final String pattern) {
         return new BaseMatcher<T>() {
             public boolean matches(Object o) {
-                return Pattern.compile(Pattern.quote(pattern)).matcher((CharSequence) o).find();
+                return ((String) o).contains(pattern);
             }
-
             public void describeTo(Description description) {
                 description.appendText("a CharSequence that contains text ").appendValue(pattern);
             }
