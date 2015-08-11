@@ -153,25 +153,26 @@ public class TransformedModelDslBacking {
 
     private static class RelativePathSourceLocationTransformer implements Transformer<SourceLocation, Closure<?>> {
         private final RelativeFilePathResolver relativeFilePathResolver;
-        private URI uri;
-        private String description;
 
         public RelativePathSourceLocationTransformer(RelativeFilePathResolver relativeFilePathResolver) {
             this.relativeFilePathResolver = relativeFilePathResolver;
         }
 
+        // TODO given that all the closures are from the same file, we should do the relativising once.
+        //      that would entail adding location information to the model {} outer closure.
         @Override
         public SourceLocation transform(Closure<?> closure) {
             RuleMetadata ruleMetadata = getRuleMetadata(closure);
-            if (uri == null) {
-                uri = URI.create(ruleMetadata.absoluteScriptSourceLocation());
-                String scheme = uri.getScheme();
-                if (null != scheme && scheme.equalsIgnoreCase("file")) {
-                    description = relativeFilePathResolver.resolveAsRelativePath(ruleMetadata.absoluteScriptSourceLocation());
-                } else {
-                    description = uri.toString();
-                }
+            URI uri = URI.create(ruleMetadata.absoluteScriptSourceLocation());
+            String scheme = uri.getScheme();
+            String description;
+
+            if ("file".equalsIgnoreCase(scheme)) {
+                description = relativeFilePathResolver.resolveAsRelativePath(ruleMetadata.absoluteScriptSourceLocation());
+            } else {
+                description = uri.toString();
             }
+
             return new SourceLocation(uri.toString(), description, ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
         }
     }
