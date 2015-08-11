@@ -27,7 +27,7 @@ Moreover, we consider owning the implementation of model elements an enabler for
     - Boolean
     - Character
     - String
-    - File 
+    - File
     - All subtypes of Enum
 - *Managed property*: a property of a model element, whose implementation and state is managed by Gradle. Generally only available for `@Managed` types, but there
 may also be internal mechanisms to define such properties on other types.
@@ -44,10 +44,24 @@ may also be internal mechanisms to define such properties on other types.
 
 ##### Test cases
 
-- Does something sensible when getter uses primitive type and setter uses boxed type (and vice versa).
+- Can define RW properties of any scalar type
 - Cannot have read only properties of scalar types.
+- Does something sensible when getter uses primitive type and setter uses boxed type (and vice versa).
 - Cannot mutate properties of scalar types when view is immutable (eg used as input for rule, used as subject for validation rule).
-- Model report renderes primitive values
+- Model report renders primitive values
+
+##### Implementation
+
+- Update `PrimitiveStrategy` to support an extraction result for primitive types
+- Throw an error in `ManagedImplTypeSchemaExtractionStrategySupport` if a read-only property returns a primitive type
+- Add support for missing boxed types to `ManagedProxyClassGenerator`
+- Add support for primitive types to `ManagedProxyClassGenerator`. Handle case where state returns null by setting a default value.
+- Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles collection types in a human readable form
+
+##### Open issues
+
+- `ModelElementState` only supportso boxed types, using `get` and `set`. If the model is often updated, it could lead to performance issues, in which case it
+could be necessary to introduce primitive versions of `get` and `set`.
 
 ### Support `is` style getters for managed properties of type boolean
 
@@ -58,9 +72,9 @@ may also be internal mechanisms to define such properties on other types.
 
 - Does something sensible when `get` and `is` getters are both defined for a property.
 
-### Support for managed properties with collection of scalar types 
+### Support for managed properties with collection of scalar types
 
-- Add support for `List<T>` and `Set<T>` where `T` is any scalar type (as defined above)
+- Add support for `List<T>` and `Set<T>` where `T` is any non primitive scalar type (as defined above)
 - Support read-only and read-write properties.
 - Read-only properties default to some empty implementation
 - Read-write properties default to `null`
