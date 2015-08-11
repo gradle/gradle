@@ -25,12 +25,12 @@ import static org.hamcrest.Matchers.not
 class PmdPluginAuxclasspathIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         writeBuildFile()
+        file('settings.gradle') << 'include "pmd-rule", "rule-using"'
+        auxclasspathRuleSetProject()
     }
 
     def "classpath configured for main sourceset"() {
         when:
-        file('settings.gradle') << 'include "pmd-rule", "rule-using"'
-        auxclasspathRuleSetProject()
         ruleUsingProject()
 
         then:
@@ -41,8 +41,6 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractIntegrationSpec {
 
     def "classpath overriden"() {
         when:
-        file('settings.gradle') << 'include "pmd-rule", "rule-using"'
-        auxclasspathRuleSetProject()
         ruleUsingProjectNoClasspath()
 
         then:
@@ -76,7 +74,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractIntegrationSpec {
 
                 pmd "net.sourceforge.pmd:pmd-core:5.3.3"
                 pmd "net.sourceforge.pmd:pmd-java:5.3.3"
-                pmd files("\$rootDir/pmd-rule/build/libs/pmd-rule.jar")
+                pmd project(":pmd-rule")
             }
 
             pmd {
@@ -97,7 +95,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractIntegrationSpec {
 
                 pmd "net.sourceforge.pmd:pmd-core:5.3.3"
                 pmd "net.sourceforge.pmd:pmd-java:5.3.3"
-                pmd files("\$rootDir/pmd-rule/build/libs/pmd-rule.jar")
+                pmd project(":pmd-rule")
             }
 
             pmd {
