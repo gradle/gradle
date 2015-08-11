@@ -97,7 +97,9 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
                 @Override
                 public void execute(Task checkTask) {
                     for (NativeTestSuiteBinarySpec testBinary : binaries) {
-                        checkTask.dependsOn(testBinary.getTasks().getRun());
+                        if (testBinary.isBuildable()) {
+                            checkTask.dependsOn(testBinary.getTasks().getRun());
+                        }
                     }
                 }
             });
