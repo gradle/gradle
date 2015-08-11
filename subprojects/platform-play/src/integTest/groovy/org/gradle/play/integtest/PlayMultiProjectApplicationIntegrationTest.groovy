@@ -27,20 +27,15 @@ import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
-import org.gradle.util.RedirectStdIn
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
 
-import static org.gradle.integtests.fixtures.UrlValidator.*
+import static org.gradle.integtests.fixtures.UrlValidator.available
+import static org.gradle.integtests.fixtures.UrlValidator.notAvailable
 
 class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec {
     PlayApp playApp = new PlayMultiProject()
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
-
-    @Rule
-    RedirectStdIn redirectStdIn = new RedirectStdIn()
-    PipedOutputStream stdinPipe = redirectStdIn.getStdinPipe()
 
     def setup() {
         playApp.writeSources(testDirectory)
@@ -56,35 +51,35 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         executedAndNotSkipped(
-                ":javalibrary:jar",
-                ":submodule:playBinary",
-                ":primary:playBinary",
-                ":primary:assemble")
+            ":javalibrary:jar",
+            ":submodule:playBinary",
+            ":primary:playBinary",
+            ":primary:assemble")
 
         and:
         jar("primary/build/playBinary/lib/primary.jar").containsDescendants(
-                "Routes.class",
-                "controllers/Application.class")
+            "Routes.class",
+            "controllers/Application.class")
         jar("primary/build/playBinary/lib/primary-assets.jar").hasDescendants(
-                "public/primary.txt")
+            "public/primary.txt")
         jar("submodule/build/playBinary/lib/submodule.jar").containsDescendants(
-                "controllers/submodule/Application.class")
+            "controllers/submodule/Application.class")
         jar("submodule/build/playBinary/lib/submodule-assets.jar").hasDescendants(
-                "public/submodule.txt")
+            "public/submodule.txt")
 
         when:
         succeeds(":primary:dist")
 
         then:
         zip("primary/build/distributions/playBinary.zip").containsDescendants(
-                "playBinary/lib/primary.jar",
-                "playBinary/lib/primary-assets.jar",
-                "playBinary/lib/submodule.jar",
-                "playBinary/lib/submodule-assets.jar",
-                "playBinary/lib/javalibrary.jar",
-                "playBinary/bin/playBinary",
-                "playBinary/bin/playBinary.bat",
-                "playBinary/conf/application.conf"
+            "playBinary/lib/primary.jar",
+            "playBinary/lib/primary-assets.jar",
+            "playBinary/lib/submodule.jar",
+            "playBinary/lib/submodule-assets.jar",
+            "playBinary/lib/javalibrary.jar",
+            "playBinary/bin/playBinary",
+            "playBinary/bin/playBinary.bat",
+            "playBinary/conf/application.conf"
         )
 
         when:
@@ -92,18 +87,18 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         file("primary/build/stage/playBinary").assertIsDir().assertContainsDescendants(
-                "lib/primary.jar",
-                "lib/primary-assets.jar",
-                "lib/submodule.jar",
-                "lib/submodule-assets.jar",
-                "bin/playBinary",
-                "bin/playBinary.bat",
-                "conf/application.conf"
+            "lib/primary.jar",
+            "lib/primary-assets.jar",
+            "lib/submodule.jar",
+            "lib/submodule-assets.jar",
+            "bin/playBinary",
+            "bin/playBinary.bat",
+            "conf/application.conf"
         )
     }
 
 
-    def "can run play app"(){
+    def "can run play app"() {
         setup:
         file("primary/build.gradle") << """
     model {
@@ -115,7 +110,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         run ":primary:assemble"
 
         when:
-        GradleHandle build = executer.withTasks(":primary:runPlayBinary").withForceInteractive(true).withStdinPipe(System.in, stdinPipe).start()
+        GradleHandle build = executer.withTasks(":primary:runPlayBinary").withForceInteractive(true).withStdinPipe().start()
 
         then:
         def url = runningApp.playUrl().toString()
@@ -132,7 +127,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(TestPrecondition.NOT_UNKNOWN_OS)
-    def "can run play distribution" () {
+    def "can run play distribution"() {
         println file(".")
 
         ExecHandle handle

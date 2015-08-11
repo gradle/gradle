@@ -153,7 +153,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
 
                 builder.setMain(Main.class.getName());
                 builder.args(invocation.args);
-                builder.setStandardInput(getStdin());
+                builder.setStandardInput(connectStdIn());
 
                 return builder;
             }
@@ -171,7 +171,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         GradleInvocation invocation = buildInvocation();
 
         // Augment the environment for the execution
-        System.setIn(getStdin());
+        System.setIn(connectStdIn());
         processEnvironment.maybeSetProcessDir(getWorkingDir());
         for (Map.Entry<String, String> entry : invocation.environmentVars.entrySet()) {
             processEnvironment.maybeSetEnvironmentVariable(entry.getKey(), entry.getValue());

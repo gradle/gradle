@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
-import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.List;
 import java.util.Locale;
@@ -122,11 +121,6 @@ public interface GradleExecuter {
      * Sets a stream to use for writing to stdin.
      */
     GradleExecuter withStdinPipe(PipedOutputStream stdInPipe);
-
-    /**
-     * Sets an already connected set of streams to use for writing to stdin.
-     */
-    GradleExecuter withStdinPipe(PipedInputStream stdin, PipedOutputStream stdInPipe);
 
     /**
      * Executes the requested build, asserting that the build succeeds. Resets the configuration of this executer.

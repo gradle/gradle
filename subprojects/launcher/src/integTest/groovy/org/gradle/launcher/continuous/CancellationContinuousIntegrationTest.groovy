@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.internal.SystemProperties
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -31,12 +30,7 @@ class CancellationContinuousIntegrationTest extends Java7RequiringContinuousInte
         succeeds("build")
 
         when:
-        stdinPipe.write(4) // EOT / CTRL-D
-
-        // TODO: this is not right, we are sending a line ending to workaround the input buffering by the daemon
-        // Possibly, the daemon should be EOT aware and close the stream.
-        // Or, when the client is doing a blocking read of the input we shouldn't buffer.
-        stdinPipe.write(SystemProperties.instance.lineSeparator.bytes)
+        gradle.cancelWithEOT()
 
         then:
         cancelsAndExits()
@@ -47,7 +41,7 @@ class CancellationContinuousIntegrationTest extends Java7RequiringContinuousInte
         succeeds("build")
 
         when:
-        closeStdIn()
+        gradle.stdinPipe.close()
 
         then:
         cancelsAndExits()
@@ -62,18 +56,26 @@ class CancellationContinuousIntegrationTest extends Java7RequiringContinuousInte
         doesntExit()
 
         when:
-        stdinPipe.close()
+        gradle.stdinPipe.close()
 
         then:
         cancelsAndExits()
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS) // GradleHandle.abort() is unsafe on Windows - this is a test infrastructure problem
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    // GradleHandle.abort() is unsafe on Windows - this is a test infrastructure problem
     def "does not cancel on EOT or by closing System.in when not interactive"() {
         when:
-        executer.beforeExecute { it.withForceInteractive(false) }
+        executer.beforeExecute {
+            it.withForceInteractive(false).withStdinPipe(new PipedOutputStream() {
+                @Override
+                void connect(PipedInputStream snk) throws IOException {
+                    super.connect(snk)
+                    close()
+                }
+            })
+        }
         killToStop = true
-        closeStdIn()
 
         then:
         succeeds "build" // tests message

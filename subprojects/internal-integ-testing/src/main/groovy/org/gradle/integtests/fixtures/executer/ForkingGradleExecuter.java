@@ -142,7 +142,7 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
 
         builder.environment(invocation.environmentVars);
         builder.workingDir(getWorkingDir());
-        builder.setStandardInput(getStdin());
+        builder.setStandardInput(connectStdIn());
 
         builder.args(invocation.args);
 

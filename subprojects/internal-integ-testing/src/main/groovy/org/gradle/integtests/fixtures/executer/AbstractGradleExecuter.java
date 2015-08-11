@@ -20,15 +20,16 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.listener.ActionBroadcast;
+import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.CollectionUtils;
@@ -55,8 +56,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
 
     protected static final List<String> DEBUG_ARGS = ImmutableList.of(
-            "-Xdebug",
-            "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
+        "-Xdebug",
+        "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
     );
 
     private final Logger logger;
@@ -81,7 +82,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File projectDir;
     private File settingsFile;
     private PipedOutputStream stdinPipe;
-    private PipedInputStream stdin;
     private String defaultCharacterEncoding;
     private String tmpDir;
     private Locale defaultLocale;
@@ -133,7 +133,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         javaHome = null;
         environmentVars.clear();
         stdinPipe = null;
-        stdin = null;
         defaultCharacterEncoding = null;
         tmpDir = null;
         defaultLocale = null;
@@ -222,7 +221,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         if (stdinPipe != null) {
-            executer.withStdinPipe(stdin, stdinPipe);
+            executer.withStdinPipe(stdinPipe);
         }
 
         if (defaultCharacterEncoding != null) {
@@ -330,8 +329,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     /**
-     * Adjusts the calculated invocation prior to execution. This method is responsible for handling the implicit launcher JVM args in some way, by
-     * mutating the invocation appropriately.
+     * Adjusts the calculated invocation prior to execution. This method is responsible for handling the implicit launcher JVM args in some way, by mutating the invocation appropriately.
      */
     protected void transformInvocation(GradleInvocation gradleInvocation) {
         gradleInvocation.launcherJvmArgs.addAll(gradleInvocation.implicitLauncherJvmArgs);
@@ -411,22 +409,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter withStdinPipe(PipedOutputStream stdInPipe) {
-        try {
-            return withStdinPipe(new PipedInputStream(stdInPipe), stdInPipe);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    @Override
-    public GradleExecuter withStdinPipe(PipedInputStream stdin, PipedOutputStream stdInPipe) {
-        this.stdin = stdin;
         this.stdinPipe = stdInPipe;
         return this;
     }
 
-    public InputStream getStdin() {
-        return stdin == null ? new ByteArrayInputStream(new byte[0]) : stdin;
+    public InputStream connectStdIn() {
+        try {
+            return stdinPipe == null ? SafeStreams.emptyInput() : new PipedInputStream(stdinPipe);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public PipedOutputStream getStdinPipe() {

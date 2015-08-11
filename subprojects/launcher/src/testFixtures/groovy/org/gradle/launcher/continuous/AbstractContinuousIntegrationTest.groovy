@@ -21,9 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.util.RedirectStdIn
 import org.gradle.util.TextUtil
-import org.junit.Rule
 
 import java.util.concurrent.TimeUnit
 
@@ -39,10 +37,6 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     int buildTimeout = WAIT_FOR_WATCHING_TIMEOUT_SECONDS
     int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean killToStop
-
-    @Rule
-    RedirectStdIn redirectStdIn = new RedirectStdIn()
-    PipedOutputStream stdinPipe = redirectStdIn.getStdinPipe()
 
     public void turnOnDebug() {
         executer.withDebug(true)
@@ -112,9 +106,15 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         stopGradle()
         standardOutputBuildMarker = 0
         errorOutputBuildMarker = 0
+        gradle = executer.withStdinPipe()
+            .withTasks(tasks)
+            .withForceInteractive(true)
+            .withArgument("--continuous")
+            .start()
+    }
 
-        executer.withStdinPipe(System.in, stdinPipe)
-        gradle = executer.withTasks(tasks).withForceInteractive(true).withArgument("--continuous").start()
+    protected OutputStream getStdinPipe() {
+        gradle.stdinPipe
     }
 
     private void waitForBuild() {
@@ -147,20 +147,13 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
             if (killToStop) {
                 gradle.abort()
             } else {
-                closeStdIn()
+                gradle.cancel()
                 new SimpleTimeLimiter().callWithTimeout(
                     { gradle.waitForExit() },
                     shutdownTimeout, TimeUnit.SECONDS, false
                 )
             }
         }
-    }
-
-    void closeStdIn() {
-        stdinPipe.close()
-        executer.withStdinPipe(null, null)
-        redirectStdIn.resetStdinPipe()
-        stdinPipe = redirectStdIn.getStdinPipe()
     }
 
     void noBuildTriggered(int waitSeconds = 3) {
