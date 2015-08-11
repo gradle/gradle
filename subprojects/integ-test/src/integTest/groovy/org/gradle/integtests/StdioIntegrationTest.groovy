@@ -36,10 +36,14 @@ task echo << {
     }
 }
 '''
-        def stdinPipe = new PipedOutputStream()
-        executer.withStdinPipe(stdinPipe)
-        stdinPipe.write(TextUtil.toPlatformLineSeparators("abc\n123").bytes)
-        stdinPipe.close()
+        executer.withStdinPipe(new PipedOutputStream() {
+            @Override
+            void connect(PipedInputStream snk) throws IOException {
+                super.connect(snk)
+                write(TextUtil.toPlatformLineSeparators("abc\n123").bytes)
+                close()
+            }
+        })
 
         when:
         executer.withArguments("-s", "--info")
