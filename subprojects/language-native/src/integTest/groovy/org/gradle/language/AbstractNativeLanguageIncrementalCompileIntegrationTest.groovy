@@ -20,6 +20,7 @@ import groovy.io.FileType
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
 import spock.lang.Unroll
@@ -422,6 +423,7 @@ model {
         objectFileFor(sourceFile).assertDoesNotExist()
     }
 
+    @LeaksFileHandles
     def "removes output file when source file is removed"() {
         given:
         def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceExtension}")
