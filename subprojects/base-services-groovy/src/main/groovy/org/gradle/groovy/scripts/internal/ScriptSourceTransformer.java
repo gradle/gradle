@@ -19,6 +19,7 @@ package org.gradle.groovy.scripts.internal;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
+import org.gradle.api.Nullable;
 
 import java.net.URI;
 
@@ -29,7 +30,7 @@ public class ScriptSourceTransformer extends AbstractScriptTransformer {
     private final String scriptSourceDescription;
     private final URI location;
 
-    ScriptSourceTransformer(String scriptSourceDescription, URI location) {
+    ScriptSourceTransformer(String scriptSourceDescription, @Nullable URI location) {
         this.scriptSourceDescription = scriptSourceDescription;
         this.location = location;
     }
