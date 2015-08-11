@@ -101,8 +101,8 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         }
         if (prefix == null) {
             String safeMethodName = methodName.replaceAll("[\\s:\"\\[\\]>]", "_");
-            if (safeMethodName.length() > 60) {
-                safeMethodName = safeMethodName.substring(0, 29) + "..." + safeMethodName.substring(safeMethodName.length() - 29);
+            if (safeMethodName.length() > 30) {
+                safeMethodName = safeMethodName.substring(0, 19) + "..." + safeMethodName.substring(safeMethodName.length() - 9);
             }
             prefix = String.format("%s/%s", className, safeMethodName);
         }
