@@ -95,7 +95,7 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
                 Collection<Method> setterMethods = methodsByName.get(setterName);
                 PropertyAccessorExtractionContext setterContext = !setterMethods.isEmpty() ? new PropertyAccessorExtractionContext(setterMethods) : null;
 
-                ModelProperty<?> property = extractPropertySchema(extractionContext, propertyName, getterContext, setterContext, handledMethods);
+                ModelProperty<?> property = extractPropertySchema(extractionContext, propertyName, getterContext, setterContext);
                 if (property != null) {
                     properties.add(property);
 
@@ -112,7 +112,7 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
     }
 
     @Nullable
-    private ModelProperty<?> extractPropertySchema(ModelSchemaExtractionContext<?> extractionContext, String propertyName, PropertyAccessorExtractionContext getterContext, PropertyAccessorExtractionContext setterContext, Set<Method> handledMethods) {
+    private <R> ModelProperty<?> extractPropertySchema(ModelSchemaExtractionContext<?> extractionContext, String propertyName, PropertyAccessorExtractionContext getterContext, PropertyAccessorExtractionContext setterContext) {
         // Take the most specific declaration of the getter
         Method mostSpecificGetter = getterContext.getMostSpecificDeclaration();
         if (mostSpecificGetter.getParameterTypes().length != 0) {
