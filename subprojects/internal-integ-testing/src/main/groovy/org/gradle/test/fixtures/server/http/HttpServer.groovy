@@ -51,6 +51,7 @@ class HttpServer extends ServerWithExpectations {
     private Connector connector
     private SslSocketConnector sslConnector
     AuthScheme authenticationScheme = AuthScheme.BASIC
+    boolean logRequests = true
 
     protected Matcher expectedUserAgent = null
 
@@ -92,7 +93,9 @@ class HttpServer extends ServerWithExpectations {
         HandlerCollection handlers = new HandlerCollection()
         handlers.addHandler(new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-//                println("handling http request: $request.method $target")
+                if (logRequests) {
+                    println("handling http request: $request.method $target")
+                }
             }
         })
         handlers.addHandler(collection)

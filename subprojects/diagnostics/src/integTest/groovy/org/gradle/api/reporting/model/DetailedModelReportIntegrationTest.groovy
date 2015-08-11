@@ -130,6 +130,7 @@ model {
     def "can find the relative path when model configuration is applied from a remote http url"() {
         given:
         server.start()
+        server.logRequests = false
 
         def modelFile = testDirectory.file("local-my-model.gradle")
         modelFile.text = """
