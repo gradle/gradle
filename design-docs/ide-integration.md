@@ -40,7 +40,7 @@ The general algorithm will look like this:
 1. if no duplicate of project name is found in the hierarchy, use the original name as IDE project name
 2. root project name keeps the original name in IDE
 3. if a project with the same name is found
-       
+
     3.1 the IDE project name candidate is changed to be _deduplicated_ `project.parent.name` + `-` + `project.name`
 
     3.2 the words in the IDE project name candidate are de-duped.( eg `gradle-gradle-core` becomes `gradle-core`
@@ -51,99 +51,122 @@ The general algorithm will look like this:
 
 # Test Coverage
 
-* `gradle eclipse` / `gradle idea` on root of multiproject with given project layout containing duplicate names:
+* _gradle eclipse_ / _gradle idea_ on root of multiproject with given project layout containing duplicate names:
 
+```
     root
     \- foo
        \- app
     \- bar
        \- app
+```
 
-    results in IDE project names
+results in IDE project names
 
+```
     root
     \- foo
        \- foo-app
     \- bar
        \- bar-app
+```
+* _gradle eclipse_ / _gradle idea_ on root of multiproject with given project layout containing with no duplicate names:
 
-* `gradle eclipse` / `gradle idea` on root of multiproject with given project layout containing with no duplicate names:
-
+```
     root
     \- foo
        \- bar
     \- foobar
        \- app
+```
 
-    results in IDE project names
+results in IDE project names
 
+```
     root
     \- foo
        \- bar
     \- foobar
        \- app
+```
 
 
 * explicit configured eclipse project name take precedence over deduplication:
     given
 
+```
      root
      \- foo
         \- app
-           \-build.gradle contains `eclipse.project.name = "custom-app"`
+           \-build.gradle // contains eclipse.project.name = "custom-app"
      \- bar
         \- app
+```
 
-    results in
+results in
 
+```
      root
      \- foo
         \- custom-app
      \- bar
         \- app
+```
 
 
 * given project layout
 
+```
     app
     \- app
     \- util
+```
 
-  results in
+results in
 
+```
     app
     \- app-app
     \- util
+```
 
 * given project layout
 
+```
     root
     \- app
     \- services
        \- bar
           \- app
+```
 
-  results in
+results in
 
+```
     root
     \- root-app
     \- services
        \- bar
           \- bar-app
+```
 
 * given project layout
 
+```
     myproject
     \- myproject-app
     \- myproject-bar
        \- myproject-app
+```
 
-  results in
+results in
 
+```
     myproject
     \- myproject-app (instead of myproject-myproject-app)
     \- myproject-bar
        \- myproject-bar-app (instead of myproject-bar-myproject-app)
+```
 
 * setting ide project name within `whenMerged` results in a deprecation warning.
 * setting ide project name within `beforeMerged` results in a deprecation warning.
