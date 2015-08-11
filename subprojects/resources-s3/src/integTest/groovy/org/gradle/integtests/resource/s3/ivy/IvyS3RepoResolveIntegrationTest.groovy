@@ -36,4 +36,34 @@ class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegr
         executer.withArgument("-Dorg.gradle.s3.maxErrorRetry=0")
         result = executer.withTasks(*tasks).run()
     }
+
+    def "cannot add invalid authentication types for s3 repo"() {
+        given:
+        def remoteIvyRepo = server.getRemoteIvyRepo()
+        def module = remoteIvyRepo.module('org.group.name', 'projectA', '1.2')
+        module.publish()
+
+        and:
+        buildFile << """
+            repositories {
+                ivy {
+                    url "${remoteIvyRepo.uri}"
+                    authentication {
+                        auth(BasicAuthentication)
+                    }
+                }
+            }
+            configurations { compile }
+            dependencies { compile 'org.group.name:projectA:1.2' }
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
+            }
+        """
+
+        expect:
+        fails 'retrieve'
+        and:
+        errorOutput.contains("> Authentication scheme of 'DefaultBasicAuthentication' is not supported by protocols [s3]")
+    }
 }

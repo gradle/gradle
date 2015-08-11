@@ -214,4 +214,34 @@ Required by:
                 .assertHasCause('Could not resolve org.group.name:projectA:1.2')
                 .assertHasCause("Could not get resource '${projectA.ivy.uri}'")
     }
+
+    def "cannot add invalid authentication types for sftp repo"() {
+        given:
+        def remoteIvyRepo = getIvySftpRepo()
+        def module = remoteIvyRepo.module('org.group.name', 'projectA', '1.2')
+        module.publish()
+        and:
+        buildFile << """
+repositories {
+    ivy {
+        url "${getIvySftpRepo().uri}"
+        authentication {
+            auth(BasicAuthentication)
+        }
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+        expect:
+        fails 'retrieve'
+        and:
+        errorOutput.contains("> Authentication scheme of 'DefaultBasicAuthentication' is not supported by protocols [sftp]")
+    }
 }

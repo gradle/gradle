@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.resolve.http
 
+import org.gradle.authentication.http.BasicAuthentication
+import org.gradle.authentication.http.DigestAuthentication
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.hamcrest.Matchers
@@ -24,7 +26,7 @@ class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttp
     static String badCredentials = "credentials{username 'testuser'; password 'bad'}"
 
     @Unroll
-    public void "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP ivy repository"() {
+    def "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP ivy repository"() {
         given:
         def moduleA = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
         ivyHttpRepo.module('group', 'projectB', '2.1').publish()
@@ -185,9 +187,11 @@ task listJars << {
             .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
-        credsName << ['empty', 'empty', 'bad', 'bad']
-        creds << ['', '', badCredentials, badCredentials]
+        authScheme                   | credsName | creds
+        HttpServer.AuthScheme.BASIC  | 'missing'   | ''
+        HttpServer.AuthScheme.DIGEST | 'missing'   | ''
+        HttpServer.AuthScheme.BASIC  | 'bad'     | badCredentials
+        HttpServer.AuthScheme.DIGEST | 'bad'     | badCredentials
     }
 
     @Unroll
@@ -227,9 +231,11 @@ task listJars << {
             .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST, HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
-        credsName << ['empty', 'empty', 'bad', 'bad']
-        creds << ['', '', badCredentials, badCredentials]
+        authScheme                   | credsName | creds
+        HttpServer.AuthScheme.BASIC  | 'missing'   | ''
+        HttpServer.AuthScheme.DIGEST | 'missing'   | ''
+        HttpServer.AuthScheme.BASIC  | 'bad'     | badCredentials
+        HttpServer.AuthScheme.DIGEST | 'bad'     | badCredentials
     }
 
     @Unroll
@@ -275,8 +281,9 @@ task listJars << {
             .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
-        configuredAuthScheme << ['DigestAuthentication', 'BasicAuthentication']
+        authScheme                   | configuredAuthScheme
+        HttpServer.AuthScheme.BASIC  | DigestAuthentication.class.getSimpleName()
+        HttpServer.AuthScheme.DIGEST | BasicAuthentication.class.getSimpleName()
     }
 
     @Unroll
@@ -323,8 +330,9 @@ task listJars << {
             .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
-        configuredAuthScheme << ['DigestAuthentication', 'BasicAuthentication']
+        authScheme                   | configuredAuthScheme
+        HttpServer.AuthScheme.BASIC  | DigestAuthentication.class.getSimpleName()
+        HttpServer.AuthScheme.DIGEST | BasicAuthentication.class.getSimpleName()
     }
 
     def "fails resolving from preemptive authenticated HTTP ivy repository"() {

@@ -21,11 +21,12 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.authentication.Authentication;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.authentication.Authentication;
+import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
@@ -125,6 +126,7 @@ public class RepositoryTransportFactory {
 
         for (Authentication authentication : authentications) {
             boolean isAuthenticationSupported = false;
+            Class declaredClass = new DslObject(authentication).getDeclaredType();
             Credentials credentials = ((AuthenticationInternal) authentication).getCredentials();
 
             for (Class<?> authenticationType : factory.getSupportedAuthentication()) {
@@ -136,21 +138,21 @@ public class RepositoryTransportFactory {
 
             if (!isAuthenticationSupported) {
                 throw new InvalidUserDataException(String.format("Authentication scheme of '%s' is not supported by protocols %s",
-                    authentication.getClass().getSimpleName(), factory.getSupportedProtocols()));
+                    declaredClass.getSimpleName(), factory.getSupportedProtocols()));
             }
 
             if (credentials != null) {
                 if (!((AuthenticationInternal) authentication).supports(credentials)) {
                     throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme '%s'",
-                        credentials.getClass().getSimpleName(), authentication.getClass().getSimpleName()));
+                        credentials.getClass().getSimpleName(), declaredClass.getSimpleName()));
                 }
             } else {
                 throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
             }
 
-            int count = duplicatedAuthentications.add(authentication.getClass(), 1);
+            int count = duplicatedAuthentications.add(declaredClass, 1);
             if (count > 0) {
-                throw new InvalidUserDataException(String.format("You cannot configure multiple authentication schemes of the same type '%s'.", authentication.getClass().getSimpleName()));
+                throw new InvalidUserDataException(String.format("You cannot configure multiple authentication schemes of the same type '%s'.", declaredClass.getSimpleName()));
             }
         }
     }

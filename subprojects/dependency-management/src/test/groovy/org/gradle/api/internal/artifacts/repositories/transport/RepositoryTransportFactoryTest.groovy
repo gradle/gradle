@@ -91,7 +91,6 @@ class RepositoryTransportFactoryTest extends Specification {
         transport.class == ResourceConnectorRepositoryTransport
     }
 
-    @Unroll
     def "should throw when using invalid authentication type"() {
         def credentials = Mock(GoodCredentials)
         authentication.credentials = credentials

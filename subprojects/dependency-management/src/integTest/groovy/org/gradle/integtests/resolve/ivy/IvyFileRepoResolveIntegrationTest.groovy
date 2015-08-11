@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve.ivy
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class IvyFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -121,5 +122,34 @@ task retrieve(type: Sync) {
         def jarC1 = file('libs/projectC-1.0.jar')
         jarC1.assertIsCopyOf(projectC1.jarFile)
         jarC1.assertHasChangedSince(jarCsnapshot)
+    }
+
+    @NotYetImplemented
+    def "cannot define authentication for local file repo"() {
+        given:
+        def repo = ivyRepo()
+        def moduleA = repo.module('group', 'projectA', '1.2')
+        moduleA.publish()
+        and:
+        buildFile << """
+repositories {
+    ivy {
+        url "${ivyRepo().uri}"
+        authentication {
+            auth(BasicAuthentication)
+        }
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+        expect:
+        fails 'retrieve'
     }
 }

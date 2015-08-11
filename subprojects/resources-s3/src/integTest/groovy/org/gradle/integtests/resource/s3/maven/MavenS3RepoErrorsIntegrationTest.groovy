@@ -120,4 +120,26 @@ Searched in the following locations:
 Required by:
 """))
     }
+
+    def "cannot add invalid authentication types for s3 repo"() {
+        given:
+        module.publish()
+
+        and:
+        buildFile << """
+            repositories {
+                maven {
+                    url "${mavenS3Repo.uri}"
+                    authentication {
+                        auth(BasicAuthentication)
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails 'retrieve'
+        and:
+        errorOutput.contains("> Authentication scheme of 'DefaultBasicAuthentication' is not supported by protocols [s3]")
+    }
 }
