@@ -16,8 +16,10 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.util.Collection;
 
 public class PropertyAccessorExtractionContext {
@@ -32,9 +34,30 @@ public class PropertyAccessorExtractionContext {
 
     public PropertyAccessorExtractionContext(Collection<Method> declaringMethods, boolean declaredInManagedType) {
         this.declaringMethods = declaringMethods;
-        this.mostSpecificDeclaration = declaringMethods.iterator().next();
+        this.mostSpecificDeclaration = findMostSpecificMethod(declaringMethods);
         this.declaredInManagedType = declaredInManagedType;
         this.declaredAsAbstract = Modifier.isAbstract(this.mostSpecificDeclaration.getModifiers());
+    }
+
+    /**
+     * Tries to find the most specific declaration of a method that is not declared in a {@link Proxy} class.
+     * Mock objects generated via {@link Proxy#newProxyInstance(ClassLoader, Class[], InvocationHandler)}
+     * lose their generic type parameters and can confuse schema extraction. This way we can ignore these
+     * declarations, and use the ones from the proxied interfaces instead.
+     *
+     * @param method declarations of the same method from different types in the type hierarchy. They are
+     *      expected to be in order of specificity, i.e. overrides preceding overridden declarations.
+     * @return the most specific declaration of the method.
+     * @throws IllegalArgumentException if no declaration can be found.
+     */
+    private static Method findMostSpecificMethod(Collection<Method> declaringMethods) {
+        for (Method method : declaringMethods) {
+            if (Proxy.isProxyClass(method.getDeclaringClass())) {
+                continue;
+            }
+            return method;
+        }
+        throw new IllegalArgumentException("No non-proxy declaration of method found. Declarations checked: " + declaringMethods);
     }
 
     public Collection<Method> getDeclaringMethods() {
