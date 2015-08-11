@@ -43,7 +43,7 @@ The general algorithm will look like this:
 
     3.1 the IDE project name candidate is changed to be _deduplicated_ `project.parent.name` + `-` + `project.name`
 
-    3.2 the words in the IDE project name candidate are de-duped.( eg `gradle-gradle-core` becomes `gradle-core`
+    3.2 duplicate words in the IDE project name candidate are removed.( eg `gradle-gradle-core` becomes `gradle-core`
 
     3.3 skip 3.2 for identical parent and child project name
 
@@ -91,14 +91,14 @@ results in IDE project names
 ```
 
 
-* explicit configured eclipse project name take precedence over deduplication:
+* explicit configured IDE project name take precedence over deduplication:
     given
 
 ```
      root
      \- foo
         \- app
-           \-build.gradle // contains eclipse.project.name = "custom-app"
+           \-build.gradle // contains e.g. eclipse.project.name = "custom-app" / ideaModule.module.name = "custom-app"
      \- bar
         \- app
 ```
@@ -166,6 +166,30 @@ results in
     \- myproject-app (instead of myproject-myproject-app)
     \- myproject-bar
        \- myproject-bar-app (instead of myproject-bar-myproject-app)
+```
+
+* deduplication logics works with deduplicated parent module name. given project layout:
+
+```
+   root
+    \- bar
+        \- services
+            \- rest
+    \- foo
+            \- services
+                \- rest
+```
+
+results in
+
+```
+    root
+    \- bar
+        \- bar-serivces
+            \- bar-services-rest
+    \- foo
+        \- foo-serivces
+            \- foo-services-rest
 ```
 
 * setting ide project name within `whenMerged` results in a deprecation warning.
