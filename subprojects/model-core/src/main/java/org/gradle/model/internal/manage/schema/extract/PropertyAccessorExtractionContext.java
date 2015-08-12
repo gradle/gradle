@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
@@ -41,7 +40,7 @@ public class PropertyAccessorExtractionContext {
 
     /**
      * Tries to find the most specific declaration of a method that is not declared in a {@link Proxy} class.
-     * Mock objects generated via {@link Proxy#newProxyInstance(ClassLoader, Class[], InvocationHandler)}
+     * Mock objects generated via {@link Proxy#newProxyInstance(ClassLoader, Class[], java.lang.reflect.InvocationHandler)}
      * lose their generic type parameters and can confuse schema extraction. This way we can ignore these
      * declarations, and use the ones from the proxied interfaces instead.
      *
