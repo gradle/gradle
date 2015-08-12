@@ -65,12 +65,13 @@ could be necessary to introduce primitive versions of `get` and `set`.
 
 ### Support `is` style getters for managed properties of type boolean
 
-- TBD: also for `Boolean` type properties?
-- Update user guide and Javadocs
+- Should follow the JavaBeans specification: only type `boolean` should allow `is` getter style: `Boolean` shouldn't be supported.
+- Update user guide and Javadoc
 
 #### Test cases
 
 - Does something sensible when `get` and `is` getters are both defined for a property.
+- Error when a `Boolean` or any other non `boolean` type uses `is` as a getter prefix
 
 ### Support for managed properties with collection of scalar types
 
