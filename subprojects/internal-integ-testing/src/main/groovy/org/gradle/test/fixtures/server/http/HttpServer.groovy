@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.test.fixtures.server.http
-
+import com.google.common.collect.Sets
 import com.google.common.net.UrlEscapers
 import com.google.gson.Gson
 import com.google.gson.JsonElement
@@ -52,6 +52,7 @@ class HttpServer extends ServerWithExpectations {
     private SslSocketConnector sslConnector
     AuthScheme authenticationScheme = AuthScheme.BASIC
     boolean logRequests = true
+    final Set<String> authenticationOrder = Sets.newLinkedHashSet()
 
     protected Matcher expectedUserAgent = null
 
@@ -93,6 +94,12 @@ class HttpServer extends ServerWithExpectations {
         HandlerCollection handlers = new HandlerCollection()
         handlers.addHandler(new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+                String authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
+                if (authorization!=null) {
+                    authenticationOrder << authorization.split(" ")[0]
+                } else {
+                    authenticationOrder << "None"
+                }
                 if (logRequests) {
                     println("handling http request: $request.method $target")
                 }

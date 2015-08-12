@@ -95,22 +95,26 @@ public class HttpClientConfigurer {
                 httpCredentials = new NTCredentials(ntlmCredentials.getUsername(), ntlmCredentials.getPassword(), ntlmCredentials.getWorkstation(), ntlmCredentials.getDomain());
                 httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, AuthPolicy.NTLM), httpCredentials);
 
-                LOGGER.debug("Using {} and {} for authenticating against '{}:{}'", new Object[]{credentials, ntlmCredentials, host, port});
+                LOGGER.debug("Using {} and {} for authenticating against '{}:{}' using {}", new Object[]{credentials, ntlmCredentials, host, port, AuthPolicy.NTLM});
             }
 
             httpCredentials = new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword());
             httpClient.getCredentialsProvider().setCredentials(new AuthScope(host, port, AuthScope.ANY_REALM, scheme), httpCredentials);
-            LOGGER.debug("Using {} for authenticating against '{}:{}'", new Object[]{credentials, host, port});
+            LOGGER.debug("Using {} for authenticating against '{}:{}' using {}", new Object[]{credentials, host, port, scheme});
         }
     }
 
     private boolean isPreemptiveEnabled(Collection<Authentication> authentications) {
-        return CollectionUtils.any(authentications, new Spec<Authentication>() {
-            @Override
-            public boolean isSatisfiedBy(Authentication element) {
-                return element instanceof BasicAuthentication;
-            }
-        });
+        // Only enable preemptive auth when only BasicAuth is defined
+        if (authentications.size()==1) {
+            return CollectionUtils.every(authentications, new Spec<Authentication>() {
+                @Override
+                public boolean isSatisfiedBy(Authentication element) {
+                    return element instanceof BasicAuthentication;
+                }
+            });
+        }
+        return false;
     }
 
     public void configureUserAgent(DefaultHttpClient httpClient) {
@@ -148,11 +152,11 @@ public class HttpClientConfigurer {
 
     static class PreemptiveAuth implements HttpRequestInterceptor {
         private final AuthScheme authScheme;
-        private final boolean always;
+        private final boolean alwaysSendAuth;
 
-        PreemptiveAuth(AuthScheme authScheme, boolean always) {
+        PreemptiveAuth(AuthScheme authScheme, boolean alwaysSendAuth) {
             this.authScheme = authScheme;
-            this.always = always;
+            this.alwaysSendAuth = alwaysSendAuth;
         }
 
         public void process(final HttpRequest request, final HttpContext context) throws HttpException, IOException {
@@ -165,7 +169,7 @@ public class HttpClientConfigurer {
 
             // If no authState has been established and this is a PUT or POST request, add preemptive authorisation
             String requestMethod = request.getRequestLine().getMethod();
-            if (always || requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
+            if (alwaysSendAuth || requestMethod.equals(HttpPut.METHOD_NAME) || requestMethod.equals(HttpPost.METHOD_NAME)) {
                 CredentialsProvider credentialsProvider = (CredentialsProvider) context.getAttribute(ClientContext.CREDS_PROVIDER);
                 HttpHost targetHost = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
                 Credentials credentials = credentialsProvider.getCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()));

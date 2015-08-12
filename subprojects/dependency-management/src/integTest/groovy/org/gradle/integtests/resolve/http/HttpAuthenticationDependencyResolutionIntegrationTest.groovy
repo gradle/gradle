@@ -31,7 +31,6 @@ class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttp
         ivyHttpRepo.module('group', 'projectB', '2.2').publish()
         def moduleB = ivyHttpRepo.module('group', 'projectB', '2.3').publish()
         ivyHttpRepo.module('group', 'projectB', '3.0').publish()
-
         and:
         buildFile << """
 repositories {
@@ -68,15 +67,17 @@ task listJars << {
 
         then:
         succeeds('listJars')
+        and:
+        server.authenticationOrder.asList() == authenticationOrder
 
         where:
-        authSchemeName         | authSchemeType                                                                | authScheme
-        'basic'                | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.BASIC
-        'digest'               | 'authentication { auth(DigestAuthentication) }'                               | HttpServer.AuthScheme.DIGEST
-        'default'              | ''                                                                            | HttpServer.AuthScheme.BASIC
-        'default'              | ''                                                                            | HttpServer.AuthScheme.DIGEST
-        'basic'                | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC
-        'basic and digest'     | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | HttpServer.AuthScheme.DIGEST
+        authSchemeName     | authSchemeType                                                                | authScheme                             | authenticationOrder
+        'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.BASIC            | ['Basic']
+        'digest'           | 'authentication { auth(DigestAuthentication) }'                               | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
+        'default'          | ''                                                                            | HttpServer.AuthScheme.BASIC            | ['None', 'Basic']
+        'default'          | ''                                                                            | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
+        'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC | ['Basic']
+        'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
     }
 
     @Unroll
@@ -135,15 +136,17 @@ task listJars << {
 
         then:
         succeeds('listJars')
+        and:
+        server.authenticationOrder.asList() == authenticationOrder
 
         where:
-        authSchemeName         | authSchemeType                                                                | authScheme
-        'basic'                | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.BASIC
-        'digest'               | 'authentication { auth(DigestAuthentication) }'                               | HttpServer.AuthScheme.DIGEST
-        'default'              | ''                                                                            | HttpServer.AuthScheme.BASIC
-        'default'              | ''                                                                            | HttpServer.AuthScheme.DIGEST
-        'basic'                | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC
-        'basic and digest'     | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | HttpServer.AuthScheme.DIGEST
+        authSchemeName     | authSchemeType                                                                | authScheme                             | authenticationOrder
+        'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.BASIC            | ['Basic']
+        'digest'           | 'authentication { auth(DigestAuthentication) }'                               | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
+        'default'          | ''                                                                            | HttpServer.AuthScheme.BASIC            | ['None', 'Basic']
+        'default'          | ''                                                                            | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
+        'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC | ['Basic']
+        'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
     }
 
     @Unroll
