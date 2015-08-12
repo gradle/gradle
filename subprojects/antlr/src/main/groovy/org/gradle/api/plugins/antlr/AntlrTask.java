@@ -18,6 +18,8 @@ package org.gradle.api.plugins.antlr;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.antlr.internal.*;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -49,6 +51,7 @@ public class AntlrTask extends SourceTask {
 
     private File outputDirectory;
     private String maxHeapSize;
+    private SourceDirectorySet sourceDirectorySet;
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
@@ -114,6 +117,7 @@ public class AntlrTask extends SourceTask {
 
     /**
      * List of command-line arguments passed to the antlr process
+     *
      * @return The antlr command-line arguments
      */
     @Input
@@ -170,17 +174,17 @@ public class AntlrTask extends SourceTask {
         final Set<File> sourceFiles = getSource().getFiles();
         final AtomicBoolean cleanRebuild = new AtomicBoolean();
         inputs.outOfDate(
-                new Action<InputFileDetails>() {
-                    public void execute(InputFileDetails details) {
-                        File input = details.getFile();
-                        if (sourceFiles.contains(input)) {
-                            grammarFiles.add(input);
-                        } else {
-                            // classpath change?
-                            cleanRebuild.set(true);
-                        }
+            new Action<InputFileDetails>() {
+                public void execute(InputFileDetails details) {
+                    File input = details.getFile();
+                    if (sourceFiles.contains(input)) {
+                        grammarFiles.add(input);
+                    } else {
+                        // classpath change?
+                        cleanRebuild.set(true);
                     }
                 }
+            }
         );
         inputs.removed(new Action<InputFileDetails>() {
             @Override
@@ -196,7 +200,7 @@ public class AntlrTask extends SourceTask {
         }
 
         AntlrWorkerManager manager = new AntlrWorkerManager();
-        AntlrSpec spec = new AntlrSpecFactory().create(this, grammarFiles);
+        AntlrSpec spec = new AntlrSpecFactory().create(this, grammarFiles, sourceDirectorySet);
         AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
         evaluate(result);
     }
@@ -207,8 +211,35 @@ public class AntlrTask extends SourceTask {
             throw new AntlrSourceGenerationException("There was 1 error during grammar generation", result.getException());
         } else if (errorCount > 1) {
             throw new AntlrSourceGenerationException("There were "
-                    + errorCount
-                    + " errors during grammar generation", result.getException());
+                + errorCount
+                + " errors during grammar generation", result.getException());
         }
     }
+
+    /**
+     * Sets the source for this task. Delegates to {@link SourceTask#setSource(Object)}.
+     *
+     * tracks the input if it is of type {@link SourceDirectorySet}
+     * @param source The source.
+     */
+    @Override
+    public void setSource(Object source) {
+        super.setSource(source);
+        if (source instanceof SourceDirectorySet) {
+            this.sourceDirectorySet = (SourceDirectorySet) source;
+        }
+    }
+
+    /**
+     * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files which do not exist.
+     *
+     * @return The source.
+     */
+    @InputFiles
+    @SkipWhenEmpty
+    public FileTree getSource() {
+        return super.getSource();
+    }
+
+
 }

@@ -23,9 +23,11 @@ import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlanBuilder;
 import org.gradle.api.plugins.antlr.internal.antlr2.MetadataExtracter;
 import org.gradle.api.plugins.antlr.internal.antlr2.XRef;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -36,7 +38,7 @@ public class AntlrExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntlrExecuter.class);
 
     AntlrResult runAntlr(AntlrSpec spec) throws IOException, InterruptedException {
-        String[] commandLine = toArray(spec.asCommandLineWithFiles());
+        String[] commandLine = toArray(spec.asArgumentsWithFiles());
 
         // Try ANTLR 4
         try {
@@ -49,9 +51,10 @@ public class AntlrExecuter {
 
         // Try ANTLR 3
         try {
-            Object toolObj = loadTool("org.antlr.Tool", commandLine);
+            // check if antlr3 available
+            loadTool("org.antlr.Tool", null);
             LOGGER.info("Processing with ANTLR 3");
-            return processV3(toolObj);
+            return processV3(spec);
         } catch (ClassNotFoundException e) {
             LOGGER.debug("ANTLR 3 not found on classpath");
         }
@@ -74,6 +77,7 @@ public class AntlrExecuter {
 
     /**
      * Utility method to create an instance of the Tool class.
+     *
      * @throws ClassNotFoundException if class was not on the runtime classpath.
      */
     Object loadTool(String className, String[] args) throws ClassNotFoundException {
@@ -108,14 +112,41 @@ public class AntlrExecuter {
         return new AntlrResult(0);  // ANTLR 2 always returning 0
     }
 
-    AntlrResult processV3(Object tool) {
+    AntlrResult processV3(AntlrSpec spec) throws ClassNotFoundException {
+        int numErrors = 0;
+        if (spec.getInputDirectories().size() == 0) {
+            // we have not root source folder information for the grammar files,
+            // so we don't force relativeOutput as we can't calculate it.
+            // This results in flat generated sources in the output directory
+            numErrors += invokeV3ToolingAndReturnErrorNumber(spec.asArgumentsWithFiles(), null);
+        } else {
+            for (File inputDirectory : spec.getInputDirectories()) {
+                final List<String> arguments = spec.getArguments();
+                arguments.add("-o");
+                arguments.add(spec.getOutputDirectory().getAbsolutePath());
+                for (File grammarFile : spec.getGrammarFiles()) {
+                    final String relativeGrammarFilePath = GFileUtils.relativePath(inputDirectory, grammarFile);
+                    arguments.add(relativeGrammarFilePath);
+                }
+                numErrors += invokeV3ToolingAndReturnErrorNumber(arguments, inputDirectory);
+            }
+        }
+        return new AntlrResult(numErrors);
+    }
+
+    private int invokeV3ToolingAndReturnErrorNumber(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
+        String[] argArray = arguments.toArray(new String[arguments.size()]);
+        Object tool = loadTool("org.antlr.Tool", argArray);
+        if (inputDirectory != null) {
+            JavaReflectionUtil.method(tool, Void.class, "setInputDirectory", String.class).invoke(tool, inputDirectory.getAbsolutePath());
+            JavaReflectionUtil.method(tool, Void.class, "setForceRelativeOutput", boolean.class).invoke(tool, true);
+        }
         JavaReflectionUtil.method(tool, Void.class, "process").invoke(tool);
-        return new AntlrResult(JavaReflectionUtil.method(tool, Integer.class, "getNumErrors").invoke(tool));
+        return JavaReflectionUtil.method(tool, Integer.class, "getNumErrors").invoke(tool);
     }
 
     AntlrResult processV4(Object tool) {
         JavaReflectionUtil.method(tool, Void.class, "processGrammarsOnCommandLine").invoke(tool);
         return new AntlrResult(JavaReflectionUtil.method(tool, Integer.class, "getNumErrors").invoke(tool));
     }
-
 }
