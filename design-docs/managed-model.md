@@ -71,7 +71,7 @@ could be necessary to introduce primitive versions of `get` and `set`.
 #### Test cases
 
 - Does something sensible when `get` and `is` getters are both defined for a property.
-    - Throws an error instructing to use either but not both.
+    - Allows both.
 - Error when a `Boolean` or any other non `boolean` type uses `is` as a getter prefix
 
 ### Support for managed properties with collection of scalar types
