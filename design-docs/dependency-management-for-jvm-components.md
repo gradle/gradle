@@ -659,10 +659,9 @@ Plugin author extends `JarBinarySpec` to declare custom variant dimensions:
     }
 
 Each property marked with `@Variant` defines a variant dimension for this kind of binary.
+This works for both managed and unmanaged types.
 
 - Property type must either be a String or a type that extends `Named`.
-- Annotate `JvmBinarySpec.targetPlatform`, the properties of `NativeBinarySpec` and `PlayApplicationBinarySpec`.
-- Component report shows variants for a binary in alphabetic order using the property name.
 - A `@Variant` annotation on the setter of the property raises an error.
 - A `@Variant` annotation on non-property methods is ignored.
 
@@ -671,20 +670,70 @@ Each property marked with `@Variant` defines a variant dimension for this kind o
 - Replace special case rendering of binary variant dimensions from the component report with general purpose reporting.
 - `ModelImplTypeSchema` provides the getter for the property, but does not hold a strong reference to it.
 - All annotations on setters are stored in the schema for the purpose of raising errors about them later on.
+- Custom variants are not shown in the component report for this story.
 
 ### Test cases
 
-- Variants are displayed for binary in alphabetic order using the property names.
-    - unmanaged super-type has variant property `parentVariant`
-    - managed subtype has variant property `childVariant1`
-    - managed subtype has variant property `childVariant2`
-    - report displays variants with names in alphabetical order:
-        - `childVariant1`
-        - `childVariant2`
-        - `parentVariant`
+- Custom managed Jar binary can be built with custom variants
+    - declare a `buildType` (type: `BuildType`) variant with `debug` and `production`
+    - declare a `flavor` (type: `String`) variant with `free` and `paid`
+    - all four Jar binaries can be built
+- Custom unmanaged Jar binary can be built with custom variants
+    - declare a `buildType` (type: `BuildType`) variant with `debug` and `production`
+    - declare a `flavor` (type: `String`) variant with `free` and `paid`
+    - all four Jar binaries can be built
 - Error cases:
     - Invalid property type raises error during rule execution.
     - `@Variant` annotation placed on setter raises error during rule execution.
+
+
+## Story: Variants are displayed in component report
+
+```text
+JVM library 'myLib'
+-------------------
+
+Source sets
+    Java source 'myLib:java'
+        srcDir: src/myLib/java
+    JVM resources 'myLib:resources'
+        srcDir: src/myLib/resources
+
+Binaries
+    Custom Jar 'java5MyLibJar'
+        build using task: :java5MyLibJar
+        buildType: debug
+        targetPlatform: Java SE 5
+        tool chain: Java SE 8
+        Jar file: build/jars/java5MyLibJar/myLib.jar
+    Custom Jar 'java6MyLibJar'
+        build using task: :java6MyLibJar
+        buildType: production
+        targetPlatform: Java SE 6
+        tool chain: Java SE 8
+        Jar file: build/jars/java6MyLibJar/myLib.jar
+```
+
+- All variant properties (custom and built-in) tagged with `@Variant` are shown in alphabetical order for binaries in the component report.
+- Variants in the report are named after their property.
+- Variant values are displayed as a `String` returned by their `toString()` methods (`null` values are displayed as "null").
+  If a `Named` variant value does not override `Object.toString()`, then `Named.getName()` is used instead.
+
+### Implementation
+
+- Annotate `JvmBinarySpec.targetPlatform`, and the variant properties of `NativeBinarySpec` and `PlayApplicationBinarySpec`.
+
+### Test cases
+
+- All variants are displayed for custom Jar binary in alphabetic order using the property names.
+    - managed Jar binary subtype has variant property `buildType`
+    - managed Jar binary subtype has variant property `flavor`
+    - report displays variants with names in alphabetical order:
+        - `buildType`
+        - `flavor`
+        - `targetPlatform`
+- Built-in variants are displayed for native binary in alphabetic order using the property names (i.e. `buildType`, `flavor` and `targetPlatform`).
+- Target platform variant is displayed for Play binary.
 
 
 ## Feature backlog
