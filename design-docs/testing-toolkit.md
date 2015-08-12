@@ -18,7 +18,7 @@ The test-kit will be agnostic of the test framework preferred by the user (e.g. 
 The first milestone lays the foundation for defining and executing functional tests. The goal should be a solid implementation based on the tooling API and integration
 with the plugin development plugin.
 
-## Story: User creates and executes a functional test using the test-kit
+## Story: User creates and executes a functional test using the test-kit (DONE)
 
 A set of interfaces/builders will be developed to provide programmatic execution of Gradle builds. Tests are executed with the Tooling API.
 
@@ -123,7 +123,7 @@ A functional test using Spock could look as such:
 * Thread-safety contract?
 * Should we be doing any implicit normalization of failure diagnostic messages?
 
-## Story: Functional test queries the build result
+## Story: Functional test queries the build result (DONE)
 
 Add methods to `BuildResult` to query the result.
 
