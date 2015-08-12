@@ -414,6 +414,21 @@ dependencies {
         """
     }
 
+    @Test
+    @Issue("https://github.com/gradle/gradle/pull/480")
+    void enableJavaBuilderAndScalaBuilderWithJavaAndScalaPlugin() {
+        runEclipseTask """
+apply plugin: "java"
+apply plugin: "scala"
+apply plugin: "eclipse"
+"""
+
+        def xml = parseProjectFile()
+        def buildCommandNames = xml.buildSpec.buildCommand.name.collect { it.text() }
+        assert buildCommandNames.contains('org.eclipse.jdt.core.javabuilder')
+        assert buildCommandNames.contains('org.scala-ide.sdt.core.scalabuilder')
+    }
+
     void assertHasExpectedContents(TestFile actualFile, String expectedFileName) {
         actualFile.assertExists()
         TestFile expectedFile = testDirectory.file("expectedFiles/$expectedFileName").assertIsFile()

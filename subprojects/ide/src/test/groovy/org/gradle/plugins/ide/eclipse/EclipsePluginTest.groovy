@@ -127,6 +127,18 @@ class EclipsePluginTest extends Specification {
         folders == [project.file('generated-folder'), project.file('ws-generated'), project.file('generated-test'), project.file('test-resources'), project.file('../some/external/dir')]
     }
 
+    def "enable javabuilder and scalabuilder with java-plugin and scala-plugin"() {
+        when:
+        eclipsePlugin.apply(project)
+        project.apply(plugin: 'java')
+        project.apply(plugin: 'scala')
+
+        then:
+        def buildCommands = project.eclipse.project.buildCommands
+        assert buildCommands.contains(new BuildCommand('org.eclipse.jdt.core.javabuilder'))
+        assert buildCommands.contains(new BuildCommand('org.scala-ide.sdt.core.scalabuilder'))
+    }
+
     private void checkEclipseProjectTask(List buildCommands, List natures) {
         GenerateEclipseProject eclipseProjectTask = project.eclipseProject
         assert eclipseProjectTask instanceof GenerateEclipseProject
