@@ -47,7 +47,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     // set this to change the java home used to launch any gradle, set back to null to use current JVM
     def javaHome = null
-    
+
     // set this to change the desired default encoding for the build request
     def buildEncoding = null
 
@@ -108,10 +108,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         run {
             poll(20) { assert builds[buildNum].standardOutput.contains("waiting for stop file"); }
         }
-    }
-
-    @Override
-    protected void cleanupWhileTestFilesExist() {
     }
 
     void stopDaemons() {
@@ -320,14 +316,14 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         completeBuild(1)
-        
+
         then:
         idle 2
         daemonContext(1) {
             assert daemonOpts.contains("-Dfile.encoding=UTF-8")
         }
     }
-    
+
     def cleanup() {
         try {
             def registry = new DaemonLogsAnalyzer(executer.daemonBaseDir).registry

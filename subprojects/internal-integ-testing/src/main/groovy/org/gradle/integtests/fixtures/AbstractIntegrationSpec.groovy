@@ -36,12 +36,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
  */
 class AbstractIntegrationSpec extends Specification implements TestDirectoryProvider {
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider() {
-        @Override
-        protected void cleanup() {
-            cleanupWhileTestFilesExist()
-        }
-    }
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
     GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder)
@@ -50,9 +45,6 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     ExecutionFailure failure
     private MavenFileRepository mavenRepo
     private IvyFileRepository ivyRepo
-
-    protected void cleanupWhileTestFilesExist() {
-    }
 
     protected TestFile getBuildFile() {
         testDirectory.file('build.gradle')

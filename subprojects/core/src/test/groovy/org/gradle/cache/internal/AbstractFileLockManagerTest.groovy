@@ -36,13 +36,7 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 
 abstract class AbstractFileLockManagerTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider() {
-        @Override
-        protected void cleanup() {
-            CompositeStoppable.stoppable(openedLocks.toArray()).stop()
-        }
-    }
-
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def metaDataProvider = Mock(ProcessMetaDataProvider)
     def generator = Stub(IdGenerator)
     def contentionHandler = Stub(FileLockContentionHandler)
@@ -66,6 +60,10 @@ abstract class AbstractFileLockManagerTest extends Specification {
         metaDataProvider.processDisplayName >> 'process'
         contentionHandler.reservePort() >> 34
         generator.generateId() >> 678L
+    }
+
+    def cleanup() {
+        CompositeStoppable.stoppable(openedLocks.toArray()).stop()
     }
 
     def "readFile throws integrity exception when not cleanly unlocked file"() {

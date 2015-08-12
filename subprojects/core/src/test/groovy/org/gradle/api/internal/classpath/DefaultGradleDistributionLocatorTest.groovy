@@ -32,13 +32,7 @@ import spock.lang.Unroll
 // so we can close the classloaders and allow files to be cleaned up
 class DefaultGradleDistributionLocatorTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider() {
-        @Override
-        protected void cleanup() {
-            CompositeStoppable.stoppable(loaders).stop()
-        }
-    }
-
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     List<Closeable> loaders = []
 
     TestFile distDir
@@ -47,6 +41,10 @@ class DefaultGradleDistributionLocatorTest extends Specification {
         distDir = tmpDir.createDir("dist")
         distDir.createDir("lib")
         distDir.createDir("lib/plugins")
+    }
+
+    def cleanup() {
+        CompositeStoppable.stoppable(loaders).stop()
     }
 
     @Unroll

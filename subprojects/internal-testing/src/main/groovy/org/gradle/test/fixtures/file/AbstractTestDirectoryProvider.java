@@ -18,13 +18,10 @@ package org.gradle.test.fixtures.file;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.junit.rules.MethodRule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
-import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
-import java.io.File;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -74,11 +71,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
 
         @Override
         public void evaluate() throws Throwable {
-            try {
-                base.evaluate();
-            } finally {
-                cleanup();
-            }
+            base.evaluate();
             try {
                 if (testDirectory.exists()) {
                     FileUtils.forceDelete(testDirectory);
@@ -142,7 +135,4 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         return file((Object[]) path).createDir();
     }
 
-    protected void cleanup() {
-
-    }
 }
