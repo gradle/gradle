@@ -79,7 +79,7 @@ task listJars << {
         'default'          | ''                                                                            | HttpServer.AuthScheme.BASIC            | ['None', 'Basic']
         'default'          | ''                                                                            | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
         'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC | ['Basic']
-        'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
+        'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | HttpServer.AuthScheme.DIGEST           | ['Basic', 'Digest']
     }
 
     @Unroll
@@ -148,7 +148,7 @@ task listJars << {
         'default'          | ''                                                                            | HttpServer.AuthScheme.BASIC            | ['None', 'Basic']
         'default'          | ''                                                                            | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
         'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC | ['Basic']
-        'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
+        'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | HttpServer.AuthScheme.DIGEST           | ['Basic', 'Digest']
     }
 
     @Unroll

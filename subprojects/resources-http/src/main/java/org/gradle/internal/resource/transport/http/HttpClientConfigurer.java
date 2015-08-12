@@ -105,16 +105,12 @@ public class HttpClientConfigurer {
     }
 
     private boolean isPreemptiveEnabled(Collection<Authentication> authentications) {
-        // Only enable preemptive auth when only BasicAuth is defined
-        if (authentications.size()==1) {
-            return CollectionUtils.every(authentications, new Spec<Authentication>() {
-                @Override
-                public boolean isSatisfiedBy(Authentication element) {
-                    return element instanceof BasicAuthentication;
-                }
-            });
-        }
-        return false;
+        return CollectionUtils.any(authentications, new Spec<Authentication>() {
+            @Override
+            public boolean isSatisfiedBy(Authentication element) {
+                return element instanceof BasicAuthentication;
+            }
+        });
     }
 
     public void configureUserAgent(DefaultHttpClient httpClient) {
