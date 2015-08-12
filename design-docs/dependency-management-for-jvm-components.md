@@ -556,26 +556,30 @@ Binaries
 - Fail when no rule is available to define the tasks for a `BinarySpec`.
     - Will need to change `@BinaryTasks` implementation to fail at configuration time when no rule is available to build a given binary.
 
-# Feature 3: TBD
-
-# Later work
-
 # Feature: Java library consumes local Java library
 
-- Same project
-- Other project
-- Not external
-- Not legacy plugins
-- Consumes API dependencies at compile time
-- Consumes runtime dependencies at runtime
-- Select jar binary or classes binary with compatible platform, fail if not exactly one
-- Need an API to query the various classpaths.
-- Handle compile time cycles.
-- Need to be able to configure the resolution strategy for each usage.
-- Declare dependencies at component, source set and binary level
-- Reporting
-- Dependency resolution rules
-- Resolution events
+- Declare and consume API & runtime dependencies
+    - Need to declare transitive API dependencies
+    - Consumes API dependencies at compile time
+    - Consumes runtime dependencies at runtime
+    - Handle compile time cycles.
+- Improvements to dependency management
+    - Declare dependencies at component, source set and binary level
+    - Allow a `LibrarySpec` instance to be added as a dependency.
+    - Make dependency declarations managed and immutable post resolve
+- Fully featured dependency resolution
+    - API to query the various resolved classpaths
+    - Configure the resolution strategy for each usage
+    - Configure resolution rules for each usage
+    - Wire in dependency resolution events
+    - Include in dependency reports
+
+# Feature: Java library consumes external Java library
+
+- Resolve libraries from binary repositories, for libraries with a single variant
+    - Maven repo: assume API dependencies are defined by `compile` scope.
+    - Ivy repo: look for a particular configuration, if not present assume no API dependencies (or perhaps use `default` configuration)
+    - Assume no target platform, and assume compatible with all target platforms.
 
 # Feature: Custom Java based component local library
 
@@ -585,11 +589,6 @@ Binaries
 - Java library consumes custom library
 - Select correct variant of custom library
 - Reporting
-
-# Feature: Java library consumes external Java library
-
-- Reporting
-- Remove the need for every component to have a module version id.
 
 # Feature: Legacy JVM language plugins declare and consume JVM library
 
@@ -602,3 +601,4 @@ Binaries
 - Custom component declares additional usages and associated dependencies.
 - Custom binary provides additional usages
 - Reporting
+- use component model terminology in error messages and exception class names.
