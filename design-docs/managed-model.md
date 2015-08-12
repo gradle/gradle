@@ -76,24 +76,22 @@ could be necessary to introduce primitive versions of `get` and `set`.
 
 ### Support for managed properties with collection of scalar types
 
-- Add support for `List<T>` and `Set<T>` where `T` is any non primitive scalar type (as defined above)
-- Support read-only and read-write properties.
-- Read-only property doesn't mean that the collection is immutable, but rather than the collection cannot be replaced using a setter.
-- Read-only properties default to some empty implementation
-- Read-write properties default to `null`
-- Read-only `Set` instance should retain insertion order.
-- Read-only instances should be mutable when view is mutable (eg used as subject for rule).
-- Read-only instances should be immutable when view is immutable (eg used as input for rule, used as subject for validation rule).
-- Update user guide and Javadocs, add sample
+Add support managed properties of `List<T>` and `Set<T>` where `T` is any non primitive scalar type (as defined above).
+- Any returned collection instance will be mutable when view is mutable (eg used as subject for rule).
+- Any returned collection instance will be immutable when view is immutable (eg used as input for rule, used as subject for validation rule).
+- Properties of type `Set` will retain insertion order
 
-A read-only property is defined like using a single getter:
+Support read-only collection properties defined as:
 
     @Managed
     interface ReadOnlyProperty {
         List<String> getItems()
     }
 
-whereas a read-write property is defined using both a getter and a setter:
+- Default value is an empty collection
+- Multiple calls to a getter may not return the same instance of a collection
+
+Support read-write collection properties defined using both a getter and a setter:
 
     @Managed
     interface ReadWriteProperty {
@@ -101,10 +99,15 @@ whereas a read-write property is defined using both a getter and a setter:
         void setItems(List<String> items)
     }
 
-- There's no guarantee that 2 subsequent calls to a getter will return the same instance of a collection
-- Similarily, for write-only properties, the collection which is passed as an argument is not guaranteed to be returned by the getter
-- For consistency, both read-only and write-only properties should enforce immutability of the collection when the view is immutable
+- Defaults to a null value
+- Can set to a null value
+- Multiple calls to a getter may not return the same instance of a collection
+- Collection returned by getter may not be the same instance as provided to the setter
 - When a setter is called, a new managed collection is created, ensuring immutability. Documentation should mention a similarity with the defensive copy pattern.
+- The collection property will only be writable when the view is mutable
+
+#### Implementation notes
+- Update user guide and Javadocs, add sample
 
 #### Test cases
 
@@ -112,7 +115,6 @@ whereas a read-write property is defined using both a getter and a setter:
 - calling the getter of a read-write property for a created node must return `null`
 - cannot assign a collection to a read-only property
 - can assign `null` to a read-write property
-- Fail if `T` is not a scalar type
 - Model report renders collection values
 - For a managed type that defines a `Set<String>` read-only property
     * `addAll 'b','c'`
@@ -125,6 +127,10 @@ whereas a read-write property is defined using both a getter and a setter:
     * add `'d'` to `sortedSet`
     * call `foo.getItems().add('a')`
     * call again `foo.getItems()` make sure it returns a `Set` which contains *in that order*: `'b','c','a'` (effect of copy on write, semantics of `SortedSet` are not preserved)
+- Useful error message presented when validating schema:
+    * `T` is not a scalar type
+    * `T` is not the same for getter and setter
+    * Property type is `Collection<T>`, `ArrayList<T>`, `HashSet<T>`
 
 ### Convenient configuration of scalar typed properties from Groovy
 
