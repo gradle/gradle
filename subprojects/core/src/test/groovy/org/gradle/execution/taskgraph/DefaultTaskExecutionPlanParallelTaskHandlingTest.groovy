@@ -318,6 +318,9 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
 
         then:
         noMoreTasksCurrentlyAvailableForExecution()
+
+        cleanup:
+        assert symlink.delete()
     }
 
     def "tasks from two different projects that have the same file in outputs are not executed in parallel"() {

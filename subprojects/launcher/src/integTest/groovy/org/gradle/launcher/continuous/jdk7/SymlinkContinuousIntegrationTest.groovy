@@ -62,6 +62,9 @@ class SymlinkContinuousIntegrationTest extends Java7RequiringContinuousIntegrati
         sourceFile.text = "changed"
         then:
         noBuildTriggered()
+
+        cleanup:
+        assert symlink.delete()
     }
 
     def "can use symlinked directory for input"() {

@@ -25,7 +25,8 @@ import spock.lang.Specification
 
 class DaemonCompatibilitySpecSpec extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
     def clientConfigure = {}
     def serverConfigure = {}
@@ -92,6 +93,9 @@ class DaemonCompatibilitySpecSpec extends Specification {
 
         expect:
         compatible
+
+        cleanup:
+        assert link.delete()
     }
 
     def "contexts with same daemon opts are compatible"() {
