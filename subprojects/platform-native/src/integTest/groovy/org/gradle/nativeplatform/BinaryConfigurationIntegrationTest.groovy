@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -327,5 +328,34 @@ model {
 
         where:
         linkage << ["static", "shared"]
+    }
+
+    @Issue("GRADLE-3332")
+    @NotYetImplemented
+    def "can create helper task to install buildable executables"() {
+        def helloWorldApp = new CppHelloWorldApp()
+        given:
+        buildFile << '''
+apply plugin: 'cpp'
+
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
+task installDeveloperImage {
+    description = "Install all debug executables"
+    binaries.withType(NativeExecutableBinary) {
+        if (it.buildable && buildType == buildTypes.debug) {
+            dependsOn it.tasks.install
+        }
+    }
+}
+'''
+        and:
+        helloWorldApp.writeSources(file("src/main"))
+
+        expect:
+        succeeds "tasks"
     }
 }
