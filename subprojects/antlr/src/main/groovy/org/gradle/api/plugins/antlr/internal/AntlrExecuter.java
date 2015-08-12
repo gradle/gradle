@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.antlr.internal;
 
+import com.beust.jcommander.internal.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlan;
 import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlanBuilder;
@@ -99,13 +100,11 @@ public class AntlrExecuter {
         XRef xref = new MetadataExtracter().extractMetadata(grammarFiles);
         List<GenerationPlan> generationPlans = new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(xref);
         for (GenerationPlan generationPlan : generationPlans) {
-            String[] argArr = arguments.toArray(new String[arguments.size() + 3]);
-            argArr[arguments.size()] = "-o";
-            argArr[arguments.size() + 1] = generationPlan.getGenerationDirectory().getAbsolutePath();
-            argArr[arguments.size() + 2] = generationPlan.getSource().getAbsolutePath();
-            for (String s : argArr) {
-                System.out.println("s = " + s);
-            }
+            List<String> generationPlanArguments = Lists.newArrayList(arguments);
+            generationPlanArguments.add("-o");
+            generationPlanArguments.add(generationPlan.getGenerationDirectory().getAbsolutePath());
+            generationPlanArguments.add(generationPlan.getSource().getAbsolutePath());
+            String[] argArr = generationPlanArguments.toArray(new String[generationPlanArguments.size()]);
             JavaReflectionUtil.method(tool, Integer.class, "doEverything", String[].class).invoke(tool, new Object[]{argArr});
         }
         return new AntlrResult(0);  // ANTLR 2 always returning 0
