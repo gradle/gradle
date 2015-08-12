@@ -66,6 +66,7 @@ model {
         helloWorldApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
     }
 
+    @LeaksFileHandles
     def "can configure components for a single flavor"() {
         given:
         buildFile << """

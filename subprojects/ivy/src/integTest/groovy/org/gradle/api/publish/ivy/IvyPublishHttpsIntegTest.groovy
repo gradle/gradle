@@ -85,6 +85,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         failure.assertHasCause("javax.net.ssl.SSLPeerUnverifiedException: peer not authenticated")
     }
 
+    @LeaksFileHandles
     def "decent error message when server can't authenticate client"() {
         keyStore.enableSslWithServerAndBadClientCert(server)
         initBuild()

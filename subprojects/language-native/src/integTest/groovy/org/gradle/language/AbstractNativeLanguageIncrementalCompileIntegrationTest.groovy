@@ -445,6 +445,7 @@ model {
         outputs.noneRecompiled()
     }
 
+    @LeaksFileHandles
     def "removes output files when all source files are removed"() {
         given:
         run "mainExecutable"
