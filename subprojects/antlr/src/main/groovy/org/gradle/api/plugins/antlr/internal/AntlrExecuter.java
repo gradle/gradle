@@ -26,12 +26,10 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.Set;
 
 public class AntlrExecuter {
 
@@ -62,7 +60,7 @@ public class AntlrExecuter {
         try {
             Object toolObj = loadTool("antlr.Tool", null);
             LOGGER.info("Processing with ANTLR 2");
-            return processV2(toolObj, spec.getArguments(), spec.getGrammarFiles(), spec.getOutputDirectory());
+            return processV2(toolObj, spec);
         } catch (ClassNotFoundException e) {
             LOGGER.debug("ANTLR 2 not found on classpath");
         }
@@ -96,11 +94,11 @@ public class AntlrExecuter {
         }
     }
 
-    AntlrResult processV2(Object tool, List<String> arguments, Set<File> grammarFiles, File outputDirectory) {
-        XRef xref = new MetadataExtracter().extractMetadata(grammarFiles);
-        List<GenerationPlan> generationPlans = new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(xref);
+    AntlrResult processV2(Object tool, AntlrSpec spec) {
+        XRef xref = new MetadataExtracter().extractMetadata(spec.getGrammarFiles());
+        List<GenerationPlan> generationPlans = new GenerationPlanBuilder(spec.getOutputDirectory()).buildGenerationPlans(xref);
         for (GenerationPlan generationPlan : generationPlans) {
-            List<String> generationPlanArguments = Lists.newArrayList(arguments);
+            List<String> generationPlanArguments = Lists.newArrayList(spec.getArguments());
             generationPlanArguments.add("-o");
             generationPlanArguments.add(generationPlan.getGenerationDirectory().getAbsolutePath());
             generationPlanArguments.add(generationPlan.getSource().getAbsolutePath());
