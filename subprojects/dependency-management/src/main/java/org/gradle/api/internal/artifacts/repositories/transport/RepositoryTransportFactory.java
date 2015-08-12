@@ -73,7 +73,6 @@ public class RepositoryTransportFactory {
 
     public Set<String> getRegisteredProtocols() {
         Set<String> validSchemes = Sets.newLinkedHashSet();
-        validSchemes.add("file");
         for (ResourceConnectorFactory registeredProtocol : registeredProtocols) {
             validSchemes.addAll(registeredProtocol.getSupportedProtocols());
         }
@@ -98,16 +97,19 @@ public class RepositoryTransportFactory {
     public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications) {
         validateSchemes(schemes);
 
-        // File resources are handled slightly differently at present.
-        if (Collections.singleton("file").containsAll(schemes)) {
-            return new FileTransport(name);
-        }
-        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
         ResourceConnectorFactory connectorFactory = findConnectorFactory(schemes);
 
         // Ensure resource transport protocol, authentication types and credentials are all compatible
         validateConnectorFactoryCredentials(connectorFactory, authentications);
 
+        // File resources are handled slightly differently at present.
+        // file:// repos are treated differently
+        // 1) we don't cache their files
+        // 2) we don't do progress logging for "downloading"
+        if (Collections.singleton("file").containsAll(schemes)) {
+            return new FileTransport(name);
+        }
+        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
         ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
         return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector);
     }

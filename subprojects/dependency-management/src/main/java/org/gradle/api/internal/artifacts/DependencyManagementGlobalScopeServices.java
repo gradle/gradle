@@ -22,6 +22,8 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
+import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.resource.transport.file.FileConnectorFactory;
 
 class DependencyManagementGlobalScopeServices {
     IvyContextManager createIvyContextManager() {
@@ -65,5 +67,9 @@ class DependencyManagementGlobalScopeServices {
                                                                                     ConfigurationsToArtifactsConverter configurationsToArtifactsConverter,
                                                                                     ComponentIdentifierFactory componentIdentifierFactory) {
         return new ConfigurationLocalComponentConverter(configurationsToModuleDescriptorConverter, dependenciesToModuleDescriptorConverter, componentIdentifierFactory, configurationsToArtifactsConverter);
+    }
+
+    ResourceConnectorFactory createFileConnectorFactory() {
+        return new FileConnectorFactory();
     }
 }

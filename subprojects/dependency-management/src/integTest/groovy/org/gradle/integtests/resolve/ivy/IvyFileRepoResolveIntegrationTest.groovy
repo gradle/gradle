@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class IvyFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -124,7 +123,6 @@ task retrieve(type: Sync) {
         jarC1.assertHasChangedSince(jarCsnapshot)
     }
 
-    @NotYetImplemented
     def "cannot define authentication for local file repo"() {
         given:
         def repo = ivyRepo()
@@ -151,5 +149,7 @@ task retrieve(type: Sync) {
 """
         expect:
         fails 'retrieve'
+        and:
+        errorOutput.contains("> Authentication scheme of 'DefaultBasicAuthentication' is not supported by protocols [file]")
     }
 }
