@@ -675,10 +675,10 @@ Each property marked with `@Variant` defines a variant dimension for this kind o
 ### Test cases
 
 - Variants are displayed for binary in alphabetic order using the property names.
-    - managed type `A` has variant property `parentVariant`
-    - managed subtype `B` has variant property `childVariant1`
-    - managed subtype `B` has variant property `childVariant2`
-    - report displays variants with names in order:
+    - unmanaged super-type has variant property `parentVariant`
+    - managed subtype has variant property `childVariant1`
+    - managed subtype has variant property `childVariant2`
+    - report displays variants with names in alphabetical order:
         - `childVariant1`
         - `childVariant2`
         - `parentVariant`
