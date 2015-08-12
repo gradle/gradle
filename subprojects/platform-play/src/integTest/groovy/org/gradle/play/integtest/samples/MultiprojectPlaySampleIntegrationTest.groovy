@@ -60,9 +60,10 @@ class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegratio
         sample playSample
         executer.usingInitScript(initScript).withStdinPipe()
         GradleHandle gradleHandle = executer.withTasks(":admin:runPlayBinary").start()
+        runningPlayApp.initialize(gradleHandle)
 
         then:
-        available("http://localhost:$httpPort/admin", "Play app", 60)
+        runningPlayApp.waitForStarted()
 
         and:
         checkAdminModuleContent()
@@ -71,6 +72,6 @@ class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegratio
         gradleHandle.cancelWithEOT().waitForFinish()
 
         then: "play server is stopped too"
-        notAvailable("http://localhost:$httpPort/admin")
+        runningPlayApp.verifyStopped('admin')
     }
 }

@@ -30,19 +30,12 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.integtests.fixtures.UrlValidator.available
-import static org.gradle.integtests.fixtures.UrlValidator.notAvailable
-
 class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec {
     PlayApp playApp = new PlayMultiProject()
     RunningPlayApp runningApp = new MultiProjectRunningPlayApp(testDirectory)
 
     def setup() {
         playApp.writeSources(testDirectory)
-    }
-
-    def cleanup() {
-        runningApp.cleanup()
     }
 
     def "can build play app binary"() {
@@ -103,7 +96,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         file("primary/build.gradle") << """
     model {
         tasks.runPlayBinary {
-            httpPort = ${runningApp.selectPort()}
+            httpPort = 0
         }
     }
 """
@@ -111,10 +104,10 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
         when:
         GradleHandle build = executer.withTasks(":primary:runPlayBinary").withForceInteractive(true).withStdinPipe().start()
+        runningApp.initialize(build)
 
         then:
-        def url = runningApp.playUrl().toString()
-        available(url, "Play app", 60)
+        runningApp.verifyStarted()
 
         and:
         runningApp.verifyContent();
@@ -123,7 +116,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         build.cancelWithEOT().waitForFinish()
 
         then: "play server is stopped too"
-        notAvailable(url)
+        runningApp.verifyStopped()
     }
 
     @Requires(TestPrecondition.NOT_UNKNOWN_OS)
@@ -137,19 +130,20 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         run ":primary:stage"
 
         when:
-        ExecHandleBuilder builder = new DistributionTestExecHandleBuilder(runningApp.selectPort().toString(), distDirPath)
+        ExecHandleBuilder builder = new DistributionTestExecHandleBuilder('0', distDirPath)
         handle = builder.build()
         handle.start()
+        runningApp.initialize(handle)
 
         then:
-        available(runningApp.playUrl().toString(), "Play app", 60)
+        runningApp.verifyStarted()
 
         and:
         runningApp.verifyContent()
 
         cleanup:
-        ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown()
-        notAvailable(runningApp.playUrl().toString())
+        ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown(runningApp.httpPort)
+        runningApp.verifyStopped()
     }
 
     JarTestFixture jar(String fileName) {

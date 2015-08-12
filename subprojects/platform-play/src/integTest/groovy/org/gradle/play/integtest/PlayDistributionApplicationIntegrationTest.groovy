@@ -70,9 +70,10 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         run "stage"
 
         when:
-        builder = new DistributionTestExecHandleBuilder(runningApp.selectPort().toString(), distDirPath)
+        builder = new DistributionTestExecHandleBuilder('0', distDirPath)
         handle = builder.build()
         handle.start()
+        runningApp.initialize(handle)
 
         then:
         runningApp.verifyStarted()
@@ -81,7 +82,7 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         runningApp.verifyContent()
 
         cleanup:
-        ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown()
+        ((DistributionTestExecHandleBuilder.DistributionTestExecHandle) handle).shutdown(runningApp.httpPort)
         runningApp.verifyStopped()
     }
 

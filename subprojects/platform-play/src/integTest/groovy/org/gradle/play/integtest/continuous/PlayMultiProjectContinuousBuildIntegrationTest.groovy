@@ -53,7 +53,7 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
         childDirectory.file('build.gradle') << """
             model {
                 tasks.runPlayBinary {
-                    httpPort = ${runningChildApp.selectPort()}
+                    httpPort = 0
                 }
             }
         """
@@ -95,12 +95,14 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
     }
 
     def childAppIsRunningAndDeployed() {
-        runningChildApp.verifyStarted()
+        runningChildApp.initialize(gradle)
+        runningChildApp.verifyStarted('', 1)
         runningChildApp.verifyContent()
         true
     }
 
     def childAppIsStopped() {
+        runningChildApp.requireHttpPort(1)
         runningChildApp.verifyStopped()
         true
     }
@@ -110,7 +112,7 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
         childDirectory.file('build.gradle') << """
             model {
                 tasks.runPlayBinary {
-                    httpPort = ${runningChildApp.selectPort()}
+                    httpPort = 0
                 }
             }
         """
@@ -140,9 +142,6 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
         succeeds()
         appIsRunningAndDeployed()
         childAppIsRunningAndDeployed()
-
-        cleanup:
-        runningChildApp.cleanup()
     }
 
 

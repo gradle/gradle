@@ -27,10 +27,7 @@ abstract class AbstractPlayContinuousBuildIntegrationTest extends Java7Requiring
     def setup() {
         writeSources()
         buildTimeout = 90
-    }
-
-    def cleanup() {
-        runningApp.cleanup()
+        executer.run()
     }
 
     TestFile getPlayRunBuildFile() {
@@ -43,7 +40,7 @@ abstract class AbstractPlayContinuousBuildIntegrationTest extends Java7Requiring
         playRunBuildFile << """
             model {
                 tasks.runPlayBinary {
-                    httpPort = ${runningApp.selectPort()}
+                    httpPort = 0
                 }
             }
         """
@@ -54,6 +51,7 @@ abstract class AbstractPlayContinuousBuildIntegrationTest extends Java7Requiring
     }
 
     void appIsRunningAndDeployed() {
+        runningApp.initialize(gradle)
         runningApp.verifyStarted()
         runningApp.verifyContent()
     }

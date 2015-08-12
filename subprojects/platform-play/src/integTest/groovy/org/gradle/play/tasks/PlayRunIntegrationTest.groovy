@@ -27,7 +27,7 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
         buildFile << """
             model {
                 tasks.runPlayBinary {
-                    httpPort = ${runningApp.selectPort()}
+                    httpPort = 0
                 }
             }
         """

@@ -35,7 +35,6 @@ import org.gradle.test.fixtures.server.ExpectOne
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.ServerExpectation
 import org.gradle.test.fixtures.server.ServerWithExpectations
-import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -47,7 +46,6 @@ import java.security.SecureRandom
 class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
     private final static Logger logger = LoggerFactory.getLogger(SFTPServer)
-    def portFinder = FixedAvailablePortAllocator.getInstance()
     final String hostAddress
     int port
 
@@ -94,15 +92,15 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         baseDir = testDirectoryProvider.getTestDirectory().createDir("sshd/files")
         configDir = testDirectoryProvider.getTestDirectory().createDir("sshd/config")
 
-        port = portFinder.assignPort()
-        sshd = setupConfiguredTestSshd()
+        // Set the port to 0 to have it automatically assign a port
+        sshd = setupConfiguredTestSshd(0)
         sshd.start()
+        port = sshd.getPort()
         allowInit()
     }
 
     public void stop(boolean immediately = true) {
         sshd?.stop(immediately)
-        portFinder.releasePort(port)
     }
 
     public void restart() {
@@ -116,13 +114,13 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         passwordAuthenticationEnabled = true
     }
 
-    private SshServer setupConfiguredTestSshd() {
+    private SshServer setupConfiguredTestSshd(int sshPort) {
         //copy dsa key to config directory
         URL fileUrl = ClassLoader.getSystemResource("sshd-config/test-dsa.key");
         FileUtils.copyURLToFile(fileUrl, new File(configDir, "test-dsa.key"));
 
         SshServer sshServer = SshServer.setUpDefaultServer();
-        sshServer.setPort(port);
+        sshServer.setPort(sshPort);
         sshServer.setFileSystemFactory(new TestVirtualFileSystemFactory());
         sshServer.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystem.Factory() {
             Command create() {

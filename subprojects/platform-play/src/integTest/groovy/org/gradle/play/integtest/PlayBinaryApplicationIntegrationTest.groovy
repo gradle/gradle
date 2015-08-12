@@ -46,14 +46,14 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
 
     def "can run play app"() {
         setup:
+        run "assemble"
         buildFile << """
             model {
                 tasks.runPlayBinary {
-                    httpPort = ${runningApp.selectPort()}
+                    httpPort = 0
                 }
             }
         """
-        run "assemble"
 
         when:
         startBuild "runPlayBinary"

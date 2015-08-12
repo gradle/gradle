@@ -18,12 +18,13 @@ package org.gradle.play.integtest.advanced
 
 import org.gradle.play.integtest.PlayBinaryApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.AdvancedRunningPlayApp
-import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 
 class PlayBinaryAdvancedAppIntegrationTest extends PlayBinaryApplicationIntegrationTest {
-    RunningPlayApp runningApp = new AdvancedRunningPlayApp(testDirectory)
+    def setup() {
+        runningApp = new AdvancedRunningPlayApp(testDirectory)
+    }
 
     @Override
     PlayApp getPlayApp() {

@@ -18,17 +18,16 @@ package org.gradle.play.integtest.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ports.FixedAvailablePortAllocator
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec {
-    def portFinder = FixedAvailablePortAllocator.getInstance()
-    def initScript
-    int httpPort
+    File initScript
+    RunningPlayApp runningPlayApp = new RunningPlayApp(testDirectory)
 
     abstract Sample getPlaySample();
 
@@ -40,18 +39,13 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
     }
 
     def setup() {
-        httpPort = portFinder.assignPort()
         initScript = file("initFile") << """
             gradle.allprojects {
                 tasks.withType(PlayRun) {
-                    httpPort = $httpPort
+                    httpPort = 0
                 }
             }
         """
-    }
-
-    def cleanup() {
-        portFinder.releasePort(httpPort)
     }
 
     def "produces usable application" () {
@@ -67,9 +61,10 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
         sample playSample
         executer.usingInitScript(initScript).withStdinPipe()
         GradleHandle gradleHandle = executer.withTasks(":runPlayBinary").start()
+        runningPlayApp.initialize(gradleHandle)
 
         then:
-        available("http://localhost:$httpPort", "Play app", 60)
+        runningPlayApp.waitForStarted()
 
         and:
         checkContent()
@@ -78,11 +73,11 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec
         gradleHandle.cancelWithEOT().waitForFinish()
 
         then: "play server is stopped too"
-        notAvailable("http://localhost:$httpPort")
+        runningPlayApp.verifyStopped()
     }
 
     URL playUrl(String path='') {
-        return new URL("http://localhost:$httpPort/${path}")
+        runningPlayApp.playUrl(path)
     }
 
     File publicAsset(String asset) {

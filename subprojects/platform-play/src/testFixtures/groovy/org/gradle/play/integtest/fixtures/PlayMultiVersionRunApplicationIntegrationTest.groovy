@@ -19,14 +19,15 @@ package org.gradle.play.integtest.fixtures
 import org.gradle.integtests.fixtures.executer.GradleHandle
 
 abstract class PlayMultiVersionRunApplicationIntegrationTest extends PlayMultiVersionApplicationIntegrationTest {
-    RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
+    RunningPlayApp runningApp
     GradleHandle build
+
+    def setup() {
+        runningApp = new RunningPlayApp(testDirectory)
+    }
 
     def startBuild(tasks) {
         build = executer.withTasks(tasks).withForceInteractive(true).withStdinPipe().start()
-    }
-
-    def cleanup() {
-        runningApp.cleanup()
+        runningApp.initialize(build)
     }
 }

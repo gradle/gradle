@@ -30,7 +30,6 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
     def cleanup() {
         stopGradle()
         appIsStopped()
-        runningApp.cleanup()
     }
 
     def "can modify play app while app is running in continuous build"() {
