@@ -667,7 +667,6 @@ This works for both managed and unmanaged types.
 
 ### Implementation
 
-- Replace special case rendering of binary variant dimensions from the component report with general purpose reporting.
 - `ModelImplTypeSchema` provides the getter for the property, but does not hold a strong reference to it.
 - All annotations on setters are stored in the schema for the purpose of raising errors about them later on.
 - Custom variants are not shown in the component report for this story.
@@ -682,12 +681,15 @@ This works for both managed and unmanaged types.
     - declare a `buildType` (type: `BuildType`) variant with `debug` and `production`
     - declare a `flavor` (type: `String`) variant with `free` and `paid`
     - all four Jar binaries can be built
-- Error cases:
-    - Invalid property type raises error during rule execution.
-    - `@Variant` annotation placed on setter raises error during rule execution.
+- Useful error message presented to user for:
+    - `@Variant` annotation on property with return type other than String/Named
+    - `@Variant` annotation on property setter
+    - QUESTION: When is this validation triggered? Only when resolving dependencies? Or always?
 
+## Story: Component report displays `@Variant` properties for custom binary
 
-## Story: Variants are displayed in component report
+This story adds general purpose infrastructure for rendering the name and value for each variant property
+for any `BinarySpec`. This will be used both for built-in `BinarySpec` subtypes as well as custom subtypes (managed and unmanaged).
 
 ```text
 JVM library 'myLib'
@@ -722,6 +724,7 @@ Binaries
 ### Implementation
 
 - Annotate `JvmBinarySpec.targetPlatform`, and the variant properties of `NativeBinarySpec` and `PlayApplicationBinarySpec`.
+- Replace special case rendering of binary variant dimensions from the component report with general purpose reporting.
 
 ### Test cases
 
