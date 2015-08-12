@@ -23,53 +23,8 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     def setup() {
-        writeBuildFile()
-        writeConfigFile()
-    }
-
-    def "allows configuring tool dependencies explicitly"() {
-        expect: //defaults exist and can be inspected
-        succeeds("dependencies", "--configuration", "checkstyle")
-        output.contains "com.puppycrawl.tools:checkstyle:"
-
-        when:
         buildFile << """
-            dependencies {
-                //downgrade version:
-                checkstyle "com.puppycrawl.tools:checkstyle:5.5"
-            }
-        """
-
-        then:
-        succeeds("dependencies", "--configuration", "checkstyle")
-        output.contains "com.puppycrawl.tools:checkstyle:5.5"
-    }
-
-    private void writeBuildFile() {
-        file("build.gradle") << """
-apply plugin: "groovy"
-apply plugin: "checkstyle"
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    compile localGroovy()
-}
-        """
-    }
-
-    private void writeConfigFile() {
-        file("config/checkstyle/checkstyle.xml") << """
-<!DOCTYPE module PUBLIC
-        "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
-        "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
-<module name="Checker">
-    <module name="TreeWalker">
-        <module name="TypeName"/>
-    </module>
-</module>
+            apply plugin: 'groovy'
         """
     }
 }
