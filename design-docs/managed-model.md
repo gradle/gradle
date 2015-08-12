@@ -93,7 +93,7 @@ A read-only property is defined like using a single getter:
         List<String> getItems()
     }
 
-whereas a write-only property is defined using both a getter and a setter:
+whereas a read-write property is defined using both a getter and a setter:
 
     @Managed
     interface ReadWriteProperty {
@@ -113,7 +113,18 @@ whereas a write-only property is defined using both a getter and a setter:
 - cannot assign a collection to a read-only property
 - can assign `null` to a read-write property
 - Fail if `T` is not a scalar type
-- Model report renders collection values.
+- Model report renders collection values
+- For a managed type that defines a `Set<String>` read-only property
+    * `addAll 'b','c'`
+    * `add 'd'`
+    * `add 'a'`
+    * call to getter should return a `Set` which is ordered: `'b','c','d','a'`
+- For a managed type `foo` that defines a `Set<String>` read-write property
+    * create a `SortedSet<String> sortedSet` containing `'c','b'`
+    * call `foo.setItems(sortedSet)`
+    * add `'d'` to `sortedSet`
+    * call `foo.getItems().add('a')`
+    * call again `foo.getItems()` make sure it returns a `Set` which contains *in that order*: `'b','c','a'` (effect of copy on write, semantics of `SortedSet` are not preserved)
 
 ### Convenient configuration of scalar typed properties from Groovy
 
