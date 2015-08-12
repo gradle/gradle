@@ -144,9 +144,11 @@ public class CachingDirectedGraphWalker<N, T> {
                     // Part of a strongly connected component (ie cycle) - move values to root of the component
                     // The root is the first node of the component we encountered
                     NodeDetails<N, T> rootDetails = components.get(details.minSeen);
-                    rootDetails.values.addAll(details.values);
+                    if (null != rootDetails) {
+                        rootDetails.values.addAll(details.values);
+                        rootDetails.componentMembers.addAll(details.componentMembers);
+                    }
                     details.values.clear();
-                    rootDetails.componentMembers.addAll(details.componentMembers);
                 } else {
                     // Not part of a strongly connected component or the root of a strongly connected component
                     for (NodeDetails<N, T> componentMember : details.componentMembers) {
