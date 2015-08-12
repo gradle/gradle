@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
@@ -113,6 +114,7 @@ task slow << { new URL("${server.uri}").text }
     }
 
     @TargetGradleVersion(">=2.2")
+    @LeaksFileHandles
     def "shutdown ignores daemons that were not started by client"() {
         given:
         toolingApi.requireIsolatedDaemons()
