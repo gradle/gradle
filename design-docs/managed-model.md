@@ -77,6 +77,7 @@ could be necessary to introduce primitive versions of `get` and `set`.
 
 - Add support for `List<T>` and `Set<T>` where `T` is any non primitive scalar type (as defined above)
 - Support read-only and read-write properties.
+- Read-only property doesn't mean that the collection is immutable, but rather than the collection cannot be replaced using a setter.
 - Read-only properties default to some empty implementation
 - Read-write properties default to `null`
 - Read-only `Set` instance should retain insertion order.
@@ -84,12 +85,33 @@ could be necessary to introduce primitive versions of `get` and `set`.
 - Read-only instances should be immutable when view is immutable (eg used as input for rule, used as subject for validation rule).
 - Update user guide and Javadocs, add sample
 
-- TBD: should read-write properties maintain a copy of, rather than a reference to, the input collection? This would work
-better wrt immutability when the view is immutable. That is, should read-write properties work the same as read-only properties,
-where the setter is simply a convenience for replacing the contents of the collection?
+A read-only property is defined like using a single getter:
+
+    @Managed
+    interface ReadOnlyProperty {
+        List<String> getItems()
+    }
+
+whereas a write-only property is defined using both a getter and a setter:
+
+    @Managed
+    interface ReadWriteProperty {
+        List<String> getItems()
+        void setItems(List<String> items)
+    }
+
+- There's no guarantee that 2 subsequent calls to a getter will return the same instance of a collection
+- Similarily, for write-only properties, the collection which is passed as an argument is not guaranteed to be returned by the getter
+- For consistency, both read-only and write-only properties should enforce immutability of the collection when the view is immutable
+- When a setter is called, a new managed collection is created, ensuring immutability. Documentation should mention a similarity with the defensive copy pattern.
 
 #### Test cases
 
+- calling the getter of a read-only property for a created node must return an empty collection
+- calling the getter of a read-write property for a created node must return `null`
+- cannot assign a collection to a read-only property
+- can assign `null` to a read-write property
+- Fail if `T` is not a scalar type
 - Model report renders collection values.
 
 ### Convenient configuration of scalar typed properties from Groovy
