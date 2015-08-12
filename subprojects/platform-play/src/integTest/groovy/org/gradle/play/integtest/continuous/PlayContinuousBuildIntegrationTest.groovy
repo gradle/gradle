@@ -25,10 +25,6 @@ class PlayContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinu
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
     PlayApp playApp = new BasicPlayApp()
 
-    def cleanup() {
-        appIsStopped()
-    }
-
     def "build does not block when running play app with continuous build" () {
         when: "the build runs until it enters continuous build"
         succeeds("runPlayBinary")

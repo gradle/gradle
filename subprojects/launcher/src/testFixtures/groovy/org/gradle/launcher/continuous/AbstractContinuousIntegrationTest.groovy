@@ -45,7 +45,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         shutdownTimeout *= 100
     }
 
-    public void cleanup() {
+    def cleanup() {
         stopGradle()
         if (OperatingSystem.current().isWindows()) {
             // needs delay to release file handles
