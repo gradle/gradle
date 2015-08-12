@@ -663,6 +663,8 @@ Each property marked with `@Variant` defines a variant dimension for this kind o
 - Property type must either be a String or a type that extends `Named`.
 - Annotate `JvmBinarySpec.targetPlatform`, the properties of `NativeBinarySpec` and `PlayApplicationBinarySpec`.
 - Component report shows variants for a binary in alphabetic order using the property name.
+- A `@Variant` annotation on the setter of the property raises an error.
+- A `@Variant` annotation on non-property methods is ignored.
 
 ### Implementation
 
