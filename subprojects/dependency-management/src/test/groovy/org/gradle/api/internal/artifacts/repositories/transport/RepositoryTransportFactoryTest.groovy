@@ -48,7 +48,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
         then:
         InvalidUserDataException e = thrown()
-        e.message == "Not a supported repository protocol 'unsupported': valid protocols are [file, protocol1, protocol2a, protocol2b]"
+        e.message == "Not a supported repository protocol 'unsupported': valid protocols are [protocol1, protocol2a, protocol2b]"
     }
 
     def "cannot creates a transport for mixed url scheme"() {
