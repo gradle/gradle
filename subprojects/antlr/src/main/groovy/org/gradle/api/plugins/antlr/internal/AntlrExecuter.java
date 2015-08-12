@@ -22,6 +22,7 @@ import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlan;
 import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlanBuilder;
 import org.gradle.api.plugins.antlr.internal.antlr2.MetadataExtracter;
 import org.gradle.api.plugins.antlr.internal.antlr2.XRef;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
@@ -120,12 +121,16 @@ public class AntlrExecuter {
             // This results in flat generated sources in the output directory
             numErrors += invokeV3ToolingAndReturnErrorNumber(spec.asArgumentsWithFiles(), null);
         } else {
+            boolean onWindows = OperatingSystem.current().isWindows();
             for (File inputDirectory : spec.getInputDirectories()) {
                 final List<String> arguments = spec.getArguments();
                 arguments.add("-o");
                 arguments.add(spec.getOutputDirectory().getAbsolutePath());
                 for (File grammarFile : spec.getGrammarFiles()) {
-                    final String relativeGrammarFilePath = GFileUtils.relativePath(inputDirectory, grammarFile);
+                    String relativeGrammarFilePath = GFileUtils.relativePath(inputDirectory, grammarFile);
+                    if(onWindows){
+                        relativeGrammarFilePath = relativeGrammarFilePath.replace('/', File.separatorChar);
+                    }
                     arguments.add(relativeGrammarFilePath);
                 }
                 numErrors += invokeV3ToolingAndReturnErrorNumber(arguments, inputDirectory);
