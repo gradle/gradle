@@ -191,7 +191,7 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
                 }
 
                 @Finalize
-                void setToolChainsForBinaries(ModelMap<BinarySpec> binaries) {
+                void setPlatformForBinaries(ModelMap<BinarySpec> binaries) {
                     def platform = DefaultJavaPlatform.current()
                     binaries.withType(${binaryType}).beforeEach { binary ->
                         binary.targetPlatform = platform
