@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import groovy.lang.MissingMethodException;
@@ -32,6 +33,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
@@ -62,17 +64,22 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private static final String METHOD_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class), Type.getType(Object.class));
     private static final String SET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class), Type.getType(Object.class));
     private static final String MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Class.class), Type.getType(Object[].class));
+    private static final Map<Class<?>, Class<?>> BOXED_TYPES = ImmutableMap.<Class<?>, Class<?>>builder()
+        .put(byte.class, Byte.class)
+        .put(short.class, Short.class)
+        .put(int.class, Integer.class)
+        .put(boolean.class, Boolean.class)
+        .put(float.class, Float.class)
+        .put(char.class, Character.class)
+        .put(double.class, Double.class)
+        .put(long.class, Long.class)
+        .build();
+
 
     /**
-     * Generates an implementation of the given managed type.
-     * <p>
-     * The generated class will implement/extend the managed type and will:
-     * <ul>
-     *     <li>provide implementations for abstract getters and setters</li>
-     *     <li>provide a `toString()` implementation</li>
-     *     <li>mix-in implementation of {@link ManagedInstance}</li>
-     *     <li>provide a constructor that accepts a {@link ModelElementState}, which will be used to implement the above.</li>
-     * </ul>
+     * Generates an implementation of the given managed type. <p> The generated class will implement/extend the managed type and will: <ul> <li>provide implementations for abstract getters and
+     * setters</li> <li>provide a `toString()` implementation</li> <li>mix-in implementation of {@link ManagedInstance}</li> <li>provide a constructor that accepts a {@link ModelElementState}, which
+     * will be used to implement the above.</li> </ul>
      */
     public <T> Class<? extends T> generate(Class<T> managedTypeClass, Collection<ModelProperty<?>> properties) {
         return generate(managedTypeClass, null, properties);
@@ -320,7 +327,10 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         writeLabel(methodVisitor, calledOutsideOfConstructor);
         putStateFieldValueOnStack(methodVisitor, generatedType);
         putConstantOnStack(methodVisitor, propertyName);
-        putFirstMethodArgumentOnStack(methodVisitor);
+        putFirstMethodArgumentOnStack(methodVisitor, propertyTypeClass);
+        if (propertyTypeClass.isPrimitive()) {
+            boxType(methodVisitor, propertyTypeClass);
+        }
         invokeStateSetMethod(methodVisitor);
 
         finishVisitingMethod(methodVisitor);
@@ -364,8 +374,29 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         return methodVisitor;
     }
 
+    private void putFirstMethodArgumentOnStack(MethodVisitor methodVisitor, Class<?> argType) {
+        int loadCode = selectOpcode(argType, Opcodes.ALOAD, Opcodes.ILOAD, Opcodes.LLOAD, Opcodes.FLOAD, Opcodes.DLOAD);
+        methodVisitor.visitVarInsn(loadCode, 1);
+    }
+
+    private int selectOpcode(Class<?> argType, int defaultValue, int intCategoryValue, int longValue, int floatValue, int doubleValue) {
+        int code = defaultValue;
+        if (argType.isPrimitive()) {
+            if (byte.class == argType || short.class == argType || int.class == argType || char.class == argType || boolean.class == argType) {
+                code = intCategoryValue;
+            } else if (long.class == argType) {
+                code = longValue;
+            } else if (float.class == argType) {
+                code = floatValue;
+            } else if (double.class == argType) {
+                code = doubleValue;
+            }
+        }
+        return code;
+    }
+
     private void putFirstMethodArgumentOnStack(MethodVisitor methodVisitor) {
-        methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+        putFirstMethodArgumentOnStack(methodVisitor, Object.class);
     }
 
     private void putSecondMethodArgumentOnStack(MethodVisitor methodVisitor) {
@@ -404,7 +435,11 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         putConstantOnStack(methodVisitor, propertyName);
         invokeStateGetMethod(methodVisitor);
         castFirstStackElement(methodVisitor, propertyTypeClass);
-        finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
+        finishVisitingMethod(methodVisitor, returnCode(propertyTypeClass));
+    }
+
+    private int returnCode(Class<?> propertyTypeClass) {
+        return selectOpcode(propertyTypeClass, Opcodes.ARETURN, Opcodes.IRETURN, Opcodes.LRETURN, Opcodes.FRETURN, Opcodes.DRETURN);
     }
 
     private static String getGetterName(String propertyName) {
@@ -416,7 +451,45 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void castFirstStackElement(MethodVisitor methodVisitor, Class<?> returnType) {
-        methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(returnType));
+        if (returnType.isPrimitive()) {
+            unboxType(methodVisitor, returnType);
+        } else {
+            methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(returnType));
+        }
+    }
+
+    private void boxType(MethodVisitor methodVisitor, Class<?> primitiveType) {
+        Class<?> boxedType = BOXED_TYPES.get(primitiveType);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(boxedType), "valueOf", "(" + Type.getDescriptor(primitiveType) + ")" + Type.getDescriptor(boxedType), false);
+    }
+
+    private void unboxType(MethodVisitor methodVisitor, Class<?> primitiveType) {
+        // Float f = (Float) tmp
+        // f==null?0:f.floatValue()
+        Class<?> boxedType = BOXED_TYPES.get(primitiveType);
+        methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(boxedType));
+        methodVisitor.visitInsn(Opcodes.DUP);
+        Label exit = new Label();
+        Label elseValue = new Label();
+        methodVisitor.visitJumpInsn(Opcodes.IFNONNULL, elseValue);
+        methodVisitor.visitInsn(Opcodes.POP);
+        pushDefaultValue(methodVisitor, primitiveType);
+        methodVisitor.visitJumpInsn(Opcodes.GOTO, exit);
+        methodVisitor.visitLabel(elseValue);
+        methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(boxedType), primitiveType.getSimpleName() + "Value", "()" + Type.getDescriptor(primitiveType), false);
+        methodVisitor.visitLabel(exit);
+    }
+
+    private void pushDefaultValue(MethodVisitor methodVisitor, Class<?> primitiveType) {
+        int ins = Opcodes.ICONST_0;
+        if (long.class == primitiveType) {
+            ins = Opcodes.LCONST_0;
+        } else if (double.class == primitiveType) {
+            ins = Opcodes.DCONST_0;
+        } else if (float.class == primitiveType) {
+            ins = Opcodes.FCONST_0;
+        }
+        methodVisitor.visitInsn(ins);
     }
 
     private void invokeStateGetMethod(MethodVisitor methodVisitor) {

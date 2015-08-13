@@ -46,7 +46,6 @@ class ManagedBooleanGetterTest extends Specification {
         void setRedundant(boolean redundant)
     }
 
-    @NotYetImplemented
     def "supports a boolean property with a get style getter"() {
         expect:
         schemaStore.getSchema(ModelType.of(IsManager))

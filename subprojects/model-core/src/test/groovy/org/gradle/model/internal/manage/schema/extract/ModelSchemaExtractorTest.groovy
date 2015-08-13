@@ -192,13 +192,8 @@ class ModelSchemaExtractorTest extends Specification {
         void setByteProperty(byte value)
     }
 
-    def "byte property types are not allowed and there is no suggested replacement"() {
-        expect:
-        fail BytePrimitiveProperty, Pattern.quote("an unmanaged type")
-    }
-
     @Unroll
-    def "boxed types are suggested when primitive types are being used - #primitiveType"() {
+    def "primitive types are supported - #primitiveType"() {
         when:
         def interfaceWithPrimitiveProperty = new GroovyClassLoader(getClass().classLoader).parseClass """
             import org.gradle.model.Managed
@@ -211,18 +206,22 @@ class ModelSchemaExtractorTest extends Specification {
             }
         """
 
+        def properties = extract(interfaceWithPrimitiveProperty).properties
+
         then:
-        fail interfaceWithPrimitiveProperty, primitiveType, Pattern.quote("type is not supported, please use $boxedType.name instead")
+        properties.size() == 1
+        properties.primitiveProperty.type == ModelType.of(primitiveType)
 
         where:
-        primitiveType | boxedType
-        boolean.class | Boolean
-        char.class    | Character
-        float.class   | Double
-        long.class    | Long
-        short.class   | Integer
-        int.class     | Integer
-        double.class  | Double
+        primitiveType << [
+        byte,
+        boolean,
+        char,
+        float,
+        long,
+        short,
+        int,
+        double]
     }
 
     @Managed

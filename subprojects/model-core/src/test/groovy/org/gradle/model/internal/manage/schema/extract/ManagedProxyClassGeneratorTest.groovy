@@ -24,12 +24,13 @@ import org.gradle.model.internal.manage.schema.ModelProperty
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Ignore
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.lang.reflect.Type
 
 class ManagedProxyClassGeneratorTest extends Specification {
     static def generator = new ManagedProxyClassGenerator()
-    static Map<Class<?>, Map<Class<?>, Class<?>>> generated = [:]
+    static Map<Class<?>, Map<Class<?>, Class<?>>> generated = [:].withDefault { [:] }
 
     def "generates a proxy class for an interface"() {
         expect:
@@ -174,20 +175,61 @@ class ManagedProxyClassGeneratorTest extends Specification {
         e.message.startsWith("No signature of method: ${SomeType.name}.setValue() is applicable")
     }
 
+    @Unroll
+    def "can read and write #value to managed property of type #primitiveType"() {
+        def loader = new GroovyClassLoader(getClass().classLoader)
+        when:
+        def interfaceWithPrimitiveProperty = loader.parseClass """
+            interface PrimitiveProperty {
+                $primitiveType.name getPrimitiveProperty()
+
+                void setPrimitiveProperty($primitiveType.name value)
+            }
+        """
+
+
+        def data = [:]
+        def state = Mock(ModelElementState)
+        state.get(_) >> { args->
+            data[args[0]]
+        }
+        state.set(_, _) >> { args ->
+            data[args[0]] = args[1]
+        }
+        def properties = [property('primitiveProperty', primitiveType, true, true)]
+        def proxy = generate(interfaceWithPrimitiveProperty, null, properties)
+        def instance = proxy.newInstance(state)
+
+        then:
+        new GroovyShell(loader,new Binding(instance:instance)).evaluate """
+            instance.primitiveProperty = $value
+            assert instance.primitiveProperty == $value
+            instance
+        """
+
+        where:
+        primitiveType | value
+        byte          | "123"
+        boolean       | "false"
+        boolean       | "true"
+        char          | "'c'"
+        float         | "123.45f"
+        long          | "123L"
+        short         | "123"
+        int           | "123"
+        double        | "123.456d"
+    }
+
+
     def <T> T newInstance(Class<T> type) {
         def generated = generate(type)
         return generated.newInstance(Stub(ModelElementState))
     }
 
-    def <T, M extends T, D extends T> Class<? extends T> generate(Class<T> managedType, Class<D> delegateType = null) {
+    def <T, M extends T, D extends T> Class<? extends T> generate(Class<T> managedType, Class<D> delegateType = null, Collection<ModelProperty<?>> properties = managedProperties[managedType]) {
         Map<Class<?>, Class<?>> generatedForDelegateType = generated[managedType]
-        if (generatedForDelegateType == null) {
-            generatedForDelegateType = [:]
-            generated[managedType] = generatedForDelegateType
-        }
         Class<? extends T> generated = generatedForDelegateType[delegateType] as Class<? extends T>
         if (generated == null) {
-            def properties = managedProperties[managedType]
             generated = generator.generate(managedType, delegateType, properties)
             generatedForDelegateType[delegateType] = generated
         }
