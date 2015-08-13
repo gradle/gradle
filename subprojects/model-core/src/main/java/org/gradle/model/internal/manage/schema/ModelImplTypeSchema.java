@@ -34,4 +34,16 @@ public abstract class ModelImplTypeSchema<T> extends ModelSchema<T> {
     public ImmutableSortedMap<String, ModelProperty<?>> getProperties() {
         return properties;
     }
+
+    public boolean hasProperty(String name) {
+        return properties.containsKey(name);
+    }
+
+    public ModelProperty<?> getProperty(String name) {
+        ModelProperty<?> property = properties.get(name);
+        if (property == null) {
+            throw new IllegalArgumentException("Property with name " + name + " not found");
+        }
+        return property;
+    }
 }

@@ -89,7 +89,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         return propertyViews.get(name);
                     }
 
-                    ModelProperty<?> property = schema.getProperties().get(name);
+                    ModelProperty<?> property = schema.getProperty(name);
 
                     Object value = doGet(property, name);
                     propertyViews.put(name, value);
@@ -119,7 +119,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         throw new ModelViewClosedException(getType(), ruleDescriptor);
                     }
 
-                    ModelProperty<?> property = schema.getProperties().get(name);
+                    ModelProperty<?> property = schema.getProperty(name);
                     ModelType<?> propertyType = property.getType();
 
                     doSet(name, value, propertyType);

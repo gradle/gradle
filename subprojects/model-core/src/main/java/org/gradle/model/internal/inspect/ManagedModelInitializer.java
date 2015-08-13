@@ -55,8 +55,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
         if (Named.class.isAssignableFrom(modelSchema.getType().getRawClass())) {
             // Only initialize "name" child node if the schema has such a managed property.
             // This is not the case for a managed subtype of an unmanaged type that implements Named.
-            ModelProperty<?> nameProperty = modelSchema.getProperties().get("name");
-            if (nameProperty != null && nameProperty.isManaged()) {
+            if (modelSchema.hasProperty("name") && modelSchema.getProperty("name").isManaged()) {
                 MutableModelNode nameLink = modelNode.getLink("name");
                 if (nameLink == null) {
                     throw new IllegalStateException("expected name node for " + modelNode.getPath());
