@@ -465,7 +465,7 @@ Each property marked with `@Variant` defines a variant dimension for this kind o
 This works for both managed and unmanaged types.
 
 - Property type must either be a String or a type that extends `Named`.
-- A `@Variant` annotation on the setter of the property raises an error.
+- A `@Variant` annotation on the setter of the property raises an error during schema validation.
 - A `@Variant` annotation on non-property methods is ignored.
 
 ### Implementation
@@ -488,7 +488,6 @@ This works for both managed and unmanaged types.
 - Useful error message presented to user for:
     - `@Variant` annotation on property with return type other than String/Named
     - `@Variant` annotation on property setter
-    - QUESTION: When is this validation triggered? Only when resolving dependencies? Or always?
 
 ## Story: Component report displays `@Variant` properties for custom binary
 
