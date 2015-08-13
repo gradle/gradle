@@ -38,16 +38,13 @@ public class ModelSchemaExtractionContext<T> {
         this.type = type;
         this.description = description;
         this.validators = Lists.newArrayListWithCapacity(2);
-
-        validators.add(validator);
+        if (validator != null) {
+            validators.add(validator);
+        }
     }
 
     public static <T> ModelSchemaExtractionContext<T> root(ModelType<T> type) {
-        return new ModelSchemaExtractionContext<T>(null, type, null, Actions.doNothing());
-    }
-
-    public static <T> ModelSchemaExtractionContext<T> root(ModelType<T> type, Action<? super ModelSchemaExtractionContext<T>> validator) {
-        return new ModelSchemaExtractionContext<T>(null, type, null, validator);
+        return new ModelSchemaExtractionContext<T>(null, type, null, null);
     }
 
     /**
