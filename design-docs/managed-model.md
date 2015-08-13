@@ -69,10 +69,9 @@ could be necessary to introduce primitive versions of `get` and `set`.
 - Update user guide and Javadoc
 
 #### Test cases
-
-- Does something sensible when `get` and `is` getters are both defined for a property.
-    - Allows both.
-- Error when a `Boolean` or any other non `boolean` type uses `is` as a getter prefix
+- Support `is` style accessor for properties with type `boolean`
+- Support type with both `is` and `get` accessors for property with type `boolean`
+- Prohibit `is` style accessors for properties of any type other than `boolean`(including Boolean)
 
 ### Support for managed properties with collection of scalar types
 
