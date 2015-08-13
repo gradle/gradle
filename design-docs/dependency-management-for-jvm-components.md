@@ -472,6 +472,7 @@ This works for both managed and unmanaged types.
 
 - `ModelImplTypeSchema` provides the getter for the property, but does not hold a strong reference to it.
 - All annotations on setters are stored in the schema for the purpose of raising errors about them later on.
+- The schema is extensible via `ModelSchemaAspects` that are extracted via `ModelSchemaAspectExtractionStrategy`s.
 - Custom variants are not shown in the component report for this story.
 
 ### Test cases
