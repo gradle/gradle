@@ -15,134 +15,98 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
 
 import static org.gradle.util.Matchers.containsLine
+import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.not
 
-class PmdPluginAuxclasspathIntegrationTest extends AbstractIntegrationSpec {
+class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
+
+    static boolean supportsAuxclasspath() {
+        return VersionNumber.parse("5.2.0") < versionNumber
+    }
+
     def setup() {
-        writeBuildFile()
-        file('settings.gradle') << 'include "pmd-rule", "rule-using"'
-        auxclasspathRuleSetProject()
+        settingsFile << 'include "pmd-rule", "rule-using"'
+
+        buildFile << """
+            allprojects {
+                repositories {
+                    mavenCentral()
+                }
+                apply plugin: 'java'
+            }
+
+            project("pmd-rule") {
+                dependencies {
+                    compile "${calculateDefaultDependencyNotation()}"
+                }
+            }
+
+            project("rule-using") {
+                apply plugin: 'pmd'
+
+                dependencies {
+                    compile "junit:junit:3.8.1"
+
+                    pmd project(":pmd-rule")
+                }
+
+                pmd {
+                    ruleSets = ["java-auxclasspath"]
+                }
+            }
+        """
+
+        file("pmd-rule/src/main/resources/rulesets/java/auxclasspath.xml") << rulesetXml()
+        file("pmd-rule/src/main/java/org/gradle/pmd/rules/AuxclasspathRule.java") << ruleCode()
+
+        file("rule-using/src/main/java/org/gradle/ruleusing/Class1.java") << analyzedCode()
     }
 
-    def "classpath configured for main sourceset"() {
-        when:
-        ruleUsingProject()
+    def "auxclasspath configured for rule-using project"() {
+        expect:
+        fails ":rule-using:pmdMain"
 
-        then:
-        succeeds ":rule-using:pmdMain"
-        // since the classpath for the main sourceset is automatically set, the rule will find the junit class and report this
-        file("rule-using/build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.ruleusing.Class1"))
+        file("rule-using/build/reports/pmd/main.xml").
+            assertContents(containsClass("org.gradle.ruleusing.Class1")).
+            assertContents(containsText("auxclasspath configured"))
     }
 
-    def "classpath overriden"() {
-        when:
-        ruleUsingProjectNoClasspath()
+    def "auxclasspath not configured properly for rule-using project"() {
 
-        then:
-        succeeds ":rule-using:pmdMain"
-        // since the classpath is cleared, the rule will not find the junit class, and not report this
-        file("rule-using/build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.ruleusing.Class1")))
+        if (!supportsAuxclasspath()) {
+            return
+        }
+
+        given:
+        buildFile << """
+project("rule-using") {
+    tasks.withType(Pmd) {
+        // clear the classpath
+        classpath = files()
+    }
+}
+"""
+        expect:
+        fails ":rule-using:pmdMain"
+
+        file("rule-using/build/reports/pmd/main.xml").
+            assertContents(containsClass("org.gradle.ruleusing.Class1")).
+            assertContents(containsText("auxclasspath not configured"))
     }
 
     private static Matcher<String> containsClass(String className) {
         containsLine(containsString(className.replace(".", File.separator)))
     }
 
-    private void writeBuildFile() {
-        file("build.gradle") << """
-            allprojects {
-                repositories {
-                    mavenCentral()
-                }
-            }
-        """
-    }
-
-    // Code for our rule using project
-    private ruleUsingProject() {
-        file("rule-using/build.gradle") << """
-            apply plugin: "java"
-            apply plugin: "pmd"
-
-            dependencies {
-                compile "junit:junit:3.8.1"
-
-                pmd "net.sourceforge.pmd:pmd-core:5.3.3"
-                pmd "net.sourceforge.pmd:pmd-java:5.3.3"
-                pmd project(":pmd-rule")
-            }
-
-            pmd {
-                ruleSets = ["java-auxclasspath"]
-                ignoreFailures = true
-            }
-        """
-        file("rule-using/src/main/java/org/gradle/ruleusing/Class1.java") << customCodeText()
-    }
-
-    private ruleUsingProjectNoClasspath() {
-        file("rule-using/build.gradle") << """
-            apply plugin: "java"
-            apply plugin: "pmd"
-
-            dependencies {
-                compile "junit:junit:3.8.1"
-
-                pmd "net.sourceforge.pmd:pmd-core:5.3.3"
-                pmd "net.sourceforge.pmd:pmd-java:5.3.3"
-                pmd project(":pmd-rule")
-            }
-
-            pmd {
-                ruleSets = ["java-auxclasspath"]
-                ignoreFailures = true
-            }
-
-            // Clear the classpath!
-            project.tasks.getByName("pmdMain").classpath = files()
-        """
-        file("rule-using/src/main/java/org/gradle/ruleusing/Class1.java") << customCodeText()
-    }
-
-    private customCodeText() {
-        """
-            package org.gradle.ruleusing;
-
-            import junit.framework.TestCase;
-
-            public class Class1 extends TestCase {
-            }
-        """
-    }
-
-    // Code for our custom rule project
-    private auxclasspathRuleSetProject() {
-        file("pmd-rule/build.gradle") << """
-            apply plugin: "java"
-
-            dependencies {
-                compile "net.sourceforge.pmd:pmd-core:5.3.3"
-                compile "net.sourceforge.pmd:pmd-java:5.3.3"
-            }
-        """
-        file("pmd-rule/src/main/resources/rulesets/java/auxclasspath.xml") << auxclasspathRuleSetText()
-        file("pmd-rule/src/main/java/org/gradle/pmd/rules/AuxclasspathRule.java") << auxclasspathRuleCodeText()
-    }
-
-    private auxclasspathRuleCodeText() {
+    private ruleCode() {
         """
             package org.gradle.pmd.rules;
 
-            import net.sourceforge.pmd.lang.java.ast.ASTClassOrInterfaceDeclaration;
-            import net.sourceforge.pmd.lang.java.ast.ASTClassOrInterfaceType;
             import net.sourceforge.pmd.lang.java.ast.ASTCompilationUnit;
-            import net.sourceforge.pmd.lang.java.ast.ASTExtendsList;
-            import net.sourceforge.pmd.lang.java.ast.ASTTypeDeclaration;
             import net.sourceforge.pmd.lang.java.rule.AbstractJavaRule;
 
             public class AuxclasspathRule extends AbstractJavaRule {
@@ -151,23 +115,10 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractIntegrationSpec {
 
                 @Override
                 public Object visit(final ASTCompilationUnit node, final Object data) {
-                    final ASTExtendsList astExtendsList = node.getFirstChildOfType(ASTTypeDeclaration.class)
-                         .getFirstChildOfType(ASTClassOrInterfaceDeclaration.class)
-                         .getFirstChildOfType(ASTExtendsList.class);
-
-                    // ignore classes that don't extend another classes
-                    if (astExtendsList == null) {
-                        return super.visit(node, data);
-                    }
-
-                    final ASTClassOrInterfaceType astClassOrInterfaceType =
-                        astExtendsList.getFirstChildOfType(ASTClassOrInterfaceType.class);
-
-
-                    if (astClassOrInterfaceType.getType() != null
-                      && astClassOrInterfaceType.getType().getName().equals(JUNIT_TEST)
-                      && node.getClassTypeResolver().classNameExists(JUNIT_TEST)) {
-                        addViolationWithMessage(data, node, "An auxclasspath is configured");
+                    if (node.getClassTypeResolver().classNameExists(JUNIT_TEST)) {
+                        addViolationWithMessage(data, node, "auxclasspath configured.");
+                    } else {
+                        addViolationWithMessage(data, node, "auxclasspath not configured.");
                     }
                     return super.visit(node, data);
                 }
@@ -175,7 +126,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private auxclasspathRuleSetText() {
+    private rulesetXml() {
         """
             <ruleset name="auxclasspath"
                 xmlns="http://pmd.sf.net/ruleset/2.0.0"
@@ -183,27 +134,18 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractIntegrationSpec {
                 xsi:schemaLocation="http://pmd.sf.net/ruleset/2.0.0 http://pmd.sf.net/ruleset_2_0_0.xsd"
                 xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_2_0_0.xsd">
 
-                <description>Custom rule set</description>
-
                 <rule name="Auxclasspath"
-                    since="5.3.3"
-                    message="An auxiliar classpath has been configured"
                     class="org.gradle.pmd.rules.AuxclasspathRule"
-                    externalInfoUrl="http://pmd.sf.net/rules/java/typeresolution.html#Auxclasspath"
                     typeResolution="true">
-                    <description>
-                        Check if an auxiliar classpath is configured.
-                    </description>
-                    <priority>3</priority>
-                    <example>
-                        <![CDATA[
-                        import com.monits.listener.JDBCCleanupContextListener;
-                        public class Foo extends JDBCCleanupContextListener {
-                        }
-                        ]]>
-                    </example>
                 </rule>
             </ruleset>
+        """
+    }
+
+    private analyzedCode() {
+        """
+            package org.gradle.ruleusing;
+            public class Class1 extends junit.framework.TestCase { }
         """
     }
 }

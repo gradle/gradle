@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.quality
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+
 import org.hamcrest.Matcher
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
-@TargetVersions(['5.0.5', '5.1.1', PmdPlugin.DEFAULT_PMD_VERSION, '5.3.3'])
-class PmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
+class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
 
     def setup() {
         buildFile << """

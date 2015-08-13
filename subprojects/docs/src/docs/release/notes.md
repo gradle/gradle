@@ -20,7 +20,9 @@ to create the archive. A mismatch between encodings will manifest itself as "cor
 option only affects the file name and comment fields of the archive (not the _content_ of the files in the archive). The default behavior has not been changed, so no changes
 should be necessary for existing builds.
 
-### PMD 'rulePriority' configuration
+### PMD Improvements (i)
+
+#### PMD 'rulePriority' configuration
 
 By default, the PMD plugin will report all rule violations and fail if any violations are found.  This means the only way to disable low priority violations was to create a custom ruleset.
 
@@ -32,6 +34,13 @@ You configure the threshold via the [PmdExtension](dsl/org.gradle.api.plugins.qu
    pmd {
        rulePriority = 3
    }
+
+#### Better PMD analysis with type resolution
+
+Some PMD rules require access to the dependencies of your project to perform type resolution. If the dependencies are available on PMD's auxclasspath,
+[additional problems can be detected](http://pmd.sourceforge.net/pmd-5.3.2/pmd-java/rules/java/android.html).
+
+Gradle now automatically adds the compile dependencies of each analyzed source set to PMD's auxclasspath.  No additional configuration should be necessary to enable this in existing builds.
 
 ### Managed model improvements
 
@@ -75,10 +84,18 @@ The following are the newly deprecated items in this Gradle release. If you have
 We have removed integration test coverage for PMD 4.3 (the last release of PMD before 5.0).  Newer PMD plugin features do not work with PMD 4.3 and the PMD check task does not
 fail when finding violations.
 
+### New PMD violations due to type resolution changes
+
+PMD can perform additional analysis for some rules (see above), therefore new violations may be found in existing projects.  Previously, these rules were unable to detect problems
+because classes outside of your project were not available during analysis.
+
+We would recommend that you fix the violations or disable the failing rules.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Allow user to configure auxclasspath for PMD
 * [Alpha Hinex](https://github.com/AlphaHinex) - Allow encoding to be specified for Zip task
 * [Adam Roberts](https://github.com/AdamRoberts) - Specify minimum priority for PMD task
 

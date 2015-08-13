@@ -123,9 +123,12 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      * Compile class path for the classes to be analyzed.
      *
      * The classes on this class path are used during analysis but aren't analyzed themselves.
+     *
+     * This is only well supported for PMD 5.2.1 or better.
      */
     @InputFiles
     @Optional
+    @Incubating
     FileCollection classpath
 
     Pmd() {
