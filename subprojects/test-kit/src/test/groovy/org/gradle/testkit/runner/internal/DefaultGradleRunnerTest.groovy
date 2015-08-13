@@ -26,7 +26,7 @@ import spock.lang.Unroll
 
 class DefaultGradleRunnerTest extends Specification {
     File gradleHome = Mock(File)
-    TmpDirectoryProvider tmpDirectoryProvider = Mock(TmpDirectoryProvider)
+    GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider = Mock(GradleRunnerWorkingSpaceDirectoryProvider)
     File workingDir = new File('my/tests')
     List<String> arguments = ['compile', 'test', '--parallel', '-Pfoo=bar']
 
@@ -41,7 +41,7 @@ class DefaultGradleRunnerTest extends Specification {
         then:
         defaultGradleRunner.projectDir == workingDir
         defaultGradleRunner.arguments == arguments
-        1 * tmpDirectoryProvider.createDir() >> gradleUserHome
+        1 * gradleRunnerWorkingSpaceDirectoryProvider.createDir() >> gradleUserHome
         defaultGradleRunner.gradleUserHomeDir == gradleUserHome
     }
 
@@ -50,7 +50,7 @@ class DefaultGradleRunnerTest extends Specification {
         createRunner()
 
         then:
-        1 * tmpDirectoryProvider.createDir() >> { throw new UncheckedIOException() }
+        1 * gradleRunnerWorkingSpaceDirectoryProvider.createDir() >> { throw new UncheckedIOException() }
         Throwable t = thrown(InvalidRunnerConfigurationException)
         t.message == 'Unable to create or write to Gradle user home directory for test execution'
     }
@@ -141,7 +141,7 @@ $expectedReason
     }
 
     private DefaultGradleRunner createRunner() {
-        new DefaultGradleRunner(gradleHome, tmpDirectoryProvider)
+        new DefaultGradleRunner(gradleHome, gradleRunnerWorkingSpaceDirectoryProvider)
     }
 
     private DefaultGradleRunner createRunnerWithWorkingDirAndArgument() {

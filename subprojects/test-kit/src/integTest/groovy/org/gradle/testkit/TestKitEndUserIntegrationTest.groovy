@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.internal.IsolatedDaemonHomeTmpDirectoryProvider
+import org.gradle.testkit.runner.internal.TemporaryGradleRunnerWorkingSpaceDirectoryProvider
 import org.gradle.util.GFileUtils
 
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
@@ -301,7 +301,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
-        File daemonBaseDir = new File(new IsolatedDaemonHomeTmpDirectoryProvider().createDir(), 'daemon')
+        File daemonBaseDir = new File(new TemporaryGradleRunnerWorkingSpaceDirectoryProvider().createDir(), 'daemon')
         DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, executer.distribution.version.version)
     }
 

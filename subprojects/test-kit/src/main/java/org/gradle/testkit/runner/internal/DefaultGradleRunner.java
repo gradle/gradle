@@ -40,17 +40,17 @@ public class DefaultGradleRunner extends GradleRunner {
     private List<String> jvmArguments = new ArrayList<String>();
 
     public DefaultGradleRunner(File gradleHome) {
-        this(gradleHome, new IsolatedDaemonHomeTmpDirectoryProvider());
+        this(gradleHome, new TemporaryGradleRunnerWorkingSpaceDirectoryProvider());
     }
 
-    DefaultGradleRunner(File gradleHome, TmpDirectoryProvider tmpDirectoryProvider) {
+    DefaultGradleRunner(File gradleHome, GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider) {
         this.gradleHome = gradleHome;
-        this.gradleUserHomeDir = createGradleUserHomeDir(tmpDirectoryProvider);
+        this.gradleUserHomeDir = createGradleUserHomeDir(gradleRunnerWorkingSpaceDirectoryProvider);
     }
 
-    private File createGradleUserHomeDir(TmpDirectoryProvider tmpDirectoryProvider) {
+    private File createGradleUserHomeDir(GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider) {
         try {
-            return tmpDirectoryProvider.createDir();
+            return gradleRunnerWorkingSpaceDirectoryProvider.createDir();
         } catch (UncheckedIOException e) {
             throw new InvalidRunnerConfigurationException("Unable to create or write to Gradle user home directory for test execution", e);
         }

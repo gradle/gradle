@@ -18,6 +18,6 @@ package org.gradle.testkit.runner.internal;
 
 import java.io.File;
 
-public interface TmpDirectoryProvider {
+public interface GradleRunnerWorkingSpaceDirectoryProvider {
     File createDir();
 }

@@ -22,19 +22,19 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
-class IsolatedDaemonHomeTmpDirectoryProviderTest extends Specification {
+class TemporaryGradleRunnerWorkingSpaceDirectoryProviderTest extends Specification {
     @Rule TemporaryFolder tmpParentDir = new TemporaryFolder()
     File expectedTmpDir
-    TmpDirectoryProvider tmpDirectoryProvider
+    GradleRunnerWorkingSpaceDirectoryProvider temporaryGradleRunnerWorkingSpaceDirectoryProvider
 
     def setup() {
-        tmpDirectoryProvider = new IsolatedDaemonHomeTmpDirectoryProvider(tmpParentDir.root)
+        temporaryGradleRunnerWorkingSpaceDirectoryProvider = new TemporaryGradleRunnerWorkingSpaceDirectoryProvider(tmpParentDir.root)
         expectedTmpDir = new File(tmpParentDir.root, ".gradle-test-kit-${SystemProperties.instance.userName}")
     }
 
     def "can create temporary directory"() {
         when:
-        File tmpDir = tmpDirectoryProvider.createDir()
+        File tmpDir = temporaryGradleRunnerWorkingSpaceDirectoryProvider.createDir()
 
         then:
         tmpDir.exists()
@@ -43,7 +43,7 @@ class IsolatedDaemonHomeTmpDirectoryProviderTest extends Specification {
 
     def "existing temporary directory isn't deleted"() {
         when:
-        File tmpDir = tmpDirectoryProvider.createDir()
+        File tmpDir = temporaryGradleRunnerWorkingSpaceDirectoryProvider.createDir()
 
         then:
         tmpDir.exists()
@@ -52,7 +52,7 @@ class IsolatedDaemonHomeTmpDirectoryProviderTest extends Specification {
         when:
         File tmpFile = new File(tmpDir, 'test.txt')
         GFileUtils.touch(tmpFile)
-        File existingTmpDir = tmpDirectoryProvider.createDir()
+        File existingTmpDir = temporaryGradleRunnerWorkingSpaceDirectoryProvider.createDir()
 
         then:
         tmpDir == existingTmpDir

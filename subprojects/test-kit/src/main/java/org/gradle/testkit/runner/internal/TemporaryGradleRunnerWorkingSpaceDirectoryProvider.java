@@ -21,15 +21,15 @@ import org.gradle.internal.SystemProperties;
 
 import java.io.File;
 
-public class IsolatedDaemonHomeTmpDirectoryProvider implements TmpDirectoryProvider {
+public class TemporaryGradleRunnerWorkingSpaceDirectoryProvider implements GradleRunnerWorkingSpaceDirectoryProvider {
     private final File tmpDir;
 
-    public IsolatedDaemonHomeTmpDirectoryProvider() {
+    public TemporaryGradleRunnerWorkingSpaceDirectoryProvider() {
         this(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
     }
 
-    IsolatedDaemonHomeTmpDirectoryProvider(File tmpDir) {
-        this.tmpDir = new File(tmpDir, String.format(".gradle-test-kit-%s", SystemProperties.getInstance().getUserName()));
+    TemporaryGradleRunnerWorkingSpaceDirectoryProvider(File rootDir) {
+        this.tmpDir = new File(rootDir, String.format(".gradle-test-kit-%s", SystemProperties.getInstance().getUserName()));
     }
 
     public File createDir() {
