@@ -17,7 +17,10 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.test.fixtures.archive.ZipTestFixture
+
+import spock.lang.Unroll
 
 class ZipIntegrationTest extends AbstractIntegrationSpec {
 
@@ -104,6 +107,56 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         theZip.hasDescendants('file1.txt', 'file2.txt')
     }
 
+    @Unroll
+    def "ZIP task use #encoding encoding"() {
+        given:
+        createTestFilesWithEncoding(filename, encoding)
+        def encodingStr = encoding > '' ? "'$encoding'" : null
+        buildFile << """
+            task zip(type: Zip) {
+                from 'dir1'
+                from 'dir2'
+                from 'dir3'
+                destinationDir = buildDir
+                archiveName = 'test.zip'
+                encoding = $encodingStr
+            }
+            """
+        run 'zip'
+        def theZip = new ZipTestFixture(file('build/test.zip'), encoding)
+
+        expect:
+        theZip."$method" "${filename}1.txt", "${filename}2.txt", "${filename}3.txt"
+
+        where:
+        method                      | encoding        | filename
+        'hasDescendants'            | null            | 'file'
+        'hasDescendants'            | 'UTF-8'         | '中文'
+        'hasDescendants'            | 'ISO-8859-1'    | 'ÈÇ'
+        'doesNotContainDescendants' | 'US-ASCII'      | '测试'
+    }
+
+    def ensureExceptionWillBeThrownUsingUnsupportedEncoding() {
+        given:
+        def encoding = 'unsupported encoding'
+        createTestFilesWithEncoding('file', encoding)
+        buildFile << """
+            task zip(type: Zip) {
+                from 'dir1'
+                destinationDir = buildDir
+                archiveName = 'test.zip'
+                encoding = '$encoding'
+            }
+            """
+
+        when:
+        run 'zip'
+
+        then:
+        UnexpectedBuildFailure ex = thrown()
+        ex.cause.cause.cause.message == encoding
+    }
+
     private def createTestFiles() {
         createDir('dir1', {
             file('file1.txt').text = "dir1/file1.txt"
@@ -114,6 +167,18 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         createDir('dir3', {
             file('file1.txt').text = "dir3/file1.txt"
         })
+    }
+
+    private def createTestFilesWithEncoding(String filename, String encoding) {
+        try {
+            filename = new String(filename.getBytes(encoding), encoding)
+        } catch (ex) { }
+
+        (1..3).each { idx ->
+            createDir("dir$idx", {
+                file("${filename}${idx}.txt").text = "dir$idx/${filename}${idx}.txt"
+            })
+        }
     }
 
 }
