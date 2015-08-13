@@ -258,7 +258,7 @@ It is expected that a component that provides a `JarBinarySpec` is at least a `L
 
 Allow model schema to store information about properties defined in any unmanaged type, and in the unmanaged ancestry of managed types.
 
-- property information is extracted about any unmanaged type as a `ModelStrutSchema`
+- property information is extracted about any unmanaged type as a `ModelStructSchema`
 - property information is extracted from unmanaged super-types of managed types and included in the `ModelStructSchema`
 - annotations on properties (both managed and unmanaged, defined on getters) are available in the `ModelStructSchema`
     - if both a subtype and a super-type declares the same annotation on a getter, the subtype annotation is retained
