@@ -43,6 +43,7 @@ abstract class AbstractAntlrIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 antlr '$antlrDependency'
             }
+
         """
     }
 

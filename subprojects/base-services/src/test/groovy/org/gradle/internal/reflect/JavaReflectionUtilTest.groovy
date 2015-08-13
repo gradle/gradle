@@ -99,6 +99,23 @@ class JavaReflectionUtilTest extends Specification {
         readableField(JavaTestSubject, Boolean, "myBooleanField").getValue(myProperties) == true
     }
 
+    def "set boolean field" () {
+        when:
+        writeableField(JavaTestSubject, "myBooleanField").setValue(myProperties, false)
+
+        then:
+        readableField(JavaTestSubject, Boolean, "myBooleanField").getValue(myProperties) == false
+    }
+
+    def "cannot set value on non public fields"(){
+        when:
+        writeableField(JavaTestSubject, "myBooleanProperty").setValue(myProperties, false)
+
+        then:
+        thrown(NoSuchPropertyException);
+    }
+
+
     def "write boolean property"() {
         when:
         writeableProperty(JavaTestSubject, "myBooleanProperty").setValue(myProperties, false)

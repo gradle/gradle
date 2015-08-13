@@ -34,6 +34,7 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     private goodProgram() {
         file("src/main/java/com/example/Main.java") << """
+            package com.example;
             import org.acme.test.TestLexer;
             import org.acme.test.TestParser;
             import org.antlr.runtime.CommonTokenStream;
