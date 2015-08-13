@@ -60,7 +60,7 @@ public class ModelSchema<T> {
         return new ModelSchema<T>(type, Kind.VALUE);
     }
 
-    public static <T> ModelStructSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
+    public static <T> ModelStructSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<? super ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
         return new ModelStructSchema<T>(type, properties, managedImpl, delegateType, nodeInitializer);
     }
 

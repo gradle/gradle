@@ -28,7 +28,7 @@ public class ModelStructSchema<T> extends ModelImplTypeSchema<T> {
     private final WeakReference<Class<?>> delegateType;
     private final NodeInitializer nodeInitializer;
 
-    public ModelStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
+    public ModelStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<? super ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
         super(type, Kind.STRUCT, properties);
         this.nodeInitializer = nodeInitializer.apply(this);
         this.managedImpl = new WeakReference<Class<? extends T>>(managedImpl);

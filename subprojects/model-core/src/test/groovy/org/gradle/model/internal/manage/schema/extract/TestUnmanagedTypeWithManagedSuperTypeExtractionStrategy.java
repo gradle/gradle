@@ -16,12 +16,11 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelStructSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
@@ -35,12 +34,7 @@ public class TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy extends Man
 
     @Override
     protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties) {
-        return ModelSchema.struct(type, properties, type.getConcreteClass(), delegateType, new Function<ModelStructSchema<R>, NodeInitializer>() {
-            @Override
-            public NodeInitializer apply(ModelStructSchema<R> schema) {
-                return null;
-            }
-        });
+        return ModelSchema.struct(type, properties, type.getConcreteClass(), delegateType, Functions.<NodeInitializer>constant(null));
     }
 }
 
