@@ -46,17 +46,16 @@ may also be internal mechanisms to define such properties on other types.
 
 - Can define RW properties of any scalar type
 - Cannot have read only properties of scalar types.
-- Does something sensible when getter uses primitive type and setter uses boxed type (and vice versa).
+- Fail type validation when getter uses primitive type and setter uses boxed type (and vice versa).
 - Cannot mutate properties of scalar types when view is immutable (eg used as input for rule, used as subject for validation rule).
 - Model report renders primitive values
 
 ##### Implementation
 
 - Update `PrimitiveStrategy` to support an extraction result for primitive types
-- Throw an error in `ManagedImplTypeSchemaExtractionStrategySupport` if a read-only property returns a primitive type
 - Add support for missing boxed types to `ManagedProxyClassGenerator`
 - Add support for primitive types to `ManagedProxyClassGenerator`. Handle case where state returns null by setting a default value.
-- Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles collection types in a human readable form
+- Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles primitive types in a human readable form
 
 ##### Open issues
 
@@ -107,6 +106,8 @@ Support read-write collection properties defined using both a getter and a sette
 
 #### Implementation notes
 - Update user guide and Javadocs, add sample
+- Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles collection types in a human readable form (aka, not toString())
+
 
 #### Test cases
 
