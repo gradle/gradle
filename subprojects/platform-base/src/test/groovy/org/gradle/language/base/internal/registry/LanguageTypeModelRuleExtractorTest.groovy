@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.internal.testinterfaces.CustomLanguageSourceSet
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.InvalidModelRuleDeclarationException
@@ -27,12 +28,10 @@ import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelActionRole
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
-import org.gradle.language.base.internal.testinterfaces.CustomLanguageSourceSet
 import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
 import spock.lang.Unroll
 
@@ -42,7 +41,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
     Class<?> ruleClass = Rules
 
-    LanguageTypeModelRuleExtractor ruleHandler = new LanguageTypeModelRuleExtractor(new DefaultModelSchemaStore(new ModelSchemaExtractor()))
+    LanguageTypeModelRuleExtractor ruleHandler = new LanguageTypeModelRuleExtractor(DefaultModelSchemaStore.getInstance())
 
     @Override
     Class<? extends Annotation> getAnnotation() {

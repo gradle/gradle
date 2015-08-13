@@ -38,9 +38,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def classLoader = new GroovyClassLoader(getClass().classLoader)
     @Shared
-    def extractor = new ModelSchemaExtractor()
-    @Shared
-    def store = new DefaultModelSchemaStore(extractor)
+    def store = DefaultModelSchemaStore.getInstance()
 
     static interface NotAnnotatedInterface {}
 

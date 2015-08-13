@@ -30,7 +30,7 @@ import java.beans.Introspector
 
 class DefaultModelSchemaStoreTest extends Specification {
 
-    def store = new DefaultModelSchemaStore(new ModelSchemaExtractor())
+    def store = DefaultModelSchemaStore.getInstance()
 
     def "can get schema"() {
         // intentionally use two different “instances” of the same type
