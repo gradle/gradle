@@ -18,11 +18,13 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.hash.HashUtil
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 
+@LeaksFileHandles
 class WrapperChecksumVerificationTest extends AbstractIntegrationSpec {
     @Rule
     HttpServer server = new HttpServer()
