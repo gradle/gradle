@@ -47,7 +47,8 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
         """
 
         expect:
-        succeeds "customJar"
+        succeeds "assemble"
+        new JarTestFixture(file("build/jars/sampleLibJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
         new JarTestFixture(file("build/jars/customJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
     }
 
@@ -70,6 +71,29 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
 
             ${registerBinaryType("CustomChildJarBinarySpec")}
 
+            class Results {
+                static def jarBinaries = []
+                static def customBinaries = []
+            }
+
+            class BinaryNameCollectorRules extends RuleSource {
+                @Finalize
+                void printJarBinaries(ModelMap<JarBinarySpec> jarBinaries) {
+                    for (JarBinarySpec jarBinary : jarBinaries) {
+                        Results.jarBinaries.add jarBinary.name
+                    }
+                }
+
+                @Finalize
+                void printCustomBinaries(ModelMap<CustomChildJarBinarySpec> customBinaries) {
+                    for (CustomChildJarBinarySpec customBinary : customBinaries) {
+                        Results.customBinaries.add customBinary.name
+                    }
+                }
+            }
+
+            apply plugin: BinaryNameCollectorRules
+
             model {
                 components {
                     sampleLib(JvmLibrarySpec) {
@@ -87,11 +111,19 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
                         }
                     }
                 }
+                tasks {
+                    create("validate") {
+                        dependsOn "assemble"
+                        assert Results.jarBinaries ==    ["customJar", "sampleLibJar"]
+                        assert Results.customBinaries == ["customJar"]
+                    }
+                }
             }
         """
 
         expect:
-        succeeds "customJar"
+        succeeds "assemble", "validate"
+        new JarTestFixture(file("build/jars/sampleLibJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
         new JarTestFixture(file("build/jars/customJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
     }
 
