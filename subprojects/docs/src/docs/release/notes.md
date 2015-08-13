@@ -13,7 +13,7 @@ Add-->
 ### New dependency management for JVM components (i)
 
 This release introduces new incubating dependency management features for the JVM components. This is our first step towards variant-aware dependency resolution.
-This feature is built upon the new model and requires you to use the new Java plugin:
+This feature is built upon the [new rule based model configuration](userguide/new_model.html) and requires you to use the new Java plugin:
 
     plugins {
         id 'jvm-component'
