@@ -77,7 +77,7 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
         Set<Method> handledMethods = Sets.newHashSet();
 
         List<String> methodNames = Lists.newArrayList(methodsByName.keySet());
-        methodNames.sort(Ordering.natural());
+        Collections.sort(methodNames);
         for (String methodName : methodNames) {
             Collection<Method> methods = methodsByName.get(methodName);
 
