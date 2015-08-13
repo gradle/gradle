@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
@@ -37,19 +38,21 @@ public class ModelProperty<T> {
     private final Set<ModelType<?>> declaredBy;
     private final Map<Class<? extends Annotation>, Annotation> annotations;
     private final Map<Class<? extends Annotation>, Annotation> setterAnnotations;
+    private final WeaklyTypeReferencingMethod<?, T> getter;
 
-    private ModelProperty(ModelType<T> type, String name, boolean managed, boolean writable, Set<ModelType<?>> declaredBy, Map<Class<? extends Annotation>, Annotation> annotations, Map<Class<? extends Annotation>, Annotation> setterAnnotations) {
+    private ModelProperty(ModelType<T> type, String name, boolean managed, boolean writable, Set<ModelType<?>> declaredBy, WeaklyTypeReferencingMethod<?, T> getter, Map<Class<? extends Annotation>, Annotation> annotations, Map<Class<? extends Annotation>, Annotation> setterAnnotations) {
         this.name = name;
         this.type = type;
         this.managed = managed;
         this.writable = writable;
         this.declaredBy = ImmutableSet.copyOf(declaredBy);
+        this.getter = getter;
         this.annotations = ImmutableMap.copyOf(annotations);
         this.setterAnnotations = ImmutableMap.copyOf(setterAnnotations);
     }
 
-    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean managed, boolean writable, Set<ModelType<?>> declaredBy, Map<Class<? extends Annotation>, Annotation> annotations, Map<Class<? extends Annotation>, Annotation> setterAnnotations) {
-        return new ModelProperty<T>(type, name, managed, writable, declaredBy, annotations, setterAnnotations);
+    public static <T> ModelProperty<T> of(ModelType<T> type, String name, boolean managed, boolean writable, Set<ModelType<?>> declaredBy, WeaklyTypeReferencingMethod<?, T> getter, Map<Class<? extends Annotation>, Annotation> annotations, Map<Class<? extends Annotation>, Annotation> setterAnnotations) {
+        return new ModelProperty<T>(type, name, managed, writable, declaredBy, getter, annotations, setterAnnotations);
     }
 
     public String getName() {
@@ -73,6 +76,10 @@ public class ModelProperty<T> {
 
     public Set<ModelType<?>> getDeclaredBy() {
         return declaredBy;
+    }
+
+    public <I> T getPropertyValue(I instance) {
+        return Cast.<WeaklyTypeReferencingMethod<I, T>>uncheckedCast(getter).invoke(instance);
     }
 
     public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {

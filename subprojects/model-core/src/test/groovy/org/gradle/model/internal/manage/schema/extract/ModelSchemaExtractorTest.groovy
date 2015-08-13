@@ -938,6 +938,25 @@ interface Managed${typeName} {
         extract(UnmanagedModelMapInUnmanagedType).properties.get("things").type.rawClass == ModelMap
     }
 
+    static class SimpleUnmanagedType {
+        String prop
+        String getCalculatedProp() {
+            "calc"
+        }
+    }
+
+    def "can retrieve property value"() {
+        def instance = new SimpleUnmanagedType(prop: "12")
+
+        when:
+        def schema = extract(SimpleUnmanagedType)
+
+        then:
+        assert schema instanceof ModelUnmanagedSchema
+        schema.getProperty("prop").getPropertyValue(instance) == "12"
+        schema.getProperty("calculatedProp").getPropertyValue(instance) == "calc"
+    }
+
     static abstract class SimpleUnmanagedTypeWithAnnotations {
         @CustomTestAnnotation("unmanaged")
         abstract String getUnmanagedProp()

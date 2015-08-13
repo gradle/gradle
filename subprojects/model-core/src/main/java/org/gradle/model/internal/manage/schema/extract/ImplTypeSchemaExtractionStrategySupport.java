@@ -27,6 +27,7 @@ import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
@@ -123,7 +124,7 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
         }
 
         boolean managedProperty = getterContext.isDeclaredInManagedType() && getterContext.isDeclaredAsAbstract();
-        ModelType<?> returnType = ModelType.returnType(mostSpecificGetter);
+        ModelType<R> returnType = ModelType.returnType(mostSpecificGetter);
 
         boolean writable = setterContext != null;
         if (writable) {
@@ -144,7 +145,8 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
             }
         }));
 
-        return ModelProperty.of(returnType, propertyName, managedProperty, writable, declaringClasses, annotations, setterAnnotations);
+        WeaklyTypeReferencingMethod<?, R> getterRef = WeaklyTypeReferencingMethod.of(extractionContext.getType(), returnType, getterContext.getMostSpecificDeclaration());
+        return ModelProperty.of(returnType, propertyName, managedProperty, writable, declaringClasses, getterRef, annotations, setterAnnotations);
     }
 
     private Map<Class<? extends Annotation>, Annotation> getAnnotations(Collection<Method> methods) {

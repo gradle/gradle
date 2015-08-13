@@ -21,6 +21,7 @@ import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.instance.ModelElementState
 import org.gradle.model.internal.manage.schema.ModelProperty
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -196,7 +197,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         state.set(_, _) >> { args ->
             data[args[0]] = args[1]
         }
-        def properties = [property('primitiveProperty', primitiveType, true, true)]
+        def properties = [property(interfaceWithPrimitiveProperty, 'primitiveProperty', primitiveType, true, true)]
         def proxy = generate(interfaceWithPrimitiveProperty, null, properties)
         def instance = proxy.newInstance(state)
 
@@ -236,8 +237,10 @@ class ManagedProxyClassGeneratorTest extends Specification {
         return generated
     }
 
-    static def property(String name, Type type, boolean managed, boolean writable = true) {
-        return ModelProperty.of(ModelType.of(type), name, managed, writable, Collections.emptySet(), Collections.emptyMap(), Collections.emptyMap())
+    static def property(Class<?> parentType, String name, Type type, boolean managed, boolean writable = true) {
+        def getter = parentType.getMethod("get" + name.capitalize());
+        def getterRef = new WeaklyTypeReferencingMethod(ModelType.of(parentType), ModelType.of(type), getter)
+        return ModelProperty.of(ModelType.of(type), name, managed, writable, Collections.emptySet(), getterRef, Collections.emptyMap(), Collections.emptyMap())
     }
 
     static interface SomeType {
@@ -285,15 +288,15 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     static Map<Class<?>, Collection<ModelProperty<?>>> managedProperties = ImmutableMap.builder()
         .put(SomeType, [
-            property("value", Integer, true),
-            property("readOnly", String, true, false)
+            property(SomeType, "value", Integer, true),
+            property(SomeType, "readOnly", String, true, false)
         ])
         .put(PublicUnmanagedType, [
-            property("unmanagedValue", String, false)
+            property(PublicUnmanagedType, "unmanagedValue", String, false)
         ])
         .put(ManagedSubType, [
-            property("unmanagedValue", String, false),
-            property("managedValue", String, true)
+            property(ManagedSubType, "unmanagedValue", String, false),
+            property(ManagedSubType, "managedValue", String, true)
         ])
         .build()
 }
