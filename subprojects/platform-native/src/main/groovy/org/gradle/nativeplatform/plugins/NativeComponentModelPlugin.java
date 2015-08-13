@@ -363,7 +363,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             return tasks.create(binary.getNamingScheme().getTaskName("install"), InstallExecutable.class, new Action<InstallExecutable>() {
                 @Override
                 public void execute(InstallExecutable installTask) {
-                    installTask.setDescription("Installs a development image of $executable");
+                    installTask.setDescription("Installs a development image of " + binary.getName());
                     installTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                     installTask.setToolChain(binary.getToolChain());
 
