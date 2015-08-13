@@ -863,6 +863,10 @@ This is a performance optimization to the implementation of Play reload, that de
   - RoutesCompiler
   - TwirlCompiler
   - GoogleClosureCompiler
+- Verify that WorkerProcessFactory is reused across continuous builds.
+- Verify that CacheRepository is reused across continuous builds.
+- Verify that ClassPathRegistry is reused across continuous builds.
+- Verify that WorkerProcessClasspathProvider is reused across continuous builds.
 
 ### Backlog & Open Issues
 
