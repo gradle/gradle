@@ -963,6 +963,8 @@ interface Managed${typeName} {
 
         schema.properties["unmanagedProp"].annotations*.annotationType() == [CustomTestAnnotation]
         schema.properties["unmanagedProp"].annotations*.value() == ["unmanaged"]
+        schema.properties["unmanagedProp"].setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
+        schema.properties["unmanagedProp"].setterAnnotations.values()*.value() == ["unmanagedSetter"]
         schema.properties["unmanagedProp"].isManaged() == false
         schema.properties["unmanagedProp"].isWritable() == true
 
@@ -1000,6 +1002,8 @@ interface Managed${typeName} {
 
         schema.properties["unmanagedProp"].annotations*.annotationType() == [CustomTestAnnotation]
         schema.properties["unmanagedProp"].annotations*.value() == ["unmanaged"]
+        schema.properties["unmanagedProp"].setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
+        schema.properties["unmanagedProp"].setterAnnotations.values()*.value() == ["unmanagedSetter"]
         schema.properties["unmanagedProp"].isManaged() == false
         schema.properties["unmanagedProp"].isWritable() == true
 
@@ -1010,6 +1014,8 @@ interface Managed${typeName} {
 
         schema.properties["managedProp"].annotations*.annotationType() == [CustomTestAnnotation]
         schema.properties["managedProp"].annotations*.value() == ["managed"]
+        schema.properties["managedProp"].setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
+        schema.properties["managedProp"].setterAnnotations.values()*.value() == ["managedSetter"]
         schema.properties["managedProp"].isManaged() == true
         schema.properties["managedProp"].isWritable() == true
 

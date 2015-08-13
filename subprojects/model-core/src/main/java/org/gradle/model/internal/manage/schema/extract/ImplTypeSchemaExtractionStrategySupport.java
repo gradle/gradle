@@ -31,10 +31,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.getOverloadedMethods;
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.isMethodDeclaredInManagedType;
@@ -133,14 +130,12 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
             validateSetter(extractionContext, returnType, getterContext, setterContext);
         }
 
-        Map<Class<? extends Annotation>, Annotation> annotations = Maps.newLinkedHashMap();
-        for (Method getterMethod : getterContext.getDeclaringMethods()) {
-            for (Annotation annotation : getterMethod.getDeclaredAnnotations()) {
-                // Make sure more specific annotation doesn't get overwritten with less specific one
-                if (!annotations.containsKey(annotation.annotationType())) {
-                    annotations.put(annotation.annotationType(), annotation);
-                }
-            }
+        Map<Class<? extends Annotation>, Annotation> annotations = getAnnotations(getterContext.getDeclaringMethods());
+        Map<Class<? extends Annotation>, Annotation> setterAnnotations;
+        if (setterContext != null) {
+            setterAnnotations = getAnnotations(setterContext.getDeclaringMethods());
+        } else {
+            setterAnnotations = Collections.emptyMap();
         }
 
         ImmutableSet<ModelType<?>> declaringClasses = ImmutableSet.copyOf(Iterables.transform(getterContext.getDeclaringMethods(), new Function<Method, ModelType<?>>() {
@@ -149,7 +144,20 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
             }
         }));
 
-        return ModelProperty.of(returnType, propertyName, managedProperty, writable, declaringClasses, annotations);
+        return ModelProperty.of(returnType, propertyName, managedProperty, writable, declaringClasses, annotations, setterAnnotations);
+    }
+
+    private Map<Class<? extends Annotation>, Annotation> getAnnotations(Collection<Method> methods) {
+        Map<Class<? extends Annotation>, Annotation> annotations = Maps.newLinkedHashMap();
+        for (Method method : methods) {
+            for (Annotation annotation : method.getDeclaredAnnotations()) {
+                // Make sure more specific annotation doesn't get overwritten with less specific one
+                if (!annotations.containsKey(annotation.annotationType())) {
+                    annotations.put(annotation.annotationType(), annotation);
+                }
+            }
+        }
+        return annotations;
     }
 
     protected boolean isGetterDefinedInManagedType(ModelSchemaExtractionContext<?> extractionContext, String methodName, Collection<Method> getterMethods) {

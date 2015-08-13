@@ -237,7 +237,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
     }
 
     static def property(String name, Type type, boolean managed, boolean writable = true) {
-        return ModelProperty.of(ModelType.of(type), name, managed, writable, Collections.emptySet(), Collections.emptyMap())
+        return ModelProperty.of(ModelType.of(type), name, managed, writable, Collections.emptySet(), Collections.emptyMap(), Collections.emptyMap())
     }
 
     static interface SomeType {
