@@ -38,6 +38,7 @@ import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
@@ -67,11 +68,18 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Java());
+            ModelSchemaStore schemaStore = serviceRegistry.get(ModelSchemaStore.class);
+            languages.add(new Java(schemaStore));
         }
     }
 
     private static class Java implements LanguageTransform<JavaSourceSet, JvmByteCode> {
+        private final ModelSchemaStore schemaStore;
+
+        public Java(ModelSchemaStore schemaStore) {
+            this.schemaStore = schemaStore;
+        }
+
         public Class<JavaSourceSet> getSourceSetType() {
             return JavaSourceSet.class;
         }
@@ -107,7 +115,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());
-                    DependencyResolvingClasspath classpath = new DependencyResolvingClasspath(binary, (DependentSourceSetInternal) javaSourceSet, dependencyResolver);
+                    DependencyResolvingClasspath classpath = new DependencyResolvingClasspath(binary, (DependentSourceSetInternal) javaSourceSet, dependencyResolver, schemaStore);
                     compile.setClasspath(classpath);
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());

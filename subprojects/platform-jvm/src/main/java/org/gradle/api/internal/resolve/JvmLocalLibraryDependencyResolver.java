@@ -21,6 +21,7 @@ import org.gradle.jvm.JarBinarySpec;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
 import org.gradle.language.base.internal.model.VariantsMetaData;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 
 import java.util.Collections;
@@ -28,8 +29,8 @@ import java.util.List;
 
 public class JvmLocalLibraryDependencyResolver extends AbstractLocalLibraryDependencyResolver<JarBinarySpec> {
 
-    public JvmLocalLibraryDependencyResolver(ProjectModelResolver projectModelResolver, VariantsMetaData variantsMetaData, List<VariantDimensionSelectorFactory> selectorFactories) {
-        super(JarBinarySpec.class, projectModelResolver, selectorFactories, variantsMetaData, new JvmLibraryResolutionErrorMessageBuilder(variantsMetaData));
+    public JvmLocalLibraryDependencyResolver(ProjectModelResolver projectModelResolver, VariantsMetaData variantsMetaData, List<VariantDimensionSelectorFactory> selectorFactories, ModelSchemaStore schemaStore) {
+        super(JarBinarySpec.class, projectModelResolver, selectorFactories, variantsMetaData, new JvmLibraryResolutionErrorMessageBuilder(variantsMetaData, schemaStore), schemaStore);
     }
 
     protected DefaultLibraryLocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, TaskDependency buildDependencies) {

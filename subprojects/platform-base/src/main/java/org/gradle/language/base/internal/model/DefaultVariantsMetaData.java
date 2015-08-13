@@ -20,16 +20,18 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Named;
-import org.gradle.internal.reflect.ClassDetails;
-import org.gradle.internal.reflect.ClassInspector;
-import org.gradle.internal.reflect.PropertyDetails;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.model.internal.manage.schema.ModelImplTypeSchema;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.Variant;
+import org.gradle.platform.base.internal.VariantAspect;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultVariantsMetaData implements VariantsMetaData {
     private final Map<String, Object> variants;
@@ -49,43 +51,25 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
         this.variantDimensionTypes = variantDimensionTypes;
     }
 
-    public static VariantsMetaData extractFrom(BinarySpec spec) {
-        Map<String, Object> variants = Maps.newHashMap();
-        Map<String, ModelType<?>> dimensionTypes = Maps.newHashMap();
-        Class<? extends BinarySpec> specClass = spec.getClass();
-        Set<Class<?>> interfaces = ClassInspector.inspect(specClass).getSuperTypes();
-        for (Class<?> intf : interfaces) {
-            ClassDetails details = ClassInspector.inspect(intf);
-            Collection<? extends PropertyDetails> properties = details.getProperties();
-            for (PropertyDetails property : properties) {
-                List<Method> getters = property.getGetters();
-                for (Method getter : getters) {
-                    if (getter.getAnnotation(Variant.class) != null) {
-                        extractVariant(variants, spec, property.getName(), getter);
-                        dimensionTypes.put(property.getName(), ModelType.of(getter.getReturnType()));
-                    }
+    public static VariantsMetaData extractFrom(BinarySpec spec, ModelSchemaStore schemaStore) {
+        Map<String, Object> variants = Maps.newLinkedHashMap();
+        ImmutableMap.Builder<String, ModelType<?>> dimensionTypesBuilder = ImmutableMap.builder();
+        Class<?> specType = new DslObject(spec).getDeclaredType();
+        ModelSchema<?> schema = schemaStore.getSchema(specType);
+        if (schema instanceof ModelImplTypeSchema) {
+            VariantAspect variantAspect = ((ModelImplTypeSchema<?>) schema).getAspect(VariantAspect.class);
+            if (variantAspect != null) {
+                for (ModelProperty<?> property : variantAspect.getDimensions()) {
+                    // note: it's not the role of this class to validate that the annotation is properly used, that
+                    // is to say only on a getter returning String or a Named instance, so we trust the result of
+                    // the call
+                    Object value = property.getPropertyValue(spec);
+                    variants.put(property.getName(), value);
+                    dimensionTypesBuilder.put(property.getName(), property.getType());
                 }
             }
         }
-
-        return new DefaultVariantsMetaData(Collections.unmodifiableMap(variants), ImmutableMap.copyOf(dimensionTypes));
-    }
-
-    private static void extractVariant(Map<String, Object> variants, BinarySpec spec, String name, Method method) {
-        Object result;
-        try {
-            result = method.invoke(spec);
-        } catch (IllegalAccessException e) {
-            result = null;
-        } catch (InvocationTargetException e) {
-            result = null;
-        }
-
-        // note: it's not the role of this class to validate that the annotation is properly used, that
-        // is to say only on a getter returning String or a Named instance, so we trust the result of
-        // the call
-        variants.put(name, result);
-
+        return new DefaultVariantsMetaData(Collections.unmodifiableMap(variants), dimensionTypesBuilder.build());
     }
 
     @Override

@@ -23,6 +23,7 @@ import com.google.common.collect.TreeMultimap;
 import org.gradle.api.Named;
 import org.gradle.internal.Cast;
 import org.gradle.language.base.internal.model.*;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 
 import java.util.*;
@@ -37,10 +38,12 @@ public class VariantsMatcher {
 
     private final List<VariantDimensionSelectorFactory> factories;
     private final Class<? extends BinarySpec> binarySpecType;
+    private final ModelSchemaStore schemaStore;
 
-    public VariantsMatcher(List<VariantDimensionSelectorFactory> factories, Class<? extends BinarySpec> binarySpecType) {
+    public VariantsMatcher(List<VariantDimensionSelectorFactory> factories, Class<? extends BinarySpec> binarySpecType, ModelSchemaStore schemaStore) {
         this.factories = factories;
         this.binarySpecType = binarySpecType;
+        this.schemaStore = schemaStore;
     }
 
     private VariantDimensionSelector<Object> createSelector(Object o) {
@@ -63,7 +66,7 @@ public class VariantsMatcher {
         Set<BinarySpec> removedSpecs = Sets.newHashSet();
         for (BinarySpec binarySpec : binaries) {
             if (binarySpecType.isAssignableFrom(binarySpec.getClass())) {
-                VariantsMetaData binaryVariants = DefaultVariantsMetaData.extractFrom(binarySpec);
+                VariantsMetaData binaryVariants = DefaultVariantsMetaData.extractFrom(binarySpec, schemaStore);
                 Set<String> commonsDimensions = Sets.intersection(resolveDimensions, binaryVariants.getNonNullDimensions());
                 Set<String> incompatibleDimensionTypes = VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData, binaryVariants, commonsDimensions);
                 if (incompatibleDimensionTypes.isEmpty()) {

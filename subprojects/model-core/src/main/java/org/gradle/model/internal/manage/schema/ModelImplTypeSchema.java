@@ -54,11 +54,7 @@ public abstract class ModelImplTypeSchema<T> extends ModelSchema<T> {
     }
 
     public ModelProperty<?> getProperty(String name) {
-        ModelProperty<?> property = properties.get(name);
-        if (property == null) {
-            throw new IllegalArgumentException("Property with name " + name + " not found");
-        }
-        return property;
+        return properties.get(name);
     }
 
     public boolean hasAspect(Class<? extends ModelSchemaAspect> aspectType) {
@@ -66,11 +62,7 @@ public abstract class ModelImplTypeSchema<T> extends ModelSchema<T> {
     }
 
     public <A extends ModelSchemaAspect> A getAspect(Class<A> aspectType) {
-        ModelSchemaAspect aspect = aspects.get(aspectType);
-        if (aspect == null) {
-            throw new IllegalArgumentException("No aspect with type " + aspectType + " is present for " + this + " schema");
-        }
-        return Cast.uncheckedCast(aspect);
+        return Cast.uncheckedCast(aspects.get(aspectType));
     }
 
     public Collection<ModelSchemaAspect> getAspects() {

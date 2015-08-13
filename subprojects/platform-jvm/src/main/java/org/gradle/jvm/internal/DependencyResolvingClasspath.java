@@ -38,6 +38,7 @@ import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -58,11 +59,12 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
     public DependencyResolvingClasspath(
             JarBinarySpec binarySpec,
             DependentSourceSetInternal sourceSet,
-            ArtifactDependencyResolver dependencyResolver) {
+            ArtifactDependencyResolver dependencyResolver,
+            ModelSchemaStore schemaStore) {
         this.binary = binarySpec;
         this.sourceSet = sourceSet;
         this.dependencyResolver = dependencyResolver;
-        resolveContext = new DependentSourceSetResolveContext(binary.getId(), sourceSet, DefaultVariantsMetaData.extractFrom(binary));
+        this.resolveContext = new DependentSourceSetResolveContext(binary.getId(), sourceSet, DefaultVariantsMetaData.extractFrom(binary, schemaStore));
     }
 
     @Override

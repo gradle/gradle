@@ -24,6 +24,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaDataHelper;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.Platform;
 
@@ -33,11 +34,13 @@ public class JvmLibraryResolutionErrorMessageBuilder implements LibraryResolutio
     private static final String TARGET_PLATFORM = "targetPlatform";
 
     private final VariantsMetaData variantsMetaData;
+    private final ModelSchemaStore schemaStore;
     private final Platform platform;
     private final Set<String> resolveDimensions;
 
-    public JvmLibraryResolutionErrorMessageBuilder(VariantsMetaData variantsMetaData) {
+    public JvmLibraryResolutionErrorMessageBuilder(VariantsMetaData variantsMetaData, ModelSchemaStore schemaStore) {
         this.variantsMetaData = variantsMetaData;
+        this.schemaStore = schemaStore;
         this.platform = variantsMetaData.getValueAsType(Platform.class, TARGET_PLATFORM);
         this.resolveDimensions = variantsMetaData.getNonNullDimensions();
     }
@@ -49,7 +52,7 @@ public class JvmLibraryResolutionErrorMessageBuilder implements LibraryResolutio
         for (BinarySpec variant : binaries) {
             binaryDescriptor.setLength(0);
             binaryDescriptor.append("   - ").append(variant.getDisplayName()).append(":\n");
-            VariantsMetaData metaData = DefaultVariantsMetaData.extractFrom(variant);
+            VariantsMetaData metaData = DefaultVariantsMetaData.extractFrom(variant, schemaStore);
             Set<String> dimensions = new TreeSet<String>(metaData.getNonNullDimensions());
             if (dimensions.size() > 1) { // 1 because of targetPlatform
                 for (String dimension : dimensions) {
@@ -107,7 +110,7 @@ public class JvmLibraryResolutionErrorMessageBuilder implements LibraryResolutio
             error.append("\n");
             HashMultimap<String, String> variants = HashMultimap.create();
             for (BinarySpec spec : allBinaries) {
-                VariantsMetaData md = DefaultVariantsMetaData.extractFrom(spec);
+                VariantsMetaData md = DefaultVariantsMetaData.extractFrom(spec, schemaStore);
                 Set<String> incompatibleDimensionTypes = VariantsMetaDataHelper.incompatibleDimensionTypes(variantsMetaData, md, resolveDimensions);
                 for (String dimension : resolveDimensions) {
                     String value = md.getValueAsString(dimension);

@@ -40,6 +40,7 @@ import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
@@ -64,9 +65,9 @@ public abstract class AbstractLocalLibraryDependencyResolver<T extends BinarySpe
         ProjectModelResolver projectModelResolver,
         List<VariantDimensionSelectorFactory> selectorFactories,
         VariantsMetaData variantsMetaData,
-        LibraryResolutionErrorMessageBuilder errorMessageBuilder) {
+        LibraryResolutionErrorMessageBuilder errorMessageBuilder, ModelSchemaStore schemaStore) {
         this.projectModelResolver = projectModelResolver;
-        this.matcher = new VariantsMatcher(selectorFactories, binarySpecType);
+        this.matcher = new VariantsMatcher(selectorFactories, binarySpecType, schemaStore);
         this.errorMessageBuilder = errorMessageBuilder;
         this.variantsMetaData = variantsMetaData;
         this.binaryType = binarySpecType;

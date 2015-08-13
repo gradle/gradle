@@ -32,6 +32,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.model.DefaultVariantDimensionSelectorFactory;
 import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 public class PlatformJvmServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
@@ -77,7 +78,8 @@ public class PlatformJvmServices implements PluginServiceRegistry {
         public ComponentResolvers create(ResolveContext context) {
             JvmLocalLibraryDependencyResolver delegate = new JvmLocalLibraryDependencyResolver(projectModelResolver,
                 ((DependentSourceSetResolveContext) context).getVariants(),
-                registry.getAll(VariantDimensionSelectorFactory.class));
+                registry.getAll(VariantDimensionSelectorFactory.class),
+                registry.get(ModelSchemaStore.class));
             return DelegatingComponentResolvers.of(delegate);
         }
     }
