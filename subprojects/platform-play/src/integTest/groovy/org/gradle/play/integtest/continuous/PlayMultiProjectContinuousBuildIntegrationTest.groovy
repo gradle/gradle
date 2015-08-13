@@ -56,6 +56,11 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
                     httpPort = 0
                 }
             }
+
+            // ensure that child run task always runs second
+            tasks.withType(PlayRun) {
+                dependsOn project(':primary').tasks.withType(PlayRun)
+            }
         """
         file('settings.gradle') << """
             include ':child'

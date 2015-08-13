@@ -27,7 +27,6 @@ abstract class AbstractPlayContinuousBuildIntegrationTest extends Java7Requiring
     def setup() {
         writeSources()
         buildTimeout = 90
-        executer.run()
     }
 
     TestFile getPlayRunBuildFile() {
