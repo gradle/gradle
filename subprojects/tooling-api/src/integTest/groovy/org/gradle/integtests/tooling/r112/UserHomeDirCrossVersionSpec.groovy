@@ -20,6 +20,7 @@ import org.gradle.tooling.BuildLauncher
 
 class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
     def "build is executed using specified user home directory"() {
+        toolingApi.requireIsolatedDaemons()
         File userHomeDir = temporaryFolder.createDir('userhomedir')
         projectDir.file('settings.gradle') << 'rootProject.name="test"'
         projectDir.file('build.gradle') << """task gradleBuild << {
