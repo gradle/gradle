@@ -69,7 +69,9 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
         List<ModelProperty<?>> properties = Lists.newArrayList();
         Set<Method> handledMethods = Sets.newHashSet();
 
-        for (String methodName : methodsByName.keySet()) {
+        List<String> methodNames = Lists.newArrayList(methodsByName.keySet());
+        methodNames.sort(Ordering.natural());
+        for (String methodName : methodNames) {
             Collection<Method> methods = methodsByName.get(methodName);
 
             List<Method> overloadedMethods = getOverloadedMethods(methods);
