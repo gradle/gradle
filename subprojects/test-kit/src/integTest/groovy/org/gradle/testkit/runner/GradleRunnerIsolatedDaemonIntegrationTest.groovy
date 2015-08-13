@@ -18,23 +18,35 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.FileUtils
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.testkit.runner.internal.GradleExecutor
 import org.gradle.util.GFileUtils
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerIntegrationTest {
-    @Rule TemporaryFolder testUserHomeDir = new TemporaryFolder()
-    @Rule final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(15000)
+    @Rule
+    final TestNameTestDirectoryProvider userHomeDirProvider = new TestNameTestDirectoryProvider()
+
+    @Rule
+    final TestNameTestDirectoryProvider testKitGradleUserHomeDirProvider = new TestNameTestDirectoryProvider()
+
+    @Rule
+    final TestNameTestDirectoryProvider userWorkingSpaceGradleUserHomeDirProvider = new TestNameTestDirectoryProvider()
+
+    @Rule
+    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(15000)
 
     def "configuration in default Gradle user home directory is ignored for test execution with daemon"() {
         given:
-        File defaultGradleUserHomeDir = new File(testUserHomeDir.root, '.gradle')
+        File defaultGradleUserHomeDir = new File(userHomeDirProvider.testDirectory, '.gradle')
 
         and:
         String gradlePropertiesContent = 'myProp1=propertiesFile'
@@ -56,7 +68,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
 
         when:
         DefaultGradleRunner gradleRunner = runner('check')
-        gradleRunner.withJvmArguments("-Duser.home=$testUserHomeDir.root.canonicalPath")
+        gradleRunner.withJvmArguments("-Duser.home=$userHomeDirProvider.testDirectory.canonicalPath")
         BuildResult result = gradleRunner.build()
 
         then:
@@ -107,9 +119,9 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         buildFile << helloWorldTask()
 
         when:
-        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testUserHomeDir.root)
+        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testKitGradleUserHomeDirProvider.testDirectory)
         assert testKitDaemonLogsAnalyzer.visible.empty
-        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(testUserHomeDir.root, 'helloWorld')
+        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(testKitGradleUserHomeDirProvider.testDirectory, 'helloWorld')
         gradleRunner.build()
 
         then:
@@ -122,9 +134,9 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         buildFile << helloWorldTask()
 
         when:
-        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testUserHomeDir.root)
+        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testKitGradleUserHomeDirProvider.testDirectory)
         assert testKitDaemonLogsAnalyzer.visible.empty
-        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(testUserHomeDir.root, 'helloWorld')
+        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(testKitGradleUserHomeDirProvider.testDirectory, 'helloWorld')
         gradleRunner.build()
 
         then:
@@ -140,12 +152,12 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         laterDaemon.context.pid == initialDaemon.context.pid
     }
 
-    def "user daemon process does not reuse existing daemon process indented for test execution"() {
+    def "user daemon process does not reuse existing daemon process intended for test execution"() {
         given:
         buildFile << helloWorldTask()
 
         when:
-        File testKitGradleUserHomeDir = testUserHomeDir.root
+        File testKitGradleUserHomeDir = testKitGradleUserHomeDirProvider.testDirectory
         DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testKitGradleUserHomeDir)
         assert testKitDaemonLogsAnalyzer.visible.empty
         GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(testKitGradleUserHomeDir, 'helloWorld')
@@ -156,10 +168,11 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         testKitDaemon.assertIdle()
 
         when:
-        File userGradleUserHomeDir = File.createTempDir()
-        DaemonLogsAnalyzer userDaemonLogsAnalyzer = createDaemonLogsAnalyzer(userGradleUserHomeDir)
+        DaemonLogsAnalyzer userDaemonLogsAnalyzer = createDaemonLogsAnalyzer(userWorkingSpaceGradleUserHomeDirProvider.testDirectory)
         assert userDaemonLogsAnalyzer.visible.empty
-        new GradleExecutor().run(buildContext.gradleHomeDir, userGradleUserHomeDir, testProjectDir.testDirectory, ['helloWorld'], [])
+        GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
+        GradleExecuter executer = new DaemonGradleExecuter(distribution, userWorkingSpaceGradleUserHomeDirProvider)
+        executer.usingProjectDirectory(testProjectDir.testDirectory).withArguments('helloWorld').requireIsolatedDaemons().run()
 
         then:
         DaemonFixture userDaemon = expectSingleDaemon(userDaemonLogsAnalyzer)
@@ -169,7 +182,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
 
     def "executing a build with a -g option does not affect daemon mechanics"() {
         given:
-        File customGradleUserHomeDir = File.createTempDir()
+        File customGradleUserHomeDir = testKitGradleUserHomeDirProvider.testDirectory
         buildFile << helloWorldTask()
 
         when:
