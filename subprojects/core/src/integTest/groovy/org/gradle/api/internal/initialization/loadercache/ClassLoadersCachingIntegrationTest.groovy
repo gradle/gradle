@@ -18,8 +18,10 @@ package org.gradle.api.internal.initialization.loadercache
 
 import org.gradle.integtests.fixtures.PersistentBuildProcessIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Ignore
 
+@LeaksFileHandles
 class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
     def cacheSizePerRun = []
