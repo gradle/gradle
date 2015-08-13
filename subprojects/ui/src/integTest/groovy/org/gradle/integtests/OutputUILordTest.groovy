@@ -16,9 +16,12 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.openapi.external.ui.OutputUILordVersion1
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -98,7 +101,9 @@ class OutputUILordTest {
     }
 
     @Test
+    @LeaksFileHandles
     void testReExecute() {
+        NativeServicesTestFixture.initialize(new IntegrationTestBuildContext().gradleUserHomeDir)
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
         OutputUILordVersion1 outputUILord = singlePane.getOutputLord()
 
