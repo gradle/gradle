@@ -136,8 +136,9 @@
                 Any configuration in the default Gradle user home directory (e.g. <literal>~/.gradle/gradle.properties</literal>) is not used for test execution.
                 The TestKit does not expose a mechanism for fine grained control of environment variables etc.
                 Future versions of the TestKit will provide improved configuration options.
-                The TestKit uses dedicated, reusable Gradle daemon processes. When the forked JVM responsible for test execution is shut down, any existing daemon processes
-                are stopped.
+            </para>
+            <para>
+                The TestKit uses dedicated daemon processes that are automatically shut down after test execution.
             </para>
         </section>
         <section>
