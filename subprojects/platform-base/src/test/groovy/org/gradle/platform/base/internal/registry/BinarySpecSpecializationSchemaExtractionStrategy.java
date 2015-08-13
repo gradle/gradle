@@ -23,6 +23,8 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ModelStructSchema;
 import org.gradle.model.internal.manage.schema.extract.ManagedImplTypeSchemaExtractionStrategySupport;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionContext;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
@@ -33,6 +35,10 @@ import java.util.List;
 // Needed as a separate Java class because Groovy compiler won't recognize type parameter <R>
 public class BinarySpecSpecializationSchemaExtractionStrategy extends ManagedImplTypeSchemaExtractionStrategySupport {
 
+    protected BinarySpecSpecializationSchemaExtractionStrategy(ModelSchemaAspectExtractor aspectExtractor) {
+        super(aspectExtractor);
+    }
+
     @Override
     protected boolean isTarget(ModelType<?> type) {
         return super.isTarget(type)
@@ -40,8 +46,8 @@ public class BinarySpecSpecializationSchemaExtractionStrategy extends ManagedImp
     }
 
     @Override
-    protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties) {
-        return ModelSchema.struct(type, properties, type.getConcreteClass(), BinarySpecInternal.class, new Function<ModelStructSchema<R>, NodeInitializer>() {
+    protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
+        return ModelSchema.struct(type, properties, aspects, type.getConcreteClass(), BinarySpecInternal.class, new Function<ModelStructSchema<R>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelStructSchema<R> schema) {
                 return null;

@@ -16,22 +16,36 @@
 
 package org.gradle.model.internal.manage.schema;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Maps;
+import org.gradle.internal.Cast;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.type.ModelType;
+
+import java.util.Collection;
+import java.util.Map;
 
 public abstract class ModelImplTypeSchema<T> extends ModelSchema<T> {
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
+    private final Map<Class<? extends ModelSchemaAspect>, ModelSchemaAspect> aspects;
 
-    public ModelImplTypeSchema(ModelType<T> type, Kind kind, Iterable<ModelProperty<?>> properties) {
+    public ModelImplTypeSchema(ModelType<T> type, Kind kind, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
         super(type, kind);
         ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : properties) {
             builder.put(property.getName(), property);
         }
         this.properties = builder.build();
+        this.aspects = Maps.uniqueIndex(aspects, new Function<ModelSchemaAspect, Class<? extends ModelSchemaAspect>>() {
+            @Override
+            public Class<? extends ModelSchemaAspect> apply(ModelSchemaAspect aspect) {
+                return aspect.getClass();
+            }
+        });
     }
 
-    public ImmutableSortedMap<String, ModelProperty<?>> getProperties() {
+    public Map<String, ModelProperty<?>> getProperties() {
         return properties;
     }
 
@@ -45,5 +59,21 @@ public abstract class ModelImplTypeSchema<T> extends ModelSchema<T> {
             throw new IllegalArgumentException("Property with name " + name + " not found");
         }
         return property;
+    }
+
+    public boolean hasAspect(Class<? extends ModelSchemaAspect> aspectType) {
+        return aspects.containsKey(aspectType);
+    }
+
+    public <A extends ModelSchemaAspect> A getAspect(Class<A> aspectType) {
+        ModelSchemaAspect aspect = aspects.get(aspectType);
+        if (aspect == null) {
+            throw new IllegalArgumentException("No aspect with type " + aspectType + " is present for " + this + " schema");
+        }
+        return Cast.uncheckedCast(aspect);
+    }
+
+    public Collection<ModelSchemaAspect> getAspects() {
+        return aspects.values();
     }
 }

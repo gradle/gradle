@@ -43,10 +43,10 @@ public class ModelSchemaExtractor {
     private final List<? extends ModelSchemaExtractionStrategy> strategies;
 
     public ModelSchemaExtractor() {
-        this(Collections.<ModelSchemaExtractionStrategy>emptyList());
+        this(Collections.<ModelSchemaExtractionStrategy>emptyList(), new ModelSchemaAspectExtractor());
     }
 
-    public ModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies) {
+    public ModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies, ModelSchemaAspectExtractor aspectExtractor) {
         this.strategies = ImmutableList.<ModelSchemaExtractionStrategy>builder()
             .addAll(strategies)
             .add(new PrimitiveStrategy())
@@ -56,8 +56,8 @@ public class ModelSchemaExtractor {
             .add(new ManagedSetStrategy())
             .add(new SpecializedMapStrategy())
             .add(new ModelMapStrategy())
-            .add(new StructStrategy())
-            .add(new UnmanagedStrategy())
+            .add(new StructStrategy(aspectExtractor))
+            .add(new UnmanagedStrategy(aspectExtractor))
             .build();
     }
 

@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema;
+package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
-import org.gradle.model.internal.type.ModelType;
-
-public class ModelUnmanagedSchema<T> extends ModelImplTypeSchema<T> {
-    public ModelUnmanagedSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
-        super(type, Kind.UNMANAGED, properties, aspects);
-    }
+public interface ModelSchemaAspect {
 }

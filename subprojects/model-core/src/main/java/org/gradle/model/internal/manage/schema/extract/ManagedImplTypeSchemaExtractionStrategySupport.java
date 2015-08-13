@@ -42,6 +42,10 @@ import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*
 
 abstract public class ManagedImplTypeSchemaExtractionStrategySupport extends ImplTypeSchemaExtractionStrategySupport {
 
+    protected ManagedImplTypeSchemaExtractionStrategySupport(ModelSchemaAspectExtractor aspectExtractor) {
+        super(aspectExtractor);
+    }
+
     @Override
     protected boolean isTarget(ModelType<?> type) {
         // Every managed class is a struct that hasn't been handled before

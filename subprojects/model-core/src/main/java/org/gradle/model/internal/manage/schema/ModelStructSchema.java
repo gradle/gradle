@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.schema;
 import com.google.common.base.Function;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.ref.WeakReference;
@@ -28,8 +29,8 @@ public class ModelStructSchema<T> extends ModelImplTypeSchema<T> {
     private final WeakReference<Class<?>> delegateType;
     private final NodeInitializer nodeInitializer;
 
-    public ModelStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<? super ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
-        super(type, Kind.STRUCT, properties);
+    public ModelStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<? super ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
+        super(type, Kind.STRUCT, properties, aspects);
         this.nodeInitializer = nodeInitializer.apply(this);
         this.managedImpl = new WeakReference<Class<? extends T>>(managedImpl);
         this.delegateType = new WeakReference<Class<?>>(delegateType);

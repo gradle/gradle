@@ -31,8 +31,12 @@ import java.util.Set;
 
 public class UnmanagedStrategy extends ImplTypeSchemaExtractionStrategySupport {
 
-    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties) {
-        return ModelSchema.unmanaged(type, properties);
+    public UnmanagedStrategy(ModelSchemaAspectExtractor aspectExtractor) {
+        super(aspectExtractor);
+    }
+
+    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
+        return ModelSchema.unmanaged(type, properties, aspects);
     }
 
     @Override

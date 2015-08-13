@@ -55,10 +55,14 @@ public class StructStrategy extends ManagedImplTypeSchemaExtractionStrategySuppo
 
     private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
 
+    public StructStrategy(ModelSchemaAspectExtractor aspectExtractor) {
+        super(aspectExtractor);
+    }
+
     @Override
-    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties) {
+    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
         Class<? extends R> implClass = classGenerator.generate(type.getConcreteClass(), properties);
-        final ModelStructSchema<R> schema = ModelSchema.struct(type, properties, implClass, null, new Function<ModelStructSchema<R>, NodeInitializer>() {
+        final ModelStructSchema<R> schema = ModelSchema.struct(type, properties, aspects, implClass, null, new Function<ModelStructSchema<R>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelStructSchema<R> schema) {
                 return new ManagedModelInitializer<R>(schema, store);

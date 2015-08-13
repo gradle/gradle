@@ -60,9 +60,7 @@ import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionStrategy;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
+import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.model.internal.persist.AlwaysNewModelRegistryStore;
 import org.gradle.model.internal.persist.ModelRegistryStore;
 import org.gradle.model.internal.persist.ReusingModelRegistryStore;
@@ -220,9 +218,14 @@ public class GlobalScopeServices {
         return new DefaultClassLoaderCache(classPathSnapshotter);
     }
 
-    protected ModelSchemaExtractor createModelSchemaExtractor(ServiceRegistry serviceRegistry) {
+    protected ModelSchemaAspectExtractor createModelSchemaAspectExtractor(ServiceRegistry serviceRegistry) {
+        List<ModelSchemaAspectExtractionStrategy> strategies = serviceRegistry.getAll(ModelSchemaAspectExtractionStrategy.class);
+        return new ModelSchemaAspectExtractor(strategies);
+    }
+
+    protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, ServiceRegistry serviceRegistry) {
         List<ModelSchemaExtractionStrategy> strategies = serviceRegistry.getAll(ModelSchemaExtractionStrategy.class);
-        return new ModelSchemaExtractor(strategies);
+        return new ModelSchemaExtractor(strategies, aspectExtractor);
     }
 
     protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {

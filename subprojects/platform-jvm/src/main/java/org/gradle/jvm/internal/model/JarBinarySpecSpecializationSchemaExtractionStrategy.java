@@ -24,16 +24,20 @@ import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ModelStructSchema;
-import org.gradle.model.internal.manage.schema.extract.ManagedImplTypeSchemaExtractionStrategySupport;
-import org.gradle.model.internal.manage.schema.extract.ManagedProxyClassGenerator;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionContext;
+import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.inject.Inject;
 import java.util.List;
 
 public class JarBinarySpecSpecializationSchemaExtractionStrategy extends ManagedImplTypeSchemaExtractionStrategySupport {
 
     private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
+
+    @Inject
+    public JarBinarySpecSpecializationSchemaExtractionStrategy(ModelSchemaAspectExtractor aspectExtractor) {
+        super(aspectExtractor);
+    }
 
     @Override
     protected boolean isTarget(ModelType<?> type) {
@@ -43,9 +47,9 @@ public class JarBinarySpecSpecializationSchemaExtractionStrategy extends Managed
     }
 
     @Override
-    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties) {
+    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
         Class<? extends R> implClass = classGenerator.generate(type.getConcreteClass(), JarBinarySpecInternal.class, properties);
-        return ModelSchema.struct(type, properties, implClass, JarBinarySpecInternal.class, new Function<ModelStructSchema<R>, NodeInitializer>() {
+        return ModelSchema.struct(type, properties, aspects, implClass, JarBinarySpecInternal.class, new Function<ModelStructSchema<R>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelStructSchema<R> schema) {
                 return new JarBinarySpecSpecializationModelInitializer<R>(schema, store);

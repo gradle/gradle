@@ -39,6 +39,12 @@ import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.i
 
 public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
 
+    private final ModelSchemaAspectExtractor aspectExtractor;
+
+    protected ImplTypeSchemaExtractionStrategySupport(ModelSchemaAspectExtractor aspectExtractor) {
+        this.aspectExtractor = aspectExtractor;
+    }
+
     protected abstract boolean isTarget(ModelType<?> type);
 
     public <R> ModelSchemaExtractionResult<R> extract(final ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, final ModelSchemaCache cache) {
@@ -50,8 +56,9 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
         validateTypeHierarchy(extractionContext, type);
 
         List<ModelProperty<?>> properties = extractPropertySchemas(extractionContext, ModelSchemaUtils.getCandidateMethods(type.getRawClass()));
+        List<ModelSchemaAspect> aspects = aspectExtractor.extract(extractionContext, properties);
 
-        ModelSchema<R> schema = createSchema(extractionContext, store, type, properties);
+        ModelSchema<R> schema = createSchema(extractionContext, store, type, properties, aspects);
         Iterable<ModelSchemaExtractionContext<?>> propertyDependencies = Iterables.transform(properties, new Function<ModelProperty<?>, ModelSchemaExtractionContext<?>>() {
             public ModelSchemaExtractionContext<?> apply(final ModelProperty<?> property) {
                 return toPropertyExtractionContext(extractionContext, property, cache);
@@ -176,7 +183,7 @@ public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSc
 
     protected abstract void handleOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> overloadedMethods);
 
-    protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties);
+    protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects);
 
     protected abstract <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelProperty<P> property, ModelSchemaCache modelSchemaCache);
 

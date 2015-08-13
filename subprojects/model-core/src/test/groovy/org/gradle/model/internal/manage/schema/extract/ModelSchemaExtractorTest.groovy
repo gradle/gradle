@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
+import org.gradle.api.Action
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
@@ -909,7 +910,7 @@ interface Managed${typeName} {
                 }
             }
         }
-        def extractor = new ModelSchemaExtractor([strategy])
+        def extractor = new ModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
         def store = new DefaultModelSchemaStore(extractor)
 
         then:
@@ -1007,7 +1008,7 @@ interface Managed${typeName} {
     def "properties are extracted from unmanaged type with managed super-type"() {
         def extractor = new ModelSchemaExtractor([
             new TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(SimpleUnmanagedTypeWithAnnotations)
-        ])
+        ], new ModelSchemaAspectExtractor())
         def store = new DefaultModelSchemaStore(extractor)
 
         when:
@@ -1103,6 +1104,42 @@ interface Managed${typeName} {
         schema.properties["managedCalculatedProp"].getAnnotation(CustomTestAnnotation).value() == "managedCalculated"
         schema.properties["managedCalculatedProp"].isManaged() == false
         schema.properties["managedCalculatedProp"].isWritable() == false
+    }
+
+    class MyAspect implements ModelSchemaAspect {}
+
+    @Managed
+    static abstract class MyTypeOfAspect {
+        abstract String getProp()
+        abstract void setProp(String prop)
+        String getCalculatedProp() {
+            return "calc"
+        }
+    }
+
+    def "aspects can be extracted"() {
+        def aspect = new MyAspect()
+        def aspectValidator = Mock(Action)
+        def aspectExtractionStrategy = Mock(ModelSchemaAspectExtractionStrategy)
+        def extractor = new ModelSchemaExtractor([], new ModelSchemaAspectExtractor([aspectExtractionStrategy]))
+        def store = new DefaultModelSchemaStore(extractor)
+
+        when:
+        def resultSchema = store.getSchema(MyTypeOfAspect)
+
+        then:
+        assert resultSchema instanceof ModelImplTypeSchema
+        resultSchema.hasAspect(MyAspect)
+        resultSchema.getAspect(MyAspect) == aspect
+
+        1 * aspectExtractionStrategy.extract(_, _) >> { ModelSchemaExtractionContext<?> extractionContext, List<ModelProperty<?>> properties ->
+            assert properties*.name == ["calculatedProp", "prop"]
+            return new ModelSchemaAspectExtractionResult(aspect, aspectValidator)
+        }
+        1 * aspectValidator.execute(_) >> { ModelSchemaExtractionContext<?> extractionContext ->
+            assert extractionContext.type.rawClass == MyTypeOfAspect
+        }
+        0 * _
     }
 }
 
