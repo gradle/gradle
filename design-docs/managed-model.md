@@ -59,7 +59,7 @@ may also be internal mechanisms to define such properties on other types.
 
 ##### Open issues
 
-- `ModelElementState` only supportso boxed types, using `get` and `set`. If the model is often updated, it could lead to performance issues, in which case it
+- `ModelElementState` only supports boxed types, using `get` and `set`. If the model is often updated, it could lead to performance issues, in which case it
 could be necessary to introduce primitive versions of `get` and `set`.
 
 ### Support `is` style getters for managed properties of type boolean

@@ -17,6 +17,7 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
@@ -228,4 +229,114 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         then:
         succeeds "model"
     }
+
+    @Unroll
+    def "can read and write #value to managed property of type #primitiveType when using Groovy"() {
+        given:
+        buildScript  """
+            @Managed
+            interface PrimitiveProperty {
+                $primitiveType.name getPrimitiveProperty()
+
+                void setPrimitiveProperty($primitiveType.name value)
+            }
+
+            class Primitive${primitiveType.name.capitalize()}Rules extends RuleSource {
+                @Model
+                void createModel(PrimitiveProperty p) {
+                    p.primitiveProperty = $value
+                }
+
+                @Mutate
+                void addEchoTask(ModelMap<Task> tasks, PrimitiveProperty element) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "${primitiveType.name}: \${element.primitiveProperty}"
+                        }
+                    }
+                }
+            }
+
+            apply plugin: Primitive${primitiveType.name.capitalize()}Rules
+
+        """
+
+        when:
+        succeeds 'echo'
+
+        then:
+        output.contains "${primitiveType.name}: ${Eval.me(value)}"
+
+        where:
+        primitiveType | value
+        byte          | "123"
+        boolean       | "false"
+        boolean       | "true"
+        char          | "'c'"
+        float         | "123.45f"
+        long          | "123L"
+        short         | "123"
+        int           | "123"
+        double        | "123.456d"
+    }
+
+    @Unroll
+    def "can read and write #value to managed property of type #primitiveType when using Java"() {
+        given:
+        file('buildSrc/src/main/java/Rules.java') << """
+            import org.gradle.api.*;
+            import org.gradle.model.*;
+
+            @Managed
+            interface PrimitiveProperty {
+                $primitiveType.name getPrimitiveProperty();
+
+                void setPrimitiveProperty($primitiveType.name value);
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void createModel(PrimitiveProperty p) {
+                    p.setPrimitiveProperty($value);
+                }
+
+                @Mutate
+                void addEchoTask(ModelMap<Task> tasks, PrimitiveProperty element) {
+                    tasks.create("echo", new Action<Task>() {
+                        public void execute(Task task) {
+                            task.doLast(new Action<Task>() {
+                                public void execute(Task unused) {
+                                    System.out.println(String.format("%s: %s", "${primitiveType.name}", element.getPrimitiveProperty()));
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        """
+
+        when:
+        buildScript '''
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds 'echo'
+
+        and:
+        output.contains "${primitiveType.name}: ${Eval.me(value)}"
+
+        where:
+        primitiveType | value
+        byte          | "(byte) 123"
+        boolean       | "false"
+        boolean       | "true"
+        char          | "'c'"
+        float         | "123.45f"
+        long          | "123L"
+        short         | "(short) 123"
+        int           | "123"
+        double        | "123.456d"
+    }
+
 }
