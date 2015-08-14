@@ -26,6 +26,7 @@ import org.gradle.model.Managed;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.*;
 
 public class ModelSchemaUtils {
@@ -114,19 +115,36 @@ public class ModelSchemaUtils {
         }
     }
 
-    interface TypeVisitor {
+    public interface TypeVisitor {
         void visitType(Class<?> type);
     }
 
     /**
-     * Returns whether the method has been declared in a <code>@</code>{@link Managed} type or not.
+     * Tries to find the most specific declaration of a method that is not declared in a {@link Proxy} class.
+     * Mock objects generated via {@link Proxy#newProxyInstance(ClassLoader, Class[], java.lang.reflect.InvocationHandler)}
+     * lose their generic type parameters and can confuse schema extraction. This way we can ignore these
+     * declarations, and use the ones from the proxied interfaces instead.
+     *
+     * @param declaringMethods declarations of the same method from different types in the type hierarchy. They are
+     *      expected to be in order of specificity, i.e. overrides preceding overridden declarations.
+     * @return the most specific declaration of the method.
+     * @throws IllegalArgumentException if no declaration can be found.
+     */
+    public static Method findMostSpecificMethod(Collection<Method> declaringMethods) {
+        for (Method method : declaringMethods) {
+            if (Proxy.isProxyClass(method.getDeclaringClass())) {
+                continue;
+            }
+            return method;
+        }
+        throw new IllegalArgumentException("Cannot find most-specific declaration of method. Declarations checked: " + declaringMethods);
+    }
+
+    /**
+     * Returns whether the most specific of the given methods has been declared in a <code>@</code>{@link Managed} type or not.
      */
     public static boolean isMethodDeclaredInManagedType(Collection<Method> declarations) {
-        if (declarations.isEmpty()) {
-            throw new IllegalArgumentException("no declarations given");
-        }
-
-        Method mostSpecificDeclaration = declarations.iterator().next();
+        Method mostSpecificDeclaration = findMostSpecificMethod(declarations);
         return isMethodDeclaredInManagedType(mostSpecificDeclaration);
     }
 
