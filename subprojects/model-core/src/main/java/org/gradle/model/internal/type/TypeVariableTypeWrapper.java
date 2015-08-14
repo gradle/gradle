@@ -16,92 +16,23 @@
 
 package org.gradle.model.internal.type;
 
-import com.google.common.base.Objects;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
-import java.util.Arrays;
+public class TypeVariableTypeWrapper implements TypeWrapper {
+    private final TypeVariable<?> type;
 
-/**
- * Wrapper for a {@link TypeVariable}, designed to be used only to represent a type variable in a
- * {@link org.gradle.model.internal.manage.schema.cache.WeakClassSet}. It ignores annotations on
- * on the type variable, and throws an {@link UnsupportedOperationException} if
- * {@link #getGenericDeclaration()} is called.
- */
-public class TypeVariableTypeWrapper<D extends GenericDeclaration> implements TypeWrapper, TypeVariable<D> {
-    private final String name;
-    private final TypeWrapper[] bounds;
-    private final int hashCode;
-
-    public TypeVariableTypeWrapper(String name, TypeWrapper[] bounds, int hashCode) {
-        this.name = name;
-        this.bounds = bounds;
-        this.hashCode = hashCode;
+    public TypeVariableTypeWrapper(TypeVariable<?> type) {
+        this.type = type;
     }
 
     @Override
     public Type unwrap() {
-        return this;
+        return type;
     }
 
     @Override
     public String getRepresentation(boolean full) {
-        return name;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public Type[] getBounds() {
-        return ModelType.unwrap(bounds);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof TypeVariable)) {
-            return false;
-        } else {
-            TypeVariable<?> var2 = (TypeVariable<?>) o;
-            return Objects.equal(this.getName(), var2.getName())
-                && Arrays.equals(this.getBounds(), var2.getBounds());
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-        return false;
-    }
-
-    @Override
-    public Annotation[] getDeclaredAnnotations() {
-        return new Annotation[0];
-    }
-
-    @Override
-    public Annotation[] getAnnotations() {
-        return new Annotation[0];
-    }
-
-    @Override
-    public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
-        return null;
-    }
-
-    @Override
-    public AnnotatedType[] getAnnotatedBounds() {
-        return new AnnotatedType[0];
-    }
-
-    @Override
-    public D getGenericDeclaration() {
-        throw new UnsupportedOperationException();
+        return type.getName();
     }
 }
