@@ -184,13 +184,6 @@ class ModelSchemaExtractorTest extends Specification {
         type << [NonStringProperty, ClassWithExtendedFileType]
     }
 
-    @Managed
-    static interface BytePrimitiveProperty {
-        byte getByteProperty()
-
-        void setByteProperty(byte value)
-    }
-
     @Unroll
     def "primitive types are supported - #primitiveType"() {
         when:
@@ -213,14 +206,51 @@ class ModelSchemaExtractorTest extends Specification {
 
         where:
         primitiveType << [
-        byte,
-        boolean,
-        char,
-        float,
-        long,
-        short,
-        int,
-        double]
+            byte,
+            boolean,
+            char,
+            float,
+            long,
+            short,
+            int,
+            double]
+    }
+
+    @Unroll
+    def "Misaligned types #firstType and #secondType"() {
+        when:
+        def interfaceWithPrimitiveProperty = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            @Managed
+            interface PrimitiveProperty {
+                $firstType.name getPrimitiveProperty()
+
+                void setPrimitiveProperty($secondType.name value)
+            }
+        """
+
+        then:
+        fail(interfaceWithPrimitiveProperty, "(expected: ${firstType.name}, found: ${secondType.name})")
+
+        where:
+        firstType | secondType
+        byte      | Byte
+        boolean   | Boolean
+        char      | Character
+        float     | Float
+        long      | Long
+        short     | Short
+        int       | Integer
+        double    | Double
+        Byte      | byte
+        Boolean   | boolean
+        Character | char
+        Float     | float
+        Long      | long
+        Short     | short
+        Integer   | int
+        Double    | double
     }
 
     @Managed
@@ -959,6 +989,7 @@ interface Managed${typeName} {
     static abstract class SimpleUnmanagedTypeWithAnnotations {
         @CustomTestAnnotation("unmanaged")
         abstract String getUnmanagedProp()
+
         @CustomTestAnnotation("unmanagedSetter")
         abstract void setUnmanagedProp(String value)
 
@@ -968,6 +999,7 @@ interface Managed${typeName} {
         }
 
         boolean isBuildable() { true }
+
         int getTime() { 0 }
     }
 
@@ -996,6 +1028,7 @@ interface Managed${typeName} {
     static abstract class ManagedTypeWithAnnotationsExtendingUnmanagedType extends SimpleUnmanagedTypeWithAnnotations {
         @CustomTestAnnotation("managed")
         abstract String getManagedProp()
+
         @CustomTestAnnotation("managedSetter")
         abstract void setManagedProp(String managedProp)
 
@@ -1047,6 +1080,7 @@ interface Managed${typeName} {
     static abstract class SimplePurelyManagedType {
         @CustomTestAnnotation("managed")
         abstract String getManagedProp()
+
         @CustomTestAnnotation("managedSetter")
         abstract void setManagedProp(String managedProp)
 
