@@ -16,10 +16,11 @@
 
 package org.gradle.model.managed
 
+import org.gradle.api.artifacts.Configuration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
+class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     def "values of primitive types and boxed primitive types are widened as usual when using groovy"() {
         when:
@@ -231,14 +232,16 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "can read and write #value to managed property of scalar type #someType when using Groovy"() {
+    def "can read and write #value to managed property of scalar type #someType.simpleName when using Groovy"() {
         given:
         buildScript """
+            import org.gradle.api.artifacts.Configuration.State
+
             @Managed
             interface ManagedType {
-                $someType.name getManagedProperty()
+                $someType.canonicalName getManagedProperty()
 
-                void setManagedProperty($someType.name value)
+                void setManagedProperty($someType.canonicalName value)
             }
 
             class PluginRules extends RuleSource {
@@ -268,39 +271,48 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains "${someType.name}: ${Eval.me(value)}"
 
         where:
-        someType  | value
-        byte      | "123"
-        Byte      | "123"
-        boolean   | "false"
-        Boolean   | "false"
-        boolean   | "true"
-        Boolean   | "true"
-        char      | "'c'"
-        Character | "'c'"
-        float     | "123.45f"
-        Float     | "123.45f"
-        long      | "123L"
-        Long      | "123L"
-        short     | "123"
-        Short     | "123"
-        int       | "123"
-        Integer   | "123"
-        double    | "123.456d"
-        Double    | "123.456d"
+        someType            | value
+        byte                | "123"
+        Byte                | "123"
+        boolean             | "false"
+        Boolean             | "false"
+        boolean             | "true"
+        Boolean             | "true"
+        char                | "'c'"
+        Character           | "'c'"
+        float               | "123.45f"
+        Float               | "123.45f"
+        long                | "123L"
+        Long                | "123L"
+        short               | "123"
+        Short               | "123"
+        int                 | "123"
+        Integer             | "123"
+        double              | "123.456d"
+        Double              | "123.456d"
+        String              | '"Mogette"'
+        BigDecimal          | '999G'
+        BigInteger          | '777G'
+        Configuration.State | 'org.gradle.api.artifacts.Configuration.State.UNRESOLVED'
+        File                | 'new File("foo")'
     }
 
     @Unroll
-    def "can read and write #value to managed property of scalar type #someType when using Java"() {
+    def "can read and write #value to managed property of scalar type #someType,simpleName when using Java"() {
         given:
         file('buildSrc/src/main/java/Rules.java') << """
             import org.gradle.api.*;
             import org.gradle.model.*;
+            import java.math.BigDecimal;
+            import java.math.BigInteger;
+            import java.io.File;
+            import org.gradle.api.artifacts.Configuration.State;
 
             @Managed
             interface ManagedType {
-                $someType.name getManagedProperty();
+                $someType.canonicalName getManagedProperty();
 
-                void setManagedProperty($someType.name value);
+                void setManagedProperty($someType.canonicalName value);
             }
 
             class RulePlugin extends RuleSource {
@@ -337,25 +349,30 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
 
         where:
-        someType  | value
-        byte      | "(byte) 123"
-        Byte      | "(byte) 123"
-        boolean   | "false"
-        Boolean   | "false"
-        boolean   | "true"
-        Boolean   | "true"
-        char      | "'c'"
-        Character | "'c'"
-        float     | "123.45f"
-        Float     | "123.45f"
-        long      | "123L"
-        Long      | "123L"
-        short     | "(short) 123"
-        Short     | "(short) 123"
-        int       | "123"
-        Integer   | "123"
-        double    | "123.456d"
-        Double    | "123.456d"
+        someType            | value
+        byte                | "(byte) 123"
+        Byte                | "(byte) 123"
+        boolean             | "false"
+        Boolean             | "false"
+        boolean             | "true"
+        Boolean             | "true"
+        char                | "'c'"
+        Character           | "'c'"
+        float               | "123.45f"
+        Float               | "123.45f"
+        long                | "123L"
+        Long                | "123L"
+        short               | "(short) 123"
+        Short               | "(short) 123"
+        int                 | "123"
+        Integer             | "123"
+        double              | "123.456d"
+        Double              | "123.456d"
+        String              | '"Mogette"'
+        BigDecimal          | 'new BigDecimal(999)'
+        BigInteger          | 'new BigInteger("777")'
+        Configuration.State | 'org.gradle.api.artifacts.Configuration.State.UNRESOLVED'
+        File                | 'new File("foo")'
     }
 
 }
