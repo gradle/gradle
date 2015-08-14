@@ -26,7 +26,6 @@ import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
 import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
 import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
-import org.gradle.model.internal.manage.schema.AbstractModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
@@ -69,7 +68,7 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private <T, E> ModelSchemaExtractionResult<T> gettModelSchemaExtractionResult(ModelSchemaExtractionContext<T> extractionContext, final ModelSchemaCache cache, ModelType<E> elementType, final ModelSchemaStore store) {
-        ModelCollectionSchema<T, E> schema = AbstractModelSchema.collection(extractionContext.getType(), elementType, new Function<ModelCollectionSchema<T, E>, NodeInitializer>() {
+        ModelCollectionSchema<T, E> schema = new ModelCollectionSchema<T, E>(extractionContext.getType(), elementType, new Function<ModelCollectionSchema<T, E>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelCollectionSchema<T, E> input) {
                 final ManagedChildNodeCreatorStrategy<E> childCreator = new ManagedChildNodeCreatorStrategy<E>(store);

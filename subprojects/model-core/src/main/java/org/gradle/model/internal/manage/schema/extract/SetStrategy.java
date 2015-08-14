@@ -20,7 +20,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.manage.schema.AbstractModelSchema;
 import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -65,7 +64,7 @@ public abstract class SetStrategy implements ModelSchemaExtractionStrategy {
             throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", modelType.getConcreteClass().getName()));
         }
 
-        ModelCollectionSchema<T, E> schema = AbstractModelSchema.collection(extractionContext.getType(), elementType, this.<T, E>getNodeInitializer(store));
+        ModelCollectionSchema<T, E> schema = new ModelCollectionSchema<T, E>(extractionContext.getType(), elementType, this.<T, E>getNodeInitializer(store));
         ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", new Action<ModelSchemaExtractionContext<?>>() {
             public void execute(ModelSchemaExtractionContext<?> context) {
                 ModelSchema<?> typeParamSchema = cache.get(context.getType());

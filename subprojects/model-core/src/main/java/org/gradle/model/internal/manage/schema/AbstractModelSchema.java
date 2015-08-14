@@ -16,40 +16,15 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import com.google.common.base.Function;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
-
 @ThreadSafe
-public class AbstractModelSchema<T> implements ModelSchema<T> {
+public abstract class AbstractModelSchema<T> implements ModelSchema<T> {
 
     private final ModelType<T> type;
     private final Kind kind;
-
-    public static <T> AbstractModelSchema<T> value(ModelType<T> type) {
-        return new AbstractModelSchema<T>(type, Kind.VALUE);
-    }
-
-    public static <T> ModelManagedImplStructSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<? super ModelManagedImplStructSchema<T>, NodeInitializer> nodeInitializer) {
-        return new ModelManagedImplStructSchema<T>(type, properties, aspects, managedImpl, delegateType, nodeInitializer);
-    }
-
-    public static <T> ModelUnmanagedImplStructSchema<T> unmanaged(final ModelType<T> type, Iterable<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
-        return new ModelUnmanagedImplStructSchema<T>(type, properties, aspects);
-    }
-
-    public static <T, E> ModelCollectionSchema<T, E> collection(ModelType<T> type, ModelType<E> elementType, Function<ModelCollectionSchema<T, E>, NodeInitializer> nodeInitializer) {
-        return new ModelCollectionSchema<T, E>(type, elementType, nodeInitializer);
-    }
-
-    public static <T> ModelMapSchema<T> specializedMap(ModelType<T> type, ModelType<?> elementType, Class<?> managedImpl) {
-        return new ModelMapSchema<T>(type, elementType, managedImpl);
-    }
 
     protected AbstractModelSchema(ModelType<T> type, Kind kind) {
         this.type = type;

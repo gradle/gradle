@@ -44,7 +44,7 @@ public class BinarySpecSpecializationSchemaExtractionStrategy extends ManagedImp
 
     @Override
     protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
-        return AbstractModelSchema.struct(type, properties, aspects, type.getConcreteClass(), BinarySpecInternal.class, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
+        return new ModelManagedImplStructSchema<R>(type, properties, aspects, type.getConcreteClass(), BinarySpecInternal.class, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelManagedImplStructSchema<R> schema) {
                 return null;

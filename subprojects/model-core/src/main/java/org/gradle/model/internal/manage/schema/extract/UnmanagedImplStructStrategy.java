@@ -18,10 +18,7 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
-import org.gradle.model.internal.manage.schema.AbstractModelSchema;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
@@ -37,7 +34,7 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
     }
 
     protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
-        return AbstractModelSchema.unmanaged(type, properties, aspects);
+        return new ModelUnmanagedImplStructSchema<R>(type, properties, aspects);
     }
 
     @Override
