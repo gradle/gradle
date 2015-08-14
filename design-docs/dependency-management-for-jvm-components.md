@@ -470,21 +470,17 @@ This works for both managed and unmanaged types.
 
 ### Implementation
 
-- `ModelImplTypeSchema` provides the getter for the property, but does not hold a strong reference to it.
+- `ModelPropertySchema` provides the getter for the property, but does not hold a strong reference to it.
 - All annotations on setters are stored in the schema for the purpose of raising errors about them later on.
-- The schema is extensible via `ModelSchemaAspects` that are extracted via `ModelSchemaAspectExtractionStrategy`s.
+- The schema is extensible via `ModelSchemaAspect`s that are extracted via `ModelSchemaAspectExtractionStrategy`s.
 - Custom variants are not shown in the component report for this story.
 
 ### Test cases
 
-- Custom managed Jar binary can be built with custom variants
-    - declare a `buildType` (type: `BuildType`) variant with `debug` and `production`
+- Custom Jar binary can be built with custom variants (covered by `SingleBinaryTypeWithVariantsTest`)
+    - declare a `buildType` (type: `BuildType`) variant with `debug` and `default`
     - declare a `flavor` (type: `String`) variant with `free` and `paid`
-    - all four Jar binaries can be built
-- Custom unmanaged Jar binary can be built with custom variants
-    - declare a `buildType` (type: `BuildType`) variant with `debug` and `production`
-    - declare a `flavor` (type: `String`) variant with `free` and `paid`
-    - all four Jar binaries can be built
+    - custom Jar binaries can be built
 - Useful error message presented to user for:
     - `@Variant` annotation on property with return type other than String/Named
     - `@Variant` annotation on property setter
