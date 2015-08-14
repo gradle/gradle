@@ -18,6 +18,7 @@ import com.google.common.collect.ArrayListMultimap
 import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
 import org.gradle.api.Transformer
+import org.gradle.api.reporting.components.JvmComponentReportOutputFormatter
 import org.gradle.api.reporting.components.NativeComponentReportOutputFormatter
 import org.gradle.api.reporting.components.PlayComponentReportOutputFormatter
 import org.gradle.integtests.fixtures.executer.*
@@ -256,6 +257,7 @@ class UserGuideSamplesRunner extends Runner {
 
         samplesById.nativeComponentReport.runs.each { it.outputFormatter = new NativeComponentReportOutputFormatter() }
         samplesById.playComponentReport.runs.each { it.outputFormatter = new PlayComponentReportOutputFormatter() }
+        samplesById.newJavaComponentReport.runs.each { it.outputFormatter = new JvmComponentReportOutputFormatter() }
 
         if ("true".equals(System.getProperty("org.gradle.integtest.unknownos"))) {
             // Ignore for now
