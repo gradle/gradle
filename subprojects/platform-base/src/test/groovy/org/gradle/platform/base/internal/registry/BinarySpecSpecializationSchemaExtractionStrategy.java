@@ -18,10 +18,7 @@ package org.gradle.platform.base.internal.registry;
 
 import com.google.common.base.Function;
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.manage.schema.extract.ManagedImplStructSchemaExtractionStrategySupport;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor;
@@ -47,7 +44,7 @@ public class BinarySpecSpecializationSchemaExtractionStrategy extends ManagedImp
 
     @Override
     protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
-        return ModelSchema.struct(type, properties, aspects, type.getConcreteClass(), BinarySpecInternal.class, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
+        return AbstractModelSchema.struct(type, properties, aspects, type.getConcreteClass(), BinarySpecInternal.class, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelManagedImplStructSchema<R> schema) {
                 return null;

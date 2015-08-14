@@ -934,7 +934,7 @@ interface Managed${typeName} {
         def strategy = Mock(ModelSchemaExtractionStrategy) {
             extract(_, _, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore store, ModelSchemaCache schemaCache ->
                 if (extractionContext.type.rawClass == CustomThing) {
-                    return new ModelSchemaExtractionResult(ModelSchema.value(extractionContext.type))
+                    return new ModelSchemaExtractionResult(AbstractModelSchema.value(extractionContext.type))
                 } else {
                     return null
                 }

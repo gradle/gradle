@@ -19,7 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import org.gradle.api.Nullable;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
-import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.AbstractModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
@@ -57,7 +57,7 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
         }
         ModelType<?> elementType = ModelType.of(parameterizedSuperType.getActualTypeArguments()[0]);
         Class<?> proxyImpl = generator.generate(ModelMapGroovyDecorator.class, contractType);
-        return new ModelSchemaExtractionResult<T>(ModelSchema.specializedMap(extractionContext.getType(), elementType, proxyImpl));
+        return new ModelSchemaExtractionResult<T>(AbstractModelSchema.specializedMap(extractionContext.getType(), elementType, proxyImpl));
     }
 
 }

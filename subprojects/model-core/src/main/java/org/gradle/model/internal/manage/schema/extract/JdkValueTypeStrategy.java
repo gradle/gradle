@@ -17,7 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.AbstractModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
@@ -53,7 +53,7 @@ public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
     public <R> ModelSchemaExtractionResult<R> extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
         ModelType<R> type = extractionContext.getType();
         if (TYPES.contains(type)) {
-            return new ModelSchemaExtractionResult<R>(ModelSchema.value(type));
+            return new ModelSchemaExtractionResult<R>(AbstractModelSchema.value(type));
         } else {
             for (ModelType<?> nonFinalType : NON_FINAL_TYPES) {
                 if (nonFinalType.isAssignableFrom(type)) {

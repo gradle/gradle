@@ -20,10 +20,7 @@ import com.google.common.base.Function;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.model.internal.type.ModelType;
 
@@ -49,7 +46,7 @@ public class JarBinarySpecSpecializationSchemaExtractionStrategy extends Managed
     @Override
     protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
         Class<? extends R> implClass = classGenerator.generate(type.getConcreteClass(), JarBinarySpecInternal.class, properties);
-        return ModelSchema.struct(type, properties, aspects, implClass, JarBinarySpecInternal.class, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
+        return AbstractModelSchema.struct(type, properties, aspects, implClass, JarBinarySpecInternal.class, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelManagedImplStructSchema<R> schema) {
                 return new JarBinarySpecSpecializationModelInitializer<R>(schema, store);

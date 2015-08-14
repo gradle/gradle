@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,15 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import com.google.common.base.Function;
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
+public interface ModelSchema<T> {
+    NodeInitializer getNodeInitializer();
 
-@ThreadSafe
-public class ModelSchema<T> {
+    ModelType<T> getType();
+
+    Kind getKind();
 
     public enum Kind {
         VALUE(false, true), // at the moment we are conflating this with unstructured primitives
@@ -54,51 +52,5 @@ public class ModelSchema<T> {
         public boolean isAllowedPropertyTypeOfManagedType() {
             return isAllowedPropertyTypeOfManagedType;
         }
-    }
-
-    private final ModelType<T> type;
-    private final Kind kind;
-
-    public static <T> ModelSchema<T> value(ModelType<T> type) {
-        return new ModelSchema<T>(type, Kind.VALUE);
-    }
-
-    public static <T> ModelManagedImplStructSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<? super ModelManagedImplStructSchema<T>, NodeInitializer> nodeInitializer) {
-        return new ModelManagedImplStructSchema<T>(type, properties, aspects, managedImpl, delegateType, nodeInitializer);
-    }
-
-    public static <T> ModelUnmanagedImplStructSchema<T> unmanaged(final ModelType<T> type, Iterable<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
-        return new ModelUnmanagedImplStructSchema<T>(type, properties, aspects);
-    }
-
-    public static <T, E> ModelCollectionSchema<T, E> collection(ModelType<T> type, ModelType<E> elementType, Function<ModelCollectionSchema<T, E>, NodeInitializer> nodeInitializer) {
-        return new ModelCollectionSchema<T, E>(type, elementType, nodeInitializer);
-    }
-
-    public static <T> ModelMapSchema<T> specializedMap(ModelType<T> type, ModelType<?> elementType, Class<?> managedImpl) {
-        return new ModelMapSchema<T>(type, elementType, managedImpl);
-    }
-
-    protected ModelSchema(ModelType<T> type, Kind kind) {
-        this.type = type;
-        this.kind = kind;
-    }
-
-    // intended to be overridden
-    public NodeInitializer getNodeInitializer() {
-        throw new UnsupportedOperationException("Don't know how to create model element from schema for " + type);
-    }
-
-    public ModelType<T> getType() {
-        return type;
-    }
-
-    public Kind getKind() {
-        return kind;
-    }
-
-    @Override
-    public String toString() {
-        return kind.toString().toLowerCase() + " " + type;
     }
 }

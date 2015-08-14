@@ -20,7 +20,7 @@ import com.google.common.base.Function;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
-public class ModelCollectionSchema<T, E> extends ModelSchema<T> {
+public class ModelCollectionSchema<T, E> extends AbstractModelSchema<T> {
 
     private final ModelType<E> elementType;
     private final NodeInitializer nodeInitializer;

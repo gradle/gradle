@@ -26,7 +26,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 import java.util.Map;
 
-public abstract class AbstractModelStructSchema<T> extends ModelSchema<T> {
+public abstract class AbstractModelStructSchema<T> extends AbstractModelSchema<T> {
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
     private final Map<Class<? extends ModelSchemaAspect>, ModelSchemaAspect> aspects;
 

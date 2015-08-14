@@ -20,7 +20,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.ref.WeakReference;
 
-public class ModelMapSchema<T> extends ModelSchema<T> {
+public class ModelMapSchema<T> extends AbstractModelSchema<T> {
     private final WeakReference<Class<?>> managedImpl;
     private final ModelType<?> elementType;
 
