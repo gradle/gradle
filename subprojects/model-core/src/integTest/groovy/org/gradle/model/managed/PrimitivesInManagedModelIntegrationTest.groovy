@@ -231,33 +231,33 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "can read and write #value to managed property of type #primitiveType when using Groovy"() {
+    def "can read and write #value to managed property of scalar type #someType when using Groovy"() {
         given:
-        buildScript  """
+        buildScript """
             @Managed
-            interface PrimitiveProperty {
-                $primitiveType.name getPrimitiveProperty()
+            interface ManagedType {
+                $someType.name getManagedProperty()
 
-                void setPrimitiveProperty($primitiveType.name value)
+                void setManagedProperty($someType.name value)
             }
 
-            class Primitive${primitiveType.name.capitalize()}Rules extends RuleSource {
+            class PluginRules extends RuleSource {
                 @Model
-                void createModel(PrimitiveProperty p) {
-                    p.primitiveProperty = $value
+                void createModel(ManagedType p) {
+                    p.managedProperty = $value
                 }
 
                 @Mutate
-                void addEchoTask(ModelMap<Task> tasks, PrimitiveProperty element) {
+                void addEchoTask(ModelMap<Task> tasks, ManagedType element) {
                     tasks.create("echo") {
                         it.doLast {
-                            println "${primitiveType.name}: \${element.primitiveProperty}"
+                            println "${someType.name}: \${element.managedProperty}"
                         }
                     }
                 }
             }
 
-            apply plugin: Primitive${primitiveType.name.capitalize()}Rules
+            apply plugin: PluginRules
 
         """
 
@@ -265,48 +265,57 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'echo'
 
         then:
-        output.contains "${primitiveType.name}: ${Eval.me(value)}"
+        output.contains "${someType.name}: ${Eval.me(value)}"
 
         where:
-        primitiveType | value
-        byte          | "123"
-        boolean       | "false"
-        boolean       | "true"
-        char          | "'c'"
-        float         | "123.45f"
-        long          | "123L"
-        short         | "123"
-        int           | "123"
-        double        | "123.456d"
+        someType  | value
+        byte      | "123"
+        Byte      | "123"
+        boolean   | "false"
+        Boolean   | "false"
+        boolean   | "true"
+        Boolean   | "true"
+        char      | "'c'"
+        Character | "'c'"
+        float     | "123.45f"
+        Float     | "123.45f"
+        long      | "123L"
+        Long      | "123L"
+        short     | "123"
+        Short     | "123"
+        int       | "123"
+        Integer   | "123"
+        double    | "123.456d"
+        Double    | "123.456d"
     }
 
     @Unroll
-    def "can read and write #value to managed property of type #primitiveType when using Java"() {
+    def "can read and write #value to managed property of scalar type #someType when using Java"() {
         given:
         file('buildSrc/src/main/java/Rules.java') << """
             import org.gradle.api.*;
             import org.gradle.model.*;
 
             @Managed
-            interface PrimitiveProperty {
-                $primitiveType.name getPrimitiveProperty();
+            interface ManagedType {
+                $someType.name getManagedProperty();
 
-                void setPrimitiveProperty($primitiveType.name value);
+                void setManagedProperty($someType.name value);
             }
 
             class RulePlugin extends RuleSource {
                 @Model
-                void createModel(PrimitiveProperty p) {
-                    p.setPrimitiveProperty($value);
+                void createModel(ManagedType p) {
+                    p.setManagedProperty($value);
                 }
 
                 @Mutate
-                void addEchoTask(ModelMap<Task> tasks, PrimitiveProperty element) {
+                void addEchoTask(ModelMap<Task> tasks, ManagedType element) {
                     tasks.create("echo", new Action<Task>() {
                         public void execute(Task task) {
                             task.doLast(new Action<Task>() {
                                 public void execute(Task unused) {
-                                    System.out.println(String.format("%s: %s", "${primitiveType.name}", element.getPrimitiveProperty()));
+                                    System.out.println(String.format("%s: %s", "${someType.name}", element.getManagedProperty()));
                                 }
                             });
                         }
@@ -324,19 +333,29 @@ class PrimitivesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'echo'
 
         and:
-        output.contains "${primitiveType.name}: ${Eval.me(value)}"
+        output.contains "${someType.name}: ${Eval.me(value)}"
+
 
         where:
-        primitiveType | value
-        byte          | "(byte) 123"
-        boolean       | "false"
-        boolean       | "true"
-        char          | "'c'"
-        float         | "123.45f"
-        long          | "123L"
-        short         | "(short) 123"
-        int           | "123"
-        double        | "123.456d"
+        someType  | value
+        byte      | "(byte) 123"
+        Byte      | "(byte) 123"
+        boolean   | "false"
+        Boolean   | "false"
+        boolean   | "true"
+        Boolean   | "true"
+        char      | "'c'"
+        Character | "'c'"
+        float     | "123.45f"
+        Float     | "123.45f"
+        long      | "123L"
+        Long      | "123L"
+        short     | "(short) 123"
+        Short     | "(short) 123"
+        int       | "123"
+        Integer   | "123"
+        double    | "123.456d"
+        Double    | "123.456d"
     }
 
 }
