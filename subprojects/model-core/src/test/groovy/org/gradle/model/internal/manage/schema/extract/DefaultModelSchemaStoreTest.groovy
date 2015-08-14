@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 import org.codehaus.groovy.reflection.ClassInfo
 import org.gradle.model.Managed
 import org.gradle.model.ModelSet
-import org.gradle.model.internal.manage.schema.ModelStructSchema
+import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Specification
@@ -97,7 +97,7 @@ class DefaultModelSchemaStoreTest extends Specification {
 
     @CompileStatic
     // must be compile static to avoid call sites being created with soft class refs
-    private static void forcefullyClearReferences(ModelStructSchema schema) {
+    private static void forcefullyClearReferences(ModelManagedImplStructSchema schema) {
         // Remove strong internal circular ref
         (schema.type.rawClass.classLoader as GroovyClassLoader).clearCache()
 

@@ -25,7 +25,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
-public class TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy extends ManagedImplTypeSchemaExtractionStrategySupport {
+public class TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
     private final Class<?> delegateType;
 
     public TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(Class<?> delegateType) {

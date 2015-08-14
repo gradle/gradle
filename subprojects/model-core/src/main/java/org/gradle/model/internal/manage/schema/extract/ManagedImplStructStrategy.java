@@ -26,12 +26,12 @@ import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelStructSchema;
+import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
-public class StructStrategy extends ManagedImplTypeSchemaExtractionStrategySupport {
+public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
 
     private static final ManagedProxyFactory PROXY_FACTORY = new ManagedProxyFactory();
     private static final ModelElementState NO_OP_MODEL_ELEMENT_STATE = new ModelElementState() {
@@ -55,16 +55,16 @@ public class StructStrategy extends ManagedImplTypeSchemaExtractionStrategySuppo
 
     private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
 
-    public StructStrategy(ModelSchemaAspectExtractor aspectExtractor) {
+    public ManagedImplStructStrategy(ModelSchemaAspectExtractor aspectExtractor) {
         super(aspectExtractor);
     }
 
     @Override
     protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
         Class<? extends R> implClass = classGenerator.generate(type.getConcreteClass(), properties);
-        final ModelStructSchema<R> schema = ModelSchema.struct(type, properties, aspects, implClass, null, new Function<ModelStructSchema<R>, NodeInitializer>() {
+        final ModelManagedImplStructSchema<R> schema = ModelSchema.struct(type, properties, aspects, implClass, null, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
             @Override
-            public NodeInitializer apply(ModelStructSchema<R> schema) {
+            public NodeInitializer apply(ModelManagedImplStructSchema<R> schema) {
                 return new ManagedModelInitializer<R>(schema, store);
             }
         });
@@ -77,7 +77,7 @@ public class StructStrategy extends ManagedImplTypeSchemaExtractionStrategySuppo
         return schema;
     }
 
-    private <R> void ensureCanBeInstantiated(ModelSchemaExtractionContext<R> extractionContext, ModelStructSchema<R> schema) {
+    private <R> void ensureCanBeInstantiated(ModelSchemaExtractionContext<R> extractionContext, ModelManagedImplStructSchema<R> schema) {
         try {
             PROXY_FACTORY.createProxy(NO_OP_MODEL_ELEMENT_STATE, schema);
         } catch (Throwable e) {

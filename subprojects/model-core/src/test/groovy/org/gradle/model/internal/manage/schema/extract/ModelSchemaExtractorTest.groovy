@@ -45,7 +45,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "unmanaged type"() {
         expect:
-        extract(NotAnnotatedInterface).kind == ModelSchema.Kind.UNMANAGED
+        extract(NotAnnotatedInterface).kind == ModelSchema.Kind.UNMANAGED_STRUCT
     }
 
     @Managed
@@ -945,7 +945,7 @@ interface Managed${typeName} {
 
         then:
         store.getSchema(CustomThing).kind == ModelSchema.Kind.VALUE
-        store.getSchema(UnmanagedThing).kind == ModelSchema.Kind.UNMANAGED
+        store.getSchema(UnmanagedThing).kind == ModelSchema.Kind.UNMANAGED_STRUCT
     }
 
     @Managed
@@ -981,7 +981,7 @@ interface Managed${typeName} {
         def schema = extract(SimpleUnmanagedType)
 
         then:
-        assert schema instanceof ModelUnmanagedSchema
+        assert schema instanceof ModelUnmanagedImplStructSchema
         schema.getProperty("prop").getPropertyValue(instance) == "12"
         schema.getProperty("calculatedProp").getPropertyValue(instance) == "calc"
     }
@@ -1008,7 +1008,7 @@ interface Managed${typeName} {
         def schema = extract(SimpleUnmanagedTypeWithAnnotations)
 
         then:
-        assert schema instanceof ModelUnmanagedSchema
+        assert schema instanceof ModelUnmanagedImplStructSchema
         schema.properties.keySet() == (["unmanagedProp", "unmanagedCalculatedProp"] as Set)
 
         schema.properties["unmanagedProp"].annotations*.annotationType() == [CustomTestAnnotation]
@@ -1048,7 +1048,7 @@ interface Managed${typeName} {
         def schema = store.getSchema(ManagedTypeWithAnnotationsExtendingUnmanagedType)
 
         then:
-        assert schema instanceof ModelStructSchema
+        assert schema instanceof ModelManagedImplStructSchema
         schema.properties.keySet() == (["unmanagedProp", "unmanagedCalculatedProp", "managedProp", "managedCalculatedProp"] as Set)
 
         schema.properties["unmanagedProp"].annotations*.annotationType() == [CustomTestAnnotation]
@@ -1095,7 +1095,7 @@ interface Managed${typeName} {
         def schema = extract(SimplePurelyManagedType)
 
         then:
-        assert schema instanceof ModelStructSchema
+        assert schema instanceof ModelManagedImplStructSchema
         schema.properties.keySet() == (["managedProp", "managedCalculatedProp"] as Set)
 
         schema.properties["managedProp"].annotations*.annotationType() == [CustomTestAnnotation]
@@ -1126,7 +1126,7 @@ interface Managed${typeName} {
         def schema = extract(OverridingManagedSubtype)
 
         then:
-        assert schema instanceof ModelStructSchema
+        assert schema instanceof ModelManagedImplStructSchema
         schema.properties.keySet() == (["managedProp", "managedCalculatedProp"] as Set)
 
         schema.properties["managedProp"].annotations*.annotationType() == [CustomTestAnnotation, CustomTestAnnotation2]
@@ -1162,7 +1162,7 @@ interface Managed${typeName} {
         def resultSchema = store.getSchema(MyTypeOfAspect)
 
         then:
-        assert resultSchema instanceof ModelImplTypeSchema
+        assert resultSchema instanceof AbstractModelStructSchema
         resultSchema.hasAspect(MyAspect)
         resultSchema.getAspect(MyAspect) == aspect
 

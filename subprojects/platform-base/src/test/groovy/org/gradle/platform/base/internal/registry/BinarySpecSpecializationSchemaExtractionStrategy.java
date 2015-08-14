@@ -21,8 +21,8 @@ import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelStructSchema;
-import org.gradle.model.internal.manage.schema.extract.ManagedImplTypeSchemaExtractionStrategySupport;
+import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.extract.ManagedImplStructSchemaExtractionStrategySupport;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionContext;
@@ -33,7 +33,7 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import java.util.List;
 
 // Needed as a separate Java class because Groovy compiler won't recognize type parameter <R>
-public class BinarySpecSpecializationSchemaExtractionStrategy extends ManagedImplTypeSchemaExtractionStrategySupport {
+public class BinarySpecSpecializationSchemaExtractionStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
 
     protected BinarySpecSpecializationSchemaExtractionStrategy(ModelSchemaAspectExtractor aspectExtractor) {
         super(aspectExtractor);
@@ -47,9 +47,9 @@ public class BinarySpecSpecializationSchemaExtractionStrategy extends ManagedImp
 
     @Override
     protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
-        return ModelSchema.struct(type, properties, aspects, type.getConcreteClass(), BinarySpecInternal.class, new Function<ModelStructSchema<R>, NodeInitializer>() {
+        return ModelSchema.struct(type, properties, aspects, type.getConcreteClass(), BinarySpecInternal.class, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
             @Override
-            public NodeInitializer apply(ModelStructSchema<R> schema) {
+            public NodeInitializer apply(ModelManagedImplStructSchema<R> schema) {
                 return null;
             }
         });

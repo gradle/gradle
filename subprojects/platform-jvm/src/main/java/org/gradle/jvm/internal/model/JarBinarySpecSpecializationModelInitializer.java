@@ -26,7 +26,7 @@ import org.gradle.model.internal.inspect.ManagedModelInitializer;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.projection.ManagedModelProjection;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelStructSchema;
+import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.platform.base.internal.BinarySpecFactory;
 
 import java.util.Collections;
@@ -36,7 +36,7 @@ public class JarBinarySpecSpecializationModelInitializer<T> extends ManagedModel
 
     private static final ManagedProxyFactory PROXY_FACTORY = new ManagedProxyFactory();
 
-    public JarBinarySpecSpecializationModelInitializer(ModelStructSchema<T> modelSchema, ModelSchemaStore schemaStore) {
+    public JarBinarySpecSpecializationModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore) {
         super(modelSchema, schemaStore);
     }
 

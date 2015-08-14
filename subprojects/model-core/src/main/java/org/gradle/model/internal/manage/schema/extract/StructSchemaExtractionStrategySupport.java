@@ -37,11 +37,11 @@ import java.util.*;
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.getOverloadedMethods;
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.isMethodDeclaredInManagedType;
 
-public abstract class ImplTypeSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
+public abstract class StructSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
 
     private final ModelSchemaAspectExtractor aspectExtractor;
 
-    protected ImplTypeSchemaExtractionStrategySupport(ModelSchemaAspectExtractor aspectExtractor) {
+    protected StructSchemaExtractionStrategySupport(ModelSchemaAspectExtractor aspectExtractor) {
         this.aspectExtractor = aspectExtractor;
     }
 

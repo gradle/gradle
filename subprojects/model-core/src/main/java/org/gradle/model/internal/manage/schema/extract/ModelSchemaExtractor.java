@@ -56,8 +56,8 @@ public class ModelSchemaExtractor {
             .add(new ManagedSetStrategy())
             .add(new SpecializedMapStrategy())
             .add(new ModelMapStrategy())
-            .add(new StructStrategy(aspectExtractor))
-            .add(new UnmanagedStrategy(aspectExtractor))
+            .add(new ManagedImplStructStrategy(aspectExtractor))
+            .add(new UnmanagedImplStructStrategy(aspectExtractor))
             .build();
     }
 

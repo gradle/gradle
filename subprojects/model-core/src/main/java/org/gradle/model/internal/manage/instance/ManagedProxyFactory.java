@@ -17,14 +17,14 @@
 package org.gradle.model.internal.manage.instance;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.model.internal.manage.schema.ModelStructSchema;
+import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 public class ManagedProxyFactory {
 
-    public <T> T createProxy(ModelElementState state, ModelStructSchema<T> schema) {
+    public <T> T createProxy(ModelElementState state, ModelManagedImplStructSchema<T> schema) {
         try {
             Class<? extends T> generatedClass = schema.getManagedImpl();
             if (generatedClass == null) {

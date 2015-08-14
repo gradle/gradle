@@ -33,7 +33,7 @@ public class ModelSchema<T> {
         COLLECTION,
         SPECIALIZED_MAP(false, false), // not quite
         STRUCT,
-        UNMANAGED(false, false); // some type we know nothing about
+        UNMANAGED_STRUCT(false, false); // some type we know nothing about
 
         private final boolean isManaged;
         private final boolean isAllowedPropertyTypeOfManagedType;
@@ -63,12 +63,12 @@ public class ModelSchema<T> {
         return new ModelSchema<T>(type, Kind.VALUE);
     }
 
-    public static <T> ModelStructSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<? super ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
-        return new ModelStructSchema<T>(type, properties, aspects, managedImpl, delegateType, nodeInitializer);
+    public static <T> ModelManagedImplStructSchema<T> struct(ModelType<T> type, Iterable<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<? super ModelManagedImplStructSchema<T>, NodeInitializer> nodeInitializer) {
+        return new ModelManagedImplStructSchema<T>(type, properties, aspects, managedImpl, delegateType, nodeInitializer);
     }
 
-    public static <T> ModelUnmanagedSchema<T> unmanaged(final ModelType<T> type, Iterable<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
-        return new ModelUnmanagedSchema<T>(type, properties, aspects);
+    public static <T> ModelUnmanagedImplStructSchema<T> unmanaged(final ModelType<T> type, Iterable<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
+        return new ModelUnmanagedImplStructSchema<T>(type, properties, aspects);
     }
 
     public static <T, E> ModelCollectionSchema<T, E> collection(ModelType<T> type, ModelType<E> elementType, Function<ModelCollectionSchema<T, E>, NodeInitializer> nodeInitializer) {

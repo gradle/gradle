@@ -25,7 +25,7 @@ import org.gradle.model.internal.manage.projection.ManagedModelProjection;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelStructSchema;
+import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
@@ -34,10 +34,10 @@ import java.util.List;
 public class ManagedModelInitializer<T> implements NodeInitializer {
 
     private static final ManagedProxyFactory PROXY_FACTORY = new ManagedProxyFactory();
-    protected final ModelStructSchema<T> modelSchema;
+    protected final ModelManagedImplStructSchema<T> modelSchema;
     protected final ModelSchemaStore schemaStore;
 
-    public ManagedModelInitializer(ModelStructSchema<T> modelSchema, ModelSchemaStore schemaStore) {
+    public ManagedModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore) {
         this.modelSchema = modelSchema;
         this.schemaStore = schemaStore;
     }
@@ -88,7 +88,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
                     .build();
                 modelNode.addLink(creator);
             } else {
-                ModelStructSchema<P> structSchema = (ModelStructSchema<P>) propertySchema;
+                ModelManagedImplStructSchema<P> structSchema = (ModelManagedImplStructSchema<P>) propertySchema;
                 ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, PROXY_FACTORY);
                 ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
                     .withProjection(projection)

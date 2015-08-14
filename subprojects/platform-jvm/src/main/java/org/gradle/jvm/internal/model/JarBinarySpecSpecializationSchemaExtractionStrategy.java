@@ -23,14 +23,14 @@ import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelStructSchema;
+import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.inject.Inject;
 import java.util.List;
 
-public class JarBinarySpecSpecializationSchemaExtractionStrategy extends ManagedImplTypeSchemaExtractionStrategySupport {
+public class JarBinarySpecSpecializationSchemaExtractionStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
 
     private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
 
@@ -49,9 +49,9 @@ public class JarBinarySpecSpecializationSchemaExtractionStrategy extends Managed
     @Override
     protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
         Class<? extends R> implClass = classGenerator.generate(type.getConcreteClass(), JarBinarySpecInternal.class, properties);
-        return ModelSchema.struct(type, properties, aspects, implClass, JarBinarySpecInternal.class, new Function<ModelStructSchema<R>, NodeInitializer>() {
+        return ModelSchema.struct(type, properties, aspects, implClass, JarBinarySpecInternal.class, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
             @Override
-            public NodeInitializer apply(ModelStructSchema<R> schema) {
+            public NodeInitializer apply(ModelManagedImplStructSchema<R> schema) {
                 return new JarBinarySpecSpecializationModelInitializer<R>(schema, store);
             }
         });

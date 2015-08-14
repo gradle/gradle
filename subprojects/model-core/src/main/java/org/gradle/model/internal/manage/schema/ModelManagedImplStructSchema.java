@@ -24,12 +24,12 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.ref.WeakReference;
 
-public class ModelStructSchema<T> extends ModelImplTypeSchema<T> {
+public class ModelManagedImplStructSchema<T> extends AbstractModelStructSchema<T> {
     private final WeakReference<Class<? extends T>> managedImpl;
     private final WeakReference<Class<?>> delegateType;
     private final NodeInitializer nodeInitializer;
 
-    public ModelStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<? super ModelStructSchema<T>, NodeInitializer> nodeInitializer) {
+    public ModelManagedImplStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<? super ModelManagedImplStructSchema<T>, NodeInitializer> nodeInitializer) {
         super(type, Kind.STRUCT, properties, aspects);
         this.nodeInitializer = nodeInitializer.apply(this);
         this.managedImpl = new WeakReference<Class<? extends T>>(managedImpl);

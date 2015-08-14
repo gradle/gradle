@@ -29,9 +29,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class UnmanagedStrategy extends ImplTypeSchemaExtractionStrategySupport {
+public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategySupport {
 
-    public UnmanagedStrategy(ModelSchemaAspectExtractor aspectExtractor) {
+    public UnmanagedImplStructStrategy(ModelSchemaAspectExtractor aspectExtractor) {
         super(aspectExtractor);
     }
 

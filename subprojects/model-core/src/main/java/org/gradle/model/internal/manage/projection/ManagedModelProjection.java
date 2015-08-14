@@ -30,7 +30,7 @@ import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelStructSchema;
+import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.HashMap;
@@ -40,9 +40,9 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
     private final ModelSchemaStore schemaStore;
     private final ManagedProxyFactory proxyFactory;
-    private final ModelStructSchema<M> schema;
+    private final ModelManagedImplStructSchema<M> schema;
 
-    public ManagedModelProjection(ModelStructSchema<M> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+    public ManagedModelProjection(ModelManagedImplStructSchema<M> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         super(schema.getType(), true, true);
         this.schema = schema;
         this.schemaStore = schemaStore;

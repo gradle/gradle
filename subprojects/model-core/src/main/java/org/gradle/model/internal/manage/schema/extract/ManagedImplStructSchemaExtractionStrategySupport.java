@@ -40,9 +40,9 @@ import java.util.Set;
 
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*;
 
-abstract public class ManagedImplTypeSchemaExtractionStrategySupport extends ImplTypeSchemaExtractionStrategySupport {
+abstract public class ManagedImplStructSchemaExtractionStrategySupport extends StructSchemaExtractionStrategySupport {
 
-    protected ManagedImplTypeSchemaExtractionStrategySupport(ModelSchemaAspectExtractor aspectExtractor) {
+    protected ManagedImplStructSchemaExtractionStrategySupport(ModelSchemaAspectExtractor aspectExtractor) {
         super(aspectExtractor);
     }
 
