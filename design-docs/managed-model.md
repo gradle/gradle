@@ -149,17 +149,6 @@ Support read-write collection properties defined using both a getter and a sette
 - Update user guide, Javadocs and sample
 - Implementation must reuse `NotationConverter` infrastructure.
 
-- TBD: support the 'setter method' pattern from legacy domain types? eg
-
-<!-- -->
-
-    model {
-        thing {
-            baseDir 'some/dir' // same as baseDir = 'some/dir'
-            retries 12 // same as retries = 12
-        }
-    }
-
 #### Test cases
 
 - Nice error message when configuring a property that does not exist, for each supported pattern.
@@ -172,8 +161,29 @@ TBD: make some kind of 'project layout' or 'file resolver' service available as 
 ### Convenient configuration of collection typed properties from Groovy
 
 - TBD: convert input values? eg add String values to a List<File>?
-- TBD: support the 'adder method' and 'setter replaces content' patterns from legacy domain types? eg
 - Update user guide, Javadocs and samples
+
+
+#### Test cases
+
+- Nice error message when configuring a property that does not exist, for each supported pattern.
+- Nice error message when input value cannot be converted.
+
+### DSL improvements
+
+- support the 'setter method' pattern from legacy domain types. For a simple type, the 'setter method' is equivalent to calling `set` or using `=`(equals) in the DSL:
+
+<!-- -->=
+
+    model {
+        thing {
+            baseDir 'some/dir' // same as baseDir = 'some/dir'
+            retries 12 // same as retries = 12
+        }
+    }
+
+- support the 'adder method' and 'setter replaces content' patterns from legacy domain types. For collection types, the 'setter method' adds new elements to the collection,
+(possibly transformed to fit the target collection element type), whereas calling `set` or using `=`(equals) in the DSL replaces the collection contents:
 
 <!-- -->
 
@@ -184,10 +194,13 @@ TBD: make some kind of 'project layout' or 'file resolver' service available as 
         }
     }
 
-#### Test cases
+- support `=`(equals) in the DSL for read-only properties of collection type: in that case, there should not be a call to a (non existent) setter, but it should
+be syntactic sugar for `clear` followed by `addAll`.
 
-- Nice error message when configuring a property that does not exist, for each supported pattern.
-- Nice error message when input value cannot be converted.
+#### Open issues
+
+- Support for nested properties, that is to say support nested closures to configure properties of sub-elements
+
 
 ## Backlog
 
