@@ -306,7 +306,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void assertDaemonsAreStopping() {
-        createDaemonLogAnalyzer().daemons*.stops()
+        createDaemonLogAnalyzer().visible*.stops()
     }
 
     private static String buildFileForGroovyProject() {
