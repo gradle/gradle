@@ -127,13 +127,13 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                 }
 
                 private <T> void doSet(String name, Object value, ModelType<T> propertyType) {
-                    ModelSchema<T> schema = schemaStore.getSchema(propertyType);
+                    ModelSchema<T> propertySchema = schemaStore.getSchema(propertyType);
 
                     // TODO we are relying on the creator having established these links, we should be checking
                     MutableModelNode propertyNode = modelNode.getLink(name);
                     propertyNode.ensureUsable();
 
-                    if (schema.getKind().isManaged()) {
+                    if (propertySchema.getKind().isManaged()) {
                         if (value == null) {
                             propertyNode.setTarget(null);
                         } else if (ManagedInstance.class.isInstance(value)) {
