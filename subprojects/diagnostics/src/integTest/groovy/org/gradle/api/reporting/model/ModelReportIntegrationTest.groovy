@@ -70,6 +70,7 @@ model {
     nullCredentials(PasswordCredentials) { }
     numbers(Numbers){
         value = 5
+        threshold = 0.8
     }
 }
 
@@ -87,6 +88,7 @@ model {
                 }
 
                 numbers {
+                    threshold(nodeValue: "0.8")
                     value(nodeValue: "5")
                 }
                 primaryCredentials {
@@ -135,6 +137,7 @@ model {
     nullCredentials(PasswordCredentials) { }
     numbers(Numbers){
         value = 5
+        threshold = 0.8
     }
 }
 
@@ -162,6 +165,10 @@ model {
     + numbers
           | Type:   \tNumbers
           | Creator: \tmodel.numbers
+        + threshold
+              | Type:   \tdouble
+              | Value:  \t0.8
+              | Creator: \tmodel.numbers
         + value
               | Type:   \tjava.lang.Integer
               | Value:  \t5
@@ -253,6 +260,7 @@ class NumberRules extends RuleSource {
     @Model("myNumbers")
     void createRule(Numbers n) {
        n.setValue(5)
+       n.setThreshold(0.8)
     }
     @Defaults void defaultsRule(Numbers n) {}
     @Mutate void mutateRule(Numbers n) {}
@@ -291,6 +299,9 @@ apply plugin: ClassHolder.InnerRules
         public interface Numbers {
             Integer getValue()
             void setValue(Integer i)
+
+            double getThreshold()
+            void setThreshold(double d)
         }"""
     }
 }
