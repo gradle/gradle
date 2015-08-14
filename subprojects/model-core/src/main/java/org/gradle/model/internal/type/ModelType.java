@@ -352,7 +352,11 @@ public abstract class ModelType<T> {
             );
         } else if (type instanceof TypeVariable) {
             TypeVariable<?> typeVariable = (TypeVariable<?>) type;
-            return new TypeVariableTypeWrapper(typeVariable);
+            return new TypeVariableTypeWrapper<GenericDeclaration>(
+                typeVariable.getName(),
+                toWrappers(typeVariable.getBounds()),
+                type.hashCode()
+            );
         } else {
             throw new IllegalArgumentException("cannot wrap type of type " + type.getClass());
         }
