@@ -115,7 +115,7 @@ class EclipsePlugin extends IdePlugin {
 
     private void configureEclipseClasspath(Project project, EclipseModel model) {
         model.classpath = instantiator.newInstance(EclipseClasspath, project)
-        model.classpath.conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }
+        model.classpath.conventionMapping.defaultOutputDir = project.buildDir
 
         project.plugins.withType(JavaBasePlugin) {
             maybeAddTask(project, this, ECLIPSE_CP_TASK_NAME, GenerateEclipseClasspath) { task ->
