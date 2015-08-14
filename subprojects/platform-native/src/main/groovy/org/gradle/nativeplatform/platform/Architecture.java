@@ -21,6 +21,39 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A cpu architecture.
+ *
+ * <table>
+ *     <tr>
+ *         <th>Instruction Set</th>
+ *         <th>32-bit names</th>
+ *         <th>64-bit names</th>
+ *     </tr>
+ *     <tr>
+ *         <td>Intel x86</td>
+ *         <td>"x86", "i386", "ia-32", "i686"</td>
+ *         <td>"x86_64", "amd64", "x64", "x86-64"</td>
+ *     </tr>
+ *     <tr>
+ *         <td>Intel Itanium</td>
+ *         <td>N/A</td>
+ *         <td>"ia-64", "ia64"</td>
+ *     </tr>
+ *     <tr>
+ *         <td>Power PC</td>
+ *         <td>"ppc"</td>
+ *         <td>"ppc64"</td>
+ *     </tr>
+ *     <tr>
+ *         <td>Sparc</td>
+ *         <td>"sparc", "sparc32", "sparc-v8"</td>
+ *         <td>"sparc64", "ultrasparc", "sparc-v9"</td>
+ *     </tr>
+ *     <tr>
+ *         <td>ARM</td>
+ *         <td>"arm", "arm-v7", "armv7", "arm32"</td>
+ *         <td>"arm64", "arm-v8"</td>
+ *     </tr>
+ * </table>
  */
 @Incubating
 @HasInternalProtocol

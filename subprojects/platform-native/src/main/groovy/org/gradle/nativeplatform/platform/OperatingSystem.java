@@ -20,6 +20,29 @@ import org.gradle.api.Named;
 
 /**
  * A machine operating system.
+ *
+ * <table>
+ *     <tr>
+ *         <th>Operating System</th>
+ *         <th>Aliases</th>
+ *     </tr>
+ *     <tr>
+ *         <td>Windows</td>
+ *         <td>"windows"</td>
+ *     </tr>
+ *     <tr>
+ *         <td>GNU/Linux</td>
+ *         <td>"linux"</td>
+ *     </tr>
+ *     <tr>
+ *         <td>Mac OS X</td>
+ *         <td>"osx", "mac os x", "darwin"</td>
+ *     </tr>
+ *     <tr>
+ *         <td>Solaris</td>
+ *         <td>"solaris", "sunos"</td>
+ *     </tr>
+ * </table>
  */
 @Incubating
 public interface OperatingSystem extends Named {
