@@ -150,7 +150,7 @@ class EclipsePluginTest extends Specification {
         assert classpath.plusConfigurations == configurations
         assert classpath.minusConfigurations == []
         assert classpath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER'] + additionalContainers as Set
-        assert classpath.defaultOutputDir == new File(project.projectDir, 'bin')
+        assert classpath.defaultOutputDir == project.buildDir
     }
 
     private void checkEclipseJdt() {
