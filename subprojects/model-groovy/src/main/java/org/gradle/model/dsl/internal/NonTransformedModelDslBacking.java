@@ -72,7 +72,7 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
     private <T> void registerCreator(Class<T> type, Closure<?> closure) {
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("model." + modelPath);
         ModelSchema<T> schema = modelSchemaStore.getSchema(ModelType.of(type));
-        if (!schema.getKind().isManaged()) {
+        if (!schema.isInstantiationManaged()) {
             throw new InvalidModelRuleDeclarationException(descriptor, "Cannot create an element of type " + type.getName() + " as it is not a managed type");
         }
 

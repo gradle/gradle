@@ -82,7 +82,7 @@ public class TransformedModelDslBacking {
         ModelPath modelPath = ModelPath.path(modelPathString);
         ModelSchema<T> schema = schemaStore.getSchema(ModelType.of(type));
         ModelRuleDescriptor descriptor = toDescriptor(sourceLocation, modelPath);
-        if (!schema.getKind().isManaged()) {
+        if (!schema.isInstantiationManaged()) {
             throw new InvalidModelRuleDeclarationException(descriptor, "Cannot create an element of type " + type.getName() + " as it is not a managed type");
         }
         modelRegistry.create(ModelCreators.of(modelPath, schema.getNodeInitializer()).descriptor(descriptor).build());

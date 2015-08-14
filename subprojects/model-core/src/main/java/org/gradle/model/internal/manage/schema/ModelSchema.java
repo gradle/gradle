@@ -24,33 +24,7 @@ public interface ModelSchema<T> {
 
     ModelType<T> getType();
 
-    Kind getKind();
+    boolean isInstantiationManaged();
 
-    public enum Kind {
-        VALUE(false, true), // at the moment we are conflating this with unstructured primitives
-        COLLECTION,
-        SPECIALIZED_MAP(false, false), // not quite
-        STRUCT,
-        UNMANAGED_STRUCT(false, false); // some type we know nothing about
-
-        private final boolean isManaged;
-        private final boolean isAllowedPropertyTypeOfManagedType;
-
-        Kind() {
-            this(true, true);
-        }
-
-        Kind(boolean isManaged, boolean isAllowedPropertyTypeOfManagedType) {
-            this.isManaged = isManaged;
-            this.isAllowedPropertyTypeOfManagedType = isAllowedPropertyTypeOfManagedType;
-        }
-
-        public boolean isManaged() {
-            return isManaged;
-        }
-
-        public boolean isAllowedPropertyTypeOfManagedType() {
-            return isAllowedPropertyTypeOfManagedType;
-        }
-    }
+    boolean isAllowedPropertyTypeOfManagedType();
 }

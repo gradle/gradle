@@ -133,7 +133,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     MutableModelNode propertyNode = modelNode.getLink(name);
                     propertyNode.ensureUsable();
 
-                    if (propertySchema.getKind().isManaged()) {
+                    if (propertySchema.isInstantiationManaged()) {
                         if (value == null) {
                             propertyNode.setTarget(null);
                         } else if (ManagedInstance.class.isInstance(value)) {

@@ -167,14 +167,14 @@ abstract public class ManagedImplStructSchemaExtractionStrategySupport extends S
 
                 boolean isDeclaredAsHavingUnmanagedType = property.isAnnotationPresent(Unmanaged.class);
 
-                if (propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && isDeclaredAsHavingUnmanagedType) {
+                if (propertySchema.isAllowedPropertyTypeOfManagedType() && isDeclaredAsHavingUnmanagedType) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                         "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation.%n",
                         property.getName(), property.getType()
                     ));
                 }
 
-                if (!propertySchema.getKind().isAllowedPropertyTypeOfManagedType() && !isDeclaredAsHavingUnmanagedType) {
+                if (!propertySchema.isAllowedPropertyTypeOfManagedType() && !isDeclaredAsHavingUnmanagedType) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                         "type %s cannot be used for property '%s' as it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged).%n%s",
                         property.getType(), property.getName(), ModelSchemaExtractor.getManageablePropertyTypesDescription()
@@ -189,14 +189,14 @@ abstract public class ManagedImplStructSchemaExtractionStrategySupport extends S
                         );
                     }
 
-                    if (!propertySchema.getKind().isManaged()) {
+                    if (!propertySchema.isInstantiationManaged()) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                             "read only property '%s' has non managed type %s, only managed types can be used",
                             property.getName(), property.getType()));
                     }
                 }
 
-                if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
+                if (propertySchema instanceof ModelCollectionSchema) {
                     if (property.isWritable()) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                             "property '%s' cannot have a setter (%s properties must be read only).",
@@ -208,7 +208,7 @@ abstract public class ManagedImplStructSchemaExtractionStrategySupport extends S
                     ModelType<?> elementType = propertyCollectionsSchema.getElementType();
                     ModelSchema<?> elementTypeSchema = modelSchemaCache.get(elementType);
 
-                    if (!elementTypeSchema.getKind().isManaged()) {
+                    if (!elementTypeSchema.isInstantiationManaged()) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                             "property '%s' cannot be a model map of type %s as it is not a %s type.",
                             property.getName(), elementType, Managed.class.getName()

@@ -20,6 +20,12 @@ import org.gradle.model.internal.type.ModelType;
 
 public class ModelValueSchema<T> extends AbstractModelSchema<T> {
     public ModelValueSchema(ModelType<T> type) {
-        super(type, Kind.VALUE);
+        super(type, false, true);
+    }
+
+
+    @Override
+    public String toString() {
+        return "value " + getType();
     }
 }

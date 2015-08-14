@@ -45,7 +45,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "unmanaged type"() {
         expect:
-        extract(NotAnnotatedInterface).kind == ModelSchema.Kind.UNMANAGED_STRUCT
+        extract(NotAnnotatedInterface) instanceof ModelUnmanagedImplStructSchema
     }
 
     @Managed
@@ -607,7 +607,7 @@ $type
 
     def "can extract enum"() {
         expect:
-        extract(MyEnum).kind == ModelSchema.Kind.VALUE
+        extract(MyEnum) instanceof ModelValueSchema
     }
 
     @Managed
@@ -944,8 +944,8 @@ interface Managed${typeName} {
         def store = new DefaultModelSchemaStore(extractor)
 
         then:
-        store.getSchema(CustomThing).kind == ModelSchema.Kind.VALUE
-        store.getSchema(UnmanagedThing).kind == ModelSchema.Kind.UNMANAGED_STRUCT
+        store.getSchema(CustomThing) instanceof ModelValueSchema
+        store.getSchema(UnmanagedThing) instanceof ModelUnmanagedImplStructSchema
     }
 
     @Managed

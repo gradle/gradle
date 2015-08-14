@@ -69,7 +69,7 @@ public abstract class SetStrategy implements ModelSchemaExtractionStrategy {
             public void execute(ModelSchemaExtractionContext<?> context) {
                 ModelSchema<?> typeParamSchema = cache.get(context.getType());
 
-                if (!typeParamSchema.getKind().isManaged()) {
+                if (!typeParamSchema.isInstantiationManaged()) {
                     throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
                         "cannot create a managed set of type %s as it is an unmanaged type. Only @Managed types are allowed.",
                         context.getType()

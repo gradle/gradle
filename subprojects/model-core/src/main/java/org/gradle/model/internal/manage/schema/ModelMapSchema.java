@@ -25,7 +25,7 @@ public class ModelMapSchema<T> extends AbstractModelSchema<T> {
     private final ModelType<?> elementType;
 
     public ModelMapSchema(ModelType<T> type, ModelType<?> elementType, Class<?> managedImpl) {
-        super(type, Kind.SPECIALIZED_MAP);
+        super(type, false, false);
         this.elementType = elementType;
         this.managedImpl = new WeakReference<Class<?>>(managedImpl);
     }
@@ -36,5 +36,10 @@ public class ModelMapSchema<T> extends AbstractModelSchema<T> {
 
     public Class<?> getManagedImpl() {
         return managedImpl.get();
+    }
+
+    @Override
+    public String toString() {
+        return "model map " + getType();
     }
 }

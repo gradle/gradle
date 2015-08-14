@@ -21,6 +21,11 @@ import org.gradle.model.internal.type.ModelType;
 
 public class ModelUnmanagedImplStructSchema<T> extends AbstractModelStructSchema<T> {
     public ModelUnmanagedImplStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
-        super(type, Kind.UNMANAGED_STRUCT, properties, aspects);
+        super(type, false, false, properties, aspects);
+    }
+
+    @Override
+    public String toString() {
+        return "unmanaged " + getType();
     }
 }

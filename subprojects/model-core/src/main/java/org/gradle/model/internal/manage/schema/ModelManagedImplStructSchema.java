@@ -30,7 +30,7 @@ public class ModelManagedImplStructSchema<T> extends AbstractModelStructSchema<T
     private final NodeInitializer nodeInitializer;
 
     public ModelManagedImplStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<? super ModelManagedImplStructSchema<T>, NodeInitializer> nodeInitializer) {
-        super(type, Kind.STRUCT, properties, aspects);
+        super(type, true, true, properties, aspects);
         this.nodeInitializer = nodeInitializer.apply(this);
         this.managedImpl = new WeakReference<Class<? extends T>>(managedImpl);
         this.delegateType = new WeakReference<Class<?>>(delegateType);
@@ -48,5 +48,10 @@ public class ModelManagedImplStructSchema<T> extends AbstractModelStructSchema<T
     @Override
     public NodeInitializer getNodeInitializer() {
         return nodeInitializer;
+    }
+
+    @Override
+    public String toString() {
+        return "managed " + getType();
     }
 }

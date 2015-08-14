@@ -24,11 +24,23 @@ import org.gradle.model.internal.type.ModelType;
 public abstract class AbstractModelSchema<T> implements ModelSchema<T> {
 
     private final ModelType<T> type;
-    private final Kind kind;
+    private final boolean instantiationManaged;
+    private final boolean allowedPropertyTypeOfManagedType;
 
-    protected AbstractModelSchema(ModelType<T> type, Kind kind) {
+    protected AbstractModelSchema(ModelType<T> type, boolean instantiationManaged, boolean allowedPropertyTypeOfManagedType) {
         this.type = type;
-        this.kind = kind;
+        this.instantiationManaged = instantiationManaged;
+        this.allowedPropertyTypeOfManagedType = allowedPropertyTypeOfManagedType;
+    }
+
+    @Override
+    public boolean isInstantiationManaged() {
+        return instantiationManaged;
+    }
+
+    @Override
+    public boolean isAllowedPropertyTypeOfManagedType() {
+        return allowedPropertyTypeOfManagedType;
     }
 
     @Override
@@ -40,15 +52,5 @@ public abstract class AbstractModelSchema<T> implements ModelSchema<T> {
     @Override
     public ModelType<T> getType() {
         return type;
-    }
-
-    @Override
-    public Kind getKind() {
-        return kind;
-    }
-
-    @Override
-    public String toString() {
-        return kind.toString().toLowerCase() + " " + type;
     }
 }

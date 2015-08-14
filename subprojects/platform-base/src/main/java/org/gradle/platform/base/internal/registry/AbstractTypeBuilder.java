@@ -32,7 +32,7 @@ public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
 
     @Override
     public TypeBuilderInternal<T> defaultImplementation(Class<? extends T> implementation) {
-        if (this.schema.getKind().isManaged()) {
+        if (this.schema.isInstantiationManaged()) {
             throw new InvalidModelException(String.format("Method annotated with @%s cannot set default implementation for managed type %s.", markerAnnotation.getSimpleName(), schema.getType().getName()));
         }
         if (this.implementation != null) {

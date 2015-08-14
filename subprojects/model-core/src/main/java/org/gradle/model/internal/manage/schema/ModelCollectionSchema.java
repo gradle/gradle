@@ -26,7 +26,7 @@ public class ModelCollectionSchema<T, E> extends AbstractModelSchema<T> {
     private final NodeInitializer nodeInitializer;
 
     public ModelCollectionSchema(ModelType<T> type, ModelType<E> elementType, Function<ModelCollectionSchema<T, E>, NodeInitializer> nodeInitializer) {
-        super(type, Kind.COLLECTION);
+        super(type, true, true);
         this.elementType = elementType;
         this.nodeInitializer = nodeInitializer.apply(this);
     }
@@ -38,5 +38,10 @@ public class ModelCollectionSchema<T, E> extends AbstractModelSchema<T> {
     @Override
     public NodeInitializer getNodeInitializer() {
         return nodeInitializer;
+    }
+
+    @Override
+    public String toString() {
+        return "collection " + getType();
     }
 }

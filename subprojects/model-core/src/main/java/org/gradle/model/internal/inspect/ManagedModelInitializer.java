@@ -81,7 +81,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
 
         final ModelRuleDescriptor descriptor = modelNode.getDescriptor();
-        if (propertySchema.getKind().isManaged()) {
+        if (propertySchema.isInstantiationManaged()) {
             if (!property.isWritable()) {
                 ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), propertySchema.getNodeInitializer())
                     .descriptor(descriptor)

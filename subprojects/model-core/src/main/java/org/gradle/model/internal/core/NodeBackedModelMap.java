@@ -110,7 +110,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
             @Override
             public <S extends T> NodeInitializer initalizer(final ModelType<S> type) {
                 ModelSchema<S> schema = schemaStore.getSchema(type);
-                if (schema.getKind().isManaged()) {
+                if (schema.isInstantiationManaged()) {
                     return schema.getNodeInitializer();
                 } else {
                     return new FactoryBasedNodeInitializer<T, S>(factoryReference, type);
