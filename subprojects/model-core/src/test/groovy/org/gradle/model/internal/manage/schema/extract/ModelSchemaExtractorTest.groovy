@@ -1162,7 +1162,7 @@ interface Managed${typeName} {
         def resultSchema = store.getSchema(MyTypeOfAspect)
 
         then:
-        assert resultSchema instanceof AbstractModelStructSchema
+        assert resultSchema instanceof ModelStructSchema
         resultSchema.hasAspect(MyAspect)
         resultSchema.getAspect(MyAspect) == aspect
 

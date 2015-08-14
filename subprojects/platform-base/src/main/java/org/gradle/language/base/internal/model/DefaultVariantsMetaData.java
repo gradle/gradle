@@ -21,10 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Named;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.model.internal.manage.schema.AbstractModelStructSchema;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.VariantAspect;
@@ -56,8 +53,8 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
         ImmutableMap.Builder<String, ModelType<?>> dimensionTypesBuilder = ImmutableMap.builder();
         Class<?> specType = new DslObject(spec).getDeclaredType();
         ModelSchema<?> schema = schemaStore.getSchema(specType);
-        if (schema instanceof AbstractModelStructSchema) {
-            VariantAspect variantAspect = ((AbstractModelStructSchema<?>) schema).getAspect(VariantAspect.class);
+        if (schema instanceof ModelStructSchema) {
+            VariantAspect variantAspect = ((ModelStructSchema<?>) schema).getAspect(VariantAspect.class);
             if (variantAspect != null) {
                 for (ModelProperty<?> property : variantAspect.getDimensions()) {
                     // note: it's not the role of this class to validate that the annotation is properly used, that

@@ -26,7 +26,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 import java.util.Map;
 
-public abstract class AbstractModelStructSchema<T> extends AbstractModelSchema<T> {
+public abstract class AbstractModelStructSchema<T> extends AbstractModelSchema<T> implements ModelStructSchema<T> {
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
     private final Map<Class<? extends ModelSchemaAspect>, ModelSchemaAspect> aspects;
 
@@ -45,26 +45,32 @@ public abstract class AbstractModelStructSchema<T> extends AbstractModelSchema<T
         });
     }
 
+    @Override
     public Map<String, ModelProperty<?>> getProperties() {
         return properties;
     }
 
+    @Override
     public boolean hasProperty(String name) {
         return properties.containsKey(name);
     }
 
+    @Override
     public ModelProperty<?> getProperty(String name) {
         return properties.get(name);
     }
 
+    @Override
     public boolean hasAspect(Class<? extends ModelSchemaAspect> aspectType) {
         return aspects.containsKey(aspectType);
     }
 
+    @Override
     public <A extends ModelSchemaAspect> A getAspect(Class<A> aspectType) {
         return Cast.uncheckedCast(aspects.get(aspectType));
     }
 
+    @Override
     public Collection<ModelSchemaAspect> getAspects() {
         return aspects.values();
     }
