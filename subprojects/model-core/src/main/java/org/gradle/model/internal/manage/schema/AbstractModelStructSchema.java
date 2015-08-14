@@ -46,8 +46,8 @@ public abstract class AbstractModelStructSchema<T> extends AbstractModelSchema<T
     }
 
     @Override
-    public Map<String, ModelProperty<?>> getProperties() {
-        return properties;
+    public Collection<ModelProperty<?>> getProperties() {
+        return properties.values();
     }
 
     @Override

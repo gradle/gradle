@@ -49,7 +49,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
 
     @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-        for (ModelProperty<?> property : modelSchema.getProperties().values()) {
+        for (ModelProperty<?> property : modelSchema.getProperties()) {
             addPropertyLink(modelNode, property);
         }
         if (Named.class.isAssignableFrom(modelSchema.getType().getRawClass())) {

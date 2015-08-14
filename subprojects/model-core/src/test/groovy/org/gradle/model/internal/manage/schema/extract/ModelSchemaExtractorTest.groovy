@@ -106,8 +106,8 @@ class ModelSchemaExtractorTest extends Specification {
         def properties = extract(SingleStringNameProperty).properties
 
         then:
-        properties.size() == 1
-        properties.name.type == ModelType.of(String)
+        properties*.name == ["name"]
+        properties*.type == [ModelType.of(String)]
     }
 
     @Managed
@@ -201,8 +201,8 @@ class ModelSchemaExtractorTest extends Specification {
         def properties = extract(interfaceWithPrimitiveProperty).properties
 
         then:
-        properties.size() == 1
-        properties.primitiveProperty.type == ModelType.of(primitiveType)
+        properties*.name == ["primitiveProperty"]
+        properties*.type == [ModelType.of(primitiveType)]
 
         where:
         primitiveType << [
@@ -270,7 +270,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "multiple properties"() {
         when:
-        def properties = extract(MultipleProps).properties.values()
+        def properties = extract(MultipleProps).properties
 
         then:
         properties*.name == ["prop1", "prop2", "prop3"]
@@ -284,7 +284,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "can extract self referencing type"() {
         expect:
-        extract(SelfReferencing).properties.self.type == ModelType.of(SelfReferencing)
+        extract(SelfReferencing).getProperty("self").type == ModelType.of(SelfReferencing)
     }
 
     @Managed
@@ -333,10 +333,10 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "can extract incestuous nest"() {
         expect:
-        extract(type).properties.a.type == extract(A1).type
-        extract(type).properties.b.type == extract(B1).type
-        extract(type).properties.c.type == extract(C1).type
-        extract(type).properties.d.type == extract(D1).type
+        extract(type).getProperty("a").type == extract(A1).type
+        extract(type).getProperty("b").type == extract(B1).type
+        extract(type).getProperty("c").type == extract(C1).type
+        extract(type).getProperty("d").type == extract(D1).type
 
         where:
         type << [A1, B1, C1, D1]
@@ -351,7 +351,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "extracts inherited properties"() {
         when:
-        def properties = extract(WithInheritedProperties).properties.values()
+        def properties = extract(WithInheritedProperties).properties
 
         then:
         properties*.name == ["count", "name"]
@@ -370,7 +370,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "extracts properties from multiple parents"() {
         when:
-        def properties = extract(WithMultipleParents).properties.values()
+        def properties = extract(WithMultipleParents).properties
 
         then:
         properties*.name == ["name", "value"]
@@ -391,7 +391,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "extracts properties from multiple levels of inheritance"() {
         when:
-        def properties = extract(WithInheritedPropertiesFromGrandparent).properties.values()
+        def properties = extract(WithInheritedPropertiesFromGrandparent).properties
 
         then:
         properties*.name == ["count", "flag", "name"]
@@ -405,7 +405,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "can extract inherited properties from an interface not annotated with @Managed"() {
         when:
-        def properties = extract(WithInheritedPropertiesFromNotAnnotated).properties.values()
+        def properties = extract(WithInheritedPropertiesFromNotAnnotated).properties
 
         then:
         properties*.name == ["count", "name"]
@@ -455,7 +455,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "exact same properties defined in multiple types of the hierarchy are allowed"() {
         when:
-        def properties = extract(SamePropertyInMultipleTypes).properties.values()
+        def properties = extract(SamePropertyInMultipleTypes).properties
 
         then:
         properties*.name == ["value"]
@@ -473,7 +473,7 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "read only property of a super type can be made writable"() {
         when:
-        def properties = extract(WritableProperty).properties.values()
+        def properties = extract(WritableProperty).properties
 
         then:
         properties*.writable == [true]
@@ -520,10 +520,10 @@ class ModelSchemaExtractorTest extends Specification {
 
     def "a subclass may specialize a property type"() {
         when:
-        def properties = extract(SpecialModel).properties.values()
+        def schema = extract(SpecialModel)
 
         then:
-        properties*.type == [ModelType.of(SpecialThing)]
+        schema.properties*.type == [ModelType.of(SpecialThing)]
     }
 
     @Unroll
@@ -649,7 +649,7 @@ $type
 
     def "subtype can declare property unmanaged"() {
         expect:
-        extract(ExtendsMissingUnmanaged).properties.get("thing").type.rawClass == InputStream
+        extract(ExtendsMissingUnmanaged).getProperty("thing").type.rawClass == InputStream
     }
 
     @Managed
@@ -670,7 +670,7 @@ $type
 
     def "subtype can add unmanaged setter"() {
         expect:
-        extract(AddsSetterToNoSetterForUnmanaged).properties.get("thing").type.rawClass == InputStream
+        extract(AddsSetterToNoSetterForUnmanaged).getProperty("thing").type.rawClass == InputStream
     }
 
     @Managed
@@ -964,7 +964,7 @@ interface Managed${typeName} {
 
     def "model map type doesn't have to be managed type in an unmanaged type"() {
         expect:
-        extract(UnmanagedModelMapInUnmanagedType).properties.get("things").type.rawClass == ModelMap
+        extract(UnmanagedModelMapInUnmanagedType).getProperty("things").type.rawClass == ModelMap
     }
 
     static class SimpleUnmanagedType {
@@ -1009,19 +1009,19 @@ interface Managed${typeName} {
 
         then:
         assert schema instanceof ModelUnmanagedImplStructSchema
-        schema.properties.keySet() == (["unmanagedProp", "unmanagedCalculatedProp"] as Set)
+        schema.properties*.name == ["unmanagedCalculatedProp", "unmanagedProp"]
 
-        schema.properties["unmanagedProp"].annotations*.annotationType() == [CustomTestAnnotation]
-        schema.properties["unmanagedProp"].annotations*.value() == ["unmanaged"]
-        schema.properties["unmanagedProp"].setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
-        schema.properties["unmanagedProp"].setterAnnotations.values()*.value() == ["unmanagedSetter"]
-        schema.properties["unmanagedProp"].isManaged() == false
-        schema.properties["unmanagedProp"].isWritable() == true
+        schema.getProperty("unmanagedProp").annotations*.annotationType() == [CustomTestAnnotation]
+        schema.getProperty("unmanagedProp").annotations*.value() == ["unmanaged"]
+        schema.getProperty("unmanagedProp").setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
+        schema.getProperty("unmanagedProp").setterAnnotations.values()*.value() == ["unmanagedSetter"]
+        schema.getProperty("unmanagedProp").isManaged() == false
+        schema.getProperty("unmanagedProp").isWritable() == true
 
-        schema.properties["unmanagedCalculatedProp"].annotations*.annotationType() == [CustomTestAnnotation]
-        schema.properties["unmanagedCalculatedProp"].annotations*.value() == ["unmanagedCalculated"]
-        schema.properties["unmanagedCalculatedProp"].isManaged() == false
-        schema.properties["unmanagedCalculatedProp"].isWritable() == false
+        schema.getProperty("unmanagedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation]
+        schema.getProperty("unmanagedCalculatedProp").annotations*.value() == ["unmanagedCalculated"]
+        schema.getProperty("unmanagedCalculatedProp").isManaged() == false
+        schema.getProperty("unmanagedCalculatedProp").isWritable() == false
     }
 
     @Managed
@@ -1049,31 +1049,31 @@ interface Managed${typeName} {
 
         then:
         assert schema instanceof ModelManagedImplStructSchema
-        schema.properties.keySet() == (["unmanagedProp", "unmanagedCalculatedProp", "managedProp", "managedCalculatedProp"] as Set)
+        schema.properties*.name == ["managedCalculatedProp", "managedProp", "unmanagedCalculatedProp", "unmanagedProp"]
 
-        schema.properties["unmanagedProp"].annotations*.annotationType() == [CustomTestAnnotation]
-        schema.properties["unmanagedProp"].annotations*.value() == ["unmanaged"]
-        schema.properties["unmanagedProp"].setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
-        schema.properties["unmanagedProp"].setterAnnotations.values()*.value() == ["unmanagedSetter"]
-        schema.properties["unmanagedProp"].isManaged() == false
-        schema.properties["unmanagedProp"].isWritable() == true
+        schema.getProperty("unmanagedProp").annotations*.annotationType() == [CustomTestAnnotation]
+        schema.getProperty("unmanagedProp").annotations*.value() == ["unmanaged"]
+        schema.getProperty("unmanagedProp").setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
+        schema.getProperty("unmanagedProp").setterAnnotations.values()*.value() == ["unmanagedSetter"]
+        schema.getProperty("unmanagedProp").isManaged() == false
+        schema.getProperty("unmanagedProp").isWritable() == true
 
-        schema.properties["unmanagedCalculatedProp"].annotations*.annotationType() == [CustomTestAnnotation]
-        schema.properties["unmanagedCalculatedProp"].annotations*.value() == ["unmanagedCalculated"]
-        schema.properties["unmanagedCalculatedProp"].isManaged() == false
-        schema.properties["unmanagedCalculatedProp"].isWritable() == false
+        schema.getProperty("unmanagedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation]
+        schema.getProperty("unmanagedCalculatedProp").annotations*.value() == ["unmanagedCalculated"]
+        schema.getProperty("unmanagedCalculatedProp").isManaged() == false
+        schema.getProperty("unmanagedCalculatedProp").isWritable() == false
 
-        schema.properties["managedProp"].annotations*.annotationType() == [CustomTestAnnotation]
-        schema.properties["managedProp"].annotations*.value() == ["managed"]
-        schema.properties["managedProp"].setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
-        schema.properties["managedProp"].setterAnnotations.values()*.value() == ["managedSetter"]
-        schema.properties["managedProp"].isManaged() == true
-        schema.properties["managedProp"].isWritable() == true
+        schema.getProperty("managedProp").annotations*.annotationType() == [CustomTestAnnotation]
+        schema.getProperty("managedProp").annotations*.value() == ["managed"]
+        schema.getProperty("managedProp").setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
+        schema.getProperty("managedProp").setterAnnotations.values()*.value() == ["managedSetter"]
+        schema.getProperty("managedProp").isManaged() == true
+        schema.getProperty("managedProp").isWritable() == true
 
-        schema.properties["managedCalculatedProp"].annotations*.annotationType() == [CustomTestAnnotation]
-        schema.properties["managedCalculatedProp"].annotations*.value() == ["managedCalculated"]
-        schema.properties["managedCalculatedProp"].isManaged() == false
-        schema.properties["managedCalculatedProp"].isWritable() == false
+        schema.getProperty("managedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation]
+        schema.getProperty("managedCalculatedProp").annotations*.value() == ["managedCalculated"]
+        schema.getProperty("managedCalculatedProp").isManaged() == false
+        schema.getProperty("managedCalculatedProp").isWritable() == false
     }
 
     @Managed
@@ -1096,17 +1096,17 @@ interface Managed${typeName} {
 
         then:
         assert schema instanceof ModelManagedImplStructSchema
-        schema.properties.keySet() == (["managedProp", "managedCalculatedProp"] as Set)
+        schema.properties*.name == ["managedCalculatedProp", "managedProp"]
 
-        schema.properties["managedProp"].annotations*.annotationType() == [CustomTestAnnotation]
-        schema.properties["managedProp"].annotations*.value() == ["managed"]
-        schema.properties["managedProp"].isManaged() == true
-        schema.properties["managedProp"].isWritable() == true
+        schema.getProperty("managedProp").annotations*.annotationType() == [CustomTestAnnotation]
+        schema.getProperty("managedProp").annotations*.value() == ["managed"]
+        schema.getProperty("managedProp").isManaged() == true
+        schema.getProperty("managedProp").isWritable() == true
 
-        schema.properties["managedCalculatedProp"].annotations*.annotationType() == [CustomTestAnnotation]
-        schema.properties["managedCalculatedProp"].annotations*.value() == ["managedCalculated"]
-        schema.properties["managedCalculatedProp"].isManaged() == false
-        schema.properties["managedCalculatedProp"].isWritable() == false
+        schema.getProperty("managedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation]
+        schema.getProperty("managedCalculatedProp").annotations*.value() == ["managedCalculated"]
+        schema.getProperty("managedCalculatedProp").isManaged() == false
+        schema.getProperty("managedCalculatedProp").isWritable() == false
     }
 
     @Managed
@@ -1127,17 +1127,17 @@ interface Managed${typeName} {
 
         then:
         assert schema instanceof ModelManagedImplStructSchema
-        schema.properties.keySet() == (["managedProp", "managedCalculatedProp"] as Set)
+        schema.properties*.name == ["managedCalculatedProp", "managedProp"]
 
-        schema.properties["managedProp"].annotations*.annotationType() == [CustomTestAnnotation, CustomTestAnnotation2]
-        schema.properties["managedProp"].getAnnotation(CustomTestAnnotation).value() == "overriddenManaged"
-        schema.properties["managedProp"].isManaged() == true
-        schema.properties["managedProp"].isWritable() == true
+        schema.getProperty("managedProp").annotations*.annotationType() == [CustomTestAnnotation, CustomTestAnnotation2]
+        schema.getProperty("managedProp").getAnnotation(CustomTestAnnotation).value() == "overriddenManaged"
+        schema.getProperty("managedProp").isManaged() == true
+        schema.getProperty("managedProp").isWritable() == true
 
-        schema.properties["managedCalculatedProp"].annotations*.annotationType() == [CustomTestAnnotation2, CustomTestAnnotation]
-        schema.properties["managedCalculatedProp"].getAnnotation(CustomTestAnnotation).value() == "managedCalculated"
-        schema.properties["managedCalculatedProp"].isManaged() == false
-        schema.properties["managedCalculatedProp"].isWritable() == false
+        schema.getProperty("managedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation2, CustomTestAnnotation]
+        schema.getProperty("managedCalculatedProp").getAnnotation(CustomTestAnnotation).value() == "managedCalculated"
+        schema.getProperty("managedCalculatedProp").isManaged() == false
+        schema.getProperty("managedCalculatedProp").isWritable() == false
     }
 
     class MyAspect implements ModelSchemaAspect {}
