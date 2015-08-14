@@ -106,8 +106,7 @@ Support read-write collection properties defined using both a getter and a sette
 
 #### Implementation notes
 - Update user guide and Javadocs, add sample
-- Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles collection types in a human readable form (aka, not toString())
-
+- Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles collection types in a human readable form (aka, not `toString()`)
 
 #### Test cases
 
@@ -116,6 +115,7 @@ Support read-write collection properties defined using both a getter and a sette
 - cannot assign a collection to a read-only property
 - can assign `null` to a read-write property
 - Model report renders collection values
+    * Format should be similar to the one of `Arrays.toString`
 - For a managed type that defines a `Set<String>` read-only property
     * `addAll 'b','c'`
     * `add 'd'`
@@ -127,17 +127,25 @@ Support read-write collection properties defined using both a getter and a sette
     * add `'d'` to `sortedSet`
     * call `foo.getItems().add('a')`
     * call again `foo.getItems()` make sure it returns a `Set` which contains *in that order*: `'b','c','a'` (effect of copy on write, semantics of `SortedSet` are not preserved)
+- Copy on write semantics:
+
+    List<String> list = ['a', 'b']
+    foo.setItems(list)
+    list.add 'c'
+    foo.getItems() == ['a', 'b']
+
 - Useful error message presented when validating schema:
     * `T` is not a scalar type
     * `T` is not the same for getter and setter
     * Property type is `Collection<T>`, `ArrayList<T>`, `HashSet<T>`
+    * Suggest to use interface type `List<T>` or `Set<T>` if a concrete implementation is used in the interface declaration
 
 ### Convenient configuration of scalar typed properties from Groovy
 
 - Convert input value:
-    - CharSequence to any scalar type (eg GString to Long, GString to String)
-    - CharSequence to File conversion relative to project directory, as per `Project.file()`.
-    - Any scalar type to String.
+    - `CharSequence` to any scalar type (eg `GString` to `Long`, `GString` to `String`)
+    - `CharSequence` to `File` conversion relative to project directory, as per `Project.file()`.
+    - Any scalar type to `String`.
 - Update user guide, Javadocs and sample
 - Implementation must reuse `NotationConverter` infrastructure.
 
