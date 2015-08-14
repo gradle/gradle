@@ -126,14 +126,13 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         def theZip = new ZipTestFixture(file('build/test.zip'), encoding)
 
         expect:
-        theZip."$method" "${filename}1.txt", "${filename}2.txt", "${filename}3.txt"
+        theZip.hasDescendants("${filename}1.txt", "${filename}2.txt", "${filename}3.txt")
 
         where:
-        method                      | encoding        | filename
-        'hasDescendants'            | null            | 'file'
-        'hasDescendants'            | 'UTF-8'         | '中文'
-        'hasDescendants'            | 'ISO-8859-1'    | 'ÈÇ'
-        'doesNotContainDescendants' | 'US-ASCII'      | '测试'
+        encoding        | filename
+        null            | 'file'
+        'UTF-8'         | '中文'
+        'ISO-8859-1'    | 'ÈÇ'
     }
 
     def ensureExceptionWillBeThrownUsingUnsupportedEncoding() {
@@ -150,11 +149,11 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
             """
 
         when:
-        run 'zip'
+        fails 'zip'
 
         then:
-        UnexpectedBuildFailure ex = thrown()
-        ex.cause.cause.cause.message == encoding
+        failure.assertHasDescription("Execution failed for task ':zip'.")
+        failure.assertHasCause('unsupported encoding')
     }
 
     private def createTestFiles() {
