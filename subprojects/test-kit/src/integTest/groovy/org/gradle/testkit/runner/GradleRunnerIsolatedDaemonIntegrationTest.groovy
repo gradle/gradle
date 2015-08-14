@@ -182,6 +182,9 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         DaemonFixture userDaemon = expectSingleDaemon(userDaemonLogsAnalyzer)
         userDaemon.assertIdle()
         userDaemon.context.pid != testKitDaemon.context.pid
+
+        cleanup:
+        userDaemon.kill()
     }
 
     def "executing a build with a -g option does not affect daemon mechanics"() {
