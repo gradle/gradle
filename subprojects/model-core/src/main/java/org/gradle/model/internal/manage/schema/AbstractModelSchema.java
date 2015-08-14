@@ -17,36 +17,22 @@
 package org.gradle.model.internal.manage.schema;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
 @ThreadSafe
 public abstract class AbstractModelSchema<T> implements ModelSchema<T> {
 
     private final ModelType<T> type;
-    private final boolean instantiationManaged;
     private final boolean allowedPropertyTypeOfManagedType;
 
-    protected AbstractModelSchema(ModelType<T> type, boolean instantiationManaged, boolean allowedPropertyTypeOfManagedType) {
+    protected AbstractModelSchema(ModelType<T> type, boolean allowedPropertyTypeOfManagedType) {
         this.type = type;
-        this.instantiationManaged = instantiationManaged;
         this.allowedPropertyTypeOfManagedType = allowedPropertyTypeOfManagedType;
-    }
-
-    @Override
-    public boolean isInstantiationManaged() {
-        return instantiationManaged;
     }
 
     @Override
     public boolean isAllowedPropertyTypeOfManagedType() {
         return allowedPropertyTypeOfManagedType;
-    }
-
-    @Override
-    // intended to be overridden
-    public NodeInitializer getNodeInitializer() {
-        throw new UnsupportedOperationException("Don't know how to create model element from schema for " + type);
     }
 
     @Override

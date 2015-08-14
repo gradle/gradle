@@ -27,10 +27,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.HashMap;
@@ -133,7 +130,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     MutableModelNode propertyNode = modelNode.getLink(name);
                     propertyNode.ensureUsable();
 
-                    if (propertySchema.isInstantiationManaged()) {
+                    if (propertySchema instanceof ManagedImplModelSchema) {
                         if (value == null) {
                             propertyNode.setTarget(null);
                         } else if (ManagedInstance.class.isInstance(value)) {

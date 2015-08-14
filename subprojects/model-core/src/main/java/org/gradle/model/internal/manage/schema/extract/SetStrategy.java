@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
 import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -69,7 +70,7 @@ public abstract class SetStrategy implements ModelSchemaExtractionStrategy {
             public void execute(ModelSchemaExtractionContext<?> context) {
                 ModelSchema<?> typeParamSchema = cache.get(context.getType());
 
-                if (!typeParamSchema.isInstantiationManaged()) {
+                if (!(typeParamSchema instanceof ManagedImplModelSchema)) {
                     throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
                         "cannot create a managed set of type %s as it is an unmanaged type. Only @Managed types are allowed.",
                         context.getType()

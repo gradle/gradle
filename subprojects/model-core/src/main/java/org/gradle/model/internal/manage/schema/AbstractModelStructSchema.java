@@ -30,8 +30,8 @@ public abstract class AbstractModelStructSchema<T> extends AbstractModelSchema<T
     private final ImmutableSortedMap<String, ModelProperty<?>> properties;
     private final Map<Class<? extends ModelSchemaAspect>, ModelSchemaAspect> aspects;
 
-    public AbstractModelStructSchema(ModelType<T> type, boolean instantiationManaged, boolean allowedPropertyTypeOfManagedType, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
-        super(type, instantiationManaged, allowedPropertyTypeOfManagedType);
+    public AbstractModelStructSchema(ModelType<T> type, boolean allowedPropertyTypeOfManagedType, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
+        super(type, allowedPropertyTypeOfManagedType);
         ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : properties) {
             builder.put(property.getName(), property);

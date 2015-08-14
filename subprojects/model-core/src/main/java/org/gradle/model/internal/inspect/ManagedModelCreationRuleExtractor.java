@@ -21,6 +21,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ModelValueSchema;
@@ -71,17 +72,19 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.");
         }
 
-        if (!modelSchema.isInstantiationManaged()) {
+        if (!(modelSchema instanceof ManagedImplModelSchema)) {
             String description = "a void returning model element creation rule has to take an instance of a managed type as the first argument";
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), description);
         }
+
+        ManagedImplModelSchema<T> managedSchema = (ManagedImplModelSchema<T>) modelSchema;
 
         List<ModelReference<?>> bindings = ruleDefinition.getReferences();
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
         final ModelReference<T> reference = ModelReference.of(modelPath, managedType);
-        return ModelCreators.of(modelPath, modelSchema.getNodeInitializer())
+        return ModelCreators.of(modelPath, managedSchema.getNodeInitializer())
             .descriptor(descriptor)
             .action(ModelActionRole.Initialize, InputUsingModelAction.of(
                     reference, descriptor, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker())

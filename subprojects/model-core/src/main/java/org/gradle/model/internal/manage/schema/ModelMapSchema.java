@@ -25,7 +25,7 @@ public class ModelMapSchema<T> extends AbstractModelSchema<T> {
     private final ModelType<?> elementType;
 
     public ModelMapSchema(ModelType<T> type, ModelType<?> elementType, Class<?> managedImpl) {
-        super(type, false, false);
+        super(type, false);
         this.elementType = elementType;
         this.managedImpl = new WeakReference<Class<?>>(managedImpl);
     }

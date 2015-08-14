@@ -16,10 +16,14 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.core.NodeInitializer;
 
-public interface ModelSchema<T> {
-    ModelType<T> getType();
-
-    boolean isAllowedPropertyTypeOfManagedType();
+/**
+ * Model schema with managed implementation. This means that we have control over the actual implementation type for the type
+ * described in the schema, and we also control the instantiation of managed view instances.
+ *
+ * @param <T> the type the schema is extracted from.
+ */
+public interface ManagedImplModelSchema<T> extends ModelSchema<T> {
+    NodeInitializer getNodeInitializer();
 }

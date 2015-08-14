@@ -71,7 +71,7 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
         ModelPath childPath = modelNode.getPath().child(name);
         final ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(this.descriptor, "create()");
 
-        NodeInitializer nodeInitializer = creatorStrategy.initalizer(elementType);
+        NodeInitializer nodeInitializer = creatorStrategy.initializer(elementType);
         ModelCreator creator = ModelCreators.of(childPath, nodeInitializer)
             .descriptor(descriptor)
             .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(childPath, elementType), descriptor, action))

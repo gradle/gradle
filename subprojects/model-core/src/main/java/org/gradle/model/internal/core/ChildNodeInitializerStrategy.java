@@ -21,6 +21,6 @@ import org.gradle.model.internal.type.ModelType;
 public interface ChildNodeInitializerStrategy<T> {
 
     // Node must project item as S
-    <S extends T> NodeInitializer initalizer(ModelType<S> type);
+    <S extends T> NodeInitializer initializer(ModelType<S> type);
 
 }

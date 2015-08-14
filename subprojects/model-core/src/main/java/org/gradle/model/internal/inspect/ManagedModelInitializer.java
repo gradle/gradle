@@ -22,10 +22,7 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.projection.ManagedModelProjection;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
@@ -81,9 +78,10 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
 
         final ModelRuleDescriptor descriptor = modelNode.getDescriptor();
-        if (propertySchema.isInstantiationManaged()) {
+        if (propertySchema instanceof ManagedImplModelSchema) {
             if (!property.isWritable()) {
-                ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), propertySchema.getNodeInitializer())
+                ManagedImplModelSchema<P> managedPropertySchema = (ManagedImplModelSchema<P>) propertySchema;
+                ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), managedPropertySchema.getNodeInitializer())
                     .descriptor(descriptor)
                     .build();
                 modelNode.addLink(creator);

@@ -26,6 +26,7 @@ import org.gradle.api.Named;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
+import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
 import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -189,7 +190,7 @@ abstract public class ManagedImplStructSchemaExtractionStrategySupport extends S
                         );
                     }
 
-                    if (!propertySchema.isInstantiationManaged()) {
+                    if (!(propertySchema instanceof ManagedImplModelSchema)) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                             "read only property '%s' has non managed type %s, only managed types can be used",
                             property.getName(), property.getType()));
@@ -208,7 +209,7 @@ abstract public class ManagedImplStructSchemaExtractionStrategySupport extends S
                     ModelType<?> elementType = propertyCollectionsSchema.getElementType();
                     ModelSchema<?> elementTypeSchema = modelSchemaCache.get(elementType);
 
-                    if (!elementTypeSchema.isInstantiationManaged()) {
+                    if (!(elementTypeSchema instanceof ManagedImplModelSchema)) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                             "property '%s' cannot be a model map of type %s as it is not a %s type.",
                             property.getName(), elementType, Managed.class.getName()
