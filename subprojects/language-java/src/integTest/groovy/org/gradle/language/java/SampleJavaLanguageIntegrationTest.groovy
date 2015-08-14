@@ -29,7 +29,10 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample platformAware = new Sample(temporaryFolder, "newJavaPlugin/targetplatforms")
 
-    def "can build java based jvm component"() {
+    @Rule
+    Sample multicomponent = new Sample(temporaryFolder, "newJavaPlugin/multiplecomponents")
+
+    def "quickstart sample builds java based jvm component"() {
         setup:
         executer.inDirectory(quickstart.dir)
 
@@ -42,7 +45,7 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
-    def "can create a binary specific source set"() {
+    def "targetplatforms sample creates a binary specific source set"() {
         setup:
         executer.inDirectory(platformAware.dir)
 
@@ -57,6 +60,34 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         and: "the Java 6 jar contains the Person6 class"
         new JarTestFixture(platformAware.dir.file("build/jars/java6MainJar/main.jar")).hasDescendants(
             "org/gradle/Person.class", "org/gradle/Person6.class", "org/gradle/resource.xml"
+        )
+    }
+
+    def "multiplecomponents sample builds multiple jars"() {
+        setup:
+        executer.inDirectory(multicomponent.dir)
+
+        when:
+        succeeds("assemble")
+
+        then:
+        new JarTestFixture(multicomponent.dir.file("build/jars/clientJar/client.jar")).hasDescendants(
+            "org/gradle/Client.class"
+        )
+
+        and:
+        new JarTestFixture(multicomponent.dir.file("build/jars/serverJar/server.jar")).hasDescendants(
+            "org/gradle/PersonServer.class"
+        )
+
+        and:
+        new JarTestFixture(multicomponent.dir.file("build/jars/coreJar/core.jar")).hasDescendants(
+            "org/gradle/Person.class", "org/gradle/resource.xml"
+        )
+
+        and:
+        new JarTestFixture(multicomponent.dir.file("util/build/jars/mainJar/main.jar")).hasDescendants(
+            "org/gradle/Utils.class"
         )
     }
 }

@@ -49,7 +49,7 @@
                 <listitem>A
                     <firstterm>source set</firstterm>
                     represents a logical group of source files in a component. As such, a source set is often an input to a single
-                    compilation task, which will produce an output (classes, compiled CSS, ...). A library may consist of multiple <firstterm>source sets</firstterm>.
+                    compilation task, which will produce an output (classes, compiled CSS, etc). A library may consist of multiple <firstterm>source sets</firstterm>.
                 </listitem>
                 <listitem>A
                     <firstterm>variant</firstterm>
@@ -178,7 +178,7 @@
             </tr>
         </table>
 
-        <para>For each binary in a library, a packaging task is created to create the jar for that binary.</para>
+        <para>For each binary in a library, a packaging task is added to create the jar for that binary.</para>
         <table id="java_packaging_tasks">
             <title>Java plugin - packaging tasks</title>
             <thead>
@@ -196,7 +196,7 @@
                 <td>all <apilink class="org.gradle.language.java.tasks.PlatformJavaCompile" /> and <apilink class="org.gradle.language.jvm.tasks.ProcessResources" />
                 tasks associated with the binary</td>
                 <td><apilink class="org.gradle.jvm.tasks.Jar" /></td>
-                <td>Packages the compiled classes and processed resources of the binary.  A jar task will be created for each binary of each library.</td>
+                <td>Packages the compiled classes and processed resources of the binary.</td>
             </tr>
         </table>
     </section>
@@ -204,7 +204,7 @@
     <section>
         <title>Finding out more about your project</title>
         <para>
-            Gradle provides a report that you can run from the command-line that shows some details about the components and binaries that your
+            Gradle provides a report that you can run from the command-line that shows details about the components and binaries that your
             project produces. To use this report, just run <userinput>gradle components</userinput>. Below is an example of running this report for
             one of the sample projects:
         </para>
