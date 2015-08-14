@@ -375,4 +375,65 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         File                | 'new File("foo")'
     }
 
+    @Unroll
+    def "cannot mutate managed property of scalar type #someType.simpleName when view is immutable"() {
+        given:
+        buildScript """
+            import org.gradle.api.artifacts.Configuration.State
+
+            @Managed
+            interface ManagedType {
+                $someType.canonicalName getManagedProperty()
+
+                void setManagedProperty($someType.canonicalName value)
+            }
+
+            class PluginRules extends RuleSource {
+                @Model
+                void createModel(ManagedType p) {
+                }
+
+                @Mutate
+                void addEchoTask(ModelMap<Task> tasks, ManagedType element) {
+                    element.managedProperty = $value
+                }
+            }
+
+            apply plugin: PluginRules
+
+        """
+
+        when:
+        fails 'echo'
+
+        then:
+        failure.assertHasCause(/Attempt to mutate closed view of model of type 'ManagedType' given to rule 'PluginRules#addEchoTask'/)
+
+        where:
+        someType            | value
+        byte                | "123"
+        Byte                | "123"
+        boolean             | "false"
+        Boolean             | "false"
+        boolean             | "true"
+        Boolean             | "true"
+        char                | "'c'"
+        Character           | "'c'"
+        float               | "123.45f"
+        Float               | "123.45f"
+        long                | "123L"
+        Long                | "123L"
+        short               | "123"
+        Short               | "123"
+        int                 | "123"
+        Integer             | "123"
+        double              | "123.456d"
+        Double              | "123.456d"
+        String              | '"Mogette"'
+        BigDecimal          | '999G'
+        BigInteger          | '777G'
+        Configuration.State | 'org.gradle.api.artifacts.Configuration.State.UNRESOLVED'
+        File                | 'new File("foo")'
+    }
+
 }
