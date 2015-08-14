@@ -322,7 +322,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addEchoTask(ModelMap<Task> tasks, ManagedType element) {
+                void addEchoTask(ModelMap<Task> tasks, final ManagedType element) {
                     tasks.create("echo", new Action<Task>() {
                         public void execute(Task task) {
                             task.doLast(new Action<Task>() {
