@@ -436,4 +436,49 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         File                | 'new File("foo")'
     }
 
+    @Unroll
+    def "cannot have read only property of scalar type #someType.simpleName"() {
+        given:
+        buildScript """
+            import org.gradle.api.artifacts.Configuration.State
+
+            @Managed
+            interface ManagedType {
+                $someType.canonicalName getManagedProperty()
+            }
+
+            class PluginRules extends RuleSource {
+                @Model
+                void createModel(ManagedType p) {
+                }
+            }
+
+            apply plugin: PluginRules
+
+        """
+
+        when:
+        fails 'modelReport'
+
+        then:
+        failure.assertHasCause("Invalid managed model type ManagedType: read only property 'managedProperty' has non managed type ${someType.name}, only managed types can be used")
+
+        where:
+        someType << [
+            byte, Byte,
+            boolean, Boolean,
+            boolean,
+            char, Character,
+            float, Float,
+            long, Long,
+            short, Short,
+            int, Integer,
+            double, Double,
+            String,
+            BigDecimal,
+            BigInteger,
+            Configuration.State,
+            File]
+    }
+
 }
