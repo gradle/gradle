@@ -21,12 +21,14 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.Requires
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_CANCELLATION)
 @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
 @Requires(adhoc = { AvailableJavaHomes.jdk6 })
+@LeaksFileHandles
 class ContinuousUnsupportedJavaVersionCrossVersionSpec extends ToolingApiSpecification {
 
     def "client receives error on unsupported platform"() {
