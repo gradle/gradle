@@ -80,14 +80,18 @@ public class VersionRangeSelector extends AbstractVersionSelector {
     private static final String UPPER_INFINITE_PATTERN = OPEN_PATTERN + "\\s*("
             + ANY_NON_SPECIAL_PATTERN + "+)" + SEP_PATTERN + UI_PATTERN;
 
+    private static final String SINGLE_VALUE_PATTERN = OPEN_INC_PATTERN + "\\s*(" + ANY_NON_SPECIAL_PATTERN + "+)" + CLOSE_INC_PATTERN;
+
     private static final Pattern FINITE_RANGE = Pattern.compile(FINITE_PATTERN);
 
     private static final Pattern LOWER_INFINITE_RANGE = Pattern.compile(LOWER_INFINITE_PATTERN);
 
     private static final Pattern UPPER_INFINITE_RANGE = Pattern.compile(UPPER_INFINITE_PATTERN);
 
+    private static final Pattern SINGLE_VALUE_RANGE = Pattern.compile(SINGLE_VALUE_PATTERN);
+
     public static final Pattern ALL_RANGE = Pattern.compile(FINITE_PATTERN + "|"
-            + LOWER_INFINITE_PATTERN + "|" + UPPER_INFINITE_PATTERN);
+            + LOWER_INFINITE_PATTERN + "|" + UPPER_INFINITE_PATTERN + "|" + SINGLE_VALUE_RANGE);
 
     private final String upperBound;
     private final boolean upperInclusive;
@@ -121,7 +125,15 @@ public class VersionRangeSelector extends AbstractVersionSelector {
                     upperBound = null;
                     upperInclusive = true;
                 } else {
-                    throw new IllegalArgumentException("Not a version range selector: " + selector);
+                    matcher = SINGLE_VALUE_RANGE.matcher(selector);
+                    if (matcher.matches()) {
+                        lowerBound = matcher.group(1);
+                        lowerInclusive = true;
+                        upperBound = lowerBound;
+                        upperInclusive = true;
+                    } else {
+                        throw new IllegalArgumentException("Not a version range selector: " + selector);
+                    }
                 }
             }
         }
