@@ -27,8 +27,6 @@ import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
-
 public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
 
     private static final ManagedProxyFactory PROXY_FACTORY = new ManagedProxyFactory();
@@ -56,7 +54,7 @@ public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtraction
     }
 
     @Override
-    protected <R> ModelManagedImplStructSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
+    protected <R> ModelManagedImplStructSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
         final ModelManagedImplStructSchema<R> schema = super.createSchema(extractionContext, store, type, properties, aspects);
         extractionContext.addValidator(new Action<ModelSchemaExtractionContext<R>>() {
             @Override

@@ -78,7 +78,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
      * setters</li> <li>provide a `toString()` implementation</li> <li>mix-in implementation of {@link ManagedInstance}</li> <li>provide a constructor that accepts a {@link ModelElementState}, which
      * will be used to implement the above.</li> </ul>
      */
-    public <T, M extends T, D extends T> Class<? extends M> generate(Class<M> managedTypeClass, Class<D> delegateType, Collection<ModelProperty<?>> properties) {
+    public <T, M extends T, D extends T> Class<? extends M> generate(Class<M> managedTypeClass, Class<D> delegateType, Iterable<ModelProperty<?>> properties) {
         if (delegateType != null && !delegateType.isInterface()) {
             throw new IllegalArgumentException("Delegate type must be null or an interface");
         }
@@ -106,7 +106,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void generateProxyClass(ClassWriter visitor, Class<?> managedTypeClass, Class<?> delegateTypeClass, Collection<String> interfaceInternalNames,
-                                    Type generatedType, Type superclassType, Collection<ModelProperty<?>> properties) {
+                                    Type generatedType, Type superclassType, Iterable<ModelProperty<?>> properties) {
         declareClass(visitor, interfaceInternalNames, generatedType, superclassType);
         declareStateField(visitor);
         declareCanCallSettersField(visitor);
@@ -268,7 +268,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), CAN_CALL_SETTERS_FIELD_NAME, Type.BOOLEAN_TYPE.getDescriptor());
     }
 
-    private void writeMutationMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Collection<ModelProperty<?>> properties) {
+    private void writeMutationMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Iterable<ModelProperty<?>> properties) {
         for (ModelProperty<?> property : properties) {
             switch (property.getStateManagementType()) {
                 case MANAGED:

@@ -24,7 +24,6 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategySupport {
@@ -33,7 +32,7 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
         super(aspectExtractor);
     }
 
-    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
+    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
         return new ModelUnmanagedImplStructSchema<R>(type, properties, aspects);
     }
 
@@ -69,7 +68,7 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
     }
 
     @Override
-    protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelProperty<P> property, ModelSchemaCache modelSchemaCache) {
+    protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelPropertyExtractionResult<P> propertyResult, ModelSchemaCache modelSchemaCache) {
         return Actions.doNothing();
     }
 }

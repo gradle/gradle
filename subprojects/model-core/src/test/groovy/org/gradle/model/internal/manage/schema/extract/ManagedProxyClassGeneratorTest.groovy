@@ -245,7 +245,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
     private static def property(Class<?> parentType, String name, Type type, StateManagementType stateManagementType, boolean writable = true) {
         def getter = parentType.getMethod("get" + name.capitalize());
         def getterRef = new WeaklyTypeReferencingMethod(ModelType.of(parentType), ModelType.of(type), getter)
-        return ModelProperty.of(ModelType.of(type), name, stateManagementType, writable, Collections.emptySet(), getterRef, Collections.emptyMap(), Collections.emptyMap())
+        return ModelProperty.of(ModelType.of(type), name, stateManagementType, writable, Collections.emptySet(), getterRef)
     }
 
     static interface SomeType {

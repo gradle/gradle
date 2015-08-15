@@ -19,7 +19,6 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.model.internal.manage.schema.ModelProperty;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -36,10 +35,10 @@ public class ModelSchemaAspectExtractor {
         this.strategies = ImmutableList.copyOf(strategies);
     }
 
-    public <T> List<ModelSchemaAspect> extract(ModelSchemaExtractionContext<T> extractionContext, List<ModelProperty<?>> properties) {
+    public <T> List<ModelSchemaAspect> extract(ModelSchemaExtractionContext<T> extractionContext, List<ModelPropertyExtractionResult<?>> propertyResults) {
         List<ModelSchemaAspect> aspects = Lists.newArrayList();
         for (ModelSchemaAspectExtractionStrategy strategy : strategies) {
-            ModelSchemaAspectExtractionResult result = strategy.extract(extractionContext, properties);
+            ModelSchemaAspectExtractionResult result = strategy.extract(extractionContext, propertyResults);
             if (result != null) {
                 aspects.add(result.getAspect());
                 Action<? super ModelSchemaExtractionContext<?>> validator = result.getValidator();

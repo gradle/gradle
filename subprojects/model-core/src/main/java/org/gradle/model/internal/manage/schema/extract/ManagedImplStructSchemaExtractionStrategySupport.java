@@ -115,7 +115,7 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
     }
 
     @Override
-    protected <R> ModelManagedImplStructSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
+    protected <R> ModelManagedImplStructSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
         Class<? extends R> implClass = classGenerator.generate(type.getConcreteClass(), delegateType, properties);
         return new ModelManagedImplStructSchema<R>(type, properties, aspects, implClass, delegateType, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
             @Override
@@ -143,10 +143,17 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
             throw invalidMethod(extractionContext, "setters are not allowed for non-abstract getters", mostSpecificSetter);
         }
 
-        if (getterContext.isDeclaredInManagedType() && !setterContext.isDeclaredInManagedType()) {
-            throw invalidMethods(extractionContext, "unmanaged setter for managed getter", Iterables.concat(getterContext.getDeclaringMethods(), setterContext.getDeclaringMethods()));
-        } else if (!getterContext.isDeclaredInManagedType() && setterContext.isDeclaredInManagedType()) {
-            throw invalidMethods(extractionContext, "managed setter for unmanaged getter", Iterables.concat(getterContext.getDeclaringMethods(), setterContext.getDeclaringMethods()));
+        if (mostSpecificSetter.getName().equals("setName") && Named.class.isAssignableFrom(extractionContext.getType().getRawClass())) {
+            throw new InvalidManagedModelElementTypeException(extractionContext, String.format(
+                "@Managed types implementing %s must not declare a setter for the name property",
+                Named.class.getName()
+            ));
+        } else {
+            if (getterContext.isDeclaredInManagedType() && !setterContext.isDeclaredInManagedType()) {
+                throw invalidMethods(extractionContext, "unmanaged setter for managed getter", Iterables.concat(getterContext.getDeclaringMethods(), setterContext.getDeclaringMethods()));
+            } else if (!getterContext.isDeclaredInManagedType() && setterContext.isDeclaredInManagedType()) {
+                throw invalidMethods(extractionContext, "managed setter for unmanaged getter", Iterables.concat(getterContext.getDeclaringMethods(), setterContext.getDeclaringMethods()));
+            }
         }
 
         if (!setterContext.isDeclaredInManagedType()) {
@@ -189,33 +196,29 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
     }
 
     @Override
-    protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(final ModelProperty<P> property, final ModelSchemaCache modelSchemaCache) {
+    protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(final ModelPropertyExtractionResult<P> propertyResult, final ModelSchemaCache modelSchemaCache) {
         return new Action<ModelSchemaExtractionContext<P>>() {
             @Override
             public void execute(ModelSchemaExtractionContext<P> propertyExtractionContext) {
+                ModelProperty<P> property = propertyResult.getProperty();
                 // Do not validate unmanaged properties
                 if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
                     return;
                 }
 
-                ModelSchema<P> propertySchema = modelSchemaCache.get(property.getType());
                 ModelSchemaExtractionContext<?> parentContext = propertyExtractionContext.getParent();
 
+                // The "name" property is handled differently if type implements Named
                 if (property.getName().equals("name") && Named.class.isAssignableFrom(parentContext.getType().getRawClass())) {
-                    if (property.isWritable()) {
-                        throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                            "@Managed types implementing %s must not declare a setter for the name property",
-                            Named.class.getName()
-                        ));
-                    } else {
-                        return;
-                    }
+                    return;
                 }
+
+                ModelSchema<P> propertySchema = modelSchemaCache.get(property.getType());
 
                 // Only managed implementation and value types are allowed as a managed property type unless marked with @Unmanaged
                 boolean isAllowedPropertyTypeOfManagedType = propertySchema instanceof ManagedImplModelSchema
                     || propertySchema instanceof ModelValueSchema;
-                boolean isDeclaredAsHavingUnmanagedType = property.isAnnotationPresent(Unmanaged.class);
+                boolean isDeclaredAsHavingUnmanagedType = propertyResult.getGetter().isAnnotationPresent(Unmanaged.class);
 
                 if (isAllowedPropertyTypeOfManagedType && isDeclaredAsHavingUnmanagedType) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(

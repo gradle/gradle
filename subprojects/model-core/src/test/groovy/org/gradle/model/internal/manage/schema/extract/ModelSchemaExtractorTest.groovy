@@ -1015,15 +1015,8 @@ interface Managed${typeName} {
         assert schema instanceof ModelUnmanagedImplStructSchema
         schema.properties*.name == ["unmanagedCalculatedProp", "unmanagedProp"]
 
-        schema.getProperty("unmanagedProp").annotations*.annotationType() == [CustomTestAnnotation]
-        schema.getProperty("unmanagedProp").annotations*.value() == ["unmanaged"]
-        schema.getProperty("unmanagedProp").setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
-        schema.getProperty("unmanagedProp").setterAnnotations.values()*.value() == ["unmanagedSetter"]
         schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedProp").isWritable() == true
-
-        schema.getProperty("unmanagedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation]
-        schema.getProperty("unmanagedCalculatedProp").annotations*.value() == ["unmanagedCalculated"]
         schema.getProperty("unmanagedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedCalculatedProp").isWritable() == false
     }
@@ -1070,27 +1063,15 @@ interface Managed${typeName} {
         assert schema instanceof ModelManagedImplStructSchema
         schema.properties*.name == ["managedCalculatedProp", "managedProp", "unmanagedCalculatedProp", "unmanagedProp"]
 
-        schema.getProperty("unmanagedProp").annotations*.annotationType() == [CustomTestAnnotation]
-        schema.getProperty("unmanagedProp").annotations*.value() == ["unmanaged"]
-        schema.getProperty("unmanagedProp").setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
-        schema.getProperty("unmanagedProp").setterAnnotations.values()*.value() == ["unmanagedSetter"]
         schema.getProperty("unmanagedProp").stateManagementType == DELEGATED
         schema.getProperty("unmanagedProp").isWritable() == true
 
-        schema.getProperty("unmanagedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation]
-        schema.getProperty("unmanagedCalculatedProp").annotations*.value() == ["unmanagedCalculated"]
         schema.getProperty("unmanagedCalculatedProp").stateManagementType == DELEGATED
         schema.getProperty("unmanagedCalculatedProp").isWritable() == false
 
-        schema.getProperty("managedProp").annotations*.annotationType() == [CustomTestAnnotation]
-        schema.getProperty("managedProp").annotations*.value() == ["managed"]
-        schema.getProperty("managedProp").setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
-        schema.getProperty("managedProp").setterAnnotations.values()*.value() == ["managedSetter"]
         schema.getProperty("managedProp").stateManagementType == MANAGED
         schema.getProperty("managedProp").isWritable() == true
 
-        schema.getProperty("managedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation]
-        schema.getProperty("managedCalculatedProp").annotations*.value() == ["managedCalculated"]
         schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
     }
@@ -1117,13 +1098,9 @@ interface Managed${typeName} {
         assert schema instanceof ModelManagedImplStructSchema
         schema.properties*.name == ["managedCalculatedProp", "managedProp"]
 
-        schema.getProperty("managedProp").annotations*.annotationType() == [CustomTestAnnotation]
-        schema.getProperty("managedProp").annotations*.value() == ["managed"]
         schema.getProperty("managedProp").stateManagementType == MANAGED
         schema.getProperty("managedProp").isWritable() == true
 
-        schema.getProperty("managedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation]
-        schema.getProperty("managedCalculatedProp").annotations*.value() == ["managedCalculated"]
         schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
     }
@@ -1148,13 +1125,9 @@ interface Managed${typeName} {
         assert schema instanceof ModelManagedImplStructSchema
         schema.properties*.name == ["managedCalculatedProp", "managedProp"]
 
-        schema.getProperty("managedProp").annotations*.annotationType() == [CustomTestAnnotation, CustomTestAnnotation2]
-        schema.getProperty("managedProp").getAnnotation(CustomTestAnnotation).value() == "overriddenManaged"
         schema.getProperty("managedProp").stateManagementType == MANAGED
         schema.getProperty("managedProp").isWritable() == true
 
-        schema.getProperty("managedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation2, CustomTestAnnotation]
-        schema.getProperty("managedCalculatedProp").getAnnotation(CustomTestAnnotation).value() == "managedCalculated"
         schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
     }
@@ -1185,8 +1158,8 @@ interface Managed${typeName} {
         resultSchema.hasAspect(MyAspect)
         resultSchema.getAspect(MyAspect) == aspect
 
-        1 * aspectExtractionStrategy.extract(_, _) >> { ModelSchemaExtractionContext<?> extractionContext, List<ModelProperty<?>> properties ->
-            assert properties*.name == ["calculatedProp", "prop"]
+        1 * aspectExtractionStrategy.extract(_, _) >> { ModelSchemaExtractionContext<?> extractionContext, List<ModelPropertyExtractionResult> propertyResults ->
+            assert propertyResults*.property*.name == ["calculatedProp", "prop"]
             return new ModelSchemaAspectExtractionResult(aspect, aspectValidator)
         }
         1 * aspectValidator.execute(_) >> { ModelSchemaExtractionContext<?> extractionContext ->
