@@ -26,7 +26,7 @@ public class ModelCollectionSchema<T, E> extends AbstractModelSchema<T> implemen
     private final NodeInitializer nodeInitializer;
 
     public ModelCollectionSchema(ModelType<T> type, ModelType<E> elementType, Function<ModelCollectionSchema<T, E>, NodeInitializer> nodeInitializer) {
-        super(type, true);
+        super(type);
         this.elementType = elementType;
         this.nodeInitializer = nodeInitializer.apply(this);
     }

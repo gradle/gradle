@@ -26,10 +26,7 @@ import org.gradle.api.Named;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
-import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
-import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
@@ -166,16 +163,19 @@ abstract public class ManagedImplStructSchemaExtractionStrategySupport extends S
                     }
                 }
 
+                // Only managed implementation and value types are allowed as a managed property type unless marked with @Unmanaged
+                boolean isAllowedPropertyTypeOfManagedType = propertySchema instanceof ManagedImplModelSchema
+                    || propertySchema instanceof ModelValueSchema;
                 boolean isDeclaredAsHavingUnmanagedType = property.isAnnotationPresent(Unmanaged.class);
 
-                if (propertySchema.isAllowedPropertyTypeOfManagedType() && isDeclaredAsHavingUnmanagedType) {
+                if (isAllowedPropertyTypeOfManagedType && isDeclaredAsHavingUnmanagedType) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                         "property '%s' is marked as @Unmanaged, but is of @Managed type '%s'. Please remove the @Managed annotation.%n",
                         property.getName(), property.getType()
                     ));
                 }
 
-                if (!propertySchema.isAllowedPropertyTypeOfManagedType() && !isDeclaredAsHavingUnmanagedType) {
+                if (!isAllowedPropertyTypeOfManagedType && !isDeclaredAsHavingUnmanagedType) {
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                         "type %s cannot be used for property '%s' as it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged).%n%s",
                         property.getType(), property.getName(), ModelSchemaExtractor.getManageablePropertyTypesDescription()

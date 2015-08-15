@@ -23,16 +23,9 @@ import org.gradle.model.internal.type.ModelType;
 public abstract class AbstractModelSchema<T> implements ModelSchema<T> {
 
     private final ModelType<T> type;
-    private final boolean allowedPropertyTypeOfManagedType;
 
-    protected AbstractModelSchema(ModelType<T> type, boolean allowedPropertyTypeOfManagedType) {
+    protected AbstractModelSchema(ModelType<T> type) {
         this.type = type;
-        this.allowedPropertyTypeOfManagedType = allowedPropertyTypeOfManagedType;
-    }
-
-    @Override
-    public boolean isAllowedPropertyTypeOfManagedType() {
-        return allowedPropertyTypeOfManagedType;
     }
 
     @Override

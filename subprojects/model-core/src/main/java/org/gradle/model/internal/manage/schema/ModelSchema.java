@@ -20,6 +20,4 @@ import org.gradle.model.internal.type.ModelType;
 
 public interface ModelSchema<T> {
     ModelType<T> getType();
-
-    boolean isAllowedPropertyTypeOfManagedType();
 }
