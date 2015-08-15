@@ -1028,8 +1028,23 @@ interface Managed${typeName} {
         schema.getProperty("unmanagedCalculatedProp").isWritable() == false
     }
 
+    static interface UnmanagedSuperType {
+        @CustomTestAnnotation("unmanaged")
+        abstract String getUnmanagedProp()
+
+        @CustomTestAnnotation("unmanagedSetter")
+        abstract void setUnmanagedProp(String value)
+
+        @CustomTestAnnotation("unmanagedCalculated")
+        String getUnmanagedCalculatedProp()
+
+        boolean isBuildable()
+
+        int getTime()
+    }
+
     @Managed
-    static abstract class ManagedTypeWithAnnotationsExtendingUnmanagedType extends SimpleUnmanagedTypeWithAnnotations {
+    static abstract class ManagedTypeWithAnnotationsExtendingUnmanagedType implements UnmanagedSuperType {
         @CustomTestAnnotation("managed")
         abstract String getManagedProp()
 
@@ -1044,7 +1059,7 @@ interface Managed${typeName} {
 
     def "properties are extracted from unmanaged type with managed super-type"() {
         def extractor = new ModelSchemaExtractor([
-            new TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(SimpleUnmanagedTypeWithAnnotations)
+            new TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(UnmanagedSuperType)
         ], new ModelSchemaAspectExtractor())
         def store = new DefaultModelSchemaStore(extractor)
 
