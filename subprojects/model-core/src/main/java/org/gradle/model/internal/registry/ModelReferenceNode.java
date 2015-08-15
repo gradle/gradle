@@ -17,7 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -44,19 +44,32 @@ class ModelReferenceNode extends ModelNodeInternal {
         this.target = (ModelNodeInternal) target;
     }
 
+    public ModelNodeInternal getTarget() {
+        return target;
+    }
+
     @Override
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
-        return target == null ? new InstanceModelView<T>(getPath(), type, null, Actions.doNothing()) : target.asWritable(type, ruleDescriptor, implicitDependencies);
+    public <T> ModelView<? extends T> asWritable(final ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
+        if (target == null) {
+            return InstanceModelView.of(getPath(), type, null);
+        } else {
+            return new ModelViewWrapper<T>(getPath(), target.asWritable(type, ruleDescriptor, implicitDependencies));
+        }
     }
 
     @Override
     public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
-        return target == null ? new InstanceModelView<T>(getPath(), type, null, Actions.doNothing()) : target.asReadOnly(type, ruleDescriptor);
+        if (target == null) {
+            return InstanceModelView.of(getPath(), type, null);
+        } else {
+            return new ModelViewWrapper<T>(getPath(), target.asReadOnly(type, ruleDescriptor));
+        }
     }
 
     @Override
     public ModelNodeInternal addLink(ModelNodeInternal node) {
-        throw new UnsupportedOperationException();
+//        throw new UnsupportedOperationException();
+        return node;
     }
 
     @Override
@@ -188,12 +201,37 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public void realize() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public MutableModelNode getParent() {
         return parent;
+    }
+
+    private static class ModelViewWrapper<T> implements ModelView<T> {
+        private final ModelView<? extends T> view;
+        private final ModelPath path;
+
+        public ModelViewWrapper(ModelPath path, ModelView<? extends T> view) {
+            this.path = path;
+            this.view = view;
+        }
+
+        @Override
+        public ModelPath getPath() {
+            return path;
+        }
+
+        @Override
+        public ModelType<T> getType() {
+            return Cast.uncheckedCast(view.getType());
+        }
+
+        @Override
+        public T getInstance() {
+            return view.getInstance();
+        }
+
+        @Override
+        public void close() {
+            view.close();
+        }
     }
 }

@@ -301,16 +301,14 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private ModelNodeInternal get(ModelPath path) {
+        GoalGraph graph = new GoalGraph();
+        transitionTo(graph, graph.nodeAtState(new NodeAtState(path, Known)));
         ModelNodeInternal node = modelGraph.find(path);
         if (node == null) {
             return null;
         }
-        close(node);
+        transitionTo(graph, graph.nodeAtState(new NodeAtState(path, GraphClosed)));
         return node;
-    }
-
-    private void close(ModelNodeInternal node) {
-        transition(node, GraphClosed, false);
     }
 
     /**
@@ -420,8 +418,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
-        ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asReadOnly(targetType, node, descriptor);
+        ModelView<? extends T> view = node.asReadOnly(targetType, descriptor);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Model node '" + node.getPath().toString() + "' is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
@@ -431,8 +428,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, List<ModelView<?>> inputs) {
-        ModelAdapter adapter = node.getAdapter();
-        ModelView<? extends T> view = adapter.asWritable(reference.getType(), node, sourceDescriptor, inputs);
+        ModelView<? extends T> view = node.asWritable(reference.getType(), sourceDescriptor, inputs);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Cannot project model element " + node.getPath() + " to writable type '" + reference.getType() + "' for rule " + sourceDescriptor);
@@ -877,10 +873,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             transition(this, Initialized, true);
         }
 
-        @Override
-        public void realize() {
-            close(this);
-        }
     }
 
     private class GoalGraph {
@@ -1185,35 +1177,69 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     /**
-     * Attempts to define the children of a given node. Does not fail if not possible to do so.
+     * Attempts to make known the given path. When the path references a link, also makes the target of the link known.
+     *
+     * Does not fail if not possible to do.
      */
-    private class TryDefineChildren extends ModelGoal {
-        private final ModelPath path;
+    private class TryResolvePath extends ModelNodeGoal {
         private boolean attemptedParent;
 
-        public TryDefineChildren(ModelPath path) {
-            this.path = path;
+        public TryResolvePath(ModelPath path) {
+            super(path);
         }
 
-        public ModelPath getPath() {
-            return path;
+        @Override
+        protected boolean doIsAchieved() {
+            // Only called when node exists
+            return true;
+        }
+
+        @Override
+        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            // Not already known, attempt to resolve the parent
+            if (!attemptedParent) {
+                dependencies.add(new TryResolvePath(getPath().getParent()));
+                attemptedParent = true;
+                return false;
+            }
+
+            ModelNodeInternal parent = modelGraph.find(getPath().getParent());
+            if (parent == null) {
+                return true;
+            }
+
+            // Self close parent in order to discover its children
+            dependencies.add(graph.nodeAtState(new NodeAtState(getPath().getParent(), SelfClosed)));
+            return true;
+        }
+    }
+
+    /**
+     * Attempts to define the contents of the requested scope. Does not fail if not possible.
+     */
+    private class TryDefineScope extends ModelGoal {
+        private final ModelPath scope;
+        private boolean attemptedPath;
+
+        public TryDefineScope(ModelPath scope) {
+            this.scope = scope;
         }
 
         @Override
         public boolean isAchieved() {
-            ModelNodeInternal node = modelGraph.find(path);
+            ModelNodeInternal node = modelGraph.find(scope);
             return node != null && node.getState().compareTo(SelfClosed) >= 0;
         }
 
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            if (path.getParent() != null && !attemptedParent) {
-                dependencies.add(new TryDefineChildren(path.getParent()));
-                attemptedParent = true;
+            if (!attemptedPath) {
+                dependencies.add(new TryResolvePath(scope));
+                attemptedPath = true;
                 return false;
             }
-            if (modelGraph.find(path) != null) {
-                dependencies.add(graph.nodeAtState(new NodeAtState(path, SelfClosed)));
+            if (modelGraph.find(scope) != null) {
+                dependencies.add(graph.nodeAtState(new NodeAtState(scope, SelfClosed)));
             }
             return true;
         }
@@ -1249,9 +1275,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         private void maybeBind(ModelBinding binding, Collection<ModelGoal> dependencies) {
             if (!binding.isBound()) {
                 if (binding.getPredicate().getPath() != null) {
-                    dependencies.add(new TryDefineChildren(binding.getPredicate().getPath().getParent()));
+                    dependencies.add(new TryResolvePath(binding.getPredicate().getPath()));
                 } else {
-                    dependencies.add(new TryDefineChildren(binding.getPredicate().getScope()));
+                    dependencies.add(new TryDefineScope(binding.getPredicate().getScope()));
                 }
             }
         }

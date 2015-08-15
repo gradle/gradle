@@ -31,7 +31,7 @@ public interface ModelNode {
     boolean hasLink(String name, ModelType<?> type);
 
     // Note: order is crucial here. Nodes are traversed through these states in the order defined below
-    public enum State {
+    enum State {
         Known(true), // Initial state. Only type info is available here
         Created(true), // Private data has been created, initial rules discovered
         DefaultsApplied(true), // Default values have been applied

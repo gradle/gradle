@@ -41,9 +41,8 @@ public interface ModelRegistry {
      * No attempt to mutate the returned object should be made.
      *
      * @param path the path for the node
-     * @return the node, or null if no such element.
+     * @return the node.
      */
-    @Nullable
     ModelNode realizeNode(ModelPath path);
 
     /**

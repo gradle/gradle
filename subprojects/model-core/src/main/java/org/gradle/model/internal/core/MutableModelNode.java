@@ -128,8 +128,6 @@ public interface MutableModelNode extends ModelNode {
      */
     void ensureUsable();
 
-    void realize();
-
     void setHidden(boolean hidden);
 
     boolean isMutable();
