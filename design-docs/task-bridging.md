@@ -29,7 +29,7 @@ customTask.dependsOn tasks.withType(ClimbTask)
 ### Implementation
 Realise, in or before the `afterEvaluate` lifecycle phase, all rule source tasks which have been depended on by type.
 Realise in this context means realising the model nodes of task of those types along with all child nodes.
-  
+
 ### Test cases
 
 - Happy path as per the example above.
@@ -40,7 +40,7 @@ Realise in this context means realising the model nodes of task of those types a
     - `project.tasks.customTask.dependsOn tasks.withType(ClimbTask)`
     - `tasks.getByPath(":customTask").dependsOn tasks.withType(ClimbTask)`
 - Only rule source tasks of type `ClimbTask` are realised given rule source tasks of other types exist.
-- A non rule source task in a parent project can depend one or more rule source tasks of type `ClimbTask`
+- A non rule source task in a parent project can depend one or more rule source tasks of type `ClimbTask` - created in a subproject.
 
 
 ### Open Questions:
