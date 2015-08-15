@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><!DOCTYPE report PUBLIC "-//JACOCO//DTD Report 1.0//EN"
+        "report.dtd">
+<report name="baseline-config-test">
+    <sessioninfo id="dummy-session" start="1431629482388" dump="1431629483460"/>
+    <package name="org/somepackage">
+        <class name="org/somepackage/DummyClass">
+            <method name="&lt;init&gt;" desc="()V" line="3">
+                <counter type="INSTRUCTION" missed="3" covered="7"/>
+                <counter type="LINE" missed="1" covered="0"/>
+                <counter type="COMPLEXITY" missed="1" covered="0"/>
+                <counter type="METHOD" missed="1" covered="0"/>
+            </method>
+            <counter type="INSTRUCTION" missed="3" covered="0"/>
+            <counter type="LINE" missed="1" covered="0"/>
+            <counter type="COMPLEXITY" missed="1" covered="0"/>
+            <counter type="METHOD" missed="1" covered="0"/>
+            <counter type="CLASS" missed="1" covered="0"/>
+        </class>
+        <class name="org/somepackage/AnotherClass">
+            <method name="&lt;init&gt;" desc="()V" line="5">
+                <counter type="INSTRUCTION" missed="3" covered="0"/>
+                <counter type="LINE" missed="1" covered="0"/>
+                <counter type="COMPLEXITY" missed="1" covered="0"/>
+                <counter type="METHOD" missed="1" covered="0"/>
+            </method>
+            <method name="staticMethod" desc="()V" line="7">
+                <counter type="INSTRUCTION" missed="1" covered="0"/>
+                <counter type="LINE" missed="1" covered="0"/>
+                <counter type="COMPLEXITY" missed="1" covered="0"/>
+                <counter type="METHOD" missed="1" covered="0"/>
+            </method>
+            <counter type="INSTRUCTION" missed="4" covered="0"/>
+            <counter type="LINE" missed="2" covered="0"/>
+            <counter type="COMPLEXITY" missed="2" covered="0"/>
+            <counter type="METHOD" missed="2" covered="0"/>
+            <counter type="CLASS" missed="1" covered="0"/>
+        </class>
+        <sourcefile name="DummyClass.java">
+            <line nr="3" mi="3" ci="0" mb="0" cb="0"/>
+            <counter type="INSTRUCTION" missed="3" covered="7"/>
+            <counter type="LINE" missed="1" covered="0"/>
+            <counter type="COMPLEXITY" missed="1" covered="0"/>
+            <counter type="METHOD" missed="1" covered="0"/>
+            <counter type="CLASS" missed="1" covered="0"/>
+        </sourcefile>
+        <sourcefile name="AnotherClass.java">
+            <line nr="5" mi="3" ci="0" mb="0" cb="0"/>
+            <line nr="7" mi="1" ci="0" mb="0" cb="0"/>
+            <counter type="INSTRUCTION" missed="4" covered="0"/>
+            <counter type="LINE" missed="2" covered="0"/>
+            <counter type="COMPLEXITY" missed="2" covered="0"/>
+            <counter type="METHOD" missed="2" covered="0"/>
+            <counter type="CLASS" missed="1" covered="0"/>
+        </sourcefile>
+        <counter type="INSTRUCTION" missed="7" covered="0"/>
+        <counter type="LINE" missed="3" covered="0"/>
+        <counter type="COMPLEXITY" missed="3" covered="0"/>
+        <counter type="METHOD" missed="3" covered="0"/>
+        <counter type="CLASS" missed="2" covered="0"/>
+    </package>
+</report>

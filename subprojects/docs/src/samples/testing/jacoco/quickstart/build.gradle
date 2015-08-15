@@ -28,6 +28,24 @@ jacoco {
 }
 // END SNIPPET jacoco-configuration
 
+// START SNIPPET jacoco-thresholds
+jacoco {
+    // Minimum code coverage of 50% across all files and coverage types.
+    threshold 0.5
+
+    // Minimum 'branch' coverage of 30% across all files.
+    // Available coverage types: BRANCH, CLASS, COMPLEXITY, INSTRUCTION, LINE, METHOD.
+    threshold 0.3, BRANCH
+
+    // Minimum 'line' coverage of 10% for any file (in any directory) whose name matches the given regular expression.
+    threshold 0.1, LINE, ~"P.*\\.java"
+
+    // Minimum 'line' coverage of 10% for files named "Person.java" (case-sensitive, in any directory).
+    // (Note: This syntax uses exact string match against the file name while the regex syntax requires escaping.)
+    threshold 0.1, LINE, "Person.java"
+}
+// END SNIPPET jacoco-thresholds
+
 repositories {
     mavenCentral()
 }

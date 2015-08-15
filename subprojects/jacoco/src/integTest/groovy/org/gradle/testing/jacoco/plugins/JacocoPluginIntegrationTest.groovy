@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.testing.jacoco.testutils.TestData
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -42,7 +43,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 testCompile 'junit:junit:4.12'
             }
         """
-        createTestFiles()
+        TestData.createTestFiles(this)
     }
 
     def "dependencies report shows default jacoco dependencies"() {
@@ -79,7 +80,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         file(REPORT_HTML_DEFAULT_PATH).exists()
         file("${REPORTING_BASE}/jacoco/test").listFiles().collect { it.name } == ["html"]
         file("${REPORTING_BASE}/jacoco/test/html/org.gradle/Class1.java.html").exists()
-        htmlReport().totalCoverage() == 100
+        htmlReport().totalCoverage() == 71
     }
 
     void canConfigureReportsInJacocoTestReport() {
@@ -98,7 +99,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test', 'jacocoTestReport')
 
         then:
-        htmlReport("build/jacocoHtml").totalCoverage() == 100
+        htmlReport("build/jacocoHtml").totalCoverage() == 71
         file(REPORT_XML_DEFAULT_PATH).exists()
         file(REPORT_CSV_DEFAULT_REPORT).exists()
     }
@@ -118,7 +119,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test', 'jacocoTestReport')
 
         then:
-        htmlReport("build/customReports/jacoco/test/html").totalCoverage() == 100
+        htmlReport("build/customReports/jacoco/test/html").totalCoverage() == 71
         file("build/customReports/jacoco/test/jacocoTestReport.xml").exists()
         file("build/customReports/jacoco/test/jacocoTestReport.csv").exists()
     }
@@ -140,7 +141,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds('test', 'jacocoTestReport')
 
         then:
-        htmlReport("build/${customReportDirectory}/test/html").totalCoverage() == 100
+        htmlReport("build/${customReportDirectory}/test/html").totalCoverage() == 71
         file("build/${customReportDirectory}/test/jacocoTestReport.xml").exists()
         file("build/${customReportDirectory}/test/jacocoTestReport.csv").exists()
     }
@@ -198,7 +199,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedTasks.contains(":jacocoTestReport")
-        htmlReport().totalCoverage() == 100
+        htmlReport().totalCoverage() == 71
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -250,7 +251,7 @@ public class ThingTest {
         ":test" in nonSkippedTasks
         ":otherTests" in nonSkippedTasks
         file("build/jacoco/jacocoMerge.exec").exists()
-        htmlReport("build/reports/jacoco/mergedReport/html").totalCoverage() == 65
+        htmlReport("build/reports/jacoco/mergedReport/html").totalCoverage() == 58
     }
 
     @Issue("GRADLE-2917")
@@ -262,13 +263,6 @@ public class ThingTest {
 
     private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {
         return new JacocoReportFixture(file(basedir))
-    }
-
-    private void createTestFiles() {
-        file("src/main/java/org/gradle/Class1.java") <<
-                "package org.gradle; public class Class1 { public boolean isFoo(Object arg) { return true; } }"
-        file("src/test/java/org/gradle/Class1Test.java") <<
-                "package org.gradle; import org.junit.Test; public class Class1Test { @Test public void someTest() { new Class1().isFoo(\"test\"); } }"
     }
 }
 

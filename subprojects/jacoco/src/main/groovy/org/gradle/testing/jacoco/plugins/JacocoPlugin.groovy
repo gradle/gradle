@@ -15,6 +15,7 @@
  */
 package org.gradle.testing.jacoco.plugins
 
+import com.google.common.base.Preconditions
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -26,6 +27,7 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.testing.jacoco.tasks.coverage.JacocoCheckCoverage
 import org.gradle.testing.jacoco.tasks.JacocoBase
 import org.gradle.testing.jacoco.tasks.JacocoMerge
 import org.gradle.testing.jacoco.tasks.JacocoReport
@@ -67,7 +69,10 @@ class JacocoPlugin implements Plugin<ProjectInternal> {
         applyToDefaultTasks(extension)
         configureDefaultOutputPathForJacocoMerge()
         configureJacocoReportDefaults(project, extension)
-        addDefaultReportTasks(extension)
+        def jacocoReportTasks = addDefaultReportTasks(extension)
+        jacocoReportTasks.each { reportTask ->
+            configureCheckCoverageTasks(reportTask, extension)
+        }
     }
 
     private void configureJacocoReportDefaults(Project project, extension) {
@@ -151,11 +156,13 @@ class JacocoPlugin implements Plugin<ProjectInternal> {
      * Adds report tasks for specific default test tasks.
      * @param extension the extension describing the test task names
      */
-    private void addDefaultReportTasks(JacocoPluginExtension extension) {
+    private List<JacocoReport> addDefaultReportTasks(JacocoPluginExtension extension) {
+        def createdReportTasks = []
         this.project.plugins.withType(JavaPlugin) {
             this.project.tasks.withType(Test) { task ->
                 if (task.name == JavaPlugin.TEST_TASK_NAME) {
                     JacocoReport reportTask = this.project.tasks.create("jacoco${task.name.capitalize()}Report", JacocoReport)
+                    createdReportTasks.add(reportTask)
                     reportTask.executionData task
                     reportTask.sourceSets(this.project.sourceSets.main)
                     reportTask.conventionMapping.with {
@@ -173,5 +180,25 @@ class JacocoPlugin implements Plugin<ProjectInternal> {
                 }
             }
         }
+
+        createdReportTasks
+    }
+
+    /**
+     * Creates a new {@link JacocoCheckCoverage} task that depends on the given {@code reportTask} and is itself is a dependency for the 'check' task.
+     * @param reportTask the task for which coverage thresholds should be enforced
+     * @param extension the extension specifying the coverage thresholds for the {@link JacocoCheckCoverage} task
+     */
+    private void configureCheckCoverageTasks(JacocoReport reportTask, JacocoPluginExtension extension) {
+        JacocoCheckCoverage checkCoverage = project.tasks.create("${reportTask.name}CheckCoverage", JacocoCheckCoverage.class)
+        checkCoverage.dependsOn(reportTask)
+        project.tasks['check'].dependsOn(checkCoverage)
+        checkCoverage.doFirst({ task ->
+            if (!extension.coverageRules.isEmpty()) {
+                Preconditions.checkState(reportTask.reports.xml.isEnabled(), "Task ${checkCoverage.name} requires XML report in task ${reportTask.name}.")
+                File xmlReportFile = reportTask.reports.xml.getDestination()
+                checkCoverage.setCoverage(checkCoverage.extractCoverageFromReport(xmlReportFile.newInputStream()))
+            }
+        })
     }
 }

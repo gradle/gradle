@@ -17,6 +17,7 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.testing.jacoco.testutils.TestData
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Test
@@ -43,25 +44,18 @@ class JacocoVersionIntegTest extends MultiVersionIntegrationSpec {
             toolVersion = '$version'
         }
         """
-        createTestFiles();
+        TestData.createTestFiles(this)
 
         when:
         succeeds('test', 'jacocoTestReport')
 
         then:
         def report = htmlReport()
-        report.totalCoverage() == 100
+        report.totalCoverage() == 71
         report.jacocoVersion() == version
     }
 
     private JacocoReportFixture htmlReport(String basedir = "build/reports/jacoco/test/html") {
         return new JacocoReportFixture(file(basedir))
-    }
-
-    private void createTestFiles() {
-        file("src/main/java/org/gradle/Class1.java") <<
-                "package org.gradle; public class Class1 { public boolean isFoo(Object arg) { return true; } }"
-        file("src/test/java/org/gradle/Class1Test.java") <<
-                "package org.gradle; import org.junit.Test; public class Class1Test { @Test public void someTest() { new Class1().isFoo(\"test\"); } }"
     }
 }

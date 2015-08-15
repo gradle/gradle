@@ -65,6 +65,27 @@
             </tr>
         </table>
     </section>
+
+    <section>
+        <title>Enforcing minimum code coverage requirements</title>
+        <para>
+            The <literal>jacocoTestReport</literal> task generates coverage reports without enforcing minimum coverage
+            requirements. Conversely, the <literal>jacocoTestReportCheckCoverage</literal> task succeeds if and only if
+            the code coverage results satisfy a set of configurable minimum code coverage thresholds. The
+            <literal>jacocoTestReportCheckCoverage</literal> task is a dependency for the standard
+            <literal>check</literal> task; consequently, the <literal>build</literal> task can only succeed if the
+            coverage requirements are satisfied.
+
+            Code coverage requirements can be specified for a project as a whole, for individual files, and for
+            particular JaCoCo-specific types of coverage, e.g., lines covered or branches covered. The following example
+            describes the syntax.
+        </para>
+
+        <sample id="configJacoco" dir="testing/jacoco/quickstart" title="Enforcing minimum code coverage requirements">
+            <sourcefile file="build.gradle" snippet="jacoco-thresholds"/>
+        </sample>
+    </section>
+
     <section>
         <title>JaCoCo Report configuration</title>
         <para>The
