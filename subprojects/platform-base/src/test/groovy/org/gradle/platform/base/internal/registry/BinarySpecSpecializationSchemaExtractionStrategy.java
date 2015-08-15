@@ -33,7 +33,7 @@ import java.util.List;
 public class BinarySpecSpecializationSchemaExtractionStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
 
     protected BinarySpecSpecializationSchemaExtractionStrategy(ModelSchemaAspectExtractor aspectExtractor) {
-        super(aspectExtractor);
+        super(aspectExtractor, BinarySpecInternal.class);
     }
 
     @Override

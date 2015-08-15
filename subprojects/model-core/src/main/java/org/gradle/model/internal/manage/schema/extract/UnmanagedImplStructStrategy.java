@@ -60,6 +60,11 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
     }
 
     @Override
+    protected ModelProperty.StateManagementType determineStateManagementType(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getterContext) {
+        return ModelProperty.StateManagementType.UNMANAGED;
+    }
+
+    @Override
     protected void validateAllNecessaryMethodsHandled(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> allMethods, Set<Method> handledMethods) {
     }
 

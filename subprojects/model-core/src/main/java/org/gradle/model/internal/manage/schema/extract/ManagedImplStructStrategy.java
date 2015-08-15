@@ -53,7 +53,7 @@ public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtraction
     private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
 
     public ManagedImplStructStrategy(ModelSchemaAspectExtractor aspectExtractor) {
-        super(aspectExtractor);
+        super(aspectExtractor, null);
     }
 
     @Override

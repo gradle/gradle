@@ -31,7 +31,7 @@ public class TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy extends Man
     }
 
     public TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(Class<?> delegateType, ModelSchemaAspectExtractor aspectExtractor) {
-        super(aspectExtractor);
+        super(aspectExtractor, delegateType);
         this.delegateType = delegateType;
     }
 
@@ -40,4 +40,3 @@ public class TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy extends Man
         return new ModelManagedImplStructSchema<R>(type, properties, aspects, type.getConcreteClass(), delegateType, Functions.<NodeInitializer>constant(null));
     }
 }
-

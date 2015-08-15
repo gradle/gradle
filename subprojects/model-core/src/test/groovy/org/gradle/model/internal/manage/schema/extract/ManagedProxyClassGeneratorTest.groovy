@@ -21,6 +21,7 @@ import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.instance.ModelElementState
 import org.gradle.model.internal.manage.schema.ModelProperty
+import org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Ignore
@@ -28,6 +29,10 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.lang.reflect.Type
+
+import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.DELEGATED
+import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.MANAGED
+import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.UNMANAGED
 
 class ManagedProxyClassGeneratorTest extends Specification {
     static def generator = new ManagedProxyClassGenerator()
@@ -197,7 +202,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         state.set(_, _) >> { args ->
             data[args[0]] = args[1]
         }
-        def properties = [property(interfaceWithPrimitiveProperty, 'primitiveProperty', primitiveType, true, true)]
+        def properties = [property(interfaceWithPrimitiveProperty, 'primitiveProperty', primitiveType, MANAGED, true)]
         def proxy = generate(interfaceWithPrimitiveProperty, null, properties)
         def instance = proxy.newInstance(state)
 
@@ -237,10 +242,10 @@ class ManagedProxyClassGeneratorTest extends Specification {
         return generated
     }
 
-    static def property(Class<?> parentType, String name, Type type, boolean managed, boolean writable = true) {
+    private static def property(Class<?> parentType, String name, Type type, StateManagementType stateManagementType, boolean writable = true) {
         def getter = parentType.getMethod("get" + name.capitalize());
         def getterRef = new WeaklyTypeReferencingMethod(ModelType.of(parentType), ModelType.of(type), getter)
-        return ModelProperty.of(ModelType.of(type), name, managed, writable, Collections.emptySet(), getterRef, Collections.emptyMap(), Collections.emptyMap())
+        return ModelProperty.of(ModelType.of(type), name, stateManagementType, writable, Collections.emptySet(), getterRef, Collections.emptyMap(), Collections.emptyMap())
     }
 
     static interface SomeType {
@@ -288,15 +293,15 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     static Map<Class<?>, Collection<ModelProperty<?>>> managedProperties = ImmutableMap.builder()
         .put(SomeType, [
-            property(SomeType, "value", Integer, true),
-            property(SomeType, "readOnly", String, true, false)
+            property(SomeType, "value", Integer, MANAGED),
+            property(SomeType, "readOnly", String, UNMANAGED)
         ])
         .put(PublicUnmanagedType, [
-            property(PublicUnmanagedType, "unmanagedValue", String, false)
+            property(PublicUnmanagedType, "unmanagedValue", String, UNMANAGED)
         ])
         .put(ManagedSubType, [
-            property(ManagedSubType, "unmanagedValue", String, false),
-            property(ManagedSubType, "managedValue", String, true)
+            property(ManagedSubType, "unmanagedValue", String, DELEGATED),
+            property(ManagedSubType, "managedValue", String, MANAGED)
         ])
         .build()
 }

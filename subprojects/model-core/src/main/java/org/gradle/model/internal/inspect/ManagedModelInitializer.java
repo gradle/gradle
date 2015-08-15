@@ -53,7 +53,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
             // Only initialize "name" child node if the schema has such a managed property.
             // This is not the case for a managed subtype of an unmanaged type that implements Named.
             ModelProperty<?> nameProperty = modelSchema.getProperty("name");
-            if (nameProperty != null && nameProperty.isManaged()) {
+            if (nameProperty != null && nameProperty.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
                 MutableModelNode nameLink = modelNode.getLink("name");
                 if (nameLink == null) {
                     throw new IllegalStateException("expected name node for " + modelNode.getPath());
@@ -70,7 +70,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
 
     private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property) {
         // No need to create nodes for unmanaged properties
-        if (!property.isManaged()) {
+        if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
             return;
         }
 

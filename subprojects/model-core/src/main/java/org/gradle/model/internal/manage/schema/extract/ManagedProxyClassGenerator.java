@@ -22,7 +22,6 @@ import com.google.common.collect.Iterables;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.reflect.ClassInspector;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
@@ -32,9 +31,7 @@ import org.objectweb.asm.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     /*
@@ -125,7 +122,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             writeDelegateMethods(visitor, generatedType, delegateTypeClass);
         }
         writeGroovyMethods(visitor, managedTypeClass);
-        writeMutationMethods(visitor, generatedType, managedTypeClass, delegateTypeClass, properties);
+        writeMutationMethods(visitor, generatedType, managedTypeClass, properties);
         visitor.visitEnd();
     }
 
@@ -275,36 +272,33 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), CAN_CALL_SETTERS_FIELD_NAME, Type.BOOLEAN_TYPE.getDescriptor());
     }
 
-    private void writeMutationMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Class<?> delegateTypeClass, Collection<ModelProperty<?>> properties) {
-        Set<String> delegatePropertyNames;
-        if (delegateTypeClass != null) {
-            delegatePropertyNames = ClassInspector.inspect(delegateTypeClass).getPropertyNames();
-        } else {
-            delegatePropertyNames = Collections.emptySet();
-        }
+    private void writeMutationMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Collection<ModelProperty<?>> properties) {
         for (ModelProperty<?> property : properties) {
-            if (delegatePropertyNames.contains(property.getName())) {
-                continue;
-            }
-            String propertyName = property.getName();
-            Class<?> propertyTypeClass = property.getType().getConcreteClass();
+            switch (property.getStateManagementType()) {
+                case MANAGED:
+                    Class<?> propertyTypeClass = property.getType().getConcreteClass();
+                    writeGetter(visitor, generatedType, property.getName(), propertyTypeClass);
+                    if (property.isWritable()) {
+                        writeSetter(visitor, generatedType, property.getName(), propertyTypeClass);
+                    }
+                    break;
 
-            if (property.isManaged()) {
-                writeGetter(visitor, generatedType, propertyName, propertyTypeClass);
-                if (property.isWritable()) {
-                    writeSetter(visitor, generatedType, propertyName, propertyTypeClass);
-                }
-            } else {
-                String getterName = getGetterName(propertyName);
-                Method getterMethod;
-                try {
-                    getterMethod = managedTypeClass.getMethod(getterName);
-                } catch (NoSuchMethodException e) {
-                    throw new IllegalStateException("Cannot find getter '" + getterName + "' on type " + managedTypeClass.getName(), e);
-                }
-                if (!Modifier.isFinal(getterMethod.getModifiers()) && !property.getName().equals("metaClass")) {
-                    writeNonAbstractMethodWrapper(visitor, generatedType, managedTypeClass, getterMethod);
-                }
+                case UNMANAGED:
+                    String getterName = getGetterName(property.getName());
+                    Method getterMethod;
+                    try {
+                        getterMethod = managedTypeClass.getMethod(getterName);
+                    } catch (NoSuchMethodException e) {
+                        throw new IllegalStateException("Cannot find getter '" + getterName + "' on type " + managedTypeClass.getName(), e);
+                    }
+                    if (!Modifier.isFinal(getterMethod.getModifiers()) && !property.getName().equals("metaClass")) {
+                        writeNonAbstractMethodWrapper(visitor, generatedType, managedTypeClass, getterMethod);
+                    }
+                    break;
+
+                case DELEGATED:
+                    // We'll handle all delegated methods (not just properties) separately
+                    break;
             }
         }
     }

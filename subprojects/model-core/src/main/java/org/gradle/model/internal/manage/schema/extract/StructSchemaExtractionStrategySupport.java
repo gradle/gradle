@@ -35,7 +35,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.getOverloadedMethods;
-import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.isMethodDeclaredInManagedType;
 
 public abstract class StructSchemaExtractionStrategySupport implements ModelSchemaExtractionStrategy {
 
@@ -88,7 +87,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             }
 
             if (methodName.startsWith("get") && !methodName.equals("get")) {
-                PropertyAccessorExtractionContext getterContext = new PropertyAccessorExtractionContext(methods, isGetterDefinedInManagedType(extractionContext, methodName, methods));
+                PropertyAccessorExtractionContext getterContext = new PropertyAccessorExtractionContext(methods);
 
                 Character getterPropertyNameFirstChar = methodName.charAt(3);
                 if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
@@ -132,7 +131,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             return null;
         }
 
-        boolean managedProperty = getterContext.isDeclaredInManagedType() && getterContext.isDeclaredAsAbstract();
+        ModelProperty.StateManagementType stateManagementType = determineStateManagementType(extractionContext, getterContext);
         ModelType<R> returnType = ModelType.returnType(mostSpecificGetter);
 
         boolean writable = setterContext != null;
@@ -155,7 +154,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         }));
 
         WeaklyTypeReferencingMethod<?, R> getterRef = WeaklyTypeReferencingMethod.of(extractionContext.getType(), returnType, getterContext.getMostSpecificDeclaration());
-        return ModelProperty.of(returnType, propertyName, managedProperty, writable, declaringClasses, getterRef, annotations, setterAnnotations);
+        return ModelProperty.of(returnType, propertyName, stateManagementType, writable, declaringClasses, getterRef, annotations, setterAnnotations);
     }
 
     private Map<Class<? extends Annotation>, Annotation> getAnnotations(Collection<Method> methods) {
@@ -171,10 +170,6 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         return annotations;
     }
 
-    protected boolean isGetterDefinedInManagedType(ModelSchemaExtractionContext<?> extractionContext, String methodName, Collection<Method> getterMethods) {
-        return isMethodDeclaredInManagedType(getterMethods);
-    }
-
     protected abstract void validateAllNecessaryMethodsHandled(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> allMethods, final Set<Method> handledMethods);
 
     protected abstract <R> void validateTypeHierarchy(ModelSchemaExtractionContext<R> extractionContext, ModelType<R> type);
@@ -182,6 +177,8 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
     protected abstract void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getter, String message);
 
     protected abstract void handleOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> overloadedMethods);
+
+    protected abstract ModelProperty.StateManagementType determineStateManagementType(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getterContext);
 
     protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects);
 

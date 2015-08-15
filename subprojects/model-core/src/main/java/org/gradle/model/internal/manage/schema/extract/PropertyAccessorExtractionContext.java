@@ -27,13 +27,9 @@ public class PropertyAccessorExtractionContext {
     private final boolean declaredAsAbstract;
 
     public PropertyAccessorExtractionContext(Collection<Method> declaringMethods) {
-        this(declaringMethods, ModelSchemaUtils.isMethodDeclaredInManagedType(declaringMethods));
-    }
-
-    public PropertyAccessorExtractionContext(Collection<Method> declaringMethods, boolean declaredInManagedType) {
         this.declaringMethods = declaringMethods;
         this.mostSpecificDeclaration = ModelSchemaUtils.findMostSpecificMethod(declaringMethods);
-        this.declaredInManagedType = declaredInManagedType;
+        this.declaredInManagedType = ModelSchemaUtils.isMethodDeclaredInManagedType(declaringMethods);
         this.declaredAsAbstract = Modifier.isAbstract(this.mostSpecificDeclaration.getModifiers());
     }
 

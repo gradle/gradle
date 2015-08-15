@@ -38,10 +38,13 @@ import java.util.Set;
 
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*;
 
-abstract public class ManagedImplStructSchemaExtractionStrategySupport extends StructSchemaExtractionStrategySupport {
+public abstract class ManagedImplStructSchemaExtractionStrategySupport extends StructSchemaExtractionStrategySupport {
 
-    protected ManagedImplStructSchemaExtractionStrategySupport(ModelSchemaAspectExtractor aspectExtractor) {
+    private final Class<?> delegateType;
+
+    protected ManagedImplStructSchemaExtractionStrategySupport(ModelSchemaAspectExtractor aspectExtractor, Class<?> delegateType) {
         super(aspectExtractor);
+        this.delegateType = delegateType;
     }
 
     @Override
@@ -70,12 +73,35 @@ abstract public class ManagedImplStructSchemaExtractionStrategySupport extends S
     }
 
     @Override
-    @SuppressWarnings("SimplifiableIfStatement")
-    protected boolean isGetterDefinedInManagedType(ModelSchemaExtractionContext<?> extractionContext, String methodName, Collection<Method> getterMethods) {
-        if (methodName.equals("getName") && Named.class.isAssignableFrom(extractionContext.getType().getRawClass())) {
-            return true;
+    protected ModelProperty.StateManagementType determineStateManagementType(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getterContext) {
+        // Named.getName() needs to be handled specially
+        if (getterContext.getMostSpecificDeclaration().getName().equals("getName")
+            && Named.class.isAssignableFrom(extractionContext.getType().getRawClass())) {
+            if (delegateType == null) {
+                return ModelProperty.StateManagementType.MANAGED;
+            }
+            boolean delegateHasGetNameMethod = Iterables.any(Arrays.asList(delegateType.getMethods()), new Predicate<Method>() {
+                @Override
+                public boolean apply(Method method) {
+                    return method.getName().equals("getName");
+                }
+            });
+            if (delegateHasGetNameMethod) {
+                return ModelProperty.StateManagementType.DELEGATED;
+            } else {
+                return ModelProperty.StateManagementType.MANAGED;
+            }
         }
-        return super.isGetterDefinedInManagedType(extractionContext, methodName, getterMethods);
+
+        if (getterContext.isDeclaredInManagedType()) {
+            if (getterContext.isDeclaredAsAbstract()) {
+                return ModelProperty.StateManagementType.MANAGED;
+            } else {
+                return ModelProperty.StateManagementType.UNMANAGED;
+            }
+        } else {
+            return ModelProperty.StateManagementType.DELEGATED;
+        }
     }
 
     @Override
@@ -145,7 +171,7 @@ abstract public class ManagedImplStructSchemaExtractionStrategySupport extends S
             @Override
             public void execute(ModelSchemaExtractionContext<P> propertyExtractionContext) {
                 // Do not validate unmanaged properties
-                if (!property.isManaged()) {
+                if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
                     return;
                 }
 

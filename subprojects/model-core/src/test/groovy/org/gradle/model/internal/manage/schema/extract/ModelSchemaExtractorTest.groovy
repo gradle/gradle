@@ -34,6 +34,10 @@ import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.util.regex.Pattern
 
+import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.DELEGATED
+import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.MANAGED
+import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.UNMANAGED
+
 @SuppressWarnings("GroovyPointlessBoolean")
 class ModelSchemaExtractorTest extends Specification {
 
@@ -1015,12 +1019,12 @@ interface Managed${typeName} {
         schema.getProperty("unmanagedProp").annotations*.value() == ["unmanaged"]
         schema.getProperty("unmanagedProp").setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
         schema.getProperty("unmanagedProp").setterAnnotations.values()*.value() == ["unmanagedSetter"]
-        schema.getProperty("unmanagedProp").isManaged() == false
+        schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedProp").isWritable() == true
 
         schema.getProperty("unmanagedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation]
         schema.getProperty("unmanagedCalculatedProp").annotations*.value() == ["unmanagedCalculated"]
-        schema.getProperty("unmanagedCalculatedProp").isManaged() == false
+        schema.getProperty("unmanagedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedCalculatedProp").isWritable() == false
     }
 
@@ -1055,24 +1059,24 @@ interface Managed${typeName} {
         schema.getProperty("unmanagedProp").annotations*.value() == ["unmanaged"]
         schema.getProperty("unmanagedProp").setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
         schema.getProperty("unmanagedProp").setterAnnotations.values()*.value() == ["unmanagedSetter"]
-        schema.getProperty("unmanagedProp").isManaged() == false
+        schema.getProperty("unmanagedProp").stateManagementType == DELEGATED
         schema.getProperty("unmanagedProp").isWritable() == true
 
         schema.getProperty("unmanagedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation]
         schema.getProperty("unmanagedCalculatedProp").annotations*.value() == ["unmanagedCalculated"]
-        schema.getProperty("unmanagedCalculatedProp").isManaged() == false
+        schema.getProperty("unmanagedCalculatedProp").stateManagementType == DELEGATED
         schema.getProperty("unmanagedCalculatedProp").isWritable() == false
 
         schema.getProperty("managedProp").annotations*.annotationType() == [CustomTestAnnotation]
         schema.getProperty("managedProp").annotations*.value() == ["managed"]
         schema.getProperty("managedProp").setterAnnotations.values()*.annotationType() == [CustomTestAnnotation]
         schema.getProperty("managedProp").setterAnnotations.values()*.value() == ["managedSetter"]
-        schema.getProperty("managedProp").isManaged() == true
+        schema.getProperty("managedProp").stateManagementType == MANAGED
         schema.getProperty("managedProp").isWritable() == true
 
         schema.getProperty("managedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation]
         schema.getProperty("managedCalculatedProp").annotations*.value() == ["managedCalculated"]
-        schema.getProperty("managedCalculatedProp").isManaged() == false
+        schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
     }
 
@@ -1100,12 +1104,12 @@ interface Managed${typeName} {
 
         schema.getProperty("managedProp").annotations*.annotationType() == [CustomTestAnnotation]
         schema.getProperty("managedProp").annotations*.value() == ["managed"]
-        schema.getProperty("managedProp").isManaged() == true
+        schema.getProperty("managedProp").stateManagementType == MANAGED
         schema.getProperty("managedProp").isWritable() == true
 
         schema.getProperty("managedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation]
         schema.getProperty("managedCalculatedProp").annotations*.value() == ["managedCalculated"]
-        schema.getProperty("managedCalculatedProp").isManaged() == false
+        schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
     }
 
@@ -1131,12 +1135,12 @@ interface Managed${typeName} {
 
         schema.getProperty("managedProp").annotations*.annotationType() == [CustomTestAnnotation, CustomTestAnnotation2]
         schema.getProperty("managedProp").getAnnotation(CustomTestAnnotation).value() == "overriddenManaged"
-        schema.getProperty("managedProp").isManaged() == true
+        schema.getProperty("managedProp").stateManagementType == MANAGED
         schema.getProperty("managedProp").isWritable() == true
 
         schema.getProperty("managedCalculatedProp").annotations*.annotationType() == [CustomTestAnnotation2, CustomTestAnnotation]
         schema.getProperty("managedCalculatedProp").getAnnotation(CustomTestAnnotation).value() == "managedCalculated"
-        schema.getProperty("managedCalculatedProp").isManaged() == false
+        schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
     }
 

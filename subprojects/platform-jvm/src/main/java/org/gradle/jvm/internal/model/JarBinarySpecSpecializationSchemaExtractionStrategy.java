@@ -33,7 +33,7 @@ public class JarBinarySpecSpecializationSchemaExtractionStrategy extends Managed
 
     @Inject
     public JarBinarySpecSpecializationSchemaExtractionStrategy(ModelSchemaAspectExtractor aspectExtractor) {
-        super(aspectExtractor);
+        super(aspectExtractor, JarBinarySpecInternal.class);
     }
 
     @Override
