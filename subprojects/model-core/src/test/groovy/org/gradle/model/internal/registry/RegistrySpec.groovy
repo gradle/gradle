@@ -44,13 +44,11 @@ class RegistrySpec extends Specification {
             binder
         }
 
-
         @Override
         Iterable<? extends ModelNodeInternal> getLinks() {
             return links
         }
 
-        @Override
         ModelNodeInternal addLink(ModelNodeInternal node) {
             links << node
             return node

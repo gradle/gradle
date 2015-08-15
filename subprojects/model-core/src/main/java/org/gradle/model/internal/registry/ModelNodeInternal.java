@@ -154,8 +154,6 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     public abstract Iterable<? extends ModelNodeInternal> getLinks();
 
-    public abstract ModelNodeInternal addLink(ModelNodeInternal node);
-
     public void reset() {
         if (getState() != State.Known) {
             setState(State.Known);

@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.registry
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.internal.BiAction
@@ -251,7 +250,6 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize("foo", String) == "value"
     }
 
-    @NotYetImplemented
     def "input path can traverse a reference"() {
         given:
         registry.create("parent") { parentBuilder ->
@@ -276,6 +274,25 @@ class DefaultModelRegistryTest extends Specification {
         expect:
         // TODO - fix up the types
         registry.realize("foo", Object) == "value"
+    }
+
+    def "cannot change a reference after it has been self-closed"() {
+        given:
+        registry.createInstance("target", "value")
+        def target = registry.node("target")
+        registry.root.addReference(registry.creator("ref").unmanagedNode(String) { node ->
+            node.setTarget(target)
+        })
+        def ref = registry.atState("ref", ModelNode.State.SelfClosed)
+
+        when:
+        ref.setTarget(newTarget)
+
+        then:
+        IllegalStateException e = thrown()
+
+        where:
+        newTarget << [null, Stub(MutableModelNode)]
     }
 
     def "creator and mutators are invoked in order before element is closed"() {

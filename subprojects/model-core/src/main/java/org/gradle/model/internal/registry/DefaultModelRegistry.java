@@ -61,7 +61,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         ruleBindings = new RuleBindings(modelGraph);
     }
 
-    private static String toString(ModelRuleDescriptor descriptor) {
+    private static String describe(ModelRuleDescriptor descriptor) {
         StringBuilder stringBuilder = new StringBuilder();
         descriptor.describeTo(stringBuilder);
         return stringBuilder.toString();
@@ -74,7 +74,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         ModelNodeInternal root = modelGraph.getRoot();
-        registerNode(root, new ModelElementNode(toCreatorBinder(creator, ModelPath.ROOT), root));
+        root.addLink(creator);
         return this;
     }
 
@@ -84,51 +84,15 @@ public class DefaultModelRegistry implements ModelRegistry {
         return new CreatorRuleBinder(creator, subject, inputs, unboundRules);
     }
 
-    private ModelNodeInternal registerNode(ModelNodeInternal parent, ModelNodeInternal child) {
+    private ModelNodeInternal registerNode(ModelNodeInternal node) {
         if (reset) {
-            unboundRules.remove(child.getCreatorBinder());
-            return child;
+            unboundRules.remove(node.getCreatorBinder());
+            return node;
         }
-
-        ModelCreator creator = child.getCreatorBinder().getCreator();
-        ModelPath path = child.getPath();
 
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
 
-        ModelNodeInternal node = modelGraph.find(path);
-        if (node != null) {
-            if (node.getState() == Known) {
-                throw new DuplicateModelException(
-                    String.format(
-                        "Cannot create '%s' using creation rule '%s' as the rule '%s' is already registered to create this model element.",
-                        path,
-                        toString(creator.getDescriptor()),
-                        toString(node.getDescriptor())
-                    )
-                );
-            }
-            throw new DuplicateModelException(
-                String.format(
-                    "Cannot create '%s' using creation rule '%s' as the rule '%s' has already been used to create this model element.",
-                    path,
-                    toString(creator.getDescriptor()),
-                    toString(node.getDescriptor())
-                )
-            );
-        }
-        if (!parent.isMutable()) {
-            throw new IllegalStateException(
-                String.format(
-                    "Cannot create '%s' using creation rule '%s' as model element '%s' is no longer mutable.",
-                    path,
-                    toString(creator.getDescriptor()),
-                    parent.getPath()
-                )
-            );
-        }
-
-        node = parent.addLink(child);
         ruleBindings.add(node);
         modelGraph.add(node);
         ruleBindings.add(node.getCreatorBinder());
@@ -581,12 +545,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public ModelNodeInternal addLink(ModelNodeInternal node) {
-            links.put(node.getPath().getName(), node);
-            return node;
-        }
-
-        @Override
         public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
             ModelView<? extends T> modelView = getAdapter().asReadOnly(type, this, ruleDescriptor);
             if (modelView == null) {
@@ -842,18 +800,52 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void addReference(ModelCreator creator) {
-            if (!getPath().isDirectChild(creator.getPath())) {
-                throw new IllegalArgumentException(String.format("Reference element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
-            }
-            registerNode(this, new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT), this));
+            addNode(new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT), this), creator);
         }
 
         @Override
         public void addLink(ModelCreator creator) {
-            if (!getPath().isDirectChild(creator.getPath())) {
-                throw new IllegalArgumentException(String.format("Linked element creator has a path (%s) which is not a child of this node (%s).", creator.getPath(), getPath()));
+            addNode(new ModelElementNode(toCreatorBinder(creator, ModelPath.ROOT), this), creator);
+        }
+
+        private void addNode(ModelNodeInternal child, ModelCreator creator) {
+            ModelPath childPath = child.getPath();
+            if (!getPath().isDirectChild(childPath)) {
+                throw new IllegalArgumentException(String.format("Element creator has a path (%s) which is not a child of this node (%s).", childPath, getPath()));
             }
-            registerNode(this, new ModelElementNode(toCreatorBinder(creator, ModelPath.ROOT), this));
+            ModelNodeInternal currentChild = links.get(childPath.getName());
+            if (currentChild != null && !reset) {
+                if (currentChild.getState() == Known) {
+                    throw new DuplicateModelException(
+                        String.format(
+                            "Cannot create '%s' using creation rule '%s' as the rule '%s' is already registered to create this model element.",
+                            childPath,
+                            describe(creator.getDescriptor()),
+                            describe(currentChild.getDescriptor())
+                        )
+                    );
+                }
+                throw new DuplicateModelException(
+                    String.format(
+                        "Cannot create '%s' using creation rule '%s' as the rule '%s' has already been used to create this model element.",
+                        childPath,
+                        describe(creator.getDescriptor()),
+                        describe(currentChild.getDescriptor())
+                    )
+                );
+            }
+            if (!isMutable()) {
+                throw new IllegalStateException(
+                    String.format(
+                        "Cannot create '%s' using creation rule '%s' as model element '%s' is no longer mutable.",
+                        childPath,
+                        describe(creator.getDescriptor()),
+                        getPath()
+                    )
+                );
+            }
+            links.put(child.getPath().getName(), child);
+            registerNode(child);
         }
 
         @Override
@@ -1208,8 +1200,23 @@ public class DefaultModelRegistry implements ModelRegistry {
                 return true;
             }
 
-            // Self close parent in order to discover its children
+            // Self close parent in order to discover its children, or its target in the case of a reference
             dependencies.add(graph.nodeAtState(new NodeAtState(getPath().getParent(), SelfClosed)));
+            if (parent instanceof ModelReferenceNode) {
+                // Rough implementation to get something to work
+                ModelReferenceNode parentReference = (ModelReferenceNode) parent;
+                ModelCreator creator = ModelCreators.of(getPath())
+                        .descriptor(parent.getDescriptor())
+                        .withProjection(UnmanagedModelProjection.of(Object.class))
+                        .build();
+                ModelReferenceNode childNode = new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT), parentReference);
+                ModelNodeInternal parentTarget = parentReference.getTarget();
+                if (parentTarget != null) {
+                    childNode.setTarget(parentTarget.getLink(getPath().getName()));
+                }
+                registerNode(childNode);
+            }
+
             return true;
         }
     }

@@ -41,6 +41,9 @@ class ModelReferenceNode extends ModelNodeInternal {
 
     @Override
     public void setTarget(ModelNode target) {
+        if (!isMutable()) {
+            throw new IllegalStateException(String.format("Cannot set target for model element '%s' as this element is not mutable.", getPath()));
+        }
         this.target = (ModelNodeInternal) target;
     }
 
@@ -64,12 +67,6 @@ class ModelReferenceNode extends ModelNodeInternal {
         } else {
             return new ModelViewWrapper<T>(getPath(), target.asReadOnly(type, ruleDescriptor));
         }
-    }
-
-    @Override
-    public ModelNodeInternal addLink(ModelNodeInternal node) {
-//        throw new UnsupportedOperationException();
-        return node;
     }
 
     @Override
