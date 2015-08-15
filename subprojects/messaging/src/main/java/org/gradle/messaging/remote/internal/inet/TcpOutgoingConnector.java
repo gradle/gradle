@@ -26,11 +26,13 @@ import org.slf4j.LoggerFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 
 public class TcpOutgoingConnector implements OutgoingConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpOutgoingConnector.class);
+    private static final int CONNECT_TIMEOUT = 10000;
 
     public ConnectCompletion connect(Address destinationAddress) throws ConnectException {
         if (!(destinationAddress instanceof InetEndpoint)) {
@@ -50,9 +52,14 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                 LOGGER.debug("Trying to connect to address {}.", candidate);
                 SocketChannel socketChannel;
                 try {
-                    socketChannel = SocketChannel.open(new InetSocketAddress(candidate, address.getPort()));
+                    socketChannel = SocketChannel.open();
+                    socketChannel.socket().connect(new InetSocketAddress(candidate, address.getPort()), CONNECT_TIMEOUT);
                 } catch (SocketException e) {
                     LOGGER.debug("Cannot connect to address {}, skipping.", candidate);
+                    lastFailure = e;
+                    continue;
+                } catch (SocketTimeoutException e) {
+                    LOGGER.debug("Timeout connecting to address {}, skipping.", candidate);
                     lastFailure = e;
                     continue;
                 }
