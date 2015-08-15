@@ -101,7 +101,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
 	 *
 	 * Example: minimumPriority = 3
 	 */
-	int minimumWarningLevel
+	int minimumPriority
 
     /**
      * Whether or not to write PMD results to {@code System.out}.
@@ -140,8 +140,8 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
                 setRuleSets(["java-basic"])
             }
         }
-        if (0 != getMinimumWarningLevel()) {
-            antPmdArgs["minimumPriority"] = getMinimumWarningLevel()
+        if (0 != getMinimumPriority()) {
+            antPmdArgs["minimumPriority"] = getMinimumPriority()
         }
 
         antBuilder.withClasspath(getPmdClasspath()).execute { a ->

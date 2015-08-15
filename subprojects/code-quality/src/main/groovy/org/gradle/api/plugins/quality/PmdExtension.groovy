@@ -50,9 +50,9 @@ class PmdExtension extends CodeQualityExtension {
 	 *
 	 * Ignored if 0
 	 *
-	 * Example: minimumWarningLevel = 3
+	 * Example: minimumPriority = 3
 	 */
-	int minimumWarningLevel
+	int minimumPriority
 
     /**
      * Sets the target jdk used with pmd.
