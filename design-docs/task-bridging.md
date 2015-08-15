@@ -8,6 +8,47 @@ While the patterns here may be applicable to other types of bridged things, this
 
 # Stories
 
+## User configures a non-rule based task to depend on, by type, rule based tasks.
+A build author should be able to reliably depend on rule based tasks by using the `tasks.withType(..)` construct.
+
+e.g.
+
+```groovy
+class Rules extends RuleSource {
+    @Mutate
+    void addTasks(ModelMap<Task> tasks) {
+        tasks.create("climbTask", ClimbTask) {}
+    }
+}
+apply type: Rules
+
+task customTask << { }
+customTask.dependsOn tasks.withType(ClimbTask)
+```
+
+### Implementation
+Realise, in or before the `afterEvaluate` lifecycle phase, all rule source tasks which have been depended on by type.
+Realise in this context means realising the model nodes of task of those types along with all child nodes.
+  
+### Test cases
+
+- Happy path as per the example above.
+- A non rule source task can depend on multiple rule source tasks of type `ClimbTask`
+- A non rule source task can depend on one or more tasks of type `ClimbTask` created via both rule sources and the traditional task container.
+- Using various ways of addressing the task which depends on tasks of type `ClimbTask`
+    - `tasks.customTask.dependsOn tasks.withType(ClimbTask)`
+    - `project.tasks.customTask.dependsOn tasks.withType(ClimbTask)`
+    - `tasks.getByPath(":customTask").dependsOn tasks.withType(ClimbTask)`
+- Only rule source tasks of type `ClimbTask` are realised given rule source tasks of other types exist.
+- A non rule source task in a parent project can depend one or more rule source tasks of type `ClimbTask`
+
+
+### Open Questions:
+- Should we reach across projects i.e. `project(":projectA").tasks['customTask'].dependsOn tasks.withType(ClimbTask)` where `ClimbTask` is a rule
+ source task added by 'projectB'
+
+
+
 ## User configures rule based task in build script directly
 
 Tasks created via rules should be retrievable from the task container by name/path in the same manner that non rules tasks are.
