@@ -26,6 +26,7 @@ import org.gradle.api.Named;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
+import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
@@ -40,17 +41,26 @@ import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*
 
 public abstract class ManagedImplStructSchemaExtractionStrategySupport extends StructSchemaExtractionStrategySupport {
 
+    private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
+
+    private final Class<?> implementedInterface;
     private final Class<?> delegateType;
 
-    protected ManagedImplStructSchemaExtractionStrategySupport(ModelSchemaAspectExtractor aspectExtractor, Class<?> delegateType) {
+    protected ManagedImplStructSchemaExtractionStrategySupport(ModelSchemaAspectExtractor aspectExtractor, Class<?> delegateType, Class<?> implementedInterface) {
         super(aspectExtractor);
+        this.implementedInterface = implementedInterface;
         this.delegateType = delegateType;
     }
 
     @Override
+    @SuppressWarnings("SimplifiableIfStatement")
     protected boolean isTarget(ModelType<?> type) {
-        // Every managed class is a struct that hasn't been handled before
-        return type.getRawClass().isAnnotationPresent(Managed.class);
+        if (!type.getRawClass().isAnnotationPresent(Managed.class)) {
+            return false;
+        }
+        return implementedInterface == null
+            || (!type.getRawClass().equals(implementedInterface)
+                && implementedInterface.isAssignableFrom(type.getRawClass()));
     }
 
     @Override
@@ -103,6 +113,19 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
             return ModelProperty.StateManagementType.DELEGATED;
         }
     }
+
+    @Override
+    protected <R> ModelManagedImplStructSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
+        Class<? extends R> implClass = classGenerator.generate(type.getConcreteClass(), delegateType, properties);
+        return new ModelManagedImplStructSchema<R>(type, properties, aspects, implClass, delegateType, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
+            @Override
+            public NodeInitializer apply(ModelManagedImplStructSchema<R> schema) {
+                return createNodeInitializer(schema, store);
+            }
+        });
+    }
+
+    protected abstract <R> NodeInitializer createNodeInitializer(ModelManagedImplStructSchema<R> schema, ModelSchemaStore store);
 
     @Override
     protected void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getter, String message) {

@@ -16,14 +16,15 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.inspect.ManagedModelInitializer;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
-import org.gradle.model.internal.manage.schema.*;
+import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
@@ -50,21 +51,13 @@ public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtraction
         }
     };
 
-    private final ManagedProxyClassGenerator classGenerator = new ManagedProxyClassGenerator();
-
     public ManagedImplStructStrategy(ModelSchemaAspectExtractor aspectExtractor) {
-        super(aspectExtractor, null);
+        super(aspectExtractor, null, null);
     }
 
     @Override
-    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
-        Class<? extends R> implClass = classGenerator.generate(type.getConcreteClass(), properties);
-        final ModelManagedImplStructSchema<R> schema = new ModelManagedImplStructSchema<R>(type, properties, aspects, implClass, null, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
-            @Override
-            public NodeInitializer apply(ModelManagedImplStructSchema<R> schema) {
-                return new ManagedModelInitializer<R>(schema, store);
-            }
-        });
+    protected <R> ModelManagedImplStructSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
+        final ModelManagedImplStructSchema<R> schema = super.createSchema(extractionContext, store, type, properties, aspects);
         extractionContext.addValidator(new Action<ModelSchemaExtractionContext<R>>() {
             @Override
             public void execute(ModelSchemaExtractionContext<R> validatorModelSchemaExtractionContext) {
@@ -72,6 +65,11 @@ public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtraction
             }
         });
         return schema;
+    }
+
+    @Override
+    protected <R> NodeInitializer createNodeInitializer(ModelManagedImplStructSchema<R> schema, ModelSchemaStore store) {
+        return new ManagedModelInitializer<R>(schema, store);
     }
 
     private <R> void ensureCanBeInstantiated(ModelSchemaExtractionContext<R> extractionContext, ModelManagedImplStructSchema<R> schema) {

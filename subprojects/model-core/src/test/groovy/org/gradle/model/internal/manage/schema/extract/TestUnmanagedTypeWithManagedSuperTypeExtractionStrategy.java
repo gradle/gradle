@@ -16,27 +16,21 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Functions;
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.manage.schema.*;
-import org.gradle.model.internal.type.ModelType;
-
-import java.util.List;
+import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 public class TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
-    private final Class<?> delegateType;
-
     public TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(Class<?> delegateType) {
         this(delegateType, new ModelSchemaAspectExtractor());
     }
 
     public TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(Class<?> delegateType, ModelSchemaAspectExtractor aspectExtractor) {
-        super(aspectExtractor, delegateType);
-        this.delegateType = delegateType;
+        super(aspectExtractor, delegateType, delegateType);
     }
 
     @Override
-    protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, List<ModelProperty<?>> properties, List<ModelSchemaAspect> aspects) {
-        return new ModelManagedImplStructSchema<R>(type, properties, aspects, type.getConcreteClass(), delegateType, Functions.<NodeInitializer>constant(null));
+    protected <R> NodeInitializer createNodeInitializer(ModelManagedImplStructSchema<R> schema, ModelSchemaStore store) {
+        return null;
     }
 }

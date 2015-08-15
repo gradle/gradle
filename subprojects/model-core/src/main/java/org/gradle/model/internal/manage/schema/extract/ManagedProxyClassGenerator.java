@@ -78,10 +78,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
      * setters</li> <li>provide a `toString()` implementation</li> <li>mix-in implementation of {@link ManagedInstance}</li> <li>provide a constructor that accepts a {@link ModelElementState}, which
      * will be used to implement the above.</li> </ul>
      */
-    public <T> Class<? extends T> generate(Class<T> managedTypeClass, Collection<ModelProperty<?>> properties) {
-        return generate(managedTypeClass, null, properties);
-    }
-
     public <T, M extends T, D extends T> Class<? extends M> generate(Class<M> managedTypeClass, Class<D> delegateType, Collection<ModelProperty<?>> properties) {
         if (delegateType != null && !delegateType.isInterface()) {
             throw new IllegalArgumentException("Delegate type must be null or an interface");
