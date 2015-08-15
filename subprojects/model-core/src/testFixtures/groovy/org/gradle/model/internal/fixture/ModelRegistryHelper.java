@@ -117,10 +117,6 @@ public class ModelRegistryHelper implements ModelRegistry {
         return modelRegistry.realizeNode(path);
     }
 
-    public ModelNode realizeNode(String path) {
-        return realizeNode(ModelPath.path(path));
-    }
-
     @Override
     public void remove(ModelPath path) {
         modelRegistry.remove(path);
@@ -332,8 +328,8 @@ public class ModelRegistryHelper implements ModelRegistry {
         return get(path.toString());
     }
 
-    public void realize(String path) {
-        modelRegistry.realize(nonNullValidatedPath(path), ModelType.UNTYPED);
+    public Object realize(String path) {
+        return modelRegistry.realize(nonNullValidatedPath(path), ModelType.UNTYPED);
     }
 
     public <T> T realize(String path, Class<T> type) {

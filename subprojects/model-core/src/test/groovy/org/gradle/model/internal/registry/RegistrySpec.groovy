@@ -186,10 +186,6 @@ class RegistrySpec extends Specification {
 
         }
 
-        @Override
-        void realize() {
-
-        }
 
         @Override
         def <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
