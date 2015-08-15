@@ -83,16 +83,16 @@ public class RoutesCompile extends SourceTask {
     }
 
     /**
-     * Specifies the additional imports of the Play Routes compiler.
+     * Returns the additional imports of the Play Routes compiler.
+     *
+     * @return The additional imports.
      */
     public List<String> getAdditionalImports() {
         return additionalImports;
     }
 
     /**
-     * Returns the additional imports of the Play Routes compiler.
-     *
-     * @return The additional imports.
+     * Specifies the additional imports of the Play Routes compiler.
      */
     public void setAdditionalImports(List<String> additionalImports) {
         this.additionalImports.addAll(additionalImports);
@@ -149,7 +149,6 @@ public class RoutesCompile extends SourceTask {
 
     /**
      * Sets whether or not the reverse router should be namespaced.
-     * @param namespaceReverseRouter
      */
     public void setNamespaceReverseRouter(boolean namespaceReverseRouter) {
         this.namespaceReverseRouter = namespaceReverseRouter;
@@ -164,7 +163,6 @@ public class RoutesCompile extends SourceTask {
 
     /**
      * Sets whether or not a reverse router should be generated.
-     * @param generateReverseRoutes
      */
     public void setGenerateReverseRoutes(boolean generateReverseRoutes) {
         this.generateReverseRoutes = generateReverseRoutes;
