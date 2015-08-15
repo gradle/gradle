@@ -63,7 +63,7 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         )
 
         and:
-        new JarTestFixture(platformAware.dir.file("server/build/jars/mainJar/main.jar")).hasDescendants(
+        new JarTestFixture(platformAware.dir.file("server/build/jars/java6MainJar/main.jar")).hasDescendants(
             "org/gradle/Server.class"
         )
     }

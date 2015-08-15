@@ -264,8 +264,8 @@
             </para>
             <para>The <literal>targetPlatform</literal> DSL defines which platforms a library should be built against:</para>
             <sample id="newJavaTargetPlatforms" dir="newJavaPlugin/targetplatforms" title="Declaring target platforms">
-                <sourcefile file="build.gradle" snippet="declare-target-platforms"/>
-                <output args=":build" ignoreExtraLines="true"/>
+                <sourcefile file="core/build.gradle" snippet="declare-target-platforms"/>
+                <output args=":core:build" ignoreExtraLines="true"/>
             </sample>
             <para>When building the application, Gradle generates two binaries: <literal>java5MainJar</literal> and <literal>java6MainJar</literal>
                 corresponding to the target versions of Java. These artifacts will participate in dependency resolution as described
