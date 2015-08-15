@@ -139,13 +139,8 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             validateSetter(extractionContext, returnType, getterContext, setterContext);
         }
 
-        Map<Class<? extends Annotation>, Annotation> annotations = getAnnotations(getterContext.getDeclaringMethods());
-        Map<Class<? extends Annotation>, Annotation> setterAnnotations;
-        if (setterContext != null) {
-            setterAnnotations = getAnnotations(setterContext.getDeclaringMethods());
-        } else {
-            setterAnnotations = Collections.emptyMap();
-        }
+        Map<Class<? extends Annotation>, Annotation> getterAnnotations = getAnnotations(getterContext);
+        Map<Class<? extends Annotation>, Annotation> setterAnnotations = getAnnotations(setterContext);
 
         ImmutableSet<ModelType<?>> declaringClasses = ImmutableSet.copyOf(Iterables.transform(getterContext.getDeclaringMethods(), new Function<Method, ModelType<?>>() {
             public ModelType<?> apply(Method input) {
@@ -154,12 +149,15 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         }));
 
         WeaklyTypeReferencingMethod<?, R> getterRef = WeaklyTypeReferencingMethod.of(extractionContext.getType(), returnType, getterContext.getMostSpecificDeclaration());
-        return ModelProperty.of(returnType, propertyName, stateManagementType, writable, declaringClasses, getterRef, annotations, setterAnnotations);
+        return ModelProperty.of(returnType, propertyName, stateManagementType, writable, declaringClasses, getterRef, getterAnnotations, setterAnnotations);
     }
 
-    private Map<Class<? extends Annotation>, Annotation> getAnnotations(Collection<Method> methods) {
+    private Map<Class<? extends Annotation>, Annotation> getAnnotations(@Nullable PropertyAccessorExtractionContext propertyAccessorExtractionContext) {
+        if (propertyAccessorExtractionContext == null) {
+            return Collections.emptyMap();
+        }
         Map<Class<? extends Annotation>, Annotation> annotations = Maps.newLinkedHashMap();
-        for (Method method : methods) {
+        for (Method method : propertyAccessorExtractionContext.getDeclaringMethods()) {
             for (Annotation annotation : method.getDeclaredAnnotations()) {
                 // Make sure more specific annotation doesn't get overwritten with less specific one
                 if (!annotations.containsKey(annotation.annotationType())) {
