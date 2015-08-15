@@ -12,7 +12,7 @@ model {
             sources {
                 java {
                     dependencies {
-                        project ':' library 'main'
+                        project ':core' library 'main'
                     }
                 }
             }

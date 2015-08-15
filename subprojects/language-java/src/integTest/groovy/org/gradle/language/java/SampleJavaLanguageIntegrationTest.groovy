@@ -53,13 +53,18 @@ class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
         succeeds("assemble")
 
         then: "the Java 5 version of the jar doesn't include any Java 6 class"
-        new JarTestFixture(platformAware.dir.file("build/jars/java5MainJar/main.jar")).hasDescendants(
+        new JarTestFixture(platformAware.dir.file("core/build/jars/java5MainJar/main.jar")).hasDescendants(
             "org/gradle/Person.class", "org/gradle/resource.xml"
         )
 
         and: "the Java 6 jar contains the Person6 class"
-        new JarTestFixture(platformAware.dir.file("build/jars/java6MainJar/main.jar")).hasDescendants(
+        new JarTestFixture(platformAware.dir.file("core/build/jars/java6MainJar/main.jar")).hasDescendants(
             "org/gradle/Person.class", "org/gradle/Person6.class", "org/gradle/resource.xml"
+        )
+
+        and:
+        new JarTestFixture(platformAware.dir.file("server/build/jars/mainJar/main.jar")).hasDescendants(
+            "org/gradle/Server.class"
         )
     }
 

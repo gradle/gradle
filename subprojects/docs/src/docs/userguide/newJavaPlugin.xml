@@ -132,11 +132,11 @@
 
     <section>
         <title>Tasks</title>
-        <para>By default, when the plugins specified above are added, no new tasks are added to the build.  However, when libraries are added to
-            the build, corresponding tasks are added to build and package each binary of the library.</para>
+        <para>By default, when the plugins above are applied, no new tasks are added to the build.  However, when libraries are defined,
+            conventional tasks are added which build and package each binary of the library.</para>
 
         <para>For each binary of a library, a single lifecycle task is created which executes all tasks associated with building the binary.
-            The standard <literal>build</literal> lifecycle task can be used to build all binaries.</para>
+            To build all binaries, the standard <userinput>build</userinput> lifecycle task can be used.</para>
         <table id="java_lifecycle_tasks">
             <title>Java plugin - lifecycle tasks</title>
             <thead>
@@ -277,15 +277,15 @@
             is having specific dependencies for each variant and source sets that conform to those dependencies. The example below configures a <literal>java6</literal> source set on the <literal>java6MainJar</literal>
             binary:</para>
             <sample id="newJavaTargetPlatforms" dir="newJavaPlugin/targetplatforms" title="Declaring binary specific sources">
-                <sourcefile file="build.gradle" snippet="binary-specific-sourceset"/>
-                <output args=":java6MainJar" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-java6MainJar.out"/>
+                <sourcefile file="core/build.gradle" snippet="binary-specific-sourceset"/>
+                <output args=":core:java6MainJar" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-java6MainJar.out"/>
             </sample>
         </section>
         <section id="java_dependency_resolution">
             <title>Dependency resolution</title>
             <para>When a library targets multiple versions of Java and depends on another library, Gradle will make its best effort to
                 resolve the dependency to the most appropriate version of the dependency library.  In practice, this means that Gradle chooses
-                the <emphasis>highest compatible</emphasis> version of the dependency library:</para>
+                the <emphasis>highest compatible</emphasis> version:</para>
             <para>
                 <itemizedlist>
                     <listitem>for a binary <literal>B</literal> built for Java <literal>n</literal></listitem>
@@ -298,7 +298,7 @@
                 <sourcefile file="server/build.gradle" snippet="dependency-with-platform"/>
                 <output args=":server:build" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-server.out"/>
             </sample>
-            <para>Gradle automatically chooses the Java 6 variant of the dependency for the Java 6 variant of the <literal>server</literal> component,
+            <para>In the example above, Gradle automatically chooses the Java 6 variant of the dependency for the Java 6 variant of the <literal>server</literal> component,
             and chooses the Java 5 version of the dependency for the Java 5 variant of the <literal>server</literal> component.
             </para>
         </section>

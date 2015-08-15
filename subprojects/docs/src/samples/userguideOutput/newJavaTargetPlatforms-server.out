@@ -1,15 +1,15 @@
-:compileJava5MainJarMainJava UP-TO-DATE
-:processJava5MainJarMainResources UP-TO-DATE
-:createJava5MainJar UP-TO-DATE
-:java5MainJar UP-TO-DATE
+:core:compileJava5MainJarMainJava
+:core:processJava5MainJarMainResources
+:core:createJava5MainJar
+:core:java5MainJar
 :server:compileJava5MainJarMainJava
 :server:createJava5MainJar
 :server:java5MainJar
-:compileJava6MainJarMainJava UP-TO-DATE
-:compileJava6MainJarMainJava6 UP-TO-DATE
-:processJava6MainJarMainResources UP-TO-DATE
-:createJava6MainJar UP-TO-DATE
-:java6MainJar UP-TO-DATE
+:core:compileJava6MainJarMainJava UP-TO-DATE
+:core:compileJava6MainJarMainJava6 UP-TO-DATE
+:core:processJava6MainJarMainResources UP-TO-DATE
+:core:createJava6MainJar UP-TO-DATE
+:core:java6MainJar UP-TO-DATE
 :server:compileJava6MainJarMainJava
 :server:createJava6MainJar
 :server:java6MainJar

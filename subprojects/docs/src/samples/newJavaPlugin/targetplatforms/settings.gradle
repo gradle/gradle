@@ -1,2 +1,2 @@
-include 'server'
+include 'server', 'core'
 
