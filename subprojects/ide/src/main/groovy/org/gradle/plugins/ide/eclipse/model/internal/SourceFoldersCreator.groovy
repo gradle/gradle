@@ -15,12 +15,12 @@
  */
 
 package org.gradle.plugins.ide.eclipse.model.internal
-
 import org.gradle.api.file.DirectoryTree
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
+import org.gradle.util.CollectionUtils
 
 class SourceFoldersCreator {
     void populateForClasspath(List<ClasspathEntry> entries, EclipseClasspath classpath) {
@@ -78,6 +78,7 @@ class SourceFoldersCreator {
         def sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets.collect { it })
 
         sortedSourceSets.each { SourceSet sourceSet ->
+
             def sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.allSource.srcDirTrees)
 
             sortedSourceDirs.each { tree ->
@@ -87,12 +88,23 @@ class SourceFoldersCreator {
                     folder.dir = dir
                     folder.name = dir.name
                     folder.includes = tree.patterns.includes as List
-                    folder.excludes = tree.patterns.excludes as List
+                    folder.excludes = getExcludesForTree(sourceSet, tree)
                     entries.add(folder)
                 }
             }
         }
         entries
+    }
+
+    private List<String> getExcludesForTree(SourceSet sourceSet, DirectoryTree directoryTree) {
+        // check for duplicate entries in java and resources
+        if (!CollectionUtils.intersection([sourceSet.allJava.srcDirs, sourceSet.resources.srcDirs]).contains(directoryTree.dir)) {
+            return directoryTree.patterns.excludes as List
+        } else {
+            def collections = [sourceSet.resources.srcDirTrees.find {it.dir == directoryTree.dir}.patterns.excludes]
+            collections = collections + [sourceSet.allJava.srcDirTrees.find { it.dir == directoryTree.dir }.patterns.excludes]
+            return CollectionUtils.intersection(collections)
+        }
     }
 
     private List<SourceSet> sortSourceSetsAsPerUsualConvention(Collection<SourceSet> sourceSets) {

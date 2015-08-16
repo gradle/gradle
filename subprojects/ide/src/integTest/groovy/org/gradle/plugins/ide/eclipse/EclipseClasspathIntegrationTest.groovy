@@ -641,6 +641,63 @@ apply plugin: 'eclipse'
         assert classpath.sources.size() == 2
     }
 
+    @Issue('GRADLE-3335')
+    @Test
+    void handlesExcludeOnSharedSourceFolders() {
+        given:
+        def buildFile = file("build.gradle") << """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+        resources{
+            srcDirs = ['src']
+            exclude '**/*.java'
+        }
+    }
+}
+"""
+        buildFile.parentFile.file("src").createDir()
+
+        when:
+        executer.usingBuildScript(buildFile).withTasks('eclipseClasspath').run()
+
+        then:
+        assert classpath.entries.size() == 3
+        assert classpath.sources.size() == 1
+        assert classpath.entries.find { it.@kind == 'src' }.attribute("excluding") == null
+
+        when:
+        buildFile.text = """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+            exclude '**/*.xml'
+        }
+        resources{
+            srcDirs = ['src']
+            exclude '**/*.xml'
+        }
+    }
+}
+"""
+        when:
+        executer.usingBuildScript(buildFile).withTasks('cleanEclipseClasspath', 'eclipseClasspath').run()
+        then:
+        assert classpath.entries.size() == 3
+        assert classpath.sources.size() == 1
+        assert classpath.entries.find { it.@kind == 'src' }.attribute("excluding") == "**/*.xml"
+    }
+
+
     @Test
     void canAccessXmlModelBeforeAndAfterGeneration() {
         //given
@@ -869,4 +926,5 @@ dependencies {
         libraries[0].assertHasJar(otherLib)
         assert classpath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER', 'org.scala-ide.sdt.launching.SCALA_CONTAINER']
     }
+
 }
