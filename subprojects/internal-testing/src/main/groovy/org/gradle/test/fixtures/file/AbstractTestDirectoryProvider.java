@@ -51,7 +51,13 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     public Statement apply(final Statement base, Description description) {
         Class<?> testClass = description.getTestClass();
         init(description.getMethodName(), testClass.getSimpleName());
-        boolean leaksHandles = testClass.getAnnotation(LeaksFileHandles.class) != null || description.getAnnotation(LeaksFileHandles.class) != null;
+        boolean leaksHandles =
+                testClass.getAnnotation(LeaksFileHandles.class) != null
+                        || description.getAnnotation(LeaksFileHandles.class) != null;
+        // For now, assume that all tests run with the daemon executer leak file handles
+        // This seems to be true for any test that uses `GradleExecuter.requireOwnGradleUserHomeDir`
+        leaksHandles = leaksHandles
+                        || "daemon".equals(System.getProperty("org.gradle.integtest.executer"));
         return new TestDirectoryCleaningStatement(base, getTestDirectory(), leaksHandles, description.getDisplayName());
     }
 
