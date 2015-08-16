@@ -16,7 +16,6 @@
 
 package org.gradle.language.base.internal.model
 
-import org.gradle.api.Named
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
@@ -63,7 +62,7 @@ class VariantsMetaDataHelperTest extends Specification {
         String getVariant2()
 
         @Variant
-        Platform getPlaform()
+        Platform getPlatform()
     }
 
     public static interface Binary2 extends BinarySpec {
@@ -74,7 +73,7 @@ class VariantsMetaDataHelperTest extends Specification {
         VariantDimension1 getVariant2()
 
         @Variant
-        Platform getPlaform()
+        Platform getPlatform()
     }
 
     public static interface Binary3 extends BinarySpec {
@@ -85,7 +84,7 @@ class VariantsMetaDataHelperTest extends Specification {
         VariantDimension2 getVariant2()
 
         @Variant
-        Platform getPlaform()
+        Platform getPlatform()
     }
 
     public static interface Binary4 extends BinarySpec {
@@ -96,26 +95,6 @@ class VariantsMetaDataHelperTest extends Specification {
         VariantDimension3 getVariant2()
 
         @Variant
-        Platform getPlaform()
-    }
-
-    public static interface ParametrizedBinaryString extends BinarySpec {
-        @Variant
-        ParametrizedVariant<String> getVariant()
-    }
-
-    public static interface ParametrizedBinaryVariantDimension1 extends BinarySpec {
-        @Variant
-        ParametrizedVariant<VariantDimension1> getVariant()
-    }
-
-    public static interface VariantDimension1 extends Named {}
-
-    public static interface VariantDimension2 extends Named {}
-
-    public static interface VariantDimension3 extends VariantDimension1 {}
-
-    public static interface ParametrizedVariant<T> extends Named {
-        T blah()
+        Platform getPlatform()
     }
 }
