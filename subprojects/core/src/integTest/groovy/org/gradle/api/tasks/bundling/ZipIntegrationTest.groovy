@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.test.fixtures.archive.ZipTestFixture
 
 import spock.lang.Unroll
@@ -133,6 +132,30 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         null            | 'file'
         'UTF-8'         | '中文'
         'ISO-8859-1'    | 'ÈÇ'
+    }
+
+    def ensureInappropriateEncodingWillCauseGarbledFileName() {
+        given:
+        def encoding = 'US-ASCII'
+        def filename = '测试'
+        createTestFilesWithEncoding(filename, encoding)
+        buildFile << """
+            task zip(type: Zip) {
+                from 'dir1'
+                from 'dir2'
+                from 'dir3'
+                destinationDir = buildDir
+                archiveName = 'test.zip'
+                encoding = '$encoding'
+            }
+            """
+
+        when:
+        run 'zip'
+
+        then:
+        def theZip = new ZipTestFixture(file('build/test.zip'), encoding)
+        theZip.doesNotContainDescendants("${filename}1.txt", "${filename}2.txt", "${filename}3.txt")
     }
 
     def ensureExceptionWillBeThrownUsingUnsupportedEncoding() {
