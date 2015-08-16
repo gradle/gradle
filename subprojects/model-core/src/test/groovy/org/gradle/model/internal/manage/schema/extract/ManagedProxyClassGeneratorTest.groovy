@@ -15,7 +15,6 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
-
 import com.google.common.collect.ImmutableMap
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.manage.instance.ManagedInstance
@@ -30,9 +29,7 @@ import spock.lang.Unroll
 
 import java.lang.reflect.Type
 
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.DELEGATED
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.MANAGED
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.UNMANAGED
+import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.*
 
 class ManagedProxyClassGeneratorTest extends Specification {
     static def generator = new ManagedProxyClassGenerator()
@@ -147,14 +144,14 @@ class ManagedProxyClassGeneratorTest extends Specification {
     @Ignore
     def "reports contract type rather than implementation class when attempting to set read-only property"() {
         given:
-        def impl = newInstance(SomeType)
+        def impl = newInstance(SomeTypeWithReadOnly)
 
         when:
         impl.readOnly = '12'
 
         then:
         ReadOnlyPropertyException e = thrown()
-        e.message == "Cannot set readonly property: readOnly for class: ${SomeType.name}"
+        e.message == "Cannot set readonly property: readOnly for class: ${SomeTypeWithReadOnly.name}"
     }
 
     def "reports contract type rather than implementation class when attempting to invoke unknown method"() {
@@ -250,10 +247,15 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     static interface SomeType {
         Integer getValue()
-
         void setValue(Integer value)
+    }
 
-        String getReadOnly()
+    static abstract class SomeTypeWithReadOnly {
+        abstract Integer getValue()
+        abstract void setValue(Integer value)
+        String getReadOnly() {
+            return "read-only"
+        }
     }
 
     static interface PublicUnmanagedType {
@@ -293,8 +295,11 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     static Map<Class<?>, Collection<ModelProperty<?>>> managedProperties = ImmutableMap.builder()
         .put(SomeType, [
-            property(SomeType, "value", Integer, MANAGED),
-            property(SomeType, "readOnly", String, UNMANAGED)
+           property(SomeType, "value", Integer, MANAGED)
+        ])
+        .put(SomeTypeWithReadOnly, [
+            property(SomeTypeWithReadOnly, "value", Integer, MANAGED),
+            property(SomeTypeWithReadOnly, "readOnly", String, UNMANAGED)
         ])
         .put(PublicUnmanagedType, [
             property(PublicUnmanagedType, "unmanagedValue", String, UNMANAGED)
