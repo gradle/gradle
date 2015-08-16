@@ -97,14 +97,15 @@ class VariantsMetaDataHelperTest extends Specification {
         Platform getPlaform()
     }
 
-    public static interface ParametrizedBinary<T> extends BinarySpec {
+    public static interface ParametrizedBinaryString extends BinarySpec {
         @Variant
-        ParametrizedVariant<T> getVariant()
+        ParametrizedVariant<String> getVariant()
     }
 
-    public static interface ParametrizedBinaryString extends ParametrizedBinary<String> {}
-
-    public static interface ParametrizedBinaryVariantDimension1 extends ParametrizedBinary<VariantDimension1> {}
+    public static interface ParametrizedBinaryVariantDimension1 extends BinarySpec {
+        @Variant
+        ParametrizedVariant<VariantDimension1> getVariant()
+    }
 
     public static interface VariantDimension1 extends Named {}
 
