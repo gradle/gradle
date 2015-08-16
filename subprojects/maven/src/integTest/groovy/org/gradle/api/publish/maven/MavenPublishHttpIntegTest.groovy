@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.repositories.DefaultPasswordCredentials
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -27,7 +26,6 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
 
-@LeaksFileHandles
 class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     @Rule
