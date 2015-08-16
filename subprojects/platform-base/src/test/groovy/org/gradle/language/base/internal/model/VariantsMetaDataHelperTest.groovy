@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.base.internal.model
+
 import org.gradle.api.Named
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor
@@ -43,14 +44,15 @@ class VariantsMetaDataHelperTest extends Specification {
         incompatibleDimensions == (expectedIncompatible as Set)
 
         where:
-        referenceClass           | candidateClass                      | dimensions                           | expectedIncompatible
-        Binary1                  | Binary1                             | ['variant1', 'variant2', 'platform'] | []
-        Binary1                  | Binary1                             | ['variant1']                         | []
-        Binary1                  | Binary2                             | ['variant1', 'variant2', 'platform'] | ['variant2']
-        Binary2                  | Binary3                             | ['variant1', 'variant2', 'platform'] | ['variant2']
-        Binary2                  | Binary4                             | ['variant1', 'variant2', 'platform'] | []
-        ParametrizedBinaryString | ParametrizedBinaryString            | ['variant']                          | []
-        ParametrizedBinaryString | ParametrizedBinaryVariantDimension1 | ['variant']                          | []
+        referenceClass                      | candidateClass                      | dimensions                           | expectedIncompatible
+        Binary1                             | Binary1                             | ['variant1', 'variant2', 'platform'] | []
+        Binary1                             | Binary1                             | ['variant1']                         | []
+        Binary1                             | Binary2                             | ['variant1', 'variant2', 'platform'] | ['variant2']
+        Binary2                             | Binary3                             | ['variant1', 'variant2', 'platform'] | ['variant2']
+        Binary2                             | Binary4                             | ['variant1', 'variant2', 'platform'] | []
+        ParametrizedBinaryString            | ParametrizedBinaryString            | ['variant']                          | []
+        ParametrizedBinaryVariantDimension1 | ParametrizedBinaryVariantDimension1 | ['variant']                          | []
+        ParametrizedBinaryString            | ParametrizedBinaryVariantDimension1 | ['variant']                          | ['variant']
     }
 
     public static interface Binary1 extends BinarySpec {
