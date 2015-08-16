@@ -32,6 +32,7 @@ class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
         ByteArrayOutputStream baos = new ByteArrayOutputStream()
 
         when:
+        toolingApi.withUserHome(userHomeDir)
         toolingApi.withConnector { connector ->
             connector.useGradleUserHomeDir(userHomeDir)
         }
