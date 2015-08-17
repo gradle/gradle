@@ -162,6 +162,10 @@ class HttpServer extends ServerWithExpectations {
         if (connector) {
             server?.removeConnector(connector)
         }
+        if (sslConnector) {
+            sslConnector.stop()
+            server?.removeConnector(sslConnector)
+        }
     }
 
     void enableSsl(String keyStore, String keyPassword, String trustStore = null, String trustPassword = null) {
