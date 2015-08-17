@@ -16,7 +16,7 @@
 
 package org.gradle.api.reporting.components
 
-class NativeComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
+class AbstractNativeComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     def setup() {
         formatter = new NativeComponentReportOutputFormatter(toolChain)
     }

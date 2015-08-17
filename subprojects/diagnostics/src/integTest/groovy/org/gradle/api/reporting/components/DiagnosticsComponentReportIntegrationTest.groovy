@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
-class ComponentReportIntegrationTest extends NativeComponentReportIntegrationTest {
+class DiagnosticsComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
     private JavaVersion currentJvm = JavaVersion.current()
     private String currentJavaName = "java" + currentJvm.majorVersion
     private String currentJava = "Java SE " + currentJvm.majorVersion
@@ -78,7 +78,7 @@ Source sets
 Binaries
     Jar 'jvmLibJar'
         build using task: :jvmLibJar
-        target-platform: $currentJava
+        targetPlatform: $currentJava
         tool chain: $currentJdk
         Jar file: build/jars/jvmLibJar/jvmLib.jar
 
@@ -94,16 +94,16 @@ Source sets
 Binaries
     Shared library 'nativeLib:sharedLibrary'
         build using task: :nativeLibSharedLibrary
-        platform: $currentNative
-        build type: debug
-        flavor: default
+        buildType: build type 'debug'
+        flavor: flavor 'default'
+        targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/nativeLibSharedLibrary/libnativeLib.dylib
     Static library 'nativeLib:staticLibrary'
         build using task: :nativeLibStaticLibrary
-        platform: $currentNative
-        build type: debug
-        flavor: default
+        buildType: build type 'debug'
+        flavor: flavor 'default'
+        targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/nativeLibStaticLibrary/libnativeLib.a
 """

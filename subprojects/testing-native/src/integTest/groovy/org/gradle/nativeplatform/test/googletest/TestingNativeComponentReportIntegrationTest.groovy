@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativeplatform.test.cunit
+package org.gradle.nativeplatform.test.googletest
 
-import org.gradle.api.reporting.components.NativeComponentReportIntegrationTest
+import org.gradle.api.reporting.components.AbstractNativeComponentReportIntegrationTest
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
-class ComponentReportIntegrationTest extends NativeComponentReportIntegrationTest {
+class TestingNativeComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
     @RequiresInstalledToolChain
-    def "shows details of native C executable with test suite"() {
+    def "shows details of native C++ executable with test suite"() {
         given:
         buildFile << """
 plugins {
-    id 'c'
-    id 'cunit'
+    id 'cpp'
+    id 'google-test'
 }
 
 model {
@@ -49,37 +49,35 @@ Native executable 'someExe'
 ---------------------------
 
 Source sets
-    C source 'someExe:c'
-        srcDir: src/someExe/c
+    C++ source 'someExe:cpp'
+        srcDir: src/someExe/cpp
 
 Binaries
     Executable 'someExe:executable'
         build using task: :someExeExecutable
         install using task: :installSomeExeExecutable
-        platform: $currentNative
-        build type: debug
-        flavor: default
+        buildType: build type 'debug'
+        flavor: flavor 'default'
+        targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
         executable file: build/binaries/someExeExecutable/someExe
 
-Cunit test suite 'someExeTest'
-------------------------------
+GoogleTest test suite 'someExeTest'
+-----------------------------------
 
 Source sets
-    C source 'someExeTest:c'
-        srcDir: src/someExeTest/c
-    C source 'someExeTest:cunitLauncher'
-        srcDir: build/src/someExeTest/cunitLauncher/c
+    C++ source 'someExeTest:cpp'
+        srcDir: src/someExeTest/cpp
 
 Binaries
-    C unit exe 'someExeTest:cUnitExe'
-        build using task: :someExeTestCUnitExe
-        run using task: :runSomeExeTestCUnitExe
-        platform: $currentNative
-        build type: debug
-        flavor: default
+    Google test exe 'someExeTest:googleTestExe'
+        build using task: :someExeTestGoogleTestExe
+        run using task: :runSomeExeTestGoogleTestExe
+        buildType: build type 'debug'
+        flavor: flavor 'default'
+        targetPlatform: platform '$currentNative'
         tool chain: Tool chain 'clang' (Clang)
-        executable file: build/binaries/someExeTestCUnitExe/someExeTest
+        executable file: build/binaries/someExeTestGoogleTestExe/someExeTest
 """
     }
 }
