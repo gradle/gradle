@@ -158,9 +158,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### ANTLR generated sources and package structure
+
+- The output directory for ANTLR generated sources is calculated from the package information in the grammar files. (This fixes a regression introduced
+in Gradle 2.2)
+- ANTLR3 and ANTLR4 generated sources are generated in the output folder specified in _AntlrTask_ relative to the path of the grammar in the ANTLR grammar folder.
 
 ## External contributions
 
