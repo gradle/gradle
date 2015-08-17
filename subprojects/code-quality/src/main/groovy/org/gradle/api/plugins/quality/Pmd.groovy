@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.quality
-
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl
+import org.gradle.api.plugins.quality.internal.RulePriority
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
@@ -30,7 +30,6 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
 
 import javax.inject.Inject
-
 /**
  * Runs a set of static code analysis rules on Java source code files and
  * generates a report of problems found.
@@ -99,10 +98,20 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      * Default value is 5, which means that all violations will be reported.
      * <p>
      * See the official documentation for the list of priorities.
-     * Example: minimumPriority = 3
+     * Example: rulePriority = 3
      * </p>
 	 */
-	int minimumPriority
+    @Incubating
+	int rulePriority
+
+    /**
+     * Sets the rule priority threshold.
+     */
+    @Incubating
+    void setRulePriority(int intValue) {
+        RulePriority.validate(intValue)
+        rulePriority = intValue
+    }
 
     /**
      * Whether or not to write PMD results to {@code System.out}.
@@ -142,7 +151,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
             }
         }
 
-        antPmdArgs["minimumPriority"] = getMinimumPriority()
+        antPmdArgs["minimumPriority"] = getRulePriority()
 
         antBuilder.withClasspath(getPmdClasspath()).execute { a ->
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')

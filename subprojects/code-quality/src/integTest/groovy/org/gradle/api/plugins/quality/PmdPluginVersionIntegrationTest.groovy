@@ -79,7 +79,7 @@ class PmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         badCode()
         buildFile << """
             pmd {
-                minimumPriority = 2
+                rulePriority = 2
             }
         """
 
@@ -90,6 +90,30 @@ class PmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
             assertContents(containsClass("org.gradle.Class1Test")).
             assertContents(containsLine(containsString('BooleanInstantiation'))).
             assertContents(not(containsLine(containsString('OverrideBothEqualsAndHashcode'))))
+    }
+
+    def "gets reasonable message when priority level threshold is out of range from extension"() {
+        goodCode()
+        buildFile << """
+        pmd {
+            rulePriority = 11
+        }
+"""
+        expect:
+        fails("check")
+        errorOutput.contains("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
+    }
+
+    def "gets reasonable message when priority level threshold is out of range from task"() {
+        goodCode()
+        buildFile << """
+        pmdMain {
+            rulePriority = 11
+        }
+"""
+        expect:
+        fails("check")
+        errorOutput.contains("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
     }
 
     def "can configure reporting"() {

@@ -29,8 +29,8 @@
                 <td><literal>project.pmd.ignoreFailures</literal></td>
             </tr>
             <tr>
-                <td>minimumPriority</td>
-                <td><literal>project.pmd.minimumPriority</literal></td>
+                <td>rulePriority</td>
+                <td><literal>project.pmd.rulePriority</literal></td>
             </tr>
             <tr>
                 <td>consoleOutput</td>

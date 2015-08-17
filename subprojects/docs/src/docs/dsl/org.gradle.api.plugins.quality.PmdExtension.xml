@@ -37,7 +37,7 @@
                 <td><literal>false</literal></td>
             </tr>
             <tr>
-                <td>minimumPriority</td>
+                <td>rulePriority</td>
                 <td><literal>5</literal></td>
             </tr>
             <tr>

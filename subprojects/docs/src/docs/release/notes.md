@@ -10,17 +10,17 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### PMD 'minimumPriority' configuration
+### PMD 'rulePriority' configuration
 
 By default, the PMD plugin will report all rule violations and fail if any violations are found.  This means the only way to disable low priority violations was to create a custom ruleset.
 
-Gradle now supports configuring a "minimum priority" threshold.  The PMD report will contain only violations higher than or equal to the priority configured.
+Gradle now supports configuring a "rule priority" threshold.  The PMD report will contain only violations higher than or equal to the priority configured.
 
 You configure the threshold via the [PmdExtension](dsl/org.gradle.api.plugins.quality.PmdExtension.html).  You can also configure the property on a per-task level through
 [Pmd](dsl/org.gradle.api.plugins.quality.Pmd.html).
 
    pmd {
-       minimumPriority = 3
+       rulePriority = 3
    }
 
 ## Promoted features
