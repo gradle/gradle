@@ -33,6 +33,13 @@ You configure the threshold via the [PmdExtension](dsl/org.gradle.api.plugins.qu
        rulePriority = 3
    }
 
+### Managed model improvements
+
+TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with references between parts of the
+model.
+
+- Can use a link property as input for a rule.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
