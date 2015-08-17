@@ -89,8 +89,7 @@ class PmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         file("build/reports/pmd/test.xml").
             assertContents(containsClass("org.gradle.Class1Test")).
             assertContents(containsLine(containsString('BooleanInstantiation'))).
-            assertContents(not(containsLine(containsString('OverrideBothEqualsAndHashcode')))
-            )
+            assertContents(not(containsLine(containsString('OverrideBothEqualsAndHashcode'))))
     }
 
     def "can configure reporting"() {

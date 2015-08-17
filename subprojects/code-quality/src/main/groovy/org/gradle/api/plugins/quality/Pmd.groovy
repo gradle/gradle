@@ -142,6 +142,8 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
             }
         }
 
+        antPmdArgs["minimumPriority"] = getMinimumPriority()
+
         antBuilder.withClasspath(getPmdClasspath()).execute { a ->
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
             ant.pmd(antPmdArgs) {
