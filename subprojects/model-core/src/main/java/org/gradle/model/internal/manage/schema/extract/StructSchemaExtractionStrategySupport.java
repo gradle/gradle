@@ -31,7 +31,10 @@ import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.getOverloadedMethods;
 
@@ -92,29 +95,41 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
                 continue;
             }
 
-            if (methodName.startsWith("get") && !methodName.equals("get")) {
+            int getterPrefixLen = getterPrefixLength(methodName);
+            if (getterPrefixLen >= 0) {
                 PropertyAccessorExtractionContext getterContext = new PropertyAccessorExtractionContext(methods);
 
-                Character getterPropertyNameFirstChar = methodName.charAt(3);
+                Character getterPropertyNameFirstChar = methodName.charAt(getterPrefixLen);
                 if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
-                    handleInvalidGetter(extractionContext, getterContext, "the 4th character of the getter method name must be an uppercase character");
+                    handleInvalidGetter(extractionContext, getterContext,
+                        String.format("the %s character of the getter method name must be an uppercase character", getterPrefixLen == 2 ? "3rd" : "4th"));
                     continue;
                 }
 
-                String propertyNameCapitalized = methodName.substring(3);
+                String propertyNameCapitalized = methodName.substring(getterPrefixLen);
                 String propertyName = StringUtils.uncapitalize(propertyNameCapitalized);
                 String setterName = "set" + propertyNameCapitalized;
                 Collection<Method> setterMethods = methodsByName.get(setterName);
                 PropertyAccessorExtractionContext setterContext = !setterMethods.isEmpty() ? new PropertyAccessorExtractionContext(setterMethods) : null;
 
-                ModelPropertyExtractionResult<?> result = extractPropertySchema(extractionContext, propertyName, getterContext, setterContext);
+                ModelPropertyExtractionResult<?> result = extractPropertySchema(extractionContext, propertyName, getterContext, setterContext, getterPrefixLen);
                 if (result != null) {
-                    results.add(result);
-
+                    boolean propertyAlreadyDeclared = false;
+                    for (ModelPropertyExtractionResult<?> propertyExtractionResult : results) {
+                        if (propertyExtractionResult.getProperty().getName().equals(propertyName)) {
+                            // overloaded "is" getter, do not create duplicate property in that case
+                            propertyAlreadyDeclared = true;
+                            break;
+                        }
+                    }
+                    if (!propertyAlreadyDeclared) {
+                        results.add(result);
+                    }
                     handledMethods.addAll(getterContext.getDeclaringMethods());
                     if (setterContext != null) {
                         handledMethods.addAll(setterContext.getDeclaringMethods());
                     }
+
                 }
             }
         }
@@ -123,8 +138,18 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         return results;
     }
 
+    private static int getterPrefixLength(String methodName) {
+        if (methodName.startsWith("get") && !"get".equals(methodName)) {
+            return 3;
+        }
+        if (methodName.startsWith("is") && !"is".equals(methodName)) {
+            return 2;
+        }
+        return -1;
+    }
+
     @Nullable
-    private <R> ModelPropertyExtractionResult<R> extractPropertySchema(ModelSchemaExtractionContext<?> extractionContext, String propertyName, PropertyAccessorExtractionContext getterContext, PropertyAccessorExtractionContext setterContext) {
+    private <R> ModelPropertyExtractionResult<R> extractPropertySchema(ModelSchemaExtractionContext<?> extractionContext, String propertyName, PropertyAccessorExtractionContext getterContext, PropertyAccessorExtractionContext setterContext, int getterPrefixLen) {
         // Take the most specific declaration of the getter
         Method mostSpecificGetter = getterContext.getMostSpecificDeclaration();
         if (mostSpecificGetter.getParameterTypes().length != 0) {
@@ -134,6 +159,11 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
         if (!getterContext.isDeclaredInManagedType() && mostSpecificGetter.getReturnType().isPrimitive()) {
             handleInvalidGetter(extractionContext, getterContext, "managed properties cannot have primitive types");
+            return null;
+        }
+
+        if (mostSpecificGetter.getReturnType()!=boolean.class && getterPrefixLen==2) {
+            handleInvalidGetter(extractionContext, getterContext, "getter method name must start with 'get'");
             return null;
         }
 

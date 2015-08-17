@@ -30,7 +30,9 @@ import org.objectweb.asm.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
@@ -419,13 +421,21 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeGetter(ClassVisitor visitor, Type generatedType, String propertyName, Class<?> propertyTypeClass) {
-        MethodVisitor methodVisitor = declareMethod(visitor, getGetterName(propertyName), Type.getMethodDescriptor(Type.getType(propertyTypeClass)));
+        List<String> getters = new ArrayList<String>(2);
+        getters.add(getGetterName(propertyName));
+        if (propertyTypeClass==boolean.class) {
+            getters.add(getIsGetterName(propertyName));
+        }
+        for (String getter : getters) {
+            MethodVisitor methodVisitor = declareMethod(visitor, getter, Type.getMethodDescriptor(Type.getType(propertyTypeClass)));
 
-        putStateFieldValueOnStack(methodVisitor, generatedType);
-        putConstantOnStack(methodVisitor, propertyName);
-        invokeStateGetMethod(methodVisitor);
-        castFirstStackElement(methodVisitor, propertyTypeClass);
-        finishVisitingMethod(methodVisitor, returnCode(propertyTypeClass));
+            putStateFieldValueOnStack(methodVisitor, generatedType);
+            putConstantOnStack(methodVisitor, propertyName);
+            invokeStateGetMethod(methodVisitor);
+            castFirstStackElement(methodVisitor, propertyTypeClass);
+            finishVisitingMethod(methodVisitor, returnCode(propertyTypeClass));
+        }
+
     }
 
     private int returnCode(Class<?> propertyTypeClass) {
@@ -434,6 +444,10 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private static String getGetterName(String propertyName) {
         return "get" + StringUtils.capitalize(propertyName);
+    }
+
+    private static String getIsGetterName(String propertyName) {
+        return "is" + StringUtils.capitalize(propertyName);
     }
 
     private static String getSetterName(String propertyName) {
