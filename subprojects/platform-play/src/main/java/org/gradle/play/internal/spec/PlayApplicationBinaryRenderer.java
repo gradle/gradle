@@ -33,9 +33,4 @@ public class PlayApplicationBinaryRenderer extends AbstractBinaryRenderer<PlayAp
     public Class<PlayApplicationBinarySpec> getTargetType() {
         return PlayApplicationBinarySpec.class;
     }
-
-    @Override
-    protected void renderDetails(PlayApplicationBinarySpec binary, TextReportBuilder builder) {
-        builder.item("platform", binary.getTargetPlatform().getDisplayName());
-    }
 }
