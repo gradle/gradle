@@ -524,6 +524,7 @@ Binaries
 
 - Annotate `JvmBinarySpec.targetPlatform`, and the variant properties of `NativeBinarySpec` and `PlayApplicationBinarySpec`.
 - Replace special case rendering of binary variant dimensions from the component report with general purpose reporting.
+- Variant values are formatted through a common utility class so that the formatting rules can be changed later easily.
 
 ### Test cases
 
