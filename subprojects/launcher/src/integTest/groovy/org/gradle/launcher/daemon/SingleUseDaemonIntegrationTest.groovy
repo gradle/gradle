@@ -23,6 +23,7 @@ import org.gradle.launcher.daemon.client.DefaultDaemonConnector
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.util.GradleVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.IgnoreIf
 
 import java.nio.charset.Charset
@@ -149,6 +150,7 @@ assert System.getProperty('some-prop') == 'some-value'
         wasNotForked()
     }
 
+    @LeaksFileHandles
     def "does not print suggestion to use the daemon for a single use daemon"() {
         given:
         requireJvmArg('-Xmx32m')
@@ -160,6 +162,7 @@ assert System.getProperty('some-prop') == 'some-value'
         !output.contains(DaemonUsageSuggestionIntegrationTest.DAEMON_USAGE_SUGGESTION_MESSAGE)
     }
 
+    @LeaksFileHandles
     def "does not print daemon startup message for a single use daemon"() {
         given:
         requireJvmArg('-Xmx32m')
