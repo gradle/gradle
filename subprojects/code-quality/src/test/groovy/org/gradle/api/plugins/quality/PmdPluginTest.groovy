@@ -109,7 +109,7 @@ class PmdPluginTest extends Specification {
             assert reports.xml.destination == project.file("build/reports/pmd/${sourceSet.name}.xml")
             assert reports.html.destination == project.file("build/reports/pmd/${sourceSet.name}.html")
             assert ignoreFailures == false
-            assert minimumPriority == 0
+            assert minimumPriority == 5
         }
     }
 
@@ -126,7 +126,7 @@ class PmdPluginTest extends Specification {
         task.reports.xml.destination == project.file("build/reports/pmd/custom.xml")
         task.reports.html.destination == project.file("build/reports/pmd/custom.html")
         task.ignoreFailures == false
-        task.minimumPriority == 0
+        task.minimumPriority == 5
     }
 
     def "adds pmd tasks to check lifecycle task"() {
