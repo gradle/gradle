@@ -15,6 +15,7 @@ useTestFixtures()
 useTestFixtures(project: ":languageScala", sourceSet: 'integTest')
 useTestFixtures(project: ":languageJava", sourceSet: 'integTest')
 useTestFixtures(project: ":launcher", sourceSet: 'testFixtures')
+useTestFixtures(project: ":diagnostics")
 
 useClassycle()
 strictCompile()
