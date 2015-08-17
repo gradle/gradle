@@ -17,6 +17,7 @@
 package org.gradle.play.internal.spec;
 
 import org.gradle.api.reporting.components.internal.AbstractBinaryRenderer;
+import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.play.PlayApplicationBinarySpec;
 
