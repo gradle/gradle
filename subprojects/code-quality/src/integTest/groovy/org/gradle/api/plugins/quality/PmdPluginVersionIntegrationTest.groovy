@@ -22,7 +22,7 @@ import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
-@TargetVersions(['5.0.4', '5.1.1', PmdPlugin.DEFAULT_PMD_VERSION, '5.3.3'])
+@TargetVersions(['5.0.5', '5.1.1', PmdPlugin.DEFAULT_PMD_VERSION, '5.3.3'])
 class PmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {

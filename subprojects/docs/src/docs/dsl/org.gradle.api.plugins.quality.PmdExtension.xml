@@ -38,7 +38,7 @@
             </tr>
             <tr>
                 <td>minimumPriority</td>
-                <td><literal>0</literal></td>
+                <td><literal>5</literal></td>
             </tr>
             <tr>
                 <td>consoleOutput</td>

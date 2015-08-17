@@ -56,7 +56,7 @@ class PmdPluginTest extends Specification {
         extension.ruleSetFiles.empty
         extension.reportsDir == project.file("build/reports/pmd")
         !extension.ignoreFailures
-        extension.minimumPriority == 0
+        extension.minimumPriority == 5
     }
 
     def "configures pmd task for each source set"() {

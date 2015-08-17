@@ -96,9 +96,11 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
 
     /**
 	 * The rule priority threshold; violations for rules with a lower priority will not be reported.
-     * Default value is 0, which means that all violations will be reported.
-	 *
-	 * Example: minimumPriority = 3
+     * Default value is 5, which means that all violations will be reported.
+     * <p>
+     * See the official documentation for the list of priorities.
+     * Example: minimumPriority = 3
+     * </p>
 	 */
 	int minimumPriority
 
@@ -138,9 +140,6 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
             if (getRuleSets() == ["basic"]) {
                 setRuleSets(["java-basic"])
             }
-        }
-        if (0 != getMinimumPriority()) {
-            antPmdArgs["minimumPriority"] = getMinimumPriority()
         }
 
         antBuilder.withClasspath(getPmdClasspath()).execute { a ->
