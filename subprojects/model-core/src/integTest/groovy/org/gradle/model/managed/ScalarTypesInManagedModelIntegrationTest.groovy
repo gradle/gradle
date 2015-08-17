@@ -122,7 +122,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains "character: a"
     }
 
-    def "can set/get properties of all supported unmanaged types"() {
+    def "can set/get properties of all supported unmanaged types using Groovy"() {
         when:
         buildScript '''
             @Managed
@@ -158,6 +158,10 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                 File getFile()
 
                 void setFile(File file)
+
+                boolean isFlag()
+
+                void setFlag(boolean flag)
             }
 
             class RulePlugin extends RuleSource {
@@ -171,6 +175,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                     element.bigDecimalProperty = new BigDecimal("5.5")
                     element.stringProperty = "test"
                     element.file = new File('sample.txt')
+                    element.flag = true
                 }
 
                 @Mutate
@@ -185,6 +190,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                             println "big decimal: ${element.bigDecimalProperty}"
                             println "string: ${element.stringProperty}"
                             println "file: ${element.file}"
+                            println "flag: ${element.flag}"
                         }
                     }
                 }
@@ -205,6 +211,113 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains "big decimal: 5.5"
         output.contains "string: test"
         output.contains "file: sample.txt"
+        output.contains "flag: true"
+    }
+
+    def "can set/get properties of all supported unmanaged types using Java"() {
+        given:
+        file('buildSrc/src/main/java/Rules.java') << '''
+            import org.gradle.api.*;
+            import org.gradle.model.*;
+            import java.math.BigInteger;
+            import java.math.BigDecimal;
+            import java.io.File;
+
+            @Managed
+            interface AllSupportedUnmanagedTypes {
+                Boolean getBooleanProperty();
+
+                void setBooleanProperty(Boolean value);
+
+                Integer getIntegerProperty();
+
+                void setIntegerProperty(Integer value);
+
+                Long getLongProperty();
+
+                void setLongProperty(Long value);
+
+                Double getDoubleProperty();
+
+                void setDoubleProperty(Double value);
+
+                BigInteger getBigIntegerProperty();
+
+                void setBigIntegerProperty(BigInteger value);
+
+                BigDecimal getBigDecimalProperty();
+
+                void setBigDecimalProperty(BigDecimal value);
+
+                String getStringProperty();
+
+                void setStringProperty(String value);
+
+                File getFile();
+
+                void setFile(File file);
+
+                boolean isFlag();
+
+                void setFlag(boolean flag);
+            };
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void supportedUnmanagedTypes(AllSupportedUnmanagedTypes element) {
+                    element.setBooleanProperty(Boolean.TRUE);
+                    element.setIntegerProperty(Integer.valueOf(1));
+                    element.setLongProperty(Long.valueOf(2L));
+                    element.setDoubleProperty(Double.valueOf(3.3d));
+                    element.setBigIntegerProperty(new BigInteger("4"));
+                    element.setBigDecimalProperty(new BigDecimal("5.5"));
+                    element.setStringProperty("test");
+                    element.setFile(new File("sample.txt"));
+                    element.setFlag(true);
+                }
+
+                @Mutate
+                void addEchoTask(ModelMap<Task> tasks, final AllSupportedUnmanagedTypes element) {
+                    tasks.create("echo", new Action<Task>() {
+                        public void execute(Task task) {
+                            task.doLast(new Action<Task>() {
+                                public void execute(Task unused) {
+                                    System.out.println(String.format("%s: %s", "boolean", element.getBooleanProperty()));
+                                    System.out.println(String.format("%s: %s", "integer", element.getIntegerProperty()));
+                                    System.out.println(String.format("%s: %s", "long", element.getLongProperty()));
+                                    System.out.println(String.format("%s: %s", "double", element.getDoubleProperty()));
+                                    System.out.println(String.format("%s: %s", "big integer", element.getBigIntegerProperty()));
+                                    System.out.println(String.format("%s: %s", "big decimal", element.getBigDecimalProperty()));
+                                    System.out.println(String.format("%s: %s", "string", element.getStringProperty()));
+                                    System.out.println(String.format("%s: %s", "file", element.getFile()));
+                                    System.out.println(String.format("%s: %s", "flag", element.isFlag()));
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+
+        '''
+
+        when:
+        buildScript '''
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains "boolean: true"
+        output.contains "integer: 1"
+        output.contains "long: 2"
+        output.contains "double: 3.3"
+        output.contains "big integer: 4"
+        output.contains "big decimal: 5.5"
+        output.contains "string: test"
+        output.contains "file: sample.txt"
+        output.contains "flag: true"
     }
 
     def "can specify managed models with file types"() {
