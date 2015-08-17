@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.quality
-
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.util.Requires
 import org.hamcrest.Matcher
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
-@TargetVersions(['4.3', '5.0.4', '5.1.1', PmdPlugin.DEFAULT_PMD_VERSION, '5.3.3'])
+@TargetVersions(['5.0.4', '5.1.1', PmdPlugin.DEFAULT_PMD_VERSION, '5.3.3'])
 class PmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
@@ -166,21 +164,6 @@ class PmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         output.contains "Class1Test.java:1:\tEnsure you override both equals() and hashCode()"
     }
 
-    @Requires(adhoc={PmdPluginVersionIntegrationTest.oldPmdVersion()})
-    def "can set target JDK for PMD versions prior to 5.0"() {
-        badCode()
-        buildFile << """
-            pmd {
-                targetJdk = 1.4
-            }
-        """
-
-        expect:
-        //with 1.4 target, code can't be parsed due to usage of Generics
-        //TODO: Allow to expose this error from ant pmd. (pniederw: not sure what this means)
-        succeeds("check")
-    }
-
     private static Matcher<String> containsClass(String className) {
         containsLine(containsString(className.replace(".", File.separator)))
     }
@@ -228,9 +211,5 @@ class PmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
                 <rule ref="rulesets/java/braces.xml"/>
             </ruleset>
         """
-    }
-
-    static boolean oldPmdVersion() {
-        versionNumber.major < 5
     }
 }
