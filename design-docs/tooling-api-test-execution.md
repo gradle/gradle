@@ -138,6 +138,30 @@ Add methods to `TestLauncher` to request specific JVM test classes be executed.
 	* ~~class does not define any matching test methods~~
 * ~~failing tests let the test launcher run throw an exception with a meaningful error message.~
 
+## Story Cache result of test detection in Test task
+
+Allow caching of test detection logic in Test task. This is a prerequisite of the next story
+"Run only those test tasks that match the test execution request"
+
+### Implementation
+* Add a CachingTestFrameworkDetector to wrap testFrameworkDetectors.
+    * caches detected test classes
+
+* Invalidate test detection cache when task input has changed.
+    * declare `CacheInvalidator` that checks for changed inputs
+
+### Test coverage
+
+* runs all tests when executing test task multiple times with same input.
+    (e.g.: gradle test; gradle cleanTest test;
+* detects new added test classes
+* detects new tests when super class not in testclassesDir but in classpath
+* detects all files when test framework changed
+* add coverage for above for Junit and TestNG
+
+### Open questions
+* can input cache from incremental task calculation be reused?
+
 ## Story: Run only those test tasks that match the test execution request
 
 Running all `Test` tasks with a filter has a serious downside: all the dependencies and finalizers for these tasks are run, even when not required.
@@ -148,13 +172,11 @@ Instead, detect which `Test` task instances to run based on their inputs.
 
 ### Implementation
 
-* Ideally, we should cache the result of test detection during `Test` execution, so that it can be reused to determine which `Test` instances to run.
-	* Recalculate this when inputs have changed.
-	* Will need to run the tasks that build the input classpaths.
-	* Apply test detection.
-	* Determine which `Test` tasks to run
-	* Run these tasks and their dependencies and finalizers.
-	* Do not run `Test` tasks that do no match, nor their dependencies or finalizers.
+* Run tasks that build the test task(s) input classpaths.
+* Apply test detection.
+* Determine which `Test` tasks to run
+* Run these tasks and their dependencies and finalizers.
+* Do not run `Test` tasks that do no match, nor their dependencies or finalizers.
 * Calculate Test#testClassesDir / Test.classpath to find all tasks of type `org.gradle.api.tasks.testing.Test` containing matching pattern/tests
 * Execute matching Test tasks only
 
