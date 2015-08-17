@@ -25,7 +25,7 @@ class JvmComponentReportOutputFormatter extends ComponentReportOutputFormatter {
         def java = JavaVersion.current()
         return super.transform(
             original
-                .replace("java7", "java" + java.majorVersion)
+                .replace("java7", "Java SE " + java.majorVersion)
                 .replace("JDK 7 (1.7)", "JDK " + java.majorVersion + " (" + java + ")")
         )
     }

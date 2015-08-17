@@ -14,16 +14,16 @@ Source sets
 Binaries
     Shared library 'hello:sharedLibrary'
         build using task: :helloSharedLibrary
-        platform: current
-        build type: debug
-        flavor: default
+        buildType: build type 'debug'
+        flavor: flavor 'default'
+        targetPlatform: platform 'current'
         tool chain: Tool chain 'clang' (Clang)
         shared library file: build/binaries/helloSharedLibrary/libhello.dylib
     Static library 'hello:staticLibrary'
         build using task: :helloStaticLibrary
-        platform: current
-        build type: debug
-        flavor: default
+        buildType: build type 'debug'
+        flavor: flavor 'default'
+        targetPlatform: platform 'current'
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/binaries/helloStaticLibrary/libhello.a
 
@@ -38,9 +38,9 @@ Binaries
     Executable 'main:executable'
         build using task: :mainExecutable
         install using task: :installMainExecutable
-        platform: current
-        build type: debug
-        flavor: default
+        buildType: build type 'debug'
+        flavor: flavor 'default'
+        targetPlatform: platform 'current'
         tool chain: Tool chain 'clang' (Clang)
         executable file: build/binaries/mainExecutable/main
 
