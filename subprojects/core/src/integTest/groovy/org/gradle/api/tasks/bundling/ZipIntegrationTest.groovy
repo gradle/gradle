@@ -138,9 +138,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
 
     def "will convert characters to ASCII with encoding"() {
         given:
-        def encoding = 'US-ASCII'
         def filename = 'file-éö'
-        createTestFilesWithEncoding(filename, encoding)
+        createTestFilesWithEncoding(filename, 'ISO-8859-1')
         buildFile << """
             task zip(type: Zip) {
                 from 'dir1'
@@ -156,8 +155,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'zip'
 
         then:
-        def garbledFileName = "file-??"
-        def theZip = new ZipTestFixture(file('build/test.zip'), encoding)
+        def garbledFileName = "file-%U00E9%U00F6"
+        def theZip = new ZipTestFixture(file('build/test.zip'))
         theZip.hasDescendants("${garbledFileName}1.txt", "${garbledFileName}2.txt", "${garbledFileName}3.txt")
     }
 
