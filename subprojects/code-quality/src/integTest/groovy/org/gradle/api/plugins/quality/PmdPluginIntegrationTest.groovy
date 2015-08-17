@@ -85,6 +85,24 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         output.contains("2 PMD rule violations were found. See the report at:")
     }
 
+    void "can configure priority level threshold"() {
+        badCode()
+        buildFile << """
+            pmd {
+                minimumPriority = 2
+            }
+        """
+
+        expect:
+        fails("check")
+        file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
+        file("build/reports/pmd/test.xml").
+                assertContents(containsClass("org.gradle.Class1Test")).
+                assertContents(containsLine(containsString('BooleanInstantiation'))).
+                assertContents(not(containsLine(containsString('OverrideBothEqualsAndHashcode')))
+        )
+    }
+
     def "can set target JDK for PMD versions prior to 5.0"() {
         badCode()
         buildFile << """
@@ -167,7 +185,8 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
-        output.contains "Class1Test.java:1:\tEmpty initializer was found"
+        output.contains "Class1Test.java:1:\tAvoid instantiating Boolean objects"
+        output.contains "Class1Test.java:1:\tEnsure you override both equals() and hashCode()"
     }
 
     private void writeBuildFile() {
@@ -193,10 +212,13 @@ class PmdPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     private badCode() {
+        // No Warnings
         file("src/main/java/org/gradle/Class1.java") <<
                 "package org.gradle; class Class1 { public boolean isFoo(Object arg) { return true; } }"
+        // PMD Lvl 2 Warning BooleanInstantiation
+        // PMD Lvl 3 Warning OverrideBothEqualsAndHashcode
         file("src/test/java/org/gradle/Class1Test.java") <<
-                "package org.gradle; class Class1Test<T> { {} public boolean equals(Object arg) { return true; } }"
+                "package org.gradle; class Class1Test<T> { public boolean equals(Object arg) { return java.lang.Boolean.valueOf(true); } }"
     }
 
     private customCode() {
