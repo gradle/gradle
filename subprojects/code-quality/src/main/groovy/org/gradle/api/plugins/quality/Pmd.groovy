@@ -95,9 +95,8 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     boolean ignoreFailures
 
     /**
-	 * The rule priority threshold; rules with lower priority than they will not be used
-	 *
-	 * Ignored if 0
+	 * The rule priority threshold; violations for rules with a lower priority will not be reported.
+     * Default value is 0, which means that all violations will be reported.
 	 *
 	 * Example: minimumPriority = 3
 	 */

@@ -33,6 +33,14 @@
                 <td><literal>project.sourceCompatibility</literal></td>
             </tr>
             <tr>
+                <td>ignoreFailures</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>minimumPriority</td>
+                <td><literal>0</literal></td>
+            </tr>
+            <tr>
                 <td>consoleOutput</td>
                 <td><literal>false</literal></td>
             </tr>

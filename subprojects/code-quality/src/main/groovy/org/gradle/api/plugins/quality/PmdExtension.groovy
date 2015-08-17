@@ -46,11 +46,10 @@ class PmdExtension extends CodeQualityExtension {
     TargetJdk targetJdk
 
 	/**
-	 * The rule priority threshold; rules with lower priority than they will not be used
-	 *
-	 * Ignored if 0
-	 *
-	 * Example: minimumPriority = 3
+     * The rule priority threshold; violations for rules with a lower priority will not be reported.
+     * Default value is 0, which means that all violations will be reported.
+     *
+     * Example: minimumPriority = 3
 	 */
 	int minimumPriority
 
