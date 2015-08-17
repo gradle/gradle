@@ -125,7 +125,7 @@ to the server preemptively. To enable preemptive authentication simply configure
 ### Managed model improvements
 
 Managed types now support properties of any primitive type (`boolean`, `byte`, `char`, `short`, `int`, `long`, `float` and `double`), as well as any of their boxed types
-(resp. `Boolean`, `Byte`, `Character`, `Short`, `Integer`, `Long`, `Float` and `Double`).
+(respectively `Boolean`, `Byte`, `Character`, `Short`, `Integer`, `Long`, `Float` and `Double`).
 
 TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with links between parts of the
 model.
