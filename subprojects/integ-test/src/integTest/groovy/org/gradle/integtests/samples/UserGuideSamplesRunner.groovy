@@ -206,9 +206,9 @@ class UserGuideSamplesRunner extends Runner {
             def dir = sample.'@dir'
             def args = sample.'@args'
             def outputFile = sample.'@outputFile'
-            boolean ignoreExtraLines = Boolean.valueOf(sample.'@ignoreExtraLines')
-            boolean ignoreLineOrder = Boolean.valueOf(sample.'@ignoreLineOrder')
-            boolean expectFailure = Boolean.valueOf(sample.'@expectFailure')
+            boolean ignoreExtraLines = Boolean.displayValueOf(sample.'@ignoreExtraLines')
+            boolean ignoreLineOrder = Boolean.displayValueOf(sample.'@ignoreLineOrder')
+            boolean expectFailure = Boolean.displayValueOf(sample.'@expectFailure')
 
             def run = new GradleRun(id: id)
             run.subDir = dir

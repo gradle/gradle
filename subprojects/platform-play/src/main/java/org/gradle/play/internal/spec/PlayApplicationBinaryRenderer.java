@@ -18,9 +18,17 @@ package org.gradle.play.internal.spec;
 
 import org.gradle.api.reporting.components.internal.AbstractBinaryRenderer;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.play.PlayApplicationBinarySpec;
 
+import javax.inject.Inject;
+
 public class PlayApplicationBinaryRenderer extends AbstractBinaryRenderer<PlayApplicationBinarySpec> {
+    @Inject
+    public PlayApplicationBinaryRenderer(ModelSchemaStore schemaStore) {
+        super(schemaStore);
+    }
+
     @Override
     public Class<PlayApplicationBinarySpec> getTargetType() {
         return PlayApplicationBinarySpec.class;

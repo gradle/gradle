@@ -22,10 +22,11 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class ComponentReportIntegrationTest extends NativeComponentReportIntegrationTest {
     private JavaVersion currentJvm = JavaVersion.current()
-    private String currentJava = "java" + currentJvm.majorVersion
+    private String currentJavaName = "java" + currentJvm.majorVersion
+    private String currentJava = "Java SE " + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
-    
+
     @RequiresInstalledToolChain
     def "informs the user when project has no components defined"() {
         when:
@@ -54,7 +55,7 @@ model {
     }
     components {
         jvmLib(JvmLibrarySpec) {
-            targetPlatform "$currentJava"
+            targetPlatform "$currentJavaName"
         }
         nativeLib(NativeLibrarySpec)
     }
@@ -77,7 +78,7 @@ Source sets
 Binaries
     Jar 'jvmLibJar'
         build using task: :jvmLibJar
-        platform: ${currentJava}
+        target-platform: $currentJava
         tool chain: $currentJdk
         Jar file: build/jars/jvmLibJar/jvmLib.jar
 

@@ -18,9 +18,9 @@ package org.gradle.java
 import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
 
-class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
+class PluginsComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     private JavaVersion currentJvm = JavaVersion.current()
-    private String currentJava = "java" + currentJvm.majorVersion
+    private String currentJava = "Java SE " + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
 
     def "shows details of legacy Java project"() {
@@ -52,13 +52,13 @@ Additional binaries
 -------------------
 Classes 'main'
     build using task: :classes
-    platform: $currentJava
+    targetPlatform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/main
     resources dir: build/resources/main
 Classes 'test'
     build using task: :testClasses
-    platform: $currentJava
+    targetPlatform: $currentJava
     tool chain: $currentJdk
     classes dir: build/classes/test
     resources dir: build/resources/test

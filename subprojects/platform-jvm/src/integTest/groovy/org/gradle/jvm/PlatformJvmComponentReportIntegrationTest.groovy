@@ -20,9 +20,9 @@ import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTes
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class ComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
+class PlatformJvmComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     private JavaVersion currentJvm = JavaVersion.current()
-    private String currentJava = "java" + currentJvm.majorVersion
+    private String currentJava = "Java SE " + currentJvm.majorVersion
     private String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
 
     def "shows details of Java library"() {
@@ -70,7 +70,7 @@ Source sets
 Binaries
     Jar 'someLibJar'
         build using task: :someLibJar
-        platform: $currentJava
+        targetPlatform: $currentJava
         tool chain: $currentJdk
         Jar file: build/jars/someLibJar/someLib.jar
 """
@@ -110,17 +110,17 @@ Source sets
 Binaries
     Jar 'java5MyLibJar'
         build using task: :java5MyLibJar
-        platform: java5
+        targetPlatform: Java SE 5
         tool chain: $currentJdk
         Jar file: build/jars/java5MyLibJar/myLib.jar
     Jar 'java6MyLibJar'
         build using task: :java6MyLibJar
-        platform: java6
+        targetPlatform: Java SE 6
         tool chain: $currentJdk
         Jar file: build/jars/java6MyLibJar/myLib.jar
     Jar 'java7MyLibJar'
         build using task: :java7MyLibJar
-        platform: java7
+        targetPlatform: Java SE 7
         tool chain: $currentJdk
         Jar file: build/jars/java7MyLibJar/myLib.jar
 """
@@ -164,17 +164,17 @@ Source sets
 Binaries
     Jar 'java5MyLibJar'
         build using task: :java5MyLibJar
-        platform: java5
+        targetPlatform: Java SE 5
         tool chain: $currentJdk
         Jar file: build/jars/java5MyLibJar/myLib.jar
     Jar 'java6MyLibJar'
         build using task: :java6MyLibJar
-        platform: java6
+        targetPlatform: Java SE 6
         tool chain: $currentJdk
         Jar file: build/jars/java6MyLibJar/myLib.jar
     Jar 'java9MyLibJar' (not buildable)
         build using task: :java9MyLibJar
-        platform: java9
+        targetPlatform: Java SE 9
         tool chain: $currentJdk
         Jar file: build/jars/java9MyLibJar/myLib.jar
         Could not target platform: 'Java SE 9' using tool chain: '${currentJdk}'.
@@ -191,7 +191,7 @@ Source sets
 Binaries
     Jar 'myLib2Jar' (not buildable)
         build using task: :myLib2Jar
-        platform: java6
+        targetPlatform: Java SE 6
         tool chain: $currentJdk
         Jar file: build/jars/myLib2Jar/myLib2.jar
         Disabled by user
@@ -246,7 +246,7 @@ Source sets
 Binaries
     Jar 'java5SomeLibJar'
         build using task: :java5SomeLibJar
-        platform: java5
+        targetPlatform: Java SE 5
         tool chain: $currentJdk
         Jar file: build/jars/java5SomeLibJar/someLib.jar
         source sets:
@@ -256,7 +256,7 @@ Binaries
                     library 'some-library'
     Jar 'java6SomeLibJar'
         build using task: :java6SomeLibJar
-        platform: java6
+        targetPlatform: Java SE 6
         tool chain: $currentJdk
         Jar file: build/jars/java6SomeLibJar/someLib.jar
 """
