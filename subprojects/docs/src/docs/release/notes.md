@@ -10,6 +10,16 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Zip file name encoding
+
+Gradle will use the default character encoding for file names when creating Zip archives.  Depending on where the archive will be extracted, this may not be the best possible encoding
+to use due to the way various operating systems and archive tools interpret file names in the archive.  Some tools assume the extracting platform character encoding is the same encoding used
+to create the archive. A mismatch between encodings will manifest itself as "corrupted" or "mangled" file names.
+
+[Zip](dsl/org.gradle.api.tasks.bundling.Zip.html) tasks can now be configured with an explicit encoding to handle cases where the default character encoding is inappropriate.  This configuration
+option only affects the file name and comment fields of the archive (not the _content_ of the files in the archive). The default behavior has not been changed, so no changes
+should be necessary for existing builds.
+
 ### PMD 'rulePriority' configuration
 
 By default, the PMD plugin will report all rule violations and fail if any violations are found.  This means the only way to disable low priority violations was to create a custom ruleset.
