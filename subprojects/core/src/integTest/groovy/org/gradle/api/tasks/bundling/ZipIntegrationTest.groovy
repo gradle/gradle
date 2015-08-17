@@ -163,7 +163,7 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
     def "reports error for unsupported encoding"() {
         given:
         def encoding = 'unsupported encoding'
-        createTestFilesWithEncoding('file', encoding)
+        createTestFiles()
         buildFile << """
             task zip(type: Zip) {
                 from 'dir1'
@@ -194,13 +194,13 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private def createTestFilesWithEncoding(String filename, String encoding) {
-        try {
-            filename = new String(filename.getBytes(encoding), encoding)
-        } catch (ex) { }
-
+        String encodedName = filename
+        if (encoding != null) {
+            encodedName = new String(filename.getBytes(encoding), encoding)
+        }
         (1..3).each { idx ->
             createDir("dir$idx", {
-                file("${filename}${idx}.txt").text = "dir$idx/${filename}${idx}.txt"
+                file("${encodedName}${idx}.txt").text = "dir$idx/${encodedName}${idx}.txt"
             })
         }
     }
