@@ -107,10 +107,10 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "ZIP task use #encoding encoding"() {
+    def "can create Zip file with #encoding encoding"() {
         given:
         createTestFilesWithEncoding(filename, encoding)
-        def encodingStr = encoding > '' ? "'$encoding'" : null
+        def encodingStr = encoding == null ? "null" : "'$encoding'"
         buildFile << """
             task zip(type: Zip) {
                 from 'dir1'
@@ -121,10 +121,12 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
                 encoding = $encodingStr
             }
             """
-        run 'zip'
-        def theZip = new ZipTestFixture(file('build/test.zip'), encoding)
 
-        expect:
+        when:
+        succeeds 'zip'
+
+        then:
+        def theZip = new ZipTestFixture(file('build/test.zip'), encoding)
         theZip.hasDescendants("${filename}1.txt", "${filename}2.txt", "${filename}3.txt")
 
         where:
@@ -134,10 +136,10 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         'ISO-8859-1'    | 'ÈÇ'
     }
 
-    def ensureInappropriateEncodingWillCauseGarbledFileName() {
+    def "will convert characters to ASCII with encoding"() {
         given:
         def encoding = 'US-ASCII'
-        def filename = '测试'
+        def filename = 'file-éö'
         createTestFilesWithEncoding(filename, encoding)
         buildFile << """
             task zip(type: Zip) {
@@ -146,19 +148,20 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir3'
                 destinationDir = buildDir
                 archiveName = 'test.zip'
-                encoding = '$encoding'
+                encoding = 'US-ASCII'
             }
             """
 
         when:
-        run 'zip'
+        succeeds 'zip'
 
         then:
+        def garbledFileName = "file-??"
         def theZip = new ZipTestFixture(file('build/test.zip'), encoding)
-        theZip.doesNotContainDescendants("${filename}1.txt", "${filename}2.txt", "${filename}3.txt")
+        theZip.hasDescendants("${garbledFileName}1.txt", "${garbledFileName}2.txt", "${garbledFileName}3.txt")
     }
 
-    def ensureExceptionWillBeThrownUsingUnsupportedEncoding() {
+    def "reports error for unsupported encoding"() {
         given:
         def encoding = 'unsupported encoding'
         createTestFilesWithEncoding('file', encoding)
