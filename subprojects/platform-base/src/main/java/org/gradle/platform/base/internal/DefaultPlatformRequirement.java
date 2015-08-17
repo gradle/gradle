@@ -50,9 +50,4 @@ public class DefaultPlatformRequirement implements PlatformRequirement {
     public int hashCode() {
         return platformName.hashCode();
     }
-
-    @Override
-    public String toString() {
-        return getPlatformName();
-    }
 }

@@ -22,7 +22,6 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.Variant;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
 
@@ -41,7 +40,6 @@ public interface PlayApplicationBinarySpec extends BinarySpec {
      * The PlayPlatform this binary is built for.
      * @return platform for this binary
      */
-    @Variant
     PlayPlatform getTargetPlatform();
 
     PlayToolChain getToolChain();
