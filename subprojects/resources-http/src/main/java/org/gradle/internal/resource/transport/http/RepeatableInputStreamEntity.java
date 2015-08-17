@@ -53,7 +53,7 @@ public class RepeatableInputStreamEntity extends AbstractHttpEntity {
         try {
             IOUtils.copyLarge(content, outstream);
         } finally {
-            content.close();
+            IOUtils.closeQuietly(content);
         }
     }
 
