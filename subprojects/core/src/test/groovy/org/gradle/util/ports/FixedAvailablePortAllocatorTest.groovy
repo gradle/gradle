@@ -18,60 +18,68 @@ package org.gradle.util.ports
 
 import spock.lang.Unroll
 
-
 class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
 
     @Unroll
-    def "assigns a fixed port range based on worker id (maxForks: #maxForks, workerId: #workerId, agentNum: #agentNum, totalAgents: #totalAgents)" () {
+    def "assigns a unique fixed port range based on worker id (maxForks: #maxForks, totalAgents: #totalAgents)" () {
+        int rangeSize = (PortAllocator.MAX_PRIVATE_PORT - PortAllocator.MIN_PRIVATE_PORT) / (maxForks * totalAgents) - 1
+        def portAllocators = (1..totalAgents).collect { agentNum ->
+            (1..maxForks).collect { workerId ->
+                def portAllocator = new FixedAvailablePortAllocator(maxForks, workerId, agentNum, totalAgents)
+                portAllocator.assignPort()
+                return portAllocator
+            }
+        }
+
+        expect:
+        (1..totalAgents).each { agentNum ->
+            (1..maxForks).each {
+                def portAllocator = portAllocators[agentNum-1].remove(0)
+                def otherRanges = portAllocators.flatten()
+                assert portAllocator.reservations.size() == 1
+                assert portAllocator.reservations[0].endPort - portAllocator.reservations[0].startPort == rangeSize
+                assert portAllocator.reservations[0].startPort >= PortAllocator.MIN_PRIVATE_PORT
+                assert portAllocator.reservations[0].endPort <= PortAllocator.MAX_PRIVATE_PORT
+                otherRanges.each { other ->
+                    assert !other.isReserved(portAllocator.reservations[0].startPort, portAllocator.reservations[0].endPort)
+                }
+            }
+        }
+
+        where:
+        maxForks | totalAgents
+        2        | 1
+        2        | 2
+        4        | 1
+        4        | 2
+        8        | 1
+        8        | 2
+        8        | 4
+    }
+
+    @Unroll
+    def "port range allocation wraps around when workerId exceeds maxForks (maxForks: #maxForks, workerId: #workerId, sameAs: #sameAsRange)" () {
         FixedAvailablePortAllocator portAllocator = new FixedAvailablePortAllocator(maxForks, workerId, agentNum, totalAgents)
+        FixedAvailablePortAllocator samePortAllocator = new FixedAvailablePortAllocator(maxForks, sameAsRange, agentNum, totalAgents)
 
         when:
         portAllocator.assignPort()
+        samePortAllocator.assignPort()
 
         then:
-        portAllocator.reservations.size() == 1
-        portAllocator.reservations.get(0).startPort == startPort
-        portAllocator.reservations.get(0).endPort == endPort
+        portAllocator.reservations[0].startPort == samePortAllocator.reservations[0].startPort
+        portAllocator.reservations[0].endPort == samePortAllocator.reservations[0].endPort
 
         where:
-        maxForks | workerId | agentNum | totalAgents | startPort | endPort
-        2        | 1        | 1        | 2           | 49152     | 53246
-        2        | 2        | 1        | 2           | 53247     | 57341
-        2        | 1        | 2        | 2           | 57342     | 61436
-        2        | 2        | 2        | 2           | 61437     | 65531
-        2        | 5        | 2        | 2           | 57342     | 61436
-
-        4        | 1        | 1        | 1           | 49152     | 53246
-        4        | 2        | 1        | 1           | 53247     | 57341
-        4        | 3        | 1        | 1           | 57342     | 61436
-        4        | 4        | 1        | 1           | 61437     | 65531
-        4        | 10       | 1        | 1           | 53247     | 57341
-
-        4        | 1        | 1        | 2           | 49152     | 51198
-        4        | 2        | 1        | 2           | 51199     | 53245
-        4        | 3        | 1        | 2           | 53246     | 55292
-        4        | 4        | 1        | 2           | 55293     | 57339
-        4        | 11       | 1        | 2           | 53246     | 55292
-        4        | 1        | 2        | 2           | 57340     | 59386
-        4        | 2        | 2        | 2           | 59387     | 61433
-        4        | 3        | 2        | 2           | 61434     | 63480
-        4        | 4        | 2        | 2           | 63481     | 65527
-        4        | 10       | 2        | 2           | 59387     | 61433
-
-        6        | 1        | 1        | 2           | 49152     | 50516
-        6        | 2        | 1        | 2           | 50517     | 51881
-        6        | 3        | 1        | 2           | 51882     | 53246
-        6        | 4        | 1        | 2           | 53247     | 54611
-        6        | 5        | 1        | 2           | 54612     | 55976
-        6        | 6        | 1        | 2           | 55977     | 57341
-        6        | 7        | 1        | 2           | 49152     | 50516
-        6        | 1        | 2        | 2           | 57342     | 58706
-        6        | 2        | 2        | 2           | 58707     | 60071
-        6        | 3        | 2        | 2           | 60072     | 61436
-        6        | 4        | 2        | 2           | 61437     | 62801
-        6        | 5        | 2        | 2           | 62802     | 64166
-        6        | 6        | 2        | 2           | 64167     | 65531
-        6        | 9        | 2        | 2           | 60072     | 61436
+        maxForks | workerId | agentNum | totalAgents | sameAsRange
+        2        | 5        | 1        | 1           | 1
+        2        | 6        | 1        | 1           | 2
+        4        | 5        | 1        | 2           | 1
+        4        | 10       | 1        | 2           | 2
+        2        | 11       | 1        | 2           | 3
+        4        | 12       | 1        | 2           | 4
+        8        | 9        | 1        | 4           | 1
+        8        | 13       | 1        | 4           | 5
     }
 
     def "uses all ports when maxForks and workerId are not available" () {
