@@ -813,8 +813,15 @@ public class DefaultModelRegistry implements ModelRegistry {
             if (!getPath().isDirectChild(childPath)) {
                 throw new IllegalArgumentException(String.format("Element creator has a path (%s) which is not a child of this node (%s).", childPath, getPath()));
             }
+
+            if (reset) {
+                // Reuse child node
+                registerNode(child);
+                return;
+            }
+
             ModelNodeInternal currentChild = links.get(childPath.getName());
-            if (currentChild != null && !reset) {
+            if (currentChild != null) {
                 if (currentChild.getState() == Known) {
                     throw new DuplicateModelException(
                         String.format(
