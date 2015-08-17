@@ -108,8 +108,8 @@
         </para>
         <para>You can also add properties directly to your project object via the <option>-P</option> command line option.
         </para>
-        <para>Gradle can also set project properties when it sees specially-named system properties or
-            environment variables. This feature is very useful when you don't have admin rights to a continuous integration
+        <para>Gradle can also set project properties when it sees specially-named environment variables or
+            system properties. This feature is very useful when you don't have admin rights to a continuous integration
             server and you need to set property values that should not be easily visible, typically for security reasons.
             In that situation, you can't use the <option>-P</option> option, and you can't change the system-level
             configuration files.  The correct strategy is to change the configuration of your continuous integration
@@ -122,12 +122,10 @@
             </footnote>
         </para>
         <para>
-            If the environment variable name looks like
-            <literal>ORG_GRADLE_PROJECT_<replaceable>prop</replaceable>=somevalue</literal>,
-            then Gradle will set a <literal>prop</literal> property on your project object, with the value
-            of <literal>somevalue</literal>. Gradle also supports this for
-            system properties, but with a different naming pattern, which looks like
-            <literal>org.gradle.project.<replaceable>prop</replaceable></literal>.
+            If Gradle's environment contains a variable that looks like <literal>ORG_GRADLE_PROJECT_<replaceable>prop_name</replaceable>=somevalue</literal>,
+            then Gradle will set both a <literal>prop_name</literal> and a <literal>prop.name</literal> property on your project object,
+            each with the value of <literal>somevalue</literal>. To set a project property via a system property, name the latter like
+            <literal>org.gradle.project.<replaceable>prop_name</replaceable></literal>.
         </para>
         <para>You can also set system properties in the <filename>gradle.properties</filename> file. If a property
             name in such a file has the prefix “<literal>systemProp.</literal>”, like “<literal>systemProp.propName</literal>”,

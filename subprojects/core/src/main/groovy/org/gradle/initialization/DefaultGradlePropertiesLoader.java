@@ -92,7 +92,9 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         Map<String, String> envProjectProperties = new HashMap<String, String>();
         for (Map.Entry<String, String> entry : envProperties.entrySet()) {
             if (entry.getKey().startsWith(ENV_PROJECT_PROPERTIES_PREFIX) && entry.getKey().length() > ENV_PROJECT_PROPERTIES_PREFIX.length()) {
-                envProjectProperties.put(entry.getKey().substring(ENV_PROJECT_PROPERTIES_PREFIX.length()), entry.getValue());
+                String name = entry.getKey().substring(ENV_PROJECT_PROPERTIES_PREFIX.length());
+                envProjectProperties.put(name, entry.getValue());
+                envProjectProperties.put(name.replace('_', '.'), entry.getValue());
             }
         }
         logger.debug("Found env project properties: {}", envProjectProperties.keySet());
