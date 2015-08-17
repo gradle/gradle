@@ -127,11 +127,6 @@ to the server preemptively. To enable preemptive authentication simply configure
 Managed types now support properties of any primitive type (`boolean`, `byte`, `char`, `short`, `int`, `long`, `float` and `double`), as well as any of their boxed types
 (respectively `Boolean`, `Byte`, `Character`, `Short`, `Integer`, `Long`, `Float` and `Double`).
 
-TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with links between parts of the
-model.
-
-- Can use a link property as input for a rule.
-
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
