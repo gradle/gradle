@@ -117,23 +117,27 @@ Support read-write collection properties defined using both a getter and a sette
 - Model report renders collection values
     * Format should be similar to the one of `Arrays.toString`
 - For a managed type that defines a `Set<String>` read-only property
-    * `addAll 'b','c'`
-    * `add 'd'`
-    * `add 'a'`
-    * call to getter should return a `Set` which is ordered: `'b','c','d','a'`
+```
+    foo.getItems().addAll(['b', 'c'])
+    foo.getItems().add('d')
+    foo.getItems().add('a')
+    foo.getItems() == ['b','c','d','a'] as Set
+```
 - For a managed type `foo` that defines a `Set<String>` read-write property
-    * create a `SortedSet<String> sortedSet` containing `'c','b'`
-    * call `foo.setItems(sortedSet)`
-    * add `'d'` to `sortedSet`
-    * call `foo.getItems().add('a')`
-    * call again `foo.getItems()` make sure it returns a `Set` which contains *in that order*: `'b','c','a'` (effect of copy on write, semantics of `SortedSet` are not preserved)
+```
+    SortedSet<String> sortedSet = Sets.newTreeSet('c', 'b')
+    foo.setItems(sortedSet)
+    sortedSet.add('d')
+    foo.getItems().add('a')
+    foo.getItems() == ['b','c','a'] as Set
+```
 - Copy on write semantics:
-
+```
     List<String> list = ['a', 'b']
     foo.setItems(list)
     list.add 'c'
     foo.getItems() == ['a', 'b']
-
+```
 - Useful error message presented when validating schema:
     * `T` is not a scalar type
     * `T` is not the same for getter and setter
