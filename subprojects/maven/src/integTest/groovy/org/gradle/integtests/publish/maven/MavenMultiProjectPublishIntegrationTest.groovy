@@ -114,6 +114,51 @@ project(":project2") {
         pom.scopes.compile.assertDependsOn("org.gradle.test:project2:1.9")
     }
 
+    @Issue("GRADLE-3030")
+    def "project dependency classifier correctly reflected in POM"() {
+        createBuildScripts("""
+project(":project1") {
+    dependencies {
+        compile project(":project2")
+        compile project(path: ":project2", configuration: "otherStuff")
+        testCompile project(path: ":project2", configuration: "moreStuff")
+    }
+}
+
+project(":project2") {
+    configurations {
+        otherStuff
+        moreStuff
+    }
+
+    task otherJar(type:Jar) {
+        from sourceSets.test.output
+        classifier = 'otherStuff'
+    }
+
+    task moreJar(type:Jar) {
+        from sourceSets.test.output
+        classifier = 'moreStuff'
+    }
+
+    artifacts {
+        otherStuff      otherJar
+        archives        otherJar
+        moreStuff       moreJar
+        archives        moreJar
+    }
+}
+        """)
+
+        when:
+        run ":project1:uploadArchives"
+
+        then:
+        def pom = mavenModule.parsedPom
+        pom.scopes.compile.assertDependsOn("org.gradle.test:project2:1.9", "org.gradle.test:project2:1.9:otherStuff")
+        pom.scopes.test.assertDependsOn("org.gradle.test:project2:1.9:moreStuff")
+    }
+
     private void createBuildScripts(String append = "") {
         settingsFile << """
 include "project1", "project2"
