@@ -95,6 +95,8 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     boolean ignoreFailures
 
     /**
+     * Specifies the rule priority threshold.
+     * 
 	 * @see PmdExtension#rulePriority
 	 */
     @Incubating
