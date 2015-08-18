@@ -30,10 +30,7 @@ import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTestLauncher> implements TestLauncher {
 
@@ -102,7 +99,8 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
             throw new TestExecutionException("No test declared for execution.");
         }
         final ConsumerOperationParameters operationParameters = operationParamsBuilder.setParameters(connectionParameters).build();
-        final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(testClassNames), ImmutableMultimap.copyOf(testMethods));
+        final List<String> allTestClasses = CollectionUtils.flattenCollections(String.class, this.testClassNames, testMethods.keySet());
+        final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(allTestClasses), ImmutableMultimap.copyOf(testMethods));
         connection.run(new ConsumerAction<Void>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
