@@ -30,7 +30,7 @@ import java.util.List;
  * @since 2.6
  */
 @Incubating
-public class TestExecutionException extends GradleException implements MultiCauseException {
+public class TestExecutionException extends GradleException {
 
     List<Throwable> causes = new ArrayList<Throwable>();
 
@@ -43,7 +43,6 @@ public class TestExecutionException extends GradleException implements MultiCaus
         this.causes.addAll(causes);
     }
 
-    @Override
     public List<? extends Throwable> getCauses() {
         return causes;
     }
