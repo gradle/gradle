@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.antlr.internal.antlr2;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 
@@ -68,7 +67,7 @@ public class MetadataExtracter {
         try {
             return getPackageName(new FileReader(grammarFileFile));
         } catch (IOException e) {
-            throw new GradleException("Cannot read antlr grammar file", e);
+            throw new UncheckedIOException("Cannot read antlr grammar file", e);
         }
     }
 
