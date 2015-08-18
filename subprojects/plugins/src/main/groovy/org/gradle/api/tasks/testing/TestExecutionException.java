@@ -18,7 +18,6 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.internal.exceptions.MultiCauseException;
 
 import java.util.ArrayList;
 import java.util.Collection;
