@@ -39,7 +39,9 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         given:
         collectDescriptorsFromBuild()
         when:
-        launchTests(testDescriptors("example.MyTest"));
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestMethods("example.ParameterizedTest", "test")
+        }
         then:
         events.assertIsABuild()
         events.operation("Task :compileJava").successful
