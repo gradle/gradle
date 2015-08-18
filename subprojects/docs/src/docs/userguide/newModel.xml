@@ -159,12 +159,29 @@
             <para>
                 A “managed” object is transparent and enforces immutability once realized.
                 Being transparent means that its structure is understood by the rule infrastructure and as such each of its properties are also individual elements in the model space.
-                Please see the <apilink class="org.gradle.model.Managed" /> annotation for more information on creating managed model objects.
             </para>
             <para>
                 An “unmanaged” object is opaque to the the model space and does not enforce immutability.
                 Over time, more mechanisms will be available for defining managed model elements culminating in all model elements being managed in some way.
             </para>
+            <para>Managed models can be defined thanks to the <literal>@Managed</literal> annotation, used on an interface:</para>
+            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed type">
+                <sourcefile file='build.gradle' snippet='managed-type'/>
+            </sample>
+            <para>By defining a couple of getter/setter, you are effectively declaring a managed property. A managed property is a property for which Gradle
+            will enforce semantics such as immutability when a node of the model is not the subject of a rule. Therefore, this example declares a property
+            named <emphasis>name</emphasis> on the managed type <emphasis>Person</emphasis>. This property will only be writeable when the view is mutable,
+            that is to say when the <emphasis>Person</emphasis> is the subject of a <literal>Rule</literal> (see below the explanation for rules).</para>
+            <para>Properties can be of any primitive type (e.g. <literal>int</literal>), boxed type (e.g <literal>Integer</literal>), <literal>String</literal>,
+                <literal>File</literal> or enumeration. In addition, properties can also be of any type which is itself managed.</para>
+            <para>If the type of a property is itself a managed type, it is possible to declare only a getter, in which case you are declaring a
+            read-only property. A read-only property must not be mistaken with an immutable property. A read-only property will be instantiated by Gradle,
+            and cannot be replaced with another object of the same type (for example calling a setter). However, the properties of that property can potentially
+            be changed, if, and only if, the property is the subject of a rule. If it's not the case, the property is immutable, like any classic
+            read/write managed property.</para>
+            <para>Managed types can be defined out of interfaces or abstract classes and are usually defined in plugins, which are written either in Java or Groovy.
+                Please see the <apilink class="org.gradle.model.Managed" /> annotation
+                for more information on creating managed model objects.</para>
         </section>
         <section>
             <title>References, binding and scopes</title>

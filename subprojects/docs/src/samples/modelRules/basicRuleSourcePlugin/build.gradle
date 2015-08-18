@@ -2,8 +2,11 @@
 // START SNIPPET managed-type
 @Managed
 interface Person {
-  void setFirstName(String n); String getFirstName()
-  void setLastName(String n); String getLastName()
+  void setFirstName(String n)
+  String getFirstName()
+
+  void setLastName(String n)
+  String getLastName()
 }
 // END SNIPPET managed-type
 
