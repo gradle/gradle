@@ -209,4 +209,12 @@ class PmdPluginTest extends Specification {
         task.rulePriority == 3
     }
 
+    def "configures pmd classpath based on sourcesets"() {
+        project.pluginManager.apply(JavaBasePlugin)
+        project.sourceSets {
+            main
+        }
+        expect:
+        project.tasks.getByName("pmdMain").classpath == project.sourceSets.main.compileClasspath
+    }
 }

@@ -119,6 +119,15 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     @Incubating
     boolean consoleOutput
 
+    /**
+     * Compile class path for the classes to be analyzed.
+     *
+     * The classes on this class path are used during analysis but aren't analyzed themselves.
+     */
+    @InputFiles
+    @Optional
+    FileCollection classpath
+
     Pmd() {
         reports = instantiator.newInstance(PmdReportsImpl, this)
     }
@@ -166,6 +175,10 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
                 def ruleSetConfig = getRuleSetConfig()
                 if (ruleSetConfig != null) {
                     ruleset(ruleSetConfig.asFile())
+                }
+
+                if (getClasspath() != null) {
+                    getClasspath().addToAntBuilder(ant, 'auxclasspath', FileCollection.AntType.ResourceCollection)
                 }
 
                 if (reports.html.enabled) {

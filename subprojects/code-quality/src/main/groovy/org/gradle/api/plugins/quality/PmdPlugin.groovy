@@ -114,5 +114,8 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             description = "Run PMD analysis for ${sourceSet.name} classes"
         }
         task.setSource(sourceSet.allJava)
+        task.conventionMapping.with {
+            classpath = { sourceSet.compileClasspath }
+        }
     }
 }
