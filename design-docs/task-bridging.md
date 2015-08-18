@@ -36,7 +36,7 @@ _Implementation Options (WIP spiking)_
     This would be added via [BuildScopeServices](subprojects/core/src/main/groovy/org/gradle/internal/service/scopes/BuildScopeServices.java#L173-173)
     - Override the `public <S extends Task> TaskCollection<S> withType(Class<S> type)` method in [DefaultTaskContainer](subprojects/core/src/main/groovy/org/gradle/api/internal/tasks/DefaultTaskContainer.java).
     This implementation would add each supplied `Class<S> type` to a `Set`. This `Set` would then be used by a `ProjectConfigureAction` to realise all of the necessary tasks.
-    
+
 
 ### Test cases
 
@@ -78,10 +78,8 @@ customTask.dependsOn tasks.withType(Parent)
 ```
 
 ### Open Questions:
-- Should we reach across projects i.e. `project(":projectA").tasks['customTask'].dependsOn tasks.withType(ClimbTask)` where `ClimbTask` is a rule
- source task added by 'projectB'
-
-
+- ~~Should we reach across projects i.e. `project(":projectA").tasks['customTask'].dependsOn tasks.withType(ClimbTask)` where `ClimbTask` is a rule
+ source task added by 'projectB'~~ Yes
 
 ## User configures rule based task in build script directly
 
