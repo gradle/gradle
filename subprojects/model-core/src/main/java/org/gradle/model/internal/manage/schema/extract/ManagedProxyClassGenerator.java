@@ -76,9 +76,15 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
 
     /**
-     * Generates an implementation of the given managed type. <p> The generated class will implement/extend the managed type and will: <ul> <li>provide implementations for abstract getters and
-     * setters</li> <li>provide a `toString()` implementation</li> <li>mix-in implementation of {@link ManagedInstance}</li> <li>provide a constructor that accepts a {@link ModelElementState}, which
-     * will be used to implement the above.</li> </ul>
+     * Generates an implementation of the given managed type.
+     * <p>
+     * The generated class will implement/extend the managed type and will:
+     * <ul>
+     *     <li>provide implementations for abstract getters and setters</li>
+     *     <li>provide a `toString()` implementation</li>
+     *     <li>mix-in implementation of {@link ManagedInstance}</li>
+     *     <li>provide a constructor that accepts a {@link ModelElementState}, which will be used to implement the above.</li>
+     * </ul>
      */
     public <T, M extends T, D extends T> Class<? extends M> generate(Class<M> managedTypeClass, Class<D> delegateType, Iterable<ModelProperty<?>> properties) {
         if (delegateType != null && !delegateType.isInterface()) {
