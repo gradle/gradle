@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.antlr.internal.antlr2
 
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class MetadataExtracterTest extends Specification {
@@ -47,7 +46,6 @@ class MetadataExtracterTest extends Specification {
         "org.acme" == new MetadataExtracter().getPackageName(new StringReader(grammar))
     }
 
-    @Ignore
     def "parses package information when header is declared as one-liner"() {
         given:
         def grammar = """
@@ -70,5 +68,38 @@ class MetadataExtracterTest extends Specification {
             ;"""
         expect:
         "org.acme" == new MetadataExtracter().getPackageName(new StringReader(grammar))
+    }
+
+    def "parses package information with header block in cpp syntax"() {
+        given:
+        def grammar = """
+        header
+{
+package org.hibernate.hql.internal.antlr;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.LinkedList;
+
+import org.hibernate.hql.internal.ast.ErrorReporter;
+}
+
+        class TestGrammar extends Parser;
+
+        options {
+            buildAST = true;
+        }
+
+        expr:   mexpr (PLUS^ mexpr)* SEMI!
+            ;
+
+        mexpr
+            :   atom (STAR^ atom)*
+            ;
+
+        atom:   INT
+            ;"""
+        expect:
+        "org.hibernate.hql.internal.antlr" == new MetadataExtracter().getPackageName(new StringReader(grammar))
     }
 }
