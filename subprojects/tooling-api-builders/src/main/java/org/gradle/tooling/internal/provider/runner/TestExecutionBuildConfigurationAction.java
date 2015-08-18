@@ -129,17 +129,17 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         return testTasksToRun;
     }
 
-    private List<Test> configureBuildForTestClasses(GradleInternal gradle, final InternalTestExecutionRequest testExecutionRequest) {
+    private List<Test> configureBuildForTestClasses(GradleInternal gradle, final InternalTestExecutionRequestVersion2 testExecutionRequest) {
         if (testExecutionRequest.getTestClassNames().isEmpty()) {
             return Collections.emptyList();
         }
         List<Test> tasksToExecute = new ArrayList<Test>();
-        final Collection<String> testClassNames = testExecutionRequest.getTestClassNames();
+
         final Set<Project> allprojects = gradle.getRootProject().getAllprojects();
         for (Project project : allprojects) {
             final TaskCollection<Test> testTasks = project.getTasks().withType(Test.class);
             for (Test testTask : testTasks) {
-                configureTestClassFilter(testTask, testClassNames);
+                configureTestClassFilter(testTask, testExecutionRequest.getTestClassNames());
             }
             tasksToExecute.addAll(testTasks);
         }

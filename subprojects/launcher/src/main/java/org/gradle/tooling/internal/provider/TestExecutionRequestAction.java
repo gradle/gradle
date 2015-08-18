@@ -17,13 +17,18 @@
 package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
+import org.gradle.api.Transformer;
+import org.gradle.api.specs.Spec;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequestVersion2;
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
+import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public class TestExecutionRequestAction extends SubscribableBuildAction implements InternalTestExecutionRequestVersion2 {
@@ -37,12 +42,32 @@ public class TestExecutionRequestAction extends SubscribableBuildAction implemen
         this.startParameter = startParameter;
         // Unpack the request to serialize across to the daemon
         this.testDescriptors = ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors());
-        this.testClassNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
-        if (testExecutionRequest instanceof InternalTestExecutionRequestVersion2) {
-            this.testMethods = ImmutableSet.copyOf(((InternalTestExecutionRequestVersion2) testExecutionRequest).getTestMethods());
-        } else {
+        if(testExecutionRequest instanceof InternalTestExecutionRequestVersion2){
+            final InternalTestExecutionRequestVersion2 testExecutionRequestV2 = (InternalTestExecutionRequestVersion2) testExecutionRequest;
+            this.testClassNames = calculateTestClassNames(testExecutionRequestV2);
+            this.testMethods = ImmutableSet.copyOf(testExecutionRequestV2.getTestMethods());
+        }else{
+            this.testClassNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
             this.testMethods = ImmutableSet.of();
         }
+    }
+
+    private Set<String> calculateTestClassNames(InternalTestExecutionRequestVersion2 testExecutionRequest) {
+        final Transformer<String, InternalTestMethod> transformer = new Transformer<String, InternalTestMethod>() {
+            @Override
+            public String transform(InternalTestMethod internalTestMethod) {
+                return internalTestMethod.getClassName();
+            }
+        };
+        final Set<String> testClassesInMethods = CollectionUtils.toSet(CollectionUtils.collect(testExecutionRequest.getTestMethods(), transformer));
+        final List<String> testClassNames = Lists.newArrayList(testExecutionRequest.getTestClassNames());
+        final List<String> testClassesToRunCompletely = CollectionUtils.filter(testClassNames, new Spec<String>() {
+            @Override
+            public boolean isSatisfiedBy(String className) {
+                return !testClassesInMethods.contains(className);
+            }
+        });
+        return ImmutableSet.copyOf(testClassesToRunCompletely);
     }
 
     @Override

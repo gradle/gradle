@@ -161,6 +161,25 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         Test example.MyFailingTest#fail (Task: :test)"""
     }
 
+    @TargetGradleVersion("=2.6")
+    def "runs all methods of test class if test methods not supported"() {
+        when:
+        launchTests { TestLauncher testLauncher ->
+            testLauncher.withJvmTestMethods("example.MyTest", "foo")
+        }
+        then:
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
+        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
+
+    }
+
     def testClassRemoved() {
         file("src/test/java/example2/MyOtherTest.java").delete()
     }
