@@ -27,8 +27,9 @@ customTask.dependsOn tasks.withType(ClimbTask)
 ```
 
 ### Implementation
-Realise, in or before the `afterEvaluate` lifecycle phase, all rule source tasks which have been depended on by type.
-Realise in this context means realising the model nodes of task of those types along with all child nodes.
+Realise, after all of the `afterEvaluates` of all projects, all rule source tasks which have been addressed via the `withType(SomeType)` construct.
+Realise in this context means realising the model nodes of tasks of those types along with all child nodes.'
+_More to follow - spiking_
 
 ### Test cases
 
@@ -40,8 +41,34 @@ Realise in this context means realising the model nodes of task of those types a
     - `project.tasks.customTask.dependsOn tasks.withType(ClimbTask)`
     - `tasks.getByPath(":customTask").dependsOn tasks.withType(ClimbTask)`
 - Only rule source tasks of type `ClimbTask` are realised given rule source tasks of other types exist.
-- A non rule source task in a parent project can depend one or more rule source tasks of type `ClimbTask` - created in a subproject.
+- Depending on rule based tasks of a type in another project
+- depending on tasks of a type from a project that is already fully evaluated
 
+e.g.
+
+```groovy
+task foo  {
+    dependsOn project(“:bar”).tasks.withType(RulesTask)
+}
+```
+- Build failure when failing to create a rule based task.
+- can dependOn a variable which has been assigned to `tasks.withType(ClimbTask)`
+
+e.g.
+
+```groovy
+def t = tasks.withType(ClimbTask)
+customTask.dependsOn t
+```
+
+- Realizing all subtypes of a rule source task - `customTask` should have a dependency on any tasks of type `Child`
+e.g.
+
+```groovy
+class Child extends Parent {}
+class Parent extends DefaultTask {}
+customTask.dependsOn tasks.withType(Parent)
+```
 
 ### Open Questions:
 - Should we reach across projects i.e. `project(":projectA").tasks['customTask'].dependsOn tasks.withType(ClimbTask)` where `ClimbTask` is a rule
