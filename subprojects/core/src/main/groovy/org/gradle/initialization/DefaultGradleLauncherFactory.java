@@ -16,9 +16,7 @@
 
 package org.gradle.initialization;
 
-import org.gradle.BuildLogger;
-import org.gradle.StartParameter;
-import org.gradle.TaskExecutionLogger;
+import org.gradle.*;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logging;
@@ -27,6 +25,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.BuildConfigurationActionExecuter;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -45,6 +44,9 @@ import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
 import org.gradle.util.DeprecationLogger;
+
+import java.io.Closeable;
+import java.io.IOException;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final ServiceRegistry sharedServices;
@@ -70,7 +72,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         sharedServices.get(ListenerManager.class).removeListener(listener);
     }
 
-    public DefaultGradleLauncher newInstance(StartParameter startParameter) {
+    public GradleLauncher newInstance(StartParameter startParameter) {
         BuildRequestMetaData requestMetaData;
         BuildCancellationToken cancellationToken;
         BuildEventConsumer buildEventConsumer;
@@ -84,22 +86,29 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             cancellationToken = new DefaultBuildCancellationToken();
             buildEventConsumer = new NoOpBuildEventConsumer();
         }
-        BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(sharedServices, startParameter);
-        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, sessionScopeServices);
+        final BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(sharedServices, startParameter);
+        final BuildScopeServices serviceRegistry = new BuildScopeServices(sessionScopeServices);
+        Closeable servicesToStop = new Closeable() {
+            @Override
+            public void close() throws IOException {
+                CompositeStoppable.stoppable(serviceRegistry, sessionScopeServices).stop();
+            }
+        };
+        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, serviceRegistry, servicesToStop);
     }
 
     @Override
     public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
         // This should only be used for top-level builds
         assert tracker.getCurrentBuild() == null;
-        DefaultGradleLauncher launcher = doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), parentRegistry);
+        BuildScopeServices serviceRegistry = new BuildScopeServices(parentRegistry);
+        DefaultGradleLauncher launcher = doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), serviceRegistry, serviceRegistry);
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
         deploymentRegistry.onNewBuild(launcher.getGradle());
         return launcher;
     }
 
-    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, ServiceRegistry parentRegistry) {
-        BuildScopeServices serviceRegistry = new BuildScopeServices(parentRegistry);
+    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, BuildScopeServices serviceRegistry, Closeable servicesToStop) {
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
@@ -141,7 +150,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             serviceRegistry.get(BuildOperationExecutor.class),
             gradle.getServices().get(BuildConfigurationActionExecuter.class),
             gradle.getServices().get(BuildExecuter.class),
-            serviceRegistry
+            servicesToStop
         );
     }
 }
