@@ -28,7 +28,7 @@
         The following build script is an example of a rule based build.
     </para>
     <sample id='basicRuleSourcePlugin-all' dir='modelRules/basicRuleSourcePlugin' includeLocation="true" title='an example of a simple rule based build'>
-        <sourcefile file='build.gradle' />
+        <sourcefile file='build.gradle' snippet="managed-type-plugin-and-dsl"/>
         <output args='hello'/>
     </sample>
     <para>
@@ -173,7 +173,96 @@
             named <emphasis>name</emphasis> on the managed type <emphasis>Person</emphasis>. This property will only be writeable when the view is mutable,
             that is to say when the <emphasis>Person</emphasis> is the subject of a <literal>Rule</literal> (see below the explanation for rules).</para>
             <para>Properties can be of any primitive type (e.g. <literal>int</literal>), boxed type (e.g <literal>Integer</literal>), <literal>String</literal>,
-                <literal>File</literal> or enumeration. In addition, properties can also be of any type which is itself managed.</para>
+                <literal>File</literal> or enumeration. In addition, properties can also be of any type which is itself managed:</para>
+            <table>
+                <thead>
+                    <td>Property type</td><td>Nullable</td><td>Example</td>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <literal>String</literal>
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a String property" >
+                                <sourcefile file='build.gradle' snippet='property-type-string'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <literal>File</literal>
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a File property" >
+                                <sourcefile file='build.gradle' snippet='property-type-file'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <literal>Integer</literal>, <literal>Boolean</literal>, <literal>Byte</literal>, <literal>Short</literal>,
+                            <literal>Float</literal>, <literal>Long</literal>, <literal>Double</literal>
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a Long property" >
+                                <sourcefile file='build.gradle' snippet='property-type-long'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <literal>int</literal>, <literal>boolean</literal>, <literal>byte</literal>, <literal>short</literal>,
+                            <literal>float</literal>, <literal>long</literal>, <literal>double</literal>
+                        </td>
+                        <td>No</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a boolean property">
+                                <sourcefile file='build.gradle' snippet='property-type-boolean'/>
+                            </sample>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="an int property" >
+                                <sourcefile file='build.gradle' snippet='property-type-int'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Another <emphasis>managed</emphasis> type.
+                        </td>
+                        <td>Only if read/write</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed property">
+                                <sourcefile file='build.gradle' snippet='property-type-managed'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            An <emphasis>enumeration</emphasis> type.
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="an enumeration type property">
+                                <sourcefile file='build.gradle' snippet='property-type-enum'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            A <literal>ManagedSet</literal>.
+                        </td>
+                        <td>Only if read/write</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed set">
+                                <sourcefile file='build.gradle' snippet='property-type-managedset'/>
+                            </sample>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
             <para>If the type of a property is itself a managed type, it is possible to declare only a getter, in which case you are declaring a
             read-only property. A read-only property must not be mistaken with an immutable property. A read-only property will be instantiated by Gradle,
             and cannot be replaced with another object of the same type (for example calling a setter). However, the properties of that property can potentially
