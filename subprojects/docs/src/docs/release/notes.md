@@ -80,7 +80,7 @@ To make your Play application build use the injected routes generator, you'll ne
     model {
         components {
             play {
-                useStaticRouter = false
+                injectedRoutesGenerator = true
             }
         }
     }

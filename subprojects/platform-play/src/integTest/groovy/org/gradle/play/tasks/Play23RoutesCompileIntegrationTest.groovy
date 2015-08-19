@@ -52,7 +52,7 @@ class Play23RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegratio
 model {
     components {
         play {
-            useStaticRouter = false
+            injectedRoutesGenerator = true
         }
     }
 }

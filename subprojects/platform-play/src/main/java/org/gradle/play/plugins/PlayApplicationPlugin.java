@@ -158,11 +158,11 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Validate
-        void failIfInjectedRouterIsUsedwithOldVersion(ModelMap<PlayApplicationBinarySpec> playApplicationBinaries, final PlatformResolvers platforms) {
+        void failIfInjectedRouterIsUsedWithOldVersion(ModelMap<PlayApplicationBinarySpec> playApplicationBinaries) {
             playApplicationBinaries.afterEach(new Action<PlayApplicationBinarySpec>() {
                 @Override
                 public void execute(PlayApplicationBinarySpec playApplicationBinary) {
-                    if (!playApplicationBinary.getApplication().getUseStaticRouter()) {
+                    if (playApplicationBinary.getApplication().getInjectedRoutesGenerator()) {
                         final PlayPlatform playPlatform = playApplicationBinary.getTargetPlatform();
                         VersionNumber minSupportedVersion = VersionNumber.parse("2.4.0");
                         VersionNumber playVersion = VersionNumber.parse(playPlatform.getPlayVersion());
@@ -306,7 +306,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
                         routesCompile.setAdditionalImports(new ArrayList<String>());
                         routesCompile.setSource(routesSourceSet.getSource());
                         routesCompile.setOutputDirectory(routesCompilerOutputDirectory);
-                        routesCompile.setUseStaticRouter(binary.getApplication().getUseStaticRouter());
+                        routesCompile.setInjectedRoutesGenerator(binary.getApplication().getInjectedRoutesGenerator());
 
                         ScalaLanguageSourceSet routesScalaSources = binary.getGeneratedScala().get(routesSourceSet);
                         routesScalaSources.getSource().srcDir(routesCompilerOutputDirectory);

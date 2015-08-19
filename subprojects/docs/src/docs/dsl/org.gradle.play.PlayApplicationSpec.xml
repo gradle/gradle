@@ -21,10 +21,12 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default</td>
                 </tr>
             </thead>
             <tr>
-                <td>useStaticRouter</td>
+                <td>injectedRoutesGenerator</td>
+                <td>false</td>
             </tr>
         </table>
     </section>

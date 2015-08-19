@@ -31,7 +31,7 @@ public interface RoutesCompileSpec extends PlayCompileSpec, Serializable {
 
     boolean isGenerateReverseRoutes();
 
-    boolean isStaticRoutesGenerator();
+    boolean isInjectedRoutesGenerator();
 
     Collection<String> getAdditionalImports();
 }

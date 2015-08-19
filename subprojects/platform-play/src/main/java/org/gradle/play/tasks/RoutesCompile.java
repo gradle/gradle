@@ -60,7 +60,7 @@ public class RoutesCompile extends SourceTask {
     private boolean generateReverseRoutes = true;
     private PlayPlatform platform;
     private BaseForkOptions forkOptions;
-    private boolean useStaticRouter;
+    private boolean injectedRoutesGenerator;
 
     /**
      * Returns the directory to generate the parser source files into.
@@ -99,7 +99,7 @@ public class RoutesCompile extends SourceTask {
 
     @TaskAction
     void compile() {
-        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject(), isNamespaceReverseRouter(), isGenerateReverseRoutes(), getUseStaticRouter(), getAdditionalImports());
+        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject(), isNamespaceReverseRouter(), isGenerateReverseRoutes(), getInjectedRoutesGenerator(), getAdditionalImports());
         new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs()).execute(spec);
     }
 
@@ -168,23 +168,23 @@ public class RoutesCompile extends SourceTask {
     }
 
     /**
-     * Is the static routes generator (<code>play.routes.compiler.StaticRoutesGenerator</code>) used for
-     * generating routes?  Default is true.
+     * Is the injected routes generator (<code>play.routes.compiler.InjectedRoutesGenerator</code>) used for
+     * generating routes?  Default is false.
      *
-     * @return true if StaticRoutesGenerator will be used to generate routes,
-     * false if InjectedRoutesGenerator will be used to generate routes.
+     * @return false if StaticRoutesGenerator will be used to generate routes,
+     * true if InjectedRoutesGenerator will be used to generate routes.
      */
-    public boolean getUseStaticRouter() {
-        return useStaticRouter;
+    public boolean getInjectedRoutesGenerator() {
+        return injectedRoutesGenerator;
     }
 
     /**
-     * Configure if the static routes generator should be used to generate routes.
+     * Configure if the injected routes generator should be used to generate routes.
      *
-     * @param useStaticRouter true - use StaticRoutesGenerator
-     * false - use InjectedRoutesGenerator
+     * @param injectedRoutesGenerator false - use StaticRoutesGenerator
+     * true - use InjectedRoutesGenerator
      */
-    public void setUseStaticRouter(boolean useStaticRouter) {
-        this.useStaticRouter = useStaticRouter;
+    public void setInjectedRoutesGenerator(boolean injectedRoutesGenerator) {
+        this.injectedRoutesGenerator = injectedRoutesGenerator;
     }
 }
