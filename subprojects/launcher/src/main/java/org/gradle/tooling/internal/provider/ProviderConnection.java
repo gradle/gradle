@@ -21,6 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
@@ -90,7 +91,7 @@ public class ProviderConnection {
             return new DefaultBuildEnvironment(
                     params.gradleUserhome,
                     GradleVersion.current().getVersion(),
-                    params.daemonParams.getEffectiveJavaHome(),
+                    params.daemonParams.getEffectiveJvm().getJavaHome(),
                     params.daemonParams.getEffectiveJvmArgs());
         }
 
@@ -167,8 +168,8 @@ public class ProviderConnection {
         //override the params with the explicit settings provided by the tooling api
         List<String> defaultJvmArgs = daemonParams.getAllJvmArgs();
         daemonParams.setJvmArgs(operationParameters.getJvmArguments(defaultJvmArgs));
-        File defaultJavaHome = daemonParams.getEffectiveJavaHome();
-        daemonParams.setJavaHome(operationParameters.getJavaHome(defaultJavaHome));
+        File defaultJavaHome = daemonParams.getEffectiveJvm().getJavaHome();
+        daemonParams.setJvm(Jvm.forHome(operationParameters.getJavaHome(defaultJavaHome)));
 
         if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
             int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());

@@ -21,6 +21,7 @@ import org.gradle.cli.SystemPropertiesCommandLineConverter
 import org.gradle.initialization.DefaultCommandLineConverter
 import org.gradle.initialization.LayoutCommandLineConverter
 import org.gradle.internal.invocation.BuildActionRunner
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.PluginServiceRegistry
@@ -31,6 +32,7 @@ import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.StyledTextOutputFactory
@@ -130,7 +132,7 @@ class BuildActionsFactoryTest extends Specification {
         given:
         def javaHome = tmpDir.createDir("javahome")
         javaHome.createFile(OperatingSystem.current().getExecutableName("bin/java"))
-        propertiesToDaemonParametersConverter.convert(_, _) >> { args -> args[1].javaHome = javaHome }
+        propertiesToDaemonParametersConverter.convert(_, _) >> { Map p, DaemonParameters params -> params.jvm = Jvm.forHome(javaHome) }
 
         when:
         def action = convert()

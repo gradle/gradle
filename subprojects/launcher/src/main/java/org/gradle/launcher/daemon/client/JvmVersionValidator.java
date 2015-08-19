@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
@@ -29,10 +30,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JvmVersionValidator {
-    private final Map<File, JavaVersion> cachedResults = new HashMap<File, JavaVersion>();
+    private final Map<JavaInfo, JavaVersion> cachedResults = new HashMap<JavaInfo, JavaVersion>();
 
     void validate(DaemonParameters parameters) {
-        if (parameters.getEffectiveJavaHome().equals(Jvm.current().getJavaHome())) {
+        if (parameters.getEffectiveJvm().equals(Jvm.current())) {
             return;
         }
 
@@ -43,7 +44,7 @@ public class JvmVersionValidator {
     }
 
     private JavaVersion getJavaVersion(DaemonParameters parameters) {
-        JavaVersion version = cachedResults.get(parameters.getEffectiveJavaExecutable());
+        JavaVersion version = cachedResults.get(parameters.getEffectiveJvm());
         if (version != null) {
             return version;
         }
@@ -52,13 +53,13 @@ public class JvmVersionValidator {
 
         ExecHandleBuilder builder = new ExecHandleBuilder();
         builder.setWorkingDir(new File(".").getAbsolutePath());
-        builder.setCommandLine(parameters.getEffectiveJavaExecutable(), "-version");
+        builder.setCommandLine(parameters.getEffectiveJvm().getJavaExecutable(), "-version");
         builder.setStandardOutput(new ByteArrayOutputStream());
         builder.setErrorOutput(outputStream);
         builder.build().start().waitForFinish().assertNormalExitValue();
 
         version = parseJavaVersionCommandOutput(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
-        cachedResults.put(parameters.getEffectiveJavaExecutable(), version);
+        cachedResults.put(parameters.getEffectiveJvm(), version);
         return version;
     }
 

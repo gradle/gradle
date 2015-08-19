@@ -16,16 +16,16 @@
 package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.*;
-
-import static org.gradle.util.GFileUtils.canonicalise;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
@@ -40,10 +40,10 @@ public class DaemonParameters {
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
     private DaemonUsage daemonUsage = DaemonUsage.IMPLICITLY_DISABLED;
-    private File javaHome;
     private boolean foreground;
     private boolean stop;
     private boolean interactive = System.console() != null || Boolean.getBoolean(INTERACTIVE_TOGGLE);
+    private JavaInfo jvm = Jvm.current();
 
     public DaemonParameters(BuildLayoutParameters layout) {
         this(layout, Collections.<String, String>emptyMap());
@@ -94,27 +94,13 @@ public class DaemonParameters {
         return jvmOptions.getAllJvmArgs();
     }
 
-    public File getEffectiveJavaHome() {
-        if (javaHome == null) {
-            return canonicalise(Jvm.current().getJavaHome());
-        }
-        return javaHome;
+    public JavaInfo getEffectiveJvm() {
+        return jvm;
     }
 
-    public File getEffectiveJavaExecutable() {
-        if (javaHome == null) {
-            return Jvm.current().getJavaExecutable();
-        }
-        return Jvm.forHome(javaHome).getJavaExecutable();
-    }
-
-    public DaemonParameters setInteractive(boolean interactive) {
-        this.interactive = interactive;
-        return this;
-    }
-
-    public DaemonParameters setJavaHome(File javaHome) {
-        this.javaHome = javaHome;
+    @Nullable
+    public DaemonParameters setJvm(JavaInfo jvm) {
+        this.jvm = jvm == null ? Jvm.current() : jvm;
         return this;
     }
 
