@@ -118,6 +118,23 @@ public class Jvm implements JavaInfo {
         return String.format("%s (%s %s)", SystemProperties.getInstance().getJavaVersion(), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        Jvm other = (Jvm) obj;
+        return other.javaHome.equals(javaHome);
+    }
+
+    @Override
+    public int hashCode() {
+        return javaHome.hashCode();
+    }
+
     private File findExecutable(String command) {
         File exec = new File(getJavaHome(), "bin/" + command);
         File executable = new File(os.getExecutableName(exec.getAbsolutePath()));
