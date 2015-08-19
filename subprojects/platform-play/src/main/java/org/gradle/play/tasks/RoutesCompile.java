@@ -178,7 +178,7 @@ public class RoutesCompile extends SourceTask {
      * @return false if StaticRoutesGenerator will be used to generate routes,
      * true if InjectedRoutesGenerator will be used to generate routes.
      */
-    //@Input
+    @Input
     public boolean getInjectedRoutesGenerator() {
         return injectedRoutesGenerator;
     }
