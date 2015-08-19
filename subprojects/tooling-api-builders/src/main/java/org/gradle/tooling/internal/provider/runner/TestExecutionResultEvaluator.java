@@ -86,7 +86,7 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
             requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class ").append(testClass);
         }
         for (InternalTestMethod testMethod : internalTestExecutionRequest.getTestMethods()) {
-            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(testMethod.getClassName()).append("#").append(testMethod.getMethodName()).append("()");
+            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(testMethod.getClassName()).append(".").append(testMethod.getMethodName()).append("()");
         }
         return requestDetails.toString();
     }

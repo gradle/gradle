@@ -86,9 +86,9 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     Requested tests:
         Test class example2.MyOtherTest (Task: ':test')
         Test class org.acme.NotExistingTestClass
-        Test method example.MyTest#unknownMethod
-        Test method example.MyTest#unknownMethod2
-        Test method example.UnknownClass#unknownTestMethod3"""
+        Test method example.MyTest.unknownMethod()
+        Test method example.MyTest.unknownMethod2()
+        Test method example.UnknownClass.unknownTestMethod3()"""
     }
 
     def "fails with meaningful error when declared class has no tests"() {
@@ -116,7 +116,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         e = thrown(TestExecutionException)
         normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
     Requested tests:
-        Test method util.TestUtil#someUtilMethod"""
+        Test method util.TestUtil.someUtilMethod()"""
     }
 
     def "throws exception with meaningful error message on failing tests"() {

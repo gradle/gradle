@@ -55,7 +55,7 @@ class TestExecutionResultEvaluatorTest extends Specification {
     Requested tests:
         Some Test Descriptor (Task: ':someTestTask')
         Test class acme.SomeTestClass
-        Test method org.acme.SomeOtherTest#someTestMethod()"""
+        Test method org.acme.SomeOtherTest.someTestMethod()"""
 
         and:
         1 * testExecutionRequest.getTestExecutionDescriptors()>> [defaultTestDescriptor]
