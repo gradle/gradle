@@ -158,12 +158,12 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Validate
-        void failIfInjectedRouterIsUsedwithOldVersion(ModelMap<PlayApplicationSpec> playApplications, final PlatformResolvers platforms) {
-            playApplications.afterEach(new Action<PlayApplicationSpec>() {
+        void failIfInjectedRouterIsUsedwithOldVersion(ModelMap<PlayApplicationBinarySpec> playApplicationBinaries, final PlatformResolvers platforms) {
+            playApplicationBinaries.afterEach(new Action<PlayApplicationBinarySpec>() {
                 @Override
-                public void execute(PlayApplicationSpec playApplication) {
-                    if (!playApplication.getUseStaticRouter()) {
-                        final PlayPlatform playPlatform = resolveTargetPlatform(playApplication, platforms);
+                public void execute(PlayApplicationBinarySpec playApplicationBinary) {
+                    if (!playApplicationBinary.getApplication().getUseStaticRouter()) {
+                        final PlayPlatform playPlatform = playApplicationBinary.getTargetPlatform();
                         VersionNumber minSupportedVersion = VersionNumber.parse("2.4.0");
                         VersionNumber playVersion = VersionNumber.parse(playPlatform.getPlayVersion());
                         if (playVersion.compareTo(minSupportedVersion) < 0) {
