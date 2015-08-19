@@ -36,8 +36,4 @@ public class DefaultTestMethod implements InternalTestMethod, Serializable {
     public String getMethodName() {
         return methodName;
     }
-
-    public String getDescription() {
-        return String.format("%s#%s", className, methodName);
-    }
 }

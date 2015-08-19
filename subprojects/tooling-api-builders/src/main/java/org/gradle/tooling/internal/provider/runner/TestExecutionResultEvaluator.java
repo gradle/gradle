@@ -65,7 +65,7 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
             throw new TestExecutionException("No matching tests found in any candidate test task.\n" + formattedTestRequest);
         }
         if (hasFailedTests()) {
-            StringBuffer failedTestsMessage = new StringBuffer("Test failed.\n")
+            StringBuilder failedTestsMessage = new StringBuilder("Test failed.\n")
                 .append(INDENT).append("Failed tests:");
             List<Throwable> causes = Lists.newArrayList();
             for (FailedTest failedTest : failedTests) {
@@ -77,7 +77,7 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
     }
 
     private String formatInternalTestExecutionRequest() {
-        StringBuffer requestDetails = new StringBuffer(INDENT).append("Requested tests:");
+        StringBuilder requestDetails = new StringBuilder(INDENT).append("Requested tests:");
         for (InternalTestDescriptor internalTestDescriptor : internalTestExecutionRequest.getTestExecutionDescriptors()) {
             requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append(internalTestDescriptor.getDisplayName());
             requestDetails.append(" (Task: '").append(((DefaultTestDescriptor) internalTestDescriptor).getTaskPath()).append("')");
@@ -86,7 +86,7 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
             requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class ").append(testClass);
         }
         for (InternalTestMethod testMethod : internalTestExecutionRequest.getTestMethods()) {
-            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(testMethod.getDescription());
+            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(testMethod.getClassName()).append("#").append(testMethod.getMethodName()).append("()");
         }
         return requestDetails.toString();
     }

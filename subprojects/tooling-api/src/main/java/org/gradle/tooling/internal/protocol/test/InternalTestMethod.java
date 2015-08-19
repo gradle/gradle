@@ -26,5 +26,4 @@ package org.gradle.tooling.internal.protocol.test;
 public interface InternalTestMethod {
     String getClassName();
     String getMethodName();
-    String getDescription();
 }
