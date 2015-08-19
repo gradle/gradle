@@ -21,12 +21,10 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default</td>
                 </tr>
             </thead>
             <tr>
                 <td>injectedRoutesGenerator</td>
-                <td>false</td>
             </tr>
         </table>
     </section>
