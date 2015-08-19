@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
+import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
@@ -79,9 +80,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
 
     def "auxclasspath not configured properly for rule-using project"() {
 
-        if (!supportsAuxclasspath()) {
-            return
-        }
+        Assume.assumeTrue(supportsAuxclasspath())
 
         given:
         buildFile << """
