@@ -62,7 +62,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         });
         List<ModelSchemaAspect> aspects = aspectExtractor.extract(extractionContext, propertyExtractionResults);
 
-        ModelSchema<R> schema = createSchema(extractionContext, store, type, properties, aspects);
+        ModelSchema<R> schema = createSchema(extractionContext, properties, aspects, store);
         Iterable<ModelSchemaExtractionContext<?>> propertyDependencies = Iterables.transform(propertyExtractionResults, new Function<ModelPropertyExtractionResult<?>, ModelSchemaExtractionContext<?>>() {
             public ModelSchemaExtractionContext<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
                 return toPropertyExtractionContext(extractionContext, propertyResult, cache);
@@ -169,7 +169,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     protected abstract ModelProperty.StateManagementType determineStateManagementType(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getterContext);
 
-    protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelType<R> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects);
+    protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects, ModelSchemaStore store);
 
     protected abstract <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelPropertyExtractionResult<P> propertyResult, ModelSchemaCache modelSchemaCache);
 

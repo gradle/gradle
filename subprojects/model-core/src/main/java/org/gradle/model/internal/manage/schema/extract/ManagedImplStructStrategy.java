@@ -25,7 +25,6 @@ import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.type.ModelType;
 
 public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
 
@@ -53,8 +52,8 @@ public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtraction
     }
 
     @Override
-    protected <R> ModelManagedImplStructSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
-        final ModelManagedImplStructSchema<R> schema = super.createSchema(extractionContext, store, type, properties, aspects);
+    protected <R> ModelManagedImplStructSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects, final ModelSchemaStore store) {
+        final ModelManagedImplStructSchema<R> schema = super.createSchema(extractionContext, properties, aspects, store);
         extractionContext.addValidator(new Action<ModelSchemaExtractionContext<R>>() {
             @Override
             public void execute(ModelSchemaExtractionContext<R> validatorModelSchemaExtractionContext) {

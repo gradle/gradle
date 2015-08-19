@@ -32,8 +32,8 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
         super(aspectExtractor);
     }
 
-    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
-        return new ModelUnmanagedImplStructSchema<R>(type, properties, aspects);
+    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects, final ModelSchemaStore store) {
+        return new ModelUnmanagedImplStructSchema<R>(extractionContext.getType(), properties, aspects);
     }
 
     @Override
