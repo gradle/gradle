@@ -49,9 +49,9 @@ task verify << {
 
         where:
         dependency                                   | jarFile
-        "org.codehaus.groovy:groovy-all:2.3.10"      | "groovy-all-2.3.10.jar"
-        "org.codehaus.groovy:groovy:2.3.10"          | "groovy-2.3.10.jar"
-        "org.codehaus.groovy:groovy-all:2.3.10:indy" | "groovy-all-2.3.10-indy.jar"
+        "org.codehaus.groovy:groovy-all:2.4.4"      | "groovy-all-2.4.4.jar"
+        "org.codehaus.groovy:groovy:2.4.4"          | "groovy-2.4.4.jar"
+        "org.codehaus.groovy:groovy-all:2.4.4:indy" | "groovy-all-2.4.4-indy.jar"
     }
 
     def "only resolves source class path feeding into inferred Groovy class path if/when the latter is actually used (but not during autowiring)"() {
@@ -67,7 +67,7 @@ repositories {
 }
 
 dependencies {
-    customCompile "org.codehaus.groovy:groovy-all:2.3.10"
+    customCompile "org.codehaus.groovy:groovy-all:2.4.4"
 }
 
 task groovydoc(type: Groovydoc) {
