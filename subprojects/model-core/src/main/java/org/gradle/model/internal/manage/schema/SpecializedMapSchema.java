@@ -21,21 +21,21 @@ import org.gradle.model.internal.type.ModelType;
 import java.lang.ref.WeakReference;
 
 public class SpecializedMapSchema<T> extends AbstractModelSchema<T> {
-    private final WeakReference<Class<?>> managedImpl;
+    private final WeakReference<Class<?>> implementationType;
     private final ModelType<?> elementType;
 
-    public SpecializedMapSchema(ModelType<T> type, ModelType<?> elementType, Class<?> managedImpl) {
+    public SpecializedMapSchema(ModelType<T> type, ModelType<?> elementType, Class<?> implementationType) {
         super(type);
         this.elementType = elementType;
-        this.managedImpl = new WeakReference<Class<?>>(managedImpl);
+        this.implementationType = new WeakReference<Class<?>>(implementationType);
     }
 
     public ModelType<?> getElementType() {
         return elementType;
     }
 
-    public Class<?> getManagedImpl() {
-        return managedImpl.get();
+    public Class<?> getImplementationType() {
+        return implementationType.get();
     }
 
     @Override

@@ -88,7 +88,7 @@ class DefaultModelSchemaStoreTest extends Specification {
             System.gc()
             store.cleanUp()
             store.size() == 0
-            schema.managedImpl == null // collected too
+            schema.implementationType == null // collected too
         }
 
         where:
@@ -106,11 +106,11 @@ class DefaultModelSchemaStoreTest extends Specification {
         f.setAccessible(true)
         ClassInfo.ClassInfoSet globalClassSet = f.get(null) as ClassInfo.ClassInfoSet
         globalClassSet.remove(schema.type.rawClass)
-        globalClassSet.remove(schema.managedImpl)
+        globalClassSet.remove(schema.implementationType)
 
         // Remove soft references
         Introspector.flushFromCaches(schema.type.rawClass)
-        Introspector.flushFromCaches(schema.managedImpl)
+        Introspector.flushFromCaches(schema.implementationType)
     }
 
     def "canonicalizes introspection for different sites of generic type"() {

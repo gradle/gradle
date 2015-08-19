@@ -80,7 +80,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             components,
             ComponentSpec.class,
             ComponentSpecContainer.class,
-            schema.getManagedImpl().asSubclass(ComponentSpecContainer.class),
+            schema.getImplementationType().asSubclass(ComponentSpecContainer.class),
             ModelReference.of(ComponentSpecFactory.class),
             descriptor
         );

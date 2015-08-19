@@ -68,7 +68,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
 
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(NativeBinariesTestPlugin.class.getName() + ".apply()");
         SpecializedMapSchema<TestSuiteContainer> schema = (SpecializedMapSchema<TestSuiteContainer>) schemaStore.getSchema(ModelType.of(TestSuiteContainer.class));
-        ModelCreator testSuitesCreator = ModelMapCreators.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getManagedImpl().asSubclass(TestSuiteContainer.class), ModelReference.of(ComponentSpecFactory.class), descriptor);
+        ModelCreator testSuitesCreator = ModelMapCreators.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getImplementationType().asSubclass(TestSuiteContainer.class), ModelReference.of(ComponentSpecFactory.class), descriptor);
 
         modelRegistry.create(testSuitesCreator);
     }
