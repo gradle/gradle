@@ -95,22 +95,22 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     }
 
     public void run(final ResultHandler<? super Void> handler) {
-        if(operationDescriptors.isEmpty() && testClassNames.isEmpty() && testMethods.isEmpty()){
+        if (operationDescriptors.isEmpty() && testClassNames.isEmpty() && testMethods.isEmpty()) {
             throw new TestExecutionException("No test declared for execution.");
         }
-        final ConsumerOperationParameters operationParameters = operationParamsBuilder.setParameters(connectionParameters).build();
+        final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
         final List<String> allTestClasses = CollectionUtils.flattenCollections(String.class, this.testClassNames, testMethods.keySet());
         final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(allTestClasses), ImmutableMultimap.copyOf(testMethods));
         connection.run(new ConsumerAction<Void>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
             }
+
             public Void run(ConsumerConnection connection) {
                 connection.runTests(testExecutionRequest, getParameters());
                 return null;
             }
         }, new ResultHandlerAdapter(handler));
-
     }
 
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {
