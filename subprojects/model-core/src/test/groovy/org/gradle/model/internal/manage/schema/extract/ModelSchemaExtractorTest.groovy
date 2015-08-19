@@ -836,7 +836,7 @@ $type
     def "specialized map"() {
         expect:
         def schema = extract(SomeMap)
-        schema instanceof ModelMapSchema
+        schema instanceof SpecializedMapSchema
         schema.elementType == new ModelType<List<String>>() {}
         schema.managedImpl
     }
