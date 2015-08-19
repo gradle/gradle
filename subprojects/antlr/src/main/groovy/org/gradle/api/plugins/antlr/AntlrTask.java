@@ -241,6 +241,7 @@ public class AntlrTask extends SourceTask {
     /**
      * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files which do not exist.
      *
+     * This method is here as the Gradle DSL generation can't handle properties with setters and getters in different classes.
      * @return The source.
      */
     @InputFiles
