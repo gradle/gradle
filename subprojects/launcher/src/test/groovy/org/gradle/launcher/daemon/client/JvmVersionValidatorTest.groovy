@@ -23,27 +23,21 @@ class JvmVersionValidatorTest extends Specification {
 
     def "can parse version number"() {
         expect:
-        JvmVersionValidator.parseJavaVersionCommandOutput(new BufferedReader(new StringReader(output))) == JavaVersion.toVersion("1.5")
+        JvmVersionValidator.parseJavaVersionCommandOutput(new BufferedReader(new StringReader(output))) == JavaVersion.toVersion(version)
 
         where:
-        output << [
-                'java version "1.5"',
-                'java version "1.5"\ntrailers',
-                'headers\njava version "1.5"',
-                'java version "1.5"\r\ntrailers',
-                'headers\r\njava version "1.5"',
-        ]
-    }
-
-    def "can parse version number for Java 8 "() {
-        expect:
-        JvmVersionValidator.parseJavaVersionCommandOutput(new BufferedReader(new StringReader(output))) == JavaVersion.toVersion("1.8")
-
-        where:
-        output << [
-                'java version "1.8.0_11"',
-                'openjdk version "1.8.0-internal"',
-        ]
+        output                             | version
+        'java version "1.5"'               | "1.5"
+        'java version "1.5"\ntrailers'     | "1.5"
+        'headers\njava version "1.5"'      | "1.5"
+        'java version "1.5"\r\ntrailers'   | "1.5"
+        'headers\r\njava version "1.5"'    | "1.5"
+        'java version "1.8.0_11"'          | "1.8"
+        'openjdk version "1.8.0-internal"' | "1.8"
+        """java version "1.9.0-ea"
+Java(TM) SE Runtime Environment (build 1.9.0-ea-b53)
+Java HotSpot(TM) 64-Bit Server VM (build 1.9.0-ea-b53, mixed mode)
+"""                             | "1.9"
     }
 
     def "fails to parse version number"() {
