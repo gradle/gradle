@@ -77,8 +77,6 @@ class TestExecutionResultEvaluatorTest extends Specification {
         def testResult = Mock(TestResult)
         1 * testResult.getTestCount() >> 1
         1 * testResult.getFailedTestCount() >> 1
-        1 * testResult.getExceptions() >> []
-
 
         def testTask = Mock(TaskInternal)
         1 * testTask.getPath() >> ":someproject:someTestTask"

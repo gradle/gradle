@@ -19,10 +19,6 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 /**
  * <p>A <code>TestExecutionException</code> is thrown when no tests can be found that match the specified test filters.
  *
@@ -30,19 +26,11 @@ import java.util.List;
  */
 @Incubating
 public class TestExecutionException extends GradleException {
-
-    List<Throwable> causes = new ArrayList<Throwable>();
-
     public TestExecutionException(String message) {
         super(message);
     }
 
-    public TestExecutionException(String message, Collection<Throwable> causes) {
-        super(message);
-        this.causes.addAll(causes);
-    }
-
-    public List<? extends Throwable> getCauses() {
-        return causes;
+    public TestExecutionException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
