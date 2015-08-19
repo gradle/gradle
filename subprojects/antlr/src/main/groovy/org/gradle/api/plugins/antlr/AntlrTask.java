@@ -218,8 +218,16 @@ public class AntlrTask extends SourceTask {
 
     /**
      * Sets the source for this task. Delegates to {@link SourceTask#setSource(Object)}.
+     * Tracks the input if it is of type {@link SourceDirectorySet}.
      *
-     * tracks the input if it is of type {@link SourceDirectorySet}
+     * The motivation of this method is to track the root input directory of
+     * the source grammar files. This information is used to calculate the relative
+     * output path of the generated sources by taking the relative path of the grammar file
+     * to the root source directory into account.
+     *
+     * If source of a different type than {@link SourceDirectorySet} is used. The generated source files
+     * end up flat in the specified output directory.
+     *
      * @param source The source.
      */
     @Override
