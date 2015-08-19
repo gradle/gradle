@@ -100,7 +100,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
         }
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
         final List<String> allTestClasses = CollectionUtils.flattenCollections(String.class, this.testClassNames, testMethods.keySet());
-        final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(allTestClasses), ImmutableMultimap.copyOf(testMethods));
+        final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(allTestClasses), testClassNames, ImmutableMultimap.copyOf(testMethods));
         connection.run(new ConsumerAction<Void>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;

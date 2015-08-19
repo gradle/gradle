@@ -62,7 +62,20 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
         assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
         assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
+    }
 
+    def "executes all test methods if class and method is declared"() {
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestClasses("example.MyTest")
+            launcher.withJvmTestMethods("example.MyTest", "foo")
+        }
+
+        then:
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
     }
 
     def "fails with meaningful error when requested tests not found"() {

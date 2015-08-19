@@ -36,9 +36,12 @@ public class TestExecutionRequest implements InternalTestExecutionRequestVersion
     private final Collection<String> testClassNames;
     private final Collection<InternalTestMethod> testMethods;
 
-    public TestExecutionRequest(Iterable<TestOperationDescriptor> operationDescriptors, Collection<String> testClassNames, Multimap<String, String> testMethods) {
+    private final Collection<String> explicitTestClassNames;
+
+    public TestExecutionRequest(Iterable<TestOperationDescriptor> operationDescriptors, Collection<String> testClassNames, Collection<String> explicitTestClassNames, Multimap<String, String> testMethods) {
         this.testMethods = adaptTestMethods(testMethods);
         this.testDescriptors = adaptDescriptors(operationDescriptors);
+        this.explicitTestClassNames = explicitTestClassNames;
         this.testClassNames = testClassNames;
     }
 
@@ -73,4 +76,9 @@ public class TestExecutionRequest implements InternalTestExecutionRequestVersion
         }
         return testMethodsSet;
     }
+
+    public Collection<String> getExplicitRequestedTestClassNames() {
+        return explicitTestClassNames;
+    }
+
 }
