@@ -59,6 +59,11 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     }
 
     @Override
+    public ModelType<?> getManagedType() {
+        return ModelType.of(this.getClass());
+    }
+
+    @Override
     public String toString() {
         return toString;
     }

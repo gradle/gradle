@@ -133,6 +133,11 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         return modelNode;
     }
 
+    @Override
+    public ModelType<?> getManagedType() {
+        return ModelType.of(this.getClass());
+    }
+
     public <S> void afterEach(Class<S> type, Action<? super S> configAction) {
         doFinalizeAll(ModelType.of(type), configAction);
     }

@@ -52,8 +52,9 @@ class ManagedProxyClassGeneratorTest extends Specification {
         SomeType impl = proxyClass.newInstance(state)
 
         then:
-        impl instanceof ManagedInstance
-        ((ManagedInstance) impl).backingNode == node
+        assert impl instanceof ManagedInstance
+        impl.backingNode == node
+        impl.managedType == ModelType.of(SomeType)
 
         when:
         impl.value = 1
@@ -233,7 +234,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         Map<Class<?>, Class<?>> generatedForDelegateType = generated[managedType]
         Class<? extends T> generated = generatedForDelegateType[delegateType] as Class<? extends T>
         if (generated == null) {
-            generated = generator.generate(managedType, delegateType, properties)
+            generated = generator.generate(ModelType.of(managedType), delegateType, properties)
             generatedForDelegateType[delegateType] = generated
         }
         return generated

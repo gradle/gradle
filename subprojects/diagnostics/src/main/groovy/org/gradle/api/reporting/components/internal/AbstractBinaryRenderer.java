@@ -18,16 +18,17 @@ package org.gradle.api.reporting.components.internal;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.internal.InstanceModelTypeUtils;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ModelStructSchema;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -78,7 +79,8 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
     }
 
     protected void renderVariants(T binary, TextReportBuilder builder) {
-        ModelSchema<?> schema = schemaStore.getSchema(new DslObject(binary).getDeclaredType());
+        ModelType<?> schemaType = InstanceModelTypeUtils.getModelType(binary);
+        ModelSchema<?> schema = schemaStore.getSchema(schemaType);
         if (!(schema instanceof ModelStructSchema)) {
             return;
         }
