@@ -56,7 +56,6 @@ public class RoutesCompile extends SourceTask {
      */
     private List<String> additionalImports = new ArrayList<String>();
 
-    private boolean javaProject;
     private boolean namespaceReverseRouter;
     private boolean generateReverseRoutes = true;
     private PlayPlatform platform;
@@ -110,7 +109,7 @@ public class RoutesCompile extends SourceTask {
     }
 
     public boolean isJavaProject() {
-        return javaProject;
+        return false;
     }
 
     public void setPlatform(PlayPlatform platform) {
