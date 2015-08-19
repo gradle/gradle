@@ -159,13 +159,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 in Gradle 2.2)
 - ANTLR3 and ANTLR4 generated sources are generated in the output folder specified in _AntlrTask_ relative to the path of the grammar in the ANTLR grammar folder.
 
-### Eclipse classpath generation of sourceSets with overlapping source and resource directories
+### Filtering source directory with overlapping source and resource directories in Eclipse
 
-- When generating the eclipse classpath for projects with one shared directory for source and resource files there was a bug where _includes_ and/or _excludes_
-declarations could have caused problems (see https://issues.gradle.org/browse/GRADLE-3335 for details). The fix changes the behaviour of applying exclude/include
-filter definitions for the eclipse classpath to more sensible defaults. If you want to have excludes applied to source folder in the eclipse classpath ensure you have
-applied the excludes on both, java and resources in your sourceSet declaration.
+When generating the Eclipse classpath for projects with one shared directory for source and resource files there was a bug where _includes_ and _excludes_
+declarations could have caused problems (see [GRADLE-3335](https://issues.gradle.org/browse/GRADLE-3335) for details). The fix changes the behaviour of applying exclude/include
+filters to the source directory. Previously, if you had an include or exclude pattern on either of the java or resources sourceSets, the Eclipse source directory would also have it.
 
+If you want to have an exclude applied to source folder in the Eclipse classpath, you must have the exclude in both the java and resources sourceSet declaration. This
+is only important if you have _overlapping_ source and resource directories.
 
 ## External contributions
 
