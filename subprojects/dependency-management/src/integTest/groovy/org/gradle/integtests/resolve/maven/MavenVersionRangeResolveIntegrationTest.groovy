@@ -25,6 +25,7 @@ class MavenVersionRangeResolveIntegrationTest extends AbstractDependencyResoluti
     @Issue("GRADLE-3334")
     def "can resolve version range with single value specified"() {
         given:
+        settingsFile << "rootProject.name = 'test' "
         buildFile << """
 repositories {
     maven {
