@@ -68,4 +68,31 @@ model {
         and:
         destinationDir.assertHasDescendants(createRouteFileList() as String[])
     }
+
+    def "can change route compiler type after compiling once"() {
+        when:
+        withRoutesTemplate()
+        then:
+        succeeds("compilePlayBinaryScala")
+
+        when:
+        file("app/controllers/Application.scala").with {
+            // change Scala companion object into a regular class
+            text = text.replaceFirst(/object/, "class")
+        }
+        buildFile << """
+model {
+    components {
+        play {
+            injectedRoutesGenerator = true
+        }
+    }
+}
+"""
+        then:
+        succeeds("compilePlayBinaryScala")
+        executedTasks.contains(":compilePlayBinaryRoutes")
+        and:
+        destinationDir.assertHasDescendants(createRouteFileList() as String[])
+    }
 }

@@ -17,6 +17,7 @@
 package org.gradle.play.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -86,6 +87,7 @@ public class RoutesCompile extends SourceTask {
      *
      * @return The additional imports.
      */
+    @Input
     public List<String> getAdditionalImports() {
         return additionalImports;
     }
@@ -142,6 +144,7 @@ public class RoutesCompile extends SourceTask {
     /**
      * Whether the reverse router should be namespaced.
      */
+    @Input
     public boolean isNamespaceReverseRouter() {
         return namespaceReverseRouter;
     }
@@ -156,6 +159,7 @@ public class RoutesCompile extends SourceTask {
     /**
      * Whether a reverse router should be generated.  Default is true.
      */
+    @Input
     public boolean isGenerateReverseRoutes() {
         return generateReverseRoutes;
     }
@@ -174,6 +178,7 @@ public class RoutesCompile extends SourceTask {
      * @return false if StaticRoutesGenerator will be used to generate routes,
      * true if InjectedRoutesGenerator will be used to generate routes.
      */
+    //@Input
     public boolean getInjectedRoutesGenerator() {
         return injectedRoutesGenerator;
     }
