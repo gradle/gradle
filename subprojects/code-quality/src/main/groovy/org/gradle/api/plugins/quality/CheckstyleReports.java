@@ -25,6 +25,13 @@ import org.gradle.api.reporting.SingleFileReport;
 public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
 
     /**
+     * The checkstyle HTML report
+     *
+     * @return The checkstyle HTML report
+     */
+    SingleFileReport getHtml();
+
+    /**
      * The checkstyle XML report
      *
      * @return The checkstyle XML report

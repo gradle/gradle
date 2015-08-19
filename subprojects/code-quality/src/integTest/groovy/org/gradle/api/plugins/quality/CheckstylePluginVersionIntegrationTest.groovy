@@ -43,6 +43,11 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class2"))
         file("build/reports/checkstyle/test.xml").assertContents(containsClass("org.gradle.TestClass1"))
         file("build/reports/checkstyle/test.xml").assertContents(containsClass("org.gradle.TestClass2"))
+
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.Class1"))
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.Class2"))
+        file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass1"))
+        file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass2"))
     }
 
     def "analyze bad code"() {
@@ -56,6 +61,9 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         failure.error.contains("Name 'class1' must match pattern")
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
     def "can suppress console output"() {
@@ -73,6 +81,9 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         !failure.error.contains("Name 'class1' must match pattern")
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
     def "can ignore failures"() {
@@ -88,6 +99,9 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         output.contains("Checkstyle rule violations were found. See the report at:")
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -102,6 +116,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         when:
         file("build/reports/checkstyle/main.xml").delete()
+        file("build/reports/checkstyle/main.html").delete()
 
         then:
         succeeds("checkstyleMain") && ":checkstyleMain" in nonSkippedTasks
@@ -113,12 +128,16 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         when:
         buildFile << """
-            checkstyleMain.reports { xml.destination "foo.xml" }
+            checkstyleMain.reports {
+                xml.destination "foo.xml"
+                html.destination "bar.html"
+            }
         """
 
         then:
         succeeds "checkstyleMain"
         file("foo.xml").exists()
+        file("bar.html").exists()
     }
 
     private goodCode() {
