@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal
 
+import com.google.common.base.Equivalence
 import org.gradle.api.file.DirectoryTree
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry
@@ -104,16 +105,21 @@ class SourceFoldersCreator {
 
     private List<String> getIncludesForTree(SourceSet sourceSet, DirectoryTree directoryTree) {
         def includesByType = getFiltersForTreeGroupedByType(sourceSet, directoryTree, "includes")
-        return CollectionUtils.flattenCollections(String.class, includesByType);
+        if (includesByType.any { it.isEmpty() }) {
+            return []
+        } else {
+            List<String> allIncludes = CollectionUtils.flattenCollections(String.class, includesByType)
+            return CollectionUtils.dedup(allIncludes, Equivalence.equals());
+        }
     }
 
-    private List<List<String>> getFiltersForTreeGroupedByType(SourceSet sourceSet, DirectoryTree directoryTree, String filterOperation) {
+    private List<Set<String>> getFiltersForTreeGroupedByType(SourceSet sourceSet, DirectoryTree directoryTree, String filterOperation) {
         // check for duplicate entries in java and resources
         if (!CollectionUtils.intersection([sourceSet.allJava.srcDirs, sourceSet.resources.srcDirs]).contains(directoryTree.dir)) {
             return [directoryTree.patterns."${filterOperation}" as List]
         } else {
-            def resourcesFilter = sourceSet.resources.srcDirTrees.find { it.dir == directoryTree.dir }.patterns."${filterOperation}"
-            def sourceFilters = sourceSet.allJava.srcDirTrees.find { it.dir == directoryTree.dir }.patterns."${filterOperation}"
+            def resourcesFilter = sourceSet.resources.srcDirTrees.find { it.dir == directoryTree.dir }.patterns."${filterOperation}" as Set
+            def sourceFilters = sourceSet.allJava.srcDirTrees.find { it.dir == directoryTree.dir }.patterns."${filterOperation}" as Set
             return [resourcesFilter, sourceFilters]
         }
     }

@@ -726,6 +726,34 @@ sourceSets {
         assert classpath.entries.size() == 3
         assert classpath.sources.size() == 1
         assert classpath.entries.find { it.@kind == 'src' }.attribute("including") == "**/*.properties|**/*.java"
+
+
+        when:
+        buildFile.text = """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+            include '**/*.java'
+        }
+        resources{
+            srcDirs = ['src']
+        }
+    }
+}
+"""
+        buildFile.parentFile.file("src").createDir()
+
+        when:
+        executer.usingBuildScript(buildFile).withTasks('cleanEclipse', 'eclipseClasspath').run()
+
+        then:
+        assert classpath.entries.size() == 3
+        assert classpath.sources.size() == 1
+        assert classpath.entries.find { it.@kind == 'src' }.attribute("including") == null
     }
 
     @Test
