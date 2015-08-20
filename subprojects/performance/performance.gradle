@@ -428,3 +428,9 @@ integTest {
         excludeCategories 'org.gradle.performance.PerformanceTest'
     }
 }
+
+java9IntegTest {
+    options {
+        excludeCategories 'org.gradle.performance.PerformanceTest'
+    }
+}
