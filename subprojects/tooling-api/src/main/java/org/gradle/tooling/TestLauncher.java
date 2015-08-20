@@ -29,7 +29,7 @@ import org.gradle.tooling.events.test.TestOperationDescriptor;
 public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
 
     /**
-     * Adds tests to be executed by passing test descriptors received from a previously Gradle Run.
+     * Adds tests to be executed by passing test descriptors received from a previous Gradle Run.
      *
      * @param descriptors The OperationDescriptor defining one or more tests.
      * @return this
@@ -38,7 +38,7 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     TestLauncher withTests(TestOperationDescriptor... descriptors);
 
     /**
-     * Adds tests to be executed by passing test descriptors received from a previously Gradle Run.
+     * Adds tests to be executed by passing test descriptors received from a previous Gradle Run.
      *
      * @param descriptors The OperationDescriptor defining one or more tests.
      * @return this
@@ -65,20 +65,20 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     TestLauncher withJvmTestClasses(Iterable<String> testClasses);
 
     /**
-     * Adds tests to be executed declared by class name.
+     * Adds tests to be executed declared by class and method name.
      *
-     * @param testClass The class names of the tests methods to be executed.
-     * @param methods The method names to be executed.
+     * @param testClass The name of the class containing the methods to execute.
+     * @param methods The names of the test methods to be executed.
      * @return this
      * @since 2.7
      */
     TestLauncher withJvmTestMethods(String testClass, String... methods);
 
     /**
-     * Adds tests to be executed declared by class name.
+     * Adds tests to be executed declared by class and methods name.
      *
-     * @param testClass The class names of the tests methods to be executed.
-     * @param methods The method names to be executed.
+     * @param testClass The name of the class containing the methods to execute.
+     * @param methods The names of the test methods to be executed.
      * @return this
      * @since 2.7
      */

@@ -85,6 +85,28 @@ class SourceFoldersCreatorTest extends Specification {
         folders.find { it.dir.path.endsWith("shared") }.includes == []
     }
 
+    def "applies no includes when one source type has no includes declared"() {
+        given:
+        javaTree = dirTree("shared", [], [])
+        resourcesTree = dirTree("shared", [], ["**/*.properties"])
+        when:
+        def folders = regularSourceFolders()
+        then:
+        folders.find { it.dir.path.endsWith("shared") }.excludes == []
+        folders.find { it.dir.path.endsWith("shared") }.includes == []
+    }
+
+    def "applies includes when all source types have declared includes"() {
+        given:
+        javaTree = dirTree("shared", [], ["**/*.java", "**/*.xml"])
+        resourcesTree = dirTree("shared", [], ["**/*.properties", "**/*.xml"])
+        when:
+        def folders = regularSourceFolders()
+        then:
+        folders.find { it.dir.path.endsWith("shared") }.excludes == []
+        folders.find { it.dir.path.endsWith("shared") }.includes == ["**/*.properties", "**/*.xml", "**/*.java"]
+    }
+
     private List<SourceFolder> regularSourceFolders() {
         _ * java.srcDirs >> [javaTree.dir]
         _ * java.excludes >> javaTree.patterns.excludes

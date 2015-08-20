@@ -20,8 +20,8 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.cli.SystemPropertiesCommandLineConverter
 import org.gradle.initialization.DefaultCommandLineConverter
 import org.gradle.initialization.LayoutCommandLineConverter
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.invocation.BuildActionRunner
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.PluginServiceRegistry
 import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
@@ -31,6 +31,7 @@ import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.StyledTextOutputFactory
@@ -39,6 +40,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 
 @UsesNativeServices
@@ -126,11 +128,11 @@ class BuildActionsFactoryTest extends Specification {
         action instanceof ForegroundDaemonAction
     }
 
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "executes with single use daemon if java home is not current"() {
         given:
-        def javaHome = tmpDir.createDir("javahome")
-        javaHome.createFile(OperatingSystem.current().getExecutableName("bin/java"))
-        propertiesToDaemonParametersConverter.convert(_, _) >> { args -> args[1].javaHome = javaHome }
+        def jvm = AvailableJavaHomes.differentJdk
+        propertiesToDaemonParametersConverter.convert(_, _) >> { Map p, DaemonParameters params -> params.jvm = jvm }
 
         when:
         def action = convert()

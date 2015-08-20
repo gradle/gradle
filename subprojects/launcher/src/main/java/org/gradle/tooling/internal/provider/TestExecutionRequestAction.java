@@ -37,10 +37,12 @@ public class TestExecutionRequestAction extends SubscribableBuildAction implemen
         this.startParameter = startParameter;
         // Unpack the request to serialize across to the daemon
         this.testDescriptors = ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors());
-        this.testClassNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
-        if (testExecutionRequest instanceof InternalTestExecutionRequestVersion2) {
-            this.testMethods = ImmutableSet.copyOf(((InternalTestExecutionRequestVersion2) testExecutionRequest).getTestMethods());
-        } else {
+        if(testExecutionRequest instanceof InternalTestExecutionRequestVersion2){
+            final InternalTestExecutionRequestVersion2 testExecutionRequestV2 = (InternalTestExecutionRequestVersion2) testExecutionRequest;
+            this.testClassNames = ImmutableSet.copyOf(testExecutionRequestV2.getExplicitRequestedTestClassNames());
+            this.testMethods = ImmutableSet.copyOf(testExecutionRequestV2.getTestMethods());
+        }else{
+            this.testClassNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
             this.testMethods = ImmutableSet.of();
         }
     }
@@ -58,6 +60,11 @@ public class TestExecutionRequestAction extends SubscribableBuildAction implemen
     @Override
     public Collection<InternalTestMethod> getTestMethods() {
         return testMethods;
+    }
+
+    @Override
+    public Collection<String> getExplicitRequestedTestClassNames() {
+        return getTestClassNames();
     }
 
     @Override

@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.play.internal.routes;
+package org.gradle.launcher.daemon
 
-import org.gradle.play.internal.spec.PlayCompileSpec;
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.Collection;
+class DaemonJvmSettingsIntegrationTest extends DaemonIntegrationSpec {
+    def "uses current JVM and default JVM args when none specified"() {
+        file('build.gradle') << """
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx1024m')
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-XX:+HeapDumpOnOutOfMemoryError')
+"""
 
-public interface RoutesCompileSpec extends PlayCompileSpec, Serializable {
-    Iterable<File> getSources();
+        given:
+        executer.useDefaultBuildJvmArgs()
 
-    boolean isJavaProject();
-
-    boolean isNamespaceReverseRouter();
-
-    boolean isGenerateReverseRoutes();
-
-    boolean isInjectedRoutesGenerator();
-
-    Collection<String> getAdditionalImports();
+        expect:
+        succeeds()
+    }
 }

@@ -108,7 +108,8 @@
                 <td>
                     <filename>src/main/antlr</filename>
                 </td>
-                <td>Production ANTLR grammar files.</td>
+                <td>Production ANTLR grammar files. If the ANTLR grammar is organized in packages, the structure in the antlr folder should reflect
+                the package structure. This ensures that the generated sources end up in the correct target subfolder.</td>
             </tr>
             <tr>
                 <td>

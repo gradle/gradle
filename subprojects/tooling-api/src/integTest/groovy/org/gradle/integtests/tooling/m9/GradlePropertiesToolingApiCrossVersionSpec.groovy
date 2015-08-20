@@ -56,7 +56,10 @@ assert System.getProperty('some-prop') == 'some-value'
 
         file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
 
-        file('gradle.properties') << "org.gradle.java.home=$javaHomePath"
+        file('gradle.properties') << """
+org.gradle.java.home=$javaHomePath
+org.gradle.jvmargs=-ea
+"""
 
         when:
         BuildEnvironment env = toolingApi.withConnection { connection ->

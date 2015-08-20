@@ -38,6 +38,9 @@ import java.util.concurrent.TimeUnit;
 import static org.gradle.testkit.runner.TaskOutcome.*;
 
 public class GradleExecutor {
+
+    public static final String TEST_KIT_DAEMON_DIR_NAME = "test-kit-daemon";
+
     public GradleExecutor() {
         registerShutdownHook();
     }
@@ -83,7 +86,7 @@ public class GradleExecutor {
     private GradleConnector buildConnector(File gradleHome, File gradleUserHome, File projectDir) {
         DefaultGradleConnector gradleConnector = (DefaultGradleConnector) GradleConnector.newConnector();
         gradleConnector.useGradleUserHomeDir(gradleUserHome);
-        gradleConnector.daemonBaseDir(new File(gradleUserHome, "daemon"));
+        gradleConnector.daemonBaseDir(new File(gradleUserHome, TEST_KIT_DAEMON_DIR_NAME));
         gradleConnector.forProjectDirectory(projectDir);
         gradleConnector.searchUpwards(false);
         gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);

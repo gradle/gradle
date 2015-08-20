@@ -285,6 +285,17 @@ allprojects {
         }
 
         /**
+         * Defines a dependency from the current node to the given node. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
+         */
+        NodeBuilder edge(String requested, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl) {
+            def node = edge(requested, selectedModuleVersionId)
+            cl.resolveStrategy = Closure.DELEGATE_ONLY
+            cl.delegate = node
+            cl.call()
+            return node
+        }
+
+        /**
          * Defines a dependency of the current node.
          */
         EdgeBuilder dependency(Map requested) {

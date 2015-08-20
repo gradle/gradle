@@ -25,4 +25,10 @@ import java.util.Collection;
  */
 public interface InternalTestExecutionRequestVersion2 extends InternalTestExecutionRequest {
     Collection<InternalTestMethod> getTestMethods();
+
+    /**
+     * This is used for backwards compatibility with 2.6 enabling the behaviour of running all tests
+     * of a test class when provider is 2.6 but consumer requested particular test method(s)
+     * */
+    Collection<String> getExplicitRequestedTestClassNames();
 }

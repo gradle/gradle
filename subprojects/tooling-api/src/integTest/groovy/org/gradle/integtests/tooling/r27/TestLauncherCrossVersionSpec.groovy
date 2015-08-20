@@ -62,7 +62,20 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
         assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
         assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
+    }
 
+    def "executes all test methods if class and method is declared"() {
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestClasses("example.MyTest")
+            launcher.withJvmTestMethods("example.MyTest", "foo")
+        }
+
+        then:
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
     }
 
     def "fails with meaningful error when requested tests not found"() {
@@ -86,9 +99,9 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     Requested tests:
         Test class example2.MyOtherTest (Task: ':test')
         Test class org.acme.NotExistingTestClass
-        Test method example.MyTest#unknownMethod
-        Test method example.MyTest#unknownMethod2
-        Test method example.UnknownClass#unknownTestMethod3"""
+        Test method example.MyTest.unknownMethod()
+        Test method example.MyTest.unknownMethod2()
+        Test method example.UnknownClass.unknownTestMethod3()"""
     }
 
     def "fails with meaningful error when declared class has no tests"() {
@@ -116,7 +129,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         e = thrown(TestExecutionException)
         normaliseLineSeparators(e.cause.message) == """No matching tests found in any candidate test task.
     Requested tests:
-        Test method util.TestUtil#someUtilMethod"""
+        Test method util.TestUtil.someUtilMethod()"""
     }
 
     def "throws exception with meaningful error message on failing tests"() {
@@ -159,6 +172,25 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     Failed tests:
         Test example.MyFailingTest#fail (Task: :secondTest)
         Test example.MyFailingTest#fail (Task: :test)"""
+    }
+
+    @TargetGradleVersion("=2.6")
+    def "runs all methods of test class if test methods not supported"() {
+        when:
+        launchTests { TestLauncher testLauncher ->
+            testLauncher.withJvmTestMethods("example.MyTest", "foo")
+        }
+        then:
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
+        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
+
     }
 
     def testClassRemoved() {

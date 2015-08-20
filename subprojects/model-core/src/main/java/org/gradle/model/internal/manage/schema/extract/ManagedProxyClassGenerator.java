@@ -20,6 +20,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.apache.commons.lang.StringUtils;
@@ -33,8 +34,7 @@ import org.objectweb.asm.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     /*
@@ -317,25 +317,30 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeMutationMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Iterable<ModelProperty<?>> properties) {
+        Set<String> writtenProperties = Sets.newHashSet();
         for (ModelProperty<?> property : properties) {
+            String propertyName = property.getName();
             switch (property.getStateManagementType()) {
                 case MANAGED:
                     Class<?> propertyTypeClass = property.getType().getConcreteClass();
-                    writeGetter(visitor, generatedType, property.getName(), propertyTypeClass);
-                    if (property.isWritable()) {
-                        writeSetter(visitor, generatedType, property.getName(), propertyTypeClass);
+                    if (!(writtenProperties.contains(propertyName))) {
+                        writeGetter(visitor, generatedType, propertyName, propertyTypeClass);
+                        if (property.isWritable()) {
+                            writeSetter(visitor, generatedType, propertyName, propertyTypeClass);
+                        }
+                        writtenProperties.add(propertyName);
                     }
                     break;
 
                 case UNMANAGED:
-                    String getterName = getGetterName(property.getName());
+                    String getterName = getGetterName(propertyName);
                     Method getterMethod;
                     try {
                         getterMethod = managedTypeClass.getMethod(getterName);
                     } catch (NoSuchMethodException e) {
                         throw new IllegalStateException("Cannot find getter '" + getterName + "' on type " + managedTypeClass.getName(), e);
                     }
-                    if (!Modifier.isFinal(getterMethod.getModifiers()) && !property.getName().equals("metaClass")) {
+                    if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
                         writeNonAbstractMethodWrapper(visitor, generatedType, managedTypeClass, getterMethod);
                     }
                     break;
@@ -475,13 +480,21 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeGetter(ClassVisitor visitor, Type generatedType, String propertyName, Class<?> propertyTypeClass) {
-        MethodVisitor methodVisitor = declareMethod(visitor, getGetterName(propertyName), Type.getMethodDescriptor(Type.getType(propertyTypeClass)));
+        List<String> getters = new ArrayList<String>(2);
+        getters.add(getGetterName(propertyName));
+        if (propertyTypeClass == boolean.class) {
+            getters.add(getIsGetterName(propertyName));
+        }
+        for (String getter : getters) {
+            MethodVisitor methodVisitor = declareMethod(visitor, getter, Type.getMethodDescriptor(Type.getType(propertyTypeClass)));
 
-        putStateFieldValueOnStack(methodVisitor, generatedType);
-        putConstantOnStack(methodVisitor, propertyName);
-        invokeStateGetMethod(methodVisitor);
-        castFirstStackElement(methodVisitor, propertyTypeClass);
-        finishVisitingMethod(methodVisitor, returnCode(propertyTypeClass));
+            putStateFieldValueOnStack(methodVisitor, generatedType);
+            putConstantOnStack(methodVisitor, propertyName);
+            invokeStateGetMethod(methodVisitor);
+            castFirstStackElement(methodVisitor, propertyTypeClass);
+            finishVisitingMethod(methodVisitor, returnCode(propertyTypeClass));
+        }
+
     }
 
     private int returnCode(Class<?> propertyTypeClass) {
@@ -490,6 +503,10 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private static String getGetterName(String propertyName) {
         return "get" + StringUtils.capitalize(propertyName);
+    }
+
+    private static String getIsGetterName(String propertyName) {
+        return "is" + StringUtils.capitalize(propertyName);
     }
 
     private static String getSetterName(String propertyName) {

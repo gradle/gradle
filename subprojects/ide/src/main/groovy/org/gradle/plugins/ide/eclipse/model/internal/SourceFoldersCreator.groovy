@@ -15,6 +15,8 @@
  */
 
 package org.gradle.plugins.ide.eclipse.model.internal
+
+import com.google.common.base.Equivalence
 import org.gradle.api.file.DirectoryTree
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry
@@ -87,7 +89,7 @@ class SourceFoldersCreator {
                     def folder = new SourceFolder(provideRelativePath(dir), null)
                     folder.dir = dir
                     folder.name = dir.name
-                    folder.includes = tree.patterns.includes as List
+                    folder.includes = getIncludesForTree(sourceSet, tree)
                     folder.excludes = getExcludesForTree(sourceSet, tree)
                     entries.add(folder)
                 }
@@ -97,15 +99,31 @@ class SourceFoldersCreator {
     }
 
     private List<String> getExcludesForTree(SourceSet sourceSet, DirectoryTree directoryTree) {
-        // check for duplicate entries in java and resources
-        if (!CollectionUtils.intersection([sourceSet.allJava.srcDirs, sourceSet.resources.srcDirs]).contains(directoryTree.dir)) {
-            return directoryTree.patterns.excludes as List
+        def excludesByType = getFiltersForTreeGroupedByType(sourceSet, directoryTree, "excludes")
+        return CollectionUtils.intersection(excludesByType);
+    }
+
+    private List<String> getIncludesForTree(SourceSet sourceSet, DirectoryTree directoryTree) {
+        def includesByType = getFiltersForTreeGroupedByType(sourceSet, directoryTree, "includes")
+        if (includesByType.any { it.isEmpty() }) {
+            return []
         } else {
-            def collections = [sourceSet.resources.srcDirTrees.find {it.dir == directoryTree.dir}.patterns.excludes]
-            collections = collections + [sourceSet.allJava.srcDirTrees.find { it.dir == directoryTree.dir }.patterns.excludes]
-            return CollectionUtils.intersection(collections)
+            List<String> allIncludes = CollectionUtils.flattenCollections(String.class, includesByType)
+            return CollectionUtils.dedup(allIncludes, Equivalence.equals());
         }
     }
+
+    private List<Set<String>> getFiltersForTreeGroupedByType(SourceSet sourceSet, DirectoryTree directoryTree, String filterOperation) {
+        // check for duplicate entries in java and resources
+        if (!CollectionUtils.intersection([sourceSet.allJava.srcDirs, sourceSet.resources.srcDirs]).contains(directoryTree.dir)) {
+            return [directoryTree.patterns."${filterOperation}" as List]
+        } else {
+            def resourcesFilter = sourceSet.resources.srcDirTrees.find { it.dir == directoryTree.dir }.patterns."${filterOperation}" as Set
+            def sourceFilters = sourceSet.allJava.srcDirTrees.find { it.dir == directoryTree.dir }.patterns."${filterOperation}" as Set
+            return [resourcesFilter, sourceFilters]
+        }
+    }
+
 
     private List<SourceSet> sortSourceSetsAsPerUsualConvention(Collection<SourceSet> sourceSets) {
         return sourceSets.sort { sourceSet ->

@@ -16,11 +16,11 @@
 
 package org.gradle.model
 
-import groovy.transform.NotYetImplemented
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ManagedBooleanGetterTest extends Specification {
 
@@ -33,7 +33,6 @@ class ManagedBooleanGetterTest extends Specification {
         void setRedundant(boolean redundant)
     }
 
-    @NotYetImplemented
     def "supports a boolean property with an is style getter"() {
         expect:
         schemaStore.getSchema(ModelType.of(Manager))
@@ -60,7 +59,6 @@ class ManagedBooleanGetterTest extends Specification {
         void setRedundant(boolean redundant)
     }
 
-    @NotYetImplemented
     def "allows both is and get style getters"() {
         expect:
         schemaStore.getSchema(DualGetterManager)
@@ -76,16 +74,41 @@ class ManagedBooleanGetterTest extends Specification {
         boolean isThing()
     }
 
-    @NotYetImplemented
-    def "must have a setter"() {
+    @Unroll
+    def "must have a setter - #managedType.simpleName"() {
         when:
-        schemaStore.getSchema(OnlyGetGetter)
+        schemaStore.getSchema(managedType)
 
         then:
         def ex = thrown(InvalidManagedModelElementTypeException)
-        ex.message == "read only property 'thing' has non managed type boolean, only managed types can be used"
+        ex.message =~ "read only property 'thing' has non managed type boolean, only managed types can be used"
 
         where:
-        managedType << [OnlyGetGetter, OnlyIsGetter]
+        managedType << [OnlyIsGetter, OnlyGetGetter]
+    }
+
+    @Managed
+    interface IsNotAllowedForOtherTypeThanBoolean {
+        String isThing()
+        void setThing(String thing)
+    }
+
+    @Managed
+    interface IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean {
+        Boolean isThing()
+        void setThing(Boolean thing)
+    }
+
+    @Unroll
+    def "should not allow 'is' as a prefix for getter on non primitive boolean"() {
+        when:
+        schemaStore.getSchema(IsNotAllowedForOtherTypeThanBoolean)
+
+        then:
+        def ex = thrown(InvalidManagedModelElementTypeException)
+        ex.message =~ /getter method name must start with 'get'/
+
+        where:
+        managedType << [IsNotAllowedForOtherTypeThanBoolean, IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean]
     }
 }

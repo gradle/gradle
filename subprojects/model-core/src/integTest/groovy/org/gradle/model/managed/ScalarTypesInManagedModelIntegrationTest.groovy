@@ -15,10 +15,8 @@
  */
 
 package org.gradle.model.managed
-
 import org.gradle.api.artifacts.Configuration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
@@ -122,42 +120,44 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains "character: a"
     }
 
-    def "can set/get properties of all supported unmanaged types"() {
+    def "can set/get properties of all supported unmanaged types using Groovy"() {
         when:
         buildScript '''
             @Managed
             interface AllSupportedUnmanagedTypes {
                 Boolean getBooleanProperty()
-
                 void setBooleanProperty(Boolean value)
 
                 Integer getIntegerProperty()
-
                 void setIntegerProperty(Integer value)
 
                 Long getLongProperty()
-
                 void setLongProperty(Long value)
 
                 Double getDoubleProperty()
-
                 void setDoubleProperty(Double value)
 
                 BigInteger getBigIntegerProperty()
-
                 void setBigIntegerProperty(BigInteger value)
 
                 BigDecimal getBigDecimalProperty()
-
                 void setBigDecimalProperty(BigDecimal value)
 
                 String getStringProperty()
-
                 void setStringProperty(String value)
 
                 File getFile()
-
                 void setFile(File file)
+
+                boolean isFlag()
+                void setFlag(boolean flag)
+
+                boolean getOtherFlag()
+                void setOtherFlag(boolean flag)
+
+                boolean isThirdFlag()
+                boolean getThirdFlag()
+                void setThirdFlag(boolean flag)
             }
 
             class RulePlugin extends RuleSource {
@@ -171,6 +171,9 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                     element.bigDecimalProperty = new BigDecimal("5.5")
                     element.stringProperty = "test"
                     element.file = new File('sample.txt')
+                    element.flag = true
+                    element.otherFlag = true
+                    element.thirdFlag = true
                 }
 
                 @Mutate
@@ -185,6 +188,9 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                             println "big decimal: ${element.bigDecimalProperty}"
                             println "string: ${element.stringProperty}"
                             println "file: ${element.file}"
+                            println "flag: ${element.flag}"
+                            println "otherFlag: ${element.otherFlag}"
+                            println "thirdFlag: ${element.thirdFlag}"
                         }
                     }
                 }
@@ -205,6 +211,120 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains "big decimal: 5.5"
         output.contains "string: test"
         output.contains "file: sample.txt"
+        output.contains "flag: true"
+        output.contains "otherFlag: true"
+        output.contains "thirdFlag: true"
+    }
+
+    def "can set/get properties of all supported unmanaged types using Java"() {
+        given:
+        file('buildSrc/src/main/java/Rules.java') << '''
+            import org.gradle.api.*;
+            import org.gradle.model.*;
+            import java.math.BigInteger;
+            import java.math.BigDecimal;
+            import java.io.File;
+
+            @Managed
+            interface AllSupportedUnmanagedTypes {
+                Boolean getBooleanProperty();
+                void setBooleanProperty(Boolean value);
+
+                Integer getIntegerProperty();
+                void setIntegerProperty(Integer value);
+
+                Long getLongProperty();
+                void setLongProperty(Long value);
+
+                Double getDoubleProperty();
+                void setDoubleProperty(Double value);
+
+                BigInteger getBigIntegerProperty();
+                void setBigIntegerProperty(BigInteger value);
+
+                BigDecimal getBigDecimalProperty();
+                void setBigDecimalProperty(BigDecimal value);
+
+                String getStringProperty();
+                void setStringProperty(String value);
+
+                File getFile();
+                void setFile(File file);
+
+                boolean isFlag();
+                void setFlag(boolean flag);
+
+                boolean getOtherFlag();
+                void setOtherFlag(boolean flag);
+
+                boolean isThirdFlag();
+                boolean getThirdFlag();
+                void setThirdFlag(boolean flag);
+
+            };
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void supportedUnmanagedTypes(AllSupportedUnmanagedTypes element) {
+                    element.setBooleanProperty(Boolean.TRUE);
+                    element.setIntegerProperty(Integer.valueOf(1));
+                    element.setLongProperty(Long.valueOf(2L));
+                    element.setDoubleProperty(Double.valueOf(3.3d));
+                    element.setBigIntegerProperty(new BigInteger("4"));
+                    element.setBigDecimalProperty(new BigDecimal("5.5"));
+                    element.setStringProperty("test");
+                    element.setFile(new File("sample.txt"));
+                    element.setFlag(true);
+                    element.setOtherFlag(true);
+                    element.setThirdFlag(true);
+                }
+
+                @Mutate
+                void addEchoTask(ModelMap<Task> tasks, final AllSupportedUnmanagedTypes element) {
+                    tasks.create("echo", new Action<Task>() {
+                        public void execute(Task task) {
+                            task.doLast(new Action<Task>() {
+                                public void execute(Task unused) {
+                                    System.out.println(String.format("%s: %s", "boolean", element.getBooleanProperty()));
+                                    System.out.println(String.format("%s: %s", "integer", element.getIntegerProperty()));
+                                    System.out.println(String.format("%s: %s", "long", element.getLongProperty()));
+                                    System.out.println(String.format("%s: %s", "double", element.getDoubleProperty()));
+                                    System.out.println(String.format("%s: %s", "big integer", element.getBigIntegerProperty()));
+                                    System.out.println(String.format("%s: %s", "big decimal", element.getBigDecimalProperty()));
+                                    System.out.println(String.format("%s: %s", "string", element.getStringProperty()));
+                                    System.out.println(String.format("%s: %s", "file", element.getFile()));
+                                    System.out.println(String.format("%s: %s", "flag", element.isFlag()));
+                                    System.out.println(String.format("%s: %s", "otherFlag", element.getOtherFlag()));
+                                    System.out.println(String.format("%s: %s %s", "thirdFlag", element.isThirdFlag(), element.getThirdFlag()));
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+
+        '''
+
+        when:
+        buildScript '''
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains "boolean: true"
+        output.contains "integer: 1"
+        output.contains "long: 2"
+        output.contains "double: 3.3"
+        output.contains "big integer: 4"
+        output.contains "big decimal: 5.5"
+        output.contains "string: test"
+        output.contains "file: sample.txt"
+        output.contains "flag: true"
+        output.contains "otherFlag: true"
+        output.contains "thirdFlag: true true"
     }
 
     def "can specify managed models with file types"() {
@@ -231,30 +351,60 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds "model"
     }
 
-    @Unroll
-    def "can read and write #value to managed property of scalar type #someType.simpleName when using Groovy"() {
+    def "can read and write to managed property of scalar type when using Groovy"() {
         given:
+        def i = 0
+        def properties = [[byte, "123"],
+                          [Byte, "123"],
+                          [boolean, "false"],
+                          [Boolean, "false"],
+                          [boolean, "true"],
+                          [Boolean, "true"],
+                          [char, "'c'"],
+                          [Character, "'c'"],
+                          [float, "123.45f"],
+                          [Float, "123.45f"],
+                          [long, "123L"],
+                          [Long, "123L"],
+                          [short, "123"],
+                          [Short, "123"],
+                          [int, "123"],
+                          [Integer, "123"],
+                          [double, "123.456d"],
+                          [Double, "123.456d"],
+                          [String, '"Mogette"'],
+                          [BigDecimal, '999G'],
+                          [BigInteger, '777G'],
+                          [Configuration.State, 'org.gradle.api.artifacts.Configuration.State.UNRESOLVED'],
+                          [File, 'new File("foo")']].collect { propertyDef ->
+            def (type, value) = propertyDef
+            def propName = type.primitive ? "primitive${type.name.capitalize()}${i++}" : "boxed${type.simpleName}${i++}"
+            [dsl       : """${type.canonicalName} get${propName.capitalize()}()
+               void set${propName.capitalize()}(${type.canonicalName} value)
+""",
+             assignment: "p.$propName=$value",
+             check     : "assert p.$propName == $value"]
+        }
+
         buildScript """
             import org.gradle.api.artifacts.Configuration.State
 
             @Managed
             interface ManagedType {
-                $someType.canonicalName getManagedProperty()
-
-                void setManagedProperty($someType.canonicalName value)
+                ${properties.dsl.join('\n')}
             }
 
             class PluginRules extends RuleSource {
                 @Model
                 void createModel(ManagedType p) {
-                    p.managedProperty = $value
+                    ${properties.assignment.join('\n')}
                 }
 
                 @Mutate
-                void addEchoTask(ModelMap<Task> tasks, ManagedType element) {
-                    tasks.create("echo") {
+                void addCheckTask(ModelMap<Task> tasks, ManagedType p) {
+                    tasks.create("check") {
                         it.doLast {
-                            println "${someType.name}: \${element.managedProperty}"
+                            ${properties.check.join('\n')}
                         }
                     }
                 }
@@ -264,42 +414,47 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
         """
 
-        when:
-        succeeds 'echo'
+        expect:
+        succeeds 'check'
 
-        then:
-        output.contains "${someType.name}: ${Eval.me(value)}"
-
-        where:
-        someType            | value
-        byte                | "123"
-        Byte                | "123"
-        boolean             | "false"
-        Boolean             | "false"
-        boolean             | "true"
-        Boolean             | "true"
-        char                | "'c'"
-        Character           | "'c'"
-        float               | "123.45f"
-        Float               | "123.45f"
-        long                | "123L"
-        Long                | "123L"
-        short               | "123"
-        Short               | "123"
-        int                 | "123"
-        Integer             | "123"
-        double              | "123.456d"
-        Double              | "123.456d"
-        String              | '"Mogette"'
-        BigDecimal          | '999G'
-        BigInteger          | '777G'
-        Configuration.State | 'org.gradle.api.artifacts.Configuration.State.UNRESOLVED'
-        File                | 'new File("foo")'
     }
 
-    @Unroll
-    def "can read and write #value to managed property of scalar type #someType,simpleName when using Java"() {
+    def "can read and write to managed property of scalar type when using Java"() {
         given:
+        def i = 0
+        def properties = [[byte, "(byte) 123"],
+                          [Byte, "(byte) 123"],
+                          [boolean, "false"],
+                          [Boolean, "false"],
+                          [boolean, "true"],
+                          [Boolean, "true"],
+                          [char, "'c'"],
+                          [Character, "'c'"],
+                          [float, "123.45f"],
+                          [Float, "123.45f"],
+                          [long, "123L"],
+                          [Long, "123L"],
+                          [short, "(short) 123"],
+                          [Short, "(short) 123"],
+                          [int, "123"],
+                          [Integer, "123"],
+                          [double, "123.456d"],
+                          [Double, "123.456d"],
+                          [String, '"Mogette"'],
+                          [BigDecimal, 'new BigDecimal(999)'],
+                          [BigInteger, 'new BigInteger("777")'],
+                          [Configuration.State, 'org.gradle.api.artifacts.Configuration.State.UNRESOLVED'],
+                          [File, 'new File("foo")']].collect { propertyDef ->
+            def (type, value) = propertyDef
+            def propName = type.primitive ? "primitive${type.name.capitalize()}${i++}" : "boxed${type.simpleName}${i++}"
+            [dsl       : """${type.canonicalName} get${propName.capitalize()}();
+               void set${propName.capitalize()}(${type.canonicalName} value);
+""",
+             assignment: "p.set${propName.capitalize()}($value);",
+             check     : (type.primitive?"assert p.get${propName.capitalize()}() == $value":"assert p.get${propName.capitalize()}().equals($value)") + ":\"$propName validation failed\";"
+            ]
+        }
+
         file('buildSrc/src/main/java/Rules.java') << """
             import org.gradle.api.*;
             import org.gradle.model.*;
@@ -310,24 +465,22 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
             @Managed
             interface ManagedType {
-                $someType.canonicalName getManagedProperty();
-
-                void setManagedProperty($someType.canonicalName value);
+                ${properties.dsl.join('\n')}
             }
 
             class RulePlugin extends RuleSource {
                 @Model
                 void createModel(ManagedType p) {
-                    p.setManagedProperty($value);
+                    ${properties.assignment.join('\n')}
                 }
 
                 @Mutate
-                void addEchoTask(ModelMap<Task> tasks, final ManagedType element) {
-                    tasks.create("echo", new Action<Task>() {
+                void addCheckTask(ModelMap<Task> tasks, final ManagedType p) {
+                    tasks.create("check", new Action<Task>() {
                         public void execute(Task task) {
                             task.doLast(new Action<Task>() {
                                 public void execute(Task unused) {
-                                    System.out.println(String.format("%s: %s", "${someType.name}", element.getManagedProperty()));
+                                    ${properties.check.join('\n')}
                                 }
                             });
                         }
@@ -336,56 +489,61 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when:
         buildScript '''
             apply type: RulePlugin
         '''
 
-        then:
-        succeeds 'echo'
+        expect:
+        succeeds 'check'
 
-        and:
-        output.contains "${someType.name}: ${Eval.me(value)}"
-
-
-        where:
-        someType            | value
-        byte                | "(byte) 123"
-        Byte                | "(byte) 123"
-        boolean             | "false"
-        Boolean             | "false"
-        boolean             | "true"
-        Boolean             | "true"
-        char                | "'c'"
-        Character           | "'c'"
-        float               | "123.45f"
-        Float               | "123.45f"
-        long                | "123L"
-        Long                | "123L"
-        short               | "(short) 123"
-        Short               | "(short) 123"
-        int                 | "123"
-        Integer             | "123"
-        double              | "123.456d"
-        Double              | "123.456d"
-        String              | '"Mogette"'
-        BigDecimal          | 'new BigDecimal(999)'
-        BigInteger          | 'new BigInteger("777")'
-        Configuration.State | 'org.gradle.api.artifacts.Configuration.State.UNRESOLVED'
-        File                | 'new File("foo")'
     }
 
-    @Unroll
-    def "cannot mutate managed property of scalar type #someType.simpleName when view is immutable"() {
+    def "cannot mutate managed property of scalar type when view is immutable"() {
         given:
+        def i = 0
+        def datatable = [[byte, "123"],
+                         [Byte, "123"],
+                         [boolean, "false"],
+                         [Boolean, "false"],
+                         [boolean, "true"],
+                         [Boolean, "true"],
+                         [char, "'c'"],
+                         [Character, "'c'"],
+                         [float, "123.45f"],
+                         [Float, "123.45f"],
+                         [long, "123L"],
+                         [Long, "123L"],
+                         [short, "123"],
+                         [Short, "123"],
+                         [int, "123"],
+                         [Integer, "123"],
+                         [double, "123.456d"],
+                         [Double, "123.456d"],
+                         [String, '"Mogette"'],
+                         [BigDecimal, '999G'],
+                         [BigInteger, '777G'],
+                         [Configuration.State, 'org.gradle.api.artifacts.Configuration.State.UNRESOLVED'],
+                         [File, 'new File("foo")']]
+        def properties = datatable.collect { propertyDef ->
+            def (type, value) = propertyDef
+            def propName = type.primitive ? "primitive${type.name.capitalize()}${i++}" : "boxed${type.simpleName}${i++}"
+            [dsl       : """${type.canonicalName} get${propName.capitalize()}()
+               void set${propName.capitalize()}(${type.canonicalName} value)
+""",
+             check: """
+                    tasks.create("check${propName.capitalize()}") {
+                        it.doLast {
+                            p.$propName=$value
+                        }
+                    }"""]
+        }
+
         buildScript """
             import org.gradle.api.artifacts.Configuration.State
 
             @Managed
             interface ManagedType {
-                $someType.canonicalName getManagedProperty()
-
-                void setManagedProperty($someType.canonicalName value)
+                ${properties.dsl.join('\n')}
             }
 
             class PluginRules extends RuleSource {
@@ -394,91 +552,24 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addEchoTask(ModelMap<Task> tasks, ManagedType element) {
-                    element.managedProperty = $value
+                void addCheckTask(ModelMap<Task> tasks, ManagedType p) {
+                    ${properties.check.join('\n')}
                 }
             }
 
             apply plugin: PluginRules
 
         """
+        i=0
 
-        when:
-        fails 'echo'
+        expect:
+        datatable.each { propertyDef ->
+            def (type, value) = propertyDef
+            def propName = type.primitive ? "primitive${type.name.capitalize()}${i++}" : "boxed${type.simpleName}${i++}"
+            fails "check${propName.capitalize()}"
+            failure.assertHasCause(/Attempt to mutate closed view of model of type 'ManagedType' given to rule 'PluginRules#addCheckTask'/)
+        }
 
-        then:
-        failure.assertHasCause(/Attempt to mutate closed view of model of type 'ManagedType' given to rule 'PluginRules#addEchoTask'/)
-
-        where:
-        someType            | value
-        byte                | "123"
-        Byte                | "123"
-        boolean             | "false"
-        Boolean             | "false"
-        boolean             | "true"
-        Boolean             | "true"
-        char                | "'c'"
-        Character           | "'c'"
-        float               | "123.45f"
-        Float               | "123.45f"
-        long                | "123L"
-        Long                | "123L"
-        short               | "123"
-        Short               | "123"
-        int                 | "123"
-        Integer             | "123"
-        double              | "123.456d"
-        Double              | "123.456d"
-        String              | '"Mogette"'
-        BigDecimal          | '999G'
-        BigInteger          | '777G'
-        Configuration.State | 'org.gradle.api.artifacts.Configuration.State.UNRESOLVED'
-        File                | 'new File("foo")'
-    }
-
-    @Unroll
-    def "cannot have read only property of scalar type #someType.simpleName"() {
-        given:
-        buildScript """
-            import org.gradle.api.artifacts.Configuration.State
-
-            @Managed
-            interface ManagedType {
-                $someType.canonicalName getManagedProperty()
-            }
-
-            class PluginRules extends RuleSource {
-                @Model
-                void createModel(ManagedType p) {
-                }
-            }
-
-            apply plugin: PluginRules
-
-        """
-
-        when:
-        fails 'modelReport'
-
-        then:
-        failure.assertHasCause("Invalid managed model type ManagedType: read only property 'managedProperty' has non managed type ${someType.name}, only managed types can be used")
-
-        where:
-        someType << [
-            byte, Byte,
-            boolean, Boolean,
-            boolean,
-            char, Character,
-            float, Float,
-            long, Long,
-            short, Short,
-            int, Integer,
-            double, Double,
-            String,
-            BigDecimal,
-            BigInteger,
-            Configuration.State,
-            File]
     }
 
 }

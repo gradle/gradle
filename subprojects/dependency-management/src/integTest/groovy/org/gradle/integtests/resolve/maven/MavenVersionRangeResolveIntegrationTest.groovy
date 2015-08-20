@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class MavenVersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -24,6 +25,7 @@ class MavenVersionRangeResolveIntegrationTest extends AbstractDependencyResoluti
     @Issue("GRADLE-3334")
     def "can resolve version range with single value specified"() {
         given:
+        settingsFile << "rootProject.name = 'test' "
         buildFile << """
 repositories {
     maven {
@@ -36,20 +38,24 @@ configurations { compile }
 dependencies {
     compile group: "org.test", name: "projectA", version: "[1.1]"
 }
-
-task retrieve(type: Sync) {
-    from configurations.compile
-    into 'libs'
-}
 """
         and:
         mavenRepo.module('org.test', 'projectB', '2.0').publish()
         mavenRepo.module('org.test', 'projectA', '1.1').dependsOn('org.test', 'projectB', '[2.0]').publish()
 
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
         when:
-        succeeds 'retrieve'
+        succeeds 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.1.jar', 'projectB-2.0.jar')
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:projectA:[1.1]", "org.test:projectA:1.1") {
+                    edge("org.test:projectB:2.0", "org.test:projectB:2.0") // Transitive version range is lost when converting to Ivy ModuleDescriptor
+                }
+            }
+        }
     }
 }

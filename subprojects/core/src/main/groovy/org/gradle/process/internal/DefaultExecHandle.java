@@ -262,6 +262,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 throw new IllegalStateException(String.format("Cannot abort process '%s' because it is not in started or detached state", displayName));
             }
             this.execHandleRunner.abortProcess();
+            this.waitForFinish();
         } finally {
             lock.unlock();
         }

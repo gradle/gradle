@@ -32,7 +32,7 @@ model {
 model {
     components {
         play {
-            useStaticRouter = false
+            injectedRoutesGenerator = true
         }
     }
 }

@@ -65,19 +65,17 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
             throw new TestExecutionException("No matching tests found in any candidate test task.\n" + formattedTestRequest);
         }
         if (hasFailedTests()) {
-            StringBuffer failedTestsMessage = new StringBuffer("Test failed.\n")
+            StringBuilder failedTestsMessage = new StringBuilder("Test failed.\n")
                 .append(INDENT).append("Failed tests:");
-            List<Throwable> causes = Lists.newArrayList();
             for (FailedTest failedTest : failedTests) {
                 failedTestsMessage.append("\n").append(Strings.repeat(INDENT, 2)).append(failedTest.getDescription());
-                causes.addAll(failedTest.testResult.getExceptions());
             }
-            throw new TestExecutionException(failedTestsMessage.toString(), causes);
+            throw new TestExecutionException(failedTestsMessage.toString());
         }
     }
 
     private String formatInternalTestExecutionRequest() {
-        StringBuffer requestDetails = new StringBuffer(INDENT).append("Requested tests:");
+        StringBuilder requestDetails = new StringBuilder(INDENT).append("Requested tests:");
         for (InternalTestDescriptor internalTestDescriptor : internalTestExecutionRequest.getTestExecutionDescriptors()) {
             requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append(internalTestDescriptor.getDisplayName());
             requestDetails.append(" (Task: '").append(((DefaultTestDescriptor) internalTestDescriptor).getTaskPath()).append("')");
@@ -86,7 +84,7 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
             requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class ").append(testClass);
         }
         for (InternalTestMethod testMethod : internalTestExecutionRequest.getTestMethods()) {
-            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(testMethod.getDescription());
+            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(testMethod.getClassName()).append(".").append(testMethod.getMethodName()).append("()");
         }
         return requestDetails.toString();
     }
@@ -102,7 +100,7 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
             resultCount = resultCount + testResult.getTestCount();
         }
         if (!testDescriptor.isComposite() && testResult.getFailedTestCount() != 0) {
-            failedTests.add(new FailedTest(testDescriptor.getName(), testDescriptor.getClassName(), getTaskPath(testDescriptor), testResult));
+            failedTests.add(new FailedTest(testDescriptor.getName(), testDescriptor.getClassName(), getTaskPath(testDescriptor)));
         }
     }
 
@@ -116,7 +114,6 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
 
     @Override
     public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
-
     }
 
     @Override
@@ -129,17 +126,15 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
         runningTasks.remove(taskOperation.getId());
     }
 
-    private class FailedTest {
+    private static class FailedTest {
         final String name;
         final String className;
         final String taskPath;
-        final TestResult testResult;
 
-        public FailedTest(String name, String className, String taskPath, TestResult testResult) {
+        public FailedTest(String name, String className, String taskPath) {
             this.name = name;
             this.className = className;
             this.taskPath = taskPath;
-            this.testResult = testResult;
         }
 
         public String getDescription() {

@@ -397,6 +397,42 @@ Searched in the following locations:
         }
     }
 
+    @Issue("GRADLE-3334")
+    def "can resolve version range with single value specified"() {
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        url "${ivyRepo.uri}"
+    }
+}
+
+configurations { compile }
+
+dependencies {
+    compile group: "org.test", name: "projectA", version: "[1.1]"
+}
+"""
+        and:
+        ivyRepo.module('org.test', 'projectB', '2.0').publish()
+        ivyRepo.module('org.test', 'projectA', '1.1').dependsOn('org.test', 'projectB', '[2.0]').publish()
+
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:projectA:[1.1]", "org.test:projectA:1.1") {
+                    edge("org.test:projectB:2.0", "org.test:projectB:2.0") // Transitive version range is lost when converting to Ivy ModuleDescriptor
+                }
+            }
+        }
+    }
+
     @Issue("GRADLE-2502")
     def "can resolve dynamic version from different repositories"() {
         given:

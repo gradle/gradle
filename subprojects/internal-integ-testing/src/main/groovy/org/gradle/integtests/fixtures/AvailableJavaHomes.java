@@ -168,6 +168,7 @@ abstract public class AvailableJavaHomes {
                 jvms = addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/ibm-jdk-6"), true, JvmInstallation.Arch.x86_64);
                 jvms = addJvm(jvms, JavaVersion.VERSION_1_7, "1.7.0", new File("/opt/jdk/oracle-jdk-7"), true, JvmInstallation.Arch.x86_64);
                 jvms = addJvm(jvms, JavaVersion.VERSION_1_8, "1.8.0", new File("/opt/jdk/oracle-jdk-8"), true, JvmInstallation.Arch.x86_64);
+                jvms = addJvm(jvms, JavaVersion.VERSION_1_9, "1.9.0", new File("/opt/jdk/oracle-jdk-9"), true, JvmInstallation.Arch.x86_64);
             }
             return CollectionUtils.filter(jvms, new Spec<JvmInstallation>() {
                 public boolean isSatisfiedBy(JvmInstallation element) {

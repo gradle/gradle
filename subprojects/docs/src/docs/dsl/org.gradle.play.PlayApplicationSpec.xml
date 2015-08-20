@@ -24,7 +24,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>useStaticRouter</td>
+                <td>injectedRoutesGenerator</td>
             </tr>
         </table>
     </section>

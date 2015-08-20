@@ -105,7 +105,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     }
 
     public void useDaemonParameters(DaemonParameters daemonParameters) {
-        setJavaHome(daemonParameters.getEffectiveJavaHome());
+        setJavaHome(daemonParameters.getEffectiveJvm().getJavaHome());
         setDaemonOpts(daemonParameters.getEffectiveJvmArgs());
     }
 

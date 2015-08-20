@@ -15,7 +15,9 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
     def "variant annotation on property with illegal type type raises error"() {
@@ -40,6 +42,62 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "components"
         failure.assertHasCause "Invalid managed model type SampleBinary: @Variant annotation only allowed for properties of type String and org.gradle.api.Named, but property has type java.lang.Integer (invalid property: variantProp)"
+    }
+
+    def "variant annotation on property with primitive type type raises error"() {
+        buildFile << """
+        interface SampleBinary extends BinarySpec {
+            @Variant
+            int getVariantProp()
+            void setVariantProp(int variant)
+        }
+        class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
+            int variantProp
+        }
+        class Rules extends RuleSource {
+            @BinaryType
+            void register(BinaryTypeBuilder<SampleBinary> builder) {
+                builder.defaultImplementation(DefaultSampleBinary)
+            }
+        }
+        apply plugin: Rules
+        """
+
+        expect:
+        fails "components"
+        failure.assertHasCause "Invalid managed model type SampleBinary: @Variant annotation only allowed for properties of type String and org.gradle.api.Named, but property has type int (invalid property: variantProp)"
+    }
+
+    @Unroll
+    def "variant annotation on property with boolean type and #getterDesc getter raises error"() {
+        buildFile << """
+        interface SampleBinary extends BinarySpec {
+            $getter
+            void setVariantProp(boolean variant)
+        }
+        class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
+            boolean variantProp
+        }
+        class Rules extends RuleSource {
+            @BinaryType
+            void register(BinaryTypeBuilder<SampleBinary> builder) {
+                builder.defaultImplementation(DefaultSampleBinary)
+            }
+        }
+        apply plugin: Rules
+        """
+
+        expect:
+        fails "components"
+        failure.assertHasCause "Invalid managed model type SampleBinary: @Variant annotation only allowed for properties of type String and org.gradle.api.Named, but property has type boolean (invalid property: variantProp)"
+
+        where:
+        getterDesc                  | getter
+        'get'                       | '@Variant boolean getVariantProp()'
+        'is'                        | '@Variant boolean isVariantProp()'
+        'both (annotation on is)'   | '@Variant boolean isVariantProp(); boolean getVariantProp()'
+        'both (annotation on get)'  | 'boolean isVariantProp(); @Variant boolean getVariantProp()'
+        'both (annotation on both)' | '@Variant boolean isVariantProp(); @Variant boolean getVariantProp()'
     }
 
     def "variant annotation on setter raises error"() {

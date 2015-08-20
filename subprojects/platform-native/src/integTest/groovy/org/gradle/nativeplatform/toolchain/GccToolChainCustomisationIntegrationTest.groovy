@@ -20,6 +20,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -27,6 +28,7 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompatible
 
 @RequiresInstalledToolChain(GccCompatible)
+@LeaksFileHandles
 class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CHelloWorldApp()
 

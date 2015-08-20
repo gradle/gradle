@@ -52,7 +52,7 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
     }
 
     @Override
-    public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean staticRoutesGenerator, Collection<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean injectedRoutesGenerator, Collection<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         List<String> defaultImports = javaProject ? defaultJavaImports : defaultScalaImports;
         defaultImports.addAll(additionalImports);
 
@@ -65,10 +65,10 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
         );
 
         String routeGenerator;
-        if (staticRoutesGenerator) {
-            routeGenerator = PLAY_ROUTES_COMPILER_STATIC_ROUTES_GENERATOR;
-        } else {
+        if (injectedRoutesGenerator) {
             routeGenerator = PLAY_ROUTES_COMPILER_INJECTED_ROUTES_GENERATOR;
+        } else {
+            routeGenerator = PLAY_ROUTES_COMPILER_STATIC_ROUTES_GENERATOR;
         }
         return new Object[]{
             routesCompilerTask,

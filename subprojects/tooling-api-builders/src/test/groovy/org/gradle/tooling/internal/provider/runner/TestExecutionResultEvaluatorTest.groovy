@@ -43,7 +43,8 @@ class TestExecutionResultEvaluatorTest extends Specification {
 
         def testResult = Mock(TestResult)
         def internalTestMethod = Mock(InternalTestMethod)
-        1 * internalTestMethod.getDescription() >> "Test Method org.acme.SomeOtherTest#someTestMethod()"
+        1 * internalTestMethod.getClassName() >> "org.acme.SomeOtherTest"
+        1 * internalTestMethod.getMethodName() >> "someTestMethod"
 
         when:
         evaluator.completed(testDescriptorInternal, testResult, Mock(TestCompleteEvent))
@@ -54,7 +55,7 @@ class TestExecutionResultEvaluatorTest extends Specification {
     Requested tests:
         Some Test Descriptor (Task: ':someTestTask')
         Test class acme.SomeTestClass
-        Test method Test Method org.acme.SomeOtherTest#someTestMethod()"""
+        Test method org.acme.SomeOtherTest.someTestMethod()"""
 
         and:
         1 * testExecutionRequest.getTestExecutionDescriptors()>> [defaultTestDescriptor]
@@ -76,8 +77,6 @@ class TestExecutionResultEvaluatorTest extends Specification {
         def testResult = Mock(TestResult)
         1 * testResult.getTestCount() >> 1
         1 * testResult.getFailedTestCount() >> 1
-        1 * testResult.getExceptions() >> []
-
 
         def testTask = Mock(TaskInternal)
         1 * testTask.getPath() >> ":someproject:someTestTask"
