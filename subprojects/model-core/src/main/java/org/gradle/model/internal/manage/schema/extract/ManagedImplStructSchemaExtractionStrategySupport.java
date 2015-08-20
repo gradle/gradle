@@ -129,9 +129,9 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
     protected abstract <R> NodeInitializer createNodeInitializer(ModelManagedImplStructSchema<R> schema, ModelSchemaStore store);
 
     @Override
-    protected void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getter, String message) {
-        if (getter.isDeclaredInManagedType()) {
-            throw invalidMethod(extractionContext, message, getter.getMostSpecificDeclaration());
+    protected void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, Method getter, String message) {
+        if (ModelSchemaUtils.isMethodDeclaredInManagedType(getter)) {
+            throw invalidMethod(extractionContext, message, getter);
         }
     }
 
