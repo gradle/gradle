@@ -20,7 +20,6 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.apache.commons.lang.StringUtils;
@@ -34,7 +33,10 @@ import org.objectweb.asm.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -324,18 +326,14 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeMutationMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Iterable<ModelProperty<?>> properties) {
-        Set<String> writtenProperties = Sets.newHashSet();
         for (ModelProperty<?> property : properties) {
             String propertyName = property.getName();
             switch (property.getStateManagementType()) {
                 case MANAGED:
                     Class<?> propertyTypeClass = property.getType().getConcreteClass();
-                    if (!(writtenProperties.contains(propertyName))) {
-                        writeGetter(visitor, generatedType, propertyName, propertyTypeClass);
-                        if (property.isWritable()) {
-                            writeSetter(visitor, generatedType, propertyName, propertyTypeClass);
-                        }
-                        writtenProperties.add(propertyName);
+                    writeGetter(visitor, generatedType, propertyName, propertyTypeClass);
+                    if (property.isWritable()) {
+                        writeSetter(visitor, generatedType, propertyName, propertyTypeClass);
                     }
                     break;
 

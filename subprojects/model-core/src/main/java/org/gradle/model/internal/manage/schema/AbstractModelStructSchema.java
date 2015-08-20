@@ -32,13 +32,11 @@ public abstract class AbstractModelStructSchema<T> extends AbstractModelSchema<T
 
     public AbstractModelStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
         super(type);
-        Map<String, ModelProperty<?>> builder = Maps.newHashMap();
+        ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : properties) {
-            if (!builder.containsKey(property.getName())) {
-                builder.put(property.getName(), property);
-            }
+            builder.put(property.getName(), property);
         }
-        this.properties = ImmutableSortedMap.copyOf(builder);
+        this.properties = builder.build();
         this.aspects = Maps.uniqueIndex(aspects, new Function<ModelSchemaAspect, Class<? extends ModelSchemaAspect>>() {
             @Override
             public Class<? extends ModelSchemaAspect> apply(ModelSchemaAspect aspect) {

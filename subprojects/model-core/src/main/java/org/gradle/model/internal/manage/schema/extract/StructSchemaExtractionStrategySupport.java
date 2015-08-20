@@ -86,7 +86,12 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
         List<String> methodNames = Lists.newArrayList(methodsByName.keySet());
         Collections.sort(methodNames);
+        Set<String> skippedMethodNames = Sets.newHashSet();
         for (String methodName : methodNames) {
+            if (skippedMethodNames.contains(methodName)) {
+                continue;
+            }
+
             Collection<Method> methods = methodsByName.get(methodName);
 
             List<Method> overloadedMethods = getOverloadedMethods(methods);
@@ -97,7 +102,6 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
             int getterPrefixLen = getterPrefixLength(methodName);
             if (getterPrefixLen >= 0) {
-                PropertyAccessorExtractionContext getterContext = new PropertyAccessorExtractionContext(methods);
                 Method mostSpecificGetter = ModelSchemaUtils.findMostSpecificMethod(methods);
 
                 Character getterPropertyNameFirstChar = methodName.charAt(getterPrefixLen);
@@ -113,6 +117,23 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
                 Collection<Method> setterMethods = methodsByName.get(setterName);
                 PropertyAccessorExtractionContext setterContext = !setterMethods.isEmpty() ? new PropertyAccessorExtractionContext(setterMethods) : null;
 
+                String prefix = methodName.substring(0, getterPrefixLen);
+                Iterable<Method> getterMethods;
+                if (prefix.equals("get") && mostSpecificGetter.getReturnType() == boolean.class) {
+                    String isGetterName = "is" + propertyNameCapitalized;
+                    Collection<Method> isGetterMethods = methodsByName.get(isGetterName);
+                    List<Method> overloadedIsGetterMethods = getOverloadedMethods(isGetterMethods);
+                    if (overloadedIsGetterMethods != null) {
+                        handleOverloadedMethods(extractionContext, overloadedIsGetterMethods);
+                        continue;
+                    }
+                    getterMethods = Iterables.concat(methods, isGetterMethods);
+                    skippedMethodNames.add(isGetterName);
+                } else {
+                    getterMethods = methods;
+                }
+
+                PropertyAccessorExtractionContext getterContext = new PropertyAccessorExtractionContext(getterMethods);
                 ModelPropertyExtractionResult<?> result = extractPropertySchema(extractionContext, propertyName, getterContext, setterContext, getterPrefixLen);
                 if (result != null) {
                     results.add(result);
