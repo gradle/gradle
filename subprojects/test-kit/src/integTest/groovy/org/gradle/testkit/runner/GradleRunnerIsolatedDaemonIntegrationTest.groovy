@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.testkit.runner.internal.GradleExecutor
 import org.gradle.util.GFileUtils
 import org.junit.Rule
 
@@ -156,13 +157,13 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
     }
 
     @LeaksFileHandles
-    def "user daemon process does not reuse existing daemon process intended for test execution"() {
+    def "user daemon process does not reuse existing daemon process intended for test execution even when using same gradle user home"() {
         given:
         buildFile << helloWorldTask()
 
         when:
         File testKitGradleUserHomeDir = testKitGradleUserHomeDirProvider.testDirectory
-        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testKitGradleUserHomeDir)
+        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testKitGradleUserHomeDir, GradleExecutor.TEST_KIT_DAEMON_DIR_NAME)
         assert testKitDaemonLogsAnalyzer.visible.empty
         GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(testKitGradleUserHomeDir, 'helloWorld')
         gradleRunner.build()
@@ -172,10 +173,10 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         testKitDaemon.assertIdle()
 
         when:
-        DaemonLogsAnalyzer userDaemonLogsAnalyzer = createDaemonLogsAnalyzer(userWorkingSpaceGradleUserHomeDirProvider.testDirectory)
+        DaemonLogsAnalyzer userDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testKitGradleUserHomeDirProvider.testDirectory)
         assert userDaemonLogsAnalyzer.visible.empty
         GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
-        GradleExecuter executer = new DaemonGradleExecuter(distribution, userWorkingSpaceGradleUserHomeDirProvider)
+        GradleExecuter executer = new DaemonGradleExecuter(distribution, testKitGradleUserHomeDirProvider)
         executer.usingProjectDirectory(testProjectDir.testDirectory).withArguments('helloWorld').requireIsolatedDaemons().run()
 
         then:
@@ -232,8 +233,8 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         daemon
     }
 
-    private DaemonLogsAnalyzer createDaemonLogsAnalyzer(File customGradleUserHomeDir)  {
-        DaemonLogsAnalyzer.newAnalyzer(new File(customGradleUserHomeDir, 'daemon'), buildContext.version.version)
+    private DaemonLogsAnalyzer createDaemonLogsAnalyzer(File customGradleUserHomeDir, String daemonDir = 'daemon') {
+        DaemonLogsAnalyzer.newAnalyzer(new File(customGradleUserHomeDir, daemonDir), buildContext.version.version)
     }
 
     private GradleRunner runnerWithCustomGradleUserHomeDir(File customGradleUserHomeDir, String... arguments) {
