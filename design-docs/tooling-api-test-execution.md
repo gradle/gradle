@@ -201,6 +201,12 @@ Debugging is enabled by enabling debug connector via socket;
 
 ### Test coverage
 - debug options can be set via `JvmOptions#allJvmArgs` and proper port is picked up
+- can invoke test task with debug enabled by
+    - configuring debug port in build script
+    - declaring debug port as command line option (--debug-port)
+- connecting to test process works for tests launched via normal gradle build
+- connecting to test process works with default port `5005` for tests launched via tooling api `TestLauncher#withDebugEnabled()`
+- connecting to test process works with custom port for tests launched via tooling api `TestLauncher#withDebugEnabled(customPort)`
 - can connect to test process under debug (create simple jdi based fixture)
     - have line information available.
     - define breakpoint
@@ -209,8 +215,6 @@ Debugging is enabled by enabling debug connector via socket;
 - works with configured `Test#forkEvery > 0`
 - works with configured `Test#maxParallelForks > 1`
 - works with configured `Test#maxParallelForks > 1` & `Test#forkEvery > 0`
-- connecting to test process works for tests launched via normal gradle build
-- connecting to test process works for tests launched via tooling api testlauncher
 
 ### Open questions
 - How to deal with maxParallelForks / forksEvery? feels like it makes sense to restrict it to maxParallelForks=1 & forkEvery=0 if debug is enabled.
