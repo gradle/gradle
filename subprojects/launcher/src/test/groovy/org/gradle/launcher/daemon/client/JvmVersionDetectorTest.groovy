@@ -19,11 +19,11 @@ package org.gradle.launcher.daemon.client
 import org.gradle.api.JavaVersion
 import spock.lang.Specification
 
-class JvmVersionValidatorTest extends Specification {
+class JvmVersionDetectorTest extends Specification {
 
     def "can parse version number"() {
         expect:
-        JvmVersionValidator.parseJavaVersionCommandOutput(new BufferedReader(new StringReader(output))) == JavaVersion.toVersion(version)
+        JvmVersionDetector.parseJavaVersionCommandOutput(new File("/usr/bin/java"), new BufferedReader(new StringReader(output))) == JavaVersion.toVersion(version)
 
         where:
         output                             | version
@@ -42,10 +42,11 @@ Java HotSpot(TM) 64-Bit Server VM (build 1.9.0-ea-b53, mixed mode)
 
     def "fails to parse version number"() {
         when:
-        JvmVersionValidator.parseJavaVersionCommandOutput(new BufferedReader(new StringReader(output)))
+        JvmVersionDetector.parseJavaVersionCommandOutput(new File("/usr/bin/java"), new BufferedReader(new StringReader(output)))
 
         then:
-        thrown RuntimeException
+        RuntimeException e = thrown()
+        e.message == "Could not determine Java version using executable /usr/bin/java."
 
         where:
         output << [

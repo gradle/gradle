@@ -17,66 +17,25 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.process.internal.ExecHandleBuilder;
-
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class JvmVersionValidator {
-    private final Map<JavaInfo, JavaVersion> cachedResults = new HashMap<JavaInfo, JavaVersion>();
+    private final JvmVersionDetector versionDetector;
 
-    void validate(DaemonParameters parameters) {
+    public JvmVersionValidator(JvmVersionDetector versionDetector) {
+        this.versionDetector = versionDetector;
+    }
+
+    public void validate(DaemonParameters parameters) {
         if (parameters.getEffectiveJvm().equals(Jvm.current())) {
             return;
         }
 
-        JavaVersion javaVersion = getJavaVersion(parameters);
+        JavaVersion javaVersion = versionDetector.getJavaVersion(parameters.getEffectiveJvm());
         if (!javaVersion.isJava6Compatible()) {
             throw UnsupportedJavaRuntimeException.configuredWithUnsupportedVersion("Gradle", JavaVersion.VERSION_1_6, javaVersion);
         }
-    }
-
-    private JavaVersion getJavaVersion(DaemonParameters parameters) {
-        JavaVersion version = cachedResults.get(parameters.getEffectiveJvm());
-        if (version != null) {
-            return version;
-        }
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        ExecHandleBuilder builder = new ExecHandleBuilder();
-        builder.setWorkingDir(new File(".").getAbsolutePath());
-        builder.setCommandLine(parameters.getEffectiveJvm().getJavaExecutable(), "-version");
-        builder.setStandardOutput(new ByteArrayOutputStream());
-        builder.setErrorOutput(outputStream);
-        builder.build().start().waitForFinish().assertNormalExitValue();
-
-        version = parseJavaVersionCommandOutput(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
-        cachedResults.put(parameters.getEffectiveJvm(), version);
-        return version;
-    }
-
-    static JavaVersion parseJavaVersionCommandOutput(BufferedReader reader) {
-        try {
-            String versionStr = reader.readLine();
-            while (versionStr != null) {
-                Matcher matcher = Pattern.compile("(?:java|openjdk) version \"(.+?)\"").matcher(versionStr);
-                if (matcher.matches()) {
-                    return JavaVersion.toVersion(matcher.group(1));
-                }
-                versionStr = reader.readLine();
-            }
-        } catch (IOException e) {
-            throw new org.gradle.api.UncheckedIOException(e);
-        }
-
-        throw new RuntimeException("Could not determine Java version.");
     }
 }
