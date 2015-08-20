@@ -15,7 +15,6 @@
  */
 package org.gradle.jvm
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
 import org.gradle.util.Requires
@@ -263,11 +262,6 @@ Binaries
 """
     }
 
-    // TODO Implement equals() and hashCode() for managed types
-    // Without equals() and hashCode() this will show the custom binary as an 'additional binary' as well,
-    // because `componentBinaries.contains(customBinary)` will always return `false` (given that the `customBinary` view
-    // is not a canonical object).
-    @NotYetImplemented
     def "shows details of Java library with custom variants"() {
         given:
         buildFile << """
