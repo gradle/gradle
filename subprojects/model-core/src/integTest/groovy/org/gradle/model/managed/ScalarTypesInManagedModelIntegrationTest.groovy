@@ -128,40 +128,38 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
             @Managed
             interface AllSupportedUnmanagedTypes {
                 Boolean getBooleanProperty()
-
                 void setBooleanProperty(Boolean value)
 
                 Integer getIntegerProperty()
-
                 void setIntegerProperty(Integer value)
 
                 Long getLongProperty()
-
                 void setLongProperty(Long value)
 
                 Double getDoubleProperty()
-
                 void setDoubleProperty(Double value)
 
                 BigInteger getBigIntegerProperty()
-
                 void setBigIntegerProperty(BigInteger value)
 
                 BigDecimal getBigDecimalProperty()
-
                 void setBigDecimalProperty(BigDecimal value)
 
                 String getStringProperty()
-
                 void setStringProperty(String value)
 
                 File getFile()
-
                 void setFile(File file)
 
                 boolean isFlag()
-
                 void setFlag(boolean flag)
+
+                boolean getOtherFlag()
+                void setOtherFlag(boolean flag)
+
+                boolean isThirdFlag()
+                boolean getThirdFlag()
+                void setThirdFlag(boolean flag)
             }
 
             class RulePlugin extends RuleSource {
@@ -176,6 +174,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                     element.stringProperty = "test"
                     element.file = new File('sample.txt')
                     element.flag = true
+                    element.otherFlag = true
+                    element.thirdFlag = true
                 }
 
                 @Mutate
@@ -191,6 +191,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                             println "string: ${element.stringProperty}"
                             println "file: ${element.file}"
                             println "flag: ${element.flag}"
+                            println "otherFlag: ${element.otherFlag}"
+                            println "thirdFlag: ${element.thirdFlag}"
                         }
                     }
                 }
@@ -212,6 +214,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains "string: test"
         output.contains "file: sample.txt"
         output.contains "flag: true"
+        output.contains "otherFlag: true"
+        output.contains "thirdFlag: true"
     }
 
     def "can set/get properties of all supported unmanaged types using Java"() {
@@ -226,40 +230,39 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
             @Managed
             interface AllSupportedUnmanagedTypes {
                 Boolean getBooleanProperty();
-
                 void setBooleanProperty(Boolean value);
 
                 Integer getIntegerProperty();
-
                 void setIntegerProperty(Integer value);
 
                 Long getLongProperty();
-
                 void setLongProperty(Long value);
 
                 Double getDoubleProperty();
-
                 void setDoubleProperty(Double value);
 
                 BigInteger getBigIntegerProperty();
-
                 void setBigIntegerProperty(BigInteger value);
 
                 BigDecimal getBigDecimalProperty();
-
                 void setBigDecimalProperty(BigDecimal value);
 
                 String getStringProperty();
-
                 void setStringProperty(String value);
 
                 File getFile();
-
                 void setFile(File file);
 
                 boolean isFlag();
-
                 void setFlag(boolean flag);
+
+                boolean getOtherFlag();
+                void setOtherFlag(boolean flag);
+
+                boolean isThirdFlag();
+                boolean getThirdFlag();
+                void setThirdFlag(boolean flag);
+
             };
 
             class RulePlugin extends RuleSource {
@@ -274,6 +277,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                     element.setStringProperty("test");
                     element.setFile(new File("sample.txt"));
                     element.setFlag(true);
+                    element.setOtherFlag(true);
+                    element.setThirdFlag(true);
                 }
 
                 @Mutate
@@ -291,6 +296,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                                     System.out.println(String.format("%s: %s", "string", element.getStringProperty()));
                                     System.out.println(String.format("%s: %s", "file", element.getFile()));
                                     System.out.println(String.format("%s: %s", "flag", element.isFlag()));
+                                    System.out.println(String.format("%s: %s", "otherFlag", element.getOtherFlag()));
+                                    System.out.println(String.format("%s: %s %s", "thirdFlag", element.isThirdFlag(), element.getThirdFlag()));
                                 }
                             });
                         }
@@ -318,6 +325,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains "string: test"
         output.contains "file: sample.txt"
         output.contains "flag: true"
+        output.contains "otherFlag: true"
+        output.contains "thirdFlag: true true"
     }
 
     def "can specify managed models with file types"() {
