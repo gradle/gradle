@@ -331,10 +331,14 @@ public interface GradleExecuter {
      */
     GradleExecuter withDebug(boolean flag);
 
+    GradleExecuter withProfiler(String profilerArg);
+
     /**
      * Forces Gradle to consider the build to be interactive
      */
     GradleExecuter withForceInteractive(boolean flag);
 
     boolean isDebug();
+
+    boolean isProfile();
 }
