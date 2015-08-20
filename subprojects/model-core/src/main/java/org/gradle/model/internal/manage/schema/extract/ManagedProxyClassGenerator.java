@@ -372,7 +372,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         jumpToLabelIfStackEvaluatesToTrue(methodVisitor, calledOutsideOfConstructor);
         throwExceptionBecauseCalledOnItself(methodVisitor);
 
-        writeLabel(methodVisitor, calledOutsideOfConstructor);
+        methodVisitor.visitLabel(calledOutsideOfConstructor);
         putStateFieldValueOnStack(methodVisitor, generatedType);
         putConstantOnStack(methodVisitor, propertyName);
         putFirstMethodArgumentOnStack(methodVisitor, propertyTypeClass);
@@ -404,7 +404,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitInsn(ICONST_1);
         methodVisitor.visitInsn(IRETURN);
         methodVisitor.visitLabel(notSameLabel);
-        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
         methodVisitor.visitVarInsn(ALOAD, 1);
         methodVisitor.visitTypeInsn(INSTANCEOF, MANAGED_INSTANCE_TYPE);
         Label notManagedInstanceLabel = new Label();
@@ -412,7 +411,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitInsn(ICONST_0);
         methodVisitor.visitInsn(IRETURN);
         methodVisitor.visitLabel(notManagedInstanceLabel);
-        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
         methodVisitor.visitVarInsn(ALOAD, 0);
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, false);
         methodVisitor.visitVarInsn(ALOAD, 1);
@@ -420,11 +418,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, MANAGED_INSTANCE_TYPE, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, MUTABLE_MODEL_NODE_TYPE, "contentEquals", EQUALS_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
-    }
-
-    private void writeLabel(MethodVisitor methodVisitor, Label label) {
-        methodVisitor.visitLabel(label);
-        methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
     }
 
     private void throwExceptionBecauseCalledOnItself(MethodVisitor methodVisitor) {
@@ -614,14 +607,14 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
         setCanCallSettersField(methodVisitor, generatedType, false);
 
-        writeLabel(methodVisitor, start);
+        methodVisitor.visitLabel(start);
         invokeSuperMethod(methodVisitor, managedTypeClass, method);
-        writeLabel(methodVisitor, end);
+        methodVisitor.visitLabel(end);
 
         setCanCallSettersField(methodVisitor, generatedType, true);
         methodVisitor.visitInsn(ARETURN);
 
-        writeLabel(methodVisitor, handler);
+        methodVisitor.visitLabel(handler);
         setCanCallSettersField(methodVisitor, generatedType, true);
         methodVisitor.visitInsn(ATHROW);
 
