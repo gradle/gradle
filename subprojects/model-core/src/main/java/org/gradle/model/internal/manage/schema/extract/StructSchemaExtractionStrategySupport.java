@@ -114,17 +114,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
                 ModelPropertyExtractionResult<?> result = extractPropertySchema(extractionContext, propertyName, getterContext, setterContext, getterPrefixLen);
                 if (result != null) {
-                    boolean propertyAlreadyDeclared = false;
-                    for (ModelPropertyExtractionResult<?> propertyExtractionResult : results) {
-                        if (propertyExtractionResult.getProperty().getName().equals(propertyName)) {
-                            // overloaded "is" getter, do not create duplicate property in that case
-                            propertyAlreadyDeclared = true;
-                            break;
-                        }
-                    }
-                    if (!propertyAlreadyDeclared) {
-                        results.add(result);
-                    }
+                    results.add(result);
                     handledMethods.addAll(getterContext.getDeclaringMethods());
                     if (setterContext != null) {
                         handledMethods.addAll(setterContext.getDeclaringMethods());
@@ -157,12 +147,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             return null;
         }
 
-        if (!getterContext.isDeclaredInManagedType() && mostSpecificGetter.getReturnType().isPrimitive()) {
-            handleInvalidGetter(extractionContext, getterContext, "managed properties cannot have primitive types");
-            return null;
-        }
-
-        if (mostSpecificGetter.getReturnType()!=boolean.class && getterPrefixLen==2) {
+        if (mostSpecificGetter.getReturnType() != boolean.class && getterPrefixLen == 2) {
             handleInvalidGetter(extractionContext, getterContext, "getter method name must start with 'get'");
             return null;
         }

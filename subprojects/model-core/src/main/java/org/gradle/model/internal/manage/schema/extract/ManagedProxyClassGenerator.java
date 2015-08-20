@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.apache.commons.lang.StringUtils;
@@ -30,10 +31,7 @@ import org.objectweb.asm.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     /*
@@ -76,15 +74,9 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
 
     /**
-     * Generates an implementation of the given managed type.
-     * <p>
-     * The generated class will implement/extend the managed type and will:
-     * <ul>
-     *     <li>provide implementations for abstract getters and setters</li>
-     *     <li>provide a `toString()` implementation</li>
-     *     <li>mix-in implementation of {@link ManagedInstance}</li>
-     *     <li>provide a constructor that accepts a {@link ModelElementState}, which will be used to implement the above.</li>
-     * </ul>
+     * Generates an implementation of the given managed type. <p> The generated class will implement/extend the managed type and will: <ul> <li>provide implementations for abstract getters and
+     * setters</li> <li>provide a `toString()` implementation</li> <li>mix-in implementation of {@link ManagedInstance}</li> <li>provide a constructor that accepts a {@link ModelElementState}, which
+     * will be used to implement the above.</li> </ul>
      */
     public <T, M extends T, D extends T> Class<? extends M> generate(Class<M> managedTypeClass, Class<D> delegateType, Iterable<ModelProperty<?>> properties) {
         if (delegateType != null && !delegateType.isInterface()) {
@@ -277,25 +269,30 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeMutationMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Iterable<ModelProperty<?>> properties) {
+        Set<String> writtenProperties = Sets.newHashSet();
         for (ModelProperty<?> property : properties) {
+            String propertyName = property.getName();
             switch (property.getStateManagementType()) {
                 case MANAGED:
                     Class<?> propertyTypeClass = property.getType().getConcreteClass();
-                    writeGetter(visitor, generatedType, property.getName(), propertyTypeClass);
-                    if (property.isWritable()) {
-                        writeSetter(visitor, generatedType, property.getName(), propertyTypeClass);
+                    if (!(writtenProperties.contains(propertyName))) {
+                        writeGetter(visitor, generatedType, propertyName, propertyTypeClass);
+                        if (property.isWritable()) {
+                            writeSetter(visitor, generatedType, propertyName, propertyTypeClass);
+                        }
+                        writtenProperties.add(propertyName);
                     }
                     break;
 
                 case UNMANAGED:
-                    String getterName = getGetterName(property.getName());
+                    String getterName = getGetterName(propertyName);
                     Method getterMethod;
                     try {
                         getterMethod = managedTypeClass.getMethod(getterName);
                     } catch (NoSuchMethodException e) {
                         throw new IllegalStateException("Cannot find getter '" + getterName + "' on type " + managedTypeClass.getName(), e);
                     }
-                    if (!Modifier.isFinal(getterMethod.getModifiers()) && !property.getName().equals("metaClass")) {
+                    if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
                         writeNonAbstractMethodWrapper(visitor, generatedType, managedTypeClass, getterMethod);
                     }
                     break;
@@ -429,7 +426,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private void writeGetter(ClassVisitor visitor, Type generatedType, String propertyName, Class<?> propertyTypeClass) {
         List<String> getters = new ArrayList<String>(2);
         getters.add(getGetterName(propertyName));
-        if (propertyTypeClass==boolean.class) {
+        if (propertyTypeClass == boolean.class) {
             getters.add(getIsGetterName(propertyName));
         }
         for (String getter : getters) {

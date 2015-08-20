@@ -34,9 +34,7 @@ import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.util.regex.Pattern
 
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.DELEGATED
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.MANAGED
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.UNMANAGED
+import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.*
 
 @SuppressWarnings("GroovyPointlessBoolean")
 class ModelSchemaExtractorTest extends Specification {
@@ -1013,12 +1011,16 @@ interface Managed${typeName} {
 
         then:
         assert schema instanceof ModelUnmanagedImplStructSchema
-        schema.properties*.name == ["unmanagedCalculatedProp", "unmanagedProp"]
+        schema.properties*.name as Set == ["buildable","time", "unmanagedCalculatedProp", "unmanagedProp"] as Set
 
         schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedProp").isWritable() == true
         schema.getProperty("unmanagedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedCalculatedProp").isWritable() == false
+        schema.getProperty("buildable").stateManagementType == UNMANAGED
+        schema.getProperty("buildable").isWritable() == false
+        schema.getProperty("time").stateManagementType == UNMANAGED
+        schema.getProperty("time").isWritable() == false
     }
 
     static interface UnmanagedSuperType {
@@ -1061,7 +1063,7 @@ interface Managed${typeName} {
 
         then:
         assert schema instanceof ModelManagedImplStructSchema
-        schema.properties*.name == ["managedCalculatedProp", "managedProp", "unmanagedCalculatedProp", "unmanagedProp"]
+        schema.properties*.name as Set == ["buildable", "time", "managedCalculatedProp", "managedProp", "unmanagedCalculatedProp", "unmanagedProp"] as Set
 
         schema.getProperty("unmanagedProp").stateManagementType == DELEGATED
         schema.getProperty("unmanagedProp").isWritable() == true
@@ -1074,6 +1076,12 @@ interface Managed${typeName} {
 
         schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
+
+        schema.getProperty("buildable").stateManagementType == DELEGATED
+        schema.getProperty("buildable").isWritable() == false
+
+        schema.getProperty("time").stateManagementType == DELEGATED
+        schema.getProperty("time").isWritable() == false
     }
 
     @Managed
