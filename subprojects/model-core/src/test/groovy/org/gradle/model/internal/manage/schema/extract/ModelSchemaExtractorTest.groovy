@@ -1175,6 +1175,93 @@ interface Managed${typeName} {
         }
         0 * _
     }
+
+    @Managed
+    interface HasIsTypeGetter {
+        boolean isRedundant()
+
+        void setRedundant(boolean redundant)
+    }
+
+    @Managed
+    interface HasGetTypeGetter {
+        boolean getRedundant()
+
+        void setRedundant(boolean redundant)
+    }
+
+    def "supports a boolean property with a get style getter"() {
+        expect:
+        store.getSchema(ModelType.of(HasGetTypeGetter))
+    }
+
+    @Managed
+    interface HasDualGetter {
+        boolean isRedundant()
+
+        boolean getRedundant()
+
+        void setRedundant(boolean redundant)
+    }
+
+    def "allows both is and get style getters"() {
+        expect:
+        store.getSchema(HasDualGetter)
+    }
+
+    @Managed
+    static interface OnlyGetGetter {
+        boolean getThing()
+    }
+
+    @Managed
+    static interface OnlyIsGetter {
+        boolean isThing()
+    }
+
+    @Managed
+    interface IsNotAllowedForOtherTypeThanBoolean {
+        String isThing()
+        void setThing(String thing)
+    }
+
+    @Managed
+    interface IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean {
+        Boolean isThing()
+        void setThing(Boolean thing)
+    }
+
+    @Unroll
+    def "must have a setter - #managedType.simpleName"() {
+        when:
+        store.getSchema(managedType)
+
+        then:
+        def ex = thrown(InvalidManagedModelElementTypeException)
+        ex.message =~ "read only property 'thing' has non managed type boolean, only managed types can be used"
+
+        where:
+        managedType << [OnlyIsGetter, OnlyGetGetter]
+    }
+
+    def "supports a boolean property with an is style getter"() {
+        expect:
+        store.getSchema(ModelType.of(HasIsTypeGetter))
+    }
+
+    @Unroll
+    def "should not allow 'is' as a prefix for getter on non primitive boolean"() {
+        when:
+        store.getSchema(IsNotAllowedForOtherTypeThanBoolean)
+
+        then:
+        def ex = thrown(InvalidManagedModelElementTypeException)
+        ex.message =~ /getter method name must start with 'get'/
+
+        where:
+        managedType << [IsNotAllowedForOtherTypeThanBoolean, IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean]
+    }
+
 }
 
 @Retention(RetentionPolicy.RUNTIME)
