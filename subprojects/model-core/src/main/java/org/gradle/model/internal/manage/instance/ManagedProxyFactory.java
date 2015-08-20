@@ -24,6 +24,8 @@ import java.lang.reflect.InvocationTargetException;
 
 public class ManagedProxyFactory {
 
+    public static final ManagedProxyFactory INSTANCE = new ManagedProxyFactory();
+
     public <T> T createProxy(ModelElementState state, ModelManagedImplStructSchema<T> schema) {
         try {
             Class<? extends T> generatedClass = schema.getImplementationType();

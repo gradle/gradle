@@ -25,16 +25,14 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.inspect.ManagedModelInitializer;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.projection.ManagedModelProjection;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.internal.BinarySpecFactory;
 
 import java.util.Collections;
 import java.util.List;
 
 public class JarBinarySpecSpecializationModelInitializer<T> extends ManagedModelInitializer<T> {
-
-    private static final ManagedProxyFactory PROXY_FACTORY = new ManagedProxyFactory();
 
     public JarBinarySpecSpecializationModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore) {
         super(modelSchema, schemaStore);
@@ -55,6 +53,6 @@ public class JarBinarySpecSpecializationModelInitializer<T> extends ManagedModel
 
     @Override
     public List<? extends ModelProjection> getProjections() {
-        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, PROXY_FACTORY));
+        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, ManagedProxyFactory.INSTANCE));
     }
 }

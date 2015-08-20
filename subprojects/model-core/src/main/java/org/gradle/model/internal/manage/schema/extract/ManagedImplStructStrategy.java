@@ -29,7 +29,6 @@ import org.gradle.model.internal.type.ModelType;
 
 public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
 
-    private static final ManagedProxyFactory PROXY_FACTORY = new ManagedProxyFactory();
     private static final ModelElementState NO_OP_MODEL_ELEMENT_STATE = new ModelElementState() {
         @Override
         public MutableModelNode getBackingNode() {
@@ -72,7 +71,7 @@ public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtraction
 
     private <R> void ensureCanBeInstantiated(ModelSchemaExtractionContext<R> extractionContext, ModelManagedImplStructSchema<R> schema) {
         try {
-            PROXY_FACTORY.createProxy(NO_OP_MODEL_ELEMENT_STATE, schema);
+            ManagedProxyFactory.INSTANCE.createProxy(NO_OP_MODEL_ELEMENT_STATE, schema);
         } catch (Throwable e) {
             throw new InvalidManagedModelElementTypeException(extractionContext, "instance creation failed", e);
         }
