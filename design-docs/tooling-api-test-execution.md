@@ -197,6 +197,7 @@ Debugging is enabled by enabling debug connector via socket;
 - add parser for integer based options to `org.gradle.api.internal.tasks.options.OptionNotationParserFactory`
 - assign `@Option` to `Test#setDebugPort`
 - if `Test.debug` is enabled ensure only a single test worker is used
+- Add `TestLauncher#withDebugEnabled()` and `TestLauncher#withDebugEnabled(int port)`
 
 ### Test coverage
 - debug options can be set via `JvmOptions#allJvmArgs` and proper port is picked up
@@ -205,6 +206,14 @@ Debugging is enabled by enabling debug connector via socket;
     - define breakpoint
     - step over code
     - resume process
+- works with configured `Test#forkEvery > 0`
+- works with configured `Test#maxParallelForks > 1`
+- works with configured `Test#maxParallelForks > 1` & `Test#forkEvery > 0`
+- connecting to test process works for tests launched via normal gradle build
+- connecting to test process works for tests launched via tooling api testlauncher
+
+### Open questions
+- How to deal with maxParallelForks / forksEvery? feels like it makes sense to restrict it to maxParallelForks=1 & forkEvery=0 if debug is enabled.
 
 ## Story: Allow specification of tests from candidate invocations of a given test
 
