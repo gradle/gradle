@@ -592,10 +592,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         final Class<?> returnType = method.getReturnType();
         if (returnType == Void.TYPE) {
             finishVisitingMethod(methodVisitor);
-        } else if (returnType == Boolean.TYPE) {
-            finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
         } else {
-            finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
+            finishVisitingMethod(methodVisitor, returnCode(returnType));
         }
     }
 
