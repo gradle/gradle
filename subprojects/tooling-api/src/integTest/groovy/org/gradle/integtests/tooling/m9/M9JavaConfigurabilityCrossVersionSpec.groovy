@@ -31,19 +31,6 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.requireDaemons()
     }
 
-    def "uses sensible java defaults if nulls configured"() {
-        when:
-        BuildEnvironment env = withConnection {
-            def model = it.model(BuildEnvironment.class)
-            model
-                    .setJvmArguments(null)
-                    .get()
-        }
-
-        then:
-        env.java.javaHome
-    }
-
     def "uses defaults when a variant of empty jvm args requested"() {
         when:
         def env = withConnection {
@@ -74,8 +61,8 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         BuildEnvironment env
         GradleProject project
         withConnection {
-            env = it.model(BuildEnvironment.class).setJavaHome(javaHome).get()
-            project = it.model(GradleProject.class).setJavaHome(javaHome).get()
+            env = it.model(BuildEnvironment.class).setJavaHome(javaHome).setJvmArguments("-ea").get()
+            project = it.model(GradleProject.class).setJavaHome(javaHome).setJvmArguments("-ea").get()
         }
 
         then:
@@ -89,7 +76,10 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         File otherJava = new File(System.getProperty("java.home"))
         String otherJavaPath = TextUtil.escapeString(otherJava.canonicalPath)
         file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
-        file('gradle.properties') << "org.gradle.java.home=$otherJavaPath"
+        file('gradle.properties') << """
+org.gradle.java.home=$otherJavaPath
+org.gradle.jvmargs=-ea
+"""
 
         when:
         def env = withConnection {

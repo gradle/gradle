@@ -54,9 +54,12 @@ assert System.getProperty('some-prop') == 'some-value'
         File javaHome = AvailableJavaHomes.differentJdk.javaHome
         String javaHomePath = TextUtil.escapeString(javaHome.canonicalPath)
 
-        file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
+        file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath == '$javaHomePath'"
 
-        file('gradle.properties') << "org.gradle.java.home=$javaHomePath"
+        file('gradle.properties') << """
+org.gradle.java.home=$javaHomePath
+org.gradle.jvmargs=-ea
+"""
 
         when:
         BuildEnvironment env = toolingApi.withConnection { connection ->
