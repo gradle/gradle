@@ -131,7 +131,7 @@ public class ModelSchemaUtils {
      * @return the most specific declaration of the method.
      * @throws IllegalArgumentException if no declaration can be found.
      */
-    public static Method findMostSpecificMethod(Collection<Method> declaringMethods) {
+    public static Method findMostSpecificMethod(Iterable<Method> declaringMethods) {
         for (Method method : declaringMethods) {
             if (Proxy.isProxyClass(method.getDeclaringClass())) {
                 continue;
@@ -144,7 +144,7 @@ public class ModelSchemaUtils {
     /**
      * Returns whether the most specific of the given methods has been declared in a <code>@</code>{@link Managed} type or not.
      */
-    public static boolean isMethodDeclaredInManagedType(Collection<Method> declarations) {
+    public static boolean isMethodDeclaredInManagedType(Iterable<Method> declarations) {
         Method mostSpecificDeclaration = findMostSpecificMethod(declarations);
         return isMethodDeclaredInManagedType(mostSpecificDeclaration);
     }
