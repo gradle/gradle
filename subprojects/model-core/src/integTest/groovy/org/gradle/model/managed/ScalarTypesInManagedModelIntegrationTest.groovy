@@ -61,6 +61,32 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         output.contains "from Integer: 321"
     }
 
+    def "mismatched types error in managed type are propagated to the user"() {
+        when:
+        buildScript '''
+            @Managed
+            interface PrimitiveTypes {
+                Long getLongProperty()
+                void setLongProperty(long value)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void createPrimitiveTypes(PrimitiveTypes primitiveTypes) {
+                    primitiveTypes.longProperty = 123L
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "modelReport"
+
+        and:
+        failure.assertHasCause('Invalid managed model type PrimitiveTypes: setter method param must be of exactly the same type as the getter returns (expected: java.lang.Long, found: long) (invalid method: void PrimitiveTypes#setLongProperty(long))')
+    }
+
     def "values of primitive types are boxed as usual when using java"() {
         when:
         file('buildSrc/src/main/java/Rules.java') << '''
