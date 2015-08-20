@@ -49,7 +49,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
     }
 
     protected MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator) {
-        MavenWagonDeployAction deployAction = new MavenWagonDeployAction(pomFile);
+        MavenWagonDeployAction deployAction = new MavenWagonDeployAction(pomFile, getJars());
         deployAction.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
         deployAction.setUniqueVersion(isUniqueVersion());
         deployAction.setRepositories(remoteRepository, remoteSnapshotRepository);

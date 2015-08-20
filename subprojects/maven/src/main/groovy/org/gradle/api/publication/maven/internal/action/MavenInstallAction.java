@@ -15,19 +15,19 @@
  */
 package org.gradle.api.publication.maven.internal.action;
 
-import java.io.File;
-import java.util.Collection;
-
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
 import org.sonatype.aether.installation.InstallRequest;
 import org.sonatype.aether.installation.InstallationException;
 
+import java.io.File;
+import java.util.Collection;
+
 public class MavenInstallAction extends AbstractMavenPublishAction {
 
     public MavenInstallAction(File pomFile) {
-        super(pomFile);
+        super(pomFile, null);
     }
 
     @Override
@@ -36,7 +36,6 @@ public class MavenInstallAction extends AbstractMavenPublishAction {
         for (Artifact artifact : artifacts) {
             request.addArtifact(artifact);
         }
-
         repositorySystem.install(session, request);
     }
 }

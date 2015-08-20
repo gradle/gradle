@@ -64,7 +64,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
         private final RepositoryTransportFactory repositoryTransportFactory;
 
         public GradleWagonMavenDeployAction(File pomFile, MavenArtifactRepository artifactRepository, RepositoryTransportFactory repositoryTransportFactory) {
-            super(pomFile);
+            super(pomFile, null);
             this.artifactRepository = artifactRepository;
             this.repositoryTransportFactory = repositoryTransportFactory;
 

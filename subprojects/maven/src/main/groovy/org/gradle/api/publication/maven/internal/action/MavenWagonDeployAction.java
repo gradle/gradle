@@ -18,18 +18,19 @@ package org.gradle.api.publication.maven.internal.action;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.List;
 
 /**
  * A deploy action that uses the baked in Maven wagon implementations, or a custom user-provided wagon implemented.
  */
 public class MavenWagonDeployAction extends MavenDeployAction {
-    public MavenWagonDeployAction(File pomFile) {
-        super(pomFile);
+    public MavenWagonDeployAction(File pomFile, List<File> jars) {
+        super(pomFile, jars);
     }
 
     public void addWagonJar(File jar) {
         try {
-            getContainer().getContainerRealm().addURL(jar.toURI().toURL());
+            getContainer().getLookupRealm().addURL(jar.toURI().toURL());
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
