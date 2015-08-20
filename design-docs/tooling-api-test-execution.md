@@ -188,6 +188,23 @@ method and test execution. Fix the test descriptors to honour this contract.
 ## Story: Add ability to launch tests in debug mode
 
 Need to allow a debug port to be specified, as hard-coded port 5005 can conflict with IDEA.
+Debugging is enabled by enabling debug connector via socket;
+
+### Implementation
+
+- add `debugPort` property to `JvmOptions` and `JavaForkOptions`
+- default value for `debugPort` should be 5005
+- add parser for integer based options to `org.gradle.api.internal.tasks.options.OptionNotationParserFactory`
+- assign `@Option` to `Test#setDebugPort`
+- if `Test.debug` is enabled ensure only a single test worker is used
+
+### Test coverage
+- debug options can be set via `JvmOptions#allJvmArgs` and proper port is picked up
+- can connect to test process under debug (create simple jdi based fixture)
+    - have line information available.
+    - define breakpoint
+    - step over code
+    - resume process
 
 ## Story: Allow specification of tests from candidate invocations of a given test
 
