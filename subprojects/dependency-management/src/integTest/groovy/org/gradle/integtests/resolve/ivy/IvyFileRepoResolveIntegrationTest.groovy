@@ -150,6 +150,6 @@ task retrieve(type: Sync) {
         expect:
         fails 'retrieve'
         and:
-        errorOutput.contains("> Authentication scheme of 'DefaultBasicAuthentication' is not supported by protocols [file]")
+        errorOutput.contains("> Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 'file'")
     }
 }

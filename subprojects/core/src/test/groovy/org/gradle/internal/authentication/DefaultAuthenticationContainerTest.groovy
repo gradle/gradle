@@ -46,19 +46,19 @@ public class DefaultAuthenticationContainerTest extends Specification {
         CustomTestAuthentication | TestAuthentication
     }
 
-    interface TestAuthentication extends Authentication {}
+    static interface TestAuthentication extends Authentication {}
 
-    interface CustomTestAuthentication extends TestAuthentication {}
+    static interface CustomTestAuthentication extends TestAuthentication {}
 
     static class DefaultTestAuthentication extends AbstractAuthentication implements TestAuthentication {
         DefaultTestAuthentication(String name) {
-            super(name)
+            super(name, TestAuthentication)
         }
     }
 
     static class DefaultCustomTestAuthentication extends DefaultTestAuthentication implements CustomTestAuthentication {
         DefaultCustomTestAuthentication(String name) {
-            super(name)
+            super(name, CustomTestAuthentication)
         }
     }
 }

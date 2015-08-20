@@ -107,6 +107,7 @@ public interface AuthenticationSupported {
      *
      * @param action the action to use to configure the authentication schemes.
      */
+    @Incubating
     void authentication(Action<? super AuthenticationContainer> action);
 
     /**
@@ -114,5 +115,6 @@ public interface AuthenticationSupported {
      *
      * @return the authentication schemes for this repository
      */
+    @Incubating
     AuthenticationContainer getAuthentication();
 }

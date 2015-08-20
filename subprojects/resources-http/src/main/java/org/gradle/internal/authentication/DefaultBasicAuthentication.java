@@ -21,6 +21,6 @@ import org.gradle.authentication.http.BasicAuthentication;
 
 public class DefaultBasicAuthentication extends AbstractAuthentication implements BasicAuthentication {
     public DefaultBasicAuthentication(String name) {
-        super(name, PasswordCredentials.class);
+        super(name, BasicAuthentication.class, PasswordCredentials.class);
     }
 }

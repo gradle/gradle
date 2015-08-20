@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.http
-
 import org.gradle.authentication.http.BasicAuthentication
 import org.gradle.authentication.http.DigestAuthentication
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
