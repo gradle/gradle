@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.jvm.JavaInfo;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.ExecHandleBuilder;
 
 import java.io.*;
@@ -28,8 +29,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Probes a JVM installation to determine the Java version it provides.
+ */
 public class JvmVersionDetector {
     private final Map<JavaInfo, JavaVersion> cachedResults = new HashMap<JavaInfo, JavaVersion>();
+
+    public JvmVersionDetector() {
+        cachedResults.put(Jvm.current(), JavaVersion.current());
+    }
 
     public JavaVersion getJavaVersion(JavaInfo jvm) {
         JavaVersion version = cachedResults.get(jvm);
@@ -51,7 +59,7 @@ public class JvmVersionDetector {
         return version;
     }
 
-    static JavaVersion parseJavaVersionCommandOutput(File javaExecutable, BufferedReader reader) {
+    JavaVersion parseJavaVersionCommandOutput(File javaExecutable, BufferedReader reader) {
         try {
             String versionStr = reader.readLine();
             while (versionStr != null) {

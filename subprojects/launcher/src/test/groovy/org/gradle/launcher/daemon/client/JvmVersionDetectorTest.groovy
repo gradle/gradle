@@ -17,13 +17,20 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.api.JavaVersion
+import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
 
 class JvmVersionDetectorTest extends Specification {
+    def detector = new JvmVersionDetector()
+
+    def "can determine version of current jvm"() {
+        expect:
+        detector.getJavaVersion(Jvm.current()) == JavaVersion.current()
+    }
 
     def "can parse version number"() {
         expect:
-        JvmVersionDetector.parseJavaVersionCommandOutput(new File("/usr/bin/java"), new BufferedReader(new StringReader(output))) == JavaVersion.toVersion(version)
+        detector.parseJavaVersionCommandOutput(new File("/usr/bin/java"), new BufferedReader(new StringReader(output))) == JavaVersion.toVersion(version)
 
         where:
         output                             | version
@@ -42,7 +49,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 1.9.0-ea-b53, mixed mode)
 
     def "fails to parse version number"() {
         when:
-        JvmVersionDetector.parseJavaVersionCommandOutput(new File("/usr/bin/java"), new BufferedReader(new StringReader(output)))
+        detector.parseJavaVersionCommandOutput(new File("/usr/bin/java"), new BufferedReader(new StringReader(output)))
 
         then:
         RuntimeException e = thrown()
