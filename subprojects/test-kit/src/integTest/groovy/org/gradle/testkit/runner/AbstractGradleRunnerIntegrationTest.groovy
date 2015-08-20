@@ -16,20 +16,30 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.testkit.runner.internal.GradleExecutor
 import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
 
 abstract class AbstractGradleRunnerIntegrationTest extends Specification {
+
     @Shared
     IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+
     @Rule
     TestNameTestDirectoryProvider testProjectDir = new TestNameTestDirectoryProvider()
+
     File buildFile
+
+    TestFile getTestKitWorkspace() {
+        testProjectDir.file("test-kit-workspace")
+    }
 
     def setup() {
         buildFile = file('build.gradle')
@@ -39,19 +49,18 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
         testProjectDir.file(path)
     }
 
-    protected GradleRunner runner(List<String> arguments) {
+    protected DefaultGradleRunner runner(List<String> arguments) {
         return runner(arguments as String[])
     }
 
-    protected GradleRunner runner(String... arguments) {
-        def gradleRunner = new DefaultGradleRunner(buildContext.gradleHomeDir)
-        gradleRunner.withGradleUserHomeDir(buildContext.gradleUserHomeDir).withProjectDir(testProjectDir.testDirectory).withArguments(arguments)
-        assert gradleRunner.gradleUserHomeDir == buildContext.gradleUserHomeDir
-        assert gradleRunner.projectDir == testProjectDir.testDirectory
-        gradleRunner
+    DefaultGradleRunner runner(String... arguments) {
+        new DefaultGradleRunner(buildContext.gradleHomeDir)
+            .withGradleUserHomeDir(testKitWorkspace)
+            .withProjectDir(testProjectDir.testDirectory)
+            .withArguments(arguments) as DefaultGradleRunner
     }
 
-    protected String helloWorldTask() {
+    static String helloWorldTask() {
         """
         task helloWorld {
             doLast {
@@ -59,5 +68,17 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
             }
         }
         """
+    }
+
+    DaemonsFixture daemons(File gradleUserHomeDir, String daemonDir = 'daemon') {
+        DaemonLogsAnalyzer.newAnalyzer(new File(gradleUserHomeDir, daemonDir), buildContext.version.version)
+    }
+
+    DaemonsFixture daemons() {
+        daemons(testKitWorkspace, GradleExecutor.TEST_KIT_DAEMON_DIR_NAME)
+    }
+
+    def cleanup() {
+        daemons().killAll()
     }
 }
