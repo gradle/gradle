@@ -114,8 +114,19 @@ public class DefaultGradleDistribution implements GradleDistribution {
         if (isSameOrNewer("2.7")) {
             return true;
         }
-        // Versions earlier than 2.7 did not fully support Java 1.9 as the target JVM
-        return javaVersion.compareTo(JavaVersion.VERSION_1_9) < 0;
+
+        // Gradle versions older than 2.7 did not fully support Java 1.9 as the target JVM
+        if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
+            return false;
+        }
+
+        // Use Java 1.6 or later for Gradle 2.0 and later
+        if (isSameOrNewer("2.0")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_6) >= 0;
+        }
+
+        // Use Java 1.5 or later for earlier Gradle versions
+        return javaVersion.compareTo(JavaVersion.VERSION_1_5) >= 0;
     }
 
     public boolean isToolingApiNonAsciiOutputSupported() {
