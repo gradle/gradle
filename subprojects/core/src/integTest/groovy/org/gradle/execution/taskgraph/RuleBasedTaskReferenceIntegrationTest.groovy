@@ -24,6 +24,7 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
+    @NotYetImplemented
     def "a non-rule-source task can depend on a rule-source task "() {
         given:
         buildFile << """
@@ -32,20 +33,22 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec impl
         class Rules extends RuleSource {
             @Mutate
             void addTasks(ModelMap<Task> tasks) {
-                tasks.create("climbTask", ClimbTask) { steps = 1 }
+                tasks.create("actionMan", EchoTask) {}
             }
         }
         apply type: Rules
 
-        task customTask << { }
-        customTask.dependsOn tasks.withType(ClimbTask)
+        task actionWoman << {
+            println "actionWoman I'm the real commander"
+        }
+        actionWoman.dependsOn tasks.withType(EchoTask)
         """
 
         when:
-        succeeds('customTask')
+        succeeds('actionMan')
 
         then:
-        output.contains("Climbing 1 steps")
+        output.contains("actionWoman I'm the real commander")
     }
 
     @NotYetImplemented

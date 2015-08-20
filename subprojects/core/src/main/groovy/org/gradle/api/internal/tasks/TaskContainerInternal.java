@@ -54,12 +54,4 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
     void discoverTasks();
 
     void maybeRealizeTask(String name);
-
-    /**
-     * Realizes rule based tasks which have been referenced via the tasks.withType() construct before a
-     * projects <code>afterEvaluate</code> lifecycle.
-     *
-     *  @see TaskContainer#withType(Class)
-     */
-    void realizeRuleTaskTypes();
 }

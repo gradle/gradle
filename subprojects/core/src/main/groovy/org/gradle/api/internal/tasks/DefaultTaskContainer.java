@@ -24,7 +24,6 @@ import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.tasks.TaskCollection;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -45,7 +44,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final ProjectAccessListener projectAccessListener;
     private final Set<String> placeholders = Sets.newHashSet();
     private final NamedEntityInstantiator<Task> instantiator;
-    private final HashSet<Class<? extends Task>> tasksReferencedByType = Sets.newHashSet();
 
     public DefaultTaskContainer(MutableModelNode modelNode, ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
         super(Task.class, instantiator, project);
@@ -299,22 +297,5 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                 }
             });
         }
-    }
-
-    @Override
-    public void realizeRuleTaskTypes() {
-        ModelNode modelNode = project.getModelRegistry().atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.SelfClosed);
-        MutableModelNode taskContainerNode = (MutableModelNode) modelNode;
-        for (Class<? extends Task> taskType : tasksReferencedByType) {
-            for (MutableModelNode node : taskContainerNode.getLinks(ModelType.of(taskType))) {
-                project.getModelRegistry().realizeNode(node.getPath());
-            }
-        }
-    }
-
-    @Override
-    public <S extends Task> TaskCollection<S> withType(Class<S> type) {
-        tasksReferencedByType.add(type);
-        return super.withType(type);
     }
 }
