@@ -67,7 +67,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         1 * state.get("value") >> { 1 }
     }
 
-    def "mixes in UnmanagedInstance"() {
+    def "mixes in unmanaged delegate"() {
         def node = Stub(MutableModelNode)
         def state = Mock(ModelElementState) {
             getBackingNode() >> node
