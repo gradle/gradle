@@ -254,7 +254,7 @@
         </table>
     </section>
 
-    <section>
+    <section condition="noNavBar">
         <title>Authentication types</title>
         <para>Credentials and Authentication types for connecting to repositories:</para>
         <table>
