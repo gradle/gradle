@@ -36,6 +36,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import static org.objectweb.asm.Opcodes.*;
+
 public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     /*
         Note: there is deliberately no internal synchronizing or caching at this level.
@@ -151,7 +153,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void declareClass(ClassVisitor visitor, Collection<String> interfaceInternalNames, Type generatedType, Type superclassType) {
-        visitor.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, generatedType.getInternalName(), null,
+        visitor.visit(V1_6, ACC_PUBLIC, generatedType.getInternalName(), null,
             superclassType.getInternalName(), Iterables.toArray(interfaceInternalNames, String.class));
     }
 
@@ -172,11 +174,11 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void declareField(ClassVisitor visitor, String name, Class<?> fieldClass) {
-        visitor.visitField(Opcodes.ACC_PRIVATE, name, Type.getDescriptor(fieldClass), null, null);
+        visitor.visitField(ACC_PRIVATE, name, Type.getDescriptor(fieldClass), null, null);
     }
 
     private FieldVisitor declareStaticField(ClassVisitor visitor, String name, Class<?> fieldClass) {
-        return visitor.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC, name, Type.getDescriptor(fieldClass), null, null);
+        return visitor.visitField(ACC_PRIVATE | ACC_STATIC, name, Type.getDescriptor(fieldClass), null, null);
     }
 
     private void writeConstructor(ClassVisitor visitor, Type generatedType, Type superclassType, Class<?> delegateTypeClass) {
@@ -189,7 +191,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             delegateType = Type.getType(delegateTypeClass);
             constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, MODEL_ELEMENT_STATE_TYPE, delegateType);
         }
-        MethodVisitor constructorVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, CONSTRUCTOR_NAME, constructorDescriptor, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        MethodVisitor constructorVisitor = visitor.visitMethod(ACC_PUBLIC, CONSTRUCTOR_NAME, constructorDescriptor, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         constructorVisitor.visitCode();
 
         invokeSuperConstructor(constructorVisitor, superclassType);
@@ -203,7 +205,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private void invokeSuperConstructor(MethodVisitor constructorVisitor, Type superclassType) {
         putThisOnStack(constructorVisitor);
-        constructorVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), CONSTRUCTOR_NAME, Type.getMethodDescriptor(Type.VOID_TYPE), false);
+        constructorVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), CONSTRUCTOR_NAME, Type.getMethodDescriptor(Type.VOID_TYPE), false);
     }
 
     private void writeToString(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass) {
@@ -217,11 +219,11 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeDefaultToString(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "toString", TO_STRING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         methodVisitor.visitCode();
         putStateFieldValueOnStack(methodVisitor, generatedType);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
-        finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getDisplayName", TO_STRING_METHOD_DESCRIPTOR, true);
+        finishVisitingMethod(methodVisitor, ARETURN);
     }
 
     private Method getToStringMethod(Class<?> managedTypeClass) {
@@ -234,48 +236,48 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private void writeGroovyMethods(ClassVisitor visitor, Class<?> managedTypeClass) {
         // Object propertyMissing(String name)
-        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "propertyMissing", GET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "propertyMissing", GET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         methodVisitor.visitCode();
 
         // throw new MissingPropertyException(name, <managed-type>.class)
-        methodVisitor.visitTypeInsn(Opcodes.NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
-        methodVisitor.visitInsn(Opcodes.DUP);
+        methodVisitor.visitTypeInsn(NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
+        methodVisitor.visitInsn(DUP);
         putFirstMethodArgumentOnStack(methodVisitor);
         putClassOnStack(methodVisitor, managedTypeClass);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, MISSING_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
-        finishVisitingMethod(methodVisitor, Opcodes.ATHROW);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, MISSING_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
+        finishVisitingMethod(methodVisitor, ATHROW);
 
         // Object propertyMissing(String name, Object value)
 
-        methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "propertyMissing", SET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "propertyMissing", SET_PROPERTY_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         methodVisitor.visitCode();
 
         // throw new MissingPropertyException(name, <managed-type>.class)
-        methodVisitor.visitTypeInsn(Opcodes.NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
-        methodVisitor.visitInsn(Opcodes.DUP);
+        methodVisitor.visitTypeInsn(NEW, MISSING_PROPERTY_EXCEPTION_TYPE);
+        methodVisitor.visitInsn(DUP);
         putFirstMethodArgumentOnStack(methodVisitor);
         putClassOnStack(methodVisitor, managedTypeClass);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, MISSING_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
-        finishVisitingMethod(methodVisitor, Opcodes.ATHROW);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, MISSING_PROPERTY_EXCEPTION_TYPE, "<init>", MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR, false);
+        finishVisitingMethod(methodVisitor, ATHROW);
 
         // Object methodMissing(String name, Object args)
-        methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "methodMissing", METHOD_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "methodMissing", METHOD_MISSING_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         methodVisitor.visitCode();
 
         // throw new MissingMethodException(name, <managed-type>.class, args)
-        methodVisitor.visitTypeInsn(Opcodes.NEW, MISSING_METHOD_EXCEPTION_TYPE);
-        methodVisitor.visitInsn(Opcodes.DUP);
+        methodVisitor.visitTypeInsn(NEW, MISSING_METHOD_EXCEPTION_TYPE);
+        methodVisitor.visitInsn(DUP);
         putMethodArgumentOnStack(methodVisitor, 1);
         putClassOnStack(methodVisitor, managedTypeClass);
         putMethodArgumentOnStack(methodVisitor, 2);
-        methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, OBJECT_ARRAY_TYPE);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, MISSING_METHOD_EXCEPTION_TYPE, "<init>", MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR, false);
-        finishVisitingMethod(methodVisitor, Opcodes.ATHROW);
+        methodVisitor.visitTypeInsn(CHECKCAST, OBJECT_ARRAY_TYPE);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, MISSING_METHOD_EXCEPTION_TYPE, "<init>", MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR, false);
+        finishVisitingMethod(methodVisitor, ATHROW);
     }
 
     private void putClassOnStack(MethodVisitor methodVisitor, Class<?> managedTypeClass) {
         putConstantOnStack(methodVisitor, managedTypeClass.getName());
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, CLASS_TYPE, "forName", FOR_NAME_METHOD_DESCRIPTOR, false);
+        methodVisitor.visitMethodInsn(INVOKESTATIC, CLASS_TYPE, "forName", FOR_NAME_METHOD_DESCRIPTOR, false);
     }
 
     private void writeManagedInstanceMethods(ClassVisitor visitor, Type generatedType) {
@@ -284,36 +286,36 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeManagedInstanceGetBackingNodeMethod(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         methodVisitor.visitCode();
         putStateFieldValueOnStack(methodVisitor, generatedType);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
-        finishVisitingMethod(methodVisitor, Opcodes.ARETURN);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
+        finishVisitingMethod(methodVisitor, ARETURN);
     }
 
     private void writeManagedInstanceGetManagedTypeMethod(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor managedTypeVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "getManagedType", GET_MANAGED_TYPE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        MethodVisitor managedTypeVisitor = visitor.visitMethod(ACC_PUBLIC, "getManagedType", GET_MANAGED_TYPE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         managedTypeVisitor.visitCode();
         putManagedTypeFieldValueOnStack(managedTypeVisitor, generatedType);
-        finishVisitingMethod(managedTypeVisitor, Opcodes.ARETURN);
+        finishVisitingMethod(managedTypeVisitor, ARETURN);
     }
 
     private void assignStateField(MethodVisitor constructorVisitor, Type generatedType) {
         putThisOnStack(constructorVisitor);
         putFirstMethodArgumentOnStack(constructorVisitor);
-        constructorVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), STATE_FIELD_NAME, MODEL_ELEMENT_STATE_TYPE.getDescriptor());
+        constructorVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), STATE_FIELD_NAME, MODEL_ELEMENT_STATE_TYPE.getDescriptor());
     }
 
     private void assignDelegateField(MethodVisitor constructorVisitor, Type generatedType, Type delegateType) {
         putThisOnStack(constructorVisitor);
         putSecondMethodArgumentOnStack(constructorVisitor);
-        constructorVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), DELEGATE_FIELD_NAME, delegateType.getDescriptor());
+        constructorVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), DELEGATE_FIELD_NAME, delegateType.getDescriptor());
     }
 
     private void setCanCallSettersField(MethodVisitor methodVisitor, Type generatedType, boolean canCallSetters) {
         putThisOnStack(methodVisitor);
         methodVisitor.visitLdcInsn(canCallSetters);
-        methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), CAN_CALL_SETTERS_FIELD_NAME, Type.BOOLEAN_TYPE.getDescriptor());
+        methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), CAN_CALL_SETTERS_FIELD_NAME, Type.BOOLEAN_TYPE.getDescriptor());
     }
 
     private void writeMutationMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Iterable<ModelProperty<?>> properties) {
@@ -381,26 +383,26 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private void writeLabel(MethodVisitor methodVisitor, Label label) {
         methodVisitor.visitLabel(label);
-        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+        methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
     }
 
     private void throwExceptionBecauseCalledOnItself(MethodVisitor methodVisitor) {
         String exceptionInternalName = Type.getInternalName(UnsupportedOperationException.class);
-        methodVisitor.visitTypeInsn(Opcodes.NEW, exceptionInternalName);
-        methodVisitor.visitInsn(Opcodes.DUP);
+        methodVisitor.visitTypeInsn(NEW, exceptionInternalName);
+        methodVisitor.visitInsn(DUP);
         putConstantOnStack(methodVisitor, "Calling setters of a managed type on itself is not allowed");
 
         String constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class));
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, exceptionInternalName, CONSTRUCTOR_NAME, constructorDescriptor, false);
-        methodVisitor.visitInsn(Opcodes.ATHROW);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, exceptionInternalName, CONSTRUCTOR_NAME, constructorDescriptor, false);
+        methodVisitor.visitInsn(ATHROW);
     }
 
     private void jumpToLabelIfStackEvaluatesToTrue(MethodVisitor methodVisitor, Label label) {
-        methodVisitor.visitJumpInsn(Opcodes.IFNE, label);
+        methodVisitor.visitJumpInsn(IFNE, label);
     }
 
     private void invokeStateSetMethod(MethodVisitor methodVisitor) {
-        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "set", STATE_SET_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "set", STATE_SET_METHOD_DESCRIPTOR, true);
     }
 
     private void putConstantOnStack(MethodVisitor methodVisitor, Object value) {
@@ -412,13 +414,13 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private MethodVisitor declareMethod(ClassVisitor visitor, String methodName, String methodDescriptor) {
-        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, methodName, methodDescriptor, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, methodName, methodDescriptor, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         methodVisitor.visitCode();
         return methodVisitor;
     }
 
     private void putFirstMethodArgumentOnStack(MethodVisitor methodVisitor, Class<?> argType) {
-        int loadCode = selectOpcode(argType, Opcodes.ALOAD, Opcodes.ILOAD, Opcodes.LLOAD, Opcodes.FLOAD, Opcodes.DLOAD);
+        int loadCode = selectOpcode(argType, ALOAD, ILOAD, LLOAD, FLOAD, DLOAD);
         methodVisitor.visitVarInsn(loadCode, 1);
     }
 
@@ -443,15 +445,15 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void putSecondMethodArgumentOnStack(MethodVisitor methodVisitor) {
-        methodVisitor.visitVarInsn(Opcodes.ALOAD, 2);
+        methodVisitor.visitVarInsn(ALOAD, 2);
     }
 
     private void putMethodArgumentOnStack(MethodVisitor methodVisitor, int index) {
-        methodVisitor.visitVarInsn(Opcodes.ALOAD, index);
+        methodVisitor.visitVarInsn(ALOAD, index);
     }
 
     private void putBooleanMethodArgumentOnStack(MethodVisitor methodVisitor, int index) {
-        methodVisitor.visitVarInsn(Opcodes.ILOAD, index);
+        methodVisitor.visitVarInsn(ILOAD, index);
     }
 
     private void putStateFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType) {
@@ -472,11 +474,11 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private void putFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType, String name, Class<?> fieldClass) {
         putThisOnStack(methodVisitor);
-        methodVisitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
+        methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
     }
 
     private void putStaticFieldValueOnStack(MethodVisitor methodVisitor, Type generatedType, String name, Class<?> fieldClass) {
-        methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
+        methodVisitor.visitFieldInsn(GETSTATIC, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
     }
 
     private void writeGetter(ClassVisitor visitor, Type generatedType, String propertyName, Class<?> propertyTypeClass) {
@@ -498,7 +500,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private int returnCode(Class<?> propertyTypeClass) {
-        return selectOpcode(propertyTypeClass, Opcodes.ARETURN, Opcodes.IRETURN, Opcodes.LRETURN, Opcodes.FRETURN, Opcodes.DRETURN);
+        return selectOpcode(propertyTypeClass, ARETURN, IRETURN, LRETURN, FRETURN, DRETURN);
     }
 
     private static String getGetterName(String propertyName) {
@@ -517,47 +519,47 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         if (returnType.isPrimitive()) {
             unboxType(methodVisitor, returnType);
         } else {
-            methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(returnType));
+            methodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(returnType));
         }
     }
 
     private void boxType(MethodVisitor methodVisitor, Class<?> primitiveType) {
         Class<?> boxedType = BOXED_TYPES.get(primitiveType);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(boxedType), "valueOf", "(" + Type.getDescriptor(primitiveType) + ")" + Type.getDescriptor(boxedType), false);
+        methodVisitor.visitMethodInsn(INVOKESTATIC, Type.getInternalName(boxedType), "valueOf", "(" + Type.getDescriptor(primitiveType) + ")" + Type.getDescriptor(boxedType), false);
     }
 
     private void unboxType(MethodVisitor methodVisitor, Class<?> primitiveType) {
         // Float f = (Float) tmp
         // f==null?0:f.floatValue()
         Class<?> boxedType = BOXED_TYPES.get(primitiveType);
-        methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(boxedType));
-        methodVisitor.visitInsn(Opcodes.DUP);
+        methodVisitor.visitTypeInsn(CHECKCAST, Type.getInternalName(boxedType));
+        methodVisitor.visitInsn(DUP);
         Label exit = new Label();
         Label elseValue = new Label();
-        methodVisitor.visitJumpInsn(Opcodes.IFNONNULL, elseValue);
-        methodVisitor.visitInsn(Opcodes.POP);
+        methodVisitor.visitJumpInsn(IFNONNULL, elseValue);
+        methodVisitor.visitInsn(POP);
         pushDefaultValue(methodVisitor, primitiveType);
-        methodVisitor.visitJumpInsn(Opcodes.GOTO, exit);
+        methodVisitor.visitJumpInsn(GOTO, exit);
         methodVisitor.visitLabel(elseValue);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(boxedType), primitiveType.getSimpleName() + "Value", "()" + Type.getDescriptor(primitiveType), false);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(boxedType), primitiveType.getSimpleName() + "Value", "()" + Type.getDescriptor(primitiveType), false);
         methodVisitor.visitLabel(exit);
     }
 
     private void pushDefaultValue(MethodVisitor methodVisitor, Class<?> primitiveType) {
-        int ins = Opcodes.ICONST_0;
+        int ins = ICONST_0;
         if (long.class == primitiveType) {
-            ins = Opcodes.LCONST_0;
+            ins = LCONST_0;
         } else if (double.class == primitiveType) {
-            ins = Opcodes.DCONST_0;
+            ins = DCONST_0;
         } else if (float.class == primitiveType) {
-            ins = Opcodes.FCONST_0;
+            ins = FCONST_0;
         }
         methodVisitor.visitInsn(ins);
     }
 
     private void invokeStateGetMethod(MethodVisitor methodVisitor) {
         String methodDescriptor = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class));
-        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "get", methodDescriptor, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "get", methodDescriptor, true);
     }
 
     private void writeNonAbstractMethodWrapper(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Method method) {
@@ -576,11 +578,11 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         writeLabel(methodVisitor, end);
 
         setCanCallSettersField(methodVisitor, generatedType, true);
-        methodVisitor.visitInsn(Opcodes.ARETURN);
+        methodVisitor.visitInsn(ARETURN);
 
         writeLabel(methodVisitor, handler);
         setCanCallSettersField(methodVisitor, generatedType, true);
-        methodVisitor.visitInsn(Opcodes.ATHROW);
+        methodVisitor.visitInsn(ATHROW);
 
         methodVisitor.visitMaxs(0, 0);
         methodVisitor.visitEnd();
@@ -607,11 +609,11 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                 putMethodArgumentOnStack(methodVisitor, paramNo + 1);
             }
         }
-        methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, Type.getInternalName(delegateTypeClass), method.getName(), Type.getMethodDescriptor(method), true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(delegateTypeClass), method.getName(), Type.getMethodDescriptor(method), true);
     }
 
     private void invokeSuperMethod(MethodVisitor methodVisitor, Class<?> superClass, Method method) {
         putThisOnStack(methodVisitor);
-        methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(superClass), method.getName(), Type.getMethodDescriptor(method), false);
+        methodVisitor.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(superClass), method.getName(), Type.getMethodDescriptor(method), false);
     }
 }
