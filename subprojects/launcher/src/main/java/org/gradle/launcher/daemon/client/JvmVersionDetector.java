@@ -54,12 +54,12 @@ public class JvmVersionDetector {
         builder.setErrorOutput(outputStream);
         builder.build().start().waitForFinish().assertNormalExitValue();
 
-        version = parseJavaVersionCommandOutput(jvm.getJavaExecutable(), new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
+        version = parseJavaVersionCommandOutput(jvm.getJavaExecutable().getPath(), new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
         cachedResults.put(jvm, version);
         return version;
     }
 
-    JavaVersion parseJavaVersionCommandOutput(File javaExecutable, BufferedReader reader) {
+    JavaVersion parseJavaVersionCommandOutput(String javaExecutable, BufferedReader reader) {
         try {
             String versionStr = reader.readLine();
             while (versionStr != null) {
@@ -73,6 +73,6 @@ public class JvmVersionDetector {
             throw new UncheckedIOException(e);
         }
 
-        throw new GradleException(String.format("Could not determine Java version using executable %s.", javaExecutable.getPath()));
+        throw new GradleException(String.format("Could not determine Java version using executable %s.", javaExecutable));
     }
 }

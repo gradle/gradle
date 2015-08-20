@@ -258,7 +258,7 @@ class JvmTest extends Specification {
         def jvm = new Jvm(os, installDir)
         def current = Jvm.current()
 
-        Matchers.strictlyEquals(jvm, Jvm.forHome(installDir))
+        Matchers.strictlyEquals(jvm, new Jvm(os, installDir))
         Matchers.strictlyEquals(current, Jvm.forHome(current.javaHome))
         jvm != current
     }
