@@ -1011,7 +1011,7 @@ interface Managed${typeName} {
 
         then:
         assert schema instanceof ModelUnmanagedImplStructSchema
-        schema.properties*.name as Set == ["buildable","time", "unmanagedCalculatedProp", "unmanagedProp"] as Set
+        schema.properties*.name == ["buildable","time", "unmanagedCalculatedProp", "unmanagedProp"]
 
         schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedProp").isWritable() == true
@@ -1063,7 +1063,7 @@ interface Managed${typeName} {
 
         then:
         assert schema instanceof ModelManagedImplStructSchema
-        schema.properties*.name as Set == ["buildable", "time", "managedCalculatedProp", "managedProp", "unmanagedCalculatedProp", "unmanagedProp"] as Set
+        schema.properties*.name == ["buildable", "managedCalculatedProp", "managedProp", "time", "unmanagedCalculatedProp", "unmanagedProp"]
 
         schema.getProperty("unmanagedProp").stateManagementType == DELEGATED
         schema.getProperty("unmanagedProp").isWritable() == true
