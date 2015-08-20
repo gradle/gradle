@@ -15,6 +15,7 @@
  */
 package org.gradle.jvm
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
 import org.gradle.util.Requires
@@ -259,6 +260,95 @@ Binaries
         targetPlatform: Java SE 6
         tool chain: $currentJdk
         Jar file: build/jars/java6SomeLibJar/someLib.jar
+"""
+    }
+
+    // TODO Implement equals() and hashCode() for managed types
+    // Without equals() and hashCode() this will show the custom binary as an 'additional binary' as well,
+    // because `componentBinaries.contains(customBinary)` will always return `false` (given that the `customBinary` view
+    // is not a canonical object).
+    @NotYetImplemented
+    def "shows details of Java library with custom variants"() {
+        given:
+        buildFile << """
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+class BuildType implements Named {
+    String name
+}
+
+@Managed
+interface CustomJarBinarySpec extends JarBinarySpec {
+    @Unmanaged @Variant
+    BuildType getBuildType()
+    void setBuildType(BuildType buildType)
+
+    @Variant
+    String getFlavor()
+    void setFlavor(String flavor)
+}
+
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform
+
+class Rules extends RuleSource {
+    @BinaryType
+    void customJarBinary(BinaryTypeBuilder<CustomJarBinarySpec> builder) {
+    }
+
+    @Finalize
+    void setPlatformForBinaries(ModelMap<BinarySpec> binaries) {
+        def platform = DefaultJavaPlatform.current()
+        binaries.withType(CustomJarBinarySpec).beforeEach { binary ->
+            binary.targetPlatform = platform
+        }
+    }
+}
+
+apply plugin: Rules
+
+model {
+    components {
+        someLib(JvmLibrarySpec) {
+            binaries {
+                customJar(CustomJarBinarySpec) { binary ->
+                    binary.buildType = new BuildType(name: "debug")
+                    binary.flavor = "free"
+                }
+            }
+        }
+    }
+}
+"""
+        when:
+        succeeds "components"
+
+        then:
+        outputMatches output, """
+JVM library 'someLib'
+---------------------
+
+Source sets
+    Java source 'someLib:java'
+        srcDir: src/someLib/java
+    JVM resources 'someLib:resources'
+        srcDir: src/someLib/resources
+
+Binaries
+    Jar 'customJar'
+        build using task: :customJar
+        buildType: debug
+        flavor: free
+        targetPlatform: $currentJava
+        tool chain: $currentJdk
+        Jar file: build/jars/customJar/someLib.jar
+    Jar 'someLibJar'
+        build using task: :someLibJar
+        targetPlatform: $currentJava
+        tool chain: $currentJdk
+        Jar file: build/jars/someLibJar/someLib.jar
 """
     }
 }
