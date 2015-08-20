@@ -12,7 +12,9 @@ task java9IntegTest(type: Test) {
         'InProcessJavaCompilerIntegrationTest',
         'AntForkingScalaCompilerIntegrationTest',
         'AntInProcessScalaCompilerIntegrationTest',
-        'ZincScalaCompilerIntegrationTest'
+        'ZincScalaCompilerIntegrationTest',
+        'DaemonUsageSuggestionCrossVersionTest',
+        'TestProgressDaemonErrorsCrossVersionSpec'
     ].collect { "**/*${it}*" }
 }
 
