@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
 
@@ -33,15 +34,15 @@ public class PropertyAccessorExtractionContext {
     private final boolean declaredAsAbstract;
     private final Map<Class<? extends Annotation>, Annotation> annotations;
 
-    public PropertyAccessorExtractionContext(Collection<Method> declaringMethods) {
-        this.declaringMethods = declaringMethods;
+    public PropertyAccessorExtractionContext(Iterable<Method> declaringMethods) {
+        this.declaringMethods = ImmutableList.copyOf(declaringMethods);
         this.mostSpecificDeclaration = ModelSchemaUtils.findMostSpecificMethod(declaringMethods);
         this.declaredInManagedType = ModelSchemaUtils.isMethodDeclaredInManagedType(declaringMethods);
         this.declaredAsAbstract = Modifier.isAbstract(this.mostSpecificDeclaration.getModifiers());
         this.annotations = collectAnnotations(declaringMethods);
     }
 
-    private Map<Class<? extends Annotation>, Annotation> collectAnnotations(Collection<Method> methods) {
+    private Map<Class<? extends Annotation>, Annotation> collectAnnotations(Iterable<Method> methods) {
         Map<Class<? extends Annotation>, Annotation> annotations = Maps.newLinkedHashMap();
         for (Method method : methods) {
             for (Annotation annotation : method.getDeclaredAnnotations()) {
