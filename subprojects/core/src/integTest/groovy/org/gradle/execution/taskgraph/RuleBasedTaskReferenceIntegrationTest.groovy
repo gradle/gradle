@@ -24,8 +24,7 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
-    @NotYetImplemented
-    def "a non-rule-source task can depend on a rule-source task "() {
+    def "a non-rule-source task can depend on a rule-source task"() {
         given:
         buildFile << """
         ${ruleBasedTasks()}
@@ -33,24 +32,106 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec impl
         class Rules extends RuleSource {
             @Mutate
             void addTasks(ModelMap<Task> tasks) {
-                tasks.create("actionMan", EchoTask) {}
+                tasks.create("climbTask", ClimbTask) { }
             }
         }
         apply type: Rules
 
-        task actionWoman << {
-            println "actionWoman I'm the real commander"
-        }
-        actionWoman.dependsOn tasks.withType(EchoTask)
+        task customTask << { }
+        customTask.dependsOn tasks.withType(ClimbTask)
         """
 
         when:
-        succeeds('actionMan')
+        succeeds('customTask')
 
         then:
-        output.contains("actionWoman I'm the real commander")
+        result.executedTasks.containsAll([':customTask', ':climbTask'])
     }
 
+    def "a non-rule-source task can depend on one or more task of types created via both rule sources and old world container"() {
+        given:
+        buildFile << """
+        ${ruleBasedTasks()}
+
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("climbTask", ClimbTask) { }
+            }
+        }
+        apply type: Rules
+
+        task oldClimber(type: ClimbTask) { }
+        task customTask << { }
+
+        customTask.dependsOn tasks.withType(ClimbTask)
+        """
+
+        when:
+        succeeds('customTask')
+
+        then:
+        result.executedTasks.containsAll([':customTask', ':customTask', ':climbTask'])
+    }
+
+    def "a non-rule-source task can depend on a rule-source task when referenced via various constructs"() {
+        given:
+        buildFile << """
+        ${ruleBasedTasks()}
+
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("climbTask", ClimbTask) { }
+                tasks.create("jumpTask", JumpTask) { }
+                tasks.create("echoTask", EchoTask) { }
+            }
+        }
+        apply type: Rules
+
+        task customClimbTask << { }
+        task customEchoTask << { }
+        task customJumpTask << { }
+
+        tasks.customClimbTask.dependsOn tasks.withType(ClimbTask)
+        project.tasks.customEchoTask.dependsOn tasks.withType(EchoTask)
+        tasks.getByPath(":customJumpTask").dependsOn tasks.withType(JumpTask)
+        """
+
+        when:
+        succeeds('customClimbTask', 'customEchoTask', 'customJumpTask')
+
+        then:
+        result.executedTasks.containsAll([':customClimbTask', ':climbTask', ':customJumpTask', ':jumpTask', ':customEchoTask', ':echoTask'])
+    }
+
+    def "Only one rule source task is realized given rule source tasks of other types exist"() {
+        given:
+        buildFile << """
+        ${ruleBasedTasks()}
+
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("climbTask", ClimbTask) { steps = 1 }
+                tasks.create("jumpTask", JumpTask) { }
+            }
+        }
+        apply type: Rules
+
+        task customTask << { }
+        customTask.dependsOn tasks.withType(ClimbTask)
+        """
+
+        when:
+        withDebugLogging()
+        succeeds('customTask')
+
+        then:
+        output.contains("Realizing rule based task at path: tasks.climbTask of type class ClimbTask")
+        !output.contains("Realizing rule based task at path: tasks.jumpTask")
+    }
+    
     @NotYetImplemented
     @Issue("GRADLE-3318")
     def "can reference rule-source tasks from sub-projects"() {
