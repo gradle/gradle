@@ -17,6 +17,7 @@
 package org.gradle.play.integtest.continuous
 
 import org.gradle.play.integtest.fixtures.AbstractPlayCompilerContinuousIntegrationTest
+import org.gradle.play.internal.javascript.GoogleClosureCompiler
 
 
 class PlayJavaScriptCompilerContinuousIntegrationTest extends AbstractPlayCompilerContinuousIntegrationTest {
@@ -52,7 +53,7 @@ class PlayJavaScriptCompilerContinuousIntegrationTest extends AbstractPlayCompil
 
     @Override
     String getSharedPackages() {
-        return '"com.google.javascript"'
+        return iterableToStrings(GoogleClosureCompiler.SHARED_PACKAGES)
     }
 
     @Override

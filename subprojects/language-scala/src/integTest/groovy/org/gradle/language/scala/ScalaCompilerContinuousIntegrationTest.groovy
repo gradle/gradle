@@ -16,6 +16,7 @@
 
 package org.gradle.language.scala
 
+import org.gradle.api.internal.tasks.scala.DaemonScalaCompiler
 import org.gradle.api.tasks.compile.AbstractCompilerContinuousIntegrationTest
 
 
@@ -72,6 +73,6 @@ class ScalaCompilerContinuousIntegrationTest extends AbstractCompilerContinuousI
 
     @Override
     String getSharedPackages() {
-        return '"scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac"'
+        return iterableToStrings(DaemonScalaCompiler.SHARED_PACKAGES)
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.language.groovy
 
+import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler
 import org.gradle.api.tasks.compile.AbstractCompilerContinuousIntegrationTest
 
 
@@ -67,6 +68,6 @@ class GroovyCompilerContinuousIntegrationTest extends AbstractCompilerContinuous
 
     @Override
     String getSharedPackages() {
-        return '"groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant", "com.sun.tools.javac"'
+        return iterableToStrings(DaemonGroovyCompiler.SHARED_PACKAGES)
     }
 }

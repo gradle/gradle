@@ -25,13 +25,12 @@ import org.gradle.play.internal.spec.PlayCompileSpec;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.List;
 
 public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemonCompiler<T> {
     private final Iterable<File> compilerClasspath;
-    private final List<String> classLoaderPackages;
+    private final Iterable<String> classLoaderPackages;
 
-    public DaemonPlayCompiler(File projectDir, Compiler<T> compiler, CompilerDaemonFactory compilerDaemonFactory, Iterable<File> compilerClasspath, List<String> classLoaderPackages) {
+    public DaemonPlayCompiler(File projectDir, Compiler<T> compiler, CompilerDaemonFactory compilerDaemonFactory, Iterable<File> compilerClasspath, Iterable<String> classLoaderPackages) {
         super(projectDir, compiler, compilerDaemonFactory);
         this.compilerClasspath = compilerClasspath;
         this.classLoaderPackages = classLoaderPackages;

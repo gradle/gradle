@@ -17,6 +17,7 @@
 package org.gradle.play.integtest.continuous
 
 import org.gradle.play.integtest.fixtures.AbstractPlayCompilerContinuousIntegrationTest
+import org.gradle.play.internal.twirl.TwirlCompilerAdapterV10X
 
 
 class PlayTwirlCompilerContinuousIntegrationTest extends AbstractPlayCompilerContinuousIntegrationTest {
@@ -66,6 +67,6 @@ class PlayTwirlCompilerContinuousIntegrationTest extends AbstractPlayCompilerCon
 
     @Override
     String getSharedPackages() {
-        return '"play.twirl.compiler", "scala.io"'
+        return iterableToStrings(TwirlCompilerAdapterV10X.SHARED_PACKAGES);
     }
 }

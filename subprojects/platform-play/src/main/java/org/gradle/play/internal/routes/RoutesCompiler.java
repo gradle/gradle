@@ -25,7 +25,6 @@ import org.gradle.scala.internal.reflect.ScalaMethod;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 
 public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable {
     private final VersionedRoutesCompilerAdapter adapter;
@@ -82,7 +81,7 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
         return adapter.getDependencyNotation();
     }
 
-    public List<String> getClassLoaderPackages() {
+    public Iterable<String> getClassLoaderPackages() {
         return adapter.getClassLoaderPackages();
     }
 }

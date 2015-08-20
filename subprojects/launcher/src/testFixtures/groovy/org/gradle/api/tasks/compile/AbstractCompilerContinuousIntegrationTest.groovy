@@ -82,4 +82,8 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
         compilerDaemons.size() == 2
         compilerDaemons[0] == compilerDaemons[1]
     }
+
+    String iterableToStrings(Iterable<String> iterable) {
+        return iterable.collect { "\"${it}\"" }.join(",")
+    }
 }

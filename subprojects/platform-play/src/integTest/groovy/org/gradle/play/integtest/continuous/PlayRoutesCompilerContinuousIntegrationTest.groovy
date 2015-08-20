@@ -17,6 +17,7 @@
 package org.gradle.play.integtest.continuous
 
 import org.gradle.play.integtest.fixtures.AbstractPlayCompilerContinuousIntegrationTest
+import org.gradle.play.internal.routes.DefaultVersionedRoutesCompilerAdapter
 
 
 class PlayRoutesCompilerContinuousIntegrationTest extends AbstractPlayCompilerContinuousIntegrationTest {
@@ -52,6 +53,6 @@ class PlayRoutesCompilerContinuousIntegrationTest extends AbstractPlayCompilerCo
 
     @Override
     String getSharedPackages() {
-        return '"play.router", "scala.collection", "scala.collection.mutable", "scala.util.matching", "play.routes.compiler"'
+        return iterableToStrings(DefaultVersionedRoutesCompilerAdapter.SHARED_PACKAGES)
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.language.java
 
+import org.gradle.api.internal.tasks.compile.DaemonJavaCompiler
 import org.gradle.api.tasks.compile.AbstractCompilerContinuousIntegrationTest
 
 
@@ -73,6 +74,6 @@ class JavaCompilerContinuousIntegrationTest extends AbstractCompilerContinuousIn
 
     @Override
     String getSharedPackages() {
-        return '"com.sun.tools.javac"'
+        return iterableToStrings(DaemonJavaCompiler.SHARED_PACKAGES)
     }
 }
