@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -106,6 +107,15 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     public boolean isToolingApiSupported() {
         return isSameOrNewer("1.0-milestone-3");
+    }
+
+    @Override
+    public boolean isToolingApiTargetJvmSupported(JavaVersion javaVersion) {
+        if (isSameOrNewer("2.7")) {
+            return true;
+        }
+        // Versions earlier than 2.7 did not fully support Java 1.9 as the target JVM
+        return javaVersion.compareTo(JavaVersion.VERSION_1_9) < 0;
     }
 
     public boolean isToolingApiNonAsciiOutputSupported() {
