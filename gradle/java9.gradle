@@ -5,6 +5,8 @@ String jdkVarName = 'JAVA_9'
 
 task java9IntegTest(type: Test) {
     include '**/*CompilerIntegrationTest*'
+    include '**/*Daemon*Test.*'
+    include '**/*Daemon*Spec.*'
     excludes = [
         'InProcessGroovyCompilerIntegrationTest',
         'InProcessJavaCompilerIntegrationTest',
