@@ -125,7 +125,24 @@ to the server preemptively. To enable preemptive authentication simply configure
 ### Managed model improvements
 
 Managed types now support properties of any primitive type (`boolean`, `byte`, `char`, `short`, `int`, `long`, `float` and `double`), as well as any of their boxed types
-(respectively `Boolean`, `Byte`, `Character`, `Short`, `Integer`, `Long`, `Float` and `Double`).
+(respectively `Boolean`, `Byte`, `Character`, `Short`, `Integer`, `Long`, `Float` and `Double`). In addition, similarily to what the JavaBeans specification allows,
+primitive boolean properties can be declared with either a classic getter or an `is`-style getter:
+
+    @Managed
+    interface Toggle {
+        boolean getEnabled()
+        void setEnabled(boolean enabled)
+    }
+
+or:
+
+    @Managed
+    interface Toggle {
+        boolean isEnabled()
+        void setEnabled(boolean enabled)
+    }
+
+It is also possible to have both the `get` and `is` getters if you want to.
 
 ## Promoted features
 
