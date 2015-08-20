@@ -98,10 +98,11 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             int getterPrefixLen = getterPrefixLength(methodName);
             if (getterPrefixLen >= 0) {
                 PropertyAccessorExtractionContext getterContext = new PropertyAccessorExtractionContext(methods);
+                Method mostSpecificGetter = ModelSchemaUtils.findMostSpecificMethod(methods);
 
                 char getterPropertyNameFirstChar = methodName.charAt(getterPrefixLen);
                 if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
-                    handleInvalidGetter(extractionContext, getterContext,
+                    handleInvalidGetter(extractionContext, mostSpecificGetter,
                         String.format("the %s character of the getter method name must be an uppercase character", getterPrefixLen == 2 ? "3rd" : "4th"));
                     continue;
                 }
@@ -143,12 +144,12 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         // Take the most specific declaration of the getter
         Method mostSpecificGetter = getterContext.getMostSpecificDeclaration();
         if (mostSpecificGetter.getParameterTypes().length != 0) {
-            handleInvalidGetter(extractionContext, getterContext, "getter methods cannot take parameters");
+            handleInvalidGetter(extractionContext, mostSpecificGetter, "getter methods cannot take parameters");
             return null;
         }
 
         if (mostSpecificGetter.getReturnType() != boolean.class && getterPrefixLen == 2) {
-            handleInvalidGetter(extractionContext, getterContext, "getter method name must start with 'get'");
+            handleInvalidGetter(extractionContext, mostSpecificGetter, "getter method name must start with 'get'");
             return null;
         }
 
@@ -178,7 +179,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     protected abstract <R> void validateTypeHierarchy(ModelSchemaExtractionContext<R> extractionContext, ModelType<R> type);
 
-    protected abstract void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getter, String message);
+    protected abstract void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, Method getter, String message);
 
     protected abstract void handleOverloadedMethods(ModelSchemaExtractionContext<?> extractionContext, Collection<Method> overloadedMethods);
 
