@@ -56,12 +56,15 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private static final Type MODEL_ELEMENT_STATE_TYPE = Type.getType(ModelElementState.class);
     private static final String NO_DELEGATE_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, MODEL_ELEMENT_STATE_TYPE);
     private static final String TO_STRING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(String.class));
+    private static final String MUTABLE_MODEL_NODE_TYPE = Type.getInternalName(MutableModelNode.class);
     private static final String GET_BACKING_NODE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(MutableModelNode.class));
     private static final String GET_MANAGED_TYPE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(ModelType.class));
     private static final String GET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class));
     private static final String MISSING_PROPERTY_EXCEPTION_TYPE = Type.getInternalName(MissingPropertyException.class);
     private static final String CLASS_TYPE = Type.getInternalName(Class.class);
     private static final String FOR_NAME_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Class.class), Type.getType(String.class));
+    private static final String HASH_CODE_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(int.class));
+    private static final String EQUALS_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(boolean.class), Type.getType(Object.class));
     private static final String OBJECT_ARRAY_TYPE = Type.getInternalName(Object[].class);
     private static final String MISSING_METHOD_EXCEPTION_TYPE = Type.getInternalName(MissingMethodException.class);
     private static final String MISSING_PROPERTY_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Class.class));
@@ -149,6 +152,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         }
         writeGroovyMethods(visitor, managedTypeClass);
         writeMutationMethods(visitor, generatedType, managedTypeClass, properties);
+        writeHashCodeMethod(visitor, generatedType);
+        writeEqualsMethod(visitor, generatedType);
         visitor.visitEnd();
     }
 
@@ -379,6 +384,44 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         invokeStateSetMethod(methodVisitor);
 
         finishVisitingMethod(methodVisitor);
+    }
+
+    private void writeHashCodeMethod(ClassVisitor visitor, Type generatedType) {
+        MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "hashCode", HASH_CODE_METHOD_DESCRIPTOR, null, null);
+        methodVisitor.visitCode();
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, false);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MUTABLE_MODEL_NODE_TYPE, "contentHashCode", HASH_CODE_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitInsn(IRETURN);
+        finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
+    }
+
+    private void writeEqualsMethod(ClassVisitor cw, Type generatedType) {
+        MethodVisitor methodVisitor = cw.visitMethod(Opcodes.ACC_PUBLIC, "equals", EQUALS_METHOD_DESCRIPTOR, null, null);
+        methodVisitor.visitCode();
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitVarInsn(ALOAD, 1);
+        Label notSameLabel = new Label();
+        methodVisitor.visitJumpInsn(IF_ACMPNE, notSameLabel);
+        methodVisitor.visitInsn(ICONST_1);
+        methodVisitor.visitInsn(IRETURN);
+        methodVisitor.visitLabel(notSameLabel);
+        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+        methodVisitor.visitVarInsn(ALOAD, 1);
+        methodVisitor.visitTypeInsn(INSTANCEOF, MANAGED_INSTANCE_TYPE);
+        Label notManagedInstanceLabel = new Label();
+        methodVisitor.visitJumpInsn(IFNE, notManagedInstanceLabel);
+        methodVisitor.visitInsn(ICONST_0);
+        methodVisitor.visitInsn(IRETURN);
+        methodVisitor.visitLabel(notManagedInstanceLabel);
+        methodVisitor.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+        methodVisitor.visitVarInsn(ALOAD, 0);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, false);
+        methodVisitor.visitVarInsn(ALOAD, 1);
+        methodVisitor.visitTypeInsn(CHECKCAST, MANAGED_INSTANCE_TYPE);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MANAGED_INSTANCE_TYPE, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MUTABLE_MODEL_NODE_TYPE, "contentEquals", EQUALS_METHOD_DESCRIPTOR, true);
+        finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
     }
 
     private void writeLabel(MethodVisitor methodVisitor, Label label) {

@@ -17,22 +17,17 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
@@ -199,5 +194,45 @@ abstract class ModelNodeInternal implements MutableModelNode {
     @Override
     public List<ModelRuleDescriptor> getExecutedRules() {
         return this.executedRules;
+    }
+
+    @Override
+    public boolean contentEquals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof ModelNodeInternal)) {
+            return false;
+        }
+
+        ModelNodeInternal that = (ModelNodeInternal) other;
+
+        if (!Objects.equal(this.getPrivateData(), that.getPrivateData())) {
+            return false;
+        }
+
+        Iterator<? extends ModelNodeInternal> thisLinks = this.getLinks().iterator();
+        Iterator<? extends ModelNodeInternal> thatLinks = that.getLinks().iterator();
+        while (thisLinks.hasNext()) {
+            if (!thatLinks.hasNext()) {
+                return false;
+            }
+            ModelNodeInternal thisLink = thisLinks.next();
+            ModelNodeInternal thatLink = thatLinks.next();
+            if (!thisLink.contentEquals(thatLink)) {
+                return false;
+            }
+        }
+        return !thatLinks.hasNext();
+    }
+
+    @Override
+    public int contentHashCode() {
+        Object privateData = getPrivateData();
+        int hashCode = privateData != null ? privateData.hashCode() : 0;
+        for (ModelNodeInternal link : getLinks()) {
+            hashCode = 31 * hashCode + link.contentHashCode();
+        }
+        return hashCode;
     }
 }

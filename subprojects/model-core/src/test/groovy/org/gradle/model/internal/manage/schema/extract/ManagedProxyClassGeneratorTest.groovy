@@ -68,6 +68,56 @@ class ManagedProxyClassGeneratorTest extends Specification {
         1 * state.get("value") >> { 1 }
     }
 
+    def "equals() works as expected"() {
+        def node1 = Mock(MutableModelNode)
+        def node2 = Mock(MutableModelNode)
+        def state1 = Mock(ModelElementState) {
+            getBackingNode() >> node1
+        }
+        def state2 = Mock(ModelElementState) {
+            getBackingNode() >> node2
+        }
+
+        when:
+        Class<? extends SomeType> proxyClass = generate(SomeType)
+        SomeType impl1 = proxyClass.newInstance(state1)
+        SomeType impl2 = proxyClass.newInstance(state2)
+
+        then:
+        impl1.equals(null) == false
+        impl1.equals(1) == false
+
+        when:
+        def resultWhenNodesEqual = impl1.equals(impl2)
+
+        then:
+        resultWhenNodesEqual == true
+        1 * node1.contentEquals(node2) >> true
+
+        when:
+        def resultWhenNodesNotEqual = impl1.equals(impl2)
+
+        then:
+        resultWhenNodesNotEqual == false
+        1 * node1.contentEquals(node2) >> false
+    }
+
+    def "hashCode() works as expected"() {
+        def node = Mock(MutableModelNode)
+        def state = Mock(ModelElementState) {
+            getBackingNode() >> node
+        }
+
+        when:
+        Class<? extends SomeType> proxyClass = generate(SomeType)
+        SomeType impl = proxyClass.newInstance(state)
+        def hashCode = impl.hashCode()
+
+        then:
+        hashCode == 123
+        1 * node.contentHashCode() >> 123
+    }
+
     def "mixes in unmanaged delegate"() {
         def node = Stub(MutableModelNode)
         def state = Mock(ModelElementState) {
