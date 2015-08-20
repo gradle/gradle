@@ -205,8 +205,8 @@ Debugging is enabled by enabling debug connector via socket;
     - configuring debug port in build script
     - declaring debug port as command line option (--debug-port)
 - connecting to test process works for tests launched via normal gradle build
-- connecting to test process works with default port `5005` for tests launched via tooling api `TestLauncher#withDebugEnabled()`
-- connecting to test process works with custom port for tests launched via tooling api `TestLauncher#withDebugEnabled(customPort)`
+- debugging tests declared for testlauncher can be debugged with default port `5005` for tests launched via tooling api `TestLauncher#withDebugEnabled()`
+- debugging tests declared for testlauncher can be debugged with custom port for tests launched via tooling api `TestLauncher#withDebugEnabled(customPort)`
 - can connect to test process under debug (create simple jdi based fixture)
     - have line information available.
     - define breakpoint
