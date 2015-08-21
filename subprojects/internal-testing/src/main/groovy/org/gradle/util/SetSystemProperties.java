@@ -16,8 +16,8 @@
 
 package org.gradle.util;
 
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
+import org.junit.rules.MethodRule;
+import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.util.HashMap;
@@ -27,7 +27,7 @@ import java.util.Properties;
 /**
  * A JUnit rule which restores system properties at the end of the test.
  */
-public class SetSystemProperties implements TestRule {
+public class SetSystemProperties implements MethodRule {
     private final Properties properties;
     private final Map<String, Object> customProperties = new HashMap<String, Object>();
 
@@ -41,8 +41,7 @@ public class SetSystemProperties implements TestRule {
         customProperties.putAll(properties);
     }
 
-    @Override
-    public Statement apply(final Statement base, Description description) {
+    public Statement apply(final Statement base, FrameworkMethod method, Object target) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
