@@ -39,19 +39,9 @@ public class GroupsJavadocOptionFileOption extends AbstractJavadocOptionFileOpti
 
                 writerContext
                     .writeOptionHeader(option)
-                    .write(
-                        new StringBuffer()
-                            .append("\"")
-                            .append(group)
-                            .append("\"")
-                            .toString())
+                    .write("\"" + group + "\"")
                     .write(" ")
-                    .write(
-                        new StringBuffer()
-                            .append("\"")
-                            .append(CollectionUtils.join(":", groupPackages))
-                            .append("\"")
-                            .toString())
+                    .write("\"" + CollectionUtils.join(":", groupPackages) + "\"")
                     .newLine();
             }
         }
