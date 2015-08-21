@@ -51,7 +51,7 @@ model.
 
 ### Compiler daemon reuse in continuous builds
 
-Many gradle compilers are spawned as separate daemons to accommodate special heap size settings, classpath configurations, etc.  These compiler daemons are started on use, and stopped at
+Many Gradle compilers are spawned as separate daemons to accommodate special heap size settings, classpath configurations, etc.  These compiler daemons are started on use, and stopped at
 the end of the build.  With Gradle 2.8, these compiler daemons are kept running during the lifetime of a continuous build session and only stopped when the continuous build is canceled.
 This improves the performance of continuous builds as the cost of re-spawning these compilers is avoided in between builds.
 
