@@ -205,4 +205,9 @@ abstract class ModelNodeInternal implements MutableModelNode {
     public boolean equals(Object obj) {
         return this == obj;
     }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
 }
