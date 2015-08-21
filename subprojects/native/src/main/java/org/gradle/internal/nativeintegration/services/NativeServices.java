@@ -50,6 +50,8 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     private static final NativeServices INSTANCE = new NativeServices();
     private static boolean initialized;
 
+    public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
+
     /**
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized. Will be implicitly initialized on first usage
      * of a native service. Also initializes the Native-Platform library using the given user home directory.
@@ -59,7 +61,13 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     public static synchronized void initialize(File userHomeDir, boolean initializeJNA) {
-        File nativeDir = new File(userHomeDir, "native");
+        String overrideProperty = System.getProperty(NATIVE_DIR_OVERRIDE);
+        File nativeDir;
+        if (overrideProperty == null) {
+            nativeDir = new File(userHomeDir, "native");
+        } else {
+            nativeDir = new File(overrideProperty);
+        }
         if (useNativePlatform) {
             try {
                 net.rubygrapefruit.platform.Native.init(nativeDir);

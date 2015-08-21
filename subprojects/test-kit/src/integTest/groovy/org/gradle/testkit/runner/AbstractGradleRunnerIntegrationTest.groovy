@@ -19,11 +19,12 @@ package org.gradle.testkit.runner
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.GradleExecutor
+import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
@@ -36,20 +37,15 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testProjectDir = new TestNameTestDirectoryProvider()
 
-    File buildFile
+    @Rule
+    SetSystemProperties setSystemProperties = new SetSystemProperties((NativeServices.NATIVE_DIR_OVERRIDE): buildContext.gradleUserHomeDir.file("native").absolutePath)
 
     TestFile getTestKitWorkspace() {
         testProjectDir.file("test-kit-workspace")
     }
 
-    def setupSpec() {
-        // Initialise this into a space that is not reclaimed after the test
-        // for the tooling API client to use
-        NativeServicesTestFixture.initialize(buildContext.gradleUserHomeDir)
-    }
-
-    def setup() {
-        buildFile = file('build.gradle')
+    TestFile getBuildFile() {
+        file('build.gradle')
     }
 
     TestFile file(String path) {
