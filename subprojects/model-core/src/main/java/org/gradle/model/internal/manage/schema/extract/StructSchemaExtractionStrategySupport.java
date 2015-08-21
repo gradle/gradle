@@ -99,7 +99,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             if (getterPrefixLen >= 0) {
                 PropertyAccessorExtractionContext getterContext = new PropertyAccessorExtractionContext(methods);
 
-                Character getterPropertyNameFirstChar = methodName.charAt(getterPrefixLen);
+                char getterPropertyNameFirstChar = methodName.charAt(getterPrefixLen);
                 if (!Character.isUpperCase(getterPropertyNameFirstChar)) {
                     handleInvalidGetter(extractionContext, getterContext,
                         String.format("the %s character of the getter method name must be an uppercase character", getterPrefixLen == 2 ? "3rd" : "4th"));
