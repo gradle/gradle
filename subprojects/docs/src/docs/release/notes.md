@@ -81,6 +81,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+We upgraded Gradle to use Groovy 2.4.4. This should be transparent to the majority of users, however it can imply some minor breaking changes.
+Please refer to the [Groovy language changelogs](http://groovy-lang.org/changelogs.html) for further details.
+
 <!--
 ### Example breaking change
 -->
