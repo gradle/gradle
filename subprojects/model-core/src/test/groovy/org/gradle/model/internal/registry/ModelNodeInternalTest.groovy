@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.registry
 
-import org.apache.commons.lang.RandomStringUtils
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import spock.lang.Unroll
 
@@ -62,47 +61,5 @@ class ModelNodeInternalTest extends RegistrySpec {
         then:
         AssertionError e = thrown()
         e.message == 'RuleBinder must be in a bound state'
-    }
-
-    @Unroll("contentEquals() returns #expected for #nodeA <> #nodeB")
-    def "contentEquals() returns expected result"() {
-        expect:
-        nodeA.contentEquals(nodeB) == expected
-
-        where:
-        nodeA                                     | nodeB                                     | expected
-        node(null)                                | node(null)                                | true
-        node("a")                                 | node("a")                                 | true
-        node("a")                                 | node("b")                                 | false
-        node(null)                                | node("a")                                 | false
-        node("a")                                 | node(null)                                | false
-        node("a", node("child"))                  | node("a")                                 | false
-        node("a")                                 | node("a", node("child"))                  | false
-        node("a", node("child"))                  | node("a", node("child"))                  | true
-        node("a", node("child1"), node("child2")) | node("a", node("child1"), node("child2")) | true
-        node("a", node("child2"), node("child1")) | node("a", node("child1"), node("child2")) | false
-        node("a", node("child1"))                 | node("a", node("child1"), node("child2")) | false
-        node("a", node("child1"), node("child2")) | node("a", node("child1"))                 | false
-    }
-
-    @Unroll("contentHashCode() returns #expected for #nodeToTest")
-    def "contentHashCode() returns expected result"() {
-        expect:
-        nodeToTest.contentHashCode() == expected
-
-        where:
-        nodeToTest               | expected
-        node(null)               | 0
-        node("a")                | "a".hashCode()
-        node("a", node("child")) | "a".hashCode() * 31 + "child".hashCode()
-    }
-
-    ModelNodeInternal node(def privateData, ModelNodeInternal... links) {
-        return Spy(ModelNodeInternal) {
-            getPath() >> RandomStringUtils.randomAlphabetic(12)
-            getPrivateData() >> privateData
-            getLinks() >> (links as List)
-            toString() >> "$privateData${links.length == 0 ? "" : links as List}"
-        }
     }
 }

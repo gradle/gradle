@@ -81,10 +81,20 @@ class ManagedProxyClassGeneratorTest extends Specification {
         1 * state.get("value") >> { 1 }
     }
 
+    def "equals() returns false for non-compatible types"() {
+        def impl = newInstance(SomeType)
+        expect:
+        !impl.equals(null)
+        !impl.equals(1)
+    }
+
     def "equals() works as expected"() {
         def node1 = Mock(MutableModelNode)
         def node2 = Mock(MutableModelNode)
         def state1 = Mock(ModelElementState) {
+            getBackingNode() >> node1
+        }
+        def state1alternative = Mock(ModelElementState) {
             getBackingNode() >> node1
         }
         def state2 = Mock(ModelElementState) {
@@ -94,25 +104,13 @@ class ManagedProxyClassGeneratorTest extends Specification {
         when:
         Class<? extends SomeType> proxyClass = generate(SomeType)
         SomeType impl1 = proxyClass.newInstance(state1)
+        SomeType impl1alternative = proxyClass.newInstance(state1alternative)
         SomeType impl2 = proxyClass.newInstance(state2)
 
         then:
-        impl1.equals(null) == false
-        impl1.equals(1) == false
-
-        when:
-        def resultWhenNodesEqual = impl1.equals(impl2)
-
-        then:
-        resultWhenNodesEqual == true
-        1 * node1.contentEquals(node2) >> true
-
-        when:
-        def resultWhenNodesNotEqual = impl1.equals(impl2)
-
-        then:
-        resultWhenNodesNotEqual == false
-        1 * node1.contentEquals(node2) >> false
+        impl1.equals(impl1)
+        impl1.equals(impl1alternative)
+        !impl1.equals(impl2)
     }
 
     def "hashCode() works as expected"() {
@@ -128,7 +126,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         then:
         hashCode == 123
-        1 * node.contentHashCode() >> 123
+        1 * node.hashCode() >> 123
     }
 
     def "mixes in unmanaged delegate"() {

@@ -391,7 +391,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitCode();
         methodVisitor.visitVarInsn(ALOAD, 0);
         methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, false);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MUTABLE_MODEL_NODE_TYPE, "contentHashCode", HASH_CODE_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MUTABLE_MODEL_NODE_TYPE, "hashCode", HASH_CODE_METHOD_DESCRIPTOR, true);
         methodVisitor.visitInsn(IRETURN);
         finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
     }
@@ -418,7 +418,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitVarInsn(ALOAD, 1);
         methodVisitor.visitTypeInsn(CHECKCAST, MANAGED_INSTANCE_TYPE);
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, MANAGED_INSTANCE_TYPE, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MUTABLE_MODEL_NODE_TYPE, "contentEquals", EQUALS_METHOD_DESCRIPTOR, true);
+        methodVisitor.visitMethodInsn(INVOKEINTERFACE, MUTABLE_MODEL_NODE_TYPE, "equals", EQUALS_METHOD_DESCRIPTOR, true);
         finishVisitingMethod(methodVisitor, Opcodes.IRETURN);
     }
 

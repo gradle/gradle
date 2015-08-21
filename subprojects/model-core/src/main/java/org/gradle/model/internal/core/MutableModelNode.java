@@ -133,16 +133,4 @@ public interface MutableModelNode extends ModelNode {
     boolean isMutable();
 
     MutableModelNode getParent();
-
-    /**
-     * Returns if the node's contents are equal to the given node.
-     * Two nodes are content-equal if their private data is equal, and they have the same number of links,
-     * and the linked nodes are also content-equal to each other in order.
-     */
-    boolean contentEquals(Object other);
-
-    /**
-     * Returns a hash code calculated using the hash code of the node's private data and the content-hash codes of its links.
-     */
-    int contentHashCode();
 }
