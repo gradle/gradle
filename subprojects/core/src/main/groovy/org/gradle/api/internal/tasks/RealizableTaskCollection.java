@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -44,14 +43,12 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
         return this;
     }
 
-    public Iterable<Task> realizeRuleTaskTypes() {
-        Iterable<Task> tasks = Lists.newArrayList();
+    public void realizeRuleTaskTypes() {
         ModelNode modelNode = project.getModelRegistry().atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.SelfClosed);
         MutableModelNode taskContainerNode = (MutableModelNode) modelNode;
         for (MutableModelNode node : taskContainerNode.getLinks(ModelType.of(type))) {
             project.getModelRegistry().realizeNode(node.getPath());
         }
-        return tasks;
     }
 
     @Override
