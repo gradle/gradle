@@ -26,6 +26,7 @@ import org.gradle.model.Managed;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.*;
 
@@ -68,7 +69,8 @@ public class ModelSchemaUtils {
             public void visitType(Class<?> type) {
                 for (Method method : type.getDeclaredMethods()) {
                     // Ignore generated methods
-                    if (method.isSynthetic()) {
+                    int modifiers = method.getModifiers();
+                    if (method.isSynthetic() || Modifier.isStatic(modifiers) || !Modifier.isPublic(modifiers)) {
                         continue;
                     }
 
