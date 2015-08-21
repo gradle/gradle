@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.GradleExecutor
 import org.junit.Rule
@@ -41,6 +42,12 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
         testProjectDir.file("test-kit-workspace")
     }
 
+    def setupSpec() {
+        // Initialise this into a space that is not reclaimed after the test
+        // for the tooling API client to use
+        NativeServicesTestFixture.initialize(buildContext.gradleUserHomeDir)
+    }
+
     def setup() {
         buildFile = file('build.gradle')
     }
@@ -57,7 +64,7 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
         new DefaultGradleRunner(buildContext.gradleHomeDir)
             .withGradleUserHomeDir(testKitWorkspace)
             .withProjectDir(testProjectDir.testDirectory)
-            .withArguments(arguments) as DefaultGradleRunner
+            .withArguments(arguments)
     }
 
     static String helloWorldTask() {

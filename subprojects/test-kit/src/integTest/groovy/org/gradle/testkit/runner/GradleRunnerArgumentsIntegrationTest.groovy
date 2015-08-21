@@ -18,7 +18,7 @@ package org.gradle.testkit.runner
 
 import spock.lang.Unroll
 
-import static TaskOutcome.*
+import static org.gradle.testkit.runner.TaskOutcome.*
 
 class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationTest {
 
