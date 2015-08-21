@@ -17,7 +17,6 @@
 package org.gradle.api.publication.maven.internal.action;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.util.List;
 
 /**
@@ -26,13 +25,5 @@ import java.util.List;
 public class MavenWagonDeployAction extends MavenDeployAction {
     public MavenWagonDeployAction(File pomFile, List<File> jars) {
         super(pomFile, jars);
-    }
-
-    public void addWagonJar(File jar) {
-        try {
-            getContainer().getLookupRealm().addURL(jar.toURI().toURL());
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

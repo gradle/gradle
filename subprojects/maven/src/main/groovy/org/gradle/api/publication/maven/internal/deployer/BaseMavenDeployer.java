@@ -53,9 +53,6 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         deployAction.setLocalMavenRepositoryLocation(mavenRepositoryLocator.getLocalMavenRepository());
         deployAction.setUniqueVersion(isUniqueVersion());
         deployAction.setRepositories(remoteRepository, remoteSnapshotRepository);
-        for (File wagonProviderJar : getJars()) {
-            deployAction.addWagonJar(wagonProviderJar);
-        }
         return deployAction;
     }
 
