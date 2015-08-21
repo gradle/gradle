@@ -584,6 +584,9 @@
                 <td>org.gradle.nativeplatform.NativeExecutableBinarySpec</td>
             </tr>
             <tr>
+                <td>org.gradle.nativeplatform.NativeLibraryBinarySpec</td>
+            </tr>
+            <tr>
                 <td>org.gradle.nativeplatform.SharedLibraryBinarySpec</td>
             </tr>
             <tr>

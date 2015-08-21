@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.build.docs.dsl.docbook
-
 import org.gradle.build.docs.XmlSpecification
-import org.gradle.build.docs.dsl.source.model.PropertyMetaData
-import org.gradle.build.docs.dsl.source.model.TypeMetaData
+import org.gradle.build.docs.dsl.docbook.model.*
 import org.gradle.build.docs.dsl.source.model.MethodMetaData
 import org.gradle.build.docs.dsl.source.model.ParameterMetaData
-import org.gradle.build.docs.dsl.docbook.model.BlockDoc
-import org.gradle.build.docs.dsl.docbook.model.ExtraAttributeDoc
-import org.gradle.build.docs.dsl.docbook.model.MethodDoc
-import org.gradle.build.docs.dsl.docbook.model.PropertyDoc
-import org.gradle.build.docs.dsl.docbook.model.ClassDoc
-import org.gradle.build.docs.dsl.docbook.model.ClassExtensionDoc
+import org.gradle.build.docs.dsl.source.model.PropertyMetaData
+import org.gradle.build.docs.dsl.source.model.TypeMetaData
 
 class ClassDocRendererTest extends XmlSpecification {
     final LinkRenderer linkRenderer = linkRenderer()
@@ -43,6 +37,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classMethods >> []
         _ * classDoc.classBlocks >> []
         _ * classDoc.classExtensions >> []
+        _ * classDoc.subClasses >> []
 
         when:
         def result = parse('<root/>')
@@ -79,6 +74,81 @@ class ClassDocRendererTest extends XmlSpecification {
 </root>'''
     }
 
+    def rendersKnownSubtypes() {
+        def sourceContent = parse('''
+            <chapter>
+                <section><title>Properties</title></section>
+            </chapter>
+        ''')
+
+        ClassDoc classDoc = classDoc('org.gradle.Class', id: 'classId', content: sourceContent, comment: 'class comment')
+        _ * classDoc.classProperties >> []
+        _ * classDoc.classMethods >> []
+        _ * classDoc.classBlocks >> []
+        _ * classDoc.classExtensions >> []
+        def subtypes = [ "org.gradle.Subtype1", "org.gradle.Subtype2", "org.gradle.Subtype3", "org.gradle.Subtype4" ].collect {
+            ClassDoc subtype = Mock()
+            _ * subtype.name >> it
+            subtype
+        }
+        _ * classDoc.subClasses >> subtypes
+
+        when:
+        def result = parse('<root/>')
+        withCategories {
+            renderer.mergeContent(classDoc, result)
+        }
+
+        then:
+        formatTree(result) == '''<root>
+    <chapter id="classId">
+        <title>Class</title>
+        <segmentedlist>
+            <segtitle>API Documentation</segtitle>
+            <seglistitem>
+                <seg>
+                    <apilink class="org.gradle.Class" style="java"/>
+                </seg>
+            </seglistitem>
+        </segmentedlist>
+        <segmentedlist>
+            <segtitle>Known Subtypes</segtitle>
+            <seglistitem>
+                <seg>
+                    <simplelist columns="3" type="vert">
+                        <member>
+                            <apilink class="org.gradle.Subtype1"/>
+                        </member>
+                        <member>
+                            <apilink class="org.gradle.Subtype2"/>
+                        </member>
+                        <member>
+                            <apilink class="org.gradle.Subtype3"/>
+                        </member>
+                        <member>
+                            <apilink class="org.gradle.Subtype4"/>
+                        </member>
+                    </simplelist>
+                </seg>
+            </seglistitem>
+        </segmentedlist>
+        <para>class comment</para>
+        <section>
+            <title>Properties</title>
+            <para>No properties</para>
+        </section>
+        <section>
+            <title>Methods</title>
+            <para>No methods</para>
+        </section>
+        <section>
+            <title>Script blocks</title>
+            <para>No script blocks</para>
+        </section>
+    </chapter>
+</root>'''
+    }
+
     def mergesClassMetaDataIntoMainSection() {
         def sourceContent = parse('''
             <chapter>
@@ -91,6 +161,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classMethods >> []
         _ * classDoc.classBlocks >> []
         _ * classDoc.classExtensions >> []
+        _ * classDoc.subClasses >> []
 
         when:
         def result = parse('<root/>')
@@ -127,7 +198,7 @@ class ClassDocRendererTest extends XmlSpecification {
     </chapter>
 </root>'''
     }
-    
+
     def mergesPropertyMetaDataIntoPropertiesSection() {
         def content = parse('''
             <chapter>
@@ -147,6 +218,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classMethods >> []
         _ * classDoc.classBlocks >> []
         _ * classDoc.classExtensions >> []
+        _ * classDoc.subClasses >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -222,6 +294,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classMethods >> []
         _ * classDoc.classBlocks >> []
         _ * classDoc.classExtensions >> []
+        _ * classDoc.subClasses >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -311,6 +384,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * targetClassDoc.classMethods >> []
         _ * targetClassDoc.classBlocks >> []
         _ * targetClassDoc.classExtensions >> [extensionDoc]
+        _ * targetClassDoc.subClasses >> []
         _ * extensionDoc.extensionProperties >> [propertyDoc]
         _ * extensionDoc.extensionMethods >> []
         _ * extensionDoc.extensionBlocks >> []
@@ -386,6 +460,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classMethods >> [method1, method2]
         _ * classDoc.classBlocks >> []
         _ * classDoc.classExtensions >> []
+        _ * classDoc.subClasses >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -465,6 +540,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classMethods >> [method1, method2]
         _ * classDoc.classBlocks >> []
         _ * classDoc.classExtensions >> []
+        _ * classDoc.subClasses >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -551,6 +627,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * targetClassDoc.classMethods >> []
         _ * targetClassDoc.classBlocks >> []
         _ * targetClassDoc.classExtensions >> [extensionDoc]
+        _ * targetClassDoc.subClasses >> []
         _ * extensionDoc.extensionProperties >> []
         _ * extensionDoc.extensionMethods >> [methodDoc]
         _ * extensionDoc.extensionBlocks >> []
@@ -632,6 +709,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classMethods >> [method1]
         _ * classDoc.classBlocks >> [block1]
         _ * classDoc.classExtensions >> []
+        _ * classDoc.subClasses >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -751,6 +829,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * classDoc.classMethods >> []
         _ * classDoc.classBlocks >> [block1, block2]
         _ * classDoc.classExtensions >> []
+        _ * classDoc.subClasses >> []
 
         when:
         def result = parse('<chapter/>', document)
@@ -845,6 +924,7 @@ class ClassDocRendererTest extends XmlSpecification {
         _ * targetClassDoc.classMethods >> []
         _ * targetClassDoc.classBlocks >> []
         _ * targetClassDoc.classExtensions >> [extensionDoc]
+        _ * targetClassDoc.subClasses >> []
         _ * extensionDoc.extensionProperties >> []
         _ * extensionDoc.extensionMethods >> []
         _ * extensionDoc.extensionBlocks >> [blockDoc]
