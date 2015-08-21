@@ -101,7 +101,7 @@ class DefaultModelSchemaStoreTest extends Specification {
 
         // Remove soft references (dependent on Groovy internals)
         ModelStoreTestUtils.removeClassFromGlobalClassSet(schema.type.rawClass)
-        ModelStoreTestUtils.removeClassFromGlobalClassSet(schema.managedImpl)
+        ModelStoreTestUtils.removeClassFromGlobalClassSet(schema.implementationType)
 
         // Remove soft references
         Introspector.flushFromCaches(schema.type.rawClass)
