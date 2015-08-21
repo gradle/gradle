@@ -57,15 +57,9 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         validateTypeHierarchy(extractionContext, type);
 
         List<ModelPropertyExtractionResult<?>> propertyExtractionResults = extractPropertySchemas(extractionContext, ModelSchemaUtils.getCandidateMethods(type.getRawClass()));
-        Iterable<ModelProperty<?>> properties = Iterables.transform(propertyExtractionResults, new Function<ModelPropertyExtractionResult<?>, ModelProperty<?>>() {
-            @Override
-            public ModelProperty<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
-                return propertyResult.getProperty();
-            }
-        });
         List<ModelSchemaAspect> aspects = aspectExtractor.extract(extractionContext, propertyExtractionResults);
 
-        ModelSchema<R> schema = createSchema(extractionContext, properties, aspects, store);
+        ModelSchema<R> schema = createSchema(extractionContext, propertyExtractionResults, aspects, store);
         Iterable<ModelSchemaExtractionContext<?>> propertyDependencies = Iterables.transform(propertyExtractionResults, new Function<ModelPropertyExtractionResult<?>, ModelSchemaExtractionContext<?>>() {
             public ModelSchemaExtractionContext<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
                 return toPropertyExtractionContext(extractionContext, propertyResult, cache);
@@ -206,7 +200,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     protected abstract ModelProperty.StateManagementType determineStateManagementType(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getterContext);
 
-    protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects, ModelSchemaStore store);
+    protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects, ModelSchemaStore store);
 
     protected abstract <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelPropertyExtractionResult<P> propertyResult, ModelSchemaCache modelSchemaCache);
 

@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -30,13 +31,16 @@ import java.util.Map;
 public class PropertyAccessorExtractionContext {
     private final Collection<Method> declaringMethods;
     private final Method mostSpecificDeclaration;
+    private final String mostSpecificSignature;
     private final boolean declaredInManagedType;
     private final boolean declaredAsAbstract;
     private final Map<Class<? extends Annotation>, Annotation> annotations;
 
     public PropertyAccessorExtractionContext(Iterable<Method> declaringMethods) {
+        Method mostSpecificDeclaration = ModelSchemaUtils.findMostSpecificMethod(declaringMethods);
         this.declaringMethods = ImmutableList.copyOf(declaringMethods);
-        this.mostSpecificDeclaration = ModelSchemaUtils.findMostSpecificMethod(declaringMethods);
+        this.mostSpecificDeclaration = mostSpecificDeclaration;
+        this.mostSpecificSignature = AsmClassGeneratorUtils.signature(mostSpecificDeclaration);
         this.declaredInManagedType = ModelSchemaUtils.isMethodDeclaredInManagedType(declaringMethods);
         this.declaredAsAbstract = Modifier.isAbstract(this.mostSpecificDeclaration.getModifiers());
         this.annotations = collectAnnotations(declaringMethods);
@@ -61,6 +65,10 @@ public class PropertyAccessorExtractionContext {
 
     public Method getMostSpecificDeclaration() {
         return mostSpecificDeclaration;
+    }
+
+    public String getMostSpecificSignature() {
+        return mostSpecificSignature;
     }
 
     public boolean isDeclaredInManagedType() {

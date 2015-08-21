@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
+import com.google.common.base.Optional
 import com.google.common.collect.ImmutableMap
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.manage.instance.ManagedInstance
@@ -27,8 +28,6 @@ import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.lang.reflect.Type
-
 import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.*
 
 class ManagedProxyClassGeneratorTest extends Specification {
@@ -39,6 +38,20 @@ class ManagedProxyClassGeneratorTest extends Specification {
         expect:
         def impl = newInstance(SomeType)
         impl instanceof SomeType
+    }
+
+    def "generates a proxy class for an interface with type parameters"() {
+        when:
+        def generatedType = generate(SomeTypeWithParameters)
+
+        then:
+        generatedType.getMethod("getValues").returnType == List
+        generatedType.getMethod("getValues").genericReturnType.actualTypeArguments == [String]
+
+        generatedType.getMethod("getOptional").returnType == Optional
+        generatedType.getMethod("getOptional").genericReturnType.actualTypeArguments == [Boolean]
+
+        generatedType.getMethod("setOptional", Optional).genericParameterTypes*.actualTypeArguments == [[Boolean]]
     }
 
     def "mixes in ManagedInstance"() {
@@ -250,7 +263,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         state.set(_, _) >> { args ->
             data[args[0]] = args[1]
         }
-        def properties = [property(interfaceWithPrimitiveProperty, 'primitiveProperty', primitiveType, MANAGED, true)]
+        def properties = [property(interfaceWithPrimitiveProperty, 'primitiveProperty', MANAGED)]
         def proxy = generate(interfaceWithPrimitiveProperty, null, properties)
         def instance = proxy.newInstance(state)
 
@@ -280,7 +293,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         return generated.newInstance(Stub(ModelElementState))
     }
 
-    def <T, M extends T, D extends T> Class<? extends T> generate(Class<T> managedType, Class<D> delegateType = null, Collection<ModelProperty<?>> properties = managedProperties[managedType]) {
+    def <T, M extends T, D extends T> Class<? extends T> generate(Class<T> managedType, Class<D> delegateType = null, Collection<ModelPropertyExtractionResult<?>> properties = managedProperties[managedType]) {
         Map<Class<?>, Class<?>> generatedForDelegateType = generated[managedType]
         Class<? extends T> generated = generatedForDelegateType[delegateType] as Class<? extends T>
         if (generated == null) {
@@ -290,10 +303,21 @@ class ManagedProxyClassGeneratorTest extends Specification {
         return generated
     }
 
-    private static def property(Class<?> parentType, String name, Type type, StateManagementType stateManagementType, boolean writable = true) {
+    private static def property(Class<?> parentType, String name, StateManagementType stateManagementType) {
         def getter = parentType.getMethod("get" + name.capitalize());
-        def getterRef = new WeaklyTypeReferencingMethod(ModelType.of(parentType), ModelType.of(type), getter)
-        return ModelProperty.of(ModelType.of(type), name, stateManagementType, writable, Collections.emptySet(), getterRef)
+        def type = ModelType.returnType(getter)
+        def getterRef = new WeaklyTypeReferencingMethod(ModelType.of(parentType), type, getter)
+        def getterContext = new PropertyAccessorExtractionContext([getter])
+        def setterContext;
+        try {
+            def setter = parentType.getMethod("set" + name.capitalize(), type.getRawClass())
+            setterContext = new PropertyAccessorExtractionContext([setter])
+        } catch (ignore) {
+            setterContext = null
+        }
+        return new ModelPropertyExtractionResult<?>(
+            ModelProperty.of(type, name, stateManagementType, setterContext != null, Collections.emptySet(), getterRef),
+            getterContext, setterContext)
     }
 
     static interface SomeType {
@@ -344,20 +368,24 @@ class ManagedProxyClassGeneratorTest extends Specification {
         void setManagedValue(String managedValue)
     }
 
-    static Map<Class<?>, Collection<ModelProperty<?>>> managedProperties = ImmutableMap.builder()
+    static Map<Class<?>, Collection<ModelPropertyExtractionResult<?>>> managedProperties = ImmutableMap.builder()
         .put(SomeType, [
-           property(SomeType, "value", Integer, MANAGED)
+           property(SomeType, "value", MANAGED)
         ])
         .put(SomeTypeWithReadOnly, [
-            property(SomeTypeWithReadOnly, "value", Integer, MANAGED),
-            property(SomeTypeWithReadOnly, "readOnly", String, UNMANAGED)
+            property(SomeTypeWithReadOnly, "value", MANAGED),
+            property(SomeTypeWithReadOnly, "readOnly", UNMANAGED)
         ])
         .put(PublicUnmanagedType, [
-            property(PublicUnmanagedType, "unmanagedValue", String, UNMANAGED)
+            property(PublicUnmanagedType, "unmanagedValue", UNMANAGED)
         ])
         .put(ManagedSubType, [
-            property(ManagedSubType, "unmanagedValue", String, DELEGATED),
-            property(ManagedSubType, "managedValue", String, MANAGED)
+            property(ManagedSubType, "unmanagedValue", DELEGATED),
+            property(ManagedSubType, "managedValue", MANAGED)
+        ])
+        .put(SomeTypeWithParameters, [
+            property(SomeTypeWithParameters, "values", MANAGED),
+            property(SomeTypeWithParameters, "optional", MANAGED)
         ])
         .build()
 }
