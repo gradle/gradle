@@ -25,6 +25,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
 import org.gradle.util.GradleVersion
+import org.gradle.util.SingleMessageLogger
 
 import javax.inject.Inject
 
@@ -53,6 +54,7 @@ class SonarPlugin implements Plugin<ProjectInternal> {
     }
 
     void apply(ProjectInternal project) {
+        SingleMessageLogger.nagUserOfReplacedPlugin("sonar", "org.sonarqube")
         def task = configureSonarTask(project)
         def model = configureSonarRootModel(project)
         task.rootModel = model

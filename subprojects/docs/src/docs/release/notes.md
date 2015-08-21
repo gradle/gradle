@@ -79,6 +79,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Sonar Plugin and Sonar Runner Plugins
+
+[As we said in June](https://discuss.gradle.org/t/important-changes-to-gradle-sonarqube-support/10252), SonarSource now maintains their own Gradle integration plugin.  We have
+deprecated the built-in Sonar and Sonar Runner plugins in favor of theirs.  We will not be removing the built-in plugins at this time, but we will no longer be adding
+new features to them.
+
 ## Potential breaking changes
 
 We upgraded Gradle to use Groovy 2.4.4. This should be transparent to the majority of users, however it can imply some minor breaking changes.

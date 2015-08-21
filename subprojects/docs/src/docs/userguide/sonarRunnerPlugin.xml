@@ -17,13 +17,14 @@
     <title>The SonarQube Runner Plugin</title>
     <note>
         <para>
-            The SonarQube Runner plugin is currently <link linkend="feature_lifecycle">incubating</link>.
-            Please be aware that the DSL and other configuration may change in later Gradle versions.
+            In order to provide an even better experience for Gradle users wanting to leverage the SonarQube quality management platform, the built-in
+            Gradle Sonar plugins have been <link linkend="feature_lifecycle">deprecated</link>.
         </para>
         <para>
-            It is intended that this plugin will replace the older <link linkend="sonar_plugin">Sonar Plugin</link> in a future Gradle version.
+            You can find the <ulink url="https://plugins.gradle.org/plugin/org.sonarqube">SonarSource SonarQube plugin on the Plugin Portal</ulink>.
         </para>
     </note>
+
     <para>The SonarQube Runner plugin provides integration with <ulink url="http://www.sonarqube.org/">SonarQube</ulink>,
         a web-based platform for monitoring code quality. It is based on the <ulink url="http://redirect.sonarsource.com/doc/analyzing-with-sq-runner.html">SonarQube Runner API</ulink>,
         a SonarQube library that starts source code analysis, and optionally publish all collected information to the SonarQube server.
