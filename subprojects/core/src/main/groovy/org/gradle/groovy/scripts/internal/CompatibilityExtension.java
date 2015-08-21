@@ -42,7 +42,7 @@ public class CompatibilityExtension {
         if (o==null || o instanceof Collection) {
             return collection.addAll((Collection<T>) o);
         } else if (o instanceof Iterable) {
-            for (Object e : ((Iterable) o)) {
+            for (Object e : (Iterable) o) {
                 collection.add((T) e);
             }
         } else if (o instanceof Iterator) {
