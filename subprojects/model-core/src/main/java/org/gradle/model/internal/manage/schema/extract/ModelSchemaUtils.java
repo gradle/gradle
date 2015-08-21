@@ -68,7 +68,6 @@ public class ModelSchemaUtils {
             @Override
             public void visitType(Class<?> type) {
                 for (Method method : type.getDeclaredMethods()) {
-                    // Ignore generated methods
                     int modifiers = method.getModifiers();
                     if (method.isSynthetic() || Modifier.isStatic(modifiers) || !Modifier.isPublic(modifiers)) {
                         continue;
