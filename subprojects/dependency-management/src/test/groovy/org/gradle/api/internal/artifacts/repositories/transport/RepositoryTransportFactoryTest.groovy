@@ -18,11 +18,9 @@ package org.gradle.api.internal.artifacts.repositories.transport
 
 import com.google.common.collect.Lists
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.authentication.Authentication
 import org.gradle.internal.authentication.AbstractAuthentication
-import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport
 import spock.lang.Specification
