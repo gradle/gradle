@@ -24,11 +24,9 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
-import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.logging.LoggingManagerInternal;
-
-import java.io.Closeable;
 
 public class DefaultGradleLauncher extends GradleLauncher {
 
@@ -48,7 +46,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
-    private final Closeable buildServices;
+    private final Stoppable servicesToStop;
 
     /**
      * Creates a new instance.
@@ -58,7 +56,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  LoggingManagerInternal loggingManager, BuildListener buildListener,
                                  ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
-                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, Closeable buildServices) {
+                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, Stoppable servicesToStop) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
@@ -71,7 +69,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.buildConfigurationActionExecuter = buildConfigurationActionExecuter;
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
-        this.buildServices = buildServices;
+        this.servicesToStop = servicesToStop;
     }
 
     public GradleInternal getGradle() {
@@ -196,7 +194,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     public void stop() {
         try {
             loggingManager.stop();
-            CompositeStoppable.stoppable(buildServices).stop();
+            servicesToStop.stop();
         } finally {
             buildCompletionListener.completed();
         }
