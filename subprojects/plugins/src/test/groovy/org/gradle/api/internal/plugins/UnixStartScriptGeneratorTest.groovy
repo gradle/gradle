@@ -130,7 +130,7 @@ class UnixStartScriptGeneratorTest extends Specification {
         generator.generateScript(details, destination)
 
         then:
-        destination.toString().contains('cd "`dirname \\"$PRG\\"`/../.." >&-')
+        destination.toString().contains('cd "`dirname \\"$PRG\\"`/../.." >/dev/null')
     }
 
     private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(List<String> defaultJvmOpts, String scriptRelPath) {
