@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.plugins.sonar
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.classloader.ClasspathUtil
@@ -84,12 +85,10 @@ sonar.embeddedDatabase.port=$databasePort
         executer.requireGradleHome()
                 .withArgument("-PserverUrl=http://localhost:${container.port}")
                 .withArgument("-PdatabaseUrl=jdbc:h2:tcp://localhost:$databasePort/mem:sonartest")
-                .withDeprecationChecksDisabled()
                 .withTasks("build", "sonarAnalyze").run()
 
         then:
         noExceptionThrown()
-        and:
-        output.contains("The sonar plugin has been deprecated and is scheduled to be removed in Gradle 3.0. Please use the org.sonarqube plugin instead.")
+
     }
 }

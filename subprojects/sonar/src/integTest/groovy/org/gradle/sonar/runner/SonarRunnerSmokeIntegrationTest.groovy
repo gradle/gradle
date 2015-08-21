@@ -15,11 +15,12 @@
  */
 
 package org.gradle.sonar.runner
+
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -78,8 +79,6 @@ class SonarRunnerSmokeIntegrationTest extends MultiVersionIntegrationSpec {
 
         and: "no reports directory is created for projects with no production and no test sources"
         !temporaryFolder.file("emptyJavaProject", "build", "test-results").exists()
-        and:
-        output.contains("The sonar-runner plugin has been deprecated and is scheduled to be removed in Gradle 3.0. Please use the org.sonarqube plugin instead.")
     }
 
 }

@@ -43,7 +43,6 @@ import org.gradle.sonar.runner.SonarRunnerRootExtension;
 import org.gradle.sonar.runner.tasks.SonarRunner;
 import org.gradle.testing.jacoco.plugins.JacocoPlugin;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
-import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.Collection;
@@ -84,7 +83,6 @@ public class SonarRunnerPlugin implements Plugin<Project> {
     private Project targetProject;
 
     public void apply(Project project) {
-        SingleMessageLogger.nagUserOfReplacedPlugin("sonar-runner", "org.sonarqube");
         targetProject = project;
 
         final Map<Project, ActionBroadcast<SonarProperties>> actionBroadcastMap = Maps.newHashMap();

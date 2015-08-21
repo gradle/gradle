@@ -18,11 +18,8 @@
 
     <note>
         <para>
-            In order to provide an even better experience for Gradle users wanting to leverage the SonarQube quality management platform, the built-in
-            Gradle Sonar plugins have been <link linkend="feature_lifecycle">deprecated</link>.
-        </para>
-        <para>
-            You can find the <ulink url="https://plugins.gradle.org/plugin/org.sonarqube">SonarSource SonarQube plugin on the Plugin Portal</ulink>.
+            You may wish to use the new <link linkend="sonar_runner_plugin">Sonar Runner Plugin</link> instead of this plugin.
+            In particular, only the Sonar Runner plugin supports Sonar 3.4 and higher.
         </para>
     </note>
 
