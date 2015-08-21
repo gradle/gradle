@@ -40,11 +40,11 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addEchoTask(ModelMap<Task> tasks, final PrimitiveTypes primitiveTypes) {
-                    tasks.create("echo") {
+                void addCheckTask(ModelMap<Task> tasks, final PrimitiveTypes primitiveTypes) {
+                    tasks.create("check") {
                         it.doLast {
-                            println "from int: $primitiveTypes.longPropertyFromInt"
-                            println "from Integer: $primitiveTypes.longPropertyFromInteger"
+                            assert primitiveTypes.longPropertyFromInt == 123
+                            assert primitiveTypes.longPropertyFromInteger == 321
                         }
                     }
                 }
@@ -54,11 +54,8 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
-        succeeds "echo"
+        succeeds "check"
 
-        and:
-        output.contains "from int: 123"
-        output.contains "from Integer: 321"
     }
 
     def "mismatched types error in managed type are propagated to the user"() {
@@ -115,15 +112,15 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addEchoTask(ModelMap<Task> tasks, final PrimitiveProperty primitiveProperty) {
-                    tasks.create("echo", new Action<Task>() {
+                void addCheckTask(ModelMap<Task> tasks, final PrimitiveProperty primitiveProperty) {
+                    tasks.create("check", new Action<Task>() {
                         public void execute(Task task) {
                             task.doLast(new Action<Task>() {
                                 public void execute(Task unused) {
-                                    System.out.println(String.format("long: %d", primitiveProperty.getLongProperty()));
-                                    System.out.println(String.format("integer: %d", primitiveProperty.getIntegerProperty()));
-                                    System.out.println(String.format("boolean: %s", primitiveProperty.getBooleanProperty()));
-                                    System.out.println(String.format("character: %s", primitiveProperty.getCharacterProperty()));
+                                    assert primitiveProperty.getLongProperty() == 123L;
+                                    assert primitiveProperty.getIntegerProperty() == 456;
+                                    assert primitiveProperty.getBooleanProperty() == true;
+                                    assert primitiveProperty.getCharacterProperty() == 'a';
                                 }
                             });
                         }
@@ -137,13 +134,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
-        succeeds "echo"
-
-        and:
-        output.contains "long: 123"
-        output.contains "integer: 456"
-        output.contains "boolean: true"
-        output.contains "character: a"
+        succeeds "check"
     }
 
     def "can set/get properties of all supported unmanaged types using Groovy"() {
@@ -203,20 +194,23 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addEchoTask(ModelMap<Task> tasks, AllSupportedUnmanagedTypes element) {
-                    tasks.create("echo") {
+                void addCheckTask(ModelMap<Task> tasks, AllSupportedUnmanagedTypes element) {
+                    tasks.create("check") {
                         it.doLast {
-                            println "boolean: ${element.booleanProperty}"
-                            println "integer: ${element.integerProperty}"
-                            println "long: ${element.longProperty}"
-                            println "double: ${element.doubleProperty}"
-                            println "big integer: ${element.bigIntegerProperty}"
-                            println "big decimal: ${element.bigDecimalProperty}"
-                            println "string: ${element.stringProperty}"
-                            println "file: ${element.file}"
-                            println "flag: ${element.flag}"
-                            println "otherFlag: ${element.otherFlag}"
-                            println "thirdFlag: ${element.thirdFlag}"
+                            assert element.booleanProperty.is(Boolean.TRUE)
+                            assert element.integerProperty == 1
+                            assert element.longProperty == 2L
+                            assert element.doubleProperty == 3.3d
+                            assert element.bigIntegerProperty == 4G
+                            assert element.bigDecimalProperty == 5.5G
+                            assert element.stringProperty == 'test'
+                            assert element.file.toString() == 'sample.txt'
+                            assert element.flag == true
+                            assert element.otherFlag == true
+                            assert element.getOtherFlag() == true
+                            assert element.thirdFlag == true
+                            assert element.isThirdFlag() == true
+                            assert element.getThirdFlag() == true
                         }
                     }
                 }
@@ -226,20 +220,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
-        succeeds "echo"
-
-        and:
-        output.contains "boolean: true"
-        output.contains "integer: 1"
-        output.contains "long: 2"
-        output.contains "double: 3.3"
-        output.contains "big integer: 4"
-        output.contains "big decimal: 5.5"
-        output.contains "string: test"
-        output.contains "file: sample.txt"
-        output.contains "flag: true"
-        output.contains "otherFlag: true"
-        output.contains "thirdFlag: true"
+        succeeds "check"
     }
 
     def "can set/get properties of all supported unmanaged types using Java"() {
@@ -306,22 +287,23 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addEchoTask(ModelMap<Task> tasks, final AllSupportedUnmanagedTypes element) {
-                    tasks.create("echo", new Action<Task>() {
+                void addCheckTask(ModelMap<Task> tasks, final AllSupportedUnmanagedTypes element) {
+                    tasks.create("check", new Action<Task>() {
                         public void execute(Task task) {
                             task.doLast(new Action<Task>() {
                                 public void execute(Task unused) {
-                                    System.out.println(String.format("%s: %s", "boolean", element.getBooleanProperty()));
-                                    System.out.println(String.format("%s: %s", "integer", element.getIntegerProperty()));
-                                    System.out.println(String.format("%s: %s", "long", element.getLongProperty()));
-                                    System.out.println(String.format("%s: %s", "double", element.getDoubleProperty()));
-                                    System.out.println(String.format("%s: %s", "big integer", element.getBigIntegerProperty()));
-                                    System.out.println(String.format("%s: %s", "big decimal", element.getBigDecimalProperty()));
-                                    System.out.println(String.format("%s: %s", "string", element.getStringProperty()));
-                                    System.out.println(String.format("%s: %s", "file", element.getFile()));
-                                    System.out.println(String.format("%s: %s", "flag", element.isFlag()));
-                                    System.out.println(String.format("%s: %s", "otherFlag", element.getOtherFlag()));
-                                    System.out.println(String.format("%s: %s %s", "thirdFlag", element.isThirdFlag(), element.getThirdFlag()));
+                                    assert element.getBooleanProperty() == Boolean.TRUE;
+                                    assert element.getIntegerProperty() == 1;
+                                    assert element.getLongProperty() == 2L;
+                                    assert element.getDoubleProperty() == 3.3d;
+                                    assert new BigInteger("4").equals(element.getBigIntegerProperty());
+                                    assert new BigDecimal("5.5").equals(element.getBigDecimalProperty());
+                                    assert element.getStringProperty().equals("test");
+                                    assert "sample.txt".equals(element.getFile().toString());
+                                    assert element.isFlag() == true;
+                                    assert element.getOtherFlag() == true;
+                                    assert element.isThirdFlag() == true;
+                                    assert element.getThirdFlag() == true;
                                 }
                             });
                         }
@@ -337,20 +319,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         then:
-        succeeds "echo"
-
-        and:
-        output.contains "boolean: true"
-        output.contains "integer: 1"
-        output.contains "long: 2"
-        output.contains "double: 3.3"
-        output.contains "big integer: 4"
-        output.contains "big decimal: 5.5"
-        output.contains "string: test"
-        output.contains "file: sample.txt"
-        output.contains "flag: true"
-        output.contains "otherFlag: true"
-        output.contains "thirdFlag: true true"
+        succeeds "check"
     }
 
     def "can specify managed models with file types"() {
