@@ -985,8 +985,5 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     @Override
     public void fireDeferredConfiguration() {
         getDeferredProjectConfiguration().fire();
-        //TODO - This is being fired multiple times when using multiple task addressing mechanisms:
-        // tasks.customClimbTask.dependsOn, project.tasks.customEchoTask.dependsOn, tasks.getByPath(":customJumpTask").dependsOn
-        getTasks().realizeRuleTaskTypes();
     }
 }
