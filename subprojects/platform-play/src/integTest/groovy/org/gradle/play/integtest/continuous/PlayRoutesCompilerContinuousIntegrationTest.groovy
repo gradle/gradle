@@ -17,8 +17,6 @@
 package org.gradle.play.integtest.continuous
 
 import org.gradle.play.integtest.fixtures.AbstractPlayCompilerContinuousIntegrationTest
-import org.gradle.play.internal.routes.DefaultVersionedRoutesCompilerAdapter
-
 
 class PlayRoutesCompilerContinuousIntegrationTest extends AbstractPlayCompilerContinuousIntegrationTest {
     @Override
@@ -29,11 +27,6 @@ class PlayRoutesCompilerContinuousIntegrationTest extends AbstractPlayCompilerCo
     @Override
     String getCompileTaskType() {
         return "RoutesCompile"
-    }
-
-    @Override
-    String getOptionsProperty() {
-        return "task"
     }
 
     @Override
@@ -49,10 +42,5 @@ class PlayRoutesCompilerContinuousIntegrationTest extends AbstractPlayCompilerCo
     @Override
     String getChangedSourceContent() {
         return "# still no routes"
-    }
-
-    @Override
-    String getSharedPackages() {
-        return iterableToStrings(DefaultVersionedRoutesCompilerAdapter.SHARED_PACKAGES)
     }
 }

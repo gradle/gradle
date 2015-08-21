@@ -19,7 +19,7 @@ package org.gradle.play.internal.routes;
 import java.util.Arrays;
 
 abstract class DefaultVersionedRoutesCompilerAdapter implements VersionedRoutesCompilerAdapter {
-    public static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.router", "scala.collection", "scala.collection.mutable", "scala.util.matching", "play.routes.compiler");
+    private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.router", "scala.collection", "scala.collection.mutable", "scala.util.matching", "play.routes.compiler");
     private final String playVersion;
     private final String scalaVersion;
 

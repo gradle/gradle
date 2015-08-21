@@ -24,7 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
 class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
-    public static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.templates");
+    private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.templates");
 
     private static final String DEFAULT_JAVA_IMPORTS =
               "import play.api.templates._;"

@@ -17,8 +17,6 @@
 package org.gradle.play.integtest.continuous
 
 import org.gradle.play.integtest.fixtures.AbstractPlayCompilerContinuousIntegrationTest
-import org.gradle.play.internal.twirl.TwirlCompilerAdapterV10X
-
 
 class PlayTwirlCompilerContinuousIntegrationTest extends AbstractPlayCompilerContinuousIntegrationTest {
     @Override
@@ -29,11 +27,6 @@ class PlayTwirlCompilerContinuousIntegrationTest extends AbstractPlayCompilerCon
     @Override
     String getCompileTaskType() {
         return "TwirlCompile"
-    }
-
-    @Override
-    String getOptionsProperty() {
-        return "task"
     }
 
     @Override
@@ -63,10 +56,5 @@ class PlayTwirlCompilerContinuousIntegrationTest extends AbstractPlayCompilerCon
                 <title>@title("test")</title>
             </html>
         """
-    }
-
-    @Override
-    String getSharedPackages() {
-        return iterableToStrings(TwirlCompilerAdapterV10X.SHARED_PACKAGES);
     }
 }

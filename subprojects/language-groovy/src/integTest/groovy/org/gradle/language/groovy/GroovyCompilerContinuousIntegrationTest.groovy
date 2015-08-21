@@ -16,7 +16,6 @@
 
 package org.gradle.language.groovy
 
-import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler
 import org.gradle.api.tasks.compile.AbstractCompilerContinuousIntegrationTest
 
 
@@ -29,11 +28,6 @@ class GroovyCompilerContinuousIntegrationTest extends AbstractCompilerContinuous
     @Override
     String getCompileTaskType() {
         return "GroovyCompile"
-    }
-
-    @Override
-    String getOptionsProperty() {
-        return "groovyOptions"
     }
 
     @Override
@@ -64,10 +58,5 @@ class GroovyCompilerContinuousIntegrationTest extends AbstractCompilerContinuous
                 groovyOptions.fork = true
             }
         """
-    }
-
-    @Override
-    String getSharedPackages() {
-        return iterableToStrings(DaemonGroovyCompiler.SHARED_PACKAGES)
     }
 }

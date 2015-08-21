@@ -17,8 +17,6 @@
 package org.gradle.play.integtest.continuous
 
 import org.gradle.play.integtest.fixtures.AbstractPlayCompilerContinuousIntegrationTest
-import org.gradle.play.internal.javascript.GoogleClosureCompiler
-
 
 class PlayJavaScriptCompilerContinuousIntegrationTest extends AbstractPlayCompilerContinuousIntegrationTest {
     @Override
@@ -29,11 +27,6 @@ class PlayJavaScriptCompilerContinuousIntegrationTest extends AbstractPlayCompil
     @Override
     String getCompileTaskType() {
         return "JavaScriptMinify"
-    }
-
-    @Override
-    String getOptionsProperty() {
-        return "task"
     }
 
     @Override
@@ -49,11 +42,6 @@ class PlayJavaScriptCompilerContinuousIntegrationTest extends AbstractPlayCompil
     @Override
     String getChangedSourceContent() {
         return "var number = 420;"
-    }
-
-    @Override
-    String getSharedPackages() {
-        return iterableToStrings(GoogleClosureCompiler.SHARED_PACKAGES)
     }
 
     @Override

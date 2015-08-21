@@ -25,7 +25,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
 class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
-    public static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
+    private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.twirl.compiler", "scala.io"); //scala.io is for Codec which is a parameter to twirl
 
     private static final String DEFAULT_JAVA_IMPORTS =
               "import models._;"

@@ -16,9 +16,7 @@
 
 package org.gradle.language.java
 
-import org.gradle.api.internal.tasks.compile.DaemonJavaCompiler
 import org.gradle.api.tasks.compile.AbstractCompilerContinuousIntegrationTest
-
 
 class JavaCompilerContinuousIntegrationTest extends AbstractCompilerContinuousIntegrationTest {
 
@@ -30,11 +28,6 @@ class JavaCompilerContinuousIntegrationTest extends AbstractCompilerContinuousIn
     @Override
     String getCompileTaskName() {
         return "compileMainJarMainJava"
-    }
-
-    @Override
-    String getOptionsProperty() {
-        return "options"
     }
 
     @Override
@@ -70,10 +63,5 @@ class JavaCompilerContinuousIntegrationTest extends AbstractCompilerContinuousIn
                 options.fork = true
             }
         """
-    }
-
-    @Override
-    String getSharedPackages() {
-        return iterableToStrings(DaemonJavaCompiler.SHARED_PACKAGES)
     }
 }

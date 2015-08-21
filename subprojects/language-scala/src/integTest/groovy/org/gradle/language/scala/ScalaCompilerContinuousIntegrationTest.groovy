@@ -16,7 +16,6 @@
 
 package org.gradle.language.scala
 
-import org.gradle.api.internal.tasks.scala.DaemonScalaCompiler
 import org.gradle.api.tasks.compile.AbstractCompilerContinuousIntegrationTest
 
 
@@ -29,11 +28,6 @@ class ScalaCompilerContinuousIntegrationTest extends AbstractCompilerContinuousI
     @Override
     String getCompileTaskType() {
         return "PlatformScalaCompile"
-    }
-
-    @Override
-    String getOptionsProperty() {
-        return "scalaCompileOptions"
     }
 
     @Override
@@ -69,10 +63,5 @@ class ScalaCompilerContinuousIntegrationTest extends AbstractCompilerContinuousI
                 }
             }
         """
-    }
-
-    @Override
-    String getSharedPackages() {
-        return iterableToStrings(DaemonScalaCompiler.SHARED_PACKAGES)
     }
 }
