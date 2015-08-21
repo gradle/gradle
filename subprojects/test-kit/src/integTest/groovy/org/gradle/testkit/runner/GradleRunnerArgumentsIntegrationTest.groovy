@@ -20,7 +20,7 @@ import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
-class GradleRunnerArgumentsIntegrationTest extends GradleRunnerSmokeIntegrationTest {
+class GradleRunnerArgumentsIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     def "can execute build without specifying any arguments"() {
         when:
