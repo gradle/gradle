@@ -72,15 +72,6 @@ class RepositoryTransportFactoryTest extends Specification {
         transport.class == ResourceConnectorRepositoryTransport
     }
 
-    def "should throw when credentials types is invalid"(){
-        when:
-        repositoryTransportFactory.convertPasswordCredentials(new DefaultAwsCredentials())
-
-        then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message == "Credentials must be an instance of: ${PasswordCredentials.class.getCanonicalName()}"
-    }
-
     def "should create transport for known scheme, authentication and credentials"() {
         def authentication = new GoodCredentialsAuthentication('good')
         authentication.credentials = Mock(GoodCredentials)

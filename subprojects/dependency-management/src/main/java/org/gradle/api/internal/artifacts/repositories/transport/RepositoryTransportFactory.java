@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -80,17 +79,6 @@ public class RepositoryTransportFactory {
 
     public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications) {
         return createTransport(Collections.singleton(scheme), name, authentications);
-    }
-
-    /**
-     * TODO René: why do we have two different PasswordCredentials
-     * */
-    private org.gradle.internal.resource.PasswordCredentials convertPasswordCredentials(Credentials credentials) {
-        if (!(credentials instanceof PasswordCredentials)) {
-            throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s", PasswordCredentials.class.getCanonicalName()));
-        }
-        PasswordCredentials passwordCredentials = (PasswordCredentials) credentials;
-        return new org.gradle.internal.resource.PasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
     }
 
     public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications) {
@@ -184,9 +172,6 @@ public class RepositoryTransportFactory {
 
             if(credentials == null) {
                 return null;
-            }
-            if (org.gradle.internal.resource.PasswordCredentials.class.isAssignableFrom(type)) {
-                return type.cast(convertPasswordCredentials(credentials));
             }
             if (type.isAssignableFrom(credentials.getClass())) {
                 return type.cast(credentials);
