@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.antlr.internal;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlan;
 import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlanBuilder;
