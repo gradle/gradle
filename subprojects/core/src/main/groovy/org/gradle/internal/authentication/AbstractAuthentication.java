@@ -19,28 +19,27 @@ package org.gradle.internal.authentication;
 import com.google.common.collect.Sets;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.specs.Spec;
+import org.gradle.authentication.Authentication;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Set;
 
 public abstract class AbstractAuthentication implements AuthenticationInternal {
+    private final String name;
+    private final Set<Class<? extends Credentials>> supportedCredentials;
+    private final Class<? extends Authentication> type;
     private Credentials credentials;
-    private String name;
-    private Set<Class<? extends Credentials>> supportedCredentials;
 
-    public AbstractAuthentication(String name) {
+    public AbstractAuthentication(String name, Class<? extends Authentication> type) {
         this.name = name;
         this.supportedCredentials = Sets.newHashSet();
+        this.type = type;
     }
 
-    public AbstractAuthentication(String name, Class<? extends Credentials> supportedCredential) {
+    public AbstractAuthentication(String name, Class<? extends Authentication> type, Class<? extends Credentials> supportedCredential) {
         this.name = name;
         this.supportedCredentials = Sets.<Class<? extends Credentials>>newHashSet(supportedCredential);
-    }
-
-    public AbstractAuthentication(String name, Class<? extends Credentials>... supportedCredentials) {
-        this.name = name;
-        this.supportedCredentials = Sets.newHashSet(supportedCredentials);
+        this.type = type;
     }
 
     @Override
@@ -71,5 +70,15 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
                 return element.isAssignableFrom(credentials.getClass());
             }
         });
+    }
+
+    @Override
+    public Class<? extends Authentication> getType() {
+        return type;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("'%s'(%s)", getName(), getType().getSimpleName());
     }
 }

@@ -16,10 +16,12 @@
 
 package org.gradle.authentication.http;
 
+import org.gradle.api.Incubating;
 import org.gradle.authentication.Authentication;
 
 /**
  * Authentication scheme for basic access authentication over HTTP. When using this scheme, credentials are sent preemptively.
  */
+@Incubating
 public interface BasicAuthentication extends Authentication {
 }

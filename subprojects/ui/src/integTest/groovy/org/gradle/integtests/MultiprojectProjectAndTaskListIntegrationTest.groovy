@@ -40,7 +40,7 @@ class MultiprojectProjectAndTaskListIntegrationTest extends AbstractIntegrationT
 
     @Before
     void setUp() {
-        NativeServicesTestFixture.initialize(executer.gradleUserHomeDir)
+        NativeServicesTestFixture.initialize()
         gradlePluginLord.setCurrentDirectory(sample.dir);
         gradlePluginLord.setGradleHomeDirectory(distribution.gradleHomeDir);
         gradlePluginLord.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(executer.gradleUserHomeDir))

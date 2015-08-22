@@ -34,7 +34,14 @@ public abstract class AbstractModelStructSchema<T> extends AbstractModelSchema<T
         super(type);
         ImmutableSortedMap.Builder<String, ModelProperty<?>> builder = ImmutableSortedMap.naturalOrder();
         for (ModelProperty<?> property : properties) {
-            builder.put(property.getName(), property);
+            if (!builder.containsKey(property.getName())) {
+                builder.put(property.getName(), property);
+            } else {
+                ModelProperty<?> modelProperty = builder.get(property.getName());
+                if (modelProperty.getType().getRawClass()!=boolean.class) {
+                    throw new IllegalStateException("Duplicate property "+property.getName()+ " found in model. Only boolean properties may have two getters.");
+                }
+            }
         }
         this.properties = builder.build();
         this.aspects = Maps.uniqueIndex(aspects, new Function<ModelSchemaAspect, Class<? extends ModelSchemaAspect>>() {

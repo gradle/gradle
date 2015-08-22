@@ -17,6 +17,7 @@
 package org.gradle.internal.authentication;
 
 import org.gradle.api.credentials.Credentials;
+import org.gradle.authentication.Authentication;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -26,7 +27,7 @@ import java.util.Set;
  */
 public class AllSchemesAuthentication extends AbstractAuthentication {
     public AllSchemesAuthentication(Credentials credentials) {
-        super("all");
+        super("all", Authentication.class);
         this.setCredentials(credentials);
     }
 

@@ -15,6 +15,9 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.launcher.daemon.client.JvmVersionDetector;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 import java.util.ArrayList;
@@ -60,7 +63,11 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
         // Add JVM heap settings only for shared daemons
         List<String> buildJvmOpts = new ArrayList<String>(super.getImplicitBuildJvmArgs());
-        buildJvmOpts.add("-XX:MaxPermSize=320m");
+
+        if (new JvmVersionDetector().getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_9) < 0) {
+            buildJvmOpts.add("-XX:MaxPermSize=320m");
+        }
+
         buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
         buildJvmOpts.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir().getAbsolutePath());
         return buildJvmOpts;

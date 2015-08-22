@@ -60,17 +60,17 @@ public class DefaultGradleRunner extends GradleRunner {
         return gradleUserHomeDir;
     }
 
-    public GradleRunner withGradleUserHomeDir(File gradleUserHomeDir) {
+    public DefaultGradleRunner withGradleUserHomeDir(File gradleUserHomeDir) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         return this;
     }
 
-    public GradleRunner withJvmArguments(List<String> jvmArguments) {
+    public DefaultGradleRunner withJvmArguments(List<String> jvmArguments) {
         this.jvmArguments = new ArrayList<String>(jvmArguments);
         return this;
     }
 
-    public GradleRunner withJvmArguments(String... jvmArguments) {
+    public DefaultGradleRunner withJvmArguments(String... jvmArguments) {
         return withJvmArguments(Arrays.asList(jvmArguments));
     }
 
@@ -80,7 +80,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
-    public GradleRunner withProjectDir(File projectDir) {
+    public DefaultGradleRunner withProjectDir(File projectDir) {
         this.projectDirectory = projectDir;
         return this;
     }
@@ -91,13 +91,13 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
-    public GradleRunner withArguments(List<String> arguments) {
+    public DefaultGradleRunner withArguments(List<String> arguments) {
         this.arguments = new ArrayList<String>(arguments);
         return this;
     }
 
     @Override
-    public GradleRunner withArguments(String... arguments) {
+    public DefaultGradleRunner withArguments(String... arguments) {
         return withArguments(Arrays.asList(arguments));
     }
 

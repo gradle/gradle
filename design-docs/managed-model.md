@@ -66,6 +66,7 @@ may also be internal mechanisms to define such properties on other types.
 - Support `is` style accessor for properties with type `boolean`
 - Support type with both `is` and `get` accessors for property with type `boolean`
 - Prohibit `is` style accessors for properties of any type other than `boolean`(including Boolean)
+- Delegated boolean property declared with `is` getter in unmanaged super-type is supported
 
 ### Support for managed properties with collection of scalar types
 

@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.internal.FileUtils
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
@@ -151,8 +150,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
 
     def "executing a build with a -g option does not affect daemon mechanics"() {
         when:
-        def customGradleUserHome = file("custom-gradle-user-home")
-        runner("-g", FileUtils.toSafeFileName(customGradleUserHome.absolutePath)).build()
+        runner("-g", file("custom-gradle-user-home").absolutePath).build()
 
         then:
         onlyDaemon().assertIdle()

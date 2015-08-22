@@ -15,12 +15,10 @@
  */
 
 package org.gradle.internal.authentication
-
 import org.gradle.authentication.Authentication
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 public class DefaultAuthenticationContainerTest extends Specification {
     @Subject
@@ -31,7 +29,6 @@ public class DefaultAuthenticationContainerTest extends Specification {
         container.registerBinding(CustomTestAuthentication, DefaultCustomTestAuthentication)
     }
 
-    @Unroll
     def "can add multiple authentication schemes with common supertype"() {
         when:
         container.create('auth1', auth1)
@@ -46,19 +43,22 @@ public class DefaultAuthenticationContainerTest extends Specification {
         CustomTestAuthentication | TestAuthentication
     }
 
-    interface TestAuthentication extends Authentication {}
+    static interface TestAuthentication extends Authentication {}
 
-    interface CustomTestAuthentication extends TestAuthentication {}
+    static interface CustomTestAuthentication extends TestAuthentication {}
 
     static class DefaultTestAuthentication extends AbstractAuthentication implements TestAuthentication {
         DefaultTestAuthentication(String name) {
-            super(name)
+            super(name, TestAuthentication)
+        }
+        DefaultTestAuthentication(String name, Class type) {
+            super(name, type)
         }
     }
 
     static class DefaultCustomTestAuthentication extends DefaultTestAuthentication implements CustomTestAuthentication {
         DefaultCustomTestAuthentication(String name) {
-            super(name)
+            super(name, CustomTestAuthentication)
         }
     }
 }

@@ -19,10 +19,13 @@ package org.gradle.testkit.runner
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.nativeintegration.services.NativeServices
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.GradleExecutor
+import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
@@ -35,14 +38,15 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testProjectDir = new TestNameTestDirectoryProvider()
 
-    File buildFile
+    @Rule
+    SetSystemProperties setSystemProperties = new SetSystemProperties((NativeServices.NATIVE_DIR_OVERRIDE): buildContext.gradleUserHomeDir.file("native").absolutePath)
 
     TestFile getTestKitWorkspace() {
         testProjectDir.file("test-kit-workspace")
     }
 
-    def setup() {
-        buildFile = file('build.gradle')
+    TestFile getBuildFile() {
+        file('build.gradle')
     }
 
     TestFile file(String path) {
@@ -57,7 +61,7 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
         new DefaultGradleRunner(buildContext.gradleHomeDir)
             .withGradleUserHomeDir(testKitWorkspace)
             .withProjectDir(testProjectDir.testDirectory)
-            .withArguments(arguments) as DefaultGradleRunner
+            .withArguments(arguments)
     }
 
     static String helloWorldTask() {
@@ -80,5 +84,8 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
 
     def cleanup() {
         daemons().killAll()
+        if (OperatingSystem.current().isWindows()) {
+            sleep 1000 // wait for process to release files
+        }
     }
 }

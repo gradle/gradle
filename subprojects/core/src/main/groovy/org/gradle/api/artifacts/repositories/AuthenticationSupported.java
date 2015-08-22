@@ -104,9 +104,25 @@ public interface AuthenticationSupported {
      *
      * <p>This method executes the given action against the {@link AuthenticationContainer} for this project. The {@link
      * AuthenticationContainer} is passed to the closure as the closure's delegate.
+     * <p>
+     * If no authentication schemes have been assigned to this repository, a default set of authentication schemes are used based on the repository's transport scheme.
+     *
+     * <pre autoTested=''>
+     * repositories {
+     *     maven {
+     *         url "${url}"
+     *         authentication {
+     *             basic(BasicAuthentication)
+     *         }
+     *     }
+     * }
+     * </pre>
+     * <p>
+     * Supported authentication scheme types extend {@link org.gradle.authentication.Authentication}.
      *
      * @param action the action to use to configure the authentication schemes.
      */
+    @Incubating
     void authentication(Action<? super AuthenticationContainer> action);
 
     /**
@@ -114,5 +130,6 @@ public interface AuthenticationSupported {
      *
      * @return the authentication schemes for this repository
      */
+    @Incubating
     AuthenticationContainer getAuthentication();
 }
