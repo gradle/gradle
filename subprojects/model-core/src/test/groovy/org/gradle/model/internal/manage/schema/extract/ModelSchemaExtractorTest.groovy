@@ -1284,6 +1284,21 @@ interface Managed${typeName} {
         expect:
         schema.properties*.name == ["value"]
     }
+
+    @Managed
+    interface HasIsAndGetPropertyWithDifferentTypes {
+        boolean isValue()
+        String getValue()
+    }
+
+    def "handles is/get property with non-matching type"() {
+        when:
+        store.getSchema(HasIsAndGetPropertyWithDifferentTypes)
+
+        then:
+        def ex = thrown InvalidManagedModelElementTypeException
+        ex.message.contains "property 'value' has both 'isValue()' and 'getValue()' getters, but they don't both return a boolean"
+    }
 }
 
 @Retention(RetentionPolicy.RUNTIME)

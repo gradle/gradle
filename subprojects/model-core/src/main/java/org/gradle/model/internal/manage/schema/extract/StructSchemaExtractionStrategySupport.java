@@ -118,19 +118,27 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
                 PropertyAccessorExtractionContext setterContext = !setterMethods.isEmpty() ? new PropertyAccessorExtractionContext(setterMethods) : null;
 
                 String prefix = methodName.substring(0, getterPrefixLen);
-                Iterable<Method> getterMethods;
-                if (prefix.equals("get") && mostSpecificGetter.getReturnType() == boolean.class) {
+                Iterable<Method> getterMethods = methods;
+                if (prefix.equals("get")) {
                     String isGetterName = "is" + propertyNameCapitalized;
                     Collection<Method> isGetterMethods = methodsByName.get(isGetterName);
-                    List<Method> overloadedIsGetterMethods = getOverloadedMethods(isGetterMethods);
-                    if (overloadedIsGetterMethods != null) {
-                        handleOverloadedMethods(extractionContext, overloadedIsGetterMethods);
-                        continue;
+                    if (!isGetterMethods.isEmpty()) {
+                        List<Method> overloadedIsGetterMethods = getOverloadedMethods(isGetterMethods);
+                        if (overloadedIsGetterMethods != null) {
+                            handleOverloadedMethods(extractionContext, overloadedIsGetterMethods);
+                            continue;
+                        }
+
+                        Method mostSpecificIsGetter = ModelSchemaUtils.findMostSpecificMethod(isGetterMethods);
+                        if (mostSpecificGetter.getReturnType() != boolean.class || mostSpecificIsGetter.getReturnType() != boolean.class) {
+                            handleInvalidGetter(extractionContext, mostSpecificIsGetter,
+                                String.format("property '%s' has both '%s()' and '%s()' getters, but they don't both return a boolean",
+                                    propertyName, isGetterName, methodName));
+                            continue;
+                        }
+                        getterMethods = Iterables.concat(getterMethods, isGetterMethods);
+                        skippedMethodNames.add(isGetterName);
                     }
-                    getterMethods = Iterables.concat(methods, isGetterMethods);
-                    skippedMethodNames.add(isGetterName);
-                } else {
-                    getterMethods = methods;
                 }
 
                 PropertyAccessorExtractionContext getterContext = new PropertyAccessorExtractionContext(getterMethods);
