@@ -41,6 +41,7 @@ class JdkVersionsContinuousIntegrationTest extends AbstractContinuousIntegration
             .withJavaHome(java6().javaHome)
             .withArgument("-Dorg.gradle.java.home=${java7OrBetter().javaHome}")
             .useDefaultBuildJvmArgs()
+            .requireGradleHome()
         file("a").text = "foo"
         buildScript """
             task a {
