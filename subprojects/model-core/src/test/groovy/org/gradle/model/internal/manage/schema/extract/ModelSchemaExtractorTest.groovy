@@ -1262,6 +1262,28 @@ interface Managed${typeName} {
         managedType << [IsNotAllowedForOtherTypeThanBoolean, IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean]
     }
 
+    abstract class HasStaticProperties {
+        static String staticValue
+        String value
+    }
+
+    def "does not extract static properties"() {
+        def schema = store.getSchema(HasStaticProperties)
+        expect:
+        schema.properties*.name == ["value"]
+    }
+
+    abstract class HasProtectedAndPrivateProperties {
+        String value
+        protected String protectedValue
+        private String privateValue
+    }
+
+    def "does not extract protected and private properties"() {
+        def schema = store.getSchema(HasProtectedAndPrivateProperties)
+        expect:
+        schema.properties*.name == ["value"]
+    }
 }
 
 @Retention(RetentionPolicy.RUNTIME)
