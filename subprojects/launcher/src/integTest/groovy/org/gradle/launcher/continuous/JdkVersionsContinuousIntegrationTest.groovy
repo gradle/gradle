@@ -18,20 +18,10 @@ package org.gradle.launcher.continuous
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.util.Requires
 
-@Requires(adhoc = {
-    // not quite right, we want to allow coverage builds testing against a real distro
-    JavaVersion.current().java7Compatible || !GradleContextualExecuter.embedded
-})
 class JdkVersionsContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
-
-    def setup() {
-        executer.requireGradleHome()
-    }
-
     @Requires(adhoc = { JdkVersionsContinuousIntegrationTest.java6() })
     def "requires java 7 build runtime"() {
         when:
@@ -50,6 +40,7 @@ class JdkVersionsContinuousIntegrationTest extends AbstractContinuousIntegration
         executer
             .withJavaHome(java6().javaHome)
             .withArgument("-Dorg.gradle.java.home=${java7OrBetter().javaHome}")
+            .useDefaultBuildJvmArgs()
         file("a").text = "foo"
         buildScript """
             task a {
