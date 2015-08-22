@@ -18,7 +18,6 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
@@ -39,7 +38,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setup() {
-        NativeServicesTestFixture.initialize(new IntegrationTestBuildContext().getGradleUserHomeDir())
+        NativeServicesTestFixture.initialize()
         executer.requireGradleHome()
     }
 

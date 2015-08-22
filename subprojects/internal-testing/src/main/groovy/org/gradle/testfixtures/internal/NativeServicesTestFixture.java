@@ -24,15 +24,9 @@ public class NativeServicesTestFixture {
     static NativeServices nativeServices;
     static boolean initialized;
 
-    public static void initialize(File gradleUserHomeDir) {
-        if (!initialized) {
-            NativeServices.initialize(gradleUserHomeDir);
-        }
-    }
-
     public static void initialize() {
         if (!initialized) {
-            File nativeDir = new File(System.getProperty("integTest.gradleUserHomeDir", "intTestHomeDir"), "worker-1");
+            File nativeDir = new File(System.getProperty("integTest.gradleUserHomeDir", "build/user-home"), "worker-1/test-fixtures");
             NativeServices.initialize(nativeDir);
         }
     }
