@@ -31,10 +31,11 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
-import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
-import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
+import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
+import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -81,11 +82,16 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
             requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append(internalTestDescriptor.getDisplayName());
             requestDetails.append(" (Task: '").append(((DefaultTestDescriptor) internalTestDescriptor).getTaskPath()).append("')");
         }
-        for (String testClass : internalTestExecutionRequest.getExplicitRequestedTestClassNames(Collections.<String>emptyList())) {
-            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class ").append(testClass);
-        }
-        for (InternalTestMethod testMethod : internalTestExecutionRequest.getTestMethods(Collections.<InternalTestMethod>emptyList())) {
-            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(testMethod.getClassName()).append(".").append(testMethod.getMethodName()).append("()");
+        final Collection<InternalJvmTestRequest> internalJvmTestRequests = internalTestExecutionRequest.getInternalJvmTestRequests(Collections.<InternalJvmTestRequest>emptyList());
+
+        for (InternalJvmTestRequest internalJvmTestRequest : internalJvmTestRequests) {
+            final String className = internalJvmTestRequest.getClassName();
+            final String methodName = internalJvmTestRequest.getMethodName();
+            if(methodName == null){
+                requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class ").append(className);
+            }else{
+                requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(className).append(".").append(methodName).append("()");
+            }
         }
         return requestDetails.toString();
     }

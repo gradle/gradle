@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.protocol.test;
 
-import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
+import org.gradle.api.Nullable;
 
-public class DefaultTestMethod implements InternalTestMethod {
-    private final String className;
-    private final String methodName;
-
-    public DefaultTestMethod(String className, String methodName) {
-        this.className = className;
-        this.methodName = methodName;
-    }
-
-    public String getClassName() {
-        return className;
-    }
-
-    public String getMethodName() {
-        return methodName;
-    }
+/**
+ * Specifies a method to be tested.
+ *
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 2.7-rc-1
+ */
+public interface InternalJvmTestRequest {
+    String getClassName();
+    @Nullable String getMethodName();
 }

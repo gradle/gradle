@@ -16,10 +16,8 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
+import org.gradle.api.Transformer;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.TestLauncher;
@@ -28,6 +26,7 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;
@@ -37,8 +36,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     private final AsyncConsumerActionExecutor connection;
     private final Set<TestOperationDescriptor> operationDescriptors = new LinkedHashSet<TestOperationDescriptor>();
     private final Set<String> testClassNames = new LinkedHashSet<String>();
-
-    private final Multimap<String, String> testMethods = LinkedListMultimap.create();
+    private final Set<InternalJvmTestRequest> internalJvmTestRequests = new LinkedHashSet<InternalJvmTestRequest>();
 
     public DefaultTestLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
@@ -54,7 +52,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public TestLauncher withTests(TestOperationDescriptor... testDescriptors) {
-        operationDescriptors.addAll(Arrays.asList(testDescriptors));
+        withTests(Arrays.asList(testDescriptors));
         return this;
     }
 
@@ -66,25 +64,39 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public TestLauncher withJvmTestClasses(String... classNames) {
-        testClassNames.addAll(CollectionUtils.toList(classNames));
+        withJvmTestClasses(Arrays.asList(classNames));
         return this;
     }
 
     @Override
     public TestLauncher withJvmTestClasses(Iterable<String> testClasses) {
+        List<InternalJvmTestRequest> newRequests = CollectionUtils.collect(testClasses, new Transformer<InternalJvmTestRequest, String>() {
+            @Override
+            public InternalJvmTestRequest transform(String testClass) {
+                return new DefaultInternalJvmTestRequest(testClass, null);
+            }
+        });
+        internalJvmTestRequests.addAll(newRequests);
         testClassNames.addAll(CollectionUtils.toList(testClasses));
         return this;
     }
 
     @Override
     public TestLauncher withJvmTestMethods(String testClass, String... methods) {
-        withJvmTestMethods(testClass, CollectionUtils.toList(methods));
+        withJvmTestMethods(testClass, Arrays.asList(methods));
         return this;
     }
 
     @Override
-    public TestLauncher withJvmTestMethods(String testClass, Iterable<String> methods) {
-        this.testMethods.putAll(testClass, methods);
+    public TestLauncher withJvmTestMethods(final String testClass, Iterable<String> methods) {
+        List<InternalJvmTestRequest> newRequests = CollectionUtils.collect(methods, new Transformer<InternalJvmTestRequest, String>() {
+            @Override
+            public InternalJvmTestRequest transform(String methodName) {
+                return new DefaultInternalJvmTestRequest(testClass, methodName);
+            }
+        });
+        this.internalJvmTestRequests.addAll(newRequests);
+        this.testClassNames.add(testClass);
         return this;
     }
 
@@ -95,12 +107,11 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     }
 
     public void run(final ResultHandler<? super Void> handler) {
-        if (operationDescriptors.isEmpty() && testClassNames.isEmpty() && testMethods.isEmpty()) {
+        if (operationDescriptors.isEmpty() && internalJvmTestRequests.isEmpty()) {
             throw new TestExecutionException("No test declared for execution.");
         }
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
-        final List<String> allTestClasses = CollectionUtils.flattenCollections(String.class, this.testClassNames, testMethods.keySet());
-        final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(allTestClasses), testClassNames, ImmutableMultimap.copyOf(testMethods));
+        final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(testClassNames), ImmutableSet.copyOf(internalJvmTestRequests));
         connection.run(new ConsumerAction<Void>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;

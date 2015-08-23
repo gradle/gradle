@@ -27,7 +27,7 @@ import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildExecutionContext;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
-import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
+import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 
@@ -47,16 +47,9 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         final Set<Test> allTestTasksToRun = new LinkedHashSet<Test>();
         final GradleInternal gradleInternal = context.getGradle();
         allTestTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal, testExecutionRequest));
-        allTestTasksToRun.addAll(configureBuildForTestClassesAndMethods(gradleInternal, testExecutionRequest));
+        allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(gradleInternal, testExecutionRequest));
         configureTestTasks(allTestTasksToRun);
         gradle.getTaskGraph().addTasks(allTestTasksToRun);
-    }
-
-    private void configureTestMethodFilter(Test testTask, Collection<InternalTestMethod> testMethods) {
-        for (InternalTestMethod testMethod : testMethods) {
-            final TestFilter filter = testTask.getFilter();
-            filter.includeTest(testMethod.getClassName(), testMethod.getMethodName());
-        }
     }
 
     private void configureTestTasks(Set<Test> allTestTasksToRun) {
@@ -104,10 +97,9 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         return testTasksToRun;
     }
 
-    private List<Test> configureBuildForTestClassesAndMethods(GradleInternal gradle, final ProviderInternalTestExecutionRequest testExecutionRequest) {
-        final Collection<String> explicitRequestedTestClassNames = testExecutionRequest.getExplicitRequestedTestClassNames(Collections.<String>emptyList());
-        final Collection<InternalTestMethod> testMethods = testExecutionRequest.getTestMethods(Collections.<InternalTestMethod>emptyList());
-        if(explicitRequestedTestClassNames.isEmpty() && testMethods.isEmpty()){
+    private List<Test> configureBuildForInternalJvmTestRequest(GradleInternal gradle, final ProviderInternalTestExecutionRequest testExecutionRequest) {
+        final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests(Collections.<InternalJvmTestRequest>emptyList());
+        if(internalJvmTestRequests.isEmpty()){
             return Collections.emptyList();
         }
 
@@ -117,18 +109,13 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         for (Project project : allprojects) {
             final Collection<Test> testTasks = project.getTasks().withType(Test.class);
             for (Test testTask : testTasks) {
-                configureTestClassFilter(testTask, explicitRequestedTestClassNames);
-                configureTestMethodFilter(testTask, testMethods);
+                for (InternalJvmTestRequest jvmTestRequest : internalJvmTestRequests) {
+                    final TestFilter filter = testTask.getFilter();
+                    filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
+                }
             }
             tasksToExecute.addAll(testTasks);
         }
         return tasksToExecute;
-    }
-
-    private void configureTestClassFilter(Test testTask, Collection<String> testClassNames) {
-        for (String testClassName : testClassNames) {
-            final TestFilter filter = testTask.getFilter();
-            filter.includeTest(testClassName, null);
-        }
     }
 }

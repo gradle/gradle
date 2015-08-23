@@ -26,7 +26,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.TestFilter
 import org.gradle.execution.BuildExecutionContext
 import org.gradle.execution.TaskGraphExecuter
-import org.gradle.tooling.internal.protocol.test.InternalTestMethod
+import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor
 import spock.lang.Specification
@@ -71,8 +71,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
 
     def "empty test execution request configures no tasks"() {
         1 * testExecutionRequest.getTestExecutionDescriptors() >> []
-        1 * testExecutionRequest.getExplicitRequestedTestClassNames(_) >> []
-        1 * testExecutionRequest.getTestMethods(_) >> []
+        1 * testExecutionRequest.getInternalJvmTestRequests(_) >> []
 
         setup:
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
@@ -80,7 +79,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         buildConfigurationAction.configure(buildContext)
         then:
         0 * projectInternal.getAllprojects() >> [projectInternal]
-        _ * taskGraphExecuter.addTasks({args  ->  assert args.size() == 0})
+        _ * taskGraphExecuter.addTasks({ args -> assert args.size() == 0 })
     }
 
     @Unroll
@@ -89,8 +88,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         _ * projectInternal.getAllprojects() >> [projectInternal]
 
         1 * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
-        1 * testExecutionRequest.getExplicitRequestedTestClassNames(_) >> testclasses
-        1 * testExecutionRequest.getTestMethods(_) >> testMethods
+        1 * testExecutionRequest.getInternalJvmTestRequests(_) >> internalJvmRequests
 
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
         when:
@@ -102,17 +100,17 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         1 * testFilter.setFailOnNoMatchingTests(false)
         1 * outputsInternal.upToDateWhen(Specs.SATISFIES_NONE)
         where:
-        requestType        | descriptors        | testclasses       | testMethods    | expectedClassFilter | expectedMethodFilter
-        "test descriptors" | [testDescriptor()] | []                | []             | TEST_CLASS_NAME     | TEST_METHOD_NAME
-        "test classes"     | []                 | [TEST_CLASS_NAME] | []             | TEST_CLASS_NAME     | null
-        "test methods"     | []                 | []                | [testMethod()] | TEST_CLASS_NAME     | TEST_METHOD_NAME
+        requestType        | descriptors        | internalJvmRequests                                 | expectedClassFilter | expectedMethodFilter
+        "test descriptors" | [testDescriptor()] | []                                                  | TEST_CLASS_NAME     | TEST_METHOD_NAME
+        "test classes"     | []                 | [jvmTestRequest(TEST_CLASS_NAME, null)]             | TEST_CLASS_NAME     | null
+        "test methods"     | []                 | [jvmTestRequest(TEST_CLASS_NAME, TEST_METHOD_NAME)] | TEST_CLASS_NAME     | TEST_METHOD_NAME
     }
 
-    def testMethod() {
-        InternalTestMethod testMethod = Mock()
-        _ * testMethod.getClassName() >> TEST_CLASS_NAME
-        _ * testMethod.getMethodName() >> TEST_METHOD_NAME
-        testMethod
+    InternalJvmTestRequest jvmTestRequest(String className, String methodName) {
+        InternalJvmTestRequest jvmTestRequest = Mock()
+        _ * jvmTestRequest.getClassName() >> className
+        _ * jvmTestRequest.getMethodName() >> methodName
+        jvmTestRequest
     }
 
     private void setupTestTask() {
