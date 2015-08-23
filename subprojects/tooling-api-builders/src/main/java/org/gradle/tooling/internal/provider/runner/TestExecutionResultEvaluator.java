@@ -31,10 +31,11 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequestVersion2;
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
+import org.gradle.tooling.internal.provider.ProviderInternalTestExecutionRequest;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -44,10 +45,10 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
     private long resultCount;
     private Map<Object, String> runningTasks = Maps.newHashMap();
 
-    private InternalTestExecutionRequestVersion2 internalTestExecutionRequest;
+    private ProviderInternalTestExecutionRequest internalTestExecutionRequest;
     private List<FailedTest> failedTests = Lists.newArrayList();
 
-    public TestExecutionResultEvaluator(InternalTestExecutionRequestVersion2 internalTestExecutionRequest) {
+    public TestExecutionResultEvaluator(ProviderInternalTestExecutionRequest internalTestExecutionRequest) {
         this.internalTestExecutionRequest = internalTestExecutionRequest;
     }
 
@@ -80,10 +81,10 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
             requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append(internalTestDescriptor.getDisplayName());
             requestDetails.append(" (Task: '").append(((DefaultTestDescriptor) internalTestDescriptor).getTaskPath()).append("')");
         }
-        for (String testClass : internalTestExecutionRequest.getTestClassNames()) {
+        for (String testClass : internalTestExecutionRequest.getExplicitRequestedTestClassNames(Collections.<String>emptyList())) {
             requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class ").append(testClass);
         }
-        for (InternalTestMethod testMethod : internalTestExecutionRequest.getTestMethods()) {
+        for (InternalTestMethod testMethod : internalTestExecutionRequest.getTestMethods(Collections.<InternalTestMethod>emptyList())) {
             requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(testMethod.getClassName()).append(".").append(testMethod.getMethodName()).append("()");
         }
         return requestDetails.toString();

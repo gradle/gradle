@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.tasks.testing.TestExecutionException
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.progress.OperationStartEvent
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequestVersion2
+import org.gradle.tooling.internal.provider.ProviderInternalTestExecutionRequest
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor
 import spock.lang.Specification
@@ -33,7 +33,7 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 class TestExecutionResultEvaluatorTest extends Specification {
     def "evaluate throws exception if no results tracked"() {
         given:
-        def testExecutionRequest = Mock(InternalTestExecutionRequestVersion2)
+        def testExecutionRequest = Mock(ProviderInternalTestExecutionRequest)
         TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(testExecutionRequest)
 
         def testDescriptorInternal = Mock(TestDescriptorInternal)
@@ -59,13 +59,13 @@ class TestExecutionResultEvaluatorTest extends Specification {
 
         and:
         1 * testExecutionRequest.getTestExecutionDescriptors()>> [defaultTestDescriptor]
-        1 * testExecutionRequest.getTestClassNames() >> ["acme.SomeTestClass"]
-        1 * testExecutionRequest.getTestMethods() >> [internalTestMethod]
+        1 * testExecutionRequest.getExplicitRequestedTestClassNames(_) >> ["acme.SomeTestClass"]
+        1 * testExecutionRequest.getTestMethods(_) >> [internalTestMethod]
     }
 
     def "evaluate throws exception if test failed"() {
         given:
-        def testExecutionRequest = Mock(InternalTestExecutionRequestVersion2)
+        def testExecutionRequest = Mock(ProviderInternalTestExecutionRequest)
         TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(testExecutionRequest)
 
         def testDescriptorInternal = Mock(TestDescriptorInternal)

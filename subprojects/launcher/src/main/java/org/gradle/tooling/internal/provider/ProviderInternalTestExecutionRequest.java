@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.test;
+package org.gradle.tooling.internal.provider;
+
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
+import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
 
 import java.util.Collection;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
  * @since 2.6-rc-1
  */
-public interface InternalTestExecutionRequestVersion2 extends InternalTestExecutionRequest {
-    Collection<InternalTestMethod> getTestMethods();
+public interface ProviderInternalTestExecutionRequest {
+    Collection<InternalTestDescriptor> getTestExecutionDescriptors();
 
-    /**
-     * This is used for backwards compatibility with 2.6 enabling the behaviour of running all tests
-     * of a test class when provider is 2.6 but consumer requested particular test method(s)
-     * */
-    Collection<String> getExplicitRequestedTestClassNames();
+    Collection<String> getTestClassNames();
+
+    Collection<InternalTestMethod> getTestMethods(Collection<InternalTestMethod> defaults);
+
+    Collection<String> getExplicitRequestedTestClassNames(Collection<String> defaults);
 }

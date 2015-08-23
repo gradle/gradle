@@ -64,6 +64,25 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
     }
 
+    @TargetGradleVersion("=2.6")
+    def "executes all methods if provider does not support selective test method execution"() {
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestMethods("example.MyTest", "foo")
+        }
+        then:
+
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
+        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
+    }
+
     def "executes all test methods if class and method is declared"() {
         when:
         launchTests { TestLauncher launcher ->

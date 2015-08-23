@@ -49,6 +49,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     private ProtocolToModelAdapter adapter;
     private ServiceRegistry services;
     private ProviderConnection connection;
+    private ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter();
 
     /**
      * This is used by consumers 1.0-milestone-3 and later
@@ -196,9 +197,10 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     public BuildResult<?> runTests(InternalTestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         validateCanRun();
+        final ProviderInternalTestExecutionRequest testExecutionRequestVersion2 = protocolToModelAdapter.adapt(ProviderInternalTestExecutionRequest.class, testExecutionRequest);
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
-        Object results = connection.runTests(testExecutionRequest, buildCancellationToken, providerParameters);
+        Object results = connection.runTests(testExecutionRequestVersion2, buildCancellationToken, providerParameters);
         return new ProviderBuildResult<Object>(results);
     }
 

@@ -19,32 +19,29 @@ package org.gradle.tooling.internal.provider;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.StartParameter;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequestVersion2;
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
-public class TestExecutionRequestAction extends SubscribableBuildAction implements InternalTestExecutionRequestVersion2 {
+public class TestExecutionRequestAction extends SubscribableBuildAction implements ProviderInternalTestExecutionRequest {
     private final StartParameter startParameter;
     private final Set<InternalTestDescriptor> testDescriptors;
     private final Set<String> testClassNames;
     private final Set<InternalTestMethod> testMethods;
+    private final Set<String> explicitTestClassNames;
 
-    public TestExecutionRequestAction(InternalTestExecutionRequest testExecutionRequest, StartParameter startParameter, BuildClientSubscriptions clientSubscriptions) {
+    public TestExecutionRequestAction(ProviderInternalTestExecutionRequest testExecutionRequest, StartParameter startParameter, BuildClientSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         // Unpack the request to serialize across to the daemon
         this.testDescriptors = ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors());
-        if(testExecutionRequest instanceof InternalTestExecutionRequestVersion2){
-            final InternalTestExecutionRequestVersion2 testExecutionRequestV2 = (InternalTestExecutionRequestVersion2) testExecutionRequest;
-            this.testClassNames = ImmutableSet.copyOf(testExecutionRequestV2.getExplicitRequestedTestClassNames());
-            this.testMethods = ImmutableSet.copyOf(testExecutionRequestV2.getTestMethods());
-        }else{
-            this.testClassNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
-            this.testMethods = ImmutableSet.of();
-        }
+        this.testClassNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
+        this.explicitTestClassNames = ImmutableSet.copyOf(testExecutionRequest.getExplicitRequestedTestClassNames(testExecutionRequest.getTestClassNames()));
+        final List<InternalTestMethod> defaultTestMethods = Collections.emptyList();
+        this.testMethods = ImmutableSet.copyOf(testExecutionRequest.getTestMethods(defaultTestMethods));
     }
 
     @Override
@@ -58,13 +55,13 @@ public class TestExecutionRequestAction extends SubscribableBuildAction implemen
     }
 
     @Override
-    public Collection<InternalTestMethod> getTestMethods() {
+    public Collection<InternalTestMethod> getTestMethods(Collection<InternalTestMethod> defaults) {
         return testMethods;
     }
 
     @Override
-    public Collection<String> getExplicitRequestedTestClassNames() {
-        return getTestClassNames();
+    public Collection<String> getExplicitRequestedTestClassNames(Collection<String> defaults) {
+        return explicitTestClassNames;
     }
 
     @Override
@@ -72,7 +69,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction implemen
         return testDescriptors;
     }
 
-    public InternalTestExecutionRequestVersion2 getTestExecutionRequest() {
+    public ProviderInternalTestExecutionRequest getTestExecutionRequest() {
         return this;
     }
 }

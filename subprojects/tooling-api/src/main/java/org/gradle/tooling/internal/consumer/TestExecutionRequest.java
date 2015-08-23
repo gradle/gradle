@@ -22,7 +22,7 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.OperationDescriptorWrapper;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequestVersion2;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
 import org.gradle.util.CollectionUtils;
 
@@ -31,7 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class TestExecutionRequest implements InternalTestExecutionRequestVersion2 {
+public class TestExecutionRequest implements InternalTestExecutionRequest {
     private final Collection<InternalTestDescriptor> testDescriptors;
     private final Collection<String> testClassNames;
     private final Collection<InternalTestMethod> testMethods;
@@ -54,7 +54,6 @@ public class TestExecutionRequest implements InternalTestExecutionRequestVersion
         return testClassNames;
     }
 
-    @Override
     public Collection<InternalTestMethod> getTestMethods() {
         return testMethods;
     }
