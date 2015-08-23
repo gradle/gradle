@@ -29,7 +29,7 @@ import org.gradle.execution.BuildConfigurationAction;
 import org.gradle.execution.BuildExecutionContext;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
-import org.gradle.tooling.internal.provider.ProviderInternalTestExecutionRequest;
+import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 
 import java.util.*;

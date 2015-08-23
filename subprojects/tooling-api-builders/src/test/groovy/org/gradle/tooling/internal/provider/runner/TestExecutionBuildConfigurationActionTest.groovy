@@ -27,7 +27,7 @@ import org.gradle.api.tasks.testing.TestFilter
 import org.gradle.execution.BuildExecutionContext
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod
-import org.gradle.tooling.internal.provider.ProviderInternalTestExecutionRequest
+import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor
 import spock.lang.Specification
 import spock.lang.Unroll

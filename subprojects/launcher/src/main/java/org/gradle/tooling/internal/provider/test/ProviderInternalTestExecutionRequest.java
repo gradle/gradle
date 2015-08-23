@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.provider.test;
 
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
@@ -22,7 +22,7 @@ import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
 import java.util.Collection;
 
 /**
- * @since 2.6-rc-1
+ * @since 2.7-rc-1
  */
 public interface ProviderInternalTestExecutionRequest {
     Collection<InternalTestDescriptor> getTestExecutionDescriptors();

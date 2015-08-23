@@ -18,8 +18,12 @@ package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.StartParameter;
+import org.gradle.api.Transformer;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
+import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
+import org.gradle.tooling.internal.provider.test.ProviderInternalTestMethod;
+import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -40,8 +44,16 @@ public class TestExecutionRequestAction extends SubscribableBuildAction implemen
         this.testDescriptors = ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors());
         this.testClassNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
         this.explicitTestClassNames = ImmutableSet.copyOf(testExecutionRequest.getExplicitRequestedTestClassNames(testExecutionRequest.getTestClassNames()));
-        final List<InternalTestMethod> defaultTestMethods = Collections.emptyList();
-        this.testMethods = ImmutableSet.copyOf(testExecutionRequest.getTestMethods(defaultTestMethods));
+        this.testMethods = ImmutableSet.copyOf(toProviderInternalTestMethod(testExecutionRequest.getTestMethods(Collections.<InternalTestMethod>emptyList())));
+    }
+
+    private List<InternalTestMethod> toProviderInternalTestMethod(Collection<InternalTestMethod> internalTestMethods) {
+        return CollectionUtils.collect(internalTestMethods, new Transformer<InternalTestMethod, InternalTestMethod>() {
+            @Override
+            public InternalTestMethod transform(InternalTestMethod internalTestMethod) {
+                return new ProviderInternalTestMethod(internalTestMethod.getClassName(), internalTestMethod.getMethodName());
+            }
+        });
     }
 
     @Override

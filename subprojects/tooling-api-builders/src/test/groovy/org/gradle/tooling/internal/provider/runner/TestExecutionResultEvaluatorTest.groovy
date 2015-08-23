@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.tasks.testing.TestExecutionException
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.progress.OperationStartEvent
-import org.gradle.tooling.internal.provider.ProviderInternalTestExecutionRequest
+import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor
 import spock.lang.Specification

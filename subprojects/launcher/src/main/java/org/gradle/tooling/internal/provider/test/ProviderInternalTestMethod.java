@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.provider.test;
 
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
 
-public class DefaultTestMethod implements InternalTestMethod {
+public class ProviderInternalTestMethod implements InternalTestMethod {
     private final String className;
     private final String methodName;
 
-    public DefaultTestMethod(String className, String methodName) {
+    public ProviderInternalTestMethod(String className, String methodName) {
         this.className = className;
         this.methodName = methodName;
     }
 
+    @Override
     public String getClassName() {
         return className;
     }
 
+    @Override
     public String getMethodName() {
         return methodName;
     }

@@ -15,7 +15,9 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.Transformer;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.DefaultBuildCancellationToken;
@@ -27,21 +29,29 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.internal.adapter.MethodInvocation;
+import org.gradle.tooling.internal.adapter.MethodInvoker;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
+import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
 import org.gradle.tooling.internal.provider.connection.BuildLogLevelMixIn;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
+import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
+import org.gradle.tooling.internal.provider.test.ProviderInternalTestMethod;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Collection;
 
 public class DefaultConnection implements InternalConnection, BuildActionRunner,
     ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection {
@@ -197,7 +207,30 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     public BuildResult<?> runTests(InternalTestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         validateCanRun();
-        final ProviderInternalTestExecutionRequest testExecutionRequestVersion2 = protocolToModelAdapter.adapt(ProviderInternalTestExecutionRequest.class, testExecutionRequest);
+        final ProviderInternalTestExecutionRequest testExecutionRequestVersion2 = protocolToModelAdapter.adapt(ProviderInternalTestExecutionRequest.class, testExecutionRequest, new Action<SourceObjectMapping>() {
+            @Override
+            public void execute(SourceObjectMapping sourceObjectMapping) {
+                sourceObjectMapping.mixIn(new MethodInvoker() {
+                    @Override
+                    public void invoke(MethodInvocation invocation) throws Throwable {
+                        if (invocation.getName().equals("getTestMethods")) {
+                            final Collection<InternalTestMethod> consumerTestMethods = (Collection<InternalTestMethod>) invocation.getResult();
+                            final Object delegate = invocation.getDelegate();
+                            if(invocation.found()){
+                                invocation.setResult(CollectionUtils.collect(consumerTestMethods, new Transformer<InternalTestMethod, InternalTestMethod>() {
+                                    @Override
+                                    public InternalTestMethod transform(InternalTestMethod internalTestMethod) {
+                                        return new ProviderInternalTestMethod(internalTestMethod.getClassName(), internalTestMethod.getMethodName());
+                                    }
+                                }));
+                            }
+
+
+                        }
+                    }
+                });
+            }
+        });
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object results = connection.runTests(testExecutionRequestVersion2, buildCancellationToken, providerParameters);
