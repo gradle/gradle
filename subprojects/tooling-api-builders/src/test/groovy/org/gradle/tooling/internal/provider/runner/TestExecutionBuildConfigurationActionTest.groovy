@@ -59,27 +59,39 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         testTask = Mock()
         testFilter = Mock()
 
-        1 * gradleInternal.getTaskGraph() >> taskGraphExecuter
-        _ * projectInternal.getAllprojects() >> [projectInternal]
+        setupProject()
+        setupTestTask()
     }
 
-    def "configures taskgraph"() {
-        emptyTestRequest()
+    private void setupProject() {
+        1 * gradleInternal.getTaskGraph() >> taskGraphExecuter
+        1 * buildContext.getGradle() >> gradleInternal
+        _ * gradleInternal.getRootProject() >> projectInternal
+    }
+
+    def "empty test execution request configures no tasks"() {
+        1 * testExecutionRequest.getTestExecutionDescriptors() >> []
+        1 * testExecutionRequest.getExplicitRequestedTestClassNames(_) >> []
+        1 * testExecutionRequest.getTestMethods(_) >> []
+
         setup:
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
         when:
         buildConfigurationAction.configure(buildContext)
         then:
-        1 * taskGraphExecuter.addTasks(_)
+        0 * projectInternal.getAllprojects() >> [projectInternal]
+        _ * taskGraphExecuter.addTasks({args  ->  assert args.size() == 0})
     }
 
     @Unroll
     def "sets test filter with information from #requestType"() {
         setup:
-        testTask()
-        _ * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
-        _ * testExecutionRequest.getExplicitRequestedTestClassNames(_) >> testclasses
-        _ * testExecutionRequest.getTestMethods(_) >> testMethods
+        _ * projectInternal.getAllprojects() >> [projectInternal]
+
+        1 * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
+        1 * testExecutionRequest.getExplicitRequestedTestClassNames(_) >> testclasses
+        1 * testExecutionRequest.getTestMethods(_) >> testMethods
+
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
         when:
         buildConfigurationAction.configure(buildContext)
@@ -103,14 +115,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         testMethod
     }
 
-    private void emptyTestRequest() {
-        1 * testExecutionRequest.getTestExecutionDescriptors() >> []
-        1 * testExecutionRequest.getExplicitRequestedTestClassNames(_) >> []
-        1 * testExecutionRequest.getTestMethods(_) >> []
-    }
-
-    private void testTask() {
-        _ * buildContext.getGradle() >> gradleInternal
+    private void setupTestTask() {
         _ * projectInternal.getTasks() >> tasksContainerInternal
         _ * testTask.getFilter() >> testFilter
         _ * tasksContainerInternal.findByPath(TEST_TASK_NAME) >> testTask
@@ -119,7 +124,6 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         _ * testTaskCollection.toArray() >> [testTask].toArray()
         _ * tasksContainerInternal.withType(Test) >> testTaskCollection
         _ * testTask.getOutputs() >> outputsInternal
-        _ * gradleInternal.getRootProject() >> projectInternal
     }
 
     private DefaultTestDescriptor testDescriptor() {
