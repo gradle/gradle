@@ -18,7 +18,9 @@ package org.gradle.tooling.internal.provider.test;
 
 import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
 
-public class ProviderInternalTestMethod implements InternalTestMethod {
+import java.io.Serializable;
+
+public class ProviderInternalTestMethod implements InternalTestMethod, Serializable {
     private final String className;
     private final String methodName;
 
