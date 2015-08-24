@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import net.jcip.annotations.NotThreadSafe;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
@@ -28,23 +29,36 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
     private static final DefaultModelSchemaStore INSTANCE = new DefaultModelSchemaStore(new ModelSchemaExtractor());
 
     final ModelSchemaCache cache = new ModelSchemaCache();
-    final ModelSchemaExtractor extractor;
+    final ModelSchemaExtractor schemaExtractor;
+    private final ModelTypeExtractor typeExtractor;
 
     public static DefaultModelSchemaStore getInstance() {
         return INSTANCE;
     }
 
-    public DefaultModelSchemaStore(ModelSchemaExtractor extractor) {
-        this.extractor = extractor;
+    public DefaultModelSchemaStore(ModelSchemaExtractor schemaExtractor) {
+        this(schemaExtractor, ModelTypeExtractor.NO_OP);
+    }
+
+    public DefaultModelSchemaStore(ModelSchemaExtractor schemaExtractor, ModelTypeExtractor typeExtractor) {
+        this.schemaExtractor = schemaExtractor;
+        this.typeExtractor = typeExtractor;
     }
 
     public <T> ModelSchema<T> getSchema(ModelType<T> type) {
-        return extractor.extract(type, this, cache);
+        ModelType<T> schemaType = Cast.uncheckedCast(typeExtractor.extractFromType(type));
+        return schemaExtractor.extract(schemaType, this, cache);
     }
 
     @Override
     public <T> ModelSchema<T> getSchema(Class<T> type) {
         return getSchema(ModelType.of(type));
+    }
+
+    @Override
+    public <T> ModelSchema<? super T> getInstanceSchema(T instance) {
+        ModelType<? super T> type = ManagedInstanceTypeUtils.extractModelTypeFromInstance(instance);
+        return getSchema(type);
     }
 
     @Override

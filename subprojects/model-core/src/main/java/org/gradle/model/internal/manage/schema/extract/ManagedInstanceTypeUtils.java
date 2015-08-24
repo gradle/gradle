@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal;
+package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 
-public class InstanceModelTypeUtils {
-    /**
-     * Returns the declared model type of an object instance. If the object is a {@link ManagedInstance} then
-     * the model type used to create the managed instance is returned. If the object is a {@link DslObject}, its
-     * super-type is returned via {@link DslObject#getDeclaredType()}.
-     */
-    public static <T> ModelType<T> getModelType(T instance) {
+public class ManagedInstanceTypeUtils {
+    public static <T> ModelType<? super T> extractModelTypeFromInstance(T instance) {
         if (instance instanceof ManagedInstance) {
             return Cast.uncheckedCast(((ManagedInstance) instance).getManagedType());
         }
-        Class<?> declaredType = new DslObject(instance).getDeclaredType();
-        return Cast.uncheckedCast(ModelType.of(declaredType));
+        return ModelType.of(Cast.<Class<T>>uncheckedCast(instance.getClass()));
     }
 }

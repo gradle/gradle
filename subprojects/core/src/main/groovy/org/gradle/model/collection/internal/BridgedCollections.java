@@ -21,7 +21,7 @@ import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
 import org.gradle.internal.BiAction;
-import org.gradle.model.internal.InstanceModelTypeUtils;
+import org.gradle.model.internal.DynamicObjectAwareTypeUtils;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
 import org.gradle.model.internal.type.ModelType;
@@ -67,7 +67,7 @@ public abstract class BridgedCollections {
                             if (!containerNode.hasLink(name)) {
                                 ModelCreator itemCreator = ModelCreators
                                     .unmanagedInstanceOf(
-                                        ModelReference.of(containerPath.child(name), InstanceModelTypeUtils.getModelType(item)),
+                                        ModelReference.of(containerPath.child(name), DynamicObjectAwareTypeUtils.extractModelTypeFromInstance(item)),
                                         new ExtractFromParentContainer<I, C>(name, containerType)
                                     )
                                     .descriptor(itemDescriptorGenerator.transform(name))

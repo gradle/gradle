@@ -21,14 +21,12 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.model.internal.InstanceModelTypeUtils;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ModelStructSchema;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -79,8 +77,7 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
     }
 
     protected void renderVariants(T binary, TextReportBuilder builder) {
-        ModelType<?> schemaType = InstanceModelTypeUtils.getModelType(binary);
-        ModelSchema<?> schema = schemaStore.getSchema(schemaType);
+        ModelSchema<?> schema = schemaStore.getInstanceSchema(binary);
         if (!(schema instanceof ModelStructSchema)) {
             return;
         }

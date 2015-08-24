@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema;
+package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.model.internal.type.ModelType;
 
-public interface ModelSchemaStore {
+public interface ModelTypeExtractor {
+    ModelTypeExtractor NO_OP = new ModelTypeExtractor() {
+        @Override
+        public <T> ModelType<? super T> extractFromType(ModelType<T> type) {
+            return type;
+        }
+    };
 
-    <T> ModelSchema<T> getSchema(ModelType<T> type);
-
-    <T> ModelSchema<T> getSchema(Class<T> type);
-
-    <T> ModelSchema<? super T> getInstanceSchema(T instance);
-
-    /**
-     * Remove any cached information for types that have been GC'd.
-     */
-    void cleanUp(); // TODO hook this in to the (daemon) build lifecycle
+    <T> ModelType<? super T> extractFromType(ModelType<T> type);
 }

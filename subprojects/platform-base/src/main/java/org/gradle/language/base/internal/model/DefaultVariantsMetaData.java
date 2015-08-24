@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Named;
-import org.gradle.model.internal.InstanceModelTypeUtils;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -54,8 +53,7 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
     public static VariantsMetaData extractFrom(BinarySpec spec, ModelSchemaStore schemaStore) {
         Map<String, Object> variants = Maps.newLinkedHashMap();
         ImmutableMap.Builder<String, ModelType<?>> dimensionTypesBuilder = ImmutableMap.builder();
-        ModelType<?> specType = InstanceModelTypeUtils.getModelType(spec);
-        ModelSchema<?> schema = schemaStore.getSchema(specType);
+        ModelSchema<?> schema = schemaStore.getInstanceSchema(spec);
         if (schema instanceof ModelStructSchema) {
             VariantAspect variantAspect = ((ModelStructSchema<?>) schema).getAspect(VariantAspect.class);
             if (variantAspect != null) {
