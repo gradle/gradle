@@ -84,6 +84,21 @@ public abstract class GradleRunner {
     }
 
     /**
+     * Sets the Gradle user home directory to use for the build.
+     * <p>
+     * The Gradle user home directory contains dependency caches, and other persistent information.
+     * <p>
+     * Each runner <i>instance</i> is assigned the value of this property.
+     * This is in order to prevent builds under test inheriting any environmental configuration from the current user.
+     * If this property is not provided, a directory inside the JVM's temp directory is picked
+     * (i.e. the location specified by the {@code java.io.tmpdir} system property, typically {@code /tmp}).
+     *
+     * @param gradleUserHomeDir the Gradle “user home” directory to use
+     * @return {@code this}
+     */
+    public abstract GradleRunner withGradleUserHomeDir(File gradleUserHomeDir);
+
+    /**
      * The directory that the build will be executed in.
      * <p>
      * This is analogous to the current directory when executing Gradle from the command line.

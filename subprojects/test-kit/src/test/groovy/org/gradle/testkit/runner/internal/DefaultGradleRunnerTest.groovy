@@ -26,14 +26,12 @@ import spock.lang.Unroll
 
 class DefaultGradleRunnerTest extends Specification {
     File gradleHome = Mock(File)
+    GradleExecutor gradleExecutor = Mock(GradleExecutor)
     GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider = Mock(GradleRunnerWorkingSpaceDirectoryProvider)
     File workingDir = new File('my/tests')
     List<String> arguments = ['compile', 'test', '--parallel', '-Pfoo=bar']
 
     def "provides expected field values"() {
-        given:
-        File gradleUserHome = new File('some/dir')
-
         when:
         DefaultGradleRunner defaultGradleRunner = createRunner()
         defaultGradleRunner.withProjectDir(workingDir).withArguments(arguments)
@@ -41,13 +39,28 @@ class DefaultGradleRunnerTest extends Specification {
         then:
         defaultGradleRunner.projectDir == workingDir
         defaultGradleRunner.arguments == arguments
-        1 * gradleRunnerWorkingSpaceDirectoryProvider.createDir() >> gradleUserHome
+        0 * gradleRunnerWorkingSpaceDirectoryProvider.createDir()
+        !defaultGradleRunner.gradleUserHomeDir
+    }
+
+    def "can set custom Gradle user home directory"() {
+        given:
+        File gradleUserHome = new File('some/dir')
+
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunner()
+        defaultGradleRunner.withProjectDir(workingDir).withGradleUserHomeDir(gradleUserHome)
+
+        then:
+        defaultGradleRunner.projectDir == workingDir
+        0 * gradleRunnerWorkingSpaceDirectoryProvider.createDir()
         defaultGradleRunner.gradleUserHomeDir == gradleUserHome
     }
 
     def "throws exception if working Gradle user home directory cannot be created"() {
         when:
-        createRunner()
+        DefaultGradleRunner defaultGradleRunner = createRunner()
+        defaultGradleRunner.withProjectDir(workingDir).build()
 
         then:
         1 * gradleRunnerWorkingSpaceDirectoryProvider.createDir() >> { throw new UncheckedIOException() }
@@ -140,8 +153,34 @@ $expectedReason
         new RuntimeException('Something went wrong', new GradleException('Unknown command line option', new Exception('Total fail'))) | 'Total fail'                  | 'exception having multiple parent causes'
     }
 
+    def "temporary working space directory is not created if Gradle user home directory is not provided by user when build is requested"() {
+        given:
+        File gradleUserHomeDir = new File('some/dir')
+
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunnerWithWorkingDirAndArgument()
+        defaultGradleRunner.build()
+
+        then:
+        1 * gradleRunnerWorkingSpaceDirectoryProvider.createDir() >> gradleUserHomeDir
+        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, []) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+    }
+
+    def "temporary working space directory is not created if Gradle user home directory is not provided by user when build and fail is requested"() {
+        given:
+        File gradleUserHomeDir = new File('some/dir')
+
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunnerWithWorkingDirAndArgument()
+        defaultGradleRunner.build()
+
+        then:
+        1 * gradleRunnerWorkingSpaceDirectoryProvider.createDir() >> gradleUserHomeDir
+        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, []) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+    }
+
     private DefaultGradleRunner createRunner() {
-        new DefaultGradleRunner(gradleHome, gradleRunnerWorkingSpaceDirectoryProvider)
+        new DefaultGradleRunner(gradleHome, gradleExecutor, gradleRunnerWorkingSpaceDirectoryProvider)
     }
 
     private DefaultGradleRunner createRunnerWithWorkingDirAndArgument() {

@@ -135,6 +135,63 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         assertDaemonsAreStopping()
     }
 
+    def "successfully execute functional test with custom Gradle user home directory"() {
+        buildFile << gradleTestKitDependency()
+        writeTest """
+            package org.gradle.test
+
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskOutcome.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                @Rule final TemporaryFolder testGradleUserHomeDir = new TemporaryFolder()
+
+                File buildFile
+
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
+                }
+
+                def "execute helloWorld task"() {
+                    given:
+                    buildFile << '''
+                        task helloWorld {
+                            doLast {
+                                println 'Hello world!'
+                            }
+                        }
+                    '''
+
+                    when:
+                    def result = GradleRunner.create()
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('helloWorld')
+                        .withGradleUserHomeDir(testGradleUserHomeDir.root)
+                        .build()
+
+                    then:
+                    result.standardOutput.contains('Hello world!')
+                    result.standardError == ''
+                    result.taskPaths(SUCCESS) == [':helloWorld']
+                    result.taskPaths(SKIPPED).empty
+                    result.taskPaths(UP_TO_DATE).empty
+                    result.taskPaths(FAILED).empty
+                }
+            }
+        """
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(":test", ":build")
+        assertDaemonsAreStopping()
+    }
+
     def "functional test fails due to invalid JVM parameter for test execution"() {
         buildFile << gradleTestKitDependency()
         writeTest """

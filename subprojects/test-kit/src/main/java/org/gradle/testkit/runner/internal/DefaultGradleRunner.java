@@ -31,8 +31,9 @@ import java.util.List;
 public class DefaultGradleRunner extends GradleRunner {
 
     public static final String DIAGNOSTICS_MESSAGE_SEPARATOR = "-----";
-    private final GradleExecutor gradleExecutor = new GradleExecutor();
     private final File gradleHome;
+    private final GradleExecutor gradleExecutor;
+    private final GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider;
 
     private File gradleUserHomeDir;
     private File projectDirectory;
@@ -40,26 +41,20 @@ public class DefaultGradleRunner extends GradleRunner {
     private List<String> jvmArguments = new ArrayList<String>();
 
     public DefaultGradleRunner(File gradleHome) {
-        this(gradleHome, new TemporaryGradleRunnerWorkingSpaceDirectoryProvider());
+        this(gradleHome, new TestKitGradleExecutor(), new TemporaryGradleRunnerWorkingSpaceDirectoryProvider());
     }
 
-    DefaultGradleRunner(File gradleHome, GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider) {
+    DefaultGradleRunner(File gradleHome, GradleExecutor gradleExecutor, GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider) {
         this.gradleHome = gradleHome;
-        this.gradleUserHomeDir = createGradleUserHomeDir(gradleRunnerWorkingSpaceDirectoryProvider);
-    }
-
-    private File createGradleUserHomeDir(GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider) {
-        try {
-            return gradleRunnerWorkingSpaceDirectoryProvider.createDir();
-        } catch (UncheckedIOException e) {
-            throw new InvalidRunnerConfigurationException("Unable to create or write to Gradle user home directory for test execution", e);
-        }
+        this.gradleExecutor = gradleExecutor;
+        this.gradleRunnerWorkingSpaceDirectoryProvider = gradleRunnerWorkingSpaceDirectoryProvider;
     }
 
     public File getGradleUserHomeDir() {
         return gradleUserHomeDir;
     }
 
+    @Override
     public DefaultGradleRunner withGradleUserHomeDir(File gradleUserHomeDir) {
         this.gradleUserHomeDir = gradleUserHomeDir;
         return this;
@@ -165,6 +160,10 @@ public class DefaultGradleRunner extends GradleRunner {
             throw new InvalidRunnerConfigurationException("Please specify a project directory before executing the build");
         }
 
+        if (gradleUserHomeDir == null) {
+            gradleUserHomeDir = createGradleUserHomeDir(gradleRunnerWorkingSpaceDirectoryProvider);
+        }
+
         GradleExecutionResult execResult = gradleExecutor.run(
             gradleHome,
             gradleUserHomeDir,
@@ -180,5 +179,13 @@ public class DefaultGradleRunner extends GradleRunner {
             execResult.getStandardError(),
             execResult.getTasks()
         );
+    }
+
+    private File createGradleUserHomeDir(GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider) {
+        try {
+            return gradleRunnerWorkingSpaceDirectoryProvider.createDir();
+        } catch (UncheckedIOException e) {
+            throw new InvalidRunnerConfigurationException("Unable to create or write to Gradle user home directory for test execution", e);
+        }
     }
 }
