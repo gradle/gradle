@@ -119,14 +119,14 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
         PortAllocator portAllocator = FixedAvailablePortAllocator.getInstance()
 
         when:
-        def port1 = portAllocator.assignPort()
+        Integer port1 = portAllocator.assignPort()
 
         then:
         port1 >= PortAllocator.MIN_PRIVATE_PORT
         port1 <= PortAllocator.MAX_PRIVATE_PORT
 
         when:
-        def port2 = portAllocator.assignPort()
+        Integer port2 = portAllocator.assignPort()
 
         then:
         port2 >= PortAllocator.MIN_PRIVATE_PORT
