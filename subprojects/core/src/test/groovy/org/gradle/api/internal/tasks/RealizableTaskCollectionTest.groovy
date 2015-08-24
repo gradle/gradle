@@ -34,16 +34,21 @@ class RealizableTaskCollectionTest extends Specification {
 
         def events = []
 
-        Action mutatorAction = mutator(registry, events, Mock(BasicTask), "tasks.basic")
+        Action mutatorAction = mutator(registry, events, Mock(taskType), taskPath)
 
         registry.createInstance("tasks", Mock(TaskContainer))
         registry.mutate { it.path "tasks" node mutatorAction }
 
         when:
-        new RealizableTaskCollection(BasicTask, Mock(DefaultTaskCollection), project).realizeRuleTaskTypes()
+        new RealizableTaskCollection(realizableType, Mock(DefaultTaskCollection), project).realizeRuleTaskTypes()
 
         then:
-        events == ['created task tasks.basic']
+        events == ["created task $taskPath"]
+
+        where:
+        realizableType | taskType  | taskPath
+        BasicTask      | BasicTask | "tasks.basic"
+        BasicTask      | ChildTask | "tasks.basicChild"
     }
 
     def "does not realise a node link for non-realisable types"() {
@@ -81,6 +86,8 @@ class RealizableTaskCollectionTest extends Specification {
 }
 
 class BasicTask extends AbstractTask {}
+
+class ChildTask extends BasicTask {}
 
 class RedundantTask extends AbstractTask {}
 

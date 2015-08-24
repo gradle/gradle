@@ -16,7 +16,6 @@
 
 package org.gradle.execution.taskgraph
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -105,7 +104,6 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec impl
         result.executedTasks.containsAll([':customClimbTask', ':climbTask', ':customJumpTask', ':jumpTask', ':customEchoTask', ':echoTask'])
     }
 
-    @NotYetImplemented
     @Issue("GRADLE-3318")
     def "can reference rule-source tasks from sub-projects"() {
         given:
@@ -136,9 +134,9 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         output.contains(":sub1:generatePomFileForMavenPublication")
-        output.contains(":sub1:publishMavenPublicationToMavenRepository")
+        output.contains(":sub1:publishMavenPublicationToMavenLocal")
         output.contains(":sub2:generatePomFileForMavenPublication")
-        output.contains(":sub2:publishMavenPublicationToMavenRepository")
+        output.contains(":sub2:publishMavenPublicationToMavenLocal")
         output.contains(":customPublish")
     }
 }
