@@ -46,7 +46,8 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     public void realizeRuleTaskTypes() {
         ModelNode modelNode = project.getModelRegistry().atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.SelfClosed);
         MutableModelNode taskContainerNode = (MutableModelNode) modelNode;
-        for (MutableModelNode node : taskContainerNode.getLinks(ModelType.of(type))) {
+        Iterable<? extends MutableModelNode> links = taskContainerNode.getLinks(ModelType.of(type));
+        for (MutableModelNode node : links) {
             project.getModelRegistry().realizeNode(node.getPath());
         }
     }

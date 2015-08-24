@@ -106,34 +106,6 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec impl
     }
 
     @NotYetImplemented
-    def "Only one rule source task is realized given rule source tasks of other types exist"() {
-        given:
-        buildFile << """
-        ${ruleBasedTasks()}
-
-        class Rules extends RuleSource {
-            @Mutate
-            void addTasks(ModelMap<Task> tasks) {
-                tasks.create("climbTask", ClimbTask) { steps = 1 }
-                tasks.create("jumpTask", JumpTask) { }
-            }
-        }
-        apply type: Rules
-
-        task customTask << { }
-        customTask.dependsOn tasks.withType(ClimbTask)
-        """
-
-        when:
-        withDebugLogging()
-        succeeds('customTask')
-
-        then:
-        output.contains("Realizing rule based task at path: tasks.climbTask of type class ClimbTask")
-        !output.contains("Realizing rule based task at path: tasks.jumpTask")
-    }
-
-    @NotYetImplemented
     @Issue("GRADLE-3318")
     def "can reference rule-source tasks from sub-projects"() {
         given:
