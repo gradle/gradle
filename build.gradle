@@ -89,6 +89,14 @@ ext {
         ext.useIncomingDistributions = false
     }
 
+    agentNum = 1
+    if (System.getenv().containsKey("USERNAME")) {
+        def agentNumEnv = System.getenv("USERNAME") - "tcagent"
+        if (agentNumEnv ==~ /\d+/) {
+            agentNum = agentNumEnv
+        }
+    }
+
     internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions", "performance"] }
     groovyProjects = subprojects
     publicGroovyProjects = groovyProjects - internalProjects

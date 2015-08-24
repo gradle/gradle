@@ -46,7 +46,7 @@ testTasks.all { task ->
         maxParallelForks = rootProject.maxParallelForks
         systemProperties['org.gradle.test.maxParallelForks'] = maxParallelForks
         systemProperties['org.gradle.ci.agentCount'] = 2
-        systemProperties['org.gradle.ci.agentNum'] = System.getenv('AGENT_NUMBER')?:1
+        systemProperties['org.gradle.ci.agentNum'] = rootProject.agentNum
         doFirst {
             println "maxParallelForks for '$task.path' is $task.maxParallelForks"
         }

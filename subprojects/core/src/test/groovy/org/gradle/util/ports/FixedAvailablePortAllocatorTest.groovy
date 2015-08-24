@@ -136,7 +136,7 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
         port2 != port1
 
         cleanup:
-        portAllocator.releasePort(port1)
-        portAllocator.releasePort(port2)
+        port1 && portAllocator.releasePort(port1)
+        port2 && portAllocator.releasePort(port2)
     }
 }
