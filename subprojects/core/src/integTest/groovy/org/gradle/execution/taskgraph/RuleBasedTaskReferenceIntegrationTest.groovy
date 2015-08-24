@@ -127,7 +127,7 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec impl
             }
         }
 
-        task customPublish(dependsOn:  subprojects.collect { Project p -> p.tasks.withType(PublishToMavenLocal)})
+        task customPublish(dependsOn: subprojects.collect { Project p -> p.tasks.withType(PublishToMavenLocal)})
 """
         when:
         succeeds('clean', 'build', 'customPublish')
@@ -138,5 +138,36 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec impl
         output.contains(":sub2:generatePomFileForMavenPublication")
         output.contains(":sub2:publishMavenPublicationToMavenLocal")
         output.contains(":customPublish")
+    }
+
+    def "can depend on a rule-source task in a project which has already evaluated"() {
+        given:
+        settingsFile << 'include "sub1", "sub2"'
+        buildFile << """
+        ${ruleBasedTasks()}
+
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("climbTask", ClimbTask) { }
+            }
+        }
+
+        project("sub1") {
+            apply type: Rules
+        }
+
+        project("sub2") {
+            task customTask  {
+                dependsOn project(":sub1").tasks.withType(ClimbTask)
+            }
+        }
+        """
+
+        when:
+        succeeds('customTask')
+
+        then:
+        result.executedTasks.containsAll([':sub2:customTask', ':sub1:climbTask'])
     }
 }
