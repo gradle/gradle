@@ -49,7 +49,6 @@ public class Install {
             public File call() throws Exception {
                 final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
                 if (distDir.isDirectory() && markerFile.isFile()) {
-                    verifyDownloadChecksum(configuration.getDistribution().toString(), localZipFile, distributionSha256Sum);
                     return getAndVerifyDistributionRoot(distDir, distDir.getAbsolutePath());
                 }
 
