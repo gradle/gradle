@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
@@ -26,6 +27,7 @@ class GradleRunnerCustomGradleUserHomeIntegrationTest extends AbstractGradleRunn
     @Rule
     TestNameTestDirectoryProvider gradleUserHomeDir = new TestNameTestDirectoryProvider()
 
+    @LeaksFileHandles
     def "can execute build with provided custom Gradle user home directory multiple times"() {
         given:
         buildFile << helloWorldTask()
