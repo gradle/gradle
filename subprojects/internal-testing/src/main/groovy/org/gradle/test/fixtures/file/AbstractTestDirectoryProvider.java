@@ -16,8 +16,8 @@
 
 package org.gradle.test.fixtures.file;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.util.CleanupTestDirectory;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -51,44 +51,30 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     public Statement apply(final Statement base, Description description) {
         Class<?> testClass = description.getTestClass();
         init(description.getMethodName(), testClass.getSimpleName());
-        boolean leaksHandles =
-                testClass.getAnnotation(LeaksFileHandles.class) != null
-                        || description.getAnnotation(LeaksFileHandles.class) != null;
-        // For now, assume that all tests run with the daemon executer leak file handles
-        // This seems to be true for any test that uses `GradleExecuter.requireOwnGradleUserHomeDir`
-        leaksHandles = leaksHandles
-                        || "daemon".equals(System.getProperty("org.gradle.integtest.executer"));
-        return new TestDirectoryCleaningStatement(base, getTestDirectory(), leaksHandles, description.getDisplayName());
+
+        boolean cleansUpWithInterceptor =
+                testClass.getAnnotation(CleanupTestDirectory.class) != null
+                    || description.getAnnotation(CleanupTestDirectory.class) != null;
+        TestDirectoryCleaner testDirectoryCleaner = cleansUpWithInterceptor ? null : new TestDirectoryCleaner(getTestDirectory(), testClass, description);
+
+        return new TestDirectoryCleaningStatement(base, testDirectoryCleaner);
     }
 
     private class TestDirectoryCleaningStatement extends Statement {
 
         private final Statement base;
-        private final TestFile testDirectory;
-        private final boolean leaksHandles;
-        private final String displayName;
+        private final TestDirectoryCleaner testDirectoryCleaner;
 
-        private TestDirectoryCleaningStatement(Statement base, TestFile testDirectory, boolean leaksHandles, String displayName) {
+        public TestDirectoryCleaningStatement(Statement base, TestDirectoryCleaner testDirectoryCleaner) {
             this.base = base;
-            this.testDirectory = testDirectory;
-            this.leaksHandles = leaksHandles;
-            this.displayName = displayName;
+            this.testDirectoryCleaner = testDirectoryCleaner;
         }
 
         @Override
         public void evaluate() throws Throwable {
             base.evaluate();
-            try {
-                if (testDirectory.exists()) {
-                    FileUtils.forceDelete(testDirectory);
-                }
-            } catch (Exception e) {
-                if (leaksHandles) {
-                    System.err.println("Couldn't delete test dir for " + displayName + " (test is holding files open)");
-                    e.printStackTrace(System.err);
-                } else {
-                    throw e;
-                }
+            if (testDirectoryCleaner != null) {
+                testDirectoryCleaner.cleanup();
             }
         }
     }

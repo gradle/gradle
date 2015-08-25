@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import org.gradle.util.CleanupTestDirectory
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,6 +35,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
  *
  * Plan is to bring features over as needed.
  */
+@CleanupTestDirectory
 class AbstractIntegrationSpec extends Specification implements TestDirectoryProvider {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
