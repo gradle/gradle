@@ -51,7 +51,7 @@ public class LineBufferingOutputStream extends OutputStream {
      */
     public void close() throws IOException {
         hasBeenClosed = true;
-        flush();
+        flushInternal();
         handler.endOfStream(null);
     }
 
@@ -80,9 +80,7 @@ public class LineBufferingOutputStream extends OutputStream {
 
         buf[count] = (byte) b;
         count++;
-        if (endsWithLineSeparator()) {
-            flush();
-        }
+        flush();
     }
 
     private boolean endsWithLineSeparator() {
@@ -98,6 +96,12 @@ public class LineBufferingOutputStream extends OutputStream {
     }
 
     public void flush() {
+        if (endsWithLineSeparator()) {
+            flushInternal();
+        }
+    }
+
+    private void flushInternal() {
         if (count != 0) {
             handler.text(new String(buf, 0, count));
         }
