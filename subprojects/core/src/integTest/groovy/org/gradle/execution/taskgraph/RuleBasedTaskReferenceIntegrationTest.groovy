@@ -15,12 +15,7 @@
  */
 
 package org.gradle.execution.taskgraph
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
-import spock.lang.Issue
-
-import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
@@ -105,44 +100,6 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec impl
         result.executedTasks.containsAll([':customClimbTask', ':climbTask', ':customJumpTask', ':jumpTask', ':customEchoTask', ':echoTask'])
     }
 
-    @Issue("GRADLE-3318")
-    @Ignore
-    //TODO fails on command line: ./gradlew core:integTest --tests **RuleBasedTaskReferenceIntegrationTest*
-    def "can reference rule-source tasks from sub-projects"() {
-        given:
-        def repo = file("maven").createDir()
-        settingsFile << 'include "sub1", "sub2"'
-
-        buildFile << """
-        subprojects{
-            apply plugin: "java"
-            apply plugin: "maven-publish"
-
-            publishing {
-                repositories{ maven{ url '${normaliseFileSeparators(repo.getAbsolutePath())}'}}
-                publications {
-                    maven(MavenPublication) {
-                        groupId 'org.gradle.sample'
-                        version '1.1'
-                        from components.java
-                    }
-                }
-            }
-        }
-
-        task customPublish(dependsOn: subprojects.collect { Project p -> p.tasks.withType(PublishToMavenLocal)})
-"""
-        when:
-        succeeds('clean', 'build', 'customPublish')
-
-        then:
-        output.contains(":sub1:generatePomFileForMavenPublication")
-        output.contains(":sub1:publishMavenPublicationToMavenLocal")
-        output.contains(":sub2:generatePomFileForMavenPublication")
-        output.contains(":sub2:publishMavenPublicationToMavenLocal")
-        output.contains(":customPublish")
-    }
-
     def "can depend on a rule-source task in a project which has already evaluated"() {
         given:
         settingsFile << 'include "sub1", "sub2"'
@@ -168,7 +125,7 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when:
-        succeeds('customTask')
+        succeeds('sub2:customTask')
 
         then:
         result.executedTasks.containsAll([':sub2:customTask', ':sub1:climbTask'])
