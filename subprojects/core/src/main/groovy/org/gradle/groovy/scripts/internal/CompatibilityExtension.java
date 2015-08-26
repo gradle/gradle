@@ -29,7 +29,7 @@ import java.util.List;
  */
 public class CompatibilityExtension {
     /**
-     * Added to prevent the following error to happen:
+     * Added to prevent the following error from happening:
      * <pre>
      *     Cannot resolve which method to invoke for [null] due to overlapping prototypes between:
      *     [interface java.util.Collection]
@@ -42,14 +42,22 @@ public class CompatibilityExtension {
         if (o==null || o instanceof Collection) {
             return collection.addAll((Collection<T>) o);
         } else if (o instanceof Iterable) {
+            boolean s = true;
+            boolean added = false;
             for (Object e : (Iterable) o) {
-                collection.add((T) e);
+                added = true;
+                s &= collection.add((T) e);
             }
+            return added && s;
         } else if (o instanceof Iterator) {
             Iterator<T> it = (Iterator<T>) o;
+            boolean s = true;
+            boolean added = false;
             while (it.hasNext()) {
-                collection.add(it.next());
+                added = true;
+                s &= collection.add(it.next());
             }
+            return added && s;
         } else if (o.getClass().isArray()) {
             // we're using DGM#asType here because primitive arrays cannot be cast to Object[]
             return Collections.addAll(collection, (T[]) DefaultGroovyMethods.asType(o, Object[].class));
