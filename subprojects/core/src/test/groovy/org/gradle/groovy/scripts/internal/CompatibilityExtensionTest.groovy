@@ -21,7 +21,7 @@ import spock.lang.Unroll
 
 class CompatibilityExtensionTest extends Specification {
     @Unroll
-    def "should not throw error if calling #type.addAll(null)"() {
+    def "should not throw error if calling #type .addAll(null)"() {
         given:
         def collection = Mock(type)
 
@@ -30,5 +30,31 @@ class CompatibilityExtensionTest extends Specification {
 
         where:
         type << [List, LinkedList, ArrayList]
+    }
+
+    @Unroll
+    def "should not throw error if calling List.addAll(#value)"() {
+        given:
+        def list = []
+
+        expect:
+        // directly calling the extension here, because it should in theory
+        // not happen from Groovy code, but we wrote the code in order to make
+        // sure this doesn't happen from user build code
+        CompatibilityExtension.addAll(list, value) == added
+
+        and:
+        list == result
+
+        where:
+        value                                             | added | result
+        []                                                | false | []
+        ['a']                                             | true  | ['a']
+        ['a'] as String[]                                 | true  | ['a']
+        Mock(Iterator)                                    | false | []
+        [iterator: { [].iterator() }] as Iterable         | false | []
+        ['a', 'b'].iterator()                             | true  | ['a', 'b']
+        [iterator: { ['a', 'b'].iterator() }] as Iterable | true  | ['a', 'b']
+        'object'                                          | true  | ['object']
     }
 }
