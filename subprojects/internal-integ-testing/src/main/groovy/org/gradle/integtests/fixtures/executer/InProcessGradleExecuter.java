@@ -203,7 +203,8 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
                 startParameter.getLogLevel(),
                 DaemonUsage.EXPLICITLY_DISABLED,
                 startParameter.isContinuous(),
-                interactive
+                interactive,
+                classpath
             );
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(
                 new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),

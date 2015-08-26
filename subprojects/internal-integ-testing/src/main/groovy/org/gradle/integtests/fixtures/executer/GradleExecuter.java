@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
 import java.io.PipedOutputStream;
+import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -337,6 +338,11 @@ public interface GradleExecuter {
      * Forces Gradle to consider the build to be interactive
      */
     GradleExecuter withForceInteractive(boolean flag);
+
+    /**
+     * Injects additional classpath URIs used to search for classes.
+     */
+    GradleExecuter withClasspath(List<URI> classpath);
 
     boolean isDebug();
 

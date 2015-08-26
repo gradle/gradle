@@ -47,7 +47,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
             throw new UnsupportedVersionException("Continuous build requires Tooling API client version 2.1 or later.");
         }
         BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
-            System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false);
+            System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false, parameters.getClasspath());
         try {
             return executer.execute(action, buildRequestContext, actionParameters, contextServices);
         } catch (ReportedException e) {

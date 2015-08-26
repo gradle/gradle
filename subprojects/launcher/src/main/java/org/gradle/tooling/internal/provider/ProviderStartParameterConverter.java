@@ -94,6 +94,10 @@ class ProviderStartParameterConverter {
             startParameter.setLogLevel(parameters.getBuildLogLevel());
         }
 
+        if (parameters.getClasspath() != null) {
+            startParameter.setClasspath(parameters.getClasspath());
+        }
+
         return startParameter;
     }
 }

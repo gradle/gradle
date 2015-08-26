@@ -19,6 +19,8 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.launcher.daemon.configuration.DaemonUsage;
 
 import java.io.File;
+import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 public interface BuildActionParameters {
@@ -35,4 +37,6 @@ public interface BuildActionParameters {
     boolean isContinuous();
 
     boolean isInteractive();
+
+    List<URI> getClasspath();
 }

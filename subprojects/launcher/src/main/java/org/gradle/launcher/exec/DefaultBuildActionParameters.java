@@ -21,7 +21,9 @@ import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.Serializable;
+import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DefaultBuildActionParameters implements BuildActionParameters, Serializable {
@@ -32,8 +34,10 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final DaemonUsage daemonUsage;
     private final boolean continuous;
     private final boolean interactive;
+    private final List<URI> classpath;
 
-    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean continuous, boolean interactive) {
+    public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean continuous, boolean interactive,
+                                        List<URI> classpath) {
         this.currentDir = currentDir;
         this.logLevel = logLevel;
         this.continuous = continuous;
@@ -44,6 +48,7 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         this.envVariables = new HashMap<String, String>(envVariables);
         this.daemonUsage = daemonUsage;
         this.interactive = interactive;
+        this.classpath = classpath;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -72,6 +77,7 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
                 + ", daemonUsage=" + daemonUsage
                 + ", continuous=" + continuous
                 + ", interactive=" + interactive
+                + ", classpath=" + classpath
                 + '}';
     }
 
@@ -86,5 +92,9 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
 
     public boolean isInteractive() {
         return interactive;
+    }
+
+    public List<URI> getClasspath() {
+        return classpath;
     }
 }
