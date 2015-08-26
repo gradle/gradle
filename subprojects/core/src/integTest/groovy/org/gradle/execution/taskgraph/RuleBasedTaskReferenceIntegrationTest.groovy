@@ -15,6 +15,7 @@
  */
 
 package org.gradle.execution.taskgraph
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
@@ -129,5 +130,32 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         result.executedTasks.containsAll([':sub2:customTask', ':sub1:climbTask'])
+    }
+
+    def "can depend on a rule-source task after a project has been evaluated"() {
+        given:
+        buildFile << """
+        ${ruleBasedTasks()}
+
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("climbTask", ClimbTask) { }
+            }
+        }
+        apply type: Rules
+
+        task customTask << { }
+
+        afterEvaluate {
+            customTask.dependsOn tasks.withType(ClimbTask)
+        }
+        """
+
+        when:
+        succeeds('customTask')
+
+        then:
+        result.executedTasks.containsAll([':customTask', ':climbTask'])
     }
 }
