@@ -75,5 +75,5 @@ public interface ProviderOperationParameters {
 
     List<InternalLaunchable> getLaunchables(List<InternalLaunchable> defaultLaunchables);
 
-    List<URI> getClasspath();
+    List<URI> getClasspath(List<URI> classpath);
 }
