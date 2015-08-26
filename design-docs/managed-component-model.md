@@ -109,7 +109,7 @@ between the implementation of component, binary and source set type registration
 
 ## Plugin author declares internal views for extensible type
 
-Given a plugin defines a general purpose type that is then extended by another plugin, allow internal views to be declared for the general type as well as the 
+Given a plugin defines a general purpose type that is then extended by another plugin, allow internal views to be declared for the general type as well as the
 specialized type. For example:
 
     class BasePlugin extends RuleSource {
@@ -128,7 +128,7 @@ specialized type. For example:
         }
     }
 
-The views defined for the general type should also be applied to the specialized type. So, in the example above, every instance of `CustomType` should have the 
+The views defined for the general type should also be applied to the specialized type. So, in the example above, every instance of `CustomType` should have the
 `BaseTypeInternal` view applied to it.
 
 - Allow for all types that support registration.
@@ -139,7 +139,7 @@ The views defined for the general type should also be applied to the specialized
 ## Plugin author declares default implementation for extensible type
 
 Given a plugin defines a general type, allow the plugin to provide a default implementation the general type.
-This default implementation is then used as the super class for all `@Managed` subtype of the general type. For example: 
+This default implementation is then used as the super class for all `@Managed` subtype of the general type. For example:
 
     class BasePlugin extends RuleSource {
         @ComponentType
@@ -147,10 +147,10 @@ This default implementation is then used as the super class for all `@Managed` s
             builder.defaultImplementation(BaseTypeInternal.class);
         }
     }
-    
-    @Managed 
+
+    @Managed
     interface CustomType extends BaseType { }
-    
+
     class CustomPlugin extends RuleSource {
         @ComponentType
         public void registerCustomType(ComponentTypeBuilder<CustomType> builder) {
@@ -214,7 +214,7 @@ applied to them regardless of their location in the model.
 
 Non-goal is to provide this as a general capability for arbitrary types.
 
-## Referenced element can be used as input for a rule 
+## Referenced element can be used as input for a rule
 
 For example:
 
@@ -223,7 +223,7 @@ For example:
         Address getAddress()
         void setAddress(Address address)
     }
-    
+
     model {
         person(Person) {
             address = $(...)
@@ -243,7 +243,7 @@ For example:
 
 ### Test cases
 
-- Can bind to target element 
+- Can bind to target element
     - via reference path.
     - by element type.
 - Nice error message when reference is `null`.
@@ -275,7 +275,7 @@ For example:
 - Out of scope: locating referencing elements in the model, in order to inject rules via the references. This is intended to be used internally
 only to implement the top level containers.
 
-## Model containers allow elements to be added as references 
+## Model containers allow elements to be added as references
 
 - Adding a managed element to a model container should be treated as adding a reference to the target element.
 
