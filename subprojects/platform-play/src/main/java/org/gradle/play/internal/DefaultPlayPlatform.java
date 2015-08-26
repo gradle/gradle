@@ -62,4 +62,9 @@ public class DefaultPlayPlatform implements PlayPlatformInternal {
     public String getDependencyNotation(String playModule) {
         return String.format("com.typesafe.play:%s_%s:%s", playModule, scalaPlatform.getScalaCompatibilityVersion(), playVersion);
     }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
 }
