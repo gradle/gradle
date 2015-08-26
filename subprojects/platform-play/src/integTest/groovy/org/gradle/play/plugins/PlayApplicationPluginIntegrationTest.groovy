@@ -16,10 +16,8 @@
 
 package org.gradle.play.plugins
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 import org.junit.Rule
@@ -49,37 +47,6 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
             }
         }
 """
-    }
-
-    def "can register PlayApplicationSpec component"() {
-        when:
-        succeeds "components"
-
-        then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-Play Application 'play'
------------------------
-
-Source sets
-    Java source 'play:java'
-        srcDir: app
-        includes: **/*.java
-    JVM resources 'play:resources'
-        srcDir: conf
-    Routes source 'play:routes'
-        srcDir: conf
-        includes: routes, *.routes
-    Scala source 'play:scala'
-        srcDir: app
-        includes: **/*.scala
-    Twirl template source 'play:twirlTemplates'
-        srcDir: app
-        includes: **/*.html
-
-Binaries
-    Play Application Jar 'playBinary'
-        build using task: :playBinary
-        platform: Play Platform (Play ${DefaultPlayPlatform.DEFAULT_PLAY_VERSION}, Scala: 2.11, Java: Java SE ${JavaVersion.current().majorVersion})"""))
     }
 
     def "cannot register multiple PlayApplicationSpec components"() {
