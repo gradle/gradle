@@ -158,4 +158,32 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec impl
         then:
         result.executedTasks.containsAll([':customTask', ':climbTask'])
     }
+
+    def "a build failure occurs when depending on a rule task with failing configuration"() {
+        given:
+        buildFile << """
+        ${ruleBasedTasks()}
+
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("climbTask", ClimbTask) {
+                    throw new GradleException("Bang")
+                }
+            }
+        }
+        apply type: Rules
+
+        task customTask << { }
+
+        customTask.dependsOn tasks.withType(ClimbTask)
+        """
+
+        when:
+        fails('customTask')
+
+        then:
+        failure.assertHasCause('Bang')
+        failure.assertHasDescription('Exception thrown while executing model rule: Rules#addTasks > create(climbTask)')
+    }
 }
