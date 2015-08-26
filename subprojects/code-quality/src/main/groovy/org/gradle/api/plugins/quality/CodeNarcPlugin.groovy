@@ -20,7 +20,7 @@ import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 
 class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
-    public static final String DEFAULT_CODENARC_VERSION = "0.23"
+    public static final String DEFAULT_CODENARC_VERSION = "0.24.1"
     private CodeNarcExtension extension
 
     @Override

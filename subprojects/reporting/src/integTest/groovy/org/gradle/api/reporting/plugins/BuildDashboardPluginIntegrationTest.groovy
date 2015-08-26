@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -351,7 +352,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':jacocoTestReport', 'html')
     }
 
-    void 'dashboard includes CodeNarc reports'() {
+    @Unroll
+    void 'dashboard includes CodeNarc reports #count'() {
         given:
         goodCode()
         withCodenarc()
@@ -363,6 +365,14 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         reports.size() == 2
         hasReport(':buildDashboard', 'html')
         hasReport(':codenarcMain', 'html')
+
+        and:
+        System.gc()
+        println 'Do IT NOW!!!'
+        Thread.sleep(5000)
+
+        where:
+        count << (0..30)
     }
 
     void hasReport(String task, String name) {

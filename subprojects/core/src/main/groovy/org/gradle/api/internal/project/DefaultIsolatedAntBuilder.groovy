@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.project
-
+import com.google.common.cache.Cache
+import com.google.common.cache.CacheBuilder
 import com.google.common.collect.Lists
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.project.ant.AntLoggingAdapter
-import org.gradle.api.internal.project.ant.BasicAntBuilder
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
+import org.gradle.internal.classloader.CachingClassLoader
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
-import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.ConfigureUtil
-
 // TODO: should be threadsafe; is stateful and of build scope
 
+@CompileStatic
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
 
     private final ClassLoader baseAntLoader
     private final ClassLoader gradleLoader
-    private final Map<ClassPath, ClassLoader> classloaders
+    private final Cache<String, ClassLoader> classloaders
     private final ClassPathRegistry classPathRegistry
     private final ClassLoaderFactory classLoaderFactory
     private final ClassPath libClasspath
@@ -44,7 +45,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         this.classPathRegistry = classPathRegistry
         this.classLoaderFactory = classLoaderFactory
-        this.classloaders = [:]
+        this.classloaders = CacheBuilder.<String, ClassLoader>newBuilder().softValues().build()
         this.libClasspath = new DefaultClassPath()
 
         List<File> antClasspath = Lists.newArrayList(classPathRegistry.getClassPath("ANT").asFiles)
@@ -61,7 +62,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         loggingLoader.allowPackage('org.apache.log4j')
         loggingLoader.allowClass(Logger)
         loggingLoader.allowClass(LogLevel)
-        this.baseAntLoader = new MultiParentClassLoader(antLoader, loggingLoader)
+        this.baseAntLoader = new CachingClassLoader(new MultiParentClassLoader(antLoader, loggingLoader))
 
         // Need gradle core to pick up ant logging adapter, AntBuilder and such
         def gradleCoreUrls = classPathRegistry.getClassPath("GRADLE_CORE")
@@ -69,7 +70,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
 
         // Need Transformer (part of AntBuilder API) from base services
         gradleCoreUrls += classPathRegistry.getClassPath("GRADLE_BASE_SERVICES")
-        this.gradleLoader = new MutableURLClassLoader(baseAntLoader, gradleCoreUrls)
+        this.gradleLoader = new URLClassLoader(gradleCoreUrls.asURLArray, baseAntLoader)
     }
 
     private DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> libClasspath) {
@@ -86,31 +87,41 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     }
 
     void execute(Closure antClosure) {
-        def classLoader = classloaders[libClasspath]
-        if (!classLoader) {
-            classLoader = new URLClassLoader(libClasspath.asURLArray, baseAntLoader)
-            classloaders[libClasspath] = classLoader
-        }
+        // temporarily disable classloader caching to take this out of the debugging story
+        //def classLoader = classloaders.get(libClasspath.asURIs.collect { it.path }.join(":")) {
+        def classLoader =    new URLClassLoader(libClasspath.asURLArray, baseAntLoader)
+        //}
 
+        // This looks ugly, very ugly, but that is apparently what Ant does itself
         ClassLoader originalLoader = Thread.currentThread().contextClassLoader
         Thread.currentThread().contextClassLoader = classLoader
         try {
-            Object antBuilder = gradleLoader.loadClass(BasicAntBuilder.class.name).newInstance()
-
-            Object antLogger = gradleLoader.loadClass(AntLoggingAdapter.class.name).newInstance()
-            antBuilder.project.removeBuildListener(antBuilder.project.getBuildListeners()[0])
-            antBuilder.project.addBuildListener(antLogger)
+            Object antBuilder = newInstanceOf('org.gradle.api.internal.project.ant.BasicAntBuilder')
+            Object antLogger = newInstanceOf('org.gradle.api.internal.project.ant.AntLoggingAdapter')
+            configureAntBuilder(antBuilder, antLogger)
 
             // Ideally, we'd delegate directly to the AntBuilder, but it's Closure class is different to our caller's
             // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
             // because they are not an instanceof it's Closure class
-            Object delegate = new AntBuilderDelegate(antBuilder, classLoader)
-            ConfigureUtil.configure(antClosure, delegate)
+            ConfigureUtil.configure(antClosure, new AntBuilderDelegate(antBuilder, classLoader))
         } finally {
             Thread.currentThread().contextClassLoader = originalLoader
         }
     }
 
+    private Object newInstanceOf(String className) {
+        // we must use a String literal here, otherwise using things like Foo.class.name will trigger unnecessary
+        // loading of classes in the classloader of the DefaultIsolatedAntBuilder, which is not what we want.
+        // also we use getDeclaredConstructor().newInstance() in order to avoid a slower invocation path
+        // with DGM#newInstance which is preferred over Class#newInstance
+        gradleLoader.loadClass(className).getDeclaredConstructor().newInstance()
+    }
+
+    @CompileStatic(TypeCheckingMode.SKIP)
+    private void configureAntBuilder(def antBuilder, def antLogger) {
+        antBuilder.project.removeBuildListener(antBuilder.project.getBuildListeners()[0])
+        antBuilder.project.addBuildListener(antLogger)
+    }
 }
 
 class AntBuilderDelegate extends BuilderSupport {

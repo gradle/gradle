@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
@@ -44,8 +45,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.*;
 
 public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
@@ -75,7 +76,20 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         jointCompilationOptions.put("keepStubs", spec.getGroovyCompileOptions().isKeepStubs());
         configuration.setJointCompilationOptions(jointCompilationOptions);
 
-        URLClassLoader classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), new DefaultClassPath(spec.getClasspath()));
+        ClassLoader classPathLoader;
+        VersionNumber version = parseGroovyVersion();
+        if (version.compareTo(VersionNumber.parse("2.0")) < 0) {
+            // using a transforming classloader is only required for older buggy Groovy versions
+            classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), new DefaultClassPath(spec.getClasspath()));
+        } else {
+            classPathLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader(
+                Iterables.transform(spec.getClasspath(), new Function<File, URI>() {
+                    @Override
+                    public URI apply(File input) {
+                        return input.toURI();
+                    }
+                }));
+        }
         GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
 
         FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
@@ -110,7 +124,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             // All java files are just passed to the compile method of the JavaCompiler and aren't processed internally by the Groovy Compiler.
             // Since we're maintaining our own list of Java files independent what's passed by the Groovy compiler, adding a non-existant java file
             // to the sources won't cause any issues.
-            unit.addSources(new File[] {new File("ForceStubGeneration.java")});
+            unit.addSources(new File[]{new File("ForceStubGeneration.java")});
         }
 
         unit.addSources(Iterables.toArray(spec.getSource(), File.class));

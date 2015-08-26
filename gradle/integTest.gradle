@@ -207,7 +207,8 @@ integTestTasks.all { Test task ->
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
-    jvmArgs '-Xmx512m', '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
+    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError', '-XX:HeapDumpPath=/tmp/dump',
+        '-XX:+CMSClassUnloadingEnabled', '-XX:+UseConcMarkSweepGC', '-XX:+TraceClassUnloading', '-XX:+TraceClassLoading'
 
     reports.junitXml.destination = file("${project.testResultsDir}/$name")
 
