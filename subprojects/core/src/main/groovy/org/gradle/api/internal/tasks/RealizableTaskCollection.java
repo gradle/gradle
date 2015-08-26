@@ -26,14 +26,11 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RealizableTaskCollection<T extends Task> implements TaskCollection<T>, Iterable<T> {
     private final TaskCollection<T> delegate;
     private final Class<T> type;
     private final ProjectInternal project;
-    final AtomicBoolean realized = new AtomicBoolean(false);
-
 
     public RealizableTaskCollection(Class<T> type, TaskCollection<T> delegate, ProjectInternal project) {
         this.delegate = delegate;
@@ -41,14 +38,17 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
         this.project = project;
     }
 
-    private void realizeRuleTaskTypes() {
-        if (realized.compareAndSet(false, true)) {
-            ModelNode modelNode = project.getModelRegistry().atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.SelfClosed);
-            MutableModelNode taskContainerNode = (MutableModelNode) modelNode;
-            Iterable<? extends MutableModelNode> links = taskContainerNode.getLinks(ModelType.of(type));
-            for (MutableModelNode node : links) {
-                project.getModelRegistry().realizeNode(node.getPath());
-            }
+    public Iterable<T> realize() {
+        realizeRuleTaskTypes();
+        return this;
+    }
+
+    public void realizeRuleTaskTypes() {
+        ModelNode modelNode = project.getModelRegistry().atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.SelfClosed);
+        MutableModelNode taskContainerNode = (MutableModelNode) modelNode;
+        Iterable<? extends MutableModelNode> links = taskContainerNode.getLinks(ModelType.of(type));
+        for (MutableModelNode node : links) {
+            project.getModelRegistry().realizeNode(node.getPath());
         }
     }
 
@@ -199,7 +199,6 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
 
     @Override
     public Iterator<T> iterator() {
-        realizeRuleTaskTypes();
         return delegate.iterator();
     }
 
