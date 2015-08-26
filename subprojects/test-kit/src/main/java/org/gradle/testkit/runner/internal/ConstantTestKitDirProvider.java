@@ -18,6 +18,15 @@ package org.gradle.testkit.runner.internal;
 
 import java.io.File;
 
-public interface GradleRunnerWorkingSpaceDirectoryProvider {
-    File createDir();
+class ConstantTestKitDirProvider implements TestKitDirProvider {
+    private final File testKitDir;
+
+    public ConstantTestKitDirProvider(File testKitDir) {
+        this.testKitDir = testKitDir;
+    }
+
+    @Override
+    public File getDir() {
+        return testKitDir;
+    }
 }

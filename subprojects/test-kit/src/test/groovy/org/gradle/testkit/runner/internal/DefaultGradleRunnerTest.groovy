@@ -17,7 +17,6 @@
 package org.gradle.testkit.runner.internal
 
 import org.gradle.api.GradleException
-import org.gradle.api.UncheckedIOException
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.util.TextUtil
@@ -27,7 +26,7 @@ import spock.lang.Unroll
 class DefaultGradleRunnerTest extends Specification {
     File gradleHome = Mock(File)
     GradleExecutor gradleExecutor = Mock(GradleExecutor)
-    GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider = Mock(GradleRunnerWorkingSpaceDirectoryProvider)
+    TestKitDirProvider testKitDirProvider = Mock(TestKitDirProvider)
     File workingDir = new File('my/tests')
     List<String> arguments = ['compile', 'test', '--parallel', '-Pfoo=bar']
 
@@ -39,33 +38,71 @@ class DefaultGradleRunnerTest extends Specification {
         then:
         defaultGradleRunner.projectDir == workingDir
         defaultGradleRunner.arguments == arguments
-        0 * gradleRunnerWorkingSpaceDirectoryProvider.createDir()
-        !defaultGradleRunner.gradleUserHomeDir
+        0 * testKitDirProvider.getDir()
     }
 
-    def "can set custom Gradle user home directory"() {
+    def "can set custom test kit directory"() {
         given:
-        File gradleUserHome = new File('some/dir')
+        File testKitDir = new File('some/dir')
 
         when:
-        DefaultGradleRunner defaultGradleRunner = createRunner()
-        defaultGradleRunner.withProjectDir(workingDir).withGradleUserHomeDir(gradleUserHome)
+        DefaultGradleRunner runner = createRunner()
+            .withProjectDir(workingDir)
+            .withTestKitDir(testKitDir)
 
         then:
-        defaultGradleRunner.projectDir == workingDir
-        0 * gradleRunnerWorkingSpaceDirectoryProvider.createDir()
-        defaultGradleRunner.gradleUserHomeDir == gradleUserHome
+        runner.projectDir == workingDir
+        0 * testKitDirProvider.getDir()
+        runner.testKitDirProvider.dir.is testKitDir
     }
 
-    def "throws exception if working Gradle user home directory cannot be created"() {
+    def "throws exception if test kit dir is not writable"() {
         when:
-        DefaultGradleRunner defaultGradleRunner = createRunner()
-        defaultGradleRunner.withProjectDir(workingDir).build()
+        createRunner().withProjectDir(workingDir).build()
 
         then:
-        1 * gradleRunnerWorkingSpaceDirectoryProvider.createDir() >> { throw new UncheckedIOException() }
+        1 * testKitDirProvider.getDir() >> {
+            Mock(File) {
+                isDirectory() >> true
+                canWrite() >> false
+                getAbsolutePath() >> "path"
+            }
+        }
         Throwable t = thrown(InvalidRunnerConfigurationException)
-        t.message == 'Unable to create or write to Gradle user home directory for test execution'
+        t.message == 'Unable to write to test kit directory: path'
+    }
+
+    def "throws exception if test kit exists and is not dir"() {
+        when:
+        createRunner().withProjectDir(workingDir).build()
+
+        then:
+        1 * testKitDirProvider.getDir() >> {
+            Mock(File) {
+                isDirectory() >> false
+                exists() >> true
+                getAbsolutePath() >> "path"
+            }
+        }
+        Throwable t = thrown(InvalidRunnerConfigurationException)
+        t.message == 'Unable to use non-directory as test kit directory: path'
+    }
+
+    def "throws exception if test kit dir cannot be created"() {
+        when:
+        createRunner().withProjectDir(workingDir).build()
+
+        then:
+        1 * testKitDirProvider.getDir() >> {
+            Mock(File) {
+                isDirectory() >> false
+                exists() >> false
+                mkdirs() >> false
+                getAbsolutePath() >> "path"
+            }
+        }
+        Throwable t = thrown(InvalidRunnerConfigurationException)
+        t.message == 'Unable to create test kit directory: path'
     }
 
     def "returned arguments are unmodifiable"() {
@@ -162,7 +199,7 @@ $expectedReason
         defaultGradleRunner.build()
 
         then:
-        1 * gradleRunnerWorkingSpaceDirectoryProvider.createDir() >> gradleUserHomeDir
+        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
         1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, []) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
     }
 
@@ -175,12 +212,12 @@ $expectedReason
         defaultGradleRunner.build()
 
         then:
-        1 * gradleRunnerWorkingSpaceDirectoryProvider.createDir() >> gradleUserHomeDir
+        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
         1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, []) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
     }
 
     private DefaultGradleRunner createRunner() {
-        new DefaultGradleRunner(gradleHome, gradleExecutor, gradleRunnerWorkingSpaceDirectoryProvider)
+        new DefaultGradleRunner(gradleHome, gradleExecutor, testKitDirProvider)
     }
 
     private DefaultGradleRunner createRunnerWithWorkingDirAndArgument() {

@@ -59,7 +59,7 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
 
     DefaultGradleRunner runner(String... arguments) {
         new DefaultGradleRunner(buildContext.gradleHomeDir)
-            .withGradleUserHomeDir(testKitWorkspace)
+            .withTestKitDir(testKitWorkspace)
             .withProjectDir(testProjectDir.testDirectory)
             .withArguments(arguments)
     }

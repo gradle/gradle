@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.internal.TemporaryGradleRunnerWorkingSpaceDirectoryProvider
+import org.gradle.testkit.runner.internal.TempTestKitDirProvider
 import org.gradle.util.GFileUtils
 
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
@@ -170,7 +170,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
-                        .withGradleUserHomeDir(testGradleUserHomeDir.root)
+                        .withTestKitDir(testGradleUserHomeDir.root)
                         .build()
 
                     then:
@@ -360,7 +360,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
-        File daemonBaseDir = new File(new TemporaryGradleRunnerWorkingSpaceDirectoryProvider().createDir(), 'daemon')
+        File daemonBaseDir = new File(new TempTestKitDirProvider().getDir(), 'daemon')
         DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, executer.distribution.version.version)
     }
 
