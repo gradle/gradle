@@ -37,6 +37,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        events.tests.size() == 12
 
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
@@ -60,6 +61,8 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
         assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
         assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
+        events.tests.size() == 16
+
         assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
         assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
     }
@@ -76,6 +79,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+        events.tests.size() == 14
 
         assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
         assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
@@ -95,6 +99,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+        events.tests.size() == 14
     }
 
     def "fails with meaningful error when requested tests not found"() {
