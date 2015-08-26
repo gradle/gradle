@@ -65,14 +65,6 @@ task foo  {
 }
 ```
 - Build failure when failing to create a rule based task.
-
-e.g.
-
-```groovy
-def t = tasks.withType(ClimbTask)
-customTask.dependsOn t
-```
-
 - Realizing all subtypes of a rule source task - `customTask` should have a dependency on any tasks of type `Child`
 e.g.
 
