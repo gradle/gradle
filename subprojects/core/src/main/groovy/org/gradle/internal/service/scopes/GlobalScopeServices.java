@@ -66,6 +66,7 @@ import org.gradle.model.internal.persist.AlwaysNewModelRegistryStore;
 import org.gradle.model.internal.persist.ModelRegistryStore;
 import org.gradle.model.internal.persist.ReusingModelRegistryStore;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -230,7 +231,7 @@ public class GlobalScopeServices {
     }
 
     protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {
-        return new DefaultModelSchemaStore(modelSchemaExtractor, DynamicObjectAwareTypeUtils.MODEL_TYPE_EXTRACTOR);
+        return new DefaultModelSchemaStore(modelSchemaExtractor, Collections.singleton(DynamicObjectAwareTypeUtils.MODEL_TYPE_EXTRACTOR));
     }
 
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {

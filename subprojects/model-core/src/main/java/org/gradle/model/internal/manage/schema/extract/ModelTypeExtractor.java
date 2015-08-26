@@ -19,12 +19,5 @@ package org.gradle.model.internal.manage.schema.extract;
 import org.gradle.model.internal.type.ModelType;
 
 public interface ModelTypeExtractor {
-    ModelTypeExtractor NO_OP = new ModelTypeExtractor() {
-        @Override
-        public <T> ModelType<? super T> extractFromType(ModelType<T> type) {
-            return type;
-        }
-    };
-
     <T> ModelType<? super T> extractFromType(ModelType<T> type);
 }
