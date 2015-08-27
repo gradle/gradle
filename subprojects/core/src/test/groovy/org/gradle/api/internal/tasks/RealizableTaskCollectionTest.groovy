@@ -87,8 +87,8 @@ class RealizableTaskCollectionTest extends Specification {
 
         when:
         RealizableTaskCollection collection = new RealizableTaskCollection(Class, Mock(TaskCollection), project)
-        collection.iterator()
-        collection.iterator()
+        collection.realizeRuleTaskTypes()
+        collection.realizeRuleTaskTypes()
 
         then:
         1 * registry.atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.SelfClosed) >> node

@@ -41,7 +41,7 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
         this.project = project;
     }
 
-    private void realizeRuleTaskTypes() {
+    public void realizeRuleTaskTypes() {
         if (realized.compareAndSet(false, true)) {
             ModelNode modelNode = project.getModelRegistry().atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.SelfClosed);
             MutableModelNode taskContainerNode = (MutableModelNode) modelNode;
@@ -199,7 +199,6 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
 
     @Override
     public Iterator<T> iterator() {
-        realizeRuleTaskTypes();
         return delegate.iterator();
     }
 
