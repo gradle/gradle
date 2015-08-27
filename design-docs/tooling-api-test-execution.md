@@ -1,9 +1,11 @@
 ## Feature: Test Execution
 
-### Open questions
+## Story: Improved feedback to user on test failure
 
-* Behaviour with continuous build.
-* Behaviour when task no longer exists or no longer contains the requested test, but the test still exists (eg it has moved)
+Fix some feedback issues:
+
+- Currently, when tests fail, the console displays 'BUILD SUCCESSFUL'. The client does receive an exception with the test failure details.
+- Currently, when no tests match the request, the console displays 'BUILD SUCCESSFUL'. The client does receive an exception with the failure details.
 
 ## Story Cache result of test detection in Test task
 
@@ -68,6 +70,7 @@ Debugging is enabled by enabling debug connector via socket;
 - Add `TestLauncher#withDebugEnabled()` and `TestLauncher#withDebugEnabled(int port)`
 
 ### Test coverage
+
 - debug options can be set via `JvmOptions#allJvmArgs` and proper port is picked up
 - can invoke test task with debug enabled by
     - configuring debug port in build script
@@ -85,6 +88,7 @@ Debugging is enabled by enabling debug connector via socket;
 - works with configured `Test#maxParallelForks > 1` & `Test#forkEvery > 0`
 
 ### Open questions
+
 - How to deal with maxParallelForks / forksEvery? feels like it makes sense to restrict it to maxParallelForks=1 & forkEvery=0 if debug is enabled.
 
 ## Story: Allow specification of tests from candidate invocations of a given test
@@ -95,21 +99,7 @@ It would be nice to present users with this set of invocations and allow selecti
 
 TBD
 
-## Story: Allow specification of tests to run via package, patterns, TestDiscriptor inclusion/exclusion
+# Backlog
 
-### API proposal
-
-* TestLauncher#withJvmTestPackages(String... packages)
-* TestLauncher#excludeJvmTestPackages(String...)
-* TestLauncher#excludeJvmTestMethods(String testClass, String... methods)
-* TestLauncher#excludeJvmTestClasses(String...)
-
-### Test Coverage
-
-* can execute
-	* all tests from specific package
- 	* tests from a multiple packages
-	* single test with regex include pattern
-	* single test with an exclude pattern"
-	* tests from specific package
-	* tests from a single package using package exclude
+- Allow specification of tests to run via package, patterns, TestDiscriptor inclusion/exclusion
+- Improve behaviour when task no longer exists or no longer contains the requested test, but the test still exists (eg it has moved)
