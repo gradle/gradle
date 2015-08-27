@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.TemporaryGradleRunnerWorkingSpaceDirectoryProvider
 import org.gradle.util.GFileUtils
-import spock.lang.Ignore
 
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -303,7 +302,6 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         assertDaemonsAreStopping()
     }
 
-    @Ignore
     def "can test plugin and custom task as external files by providing them as classpath through GradleRunner API"() {
         file("settings.gradle") << "include 'sub'"
         file("sub/build.gradle") << "apply plugin: 'groovy'; dependencies { compile localGroovy() }"

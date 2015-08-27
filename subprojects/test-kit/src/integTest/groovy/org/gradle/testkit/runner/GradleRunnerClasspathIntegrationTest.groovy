@@ -28,7 +28,6 @@ import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
-@Ignore
 class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     @Rule
@@ -102,6 +101,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
         killUserDaemon()
     }
 
+    @Ignore
     def "can use plugin classes for declared plugin in provided classpath"() {
         given:
         compilePluginProjectSources()
@@ -140,7 +140,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
 
         then:
         noExceptionThrown()
-        println result.standardError.contains('unable to resolve class org.gradle.test.Support')
+        result.standardError.contains('unable to resolve class org.gradle.test.Support')
         result.tasks.collect { it.path } == []
         result.taskPaths(SUCCESS).empty
         result.taskPaths(SKIPPED).empty

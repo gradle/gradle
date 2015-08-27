@@ -23,6 +23,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.*;
 
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,6 +39,7 @@ public class DefaultGradleRunner extends GradleRunner {
     private File projectDirectory;
     private List<String> arguments = new ArrayList<String>();
     private List<String> jvmArguments = new ArrayList<String>();
+    private List<URI> classpath = new ArrayList<URI>();
 
     public DefaultGradleRunner(File gradleHome) {
         this(gradleHome, new TemporaryGradleRunnerWorkingSpaceDirectoryProvider());
@@ -99,6 +101,17 @@ public class DefaultGradleRunner extends GradleRunner {
     @Override
     public DefaultGradleRunner withArguments(String... arguments) {
         return withArguments(Arrays.asList(arguments));
+    }
+
+    @Override
+    public List<URI> getClasspath() {
+        return Collections.unmodifiableList(classpath);
+    }
+
+    @Override
+    public GradleRunner withClasspath(List<URI> classpath) {
+        this.classpath = new ArrayList<URI>(classpath);
+        return this;
     }
 
     @Override
@@ -170,7 +183,8 @@ public class DefaultGradleRunner extends GradleRunner {
             gradleUserHomeDir,
             projectDirectory,
             arguments,
-            jvmArguments
+            jvmArguments,
+            classpath
         );
 
         resultVerification.execute(execResult);

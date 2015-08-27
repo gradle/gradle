@@ -43,6 +43,7 @@ class DefaultGradleRunnerTest extends Specification {
         defaultGradleRunner.arguments == arguments
         1 * gradleRunnerWorkingSpaceDirectoryProvider.createDir() >> gradleUserHome
         defaultGradleRunner.gradleUserHomeDir == gradleUserHome
+        defaultGradleRunner.classpath == []
     }
 
     def "throws exception if working Gradle user home directory cannot be created"() {
@@ -63,27 +64,40 @@ class DefaultGradleRunnerTest extends Specification {
         thrown(UnsupportedOperationException)
     }
 
+    def "returned classpath is unmodifiable"() {
+        when:
+        createRunner().classpath << new URI('file:///Users/foo/bar/test.jar')
+
+        then:
+        thrown(UnsupportedOperationException)
+    }
+
     def "creates defensive copy of passed in argument lists"() {
         given:
         def originalArguments = ['arg1', 'arg2']
         def originalJvmArguments = ['arg3', 'arg4']
+        def originalClasspath = [new URI('file:///Users/foo/bar/test.jar')]
         DefaultGradleRunner defaultGradleRunner = createRunner()
 
         when:
         defaultGradleRunner.withArguments(originalArguments)
         defaultGradleRunner.withJvmArguments(originalJvmArguments)
+        defaultGradleRunner.withClasspath(originalClasspath)
 
         then:
-        defaultGradleRunner.arguments == ['arg1', 'arg2']
-        defaultGradleRunner.jvmArguments == ['arg3', 'arg4']
+        defaultGradleRunner.arguments == originalArguments
+        defaultGradleRunner.jvmArguments == originalJvmArguments
+        defaultGradleRunner.classpath == originalClasspath
 
         when:
         originalArguments << 'arg5'
         originalJvmArguments << 'arg6'
+        originalClasspath << new URI('file:///Users/foo/bar/other.jar')
 
         then:
         defaultGradleRunner.arguments == ['arg1', 'arg2']
         defaultGradleRunner.jvmArguments == ['arg3', 'arg4']
+        defaultGradleRunner.classpath == [new URI('file:///Users/foo/bar/test.jar')]
     }
 
     def "throws exception if working directory is not provided when build is requested"() {

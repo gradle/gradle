@@ -23,6 +23,7 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import java.io.File;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -141,6 +142,28 @@ public abstract class GradleRunner {
      * @see #getArguments()
      */
     public abstract GradleRunner withArguments(String... arguments);
+
+    /**
+     * The injected classpath for the build e.g. classes under test, external libraries.
+     *
+     * The returned list is an unmodifiable view of items.
+     * Returns an empty list if no classpath was provided with {@link #withClasspath(List)}.
+     *
+     * @return the classpath URIs
+     * @since 2.8
+     */
+    public abstract List<URI> getClasspath();
+
+    /**
+     * Sets the injected classpath for the build.
+     * The provided list of URIs is additive to the default classpath.
+     *
+     * @param classpath the classpath URIs
+     * @return this
+     * @see #getClasspath()
+     * @since 2.8
+     */
+    public abstract GradleRunner withClasspath(List<URI> classpath);
 
     /**
      * Executes a build, expecting it to complete without failure.
