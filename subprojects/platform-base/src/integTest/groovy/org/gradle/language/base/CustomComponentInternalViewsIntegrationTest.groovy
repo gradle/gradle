@@ -16,10 +16,12 @@
 
 package org.gradle.language.base
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpec {
 
+    @NotYetImplemented
     def "can filter for custom internal view with ComponentSpecContainer.withType()"() {
         buildFile << """
         apply plugin: "jvm-component"
@@ -39,11 +41,11 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
             @Mutate
             void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
                 tasks.create("validate") {
-                    components*.name == ["jar", "sampleLib"]
-                    components.withType(ComponentSpec)*.name == ["jar", "sampleLib"]
-                    components.withType(JvmLibrarySpec)*.name == ["jar"]
-                    components.withType(SampleLibrarySpec)*.name == ["sampleLib"]
-                    components.withType(SampleLibrarySpecInternal)*.name == ["sampleLib"]
+                    assert components*.name == ["jar", "sampleLib"]
+                    assert components.withType(ComponentSpec)*.name == ["jar", "sampleLib"]
+                    assert components.withType(JvmLibrarySpec)*.name == ["jar"]
+                    assert components.withType(SampleLibrarySpec)*.name == ["sampleLib"]
+                    assert components.withType(SampleLibrarySpecInternal)*.name == ["sampleLib"]
                 }
             }
         }
