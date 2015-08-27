@@ -19,9 +19,12 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Action
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
 
 class RealizableTaskCollectionTest extends Specification {
@@ -71,6 +74,24 @@ class RealizableTaskCollectionTest extends Specification {
 
         then:
         events == ['created task tasks.basic']
+    }
+
+    def "realizes tasks once only"() {
+        given:
+        def registry = Mock(ModelRegistry)
+        def project = Mock(ProjectInternal)
+        project.getModelRegistry() >> registry
+        def node = Mock(MutableModelNode)
+        node.getLinks(_) >> []
+
+
+        when:
+        RealizableTaskCollection collection = new RealizableTaskCollection(Class, Mock(TaskCollection), project)
+        collection.iterator()
+        collection.iterator()
+
+        then:
+        1 * registry.atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.SelfClosed) >> node
     }
 
     private Action mutator(ModelRegistryHelper registry, events, task, String path) {
