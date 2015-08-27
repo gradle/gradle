@@ -77,7 +77,7 @@
         <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.platform.base.BinaryContainer"/>
         <extends targetClass="org.gradle.api.Project" id="sources" extensionClass="org.gradle.language.base.ProjectSourceSet"/>
     </plugin>
-    <plugin id="native-component" description="Native Component Model Plugin"></plugin>
+    <plugin id="native-component" description="Native Software Model Plugin"></plugin>
     <plugin id="cpp" description="C++ Plugin">
         <extends targetClass="org.gradle.nativeplatform.NativeBinary" id="cppCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>

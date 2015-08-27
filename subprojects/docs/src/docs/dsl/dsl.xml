@@ -540,7 +540,7 @@
         <title>Native software model types</title>
         <para>Used to configure software components developed with native code.</para>
         <table>
-            <title>Native software component model types</title>
+            <title>Native software types</title>
             <tr>
                 <td>org.gradle.nativeplatform.NativeExecutable</td>
             </tr>
