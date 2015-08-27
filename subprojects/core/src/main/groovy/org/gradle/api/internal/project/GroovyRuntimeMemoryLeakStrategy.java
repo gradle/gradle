@@ -20,13 +20,27 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Iterator;
+import java.util.Vector;
 
 class GroovyRuntimeMemoryLeakStrategy implements MemoryLeakPrevention.Strategy {
 
     private final static Logger LOG = Logging.getLogger(GroovyRuntimeMemoryLeakStrategy.class);
+    private final static Field CLASSES_FIELD;
+
+    static {
+        Field classesField;
+        try {
+            classesField = ClassLoader.class.getDeclaredField("classes");
+            classesField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            classesField = null;
+        }
+        CLASSES_FIELD = classesField;
+    }
 
     @Override
     public boolean appliesTo(ClassPath classpath) {
@@ -69,5 +83,20 @@ class GroovyRuntimeMemoryLeakStrategy implements MemoryLeakPrevention.Strategy {
             removeFromGlobalClassValue.invoke(globalClassValue, clazz);
         }
 
+        removeClassInfoFromClassValue(classLoader, globalClassValue, removeFromGlobalClassValue);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void removeClassInfoFromClassValue(ClassLoader classLoader, Object globalClassValue, Method removeFromGlobalClassValue) throws IllegalAccessException, InvocationTargetException {
+        Vector<Class> classes = (Vector<Class>) CLASSES_FIELD.get(classLoader);
+        if (classes != null) {
+            for (Class clazz : classes) {
+                removeFromGlobalClassValue.invoke(globalClassValue, clazz);
+            }
+        }
+        ClassLoader parent = classLoader.getParent();
+        if (parent != null) {
+            removeClassInfoFromClassValue(parent, globalClassValue, removeFromGlobalClassValue);
+        }
     }
 }

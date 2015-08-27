@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.project
+
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.Lists
@@ -31,6 +32,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.ConfigureUtil
+
 // TODO: should be threadsafe; is stateful and of build scope
 
 @CompileStatic
@@ -49,7 +51,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         this.classPathRegistry = classPathRegistry
         this.classLoaderFactory = classLoaderFactory
-        this.classloaders = CacheBuilder.<String, ClassLoader>newBuilder().softValues().build()
+        this.classloaders = CacheBuilder.<String, ClassLoader> newBuilder().softValues().build()
         this.libClasspath = new DefaultClassPath()
 
         List<File> antClasspath = Lists.newArrayList(classPathRegistry.getClassPath("ANT").asFiles)
@@ -93,14 +95,17 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     void execute(Closure antClosure) {
         // temporarily disable classloader caching to take this out of the debugging story
         //def classLoader = classloaders.get(libClasspath.asURIs.collect { it.path }.join(":")) {
-        def classLoader =   new URLClassLoader(libClasspath.asURLArray, baseAntLoader)
+
+        def classLoader = new URLClassLoader(libClasspath.asURLArray, baseAntLoader)
         //}
+
+        Object antBuilder = newInstanceOf('org.gradle.api.internal.project.ant.BasicAntBuilder')
+        Object antLogger = newInstanceOf('org.gradle.api.internal.project.ant.AntLoggingAdapter')
 
         // This looks ugly, very ugly, but that is apparently what Ant does itself
         ClassLoader originalLoader = Thread.currentThread().contextClassLoader
         Thread.currentThread().contextClassLoader = classLoader
-            Object antBuilder = newInstanceOf('org.gradle.api.internal.project.ant.BasicAntBuilder')
-            Object antLogger = newInstanceOf('org.gradle.api.internal.project.ant.AntLoggingAdapter')
+
         try {
             configureAntBuilder(antBuilder, antLogger)
 
@@ -115,11 +120,13 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             if (LOG.isDebugEnabled()) {
                 LOG.debug('Applying memory leak prevention strategies')
             }
-            try {
-                LEAK_PREVENTION.preventMemoryLeaks(libClasspath, classLoader)
-            } catch (Throwable e) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Memory leak prevention strategies failed with an error", e)
+            [classLoader, gradleLoader].each {
+                try {
+                    LEAK_PREVENTION.preventMemoryLeaks(libClasspath, it)
+                } catch (Throwable e) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Memory leak prevention strategies failed with an error", e)
+                    }
                 }
             }
         }
