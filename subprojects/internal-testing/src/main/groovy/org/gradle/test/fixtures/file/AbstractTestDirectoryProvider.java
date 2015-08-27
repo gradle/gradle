@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.file;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.util.CleanupTestDirectory;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;

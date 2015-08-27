@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
-import org.gradle.util.CleanupTestDirectory
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Specification

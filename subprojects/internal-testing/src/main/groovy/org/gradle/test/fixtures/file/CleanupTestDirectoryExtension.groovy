@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.test.fixtures.file
 
-import org.gradle.test.fixtures.file.TestDirectoryCleaner
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.spockframework.runtime.AbstractRunListener
 import org.spockframework.runtime.GroovyRuntimeUtil
 import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
