@@ -93,11 +93,9 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     }
 
     void execute(Closure antClosure) {
-        // temporarily disable classloader caching to take this out of the debugging story
-        //def classLoader = classloaders.get(libClasspath.asURIs.collect { it.path }.join(":")) {
-
-        def classLoader = new URLClassLoader(libClasspath.asURLArray, baseAntLoader)
-        //}
+        def classLoader = classloaders.get(libClasspath.asURIs.collect { it.path }.join(":")) {
+            new URLClassLoader(libClasspath.asURLArray, baseAntLoader)
+        }
 
         Object antBuilder = newInstanceOf('org.gradle.api.internal.project.ant.BasicAntBuilder')
         Object antLogger = newInstanceOf('org.gradle.api.internal.project.ant.AntLoggingAdapter')
