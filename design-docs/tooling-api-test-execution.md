@@ -50,6 +50,21 @@ Instead, detect which `Test` task instances to run based on their inputs.
 * Calculate Test#testClassesDir / Test.classpath to find all tasks of type `org.gradle.api.tasks.testing.Test` containing matching pattern/tests
 * Execute matching Test tasks only
 
+## Story: deal with non found test requests
+
+The test launcher api doesn’t complain about test requests that don’t match anything if at least one test request matches something
+(eg. if I request a class that exists and a class that does not exist, we ignore the class that does not exist)
+
+## Story: better handling of non matching tests
+
+When no matching tests have been requested, console output says ‘build successful’
+even though a ‘no matching tests found’ exception is thrown
+
+### Implementation
+- use the
+The test launcher api doesn’t complain about test requests that don’t match anything if at least one test request matches something
+(eg. if I request a class that exists and a class that does not exist, we ignore the class that does not exist)
+
 ## Story: Rerun a failed JUnit test that uses a custom test runner
 
 For example, a Spock test with `@Unroll`, or a Gradle cross-version test. In general, there is not a one-to-one mapping between test

@@ -46,7 +46,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
             final TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
             final TestExecutionResultEvaluator testExecutionResultEvaluator = new TestExecutionResultEvaluator(testExecutionRequestAction);
             gradle.addListener(testExecutionResultEvaluator);
-            doRun(testExecutionRequestAction, buildController, testExecutionResultEvaluator);
+            doRun(testExecutionRequestAction, buildController);
             testExecutionResultEvaluator.evaluate();
         } catch (RuntimeException rex) {
             Throwable throwable = findRootCause(rex);
@@ -66,7 +66,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
         buildController.setResult(buildActionResult);
     }
 
-    private void doRun(TestExecutionRequestAction action, BuildController buildController, TestExecutionResultEvaluator testEvaluationListener) {
+    private void doRun(TestExecutionRequestAction action, BuildController buildController) {
         TestExecutionBuildConfigurationAction testTasksConfigurationAction = new TestExecutionBuildConfigurationAction(action.getTestExecutionRequest(), buildController.getGradle());
         buildController.getGradle().getServices().get(BuildConfigurationActionExecuter.class).setTaskSelectors(Collections.singletonList(testTasksConfigurationAction));
         buildController.run();
