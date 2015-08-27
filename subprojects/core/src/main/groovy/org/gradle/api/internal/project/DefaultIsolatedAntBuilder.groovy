@@ -22,6 +22,7 @@ import groovy.transform.TypeCheckingMode
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 import org.gradle.internal.classloader.CachingClassLoader
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
@@ -34,6 +35,9 @@ import org.gradle.util.ConfigureUtil
 
 @CompileStatic
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
+
+    private final static Logger LOG = Logging.getLogger(DefaultIsolatedAntBuilder)
+    private final static MemoryLeakPrevention LEAK_PREVENTION = new MemoryLeakPrevention()
 
     private final ClassLoader baseAntLoader
     private final ClassLoader gradleLoader
@@ -89,23 +93,35 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     void execute(Closure antClosure) {
         // temporarily disable classloader caching to take this out of the debugging story
         //def classLoader = classloaders.get(libClasspath.asURIs.collect { it.path }.join(":")) {
-        def classLoader =    new URLClassLoader(libClasspath.asURLArray, baseAntLoader)
+        def classLoader =   new URLClassLoader(libClasspath.asURLArray, baseAntLoader)
         //}
 
         // This looks ugly, very ugly, but that is apparently what Ant does itself
         ClassLoader originalLoader = Thread.currentThread().contextClassLoader
         Thread.currentThread().contextClassLoader = classLoader
-        try {
             Object antBuilder = newInstanceOf('org.gradle.api.internal.project.ant.BasicAntBuilder')
             Object antLogger = newInstanceOf('org.gradle.api.internal.project.ant.AntLoggingAdapter')
+        try {
             configureAntBuilder(antBuilder, antLogger)
 
             // Ideally, we'd delegate directly to the AntBuilder, but it's Closure class is different to our caller's
             // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
             // because they are not an instanceof it's Closure class
             ConfigureUtil.configure(antClosure, new AntBuilderDelegate(antBuilder, classLoader))
+
         } finally {
             Thread.currentThread().contextClassLoader = originalLoader
+            disposeBuilder(antBuilder, antLogger)
+            if (LOG.isDebugEnabled()) {
+                LOG.debug('Applying memory leak prevention strategies')
+            }
+            try {
+                LEAK_PREVENTION.preventMemoryLeaks(libClasspath, classLoader)
+            } catch (Throwable e) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Memory leak prevention strategies failed with an error", e)
+                }
+            }
         }
     }
 
@@ -121,6 +137,15 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     private void configureAntBuilder(def antBuilder, def antLogger) {
         antBuilder.project.removeBuildListener(antBuilder.project.getBuildListeners()[0])
         antBuilder.project.addBuildListener(antLogger)
+    }
+
+    @CompileStatic(TypeCheckingMode.SKIP)
+    private void disposeBuilder(def antBuilder, def antLogger) {
+        def project = antBuilder.project
+        project.removeBuildListener(antLogger)
+        project.dataTypeDefinitions.clear()
+        project.references.clear()
+        antBuilder.close()
     }
 }
 

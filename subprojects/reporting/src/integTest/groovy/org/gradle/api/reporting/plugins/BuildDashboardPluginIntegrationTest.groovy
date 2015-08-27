@@ -366,11 +366,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':buildDashboard', 'html')
         hasReport(':codenarcMain', 'html')
 
-        and:
-        System.gc()
-        println 'Do IT NOW!!!'
-        Thread.sleep(5000)
-
         where:
         count << (0..30)
     }
