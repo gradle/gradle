@@ -48,7 +48,7 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
         return testClassNames;
     }
 
-    public Collection<InternalJvmTestRequest> getInternalJvmTestRequests(Collection<InternalJvmTestRequest> defaults) {
+    public Collection<InternalJvmTestRequest> getInternalJvmTestRequests() {
         return internalJvmTestRequests;
     }
 

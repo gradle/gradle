@@ -44,18 +44,36 @@ class DefaultTestLauncherTest extends Specification {
             assert request.testClassNames == ["test"]
             assert request.testExecutionDescriptors == []
 
-            assert request.getInternalJvmTestRequests([]).collect {[it.className, it.methodName]} == [["test", null]]
+            assert request.getInternalJvmTestRequests().collect {[it.className, it.methodName]} == [["test", null]]
 
             launcher.withJvmTestClasses("test2")
             launcher.withTests(Stub(TestOperationDescriptor))
 
             assert request.testClassNames == ["test"]
             assert request.testExecutionDescriptors == []
-            assert request.getInternalJvmTestRequests([]).collect {[it.className, it.methodName]} == [["test", null]]
+            assert request.getInternalJvmTestRequests().collect {[it.className, it.methodName]} == [["test", null]]
         }
     }
 
-    def "tests methods requests are added to testclasses"() {
+    def "tests class requests are added to test request"() {
+        given:
+        launcher.withJvmTestClasses("clazz")
+        when:
+        launcher.run()
+
+        then:
+        1 * executor.run(_, _) >> { ConsumerAction action, ResultHandlerVersion1 handler ->
+            action.run(connection)
+            handler.onComplete(null)
+        }
+        1 * connection.runTests(_, _) >> { TestExecutionRequest request, ConsumerOperationParameters params ->
+            assert request.testClassNames == ["clazz"]
+            assert request.testExecutionDescriptors == []
+            assert request.getInternalJvmTestRequests().collect {[it.className, it.methodName]} == [["clazz", null]]
+        }
+    }
+
+    def "tests methods requests are added to test request"() {
         given:
         launcher.withJvmTestMethods("clazz", "method")
         when:
@@ -69,7 +87,7 @@ class DefaultTestLauncherTest extends Specification {
         1 * connection.runTests(_, _) >> { TestExecutionRequest request, ConsumerOperationParameters params ->
             assert request.testClassNames == ["clazz"]
             assert request.testExecutionDescriptors == []
-            assert request.getInternalJvmTestRequests([]).collect {[it.className, it.methodName]} == [["clazz", "method"]]
+            assert request.getInternalJvmTestRequests().collect {[it.className, it.methodName]} == [["clazz", "method"]]
         }
     }
 }

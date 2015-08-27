@@ -23,8 +23,8 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.tasks.testing.TestExecutionException
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.progress.OperationStartEvent
-import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
+import org.gradle.tooling.internal.provider.TestExecutionRequestAction
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor
 import spock.lang.Specification
 
@@ -33,7 +33,7 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 class TestExecutionResultEvaluatorTest extends Specification {
     def "evaluate throws exception if no results tracked"() {
         given:
-        def testExecutionRequest = Mock(ProviderInternalTestExecutionRequest)
+        def testExecutionRequest = Mock(TestExecutionRequestAction)
         TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(testExecutionRequest)
 
         def testDescriptorInternal = Mock(TestDescriptorInternal)
@@ -69,12 +69,12 @@ class TestExecutionResultEvaluatorTest extends Specification {
 
         and:
         1 * testExecutionRequest.getTestExecutionDescriptors()>> [defaultTestDescriptor]
-        1 * testExecutionRequest.getInternalJvmTestRequests(_) >> [testClassRequest, testMethodRequest, testMethodRequest2]
+        1 * testExecutionRequest.getInternalJvmTestRequests() >> [testClassRequest, testMethodRequest, testMethodRequest2]
     }
 
     def "evaluate throws exception if test failed"() {
         given:
-        def testExecutionRequest = Mock(ProviderInternalTestExecutionRequest)
+        def testExecutionRequest = Mock(TestExecutionRequestAction)
         TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(testExecutionRequest)
 
         def testDescriptorInternal = Mock(TestDescriptorInternal)

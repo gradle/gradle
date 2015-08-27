@@ -30,7 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class TestExecutionRequestAction extends SubscribableBuildAction implements ProviderInternalTestExecutionRequest {
+public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final StartParameter startParameter;
     private final Set<InternalTestDescriptor> testDescriptors;
     private final Set<String> classNames;
@@ -80,22 +80,15 @@ public class TestExecutionRequestAction extends SubscribableBuildAction implemen
         return startParameter;
     }
 
-    @Override
     public Collection<String> getTestClassNames() {
         return classNames;
     }
 
-    @Override
-    public Collection<InternalJvmTestRequest> getInternalJvmTestRequests(Collection<InternalJvmTestRequest> defaults) {
+    public Collection<InternalJvmTestRequest> getInternalJvmTestRequests() {
         return internalJvmTestRequests;
     }
 
-    @Override
     public Collection<InternalTestDescriptor> getTestExecutionDescriptors() {
         return testDescriptors;
-    }
-
-    public ProviderInternalTestExecutionRequest getTestExecutionRequest() {
-        return this;
     }
 }

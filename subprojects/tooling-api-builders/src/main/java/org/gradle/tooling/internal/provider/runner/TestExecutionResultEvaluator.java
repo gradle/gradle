@@ -32,11 +32,10 @@ import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
+import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
-import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -46,10 +45,10 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
     private long resultCount;
     private Map<Object, String> runningTasks = Maps.newHashMap();
 
-    private ProviderInternalTestExecutionRequest internalTestExecutionRequest;
+    private TestExecutionRequestAction internalTestExecutionRequest;
     private List<FailedTest> failedTests = Lists.newArrayList();
 
-    public TestExecutionResultEvaluator(ProviderInternalTestExecutionRequest internalTestExecutionRequest) {
+    public TestExecutionResultEvaluator(TestExecutionRequestAction internalTestExecutionRequest) {
         this.internalTestExecutionRequest = internalTestExecutionRequest;
     }
 
@@ -82,7 +81,7 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
             requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append(internalTestDescriptor.getDisplayName());
             requestDetails.append(" (Task: '").append(((DefaultTestDescriptor) internalTestDescriptor).getTaskPath()).append("')");
         }
-        final Collection<InternalJvmTestRequest> internalJvmTestRequests = internalTestExecutionRequest.getInternalJvmTestRequests(Collections.<InternalJvmTestRequest>emptyList());
+        final Collection<InternalJvmTestRequest> internalJvmTestRequests = internalTestExecutionRequest.getInternalJvmTestRequests();
 
         for (InternalJvmTestRequest internalJvmTestRequest : internalJvmTestRequests) {
             final String className = internalJvmTestRequest.getClassName();
