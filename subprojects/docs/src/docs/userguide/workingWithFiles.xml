@@ -251,8 +251,11 @@
             <sample id="filterOnCopy" dir="userguide/files/copy" title="Filtering files as they are copied">
                 <sourcefile file="build.gradle" snippet="filter-files"/>
             </sample>
-            <para>A “token” in a source file that both the “expand” and “filter” operations look for, is formatted
-            like “@tokenName@” for a token named “tokenName”.</para>
+            <para>When using the “filter” operation, tokens take the form “@tokenName@” for a token named “tokenName”
+            (the Apache Ant-style token). The “expand” operation treats the source file as a
+            <ulink url="http://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html">Groovy template</ulink>
+            in which tokens take the form “${tokenName}”. Be aware that you may need escape parts of your source files when
+            using this option, for example if it has literal “$” or “<%” strings.</para>
         </section>
         <section>
             <title>Using the <classname>CopySpec</classname> class</title>
