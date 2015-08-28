@@ -40,7 +40,8 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 - Vary number of inputs and outputs 
 - Compare no input or output change case with one input or output change case
-- If difference between calculating up-to-date checks is identical or within an order of magnitude, remove this as a variable for now.  Future stories may address the "ripple" effect of a single input invalidating multiple tasks in a chain.
+- If difference between calculating up-to-date checks is identical or within an order of magnitude, remove this as a variable for now and focus on 'no change' cases.
+- Future stories may address the "ripple" effect of a single input invalidating multiple tasks in a chain.
 - Collect numbers for a report
 
 ### Test coverage
@@ -69,27 +70,27 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 ## Story: Update performance generator to create representative Java project
 
-See discussion about parameters.
+See discussion about parameters.  Uses java-lang/jvm-component software model plugins.
 
 ### Test coverage
 
-- Performance test that runs against 2.6 and latest release (can be disabled by default)
+- Performance test that runs against 2.6 and latest release 
 
 ## Story: Update performance generator to create representative C/C++ project
 
-See discussion about parameters.
+See discussion about parameters.  Uses cpp software model plugins.
 
 ### Test coverage
 
-- Performance test that runs against 2.6 and latest release (can be disabled by default)
+- Performance test that runs against 2.6 and latest release 
 
-## Story: Update performance generator to create representative C/C++ project
+## Story: TBD
 
-See discussion about parameters.
+TBD
 
 ### Test coverage
 
-- Performance test that runs against 2.6 and latest release (can be disabled by default)
+- TBD
 
 ## Open Issues 
 
