@@ -19,16 +19,17 @@ package org.gradle.testkit.runner.internal;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.tooling.BuildException;
-import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.task.*;
+import org.gradle.tooling.internal.consumer.DefaultBuildLauncherInternal;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +54,7 @@ public class TestKitGradleExecutor implements GradleExecutor {
         }));
     }
 
-    public GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs) {
+    public GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, List<URI> classpath) {
         final ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
         final ByteArrayOutputStream standardError = new ByteArrayOutputStream();
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
@@ -63,13 +64,14 @@ public class TestKitGradleExecutor implements GradleExecutor {
 
         try {
             connection = gradleConnector.connect();
-            BuildLauncher launcher = connection.newBuild();
+            DefaultBuildLauncherInternal launcher = (DefaultBuildLauncherInternal) connection.newBuild();
             launcher.setStandardOutput(standardOutput);
             launcher.setStandardError(standardError);
             launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
 
             launcher.withArguments(buildArgs.toArray(new String[buildArgs.size()]));
             launcher.setJvmArguments(jvmArgs.toArray(new String[jvmArgs.size()]));
+            launcher.withClasspath(classpath);
 
             launcher.run();
         } catch (BuildException t) {
