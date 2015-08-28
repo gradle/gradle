@@ -88,7 +88,7 @@ public class DefaultUcrtLocator implements UcrtLocator {
                 if (versionDirs.length > 0) {
                     for (String versionDir : versionDirs) {
                         LOGGER.debug("Found ucrt {} ({}) at {}", versions[i], versionDir, ucrtDir);
-                        putUcrt(new Ucrt(ucrtDir, VersionNumber.parse(versions[i]), NAME_KIT + " " + versions[i], VersionNumber.parse(versionDir)));
+                        putUcrt(new Ucrt(ucrtDir, VersionNumber.parse(versions[i]), NAME_KIT + " " + versions[i], UcrtVersionNumber.parse(versionDir)));
                     }
                 } else {
                     LOGGER.debug("Ignoring candidate ucrt directory {} as it does not look like a ucrt installation.", ucrtDir);
@@ -106,7 +106,7 @@ public class DefaultUcrtLocator implements UcrtLocator {
             for (String versionDir : versionDirs) {
                 LOGGER.debug("Found ucrt {} ({}) at {}", VERSION_USER, versionDir, ucrtDir);
                 if (!foundUcrts.containsKey(ucrtDir)) {
-                    putUcrt(new Ucrt(ucrtDir, VersionNumber.parse(VERSION_USER), NAME_USER, VersionNumber.parse(versionDir)));
+                    putUcrt(new Ucrt(ucrtDir, VersionNumber.parse(VERSION_USER), NAME_USER, UcrtVersionNumber.parse(versionDir)));
                 }
             }
             return new UcrtFound(getBestUcrt(candidate));

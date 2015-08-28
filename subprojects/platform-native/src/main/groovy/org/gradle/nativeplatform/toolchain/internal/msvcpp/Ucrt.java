@@ -27,9 +27,9 @@ public class Ucrt implements Named {
     private final File baseDir;
     private final VersionNumber baseVersion;
     private final String name;
-    private final VersionNumber version;
+    private final UcrtVersionNumber version;
 
-    public Ucrt(File baseDir, VersionNumber baseVersion, String name, VersionNumber version) {
+    public Ucrt(File baseDir, VersionNumber baseVersion, String name, UcrtVersionNumber version) {
         this.baseDir = baseDir;
         this.baseVersion = baseVersion;
         this.name = name;
@@ -48,7 +48,7 @@ public class Ucrt implements Named {
         return baseVersion;
     }
 
-    public VersionNumber getVersion() {
+    public UcrtVersionNumber getVersion() {
         return version;
     }
 

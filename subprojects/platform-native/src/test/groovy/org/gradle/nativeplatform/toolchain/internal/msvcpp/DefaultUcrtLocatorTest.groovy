@@ -49,7 +49,7 @@ class DefaultUcrtLocatorTest extends Specification {
         result.ucrt.name == "UCRT 10"
         result.ucrt.baseVersion == VersionNumber.parse("10")
         result.ucrt.baseDir == dir1
-        result.ucrt.version == VersionNumber.parse("10.0.10150.0")
+        result.ucrt.version == UcrtVersionNumber.parse("10.0.10150.0")
     }
 
     def "uses newset ucrt found in registry"() {
@@ -68,7 +68,7 @@ class DefaultUcrtLocatorTest extends Specification {
         result.ucrt.name == "UCRT 10"
         result.ucrt.baseVersion == VersionNumber.parse("10")
         result.ucrt.baseDir == dir2
-        result.ucrt.version == VersionNumber.parse("10.0.10160.0")
+        result.ucrt.version == UcrtVersionNumber.parse("10.0.10160.0")
     }
 
     def "handles missing ucrt"() {
@@ -110,7 +110,7 @@ class DefaultUcrtLocatorTest extends Specification {
         result.ucrt.name == "User-provided UCRT"
         result.ucrt.baseVersion == VersionNumber.UNKNOWN
         result.ucrt.baseDir == ucrtDir1
-        result.ucrt.version == VersionNumber.parse("10.0.10150.1")
+        result.ucrt.version == UcrtVersionNumber.parse("10.0.10150.1")
 
         when:
         result = ucrtLocator.locateUcrts(ucrtDir2)
@@ -120,7 +120,7 @@ class DefaultUcrtLocatorTest extends Specification {
         result.ucrt.name == "User-provided UCRT"
         result.ucrt.baseVersion == VersionNumber.UNKNOWN
         result.ucrt.baseDir == ucrtDir2
-        result.ucrt.version == VersionNumber.parse("10.0.10150.2")
+        result.ucrt.version == UcrtVersionNumber.parse("10.0.10150.2")
     }
 
     def "uses ucrt using specified install dir, same as in registry"() {
@@ -139,7 +139,7 @@ class DefaultUcrtLocatorTest extends Specification {
         result.ucrt.name == "UCRT 10"
         result.ucrt.baseVersion ==  VersionNumber.parse("10")
         result.ucrt.baseDir == ucrtDir1
-        result.ucrt.version == VersionNumber.parse("10.0.10150.0")
+        result.ucrt.version == UcrtVersionNumber.parse("10.0.10150.0")
     }
 
     def "ucrt not available when specified install dir does not look like a ucrt"() {
@@ -183,7 +183,7 @@ class DefaultUcrtLocatorTest extends Specification {
         result.ucrt.name == "UCRT 10"
         result.ucrt.baseVersion == VersionNumber.parse("10")
         result.ucrt.baseDir == ucrtDir
-        result.ucrt.version == VersionNumber.parse("10.0.10150.0")
+        result.ucrt.version == UcrtVersionNumber.parse("10.0.10150.0")
     }
 
     def ucrtDir(String name, String versionDir) {
