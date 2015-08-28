@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+package org.gradle.testkit.runner.internal;
 
-import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
+import java.io.File;
 
-import java.io.Serializable;
+class ConstantTestKitDirProvider implements TestKitDirProvider {
+    private final File testKitDir;
 
-public class DefaultTestMethod implements InternalTestMethod, Serializable {
-    private final String className;
-    private final String methodName;
-
-    public DefaultTestMethod(String className, String methodName) {
-        this.className = className;
-        this.methodName = methodName;
+    public ConstantTestKitDirProvider(File testKitDir) {
+        this.testKitDir = testKitDir;
     }
 
-    public String getClassName() {
-        return className;
-    }
-
-    public String getMethodName() {
-        return methodName;
+    @Override
+    public File getDir() {
+        return testKitDir;
     }
 }

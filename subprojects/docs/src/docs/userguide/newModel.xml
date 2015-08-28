@@ -15,13 +15,19 @@
   -->
 <chapter id='new_model'>
     <title>Rule based model configuration</title>
+    <note>
+        <para>
+            Support for rule based configuration is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+        </para>
+    </note>
     <para>
-        This chapter describes and documents what is essentially the foundation for the Gradle 3.0 and the next generation of Gradle builds.
-        It is being incrementally developed during the Gradle 2.x stream. Gradle's support for <link linkend="nativeBinaries">building native applications</link> and
+        This chapter describes and documents what is essentially the foundation for Gradle 3.0 and the next generation of Gradle builds.
+        It is being incrementally developed during the Gradle 2.x stream. Gradle's support for building <link linkend="nativeBinaries">native applications</link> and
         <link linkend="play_plugin">Play Framework applications</link> already uses this configuration model.
+        Gradle also includes some initial support for building <link linkend="new_java_plugin">Java libraries</link> using this configuration model.
     </para>
     <para>
-        All of the mechanisms, DSL, API, and techniques discussed here are <emphasis>incubating</emphasis> (i.e. not considered stable and subject to change - see <xref linkend="feature_lifecycle"/>).
+        All of the mechanisms, DSL, API, and techniques discussed here are <emphasis>incubating</emphasis> and are not considered stable and subject to change - see <xref linkend="feature_lifecycle"/>).
         Exposing new features early, during incubation, allows early testing and the incorporation of real world feedback ultimately resulting in a better Gradle.
     </para>
     <para>
@@ -57,7 +63,7 @@
         <para>
             Domain modelling in Gradle is not new.
             The Java plugin's <apilink class="org.gradle.api.tasks.SourceSet" /> concept is an example of domain modelling,
-            as is the modelling of <apilink class="org.gradle.nativeplatform.NativeBinary"/> in the Native plugin suite.
+            as is the modelling of <apilink class="org.gradle.nativeplatform.NativeBinary"/> in the native plugin suite.
         </para>
         <para>
             One distinguishing characteristic of Gradle compared to other build tools that also embrace modelling is that Gradle's model is open and collaborative.
@@ -164,7 +170,7 @@
                 An “unmanaged” object is opaque to the the model space and does not enforce immutability.
                 Over time, more mechanisms will be available for defining managed model elements culminating in all model elements being managed in some way.
             </para>
-            <para>Managed models can be defined thanks to the <literal>@Managed</literal> annotation, used on an interface:</para>
+            <para>Managed models can be defined by attaching the <literal>@Managed</literal> annotation to an interface:</para>
             <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed type">
                 <sourcefile file='build.gradle' snippet='managed-type'/>
             </sample>

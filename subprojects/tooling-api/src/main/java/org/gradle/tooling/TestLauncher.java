@@ -85,9 +85,9 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     TestLauncher withJvmTestMethods(String testClass, Iterable<String> methods);
 
     /**
-     * Executes the build, blocking until it is complete.
+     * Executes the tests, blocking until complete.
      *
-     * @throws TestExecutionException when no tests for execution declared or can be found.
+     * @throws TestExecutionException when one or more tests fail, or no tests for execution declared or no matching tests can be found.
      * @throws UnsupportedVersionException When the target Gradle version does not support test execution.
      * @throws org.gradle.tooling.exceptions.UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
      * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
@@ -101,7 +101,7 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     void run() throws TestExecutionException;
 
     /**
-     * Launches the build. This method returns immediately, and the result is later passed to the given handler.
+     * Starts executing the tests. This method returns immediately, and the result is later passed to the given handler.
      *
      * <p>If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)}
      * method is called with the appropriate exception. See {@link #run()} for a description of the various exceptions that the operation may fail with.

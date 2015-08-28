@@ -16,27 +16,18 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.SystemProperties;
 
 import java.io.File;
 
-public class TemporaryGradleRunnerWorkingSpaceDirectoryProvider implements GradleRunnerWorkingSpaceDirectoryProvider {
-    private final File tmpDir;
+public class TempTestKitDirProvider extends ConstantTestKitDirProvider {
 
-    public TemporaryGradleRunnerWorkingSpaceDirectoryProvider() {
+    public TempTestKitDirProvider() {
         this(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
     }
 
-    TemporaryGradleRunnerWorkingSpaceDirectoryProvider(File rootDir) {
-        this.tmpDir = new File(rootDir, String.format(".gradle-test-kit-%s", SystemProperties.getInstance().getUserName()));
+    TempTestKitDirProvider(File rootDir) {
+        super(new File(rootDir, String.format(".gradle-test-kit-%s", SystemProperties.getInstance().getUserName())));
     }
 
-    public File createDir() {
-        if (!tmpDir.mkdirs() && !tmpDir.isDirectory()) {
-            throw new UncheckedIOException(String.format("Unable to create temporary directory %s", tmpDir.getAbsolutePath()));
-        }
-
-        return tmpDir;
-    }
 }

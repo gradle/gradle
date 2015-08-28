@@ -37,6 +37,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        events.tests.size() == 12
 
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestNotExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
@@ -60,7 +61,29 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
         assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
         assertTestExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
+        events.tests.size() == 16
+
         assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
+    }
+
+    @TargetGradleVersion("=2.6")
+    def "executes all methods if provider does not support selective test method execution"() {
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withJvmTestMethods("example.MyTest", "foo")
+        }
+        then:
+
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
+        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+        events.tests.size() == 14
+
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
+        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
         assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
     }
 
@@ -76,6 +99,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
+        events.tests.size() == 14
     }
 
     def "fails with meaningful error when requested tests not found"() {
@@ -85,10 +109,10 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         testClassRemoved()
         when:
         launchTests { TestLauncher launcher ->
+            launcher.withJvmTestClasses("org.acme.NotExistingTestClass")
             launcher.withJvmTestMethods("example.MyTest", "unknownMethod")
             launcher.withJvmTestMethods("example.MyTest", "unknownMethod2")
             launcher.withJvmTestMethods("example.UnknownClass", "unknownTestMethod3")
-            launcher.withJvmTestClasses("org.acme.NotExistingTestClass")
             launcher.withTests(testDescriptors("example2.MyOtherTest", null, ":test"))
         }
         then:
@@ -172,25 +196,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     Failed tests:
         Test example.MyFailingTest#fail (Task: :secondTest)
         Test example.MyFailingTest#fail (Task: :test)"""
-    }
-
-    @TargetGradleVersion("=2.6")
-    def "runs all methods of test class if test methods not supported"() {
-        when:
-        launchTests { TestLauncher testLauncher ->
-            testLauncher.withJvmTestMethods("example.MyTest", "foo")
-        }
-        then:
-        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
-
-        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
-        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
-        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
-        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
-
     }
 
     def testClassRemoved() {

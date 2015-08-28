@@ -44,9 +44,9 @@ import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
+import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,11 +117,11 @@ public class ProviderConnection {
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
     }
 
-    public Object runTests(InternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+    public Object runTests(ProviderInternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         Parameters params = initParams(providerParameters);
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
-        TestExecutionRequestAction action = new TestExecutionRequestAction(testExecutionRequest, startParameter, listenerConfig.clientSubscriptions);
+        TestExecutionRequestAction action = TestExecutionRequestAction.create(listenerConfig.clientSubscriptions, startParameter, testExecutionRequest);
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
     }
 

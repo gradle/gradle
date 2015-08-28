@@ -18,7 +18,6 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.*;
 
@@ -32,38 +31,36 @@ import java.util.List;
 public class DefaultGradleRunner extends GradleRunner {
 
     public static final String DIAGNOSTICS_MESSAGE_SEPARATOR = "-----";
-    private final GradleExecutor gradleExecutor = new GradleExecutor();
     private final File gradleHome;
+    private final GradleExecutor gradleExecutor;
 
-    private File gradleUserHomeDir;
+    private TestKitDirProvider testKitDirProvider;
+
     private File projectDirectory;
     private List<String> arguments = new ArrayList<String>();
     private List<String> jvmArguments = new ArrayList<String>();
     private List<URI> classpath = new ArrayList<URI>();
 
     public DefaultGradleRunner(File gradleHome) {
-        this(gradleHome, new TemporaryGradleRunnerWorkingSpaceDirectoryProvider());
+        this(gradleHome, new TestKitGradleExecutor(), new TempTestKitDirProvider());
     }
 
-    DefaultGradleRunner(File gradleHome, GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider) {
+    DefaultGradleRunner(File gradleHome, GradleExecutor gradleExecutor, TestKitDirProvider testKitDirProvider) {
         this.gradleHome = gradleHome;
-        this.gradleUserHomeDir = createGradleUserHomeDir(gradleRunnerWorkingSpaceDirectoryProvider);
+        this.gradleExecutor = gradleExecutor;
+        this.testKitDirProvider = testKitDirProvider;
     }
 
-    private File createGradleUserHomeDir(GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider) {
-        try {
-            return gradleRunnerWorkingSpaceDirectoryProvider.createDir();
-        } catch (UncheckedIOException e) {
-            throw new InvalidRunnerConfigurationException("Unable to create or write to Gradle user home directory for test execution", e);
+    public TestKitDirProvider getTestKitDirProvider() {
+        return testKitDirProvider;
+    }
+
+    @Override
+    public DefaultGradleRunner withTestKitDir(final File testKitDir) {
+        if (testKitDir == null) {
+            throw new IllegalArgumentException("testKitDir argument cannot be null");
         }
-    }
-
-    public File getGradleUserHomeDir() {
-        return gradleUserHomeDir;
-    }
-
-    public DefaultGradleRunner withGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
+        this.testKitDirProvider = new ConstantTestKitDirProvider(testKitDir);
         return this;
     }
 
@@ -178,9 +175,11 @@ public class DefaultGradleRunner extends GradleRunner {
             throw new InvalidRunnerConfigurationException("Please specify a project directory before executing the build");
         }
 
+        File testKitDir = createTestKitDir(testKitDirProvider);
+
         GradleExecutionResult execResult = gradleExecutor.run(
             gradleHome,
-            gradleUserHomeDir,
+            testKitDir,
             projectDirectory,
             arguments,
             jvmArguments,
@@ -195,4 +194,21 @@ public class DefaultGradleRunner extends GradleRunner {
             execResult.getTasks()
         );
     }
+
+    private File createTestKitDir(TestKitDirProvider testKitDirProvider) {
+        File dir = testKitDirProvider.getDir();
+        if (dir.isDirectory()) {
+            if (!dir.canWrite()) {
+                throw new InvalidRunnerConfigurationException("Unable to write to test kit directory: " + dir.getAbsolutePath());
+            }
+            return dir;
+        } else if (dir.exists()) {
+            throw new InvalidRunnerConfigurationException("Unable to use non-directory as test kit directory: " + dir.getAbsolutePath());
+        } else if (dir.mkdirs() || dir.isDirectory()) {
+            return dir;
+        } else {
+            throw new InvalidRunnerConfigurationException("Unable to create test kit directory: " + dir.getAbsolutePath());
+        }
+    }
+
 }

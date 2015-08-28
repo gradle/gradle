@@ -16,19 +16,16 @@
 
 package org.gradle.tooling.internal.protocol.test;
 
-import java.util.Collection;
+import org.gradle.api.Nullable;
 
 /**
+ * Specifies a method to be tested.
+ *
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
- * @since 2.6-rc-1
+ * @since 2.7-rc-1
  */
-public interface InternalTestExecutionRequestVersion2 extends InternalTestExecutionRequest {
-    Collection<InternalTestMethod> getTestMethods();
-
-    /**
-     * This is used for backwards compatibility with 2.6 enabling the behaviour of running all tests
-     * of a test class when provider is 2.6 but consumer requested particular test method(s)
-     * */
-    Collection<String> getExplicitRequestedTestClassNames();
+public interface InternalJvmTestRequest {
+    String getClassName();
+    @Nullable String getMethodName();
 }

@@ -85,6 +85,26 @@ public abstract class GradleRunner {
     }
 
     /**
+     * Sets the directory to use for Test Kit's working storage needs.
+     * <p>
+     * This directory is used internally to store various files required by the runner.
+     * If no explicit Gradle user home is specified via the build arguments (i.e. the {@code -g «dir»} option}),
+     * this directory will also be used for the Gradle user home for the test build.
+     * <p>
+     * If no value has been specified when the build is initiated, a directory unique to the current operating system
+     * user will be created and used within the JVM's temporary directory as advertised by the {@code java.io.tmpdir} system property.
+     * This directory is not deleted by the runner after the test build.
+     * <p>
+     * You may wish to specify a location that is within your project and regularly cleaned, such as the project's build directory.
+     * <p>
+     * The actual contents of this directory are an internal implementation detail and may change at any time.
+     *
+     * @param testKitDir the test kit directory
+     * @return {@code this}
+     */
+    public abstract GradleRunner withTestKitDir(File testKitDir);
+
+    /**
      * The directory that the build will be executed in.
      * <p>
      * This is analogous to the current directory when executing Gradle from the command line.

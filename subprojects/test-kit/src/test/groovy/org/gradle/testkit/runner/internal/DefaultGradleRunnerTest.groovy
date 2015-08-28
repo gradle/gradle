@@ -17,7 +17,6 @@
 package org.gradle.testkit.runner.internal
 
 import org.gradle.api.GradleException
-import org.gradle.api.UncheckedIOException
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.util.TextUtil
@@ -26,14 +25,12 @@ import spock.lang.Unroll
 
 class DefaultGradleRunnerTest extends Specification {
     File gradleHome = Mock(File)
-    GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider = Mock(GradleRunnerWorkingSpaceDirectoryProvider)
+    GradleExecutor gradleExecutor = Mock(GradleExecutor)
+    TestKitDirProvider testKitDirProvider = Mock(TestKitDirProvider)
     File workingDir = new File('my/tests')
     List<String> arguments = ['compile', 'test', '--parallel', '-Pfoo=bar']
 
     def "provides expected field values"() {
-        given:
-        File gradleUserHome = new File('some/dir')
-
         when:
         DefaultGradleRunner defaultGradleRunner = createRunner()
         defaultGradleRunner.withProjectDir(workingDir).withArguments(arguments)
@@ -41,19 +38,72 @@ class DefaultGradleRunnerTest extends Specification {
         then:
         defaultGradleRunner.projectDir == workingDir
         defaultGradleRunner.arguments == arguments
-        1 * gradleRunnerWorkingSpaceDirectoryProvider.createDir() >> gradleUserHome
-        defaultGradleRunner.gradleUserHomeDir == gradleUserHome
         defaultGradleRunner.classpath == []
+        0 * testKitDirProvider.getDir()
     }
 
-    def "throws exception if working Gradle user home directory cannot be created"() {
+    def "can set custom test kit directory"() {
+        given:
+        File testKitDir = new File('some/dir')
+
         when:
-        createRunner()
+        DefaultGradleRunner runner = createRunner()
+            .withProjectDir(workingDir)
+            .withTestKitDir(testKitDir)
 
         then:
-        1 * gradleRunnerWorkingSpaceDirectoryProvider.createDir() >> { throw new UncheckedIOException() }
+        runner.projectDir == workingDir
+        0 * testKitDirProvider.getDir()
+        runner.testKitDirProvider.dir.is testKitDir
+    }
+
+    def "throws exception if test kit dir is not writable"() {
+        when:
+        createRunner().withProjectDir(workingDir).build()
+
+        then:
+        1 * testKitDirProvider.getDir() >> {
+            Mock(File) {
+                isDirectory() >> true
+                canWrite() >> false
+                getAbsolutePath() >> "path"
+            }
+        }
         Throwable t = thrown(InvalidRunnerConfigurationException)
-        t.message == 'Unable to create or write to Gradle user home directory for test execution'
+        t.message == 'Unable to write to test kit directory: path'
+    }
+
+    def "throws exception if test kit exists and is not dir"() {
+        when:
+        createRunner().withProjectDir(workingDir).build()
+
+        then:
+        1 * testKitDirProvider.getDir() >> {
+            Mock(File) {
+                isDirectory() >> false
+                exists() >> true
+                getAbsolutePath() >> "path"
+            }
+        }
+        Throwable t = thrown(InvalidRunnerConfigurationException)
+        t.message == 'Unable to use non-directory as test kit directory: path'
+    }
+
+    def "throws exception if test kit dir cannot be created"() {
+        when:
+        createRunner().withProjectDir(workingDir).build()
+
+        then:
+        1 * testKitDirProvider.getDir() >> {
+            Mock(File) {
+                isDirectory() >> false
+                exists() >> false
+                mkdirs() >> false
+                getAbsolutePath() >> "path"
+            }
+        }
+        Throwable t = thrown(InvalidRunnerConfigurationException)
+        t.message == 'Unable to create test kit directory: path'
     }
 
     def "returned arguments are unmodifiable"() {
@@ -154,8 +204,34 @@ $expectedReason
         new RuntimeException('Something went wrong', new GradleException('Unknown command line option', new Exception('Total fail'))) | 'Total fail'                  | 'exception having multiple parent causes'
     }
 
+    def "temporary working space directory is not created if Gradle user home directory is not provided by user when build is requested"() {
+        given:
+        File gradleUserHomeDir = new File('some/dir')
+
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunnerWithWorkingDirAndArgument()
+        defaultGradleRunner.build()
+
+        then:
+        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], []) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+    }
+
+    def "temporary working space directory is not created if Gradle user home directory is not provided by user when build and fail is requested"() {
+        given:
+        File gradleUserHomeDir = new File('some/dir')
+
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunnerWithWorkingDirAndArgument()
+        defaultGradleRunner.build()
+
+        then:
+        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], []) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+    }
+
     private DefaultGradleRunner createRunner() {
-        new DefaultGradleRunner(gradleHome, gradleRunnerWorkingSpaceDirectoryProvider)
+        new DefaultGradleRunner(gradleHome, gradleExecutor, testKitDirProvider)
     }
 
     private DefaultGradleRunner createRunnerWithWorkingDirAndArgument() {

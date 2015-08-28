@@ -84,7 +84,10 @@ repositories {
         def routingFirstCompileSnapshot = file(destinationDirPath, getRoutesScalaFileNameTemplate('','')).snapshot();
 
         when:
-        templateFile << "\n\n"
+        templateFile << """
+GET     /newroute                          controllers.Application.index()
+"""
+
         and:
         succeeds "compilePlayBinaryRoutes"
 
