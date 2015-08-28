@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 
-<chapter id='new_java_plugin'>
-    <title>The New Java Plugin</title>
+<chapter id='building_java_libraries'>
+    <title>Building Java Libraries</title>
 
     <note>
         <para>
@@ -23,22 +23,22 @@
         </para>
     </note>
 
-    <para>The New Java plugin is intended to replace the <link linkend="java_plugin">Java plugin</link>, and
-        leverages the <link linkend="new_model">new rule based model configuration</link>
+    <para>The JVM component plugins for building Java libraries are intended to replace the <link linkend="java_plugin">Java plugin</link>, and
+        leverage the <link linkend="new_model">new rule based model configuration</link>
         to achieve the best performance, improved expressiveness
         and support for variant-aware dependency management.
     </para>
 
     <section>
         <title>The Software Model</title>
-        <para>The plugin relies on a software model which describes how an application is built, and how components
+        <para>The JVM component plugins rely on a software model which describes how an application is built and how components
             of the model relate to each other. The software model is organized around key concepts:
         </para>
         <para>
             <itemizedlist>
                 <listitem>A
                     <firstterm>component</firstterm>
-                    is a general concept for a piece of software, that might be deliverable. Examples of components are a standalone
+                    is a general concept for a piece of software that might be deliverable. Examples of components are a standalone
                     application, a web application, a library, etc.  A component is often composed of other components.
                 </listitem>
                 <listitem>A
@@ -67,8 +67,8 @@
 
     <section>
         <title>Usage</title>
-        <para>To use the new Java plugin, include the following in your build script:</para>
-        <sample id="newJavaQuickstart" dir="newJavaPlugin/quickstart" title="Using the new Java plugin">
+        <para>To use the JVM component plugins, include the following in your build script:</para>
+        <sample id="newJavaQuickstart" dir="javaLibraryPlugin/quickstart" title="Using the JVM component plugins">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
     </section>
@@ -78,13 +78,13 @@
         <para>A library is created by declaring a <apilink class="org.gradle.jvm.JvmLibrarySpec"/> under the <literal>components</literal>
             element of the <literal>model</literal>:
         </para>
-        <sample id="newJavaQuickstart" dir="newJavaPlugin/quickstart" title="Creating a source set">
+        <sample id="newJavaQuickstart" dir="javaLibraryPlugin/quickstart" title="Creating a java library">
             <sourcefile file="build.gradle" snippet="single-lib"/>
             <output args='build' ignoreExtraLines="true"/>
         </sample>
         <para>This example creates a library named <literal>main</literal>, which will implicitly create a <apilink class="org.gradle.language.java.JavaSourceSet"/>
             named <literal>java</literal>.
-            Therefore the new Java plugin follows the conventions of the <link linkend="java_plugin">legacy Java plugin</link>, and Java sources
+            The conventions of the <link linkend="java_plugin">legacy Java plugin</link> are observed, where Java sources
             are expected to be found in <filename>src/main/java</filename>,
             while resources are expected to be found in <filename>src/main/resources</filename>.
         </para>
@@ -118,14 +118,14 @@
         <para>It is possible to configure an existing <firstterm>source set</firstterm>
             through the <literal>sources</literal> container:
         </para>
-        <sample id="newJavaQuickstart" dir="newJavaPlugin/quickstart" title="Configuring a source set">
+        <sample id="newJavaQuickstart" dir="javaLibraryPlugin/quickstart" title="Configuring a source set">
             <sourcefile file="build.gradle" snippet="configure-sourceset"/>
         </sample>
         <para>It is also possible to create an additional source set, using the
             <apilink class="org.gradle.language.java.JavaSourceSet"/>
             type:
         </para>
-        <sample id="newJavaQuickstart" dir="newJavaPlugin/quickstart" title="Creating a new source set">
+        <sample id="newJavaQuickstart" dir="javaLibraryPlugin/quickstart" title="Creating a new source set">
             <sourcefile file="build.gradle" snippet="new-sourceset"/>
         </sample>
     </section>
@@ -208,14 +208,14 @@
             project produces. To use this report, just run <userinput>gradle components</userinput>. Below is an example of running this report for
             one of the sample projects:
         </para>
-        <sample id="newJavaComponentReport" dir="newJavaPlugin/quickstart" title="The components report">
+        <sample id="newJavaComponentReport" dir="javaLibraryPlugin/quickstart" title="The components report">
             <output args='components'/>
         </sample>
     </section>
 
     <section>
         <title>Dependencies between components</title>
-        <para>The new Java plugin supports API dependencies between components. Having an API dependency means that if
+        <para>The JVM component plugins support API dependencies between components. Having an API dependency means that if
             <literal>A</literal> depends on <literal>B</literal>, then the API of <literal>B</literal>
             is required to compile <literal>A</literal>. Gradle will then
             make sure that the dependency is built before the dependent component, and that the dependency
@@ -230,20 +230,20 @@
             Dependencies onto external components are not yet supported.
         </para>
         <para>Dependencies are declared on a <apilink class="org.gradle.api.tasks.SourceSet">source set</apilink>:</para>
-        <sample id="newJavaMultiComponents" dir="newJavaPlugin/multiplecomponents" title="Declaring a dependency onto a library">
+        <sample id="newJavaMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a library">
             <sourcefile file="build.gradle" snippet="simple-dependency"/>
             <output args="serverJar" outputFile="newJavaMultiComponents-serverJar.out" ignoreExtraLines="true"/>
         </sample>
         <para>This example declares an API dependency for the <literal>java</literal> source set of the <literal>server</literal> library
-        onto the <literal>core</literal> library of the same project. However, it is possible for a library to depend on a library in a different
+        onto the <literal>core</literal> library of the same project. However, it is possible to create a dependency on a library in a different
         project as well:</para>
-        <sample id="newJavaMultiComponents" dir="newJavaPlugin/multiplecomponents" title="Declaring a dependency onto a project with an explicit library">
+        <sample id="newJavaMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a project with an explicit library">
             <sourcefile file="build.gradle" snippet="dependency-other-project"/>
             <output args="clientJar" outputFile="newJavaMultiComponents-clientJar.out" ignoreExtraLines="true"/>
         </sample>
         <para>When the target project only defines a single library, the <literal>library</literal> selector can be omitted
         altogether:</para>
-        <sample id="newJavaMultiComponents" dir="newJavaPlugin/multiplecomponents" title="Declaring a dependency onto a project with an implicit library">
+        <sample id="newJavaMultiComponents" dir="javaLibraryPlugin/multiplecomponents" title="Declaring a dependency onto a project with an implicit library">
             <sourcefile file="build.gradle" snippet="dependency-other-project-implicit-lib"/>
         </sample>
         <para>The <apilink class="org.gradle.platform.base.DependencySpecContainer"/> class provides a complete reference of the dependencies DSL.</para>
@@ -263,7 +263,7 @@
                 </itemizedlist>
             </para>
             <para>The <literal>targetPlatform</literal> DSL defines which platforms a library should be built against:</para>
-            <sample id="newJavaTargetPlatforms" dir="newJavaPlugin/targetplatforms" title="Declaring target platforms">
+            <sample id="newJavaTargetPlatforms" dir="javaLibraryPlugin/targetplatforms" title="Declaring target platforms">
                 <sourcefile file="core/build.gradle" snippet="declare-target-platforms"/>
                 <output args=":core:build" ignoreExtraLines="true"/>
             </sample>
@@ -276,7 +276,7 @@
             <para>For each <apilink class="org.gradle.jvm.JvmLibrarySpec"/> it is possible to define additional source sets for each binary. A common use case for this
             is having specific dependencies for each variant and source sets that conform to those dependencies. The example below configures a <literal>java6</literal> source set on the <literal>java6MainJar</literal>
             binary:</para>
-            <sample id="newJavaTargetPlatforms" dir="newJavaPlugin/targetplatforms" title="Declaring binary specific sources">
+            <sample id="newJavaTargetPlatforms" dir="javaLibraryPlugin/targetplatforms" title="Declaring binary specific sources">
                 <sourcefile file="core/build.gradle" snippet="binary-specific-sourceset"/>
                 <output args=":core:java6MainJar" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-java6MainJar.out"/>
             </sample>
@@ -294,7 +294,7 @@
                     <listitem>for multiple compatible binaries <literal>D(java 5), D(java 6), ...D(java m)</literal>, choose the compatible D binary with the highest Java version</listitem>
                 </itemizedlist>
             </para>
-            <sample id="newJavaTargetPlatforms" dir="newJavaPlugin/targetplatforms" title="Declaring target platforms">
+            <sample id="newJavaTargetPlatforms" dir="javaLibraryPlugin/targetplatforms" title="Declaring target platforms">
                 <sourcefile file="server/build.gradle" snippet="dependency-with-platform"/>
                 <output args=":server:build" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-server.out"/>
             </sample>
