@@ -106,6 +106,7 @@ We would recommend that you fix the violations or disable the failing rules.
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+* [Andrew Audibert](https://github.com/aaudiber) - Documentation fix
 * [Vladislav Bauer](https://github.com/vbauer) - StringBuffer cleanup
 * [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Allow user to configure auxclasspath for PMD
 * [Alpha Hinex](https://github.com/AlphaHinex) - Allow encoding to be specified for Zip task
