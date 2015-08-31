@@ -28,26 +28,16 @@ import java.util.List;
 
 class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy {
 
-    private final static Field CLASSVALUEMAP_FIELD;
-    private final static Field CLASSVALUE_ENTRY_VALUE_FIELD;
-
+    private final static boolean HAS_CLASS_VALUE;
 
     static {
-        Field f;
+        boolean cv = true;
         try {
-            f = ClassLoader.class.getDeclaredField("classes");
-            f.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            f = null;
+            Class.forName("java.lang.ClassValue");
+        } catch (ClassNotFoundException e) {
+            cv = false;
         }
-        CLASSVALUEMAP_FIELD = f;
-        try {
-            f = Class.forName("java.lang.ClassValue$Entry").getDeclaredField("value");
-            f.setAccessible(true);
-        } catch (Exception e) {
-            f = null;
-        }
-        CLASSVALUE_ENTRY_VALUE_FIELD = f;
+        HAS_CLASS_VALUE = cv;
     }
 
     private Class<?> classInfoClass;
@@ -59,7 +49,7 @@ class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy
 
     @Override
     public boolean appliesTo(ClassPath classpath) {
-        if (CLASSVALUEMAP_FIELD == null || CLASSVALUE_ENTRY_VALUE_FIELD == null) {
+        if (!HAS_CLASS_VALUE) {
             return false;
         }
         if (classpath == null) {
