@@ -1,29 +1,30 @@
 package org.gradle.api.internal.project.antbuilder;
 
 import groovy.transform.CompileStatic;
+import org.gradle.internal.classpath.ClassPath;
 
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.util.Map;
 
 @CompileStatic
 public class FinalizerThread extends Thread {
-    private final ReferenceQueue<String> referenceQueue;
-    private final Map<SoftReference<String>, ClassPathToClassLoader> classLoaderCache;
+    private final ReferenceQueue<ClassPath> referenceQueue;
+    private final Map<WeakReference<ClassPath>, ClassPathToClassLoader> classLoaderCache;
     private boolean stopped;
 
-    public FinalizerThread(Map<SoftReference<String>, ClassPathToClassLoader> classLoaderCache) {
+    public FinalizerThread(Map<WeakReference<ClassPath>, ClassPathToClassLoader> classLoaderCache) {
         this.setName("Classloader cache reference queue poller");
         this.setDaemon(true);
         this.classLoaderCache = classLoaderCache;
-        this.referenceQueue = new ReferenceQueue<String>();
+        this.referenceQueue = new ReferenceQueue<ClassPath>();
     }
 
     public void run() {
         try {
             while (!stopped) {
-                Reference<? extends String> key = referenceQueue.remove();
+                Reference<? extends ClassPath> key = referenceQueue.remove();
                 ClassPathToClassLoader cached = classLoaderCache.remove(key);
                 cached.cleanup();
             }
@@ -32,8 +33,8 @@ public class FinalizerThread extends Thread {
         }
     }
 
-    public SoftReference<String> referenceOf(String str) {
-        return new SoftReference<String>(str, referenceQueue);
+    public WeakReference<ClassPath> referenceOf(ClassPath classPath) {
+        return new WeakReference<ClassPath>(classPath, referenceQueue);
     }
 
     public void exit() {

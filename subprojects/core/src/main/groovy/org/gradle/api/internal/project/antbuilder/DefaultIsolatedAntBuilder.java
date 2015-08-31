@@ -1,6 +1,5 @@
 package org.gradle.api.internal.project.antbuilder;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -21,7 +20,7 @@ import org.gradle.util.ConfigureUtil;
 import java.io.File;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.util.List;
@@ -63,7 +62,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     private final ClassLoader baseAntLoader;
     private final ClassPath libClasspath;
     private final ClassLoader gradleLoader;
-    private final Map<SoftReference<String>, ClassPathToClassLoader> classLoaderCache;
+    private final Map<WeakReference<ClassPath>, ClassPathToClassLoader> classLoaderCache;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderFactory classLoaderFactory;
     private final FinalizerThread finalizerThread;
@@ -130,8 +129,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     }
 
     public void execute(Closure antClosure) {
-        String key = Joiner.on(':').join(libClasspath.getAsURIs());
-        ClassPathToClassLoader cached = getCachedLoader(key);
+        ClassPathToClassLoader cached = getCachedLoader(libClasspath);
         ClassLoader classLoader = (cached == null ? null : cached.getClassLoader());
         boolean cacheLoader = classLoader == null;
         if (cacheLoader) {
@@ -162,14 +160,14 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             cached.getClassLoaderLeakPrevention().afterUse();
 
             if (cacheLoader) {
-                classLoaderCache.put(finalizerThread.referenceOf(key), cached);
+                classLoaderCache.put(finalizerThread.referenceOf(libClasspath), cached);
             }
         }
 
     }
 
-    private ClassPathToClassLoader getCachedLoader(final String key) {
-        for (Map.Entry<SoftReference<String>, ClassPathToClassLoader> entry : classLoaderCache.entrySet()) {
+    private ClassPathToClassLoader getCachedLoader(final ClassPath key) {
+        for (Map.Entry<WeakReference<ClassPath>, ClassPathToClassLoader> entry : classLoaderCache.entrySet()) {
             if (key.equals(entry.getKey().get())) {
                 return entry.getValue();
             }
@@ -235,7 +233,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         private final FinalizerThread finalizerThread;
         private final MemoryLeakPrevention gradleToIsolatedLeakPrevention;
         private final MemoryLeakPrevention antToGradleLeakPrevention;
-        private final Map<SoftReference<String>, ClassPathToClassLoader> classLoaderCache;
+        private final Map<WeakReference<ClassPath>, ClassPathToClassLoader> classLoaderCache;
         private final ClassLoader gradleLoader;
         private final ClassLoader baseAntLoader;
 
