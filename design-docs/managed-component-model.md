@@ -301,21 +301,59 @@ build types and flavors each with an associated source set.
 
 It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpec.sources` model backed containers.
 
-## Implementation
+## Story: Allow `LanguageSourceSet` instances to be attached to a managed type
 
-- Allow any registered `LanguageSourceSet` subtype to be added as a property of a managed type, or created as a top-level element
-    - Instances are linked into top level `sources` container
-    - Need some convention for source directory locations. Possibly default to empty set.
-- Change `ComponentSpec.source` so that configuration is deferred
-    - Need to replace usages of internal `ComponentSpecInternal.sources`
-    - Rename `source` to `sources` via add-deprecate-remove
-- Change `BinarySpec.sources` so that configuration is deferred
-- Change `FunctionalSourceSet` so that it extends `ModelMap`
-- Allow `FunctionalSourceSet` to be added as a property of a managed type, or created as a top-level element
-    - Instances are linked into top level `sources` container
-    - Need some convention for source directory locations. Possibly add a `baseDir` property to `FunctionalSourceSet` and default source directories to `$baseDir/$sourceSet.name`
-    - Need some convention for which languages are included. Possibly default to no languages
-- Change `BinarySpec.sources` and `ComponentSpec.sources` to have type `FunctionalSourceSet`
+- Allow any registered subtype of `LanguageSourceSet` to be used as:
+    - A read-only property of a `@Managed` type
+    - An element of managed collections `ModelSet` and `ModelMap`
+    - A top level element.
+- TBD: Need some convention for source directory locations. Possibly add a `baseDir` property to `FunctionalSourceSet` and default source directories to `$baseDir/$sourceSet.name`
+- TBD: Reporting changes, if any
+
+- Out-of-scope: Instances are visible in top level `sources` container.
+
+### Implementation
+
+- Converge on `NodeInitializer` as the strategy for creating the children of a managed type, the elements of a model collection and top level elements:
+    - Hoist this up to `ModelSchema`
+    - Replace the various `ChildNodeInitializerStrategy` implementation with one that delegates to the schema.
+    - Add some way to register a `NodeInitializer` for an unmanaged or partially managed type.
+- Change validation for managed type properties and managed collection elements to allow any type for which a creation strategy is available.
+- Add creation strategy for `LanguageSourceSet` backed by type registration.
+
+## Story: Elements of binary `sources` container are visible to rules
+
+### Implementation
+
+- Use the same approach as used to make `ComponentSpec.sources` visible to rules.
+    - Will need to make `BaseBinarySpec` node backed, similar to `BaseComponentSpec`.   
+    - Should refactor to simplify both cases.
+
+## Story: Allow `FunctionalSourceSet` instances to be attached to a managed type
+
+- Empty by default.
+- All registered source set types are available to be added.
+- TBD: Change `FunctionalSourceSet` to extend `ModelMap`. Probably should be split out as a separate story.
+
+### Implementation
+
+- TBD: Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has 
+no knowledge of where its elements end up being referenced.
+- TBD: Currently rules push language registrations into various well known instances. Should change this to work with all instances, ideally by pull rather than push.
+- TBD: Currently `CUnitPlugin` uses methods on `FunctionalSourceSet` that are not available on `ModelMap`.
+- TBD: Reuse `FunctionalSourceSet` for `ComponentSpec.sources` and `BinarySpec.sources`.
+
+## Story: Elements of `sources` container are visible to rules 
+
+- TBD: Change `ProjectSourceSet` so that it is bridged in the same way as the `binaries` container, alternatively move `sources` completely into model space.
+- TBD: Currently `JavaBasePlugin` contributes source sets to `sources` container.
+
+## Story: Build logic applies cross cutting configuration to all `LanguageSourceSet` instances 
+
+- All `LanguageSourceSet` instances are visible through `sources` container
+- Depends on improvements to reference handling define in previous feature. 
+- TBD: Need to traverse schema to determine where source sets may be found in the model. Ensure only those model elements that are required are realized. 
+- TBD: Need to split this up into several stories.
 
 # Later features
 
@@ -323,7 +361,6 @@ It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpe
 
 This feature continues earlier work to make key properties of `BinarySpec` managed.
 
-- `BinarySpec.source`
 - `BinarySpec.tasks`
 
 # Feature: Build logic defines tasks for generated source sets and intermediate outputs
