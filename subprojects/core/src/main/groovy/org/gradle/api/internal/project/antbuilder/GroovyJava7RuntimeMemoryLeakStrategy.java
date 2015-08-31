@@ -100,6 +100,7 @@ class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy
 
     @Override
     public void dispose(ClassLoader classLoader, ClassLoader... affectedLoaders) throws Exception {
+
         Iterator it = globalClassSetIterator();
 
         while (it.hasNext()) {
@@ -112,6 +113,14 @@ class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy
             }
         }
 
+    }
+
+    @Override
+    void afterUse(ClassLoader leakingLoader, ClassLoader... affectedLoaders) throws Exception {
+        Class<?> categorySupClazz = leakingLoader.loadClass("org.codehaus.groovy.runtime.GroovyCategorySupport");
+        Field tfField = categorySupClazz.getDeclaredField("THREAD_INFO");
+        tfField.setAccessible(true);
+        MemoryLeakPrevention.THREADLOCAL_REMOVE.invoke(tfField.get(null));
     }
 
     private Iterator globalClassSetIterator() throws IllegalAccessException, InvocationTargetException {

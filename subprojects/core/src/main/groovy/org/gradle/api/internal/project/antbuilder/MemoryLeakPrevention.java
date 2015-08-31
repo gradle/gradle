@@ -19,11 +19,24 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 public class MemoryLeakPrevention {
 
     private final static Logger LOG = Logging.getLogger(MemoryLeakPrevention.class);
+
+    final static Method THREADLOCAL_REMOVE;
+
+    static {
+        Method m;
+        try {
+            m = ThreadLocal.class.getDeclaredMethod("remove");
+        } catch (NoSuchMethodException e) {
+            m = null;
+        }
+        THREADLOCAL_REMOVE = m;
+    }
 
     private final String name; // only used to make debugging easier
     private final Strategy[] strategies;
