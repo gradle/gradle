@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project;
+package org.gradle.api.internal.project.antbuilder;
 
 import org.gradle.internal.classpath.ClassPath;
 
@@ -21,7 +21,7 @@ import java.beans.Introspector;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-class JavaBeanIntrospectorMemoryLeakStrategy implements MemoryLeakPrevention.Strategy {
+class JavaBeanIntrospectorMemoryLeakStrategy extends MemoryLeakPrevention.Strategy {
     private final static Field DECLARED_METHOD_CACHE_FIELD;
     private final static Method GET_CONTEXT_METHOD;
     private final static Method CLEAR_BEANINFO_METHOD;
@@ -57,7 +57,7 @@ class JavaBeanIntrospectorMemoryLeakStrategy implements MemoryLeakPrevention.Str
     }
 
     @Override
-    public void cleanup(ClassLoader classLoader) throws Exception {
+    public void dispose(ClassLoader classLoader, ClassLoader... affectedLoaders) throws Exception {
         Object cache = DECLARED_METHOD_CACHE_FIELD.get(null);
         cache.getClass().getDeclaredMethod("clear").invoke(cache);
         CLEAR_BEANINFO_METHOD.invoke(GET_CONTEXT_METHOD.invoke(null));
