@@ -57,8 +57,8 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
             model {
                 tasks {
-                    create("fromScript") {
-                        it.doLast { println "fromScript: " + $("platform.operatingSystem").name }
+                    fromScript(Task) {
+                        doLast { println "fromScript: " + $("platform.operatingSystem").name }
                     }
                 }
             }
@@ -92,7 +92,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
                 @Mutate
                 void setOsName(@Path("platform.operatingSystem") OperatingSystem os) {
-                  os.name = "foo"
+                    os.name = "foo"
                 }
 
                 @Mutate
@@ -110,8 +110,8 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                     name = "$name os"
                 }
                 tasks {
-                    create("fromScript") {
-                        it.doLast { println "fromScript: " + $("platform.operatingSystem.name") }
+                    fromScript(Task) {
+                        doLast { println "fromScript: " + $("platform.operatingSystem.name") }
                     }
                 }
             }
@@ -163,8 +163,8 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
             model {
                 tasks {
-                    create("fromScript") {
-                        it.doLast { println "fromScript: " + $("platform.operatingSystem").name }
+                    fromScript(Task) {
+                        doLast { println "fromScript: " + $("platform.operatingSystem").name }
                     }
                 }
             }
@@ -205,8 +205,8 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
             model {
                 tasks {
-                    create("fromScript") {
-                        it.doLast { println "fromScript: " + $("platform.name") }
+                    fromScript(Task) {
+                        doLast { println "fromScript: " + $("platform.name") }
                     }
                 }
             }
@@ -255,8 +255,8 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                     operatingSystem.name = "$operatingSystem.name os"
                 }
                 tasks {
-                    create("fromScript") {
-                        it.doLast { println "fromScript: " + $("platform.operatingSystem.name") }
+                    fromScript(Task) {
+                        doLast { println "fromScript: " + $("platform.operatingSystem.name") }
                     }
                 }
             }
