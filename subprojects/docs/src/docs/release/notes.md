@@ -44,10 +44,10 @@ Gradle now automatically adds the compile dependencies of each analyzed source s
 
 ### Managed model improvements
 
-TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with references between parts of the
-model.
+TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with references between different model 
+elements.
 
-- Can use a link property as input for a rule.
+- Can use a reference property as input for a rule.
 
 ### Compiler daemon reuse in continuous builds
 
