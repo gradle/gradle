@@ -265,15 +265,13 @@ class DefaultModelRegistryTest extends Specification {
                 node.getLink("indirect").setTarget(parent)
             }
         }
-        // TODO - fix up the types
-        registry.create("foo") { it.unmanaged(Object, "ref.indirect.child") { it } }
+        registry.create("foo") { it.unmanaged(String, "ref.indirect.child") { it } }
 
         // TODO - remove this, should be realized via the reference
         registry.realize("parent.child")
 
         expect:
-        // TODO - fix up the types
-        registry.realize("foo", Object) == "value"
+        registry.realize("foo", String) == "value"
     }
 
     def "cannot change a reference after it has been self-closed"() {
@@ -290,6 +288,7 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
+        e.message == "Cannot set target for model element 'ref' as this element is not mutable."
 
         where:
         newTarget << [null, Stub(MutableModelNode)]

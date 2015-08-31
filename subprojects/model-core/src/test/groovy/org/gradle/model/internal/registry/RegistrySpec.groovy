@@ -115,7 +115,7 @@ class RegistrySpec extends Specification {
         }
 
         @Override
-        MutableModelNode getLink(String name) {
+        ModelNodeInternal getLink(String name) {
             return null
         }
 

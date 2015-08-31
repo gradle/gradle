@@ -88,6 +88,9 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
     }
 
     public static String description(ModelType<?> type) {
+        if (type.getRawClass().getSuperclass() == null && type.getRawClass().getInterfaces().length == 0) {
+            return type.toString();
+        }
         return type.toString() + " (or assignment compatible type thereof)";
     }
 
