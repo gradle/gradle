@@ -44,10 +44,7 @@ public class MemoryLeakPrevention {
     private final ClassPath classPath;
 
     public MemoryLeakPrevention(String name, ClassLoader leakingLoader, ClassPath classPath) {
-        this(name, leakingLoader, classPath,
-            new GroovyJava7RuntimeMemoryLeakStrategy(),
-            new JavaBeanIntrospectorMemoryLeakStrategy(),
-            new ResourceBundleLeakStrategy());
+        this(name, leakingLoader, classPath, new GroovyJava7RuntimeMemoryLeakStrategy());
     }
 
     public MemoryLeakPrevention(String name, ClassLoader leakingLoader, ClassPath classPath, Strategy... strategies) {
