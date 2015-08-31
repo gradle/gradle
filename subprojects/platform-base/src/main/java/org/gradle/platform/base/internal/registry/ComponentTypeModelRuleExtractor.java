@@ -21,9 +21,7 @@ import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.util.BiFunction;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -111,9 +109,8 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
             components.register(publicClass, descriptor, new BiFunction<ComponentSpec, String, MutableModelNode>() {
                 @Override
                 public ComponentSpec apply(String name, MutableModelNode modelNode) {
-                    FunctionalSourceSet componentSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet.class, name, instantiator, projectSourceSet);
                     ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                    return BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode, componentSourceSet, instantiator, schemaStore);
+                    return BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode, projectSourceSet, instantiator, schemaStore);
                 }
             });
         }

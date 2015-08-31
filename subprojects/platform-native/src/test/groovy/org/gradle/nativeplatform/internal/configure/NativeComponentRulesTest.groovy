@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.internal.configure
 import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.Flavor
@@ -47,8 +46,7 @@ class NativeComponentRulesTest extends Specification {
     def flavor = createStub(Flavor, "flavor1")
 
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def mainSourceSet = new DefaultFunctionalSourceSet("testFSS", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet))
-    def component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, new ModelRegistryHelper(), id, mainSourceSet, instantiator)
+    def component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, new ModelRegistryHelper(), id, Stub(ProjectSourceSet), instantiator)
 
     def "does not use variant dimension names for single valued dimensions"() {
         component.targetPlatform("platform1")
