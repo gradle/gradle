@@ -17,7 +17,6 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Matchers
 
 class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
 
@@ -49,7 +48,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#createPerson")
-        failure.assertThatCause(Matchers.containsLine(Matchers.matchesRegexp(/No signature of method: .*\.setName\(\) is applicable for argument types: \(java.lang.Integer\) values: \[123\]/)))
+        failure.assertHasCause("No signature of method: Person.setName() is applicable for argument types: (java.lang.Integer) values: [123]")
     }
 
     def "provides a useful error message when setting an incompatible type on a managed instance in Java"() {
