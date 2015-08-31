@@ -23,11 +23,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
 
 class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy {
 
-    private final static Field CLASSES_FIELD;
     private final static Field CLASSVALUEMAP_FIELD;
     private final static Field CLASSVALUE_ENTRY_VALUE_FIELD;
 
@@ -36,13 +36,6 @@ class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy
         Field f;
         try {
             f = ClassLoader.class.getDeclaredField("classes");
-            f.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            f = null;
-        }
-        CLASSES_FIELD = f;
-        try {
-            f = Class.class.getDeclaredField("classValueMap");
             f.setAccessible(true);
         } catch (NoSuchFieldException e) {
             f = null;
@@ -109,24 +102,15 @@ class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy
     public void dispose(ClassLoader classLoader, ClassLoader... affectedLoaders) throws Exception {
         Iterator it = globalClassSetIterator();
 
-        Set<Class> classesToBeCleared = new LinkedHashSet<Class>();
-
         while (it.hasNext()) {
             Object classInfo = it.next();
             if (classInfo != null) {
                 Class clazz = (Class) clazzField.get(classInfo);
                 if (inHierarchy(clazz, affectedLoaders)) {
                     removeFromGlobalClassValue.invoke(globalClassValue, clazz);
-                    classesToBeCleared.add(clazz);
                 }
             }
         }
-
-        for (Class clazz : classesToBeCleared) {
-            removeClassInfoFromClassValue(clazz);
-        }
-
-        // stopThreadedReferenceManager(classLoader);
 
     }
 
@@ -186,36 +170,4 @@ class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy
         return false;
     }
 
-    @Override
-    void afterUse(ClassLoader leakingLoader, ClassLoader... affectedLoaders) throws Exception {
-        Class<?> categorySupClazz = leakingLoader.loadClass("org.codehaus.groovy.runtime.GroovyCategorySupport");
-        Field tfField = categorySupClazz.getDeclaredField("THREAD_INFO");
-        tfField.setAccessible(true);
-        MemoryLeakPrevention.THREADLOCAL_REMOVE.invoke(tfField.get(null));
-    }
-
-
-    private static void stopThreadedReferenceManager(ClassLoader classLoader) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
-        classLoader.loadClass("groovy.lang.GroovySystem").getDeclaredMethod("stopThreadedReferenceManager").invoke(null);
-    }
-
-    private void removeClassInfoFromClassValue(Class clazz) throws Exception {
-        Map classValueMap = (Map) CLASSVALUEMAP_FIELD.get(clazz);
-        List<Object> toBeRemoved = new LinkedList<Object>();
-        if (classValueMap != null) {
-            for (Object o : classValueMap.entrySet()) {
-                Map.Entry entry = (Map.Entry) o;
-                Object value = entry.getValue(); // value -> java.lang.ClassValue.Entry
-                if (value != null) {
-                    value = CLASSVALUE_ENTRY_VALUE_FIELD.get(value);
-                    if (value != null && value.getClass() == classInfoClass) {
-                        toBeRemoved.add(entry.getKey());
-                    }
-                }
-            }
-            for (Object key : toBeRemoved) {
-                classValueMap.remove(key);
-            }
-        }
-    }
 }
