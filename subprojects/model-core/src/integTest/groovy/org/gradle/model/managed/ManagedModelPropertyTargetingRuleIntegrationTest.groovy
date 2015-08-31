@@ -42,14 +42,14 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
             class RulePlugin extends RuleSource {
                 @Model
                 void platform(Platform platform) {
-                  platform.operatingSystem.name = "foo"
+                    platform.operatingSystem.name = "foo"
                 }
 
                 @Mutate
                 void addTask(ModelMap<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
-                  tasks.create("fromPlugin") {
-                    doLast { println "fromPlugin: $os.name" }
-                  }
+                    tasks.create("fromPlugin") {
+                        doLast { println "fromPlugin: $os.name" }
+                    }
                 }
             }
 
@@ -57,9 +57,9 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
             model {
                 tasks {
-                  create("fromScript") {
-                    it.doLast { println "fromScript: " + $("platform.operatingSystem").name }
-                  }
+                    create("fromScript") {
+                        it.doLast { println "fromScript: " + $("platform.operatingSystem").name }
+                    }
                 }
             }
         '''
@@ -97,9 +97,9 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
                 @Mutate
                 void addTask(ModelMap<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
-                  tasks.create("fromPlugin") {
-                    doLast { println "fromPlugin: $os.name" }
-                  }
+                    tasks.create("fromPlugin") {
+                        doLast { println "fromPlugin: $os.name" }
+                    }
                 }
             }
 
@@ -110,9 +110,9 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                     name = "$name os"
                 }
                 tasks {
-                  create("fromScript") {
-                    it.doLast { println "fromScript: " + $("platform.operatingSystem.name") }
-                  }
+                    create("fromScript") {
+                        it.doLast { println "fromScript: " + $("platform.operatingSystem.name") }
+                    }
                 }
             }
         '''
@@ -143,19 +143,19 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
             class RulePlugin extends RuleSource {
                 @Model
                 void os(OperatingSystem os) {
-                  os.name = "foo"
+                    os.name = "foo"
                 }
 
                 @Model
                 void platform(Platform platform, OperatingSystem os) {
-                  platform.operatingSystem = os
+                    platform.operatingSystem = os
                 }
 
                 @Mutate
                 void addTask(ModelMap<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
-                  tasks.create("fromPlugin") {
-                    doLast { println "fromPlugin: $os.name" }
-                  }
+                    tasks.create("fromPlugin") {
+                        doLast { println "fromPlugin: $os.name" }
+                    }
                 }
             }
 
@@ -163,9 +163,9 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
             model {
                 tasks {
-                  create("fromScript") {
-                    it.doLast { println "fromScript: " + $("platform.operatingSystem").name }
-                  }
+                    create("fromScript") {
+                        it.doLast { println "fromScript: " + $("platform.operatingSystem").name }
+                    }
                 }
             }
         '''
@@ -190,14 +190,14 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
             class RulePlugin extends RuleSource {
                 @Model
                 void platform(Platform platform) {
-                  platform.name = "foo"
+                    platform.name = "foo"
                 }
 
                 @Mutate
                 void addTask(ModelMap<Task> tasks, @Path("platform.name") String name) {
-                  tasks.create("fromPlugin") {
-                    doLast { println "fromPlugin: $name" }
-                  }
+                    tasks.create("fromPlugin") {
+                        doLast { println "fromPlugin: $name" }
+                    }
                 }
             }
 
@@ -205,9 +205,9 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
             model {
                 tasks {
-                  create("fromScript") {
-                    it.doLast { println "fromScript: " + $("platform.name") }
-                  }
+                    create("fromScript") {
+                        it.doLast { println "fromScript: " + $("platform.name") }
+                    }
                 }
             }
         '''
@@ -237,14 +237,14 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
             class RulePlugin extends RuleSource {
                 @Model
                 void platform(Platform platform) {
-                  platform.operatingSystem.name = "foo"
+                    platform.operatingSystem.name = "foo"
                 }
 
                 @Mutate
                 void addTask(ModelMap<Task> tasks, @Path("platform.operatingSystem.name") String name) {
-                  tasks.create("fromPlugin") {
-                    doLast { println "fromPlugin: $name" }
-                  }
+                    tasks.create("fromPlugin") {
+                        doLast { println "fromPlugin: $name" }
+                    }
                 }
             }
 
@@ -255,9 +255,9 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                     operatingSystem.name = "$operatingSystem.name os"
                 }
                 tasks {
-                  create("fromScript") {
-                    it.doLast { println "fromScript: " + $("platform.operatingSystem.name") }
-                  }
+                    create("fromScript") {
+                        it.doLast { println "fromScript: " + $("platform.operatingSystem.name") }
+                    }
                 }
             }
         '''
@@ -282,21 +282,20 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
             class RulePlugin extends RuleSource {
                 @Model
                 void operatingSystem(OperatingSystem operatingSystem) {
-                  operatingSystem.name = "foo"
+                    operatingSystem.name = "foo"
                 }
 
                 @Model
                 String name(@Path("operatingSystem.name") String name) {
-                  name
+                    name
                 }
 
                 @Mutate
                 void addTask(ModelMap<Task> tasks, @Path("name") String name) {
-                  tasks.create("echo") {
-                    doLast { println "name: $name" }
-                  }
+                    tasks.create("echo") {
+                        doLast { println "name: $name" }
+                    }
                 }
-
             }
 
             apply type: RulePlugin
