@@ -15,46 +15,57 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
-import groovy.transform.CompileStatic;
-import org.gradle.internal.classpath.ClassPath;
+import com.google.common.collect.Maps;
 
-import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.util.Map;
 
-@CompileStatic
-public class FinalizerThread extends Thread {
-    private final ReferenceQueue<ClassPath> referenceQueue;
-    private final Map<WeakReference<ClassPath>, ClassPathToClassLoader> classLoaderCache;
+class FinalizerThread extends Thread {
+    private final Map<String, Cleanup> cleanups;
+    private final ReferenceQueue<CachedClassLoader> referenceQueue;
+    private final Map<String, CacheEntry> cacheEntries;
+
     private boolean stopped;
 
-    public FinalizerThread(Map<WeakReference<ClassPath>, ClassPathToClassLoader> classLoaderCache) {
+    public FinalizerThread(Map<String, CacheEntry> cacheEntries) {
         this.setName("Classloader cache reference queue poller");
         this.setDaemon(true);
-        this.classLoaderCache = classLoaderCache;
-        this.referenceQueue = new ReferenceQueue<ClassPath>();
+        this.referenceQueue = new ReferenceQueue<CachedClassLoader>();
+        this.cacheEntries = cacheEntries;
+        this.cleanups = Maps.newConcurrentMap();
     }
 
     public void run() {
         try {
             while (!stopped) {
-                Reference<? extends ClassPath> key = referenceQueue.remove();
-                ClassPathToClassLoader cached = classLoaderCache.remove(key);
-                cached.cleanup();
+                Cleanup entry = (Cleanup) referenceQueue.remove();
+                String key = entry.getKey();
+                cacheEntries.remove(key);
+                cleanups.remove(key);
+                entry.cleanup();
+                entry.clear();
             }
+
         } catch (InterruptedException e) {
             // noop
         }
     }
 
-    public WeakReference<ClassPath> referenceOf(ClassPath classPath) {
-        return new WeakReference<ClassPath>(classPath, referenceQueue);
+    public ReferenceQueue<CachedClassLoader> getReferenceQueue() {
+        return referenceQueue;
     }
 
     public void exit() {
-        stopped = true;
+       stopped = true;
         interrupt();
+        for (Cleanup cleanup : cleanups.values()) {
+            cleanup.cleanup();
+        }
+        cacheEntries.clear();
+        cleanups.clear();
     }
 
+    public void putCleanup(String key, Cleanup cleanup) {
+        cleanups.put(key, cleanup);
+    }
 }

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.project.antbuilder;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -35,11 +34,9 @@ import org.gradle.util.ConfigureUtil;
 import java.io.File;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -77,23 +74,22 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     private final ClassLoader baseAntLoader;
     private final ClassPath libClasspath;
     private final ClassLoader gradleLoader;
-    private final Map<WeakReference<ClassPath>, ClassPathToClassLoader> classLoaderCache;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderFactory classLoaderFactory;
-    private final FinalizerThread finalizerThread;
     private final MemoryLeakPrevention gradleToIsolatedLeakPrevention;
     private final MemoryLeakPrevention antToGradleLeakPrevention;
+    private final ClassPathToClassLoaderCache classLoaderCache;
 
     public DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         this.classPathRegistry = classPathRegistry;
         this.classLoaderFactory = classLoaderFactory;
-        this.classLoaderCache = Maps.newConcurrentMap();
         this.libClasspath = new DefaultClassPath();
+        this.classLoaderCache = new ClassPathToClassLoaderCache();
 
         List<File> antClasspath = Lists.newArrayList(classPathRegistry.getClassPath("ANT").getAsFiles());
         // Need tools.jar for compile tasks
         File toolsJar = Jvm.current().getToolsJar();
-        if (toolsJar!=null) {
+        if (toolsJar != null) {
             antClasspath.add(toolsJar);
         }
 
@@ -115,8 +111,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         // Need Transformer (part of AntBuilder API) from base services
         gradleCoreUrls = gradleCoreUrls.plus(classPathRegistry.getClassPath("GRADLE_BASE_SERVICES"));
         this.gradleLoader = new URLClassLoader(gradleCoreUrls.getAsURLArray(), baseAntLoader);
-        finalizerThread = new FinalizerThread(classLoaderCache);
-        finalizerThread.start();
+
 
         this.gradleToIsolatedLeakPrevention = new MemoryLeakPrevention(CORE_GRADLE_LOADER, this.getClass().getClassLoader(), null);
         this.antToGradleLeakPrevention = new MemoryLeakPrevention(ANT_GRADLE_LOADER, gradleLoader, gradleCoreUrls);
@@ -130,13 +125,16 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     protected DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> libClasspath) {
         this.classPathRegistry = copy.classPathRegistry;
         this.classLoaderFactory = copy.classLoaderFactory;
-        this.classLoaderCache = copy.classLoaderCache;
         this.baseAntLoader = copy.baseAntLoader;
         this.gradleLoader = copy.gradleLoader;
-        this.finalizerThread = copy.finalizerThread;
         this.libClasspath = new DefaultClassPath(libClasspath);
         this.gradleToIsolatedLeakPrevention = copy.gradleToIsolatedLeakPrevention;
         this.antToGradleLeakPrevention = copy.antToGradleLeakPrevention;
+        this.classLoaderCache = copy.classLoaderCache;
+    }
+
+    public ClassPathToClassLoaderCache getClassLoaderCache() {
+        return classLoaderCache;
     }
 
     public IsolatedAntBuilder withClasspath(Iterable<File> classpath) {
@@ -144,12 +142,12 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     }
 
     public void execute(Closure antClosure) {
-        ClassPathToClassLoader cached = getCachedLoader(libClasspath);
+        CachedClassLoader cached = classLoaderCache.get(libClasspath);
         ClassLoader classLoader = cached == null ? null : cached.getClassLoader();
         boolean cacheLoader = classLoader == null;
         if (cacheLoader) {
             classLoader = new URLClassLoader(libClasspath.getAsURLArray(), baseAntLoader);
-            cached = new ClassPathToClassLoader(libClasspath, classLoader, gradleToIsolatedLeakPrevention, antToGradleLeakPrevention);
+            cached = classLoaderCache.cache(libClasspath, classLoader, gradleToIsolatedLeakPrevention, antToGradleLeakPrevention);
         }
 
 
@@ -166,29 +164,17 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             // Ideally, we'd delegate directly to the AntBuilder, but it's Closure class is different to our caller's
             // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
             // because they are not an instanceof it's Closure class.
-            Object delegate =  new AntBuilderDelegate(antBuilder, classLoader);
+            Object delegate = new AntBuilderDelegate(antBuilder, classLoader);
             ConfigureUtil.configure(antClosure, delegate);
 
         } finally {
             Thread.currentThread().setContextClassLoader(originalLoader);
             disposeBuilder(antBuilder, antLogger);
-            cached.getClassLoaderLeakPrevention().afterUse();
-
-            if (cacheLoader) {
-                classLoaderCache.put(finalizerThread.referenceOf(libClasspath), cached);
-            }
+            //cached.getCleanup().getClassLoaderLeakPrevention().afterUse();
         }
 
     }
 
-    private ClassPathToClassLoader getCachedLoader(final ClassPath key) {
-        for (Map.Entry<WeakReference<ClassPath>, ClassPathToClassLoader> entry : classLoaderCache.entrySet()) {
-            if (key.equals(entry.getKey().get())) {
-                return entry.getValue();
-            }
-        }
-        return null;
-    }
 
     private Object newInstanceOf(String className) {
         // we must use a String literal here, otherwise using things like Foo.class.name will trigger unnecessary
@@ -242,35 +228,24 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
 
     }
 
-
     private static class Finalizer extends PhantomReference<DefaultIsolatedAntBuilder> {
 
-        private final FinalizerThread finalizerThread;
         private final MemoryLeakPrevention gradleToIsolatedLeakPrevention;
         private final MemoryLeakPrevention antToGradleLeakPrevention;
-        private final Map<WeakReference<ClassPath>, ClassPathToClassLoader> classLoaderCache;
+        private final ClassPathToClassLoaderCache classLoaderCache;
         private final ClassLoader gradleLoader;
 
         public Finalizer(DefaultIsolatedAntBuilder referent, ReferenceQueue<? super DefaultIsolatedAntBuilder> q) {
             super(referent, q);
-            finalizerThread = referent.finalizerThread;
             gradleToIsolatedLeakPrevention = referent.gradleToIsolatedLeakPrevention;
             antToGradleLeakPrevention = referent.antToGradleLeakPrevention;
             classLoaderCache = referent.classLoaderCache;
             gradleLoader = referent.gradleLoader;
         }
 
-        private void emptyCache() {
-            for (ClassPathToClassLoader cached : classLoaderCache.values()) {
-                cached.cleanup();
-            }
-
-            classLoaderCache.clear();
-        }
 
         public void cleanup() {
-            finalizerThread.exit();
-            emptyCache();
+            classLoaderCache.shutdown();
 
             // clean classes from Gradle Core that leaked into the Ant classloader
             gradleToIsolatedLeakPrevention.dispose(gradleLoader);
