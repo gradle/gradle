@@ -15,14 +15,12 @@
  */
 
 package org.gradle.api.reporting.plugins
-
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -352,8 +350,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':jacocoTestReport', 'html')
     }
 
-    @Unroll
-    void 'dashboard includes CodeNarc reports #count'() {
+    void 'dashboard includes CodeNarc reports'() {
         given:
         goodCode()
         withCodenarc()
@@ -365,9 +362,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         reports.size() == 2
         hasReport(':buildDashboard', 'html')
         hasReport(':codenarcMain', 'html')
-
-        where:
-        count << (0..30)
     }
 
     void hasReport(String task, String name) {
