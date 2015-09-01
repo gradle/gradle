@@ -32,7 +32,7 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     private final TaskCollection<T> delegate;
     private final Class<T> type;
     private final ProjectInternal project;
-    final AtomicBoolean realized = new AtomicBoolean(false);
+    private final AtomicBoolean realized = new AtomicBoolean(false);
 
 
     public RealizableTaskCollection(Class<T> type, TaskCollection<T> delegate, ProjectInternal project) {
