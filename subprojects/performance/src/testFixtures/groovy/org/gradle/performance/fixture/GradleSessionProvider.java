@@ -28,6 +28,7 @@ public class GradleSessionProvider {
 
     public GradleSession session(GradleInvocationSpec buildSpec) {
         if (buildSpec.isUseToolingApi()) {
+            assert !buildSpec.isUseYourkit();
             return new ToolingApiBackedGradleSession(buildSpec, testDirectoryProvider);
         } else {
             return new GradleExecuterBackedSession(buildSpec, testDirectoryProvider);

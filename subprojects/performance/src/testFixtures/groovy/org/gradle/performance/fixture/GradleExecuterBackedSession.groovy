@@ -26,11 +26,16 @@ class GradleExecuterBackedSession implements GradleSession {
     final GradleInvocationSpec invocation
 
     private final TestDirectoryProvider testDirectoryProvider
+    private final YourkitSupport yourkitSupport
 
     GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
+        this(invocation, testDirectoryProvider, new YourkitSupport())
+    }
+
+    GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider, YourkitSupport yourkitSupport) {
         this.testDirectoryProvider = testDirectoryProvider
         this.invocation = invocation
-
+        this.yourkitSupport = yourkitSupport
     }
 
     @Override
@@ -61,6 +66,10 @@ class GradleExecuterBackedSession implements GradleSession {
 
         if (withGradleOpts) {
             executer.withBuildJvmOpts(invocation.jvmOpts)
+        }
+
+        if (invocation.useYourkit) {
+            yourkitSupport.enableYourkit(executer, invocation.yourkitOptions)
         }
 
         invocation.args.each { executer.withArgument(it) }

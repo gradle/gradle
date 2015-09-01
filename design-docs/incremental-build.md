@@ -7,10 +7,10 @@ This spec defines some improvements to improve incremental build and task up-to-
 ## Story: Add 'profiler' (YourKit) hook to performance test harness
 
 - Make it easier for us to collect profiling data and share profiling setup
-- Gradle dev adds `org.gradle.integtest.profilerpath` to gradle.properties
-- Gradle dev uses `withProfiler(String... args)` in performance test (probably add to BuildExperimentSpec) to enable profiler.
-- As part of the GRADLE_OPTS or JVM args (whichever works), add -agentpath:${org.gradle.integtest.profilerpath}=${args}, where args comes from `withProfiler` and is comma separated.
-- Gradle dev should be able to then use `<whatever>.withProfiler("tracing")` to enable automatic CPU tracing when the JVM starts.
+- Gradle dev adds YJP_HOME or YJP_AGENT_PATH environment variable that points to Yourkit home directory or Yourkit Agent library file.
+- Gradle dev uses `useYourkit()` and `yourkitOpts(Map<String, Object> yourkitOptions)` in performance test to enable profiler (added to `GradleInvocationSpec`).
+- As part of the GRADLE_OPTS or JVM args (whichever works), add -agentpath:${org.gradle.integtest.profilerpath}=${args}, where args comes from `yourkitOpts` and is comma separated.
+- Yourkit supports these startup options: https://www.yourkit.com/docs/java/help/startup_options.jsp . The options that don't take an argument will be handled separately in the code that creates the JVM argument string. The value "true" can be used as a value in the yourkitOpts map for such options.
 
 ### Test coverage
 
@@ -24,7 +24,7 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 ## Story: Compare tasks using IncrementalTaskInputs with "regular" tasks
 
-- Vary number of inputs and outputs 
+- Vary number of inputs and outputs
 - If difference between calculating up-to-date checks is identical or within an order of magnitude, remove this as a variable in future plans.
 - Collect numbers for a report
 
@@ -38,7 +38,7 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 ## Story: Compare "one change" and "no change" cases
 
-- Vary number of inputs and outputs 
+- Vary number of inputs and outputs
 - Compare no input or output change case with one input or output change case
 - If difference between calculating up-to-date checks is identical or within an order of magnitude, remove this as a variable for now and focus on 'no change' cases.
 - Future stories may address the "ripple" effect of a single input invalidating multiple tasks in a chain.
@@ -54,7 +54,7 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 ## Story: Find breaking point for input and output sizes
 
-- Vary number of inputs and outputs 
+- Vary number of inputs and outputs
 - Vary sizes of inputs and outputs
 - Breaking point is the point where Gradle fails due to memory (reported issue) or takes a "long" time (>60 seconds for a single task).
 
@@ -74,7 +74,7 @@ See discussion about parameters.  Uses java-lang/jvm-component software model pl
 
 ### Test coverage
 
-- Performance test that runs against 2.6 and latest release 
+- Performance test that runs against 2.6 and latest release
 
 ## Story: Update performance generator to create representative C/C++ project
 
@@ -82,7 +82,7 @@ See discussion about parameters.  Uses cpp software model plugins.
 
 ### Test coverage
 
-- Performance test that runs against 2.6 and latest release 
+- Performance test that runs against 2.6 and latest release
 
 ## Story: TBD
 
@@ -92,6 +92,6 @@ TBD
 
 - TBD
 
-## Open Issues 
+## Open Issues
 
 - See incremental-build-old.md for other ideas and specific issues.

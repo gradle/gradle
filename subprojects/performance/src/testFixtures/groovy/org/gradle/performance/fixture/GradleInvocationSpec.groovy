@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -34,8 +35,11 @@ class GradleInvocationSpec {
     final List<String> jvmOpts
     final boolean useDaemon
     final boolean useToolingApi
+    final boolean useYourkit
+    final Map<String, Object> yourkitOptions
 
-    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> jvmOpts, boolean useDaemon, boolean useToolingApi) {
+
+    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> jvmOpts, boolean useDaemon, boolean useToolingApi, boolean useYourkit, Map<String, Object> yourkitOptions) {
         this.gradleDistribution = gradleDistribution
         this.workingDirectory = workingDirectory
         this.tasksToRun = tasksToRun
@@ -43,6 +47,8 @@ class GradleInvocationSpec {
         this.jvmOpts = jvmOpts
         this.useDaemon = useDaemon
         this.useToolingApi = useToolingApi
+        this.useYourkit = useYourkit
+        this.yourkitOptions = yourkitOptions
     }
 
     static Builder builder() {
@@ -50,11 +56,11 @@ class GradleInvocationSpec {
     }
 
     GradleInvocationSpec withAdditionalJvmOpts(List<String> additionalJvmOpts) {
-        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, args, ImmutableList.builder().addAll(jvmOpts).addAll(additionalJvmOpts).build(), useDaemon, useToolingApi)
+        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, args, ImmutableList.builder().addAll(jvmOpts).addAll(additionalJvmOpts).build(), useDaemon, useToolingApi, useYourkit, yourkitOptions)
     }
 
     GradleInvocationSpec withAdditionalArgs(List<String> additionalArgs) {
-        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, ImmutableList.builder().addAll(args).addAll(additionalArgs).build(), jvmOpts, useDaemon, useToolingApi)
+        return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun, ImmutableList.builder().addAll(args).addAll(additionalArgs).build(), jvmOpts, useDaemon, useToolingApi, useYourkit, yourkitOptions)
     }
 
     static class Builder {
@@ -63,8 +69,10 @@ class GradleInvocationSpec {
         List<String> tasksToRun = []
         List<String> args = []
         List<String> gradleOptions = []
+        Map<String, Object> yourkitOptions = [:]
         boolean useDaemon
         boolean useToolingApi
+        boolean useYourkit
 
         Builder distribution(GradleDistribution gradleDistribution) {
             this.gradleDistribution = gradleDistribution
@@ -125,11 +133,21 @@ class GradleInvocationSpec {
             gradleOpts("-D${GradleProperties.WORKERS_PROPERTY}=1")
         }
 
+        Builder useYourkit() {
+            useYourkit = true
+            this
+        }
+
+        Builder yourkitOpts(Map<String, Object> yourkitOptions) {
+            this.yourkitOptions = ImmutableMap.copyOf(yourkitOptions)
+            this
+        }
+
         GradleInvocationSpec build() {
             assert gradleDistribution != null
             assert workingDirectory != null
 
-            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), gradleOptions.asImmutable(), useDaemon, useToolingApi)
+            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), gradleOptions.asImmutable(), useDaemon, useToolingApi, useYourkit, yourkitOptions)
         }
 
     }
