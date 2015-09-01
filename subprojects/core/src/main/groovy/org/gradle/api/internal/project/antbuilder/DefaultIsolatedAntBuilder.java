@@ -250,7 +250,6 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         private final MemoryLeakPrevention antToGradleLeakPrevention;
         private final Map<WeakReference<ClassPath>, ClassPathToClassLoader> classLoaderCache;
         private final ClassLoader gradleLoader;
-        private final ClassLoader baseAntLoader;
 
         public Finalizer(DefaultIsolatedAntBuilder referent, ReferenceQueue<? super DefaultIsolatedAntBuilder> q) {
             super(referent, q);
@@ -259,7 +258,6 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             antToGradleLeakPrevention = referent.antToGradleLeakPrevention;
             classLoaderCache = referent.classLoaderCache;
             gradleLoader = referent.gradleLoader;
-            baseAntLoader = referent.baseAntLoader;
         }
 
         private void emptyCache() {
