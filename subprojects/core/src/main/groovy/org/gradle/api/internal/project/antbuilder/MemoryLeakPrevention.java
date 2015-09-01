@@ -15,12 +15,16 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Set;
 
 public class MemoryLeakPrevention {
 
@@ -39,18 +43,21 @@ public class MemoryLeakPrevention {
     }
 
     private final String name; // only used to make debugging easier
-    private final Strategy[] strategies;
+    private final Set<Strategy> strategies;
     private final ClassLoader leakingLoader;
-    private final ClassPath classPath;
 
     public MemoryLeakPrevention(String name, ClassLoader leakingLoader, ClassPath classPath) {
         this(name, leakingLoader, classPath, new GroovyJava7RuntimeMemoryLeakStrategy());
     }
 
-    public MemoryLeakPrevention(String name, ClassLoader leakingLoader, ClassPath classPath, Strategy... strategies) {
+    public MemoryLeakPrevention(String name, ClassLoader leakingLoader, final ClassPath classPath, Strategy... strategies) {
         this.name = name;
-        this.classPath = classPath;
-        this.strategies = strategies;
+        this.strategies = ImmutableSet.copyOf(Iterables.filter(Arrays.asList(strategies), new Predicate<Strategy>() {
+            @Override
+            public boolean apply(Strategy input) {
+                return input.appliesTo(classPath);
+            }
+        }));
         this.leakingLoader = leakingLoader;
     }
 
@@ -81,12 +88,10 @@ public class MemoryLeakPrevention {
 
     private void doWithClassPath(StrategyAction action) {
         for (Strategy strategy : strategies) {
-            if (strategy.appliesTo(classPath)) {
-                try {
-                    action.execute(strategy);
-                } catch (Exception e) {
-                    LOG.debug("Cannot apply memory leak strategy", e);
-                }
+            try {
+                action.execute(strategy);
+            } catch (Exception e) {
+                LOG.debug("Cannot apply memory leak strategy", e);
             }
         }
     }
