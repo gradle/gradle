@@ -6,7 +6,4 @@ tasks.withType(GroovyCompile) {
     options.encoding = 'utf-8'
     options.compilerArgs = ['-Xlint:-options']
     groovyOptions.encoding = 'utf-8'
-    if (!JavaVersion.current().java8Compatible) {
-        options.forkOptions.jvmArgs = ['-XX:+CMSClassUnloadingEnabled', '-XX:MaxPermSize=64m', '-XX:+HeapDumpOnOutOfMemoryError','-XX:HeapDumpPath=/tmp/dump']
-    }
 }

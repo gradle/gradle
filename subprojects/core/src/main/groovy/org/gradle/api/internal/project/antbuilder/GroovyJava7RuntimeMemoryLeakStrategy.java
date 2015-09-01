@@ -46,6 +46,7 @@ class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy
     private Object globalClassValue;
     private Object globalClassSetItems;
     private Field clazzField;
+    private ClassLoader gradleClassInfoClassLoader;
 
     @Override
     public boolean appliesTo(ClassPath classpath) {
@@ -85,8 +86,9 @@ class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy
 
         clazzField = classInfoClass.getDeclaredField("klazz");
         clazzField.setAccessible(true);
-    }
 
+        gradleClassInfoClassLoader = ClassInfo.class.getClassLoader();
+    }
 
     @Override
     public void dispose(ClassLoader classLoader, ClassLoader... affectedLoaders) throws Exception {
@@ -134,7 +136,8 @@ class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy
         if (loader == null) {
             return false;
         }
-        if (classLoader == null) {
+        if (classLoader == null || classLoader==gradleClassInfoClassLoader) {
+            // "please don't clean any classinfo from Gradle core, for classes which have been loaded by Gradle itself"
             // system class loader, purged only if not Gradle core
             return ClassInfo.class != classInfoClass;
         }
