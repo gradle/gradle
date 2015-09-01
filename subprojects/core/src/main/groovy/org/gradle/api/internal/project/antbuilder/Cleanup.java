@@ -29,7 +29,7 @@ public class Cleanup extends PhantomReference<CachedClassLoader> {
     private final MemoryLeakPrevention gradleToIsolatedLeakPrevention;
     private final MemoryLeakPrevention antToIsolatedLeakPrevention;
 
-    private boolean cleared = false;
+    private boolean cleared;
 
     public Cleanup(String key,
                    ClassPath classPath,
@@ -65,9 +65,5 @@ public class Cleanup extends PhantomReference<CachedClassLoader> {
             antToIsolatedLeakPrevention.dispose(classLoader);
 
         }
-    }
-
-    public MemoryLeakPrevention getClassLoaderLeakPrevention() {
-        return classLoaderLeakPrevention;
     }
 }

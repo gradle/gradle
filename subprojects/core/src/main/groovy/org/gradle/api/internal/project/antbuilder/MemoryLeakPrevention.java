@@ -74,13 +74,6 @@ public class MemoryLeakPrevention {
         void prepare(ClassLoader leakingLoader, ClassLoader... affectedLoaders) throws Exception {
         }
 
-        // pre-cleanup is executed right after the class loader has been used
-        // it can be called multiple times, after each use, on the same thread
-        // as the one which created the classloader
-        void afterUse(ClassLoader leakingLoader, ClassLoader... affectedLoaders) throws Exception {
-
-        }
-
         // cleanup is called before the classloader is disposed
         void dispose(ClassLoader classLoader, ClassLoader... affectedLoaders) throws Exception {
         }
@@ -101,7 +94,6 @@ public class MemoryLeakPrevention {
         doWithClassPath(new StrategyAction() {
             @Override
             public void execute(Strategy strategy) throws Exception {
-                strategy.afterUse(leakingLoader, affectedLoaders);
                 strategy.dispose(leakingLoader, affectedLoaders);
             }
         });
@@ -112,15 +104,6 @@ public class MemoryLeakPrevention {
             @Override
             public void execute(Strategy strategy) throws Exception {
                 strategy.prepare(leakingLoader, affectedLoaders);
-            }
-        });
-    }
-
-    public void afterUse(final ClassLoader... affectedLoaders) {
-        doWithClassPath(new StrategyAction() {
-            @Override
-            public void execute(Strategy strategy) throws Exception {
-                strategy.afterUse(leakingLoader, affectedLoaders);
             }
         });
     }
