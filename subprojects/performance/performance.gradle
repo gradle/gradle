@@ -415,6 +415,7 @@ task performanceTest(type: Test) {
     if (project.hasProperty('org.gradle.performance.use_yourkit')) {
         testLogging.showStandardStreams = true
         systemProperties['org.gradle.performance.use_yourkit'] = '1'
+        outputs.upToDateWhen { false }
     }
 }
 
