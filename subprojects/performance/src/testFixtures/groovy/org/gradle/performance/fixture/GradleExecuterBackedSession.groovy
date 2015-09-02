@@ -27,14 +27,16 @@ class GradleExecuterBackedSession implements GradleSession {
 
     private final TestDirectoryProvider testDirectoryProvider
     private final YourkitSupport yourkitSupport
+    private final BuildDisplayInfo displayInfo
 
-    GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
-        this(invocation, testDirectoryProvider, new YourkitSupport())
+    GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider, BuildDisplayInfo displayInfo) {
+        this(invocation, testDirectoryProvider, displayInfo, new YourkitSupport())
     }
 
-    GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider, YourkitSupport yourkitSupport) {
+    GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider, BuildDisplayInfo displayInfo, YourkitSupport yourkitSupport) {
         this.testDirectoryProvider = testDirectoryProvider
         this.invocation = invocation
+        this.displayInfo = displayInfo
         this.yourkitSupport = yourkitSupport
     }
 
@@ -69,7 +71,11 @@ class GradleExecuterBackedSession implements GradleSession {
         }
 
         if (invocation.useYourkit) {
-            yourkitSupport.enableYourkit(executer, invocation.yourkitOptions)
+            Map<String, Object> yourkitOptions = [:] + invocation.yourkitOptions
+            if(!yourkitOptions.containsKey("sessionname")) {
+                yourkitOptions.sessionname = "${displayInfo.projectName} ${displayInfo.displayName}".toString()
+            }
+            yourkitSupport.enableYourkit(executer, yourkitOptions)
         }
 
         invocation.args.each { executer.withArgument(it) }

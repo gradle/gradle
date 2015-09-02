@@ -26,12 +26,12 @@ public class GradleSessionProvider {
         this.testDirectoryProvider = testDirectoryProvider;
     }
 
-    public GradleSession session(GradleInvocationSpec buildSpec) {
+    public GradleSession session(GradleInvocationSpec buildSpec, BuildDisplayInfo displayInfo) {
         if (buildSpec.isUseToolingApi()) {
             assert !buildSpec.isUseYourkit();
-            return new ToolingApiBackedGradleSession(buildSpec, testDirectoryProvider);
+            return new ToolingApiBackedGradleSession(buildSpec, testDirectoryProvider, displayInfo);
         } else {
-            return new GradleExecuterBackedSession(buildSpec, testDirectoryProvider);
+            return new GradleExecuterBackedSession(buildSpec, testDirectoryProvider, displayInfo);
         }
 
     }
