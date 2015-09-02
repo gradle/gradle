@@ -30,6 +30,7 @@ task java9IntegTest(type: Test) {
             'InvokeDynamicGroovyCompilerSpec',
             'InProcessJavaCompilerIntegrationTest',
             'IncrementalJavaCompileIntegrationTest', // source compat 1.5 unsupported
+            'SamplesJavaQuickstartIntegrationTest', // source compat 1.5 unsupported
             'JUnitIntegrationTest', // system classloader changed, test expectation is wrong
             'SampleTestNGIntegrationTest', // source compat 1.4 and 1.5 unsupported
             'TestNGIntegrationTest', // source compat 1.4 and 1.5 unsupported

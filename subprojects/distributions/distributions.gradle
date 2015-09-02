@@ -134,3 +134,7 @@ artifacts {
 integTest {
     inputs.files allZip, binZip, srcZip
 }
+
+java9IntegTest {
+    inputs.files allZip, binZip, srcZip
+}
