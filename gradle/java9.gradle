@@ -43,8 +43,7 @@ task java9IntegTest(type: Test) {
             'ZincScalaCompilerIntegrationTest', // scala compile broken
             'ZincScalaCompilerMultiVersionIntegrationTest', // scala compile broken
             'ScalaTestIntegrationTest', // scala compile broken
-            'org.gradle.integtests.tooling', // 2.6 provider fails to start daemon, remove this once 2.7 is released
-    ].collect { "**/*${it}*" }
+    ].collect { "**/*${it}*" } << 'org.gradle.integtests.tooling/**' // 2.6 provider fails to start daemon, remove this once 2.7 is released
 }
 
 task java9Test(type: Test) {
