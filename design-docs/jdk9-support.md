@@ -27,7 +27,9 @@ get a SystemJavaCompiler which does rely on the JavaCompiler coming from an isol
 - Some tests which garbage collect(`System.gc()`) are failing. See: `ModelRuleExtractorTest`. There would need to be some exploration
 to figure out how (or if) garbage collection is different on JDK9.
 
-### Cannot fork build processes (e.g. test execution processes)
+### Scala compilation is broken
+
+### Cannot fork test worker processes
 
 See:
 - https://discuss.gradle.org/t/classcastexception-from-org-gradle-process-internal-child-bootstrapsecuritymanager/2443
@@ -35,10 +37,6 @@ See:
 - http://download.java.net/jdk9/docs/api/index.html
 
 Proposed solution is to use a classpath manifest jar only on 9 and later.
-
-### Default daemon args are invalid with Java 9
-
-See: https://issues.gradle.org/browse/GRADLE-3286
 
 ## Update linux jdk9 installation
 
