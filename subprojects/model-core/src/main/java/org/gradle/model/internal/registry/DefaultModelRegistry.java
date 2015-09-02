@@ -1208,7 +1208,10 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
             if (parent instanceof ModelReferenceNode) {
                 // Parent is a reference, need to resolve the target
-                dependencies.add(new TryResolveReference((ModelReferenceNode) parent, getPath()));
+                ModelReferenceNode parentReference = (ModelReferenceNode) parent;
+                if (parentReference.getTarget() != null) {
+                    dependencies.add(new TryResolveReference(parentReference, getPath()));
+                }
             } else {
                 // Self close parent in order to discover its children, or its target in the case of a reference
                 dependencies.add(graph.nodeAtState(new NodeAtState(getPath().getParent(), SelfClosed)));

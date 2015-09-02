@@ -263,6 +263,67 @@ This element was created by Project.<init>.tasks() and can be mutated as the fol
   - org.gradle.api.tasks.TaskContainer (or assignment compatible type thereof)""")
     }
 
+    def "reports failure to bind subject or input due to null reference"() {
+        given:
+        buildScript """
+@Managed interface Person extends Named {
+    Person getParent()
+    void setParent(Person p)
+}
+
+class MyPlugin extends RuleSource {
+    @Model
+    void person(Person p) { }
+
+    @Model
+    String name(@Path("person.parent.parent") Person grandParent, @Path("person.parent.parent.parent.parent") Person ancestor) {
+        throw new RuntimeException("broken")
+    }
+
+    @Validate
+    void checkName(@Path("person.parent.parent") Person grandParent, @Path("person.parent.parent.parent.parent") Person ancestor) {
+        throw new RuntimeException("broken")
+    }
+}
+
+apply plugin: MyPlugin
+
+model {
+    person.parent.name {
+        throw new RuntimeException("broken")
+    }
+    person.parent.parent.parent.parent.parent.name {
+        throw new RuntimeException("broken")
+    }
+}
+"""
+
+        when:
+        fails()
+
+        then:
+        failureCauseContains """
+  MyPlugin#checkName
+    subject:
+      - person.parent.parent Person (parameter 1) [*]
+    inputs:
+      - person.parent.parent.parent.parent Person (parameter 2) [*]
+
+  MyPlugin#name
+    inputs:
+      - person.parent.parent Person (parameter 1) [*]
+      - person.parent.parent.parent.parent Person (parameter 2) [*]
+
+  model.person.parent.name @ build.gradle line 25, column 5
+    subject:
+      - person.parent.name Object [*]
+
+  model.person.parent.parent.parent.parent.parent.name @ build.gradle line 28, column 5
+    subject:
+      - person.parent.parent.parent.parent.parent.name Object [*]
+"""
+    }
+
     def "partially bound rules are reported and the report includes the elements bound to"() {
         given:
         buildScript """
