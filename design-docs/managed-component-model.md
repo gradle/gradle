@@ -235,26 +235,26 @@ For example:
     }
 
 - When binding a path for input, need to realize enough of each element to finalize references so that references can be traversed.
-- Support binding by type.
-- Need to handle `null` value in both instances.
+- Need to handle paths that traverse a `null` reference.
 - Error messages on binding failures.
 - Reference value can be changed while mutation is allowed. Treat reference change as remove and add.
 - Can't remove an element when it is the target of a reference.
 
 ### Test cases
 
-- Can bind to target element
-    - via reference path.
-    - by element type.
-- Nice error message when reference is `null`.
-    - via reference path.
-    - by element type.
-- Nice error message when binding to unknown element.
+- Can bind to target element via reference path.
+- Nice error message when reference is `null`. Should indicate where the `null` reference is.
+- Nice error message when binding to unknown child element.
 - Can bind to child of target element via reference path.
 - When reference is attached in `@Defaults` rule, configuration rules are applied to target element.
 - Can bind element via path that contains several references.
 - Can reference to ancestor.
 - Can mutate reference.
+
+### Backlog
+
+- Deal with case where by-path binding points to a null reference or null scala value, rather than traverses a null reference. 
+- Deal with by-type binding to a non-null reference.
 
 ## Model report shows references between elements
 
