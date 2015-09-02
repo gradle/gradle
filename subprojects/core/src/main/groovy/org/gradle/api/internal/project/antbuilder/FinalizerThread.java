@@ -16,38 +16,50 @@
 package org.gradle.api.internal.project.antbuilder;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import java.lang.ref.ReferenceQueue;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 class FinalizerThread extends Thread {
+    private final static Logger LOG = Logging.getLogger(MemoryLeakPrevention.class);
+
+    private final ReentrantReadWriteLock lock;
     private final Map<String, Cleanup> cleanups;
     private final ReferenceQueue<CachedClassLoader> referenceQueue;
     private final Map<String, CacheEntry> cacheEntries;
 
-    private boolean stopped;
+    private boolean stopping;
 
-    public FinalizerThread(Map<String, CacheEntry> cacheEntries) {
+    public FinalizerThread(Map<String, CacheEntry> cacheEntries, ReentrantReadWriteLock lock) {
         this.setName("Classloader cache reference queue poller");
         this.setDaemon(true);
         this.referenceQueue = new ReferenceQueue<CachedClassLoader>();
         this.cacheEntries = cacheEntries;
         this.cleanups = Maps.newConcurrentMap();
+        this.lock = lock;
     }
 
     public void run() {
+
         try {
-            while (!stopped) {
+            while (!stopping || !cacheEntries.isEmpty()) {
                 Cleanup entry = (Cleanup) referenceQueue.remove();
                 String key = entry.getKey();
-                cacheEntries.remove(key);
-                cleanups.remove(key);
-                entry.cleanup();
-                entry.clear();
+                lock.writeLock().lock();
+                try {
+                    cacheEntries.remove(key);
+                    cleanups.remove(key);
+                    entry.cleanup();
+                    entry.clear();
+                } finally {
+                    lock.writeLock().unlock();
+                }
             }
-
-        } catch (InterruptedException e) {
-            // noop
+        } catch (InterruptedException ex) {
+            LOG.debug("Shutdown of classloader cache in progress");
         }
     }
 
@@ -56,13 +68,15 @@ class FinalizerThread extends Thread {
     }
 
     public void exit() {
-       stopped = true;
-        interrupt();
-        for (Cleanup cleanup : cleanups.values()) {
-            cleanup.cleanup();
+        lock.writeLock().lock();
+        try {
+            stopping = true;
+            interrupt();
+            run();
+            LOG.debug("Completed shutdown");
+        } finally {
+            lock.writeLock().unlock();
         }
-        cacheEntries.clear();
-        cleanups.clear();
     }
 
     public void putCleanup(String key, Cleanup cleanup) {

@@ -26,7 +26,7 @@ import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 
-class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy {
+public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.Strategy {
 
     private final static boolean HAS_CLASS_VALUE;
 

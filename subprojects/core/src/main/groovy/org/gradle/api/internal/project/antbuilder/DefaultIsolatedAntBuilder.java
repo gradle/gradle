@@ -18,10 +18,12 @@ package org.gradle.api.internal.project.antbuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -141,38 +143,40 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         return new DefaultIsolatedAntBuilder(this, classpath);
     }
 
-    public void execute(Closure antClosure) {
-        CachedClassLoader cached = classLoaderCache.get(libClasspath);
-        ClassLoader classLoader = cached == null ? null : cached.getClassLoader();
-        boolean cacheLoader = classLoader == null;
-        if (cacheLoader) {
-            classLoader = new URLClassLoader(libClasspath.getAsURLArray(), baseAntLoader);
-            cached = classLoaderCache.cache(libClasspath, classLoader, gradleToIsolatedLeakPrevention, antToGradleLeakPrevention);
-        }
+    public void execute(final Closure antClosure) {
+        classLoaderCache.withCachedClassLoader(libClasspath, gradleToIsolatedLeakPrevention, antToGradleLeakPrevention,
+            new Factory<ClassLoader>() {
+                @Override
+                public ClassLoader create() {
+                    return new URLClassLoader(libClasspath.getAsURLArray(), baseAntLoader);
+                }
+            }, new Action<CachedClassLoader>() {
+                @Override
+                public void execute(CachedClassLoader cachedClassLoader) {
+                    ClassLoader classLoader = cachedClassLoader.getClassLoader();
+                    Object antBuilder = newInstanceOf("org.gradle.api.internal.project.ant.BasicAntBuilder");
+                    Object antLogger = newInstanceOf("org.gradle.api.internal.project.ant.AntLoggingAdapter");
 
+                    // This looks ugly, very ugly, but that is apparently what Ant does itself
+                    ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
+                    Thread.currentThread().setContextClassLoader(classLoader);
 
-        Object antBuilder = newInstanceOf("org.gradle.api.internal.project.ant.BasicAntBuilder");
-        Object antLogger = newInstanceOf("org.gradle.api.internal.project.ant.AntLoggingAdapter");
+                    try {
+                        configureAntBuilder(antBuilder, antLogger);
 
-        // This looks ugly, very ugly, but that is apparently what Ant does itself
-        ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(classLoader);
+                        // Ideally, we'd delegate directly to the AntBuilder, but it's Closure class is different to our caller's
+                        // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
+                        // because they are not an instanceof it's Closure class.
+                        Object delegate = new AntBuilderDelegate(antBuilder, classLoader);
+                        ConfigureUtil.configure(antClosure, delegate);
 
-        try {
-            configureAntBuilder(antBuilder, antLogger);
-
-            // Ideally, we'd delegate directly to the AntBuilder, but it's Closure class is different to our caller's
-            // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
-            // because they are not an instanceof it's Closure class.
-            Object delegate = new AntBuilderDelegate(antBuilder, classLoader);
-            ConfigureUtil.configure(antClosure, delegate);
-
-        } finally {
-            Thread.currentThread().setContextClassLoader(originalLoader);
-            disposeBuilder(antBuilder, antLogger);
-            //cached.getCleanup().getClassLoaderLeakPrevention().afterUse();
-        }
-
+                    } finally {
+                        Thread.currentThread().setContextClassLoader(originalLoader);
+                        disposeBuilder(antBuilder, antLogger);
+                        //cached.getCleanup().getClassLoaderLeakPrevention().afterUse();
+                    }
+                }
+            });
     }
 
 
