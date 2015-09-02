@@ -412,6 +412,10 @@ task performanceTest(type: Test) {
     options {
         includeCategories 'org.gradle.performance.PerformanceTest'
     }
+    if (project.hasProperty('org.gradle.performance.use_yourkit')) {
+        testLogging.showStandardStreams = true
+        systemProperties['org.gradle.performance.use_yourkit'] = '1'
+    }
 }
 
 task performanceExperiments(type: Test) {

@@ -7,10 +7,13 @@ This spec defines some improvements to improve incremental build and task up-to-
 ## Story: Add 'profiler' (YourKit) hook to performance test harness
 
 - Make it easier for us to collect profiling data and share profiling setup
-- Gradle dev adds YJP_HOME or YJP_AGENT_PATH environment variable that points to Yourkit home directory or Yourkit Agent library file.
-- Gradle dev uses `useYourkit()` and `yourkitOpts(Map<String, Object> yourkitOptions)` in performance test to enable profiler (added to `GradleInvocationSpec`).
-- As part of the GRADLE_OPTS or JVM args (whichever works), add -agentpath:${org.gradle.integtest.profilerpath}=${args}, where args comes from `yourkitOpts` and is comma separated.
-- Yourkit supports these startup options: https://www.yourkit.com/docs/java/help/startup_options.jsp . The options that don't take an argument will be handled separately in the code that creates the JVM argument string. The value "true" can be used as a value in the yourkitOpts map for such options.
+- Gradle dev adds `YJP_HOME` (Yourkit home directory path) or `YJP_AGENT_PATH` (Yourkit agent library file path) environment variable.
+- Gradle dev writes a performance test that extends AbstractCrossBuildPerformanceTest or AbstractCrossVersionPerformanceTest.
+- Gradle dev enables YJP by passing `-Porg.gradle.performance.use_yourkit` project property in running the performance test.
+  - example use: `./gradlew performance:performanceTest -Porg.gradle.performance.use_yourkit -D:performance:performanceTest.single=NativePreCompiledHeaderPerformanceTest`
+- Yourkit agent options are loaded from `~/.gradle/yourkit.properties` by default.
+  - Yourkit supports these startup options: https://www.yourkit.com/docs/java/help/startup_options.jsp . 
+- Yourkit profiling snapshot data get saved to `~/Snapshots` by default. The file name contains the test project name and display name from the performance test.
 
 ### Test coverage
 
@@ -19,6 +22,7 @@ This spec defines some improvements to improve incremental build and task up-to-
 ### Open Issues
 
 - Skip warm-up or have explicit opt-in for warm up profiling?
+  - Conditionally enabling the profiler in the code by using Yourkit API.
 - For cross-version tests, skip all versions except the current?
 - Do we care about conditionally profiling the CLI and daemon processes (such that the profiling options should be configurable for each)?
 

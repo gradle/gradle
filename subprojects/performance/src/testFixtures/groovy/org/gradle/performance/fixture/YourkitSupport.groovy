@@ -16,14 +16,17 @@
 
 package org.gradle.performance.fixture
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.os.OperatingSystem
 
 @CompileStatic
 class YourkitSupport {
+    static final String USE_YOURKIT = "org.gradle.performance.use_yourkit"
     private static final Set<String> NO_ARGS_OPTIONS =
         ['onlylocal', 'united_log', 'sampling', 'tracing', 'call_counting', 'allocsampled', 'monitors', 'disablestacktelemetry', 'disableexceptiontelemetry', 'disableoomedumper', 'disablealloc', 'disabletracing', 'disableall'] as Set
+    private static final File DEFAULT_YOURKIT_PROPERTIES_FILE = new File(System.getProperty("user.home"), ".gradle/yourkit.properties")
     private String yjpAgentPath
     private String yjpHome
     private OperatingSystem operatingSystem
@@ -36,6 +39,31 @@ class YourkitSupport {
         this.yjpAgentPath = yjpAgentPath
         this.yjpHome = yjpHome
         this.operatingSystem = operatingSystem
+    }
+
+    public static Map<String, Object> loadProperties() {
+        loadProperties(DEFAULT_YOURKIT_PROPERTIES_FILE)
+    }
+
+    @CompileDynamic
+    public static Map<String, Object> loadProperties(File yourkitPropertiesFile) {
+        Map<String, Object> yourkitOptions
+        if (yourkitPropertiesFile.exists()) {
+            Properties yourkitProperties = new Properties()
+            yourkitPropertiesFile.withInputStream {
+                yourkitProperties.load(it)
+            }
+            yourkitOptions = [:] + yourkitProperties
+        } else {
+            yourkitOptions = [sampling: true, delay: 0, disablealloc: true, probe_disable: '*', monitors: true, onexit: 'snapshot', telemetryperiod: 100]
+        }
+        yourkitOptions
+    }
+
+    static void handleBuildInvocation(GradleInvocationSpec.Builder invocation) {
+        if (System.getProperty(USE_YOURKIT)) {
+            invocation.useYourkit().yourkitOpts(YourkitSupport.loadProperties())
+        }
     }
 
     void enableYourkit(GradleExecuter executer, Map<String, Object> yourkitOptions) {

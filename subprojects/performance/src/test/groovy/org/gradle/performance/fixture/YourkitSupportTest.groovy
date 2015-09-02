@@ -41,4 +41,23 @@ class YourkitSupportTest extends Specification {
 
 
     }
+
+    def "when yourkit properties file doesn't exist, it should use defaults"() {
+        given:
+        File yourkitPropertiesFile = tmpDir.file("doesnt_exist.properties")
+        when:
+        def yourkitOptions = YourkitSupport.loadProperties(yourkitPropertiesFile)
+        then:
+        yourkitOptions.size() > 0
+    }
+
+    def "when yourkit properties file exists, it should be used"() {
+        given:
+        File yourkitPropertiesFile = tmpDir.file("yourkit.properties")
+        yourkitPropertiesFile.text = "sampling=true\ndelay=0"
+        when:
+        def yourkitOptions = YourkitSupport.loadProperties(yourkitPropertiesFile)
+        then:
+        yourkitOptions == [sampling: 'true', delay: '0']
+    }
 }

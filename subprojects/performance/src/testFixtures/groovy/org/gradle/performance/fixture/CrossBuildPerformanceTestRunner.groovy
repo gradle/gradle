@@ -56,6 +56,7 @@ class CrossBuildPerformanceTestRunner {
     }
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+        YourkitSupport.handleBuildInvocation(builder.invocation)
         builder.invocation.distribution(gradleDistribution)
     }
 
