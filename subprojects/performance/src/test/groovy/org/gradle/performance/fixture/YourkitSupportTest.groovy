@@ -19,10 +19,13 @@ package org.gradle.performance.fixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
 
+@Requires(TestPrecondition.NOT_WINDOWS)
 class YourkitSupportTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
