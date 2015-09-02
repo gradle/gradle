@@ -65,17 +65,17 @@ public class MemoryLeakPrevention {
         return leakingLoader;
     }
 
-    static abstract class Strategy {
-        boolean appliesTo(ClassPath classpath) {
+    public static abstract class Strategy {
+        public boolean appliesTo(ClassPath classpath) {
             return false;
         }
 
         // prepare is called before the classloader is given for consumption
-        void prepare(ClassLoader leakingLoader, ClassLoader... affectedLoaders) throws Exception {
+        public void prepare(ClassLoader leakingLoader, ClassLoader... affectedLoaders) throws Exception {
         }
 
         // cleanup is called before the classloader is disposed
-        void dispose(ClassLoader classLoader, ClassLoader... affectedLoaders) throws Exception {
+        public void dispose(ClassLoader classLoader, ClassLoader... affectedLoaders) throws Exception {
         }
     }
 

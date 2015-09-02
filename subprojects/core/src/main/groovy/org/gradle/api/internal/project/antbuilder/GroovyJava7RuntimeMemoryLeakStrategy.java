@@ -65,7 +65,7 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
     }
 
     @Override
-    void prepare(ClassLoader leakingLoader, ClassLoader... affectedLoaders) throws Exception {
+    public void prepare(ClassLoader leakingLoader, ClassLoader... affectedLoaders) throws Exception {
         // this work has to be done before classes are loaded, otherwise there are risks that
         // the PermGen space is full before we create the reflection methods
 
