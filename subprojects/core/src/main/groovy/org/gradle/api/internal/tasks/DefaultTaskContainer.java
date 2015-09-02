@@ -33,7 +33,6 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.*;
@@ -286,16 +285,11 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public void execute(final MutableModelNode mutableModelNode) {
-            DeprecationLogger.whileDisabled(new Runnable() {
-                @Override
-                public void run() {
-                    DefaultTaskContainer taskContainer = mutableModelNode.getParent().getPrivateData(ModelType.of(DefaultTaskContainer.class));
-                    T task = taskContainer.taskFactory.create(placeholderName, taskType);
-                    configure.execute(task);
-                    taskContainer.add(task);
-                    mutableModelNode.setPrivateData(taskModelType, task);
-                }
-            });
+            DefaultTaskContainer taskContainer = mutableModelNode.getParent().getPrivateData(ModelType.of(DefaultTaskContainer.class));
+            T task = taskContainer.taskFactory.create(placeholderName, taskType);
+            configure.execute(task);
+            taskContainer.add(task);
+            mutableModelNode.setPrivateData(taskModelType, task);
         }
     }
 }
