@@ -17,9 +17,9 @@ package org.gradle.api.internal.project.antbuilder;
 
 import org.gradle.internal.classpath.ClassPath;
 
-import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 
-class CacheEntry extends SoftReference<CachedClassLoader> {
+class CacheEntry extends WeakReference<CachedClassLoader> {
 
     private final ClassPath key;
 
