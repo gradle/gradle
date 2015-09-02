@@ -207,3 +207,11 @@ task install(dependsOn:  subprojects.collect { Project p -> p.tasks.withType(Pub
 ```
 
 As this collection is not actually iterated until the task graph is being constructed, creating just before that time would suffice.
+
+# Backlog
+
+- Better handle `tasks.<name>` in imperative API/DSL. Should attempt to discover task rules before failing, currently does not, only attempts to realise the task node.
+- Apply before-each and after-each rules to tasks defined using imperative DSL.
+- Apply `tasks.all { }` actions between initializer and mutation rules.
+- Better handle case where `check`, `build`, etc tasks are define using rules, either by allowing this and emitting deprecation warning, as when done using legacy API,
+  or improved error message on conflict.
