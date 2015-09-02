@@ -23,7 +23,7 @@ import java.lang.ref.ReferenceQueue;
 public class Cleanup extends PhantomReference<CachedClassLoader> {
     private final static String ISOLATED_ANT_CLASS_LOADER = "Isolated Ant Classpath";
 
-    private final String key;
+    private final ClassPath key;
     private final ClassLoader classLoader;
     private final MemoryLeakPrevention classLoaderLeakPrevention;
     private final MemoryLeakPrevention gradleToIsolatedLeakPrevention;
@@ -31,8 +31,7 @@ public class Cleanup extends PhantomReference<CachedClassLoader> {
 
     private boolean cleared;
 
-    public Cleanup(String key,
-                   ClassPath classPath,
+    public Cleanup(ClassPath classPath,
                    CachedClassLoader cachedClassLoader,
                    ReferenceQueue<CachedClassLoader> referenceQueue,
                    ClassLoader classLoader,
@@ -41,14 +40,14 @@ public class Cleanup extends PhantomReference<CachedClassLoader> {
         super(cachedClassLoader, referenceQueue);
         MemoryLeakPrevention classLoaderLeakPrevention = new MemoryLeakPrevention(ISOLATED_ANT_CLASS_LOADER, classLoader, classPath);
         classLoaderLeakPrevention.prepare();
-        this.key = key;
+        this.key = classPath;
         this.classLoader = classLoader;
         this.antToIsolatedLeakPrevention = antToIsolatedLeakPrevention;
         this.classLoaderLeakPrevention = classLoaderLeakPrevention;
         this.gradleToIsolatedLeakPrevention = gradleToIsolatedLeakPrevention;
     }
 
-    public String getKey() {
+    public ClassPath getKey() {
         return key;
     }
 

@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.antbuilder;
 import com.google.common.collect.Maps;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.classpath.ClassPath;
 
 import java.lang.ref.ReferenceQueue;
 import java.util.Map;
@@ -27,13 +28,13 @@ class FinalizerThread extends Thread {
     private final static Logger LOG = Logging.getLogger(MemoryLeakPrevention.class);
 
     private final ReentrantReadWriteLock lock;
-    private final Map<String, Cleanup> cleanups;
+    private final Map<ClassPath, Cleanup> cleanups;
     private final ReferenceQueue<CachedClassLoader> referenceQueue;
-    private final Map<String, CacheEntry> cacheEntries;
+    private final Map<ClassPath, CacheEntry> cacheEntries;
 
-    private boolean stopping;
+    private boolean stopped;
 
-    public FinalizerThread(Map<String, CacheEntry> cacheEntries, ReentrantReadWriteLock lock) {
+    public FinalizerThread(Map<ClassPath, CacheEntry> cacheEntries, ReentrantReadWriteLock lock) {
         this.setName("Classloader cache reference queue poller");
         this.setDaemon(true);
         this.referenceQueue = new ReferenceQueue<CachedClassLoader>();
@@ -45,21 +46,25 @@ class FinalizerThread extends Thread {
     public void run() {
 
         try {
-            while (!stopping || !cacheEntries.isEmpty()) {
+            while (!stopped) {
                 Cleanup entry = (Cleanup) referenceQueue.remove();
-                String key = entry.getKey();
-                lock.writeLock().lock();
-                try {
-                    cacheEntries.remove(key);
-                    cleanups.remove(key);
-                    entry.cleanup();
-                    entry.clear();
-                } finally {
-                    lock.writeLock().unlock();
-                }
+                ClassPath key = entry.getKey();
+                removeCacheEntry(key, entry);
             }
         } catch (InterruptedException ex) {
             LOG.debug("Shutdown of classloader cache in progress");
+        }
+    }
+
+    private void removeCacheEntry(ClassPath key, Cleanup entry) {
+        lock.writeLock().lock();
+        try {
+            cacheEntries.remove(key);
+            cleanups.remove(key);
+            entry.cleanup();
+            entry.clear();
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -70,16 +75,19 @@ class FinalizerThread extends Thread {
     public void exit() {
         lock.writeLock().lock();
         try {
-            stopping = true;
+            stopped = true;
             interrupt();
-            run();
+            while (!cleanups.isEmpty()) {
+                Map.Entry<ClassPath, Cleanup> entry = cleanups.entrySet().iterator().next();
+                removeCacheEntry(entry.getKey(), entry.getValue());
+            }
             LOG.debug("Completed shutdown");
         } finally {
             lock.writeLock().unlock();
         }
     }
 
-    public void putCleanup(String key, Cleanup cleanup) {
+    public void putCleanup(ClassPath key, Cleanup cleanup) {
         cleanups.put(key, cleanup);
     }
 }

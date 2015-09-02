@@ -15,18 +15,20 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
+import org.gradle.internal.classpath.ClassPath;
+
 import java.lang.ref.SoftReference;
 
 class CacheEntry extends SoftReference<CachedClassLoader> {
 
-    private final String key;
+    private final ClassPath key;
 
-    CacheEntry(String key, CachedClassLoader cached) {
+    CacheEntry(ClassPath key, CachedClassLoader cached) {
         super(cached);
         this.key = key;
     }
 
-    public String getKey() {
+    public ClassPath getKey() {
         return key;
     }
 }

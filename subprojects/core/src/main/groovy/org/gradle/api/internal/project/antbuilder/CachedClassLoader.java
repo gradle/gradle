@@ -15,12 +15,14 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
+import org.gradle.internal.classpath.ClassPath;
+
 class CachedClassLoader {
 
-    private final String key;
+    private final ClassPath key;
     private ClassLoader classLoader;
 
-    CachedClassLoader(String key, ClassLoader classLoader) {
+    CachedClassLoader(ClassPath key, ClassLoader classLoader) {
         this.key = key;
         this.classLoader = classLoader;
     }
@@ -29,7 +31,7 @@ class CachedClassLoader {
         return classLoader;
     }
 
-    public String getKey() {
+    public ClassPath getKey() {
         return key;
     }
 

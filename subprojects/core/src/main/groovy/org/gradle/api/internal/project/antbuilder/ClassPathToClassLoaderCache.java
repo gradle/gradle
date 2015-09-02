@@ -35,7 +35,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class ClassPathToClassLoaderCache {
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private final Map<String, CacheEntry> cacheEntries = Maps.newConcurrentMap();
+    private final Map<ClassPath, CacheEntry> cacheEntries = Maps.newConcurrentMap();
     private final FinalizerThread finalizerThread;
 
     public ClassPathToClassLoaderCache() {
@@ -83,23 +83,22 @@ public class ClassPathToClassLoaderCache {
                                       MemoryLeakPrevention antToGradleLeakPrevention,
                                       Factory<? extends ClassLoader> factory,
                                       Action<? super CachedClassLoader> action) {
-        String key = toCacheKey(libClasspath);
         lock.readLock().lock();
-        CacheEntry cacheEntry = cacheEntries.get(key);
+        CacheEntry cacheEntry = cacheEntries.get(libClasspath);
         CachedClassLoader cachedClassLoader = maybeGet(cacheEntry);
         if (cacheEntry == null || cachedClassLoader == null) {
             lock.readLock().unlock();
             lock.writeLock().lock();
             try {
-                cacheEntry = cacheEntries.get(key);
+                cacheEntry = cacheEntries.get(libClasspath);
                 cachedClassLoader = maybeGet(cacheEntry);
                 if (cacheEntry == null || cachedClassLoader == null) {
                     ClassLoader classLoader = factory.create();
-                    cachedClassLoader = new CachedClassLoader(key, classLoader);
-                    cacheEntry = new CacheEntry(key, cachedClassLoader);
-                    Cleanup cleanup = new Cleanup(key, libClasspath, cachedClassLoader, finalizerThread.getReferenceQueue(), classLoader, gradleToIsolatedLeakPrevention, antToGradleLeakPrevention);
-                    finalizerThread.putCleanup(key, cleanup);
-                    cacheEntries.put(key, cacheEntry);
+                    cachedClassLoader = new CachedClassLoader(libClasspath, classLoader);
+                    cacheEntry = new CacheEntry(libClasspath, cachedClassLoader);
+                    Cleanup cleanup = new Cleanup(libClasspath, cachedClassLoader, finalizerThread.getReferenceQueue(), classLoader, gradleToIsolatedLeakPrevention, antToGradleLeakPrevention);
+                    finalizerThread.putCleanup(libClasspath, cleanup);
+                    cacheEntries.put(libClasspath, cacheEntry);
                 }
                 lock.readLock().lock();
             } finally {
