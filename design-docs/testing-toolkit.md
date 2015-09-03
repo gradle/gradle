@@ -368,6 +368,9 @@ A functional test using Spock could look as such:
 * Execution of tests in parallel for multiple Gradle versions
 * JUnit Runner implementation to simplify definition of Gradle distributions
 
+
+# Milestone 3
+
 ## Story: Integration with plugin-development-plugin
 
 Users can easily test their Gradle plugins developed using the [plugin-development-plugin](https://docs.gradle.org/current/userguide/javaGradle_plugin.html).
@@ -402,7 +405,7 @@ Users can easily test their Gradle plugins developed using the [plugin-developme
 * Do we want to auto-generate a sample functional test case class and method based on JUnit that demonstrates the use of test-kit?
 * Should there be any support for IDE integration?
 
-# Milestone 3
+# Milestone 4
 
 ## Story: User can create repositories and populate dependencies
 
