@@ -520,3 +520,4 @@ none
 - Setting up a multi-project build should be easy. At the moment a user would have to do all the leg work. The work required could be simplified by introducing helper methods.
 - Potentially when running under the plugin dev plugin, defer clean up of test daemons to some finalizer task
 - Have test daemons reuse the artifact cache and other caches in ~/.gradle, and just ignore the configuration files there.
+- More convenient construction of test project directories (i.e. something like Gradle core's test directory provider)
