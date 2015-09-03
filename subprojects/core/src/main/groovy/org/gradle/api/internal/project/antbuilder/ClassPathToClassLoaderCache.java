@@ -18,6 +18,8 @@ package org.gradle.api.internal.project.antbuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 
@@ -34,6 +36,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * the cache.
  */
 public class ClassPathToClassLoaderCache {
+    private final static Logger LOG = Logging.getLogger(ClassPathToClassLoaderCache.class);
+
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final Map<ClassPath, CacheEntry> cacheEntries = Maps.newConcurrentMap();
     private final FinalizerThread finalizerThread;
@@ -86,13 +90,16 @@ public class ClassPathToClassLoaderCache {
         lock.readLock().lock();
         CacheEntry cacheEntry = cacheEntries.get(libClasspath);
         CachedClassLoader cachedClassLoader = maybeGet(cacheEntry);
-        if (cacheEntry == null || cachedClassLoader == null) {
+        if (cachedClassLoader == null) {
             lock.readLock().unlock();
             lock.writeLock().lock();
             try {
                 cacheEntry = cacheEntries.get(libClasspath);
                 cachedClassLoader = maybeGet(cacheEntry);
-                if (cacheEntry == null || cachedClassLoader == null) {
+                if (cachedClassLoader == null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug(String.format("Classloader cache miss for classpath : %s. Creating classloader.", libClasspath.getAsURIs()));
+                    }
                     ClassLoader classLoader = factory.create();
                     cachedClassLoader = new CachedClassLoader(libClasspath, classLoader);
                     cacheEntry = new CacheEntry(libClasspath, cachedClassLoader);
@@ -104,13 +111,22 @@ public class ClassPathToClassLoaderCache {
             } finally {
                 lock.writeLock().unlock();
             }
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Classloader found in cache: %s", libClasspath.getAsURIs()));
+            }
         }
 
         lock.readLock().unlock();
 
         // action can safely be done outside the locking section
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Consumer %s uses cached classloader: %s", action.toString(), libClasspath.getAsURIs()));
+        }
         action.execute(cachedClassLoader);
-
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("End of usage of cached classloader: %s by consumer %s", libClasspath.getAsURIs(), action.toString()));
+        }
     }
 
     private CachedClassLoader maybeGet(CacheEntry cacheEntry) {

@@ -23,6 +23,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -43,6 +44,8 @@ import java.util.Set;
 import java.util.Vector;
 
 public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
+
+    private final static Logger LOG = Logging.getLogger(DefaultIsolatedAntBuilder.class);
 
     private final static String CORE_GRADLE_LOADER = "Gradle Core";
     private final static String ANT_GRADLE_LOADER = "Ant loader";
@@ -140,6 +143,9 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     }
 
     public IsolatedAntBuilder withClasspath(Iterable<File> classpath) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Forking a new isolated ant builder for classpath : %s", classpath));
+        }
         return new DefaultIsolatedAntBuilder(this, classpath);
     }
 

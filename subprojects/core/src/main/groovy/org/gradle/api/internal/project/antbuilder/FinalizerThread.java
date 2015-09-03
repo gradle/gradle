@@ -59,6 +59,9 @@ class FinalizerThread extends Thread {
     private void removeCacheEntry(ClassPath key, Cleanup entry) {
         lock.writeLock().lock();
         try {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Removing classloader from cache, classpath = %s", key.getAsURIs()));
+            }
             cacheEntries.remove(key);
             cleanups.remove(key);
             entry.cleanup();
