@@ -46,8 +46,10 @@ public abstract class ScalarTypes {
     );
 
     public static boolean isScalarType(ModelType<?> modelType) {
-        if (TYPES.contains(modelType)) {
-            return true;
+        for (ModelType<?> type : TYPES) {
+            if (type.equals(modelType)) {
+                return true;
+            }
         }
         for (ModelType<?> type : NON_FINAL_TYPES) {
             if (type.isAssignableFrom(modelType)) {

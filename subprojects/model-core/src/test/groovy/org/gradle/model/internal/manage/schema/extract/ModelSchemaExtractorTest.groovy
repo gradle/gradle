@@ -1338,7 +1338,7 @@ interface Managed${typeName} {
     }
 
     @Unroll
-    def "read-write List<#type.simpleName> property is forbidden"() {
+    def "read-write List<#type.simpleName> property is allowed"() {
         when:
         def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
             import org.gradle.model.Managed
@@ -1350,11 +1350,14 @@ interface Managed${typeName} {
             }
         """
 
-        extract(managedType)
+        def schema = extract(managedType)
 
         then:
-        def ex = thrown InvalidManagedModelElementTypeException
-        ex.message.contains "Invalid managed model type CollectionType: property 'items' cannot have a setter (java.util.List<${type.name}> properties must be read only)."
+        assert schema instanceof ModelManagedImplStructSchema
+        schema.properties*.name == ["items"]
+
+        schema.getProperty("items").stateManagementType == MANAGED
+        schema.getProperty("items").isWritable() == true
 
         where:
         type << JDK_SCALAR_TYPES
