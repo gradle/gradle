@@ -177,9 +177,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             throw new DaemonInitialConnectException("The daemon we connected to was unavailable: " + ((DaemonUnavailable) result).getReason());
         } else if (result instanceof Result) {
             return ((Result) result).getValue();
-        } else if (result instanceof Build) {
-            // GRADLE-2316: No idea where this is coming from yet.  This will allow the build to retry and collect some additional debugging information for us.
-            throw new DaemonInitialConnectException(String.format("The daemon (%s) responded with '%s' after we sent '%s'. Trying again.", connection.getDaemon(), result, build));
         } else {
             throw invalidResponse(result, build, diagnostics);
         }
