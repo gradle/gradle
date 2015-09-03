@@ -278,11 +278,6 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         }
 
         @Override
-        public void sort(Comparator<? super T> c) {
-            getDelegate(true).sort(c);
-        }
-
-        @Override
         public List<T> subList(int fromIndex, int toIndex) {
             throw new UnsupportedOperationException();
         }
