@@ -21,7 +21,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Delete;
 import org.gradle.language.base.internal.plugins.CleanRule;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.HashSet;
@@ -118,9 +117,9 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
         project.getTasks().all(new Action<Task>() {
             @Override
             public void execute(Task task) {
-                if (pendingPlaceholders.contains(task.getName())) {
-                    DeprecationLogger.nagUserOfDeprecated(String.format(CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG, task.getName()));
-                }
+//                if (pendingPlaceholders.contains(task.getName())) {
+//                    DeprecationLogger.nagUserOfDeprecated(String.format(CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG, task.getName()));
+//                }
             }
         });
     }
