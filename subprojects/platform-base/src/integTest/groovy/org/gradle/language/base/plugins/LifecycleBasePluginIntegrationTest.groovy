@@ -15,8 +15,8 @@
  */
 
 package org.gradle.language.base.plugins
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
@@ -27,7 +27,7 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Unroll @Ignore
+    @Unroll
     def "throws deprecation warning when applied in build with #taskName"() {
         when:
         buildFile << """

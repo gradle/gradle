@@ -21,6 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Delete;
 import org.gradle.language.base.internal.plugins.CleanRule;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.HashSet;
@@ -40,7 +41,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     public static final String VERIFICATION_GROUP = "verification";
 
     private static final String CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG = "Defining custom '%s' task when using the standard Gradle lifecycle plugins";
-    private final Set<String> pendingPlaceholders = new HashSet<String>();
+    private final Set<String> placeholders = new HashSet<String>();
 
     public void apply(ProjectInternal project) {
         addClean(project);
@@ -103,11 +104,11 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     }
 
     <T extends TaskInternal> void addPlaceholderAction(ProjectInternal project, final String placeholderName, Class<T> type, final Action<? super T> configure) {
-        pendingPlaceholders.add(placeholderName);
+        placeholders.add(placeholderName);
         project.getTasks().addPlaceholderAction(placeholderName, type, new Action<T>() {
             @Override
             public void execute(T t) {
-                pendingPlaceholders.remove(placeholderName);
+                t.getExtensions().getExtraProperties().set("placeholder", true);
                 configure.execute(t);
             }
         });
@@ -117,9 +118,9 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
         project.getTasks().all(new Action<Task>() {
             @Override
             public void execute(Task task) {
-//                if (pendingPlaceholders.contains(task.getName())) {
-//                    DeprecationLogger.nagUserOfDeprecated(String.format(CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG, task.getName()));
-//                }
+                if (placeholders.contains(task.getName()) && !task.getExtensions().getExtraProperties().has("placeholder")) {
+                    DeprecationLogger.nagUserOfDeprecated(String.format(CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG, task.getName()));
+                }
             }
         });
     }
