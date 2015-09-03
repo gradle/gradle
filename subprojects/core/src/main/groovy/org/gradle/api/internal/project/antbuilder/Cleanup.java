@@ -29,8 +29,6 @@ public class Cleanup extends PhantomReference<CachedClassLoader> {
     private final MemoryLeakPrevention gradleToIsolatedLeakPrevention;
     private final MemoryLeakPrevention antToIsolatedLeakPrevention;
 
-    private boolean cleared;
-
     public Cleanup(ClassPath classPath,
                    CachedClassLoader cachedClassLoader,
                    ReferenceQueue<CachedClassLoader> referenceQueue,
@@ -52,17 +50,15 @@ public class Cleanup extends PhantomReference<CachedClassLoader> {
     }
 
     public void cleanup() {
-        if (!cleared) {
-            cleared = true;
-            // clean classes from the isolated builder which leak into the various loaders
-            classLoaderLeakPrevention.dispose(classLoader, antToIsolatedLeakPrevention.getLeakingLoader(), this.getClass().getClassLoader());
 
-            // clean classes from the Gradle Core loader which leaked into the isolated builder and Ant loader
-            gradleToIsolatedLeakPrevention.dispose(classLoader);
+        // clean classes from the isolated builder which leak into the various loaders
+        classLoaderLeakPrevention.dispose(classLoader, antToIsolatedLeakPrevention.getLeakingLoader(), DefaultIsolatedAntBuilder.class.getClassLoader());
 
-            // clean classes from the Gradle "ant" loader which leaked into the isolated builder
-            antToIsolatedLeakPrevention.dispose(classLoader);
+        // clean classes from the Gradle Core loader which leaked into the isolated builder and Ant loader
+        gradleToIsolatedLeakPrevention.dispose(classLoader);
 
-        }
+        // clean classes from the Gradle "ant" loader which leaked into the isolated builder
+        antToIsolatedLeakPrevention.dispose(classLoader);
+
     }
 }

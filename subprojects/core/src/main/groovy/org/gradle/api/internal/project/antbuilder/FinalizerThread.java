@@ -57,17 +57,21 @@ class FinalizerThread extends Thread {
     }
 
     private void removeCacheEntry(ClassPath key, Cleanup entry) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Removing classloader from cache, classpath = %s", key.getAsURIs()));
+        }
         lock.writeLock().lock();
         try {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Removing classloader from cache, classpath = %s", key.getAsURIs()));
-            }
             cacheEntries.remove(key);
             cleanups.remove(key);
-            entry.cleanup();
-            entry.clear();
         } finally {
             lock.writeLock().unlock();
+        }
+        try {
+            entry.clear();
+            entry.cleanup();
+        } catch (Exception ex) {
+            LOG.error("Unable to perform cleanup of classloader for classpath: "+key, ex);
         }
     }
 

@@ -179,7 +179,6 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
                     } finally {
                         Thread.currentThread().setContextClassLoader(originalLoader);
                         disposeBuilder(antBuilder, antLogger);
-                        //cached.getCleanup().getClassLoaderLeakPrevention().afterUse();
                     }
                 }
             });

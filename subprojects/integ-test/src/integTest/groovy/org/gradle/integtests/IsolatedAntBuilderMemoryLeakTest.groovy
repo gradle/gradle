@@ -22,9 +22,9 @@ import spock.lang.Unroll
 
 class IsolatedAntBuilderMemoryLeakTest extends AbstractIntegrationSpec {
     private void goodCode(String groovyVersion, TestFile root = testDirectory) {
+        root.file("src/main/java/org/gradle/Class0.java") << "package org.gradle; public class Class0 { }"
         root.file("src/main/groovy/org/gradle/Class1.groovy") << "package org.gradle; class Class1 { }"
         buildFile << """
-            apply plugin: 'codenarc'
 
             allprojects {
                 repositories {
@@ -63,11 +63,26 @@ class IsolatedAntBuilderMemoryLeakTest extends AbstractIntegrationSpec {
 """
     }
 
+    private void withCheckstyle(TestFile root = testDirectory) {
+        root.file("config/checkstyle/checkstyle.xml") << """<!DOCTYPE module PUBLIC
+        "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+        "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+<module name="Checker">
+</module>
+        """
+        buildFile << """
+            allprojects {
+                apply plugin: 'checkstyle'
+            }
+"""
+    }
+
     @Unroll
     void 'CodeNarc does not fail with PermGen space error, Groovy #groovyVersion'() {
         given:
-        goodCode(groovyVersion)
         withCodenarc()
+        withCheckstyle()
+        goodCode(groovyVersion)
 
         expect:
         succeeds 'check'
