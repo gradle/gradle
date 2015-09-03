@@ -21,6 +21,82 @@ import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.os.OperatingSystem
 
+/**
+ *
+ * Helper class for adding Yourkit Java Profiler (YJP) agent start up arguments for builds launched in performance tests.
+ *
+ * For adding the arguments, the Yourkit installation directory should be known by this implemantation. Currently YJP_HOME environment variable or YJP_AGENT_PATH environment variable is used to locate the agent library file.
+ * This is not needed if you install YJP in /opt/yjp on Linux or rename the application as "yjp" on Mac OS X (directory: /Applications/yjp.app). These locations are searched by default.
+ *
+ * Examples of specifying YJP_HOME
+ * <pre>
+ * {@code
+ * export YJP_HOME=/opt/yjp # on linux
+ * export YJP_HOME=/Applications/yjp.app/Contents/Resources # on Mac OS X
+ *}
+ * </pre>
+ *
+ * Examples of specifying YJP_AGENT_PATH directly
+ * <pre>
+ * {@code
+ * export YJP_AGENT_PATH=/opt/yjp/bin/linux-x86-64/libyjpagent.so # on linux
+ * export YJP_AGENT_PATH=/Applications/yjp.app/Contents/Resources/bin/mac/libyjpagent.jnilib # on Mac OS X
+ *}
+ * </pre>
+ *
+ * If you profile on Windows, you will have to add YJP_AGENT_PATH environment variable pointing to the yjpagent.dll file (YJP installation directory\bin\win64\yjpagent.dll).
+ *
+ * Performance tests extending AbstractCrossBuildPerformanceTest or AbstractCrossVersionPerformanceTest will add YJP agent parameters to the Gradle build process when you add {@code -Porg.gradle.performance.use_yourkit } parameter to the command line.
+ *
+ * Example of running a single performance test with YJP agent options:
+ * <pre>
+ * {@code
+ * ./gradlew performance:performanceTest -Porg.gradle.performance.use_yourkit -D:performance:performanceTest.single=NativePreCompiledHeaderPerformanceTest
+ *}
+ * </pre>
+ *
+ * By default, YJP will create a snapshot in ~/Snapshots when the profiled process terminates. The file name contains the test project name and display name from the performance test.
+ *
+ * This integration reads Yourkit agent options from {@code ~/.gradle/yourkit.properties } file. <a href="https://www.yourkit.com/docs/java/help/startup_options.jsp">Yourkit startup options</a>
+ *
+ * example settings for tracing profiling
+ * <pre>
+ * {@code
+ * tracing=true
+ * disablealloc=true
+ * monitors=true
+ * probe_disable=*
+ * delay=0
+ *}
+ * </pre>
+ * tweak tracing settings in {@code ~/.yjp/tracing.txt } , <a href="http://www.yourkit.com/docs/java/help/tracing_settings.jsp">tracing.txt reference</a>
+ * useful setting is "adaptive=false" to trace all method calls.
+ *
+ * example settings for sampling profiling
+ * <pre>
+ * {@code
+ * sampling=true
+ * disablealloc=true
+ * monitors=true
+ * probe_disable=*
+ * delay=0
+ *}
+ * </pre>
+ * tweak sampling settings in {@code ~/.yjp/sampling.txt } , <a href="http://www.yourkit.com/docs/java/help/sampling_settings.jsp">sampling.txt reference</a>
+ * useful setting is "sampling_period_ms", which is 20 ms by default.
+ *
+ * example settings for call counting profiling
+ * <pre>
+ * {@code
+ * call_counting=true
+ * disablealloc=true
+ * monitors=true
+ * probe_disable=*
+ * delay=0
+ *}
+ * </pre>
+ *
+ */
 @CompileStatic
 class YourkitSupport {
     static final String USE_YOURKIT = "org.gradle.performance.use_yourkit"
@@ -55,7 +131,10 @@ class YourkitSupport {
             }
             yourkitOptions = [:] + yourkitProperties
         } else {
-            yourkitOptions = [sampling: true, delay: 0, disablealloc: true, probe_disable: '*', monitors: true, onexit: 'snapshot', telemetryperiod: 100]
+            yourkitOptions = [sampling     : true,
+                              disablealloc : true,
+                              monitors     : true,
+                              probe_disable: '*']
         }
         yourkitOptions
     }
