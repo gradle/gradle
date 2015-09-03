@@ -188,36 +188,6 @@ for debugging purposes. Should we potentially allow the user to set a Gradle use
 
 We'll support that scenario when we get to the corresponding story.
 
-## Story: IDE user debugs test build
-
-The previous stories set up the basic mechanics for the test-kit. To make the test-kit production-ready these mechanics need to be fine-tuned.
-
-### User visible changes
-
-The `GradleRunner` interface will be extended to provide additional methods.
-
-    public interface GradleRunner {
-        boolean isDebug();
-        void setDebug(boolean debug);
-    }
-
-### Implementation
-
-* When debug is enabled, run the build in embedded mode.
-* Can enable debug via `GradleRunner.setDebug()`.
-* Debug is automatically enabled when `Test.debug` is true.
-* Debug is automatically enabled when test is being run or debugged from an IDE.
-
-### Test coverage
-
-* A user can start the `GradleRunner` with remote debugging JVM parameter for debugging purposes. By default the `GradleRunner` does not use the debugging JVM parameters.
-* All previous features work in debug mode. Potentially add a test runner to run each test in debug and non-debug mode.
-* Manually verify that when using an IDE, a breakpoint can be added in Gradle code (say in the Java plugin), the test run, and the breakpoint hit.
-
-### Open issues
-
-- Port number?
-
 ## Story: Functional test defines classes under test to make visible to test builds
 
 Provide an API for functional tests to define a classpath containing classes under test:
@@ -266,6 +236,36 @@ This diagram shows the intended ClassLoader hierarchy. The piece to be added is 
 ### Open issues
 
 - How can a plugin under test apply another plugin under test programmatically, say in its `apply()` method?
+
+## Story: IDE user debugs test build
+
+The previous stories set up the basic mechanics for the test-kit. To make the test-kit production-ready these mechanics need to be fine-tuned.
+
+### User visible changes
+
+The `GradleRunner` interface will be extended to provide additional methods.
+
+    public interface GradleRunner {
+        boolean isDebug();
+        void setDebug(boolean debug);
+    }
+
+### Implementation
+
+* When debug is enabled, run the build in embedded mode.
+* Can enable debug via `GradleRunner.setDebug()`.
+* Debug is automatically enabled when `Test.debug` is true.
+* Debug is automatically enabled when test is being run or debugged from an IDE.
+
+### Test coverage
+
+* A user can start the `GradleRunner` with remote debugging JVM parameter for debugging purposes. By default the `GradleRunner` does not use the debugging JVM parameters.
+* All previous features work in debug mode. Potentially add a test runner to run each test in debug and non-debug mode.
+* Manually verify that when using an IDE, a breakpoint can be added in Gradle code (say in the Java plugin), the test run, and the breakpoint hit.
+
+### Open issues
+
+- Port number?
 
 ## Story: Classes under test are visible to build scripts
 
