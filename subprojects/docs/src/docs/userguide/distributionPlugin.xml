@@ -217,7 +217,7 @@
         </sample>
         <para>
             In the example above, the content of the “<literal>src/readme</literal>” directory will be included in the distribution
-            (along with the files in the “<literal>src/dist/main</literal>” directory which are added by default).
+            (along with the files in the “<literal>src/main/dist</literal>” directory which are added by default).
         </para>
         <para>
             The “<literal>baseName</literal>” property has also been changed. This will cause the distribution archives to be created with a different name.
