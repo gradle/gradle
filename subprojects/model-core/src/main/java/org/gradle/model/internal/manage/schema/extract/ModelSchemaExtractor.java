@@ -56,6 +56,7 @@ public class ModelSchemaExtractor {
             .add(new ManagedSetStrategy())
             .add(new SpecializedMapStrategy())
             .add(new ModelMapStrategy())
+            .add(new ScalarCollectionStrategy())
             .add(new ManagedImplStructStrategy(aspectExtractor))
             .add(new UnmanagedImplStructStrategy(aspectExtractor))
             .build();
@@ -121,7 +122,7 @@ public class ModelSchemaExtractor {
     private static Iterable<String> getSupportedTypes() {
         return Arrays.asList(
             "interfaces and abstract classes annotated with " + Managed.class.getName(),
-            "JDK value types: " + Joiner.on(", ").join(Iterables.transform(JdkValueTypeStrategy.TYPES, new Function<ModelType<?>, Object>() {
+            "JDK value types: " + Joiner.on(", ").join(Iterables.transform(ScalarTypes.TYPES, new Function<ModelType<?>, Object>() {
                 public Object apply(ModelType<?> input) {
                     return input.getRawClass().getSimpleName();
                 }

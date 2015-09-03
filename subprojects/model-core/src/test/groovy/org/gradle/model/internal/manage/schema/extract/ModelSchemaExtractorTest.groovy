@@ -39,6 +39,18 @@ import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagem
 @SuppressWarnings("GroovyPointlessBoolean")
 class ModelSchemaExtractorTest extends Specification {
 
+    private static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = [
+        String,
+        Boolean,
+        Character,
+        Integer,
+        Long,
+        Double,
+        BigInteger,
+        BigDecimal,
+        File
+    ]
+
     def classLoader = new GroovyClassLoader(getClass().classLoader)
     @Shared
     def store = DefaultModelSchemaStore.getInstance()
@@ -874,7 +886,7 @@ $type
         extract(generatedClass)
 
         where:
-        type << [String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal, File]
+        type << JDK_SCALAR_TYPES
     }
 
     @Unroll
@@ -886,7 +898,7 @@ $type
         fail generatedClass, "has non managed type ${type.name}, only managed types can be used"
 
         where:
-        type << [String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal, File]
+        type << JDK_SCALAR_TYPES
     }
 
     @Managed
@@ -1298,6 +1310,54 @@ interface Managed${typeName} {
         then:
         def ex = thrown InvalidManagedModelElementTypeException
         ex.message.contains "property 'value' has both 'isValue()' and 'getValue()' getters, but they don't both return a boolean"
+    }
+
+    @Unroll
+    def "supports read-only List<#type.simpleName> property"() {
+        when:
+        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            @Managed
+            interface CollectionType {
+                List<${type.simpleName}> getItems()
+            }
+        """
+
+        def schema = extract(managedType)
+
+        then:
+        assert schema instanceof ModelManagedImplStructSchema
+        schema.properties*.name == ["items"]
+
+        schema.getProperty("items").stateManagementType == MANAGED
+        schema.getProperty("items").isWritable() == false
+
+        where:
+        type << JDK_SCALAR_TYPES
+    }
+
+    @Unroll
+    def "read-write List<#type.simpleName> property is forbidden"() {
+        when:
+        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            @Managed
+            interface CollectionType {
+                List<${type.simpleName}> getItems()
+                void setItems(List<${type.simpleName}> items)
+            }
+        """
+
+        extract(managedType)
+
+        then:
+        def ex = thrown InvalidManagedModelElementTypeException
+        ex.message.contains "Invalid managed model type CollectionType: property 'items' cannot have a setter (java.util.List<${type.name}> properties must be read only)."
+
+        where:
+        type << JDK_SCALAR_TYPES
     }
 }
 
