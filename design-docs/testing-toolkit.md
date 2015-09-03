@@ -269,6 +269,13 @@ The `GradleRunner` interface will be extended to provide additional methods.
 
 - Port number?
 
+## Story: Developer inspects build result of unexpected build failure
+
+This story adds the ability to understand what happened with the test when it fails unexpectedly.
+
+- UnexpectedBuildFailure and Success should have-a BuildResult
+- Tooling API exceptions and infrastructure failures should be wrapped and provide build information (e.g. stdout)
+
 ## Story: Classes under test are visible to build scripts
 
 When using the plugin development plugin, plugins under test are visible to build scripts.
@@ -520,5 +527,4 @@ none
 - Setting up a multi-project build should be easy. At the moment a user would have to do all the leg work. The work required could be simplified by introducing helper methods.
 - Potentially when running under the plugin dev plugin, defer clean up of test daemons to some finalizer task
 - Have test daemons reuse the artifact cache and other caches in ~/.gradle, and just ignore the configuration files there.
-- Infrastructure failures (e.g GradleConnectionException) and the unexpected build result exceptions should carry whatever result information we can provide
 - More convenient construction of test project directories (i.e. something like Gradle core's test directory provider)
