@@ -412,11 +412,6 @@ task performanceTest(type: Test) {
     options {
         includeCategories 'org.gradle.performance.PerformanceTest'
     }
-    if (project.hasProperty('org.gradle.performance.use_yourkit')) {
-        testLogging.showStandardStreams = true
-        systemProperties['org.gradle.performance.use_yourkit'] = '1'
-        outputs.upToDateWhen { false }
-    }
 }
 
 task performanceExperiments(type: Test) {
@@ -425,6 +420,16 @@ task performanceExperiments(type: Test) {
     maxParallelForks = 1
     options {
         includeCategories 'org.gradle.performance.Experiment'
+    }
+}
+
+if (project.hasProperty('org.gradle.performance.use_yourkit')) {
+    [performanceTest, performanceExperiments].each { testTask ->
+        testTask.with {
+            testLogging.showStandardStreams = true
+            systemProperties['org.gradle.performance.use_yourkit'] = '1'
+            outputs.upToDateWhen { false }
+        }
     }
 }
 
