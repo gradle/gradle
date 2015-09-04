@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
@@ -66,13 +67,33 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
             @Override
             public NodeInitializer apply(ModelCollectionSchema<T, E> schema) {
                 return new ProjectionOnlyNodeInitializer(
-                    TypedModelProjection.of(
+                    ScalarCollectionModelProjection.get(
                         ModelTypes.list(schema.getElementType()),
                         new ListViewFactory<E>(schema.getElementType())
                     )
                 );
             }
         };
+    }
+
+    private static class ScalarCollectionModelProjection<E> extends TypedModelProjection<E> {
+
+        public static <E, U extends Collection<E>> ScalarCollectionModelProjection<U> get(ModelType<U> type, ModelViewFactory<U> viewFactory) {
+            return new ScalarCollectionModelProjection<U>(type, viewFactory);
+        }
+
+        public ScalarCollectionModelProjection(ModelType<E> type, ModelViewFactory<E> viewFactory) {
+            super(type, viewFactory, true, true);
+        }
+
+        @Override
+        public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+            Collection<?> values = ScalarCollectionSchema.get(modelNodeInternal);
+            if (values == null) {
+                return Optional.absent();
+            }
+            return Optional.of(values.toString());
+        }
     }
 
     public static class ListViewFactory<T> implements ModelViewFactory<List<T>> {

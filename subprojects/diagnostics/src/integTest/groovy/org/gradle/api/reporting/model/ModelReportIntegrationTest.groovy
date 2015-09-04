@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.reporting.model
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ModelReportIntegrationTest extends AbstractIntegrationSpec {
@@ -40,6 +41,52 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
                     projects()
                     properties()
                     tasks()
+                    wrapper()
+                }
+            }
+        })
+    }
+
+    def "displays collections of scalar types in a human-readable format"() {
+        given:
+        buildFile << '''
+
+@Managed
+interface Container {
+   List<String> getLabels()
+   List<Integer> getIds()
+   List<Double> getValues()
+   void setValues(List<Double> values)
+}
+
+model {
+    container(Container) {
+        labels.add 'bug'
+        labels.add 'blocker'
+    }
+}
+'''
+        when:
+        run "model"
+
+        then:
+        ModelReportOutput.from(output).hasNodeStructure({
+            model {
+                container {
+                    ids(type: 'java.util.List<java.lang.Integer>', creator: 'model.container')
+                    labels(type: 'java.util.List<java.lang.String>', creator: 'model.container', nodeValue: "[bug, blocker]")
+                    values(type: 'java.util.List<java.lang.Double>', creator: 'model.container')
+                }
+                tasks {
+                    components(nodeValue: "task ':components'")
+                    dependencies(nodeValue: "task ':dependencies'")
+                    dependencyInsight(nodeValue: "task ':dependencyInsight'")
+                    help(nodeValue: "task ':help'")
+                    init(nodeValue: "task ':init'")
+                    model(nodeValue: "task ':model'")
+                    projects(nodeValue: "task ':projects'")
+                    properties(nodeValue: "task ':properties'")
+                    tasks(nodeValue: "task ':tasks'")
                     wrapper()
                 }
             }
