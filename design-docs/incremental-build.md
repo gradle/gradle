@@ -75,6 +75,10 @@ See discussion about parameters.  Uses java-lang/jvm-component software model pl
 
 - Performance test that runs against 2.6 and latest release
 
+### Open Issues
+
+- Need to incorporate test execution into this as well
+
 ## Story: Update performance generator to create representative C/C++ project
 
 See discussion about parameters.  Uses cpp software model plugins.
