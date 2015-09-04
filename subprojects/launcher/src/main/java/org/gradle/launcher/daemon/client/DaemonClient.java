@@ -125,7 +125,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
                 return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
             } catch (DaemonInitialConnectException e) {
                 // this exception means that we want to try again.
-                LOGGER.debug("Trying a different daemon...", e);
+                LOGGER.debug("{}, Trying a different daemon...", e.getMessage());
                 accumulatedExceptions.add(e);
             } finally {
                 connection.stop();
