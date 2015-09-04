@@ -1203,8 +1203,11 @@ interface Managed${typeName} {
     }
 
     def "supports a boolean property with a get style getter"() {
-        expect:
+        when:
         store.getSchema(ModelType.of(HasGetTypeGetter))
+
+        then:
+        noExceptionThrown()
     }
 
     @Managed
