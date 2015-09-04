@@ -25,7 +25,9 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.Pair;
 import org.gradle.internal.Transformers;
 
 import java.lang.reflect.Array;
@@ -34,6 +36,13 @@ import java.util.*;
 import static org.gradle.internal.Cast.cast;
 
 public abstract class CollectionUtils {
+
+    public static <T> Collection<? extends T> checkedCast(Class<T> type, Collection<?> input) {
+        for (Object o : input) {
+            cast(type, o);
+        }
+        return Cast.uncheckedCast(input);
+    }
 
     public static <T> T findFirst(Iterable<? extends T> source, Spec<? super T> filter) {
         for (T item : source) {
@@ -342,9 +351,27 @@ public abstract class CollectionUtils {
         }
     }
 
+    /**
+     * Given a set of values, derive a set of keys and return a map
+     */
     public static <K, V> Map<K, V> collectMap(Iterable<? extends V> items, Transformer<? extends K, ? super V> keyGenerator) {
         Map<K, V> map = new LinkedHashMap<K, V>();
         collectMap(map, items, keyGenerator);
+        return map;
+    }
+
+    public static <K, V> void collectMapValues(Map<K, V> destination, Iterable<? extends K> keys, Transformer<? extends V, ? super K> keyGenerator) {
+        for (K item : keys) {
+            destination.put(item, keyGenerator.transform(item));
+        }
+    }
+
+    /**
+     * Given a set of keys, derive a set of values and return a map
+     */
+    public static <K, V> Map<K, V> collectMapValues(Iterable<? extends K> keys, Transformer<? extends V, ? super K> keyGenerator) {
+        Map<K, V> map = new LinkedHashMap<K, V>();
+        collectMapValues(map, keys, keyGenerator);
         return map;
     }
 
@@ -393,13 +420,8 @@ public abstract class CollectionUtils {
      * @see CollectionUtils#diffSetsBy(java.util.Set, java.util.Set, org.gradle.api.Transformer)
      */
     public static class SetDiff<T> {
-        public static class Pair<T> {
-            public T left;
-            public T right;
-        }
-
         public Set<T> leftOnly = new HashSet<T>();
-        public Set<Pair<T>> common = new HashSet<Pair<T>>();
+        public Set<Pair<T, T>> common = new HashSet<Pair<T, T>>();
         public Set<T> rightOnly = new HashSet<T>();
     }
 
@@ -434,9 +456,7 @@ public abstract class CollectionUtils {
             if (rightValue == null) {
                 setDiff.leftOnly.add(leftEntry.getValue());
             } else {
-                SetDiff.Pair<T> pair = new SetDiff.Pair<T>();
-                pair.left = leftEntry.getValue();
-                pair.right = rightValue;
+                Pair<T, T> pair = Pair.of(leftEntry.getValue(), rightValue);
                 setDiff.common.add(pair);
             }
         }
@@ -492,14 +512,14 @@ public abstract class CollectionUtils {
             throw new NullPointerException("The 'objects' cannot be null");
         }
 
-        boolean first = true;
         StringBuilder string = new StringBuilder();
-        for (Object object : objects) {
-            if (!first) {
+        Iterator<?> iterator = objects.iterator();
+        if (iterator.hasNext()) {
+            string.append(iterator.next().toString());
+            while (iterator.hasNext()) {
                 string.append(separator);
+                string.append(iterator.next().toString());
             }
-            string.append(object.toString());
-            first = false;
         }
         return string.toString();
     }

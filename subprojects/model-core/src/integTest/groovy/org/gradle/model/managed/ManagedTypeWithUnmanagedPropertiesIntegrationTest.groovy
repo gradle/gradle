@@ -28,9 +28,6 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
     def "can have unmanaged property"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class UnmanagedThing {
               String value
             }
@@ -42,15 +39,14 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
                 void setUnmanaged(UnmanagedThing unmanaged)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void m(ManagedThing thing) {
                     thing.unmanaged = new UnmanagedThing(value: "foo")
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, ManagedThing thing) {
+                void addTask(ModelMap<Task> tasks, ManagedThing thing) {
                     tasks.create("echo") {
                         it.doLast {
                             println "value: $thing.unmanaged.value"
@@ -72,9 +68,6 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
     def "unmanaged property of managed type can be targeted by rules"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             interface Platform {
                 @Unmanaged
@@ -86,8 +79,7 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
                 String name
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void platform(Platform platform) {}
 
@@ -102,7 +94,7 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
+                void addTask(ModelMap<Task> tasks, @Path("platform.operatingSystem") OperatingSystem os) {
                   tasks.create("fromPlugin") {
                     doLast { println "fromPlugin: $os.name" }
                   }

@@ -57,7 +57,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void "can install to local repository"() {
-        def repo = maven(new TestFile("$SystemProperties.userHome/.m2/repository"))
+        def repo = maven(new TestFile("$SystemProperties.instance.userHome/.m2/repository"))
         def module = repo.module('installGroup', 'mywar', '1.0MVN')
         module.moduleDir.deleteDir()
 

@@ -162,7 +162,7 @@
                 You may notice that there are two code snippets referencing the “<literal>hello</literal>” task.
                 The first one, which uses the “<literal>task</literal>” keyword, constructs the task and provides it's base configuration.
                 The second piece doesn't use the “<literal>task</literal>” keyword, as it is further configuring the existing “<literal>hello</literal>” task.
-                You may only construct a task once in a project, but you may any number of code blocks providing additional configuration.
+                You may only construct a task once in a project, but you may add any number of code blocks providing additional configuration.
             </para>
         </section>
         <section id='sub:adding_specific_behavior'>
@@ -309,14 +309,6 @@
         </para>
         <para>The path of a task is simply its project path plus the task name, like “<literal>:bluewhale:hello</literal>”. Within a project you can address a task of the same project just by its name.
             This is interpreted as a relative path.
-        </para>
-        <para>Originally Gradle used the
-            <literal>'/'</literal>
-            character as a natural path separator. With the introduction of directory tasks (see <xref
-                    linkend='sec:directory_creation'/>) this was no longer possible, as the name of the directory task
-            contains the
-            <literal>'/'</literal>
-            character.
         </para>
     </section>
     <section id='sec:dependencies_which_dependencies'>

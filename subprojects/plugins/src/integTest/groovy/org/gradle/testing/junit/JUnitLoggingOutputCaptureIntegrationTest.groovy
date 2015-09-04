@@ -90,25 +90,25 @@ public class OkTest {
         when: run "test"
 
         then:
-        result.output.contains(TextUtil.toPlatformLineSeparators("""test class OkTest -> class loaded
-test class OkTest -> before class out
-test class OkTest -> before class err
-test class OkTest -> test constructed
-test anotherOk(OkTest) -> before out
-test anotherOk(OkTest) -> before err
-test anotherOk(OkTest) -> ok out
-test anotherOk(OkTest) -> ok err
-test anotherOk(OkTest) -> after out
-test anotherOk(OkTest) -> after err
-test class OkTest -> test constructed
-test ok(OkTest) -> before out
-test ok(OkTest) -> before err
-test ok(OkTest) -> test out: \u03b1</html>
-test ok(OkTest) -> test err
-test ok(OkTest) -> after out
-test ok(OkTest) -> after err
-test class OkTest -> after class out
-test class OkTest -> after class err
+        result.output.contains(TextUtil.toPlatformLineSeparators("""Test class OkTest -> class loaded
+Test class OkTest -> before class out
+Test class OkTest -> before class err
+Test class OkTest -> test constructed
+Test anotherOk(OkTest) -> before out
+Test anotherOk(OkTest) -> before err
+Test anotherOk(OkTest) -> ok out
+Test anotherOk(OkTest) -> ok err
+Test anotherOk(OkTest) -> after out
+Test anotherOk(OkTest) -> after err
+Test class OkTest -> test constructed
+Test ok(OkTest) -> before out
+Test ok(OkTest) -> before err
+Test ok(OkTest) -> test out: \u03b1</html>
+Test ok(OkTest) -> test err
+Test ok(OkTest) -> after out
+Test ok(OkTest) -> after err
+Test class OkTest -> after class out
+Test class OkTest -> after class err
 """))
 
         // This test covers current behaviour, not necessarily desired behaviour
@@ -160,7 +160,7 @@ after class err
 
     def "captures output from logging frameworks"() {
         buildFile << """
-dependencies { testCompile "org.slf4j:slf4j-simple:1.7.7", "org.slf4j:slf4j-api:1.7.7" }
+dependencies { testCompile "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:slf4j-api:1.7.10" }
 """
         file("src/test/java/FooTest.java") << """
 
@@ -180,9 +180,9 @@ dependencies { testCompile "org.slf4j:slf4j-simple:1.7.7", "org.slf4j:slf4j-api:
         when: run("test")
 
         then:
-        result.output.contains("test foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
-        result.output.contains("test foo(FooTest) -> INFO: jul info")
-        result.output.contains("test foo(FooTest) -> WARNING: jul warning")
+        result.output.contains("Test foo(FooTest) -> [Test worker] INFO FooTest - slf4j info")
+        result.output.contains("Test foo(FooTest) -> INFO: jul info")
+        result.output.contains("Test foo(FooTest) -> WARNING: jul warning")
 
         def testResult = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = testResult.testClass("FooTest")
@@ -230,9 +230,9 @@ public class OkTest {
         def classResult = testResult.testClass("OkTest")
 
         5.times { n ->
-            result.output.contains("test ok(OkTest) -> stdout from thread $n")
-            result.output.contains("test ok(OkTest) -> stderr from thread $n")
-            result.output.contains("test ok(OkTest) -> INFO: info from thread $n")
+            assert result.output.contains("Test ok(OkTest) -> stdout from thread $n")
+            assert result.output.contains("Test ok(OkTest) -> stderr from thread $n")
+            assert result.output.contains("Test ok(OkTest) -> INFO: info from thread $n")
 
             classResult.assertTestCaseStdout("ok", containsString("stdout from thread $n"))
             classResult.assertTestCaseStderr("ok", containsString("stderr from thread $n"))

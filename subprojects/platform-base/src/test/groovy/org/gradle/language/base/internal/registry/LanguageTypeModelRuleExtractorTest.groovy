@@ -15,16 +15,19 @@
  */
 
 package org.gradle.language.base.internal.registry
-
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.internal.testinterfaces.CustomLanguageSourceSet
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.inspect.RuleSourceDependencies
+import org.gradle.model.internal.core.ExtractedModelRule
+import org.gradle.model.internal.core.ModelActionRole
+import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
@@ -36,16 +39,14 @@ import java.lang.annotation.Annotation
 
 class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtractorTest {
 
-    def ruleDependencies = Mock(RuleSourceDependencies)
     Class<?> ruleClass = Rules
 
-    LanguageTypeModelRuleExtractor ruleHandler = new LanguageTypeModelRuleExtractor()
+    LanguageTypeModelRuleExtractor ruleHandler = new LanguageTypeModelRuleExtractor(DefaultModelSchemaStore.getInstance())
 
     @Override
     Class<? extends Annotation> getAnnotation() {
         return LanguageType
     }
-
 
     @Unroll
     def "decent error message for #descr"() {
@@ -53,7 +54,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         def ruleDescription = getStringDescription(ruleMethod)
 
         when:
-        ruleHandler.registration(ruleMethod, ruleDependencies)
+        ruleHandler.registration(ruleMethod)
 
         then:
         def ex = thrown(InvalidModelRuleDeclarationException)
@@ -66,32 +67,33 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         "returnValue"                       | "Method annotated with @LanguageType must not have a return value."                                                          | "non void method"
         "noParams"                          | "Method annotated with @LanguageType must have a single parameter of type '${LanguageTypeBuilder.name}'."                    | "no LanguageTypeBuilder subject"
         "wrongSubject"                      | "Method annotated with @LanguageType must have a single parameter of type '${LanguageTypeBuilder.name}'."                    | "wrong rule subject type"
-        "rawLanguageTypeBuilder"            | "Parameter of type 'org.gradle.platform.base.LanguageTypeBuilder' must declare a type parameter."                            | "non typed CollectionBuilder parameter"
-        "wildcardLanguageTypeBuilder"       | "Language type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                                     | "wild card CollectionBuilder parameter"
+        "rawLanguageTypeBuilder"            | "Parameter of type 'org.gradle.platform.base.LanguageTypeBuilder' must declare a type parameter."                            | "non typed ModelMap parameter"
+        "wildcardLanguageTypeBuilder"       | "Language type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                                     | "wild card ModelMap parameter"
         "notImplementingLibraryType"        | "Language implementation '${NotImplementingCustomLanguageSourceSet.name}' must implement '${CustomLanguageSourceSet.name}'." | "implementation not implementing type class"
         "wrongSubType"                      | "Language type 'java.lang.String' is not a subtype of 'org.gradle.language.base.LanguageSourceSet'."                         | "implementation not extending BaseComponentSpec"
         "notExtendingBaseLanguageSourceSet" | "Language implementation '${NotExtendingBaseLanguageSourceSet.name}' must extend '${BaseLanguageSourceSet.name}'."           | "implementation not extending ${BaseLanguageSourceSet.name}"
-        "noPublicCtorImplementation"        | "Language implementation '${ImplementationWithNoPublicConstructor.name}' must have public default constructor."           | "implementation with not public default constructor"
-    }
-
-
-    def "does not create language type rule when implementation not set"() {
-        expect:
-        ruleHandler.registration(ruleDefinitionForMethod("noImplementationTypeRule"), ruleDependencies) == null
+        "noPublicCtorImplementation"        | "Language implementation '${ImplementationWithNoPublicConstructor.name}' must have public default constructor."              | "implementation with not public default constructor"
     }
 
     def "applies ComponentModelBasePlugin and creates language type rule"() {
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"), ruleDependencies)
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
-        1 * ruleDependencies.add(ComponentModelBasePlugin)
-
-        and:
-        registration != null
+        registration.ruleDependencies == [ComponentModelBasePlugin]
+        registration.type == ExtractedModelRule.Type.ACTION
+        registration.actionRole == ModelActionRole.Defaults
+        registration.action.subject == ModelReference.of(LanguageRegistry)
     }
 
-    interface CustomLanguageSourceSet extends LanguageSourceSet {}
+    def "only applies ComponentModelBasePlugin when implementation not set"() {
+        when:
+        def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationTypeRule"))
+
+        then:
+        registration.ruleDependencies == [ComponentModelBasePlugin]
+        registration.type == ExtractedModelRule.Type.DEPENDENCIES
+    }
 
     static class ImplementingCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {
     }
@@ -115,12 +117,10 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
         @Override
         void source(Action<? super SourceDirectorySet> config) {
-
         }
 
         @Override
         void generatedBy(Task generatorTask) {
-
         }
 
         @Override
@@ -133,6 +133,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
 
         @LanguageType
         String returnValue(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
+            return null
         }
 
         @LanguageType
@@ -150,7 +151,6 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         @LanguageType
         void wildcardLanguageTypeBuilder(LanguageTypeBuilder<?> builder) {
         }
-
 
         @LanguageType
         void wrongSubType(LanguageTypeBuilder<String> languageBuilder) {
@@ -173,9 +173,7 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         @LanguageType
         void noPublicCtorImplementation(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {
             languageBuilder.defaultImplementation(ImplementationWithNoPublicConstructor)
-
         }
-
 
         @LanguageType
         void validTypeRule(LanguageTypeBuilder<CustomLanguageSourceSet> languageBuilder) {

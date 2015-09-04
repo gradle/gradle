@@ -32,4 +32,9 @@ public interface ResourceAwareResolveResult {
      * Adds a location that was used to build this result. This is used for diagnostic messages and logging.
      */
     void attempted(ExternalResourceName location);
+
+    /**
+     * Copies the locations for this result to the given target.
+     */
+    void applyTo(ResourceAwareResolveResult target);
 }

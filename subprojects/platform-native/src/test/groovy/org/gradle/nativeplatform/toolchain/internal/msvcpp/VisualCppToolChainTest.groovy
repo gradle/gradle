@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -36,9 +37,10 @@ class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
+    final BuildOperationProcessor buildOperationProcessor = Stub(BuildOperationProcessor)
     final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
     final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
-    final Instantiator instantiator = new DirectInstantiator()
+    final Instantiator instantiator = DirectInstantiator.INSTANCE
     VisualCppToolChain toolChain
 
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
@@ -52,14 +54,14 @@ class VisualCppToolChainTest extends Specification {
     }
 
     def setup() {
-        toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
+        toolChain = new VisualCppToolChain("visualCpp", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
     }
 
     def "installs an unavailable tool chain when not windows"() {
         given:
         def operatingSystem = Stub(OperatingSystem)
         operatingSystem.isWindows() >> false
-        def toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
+        def toolChain = new VisualCppToolChain("visualCpp", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
 
         when:
         def availability = new ToolChainAvailability()

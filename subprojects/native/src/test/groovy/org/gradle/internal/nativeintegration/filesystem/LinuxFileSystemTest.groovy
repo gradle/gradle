@@ -15,14 +15,14 @@
  */
 package org.gradle.internal.nativeintegration.filesystem
 
-import org.gradle.internal.nativeintegration.services.NativeServices
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
 @Requires(TestPrecondition.LINUX)
 class LinuxFileSystemTest extends Specification {
-    def fs = NativeServices.instance.get(FileSystem)
+    def fs = NativeServicesTestFixture.instance.get(FileSystem)
 
     def "is case sensitive"() {
         expect:

@@ -17,13 +17,15 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.internal.Transformers;
-import org.gradle.nativeplatform.toolchain.internal.*;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec;
 
 class CCompiler extends GccCompatibleNativeCompiler<CCompileSpec> {
 
-    CCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String objectFileSuffix, boolean useCommandFile) {
-        super(commandLineTool, baseInvocation, new CCompileArgsTransformer(), Transformers.<CCompileSpec>noOpTransformer(), objectFileSuffix, useCommandFile);
+    CCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, new CCompileArgsTransformer(), Transformers.<CCompileSpec>noOpTransformer(), objectFileExtension, useCommandFile);
     }
 
     private static class CCompileArgsTransformer extends GccCompilerArgsTransformer<CCompileSpec> {

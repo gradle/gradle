@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.tasks.execution
 
-import org.gradle.api.file.FileCollection
+import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -29,8 +30,9 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final TaskStateInternal state = Mock()
     final TaskExecutionContext executionContext = Mock()
     final TaskInputs taskInputs = Mock()
-    final FileCollection sourceFiles = Mock()
-    final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(target)
+    final FileCollectionInternal sourceFiles = Mock()
+    def taskInputsListener = Mock(TaskInputsListener)
+    final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, target)
 
     def setup() {
         _ * task.inputs >> taskInputs
@@ -49,6 +51,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * state.upToDate()
         0 * target._
         0 * state._
+        1 * taskInputsListener.onExecute(task, sourceFiles)
     }
 
     def executesTaskWhenItsSourceFilesCollectionIsNotEmpty() {
@@ -63,6 +66,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * target.execute(task, state, executionContext)
         0 * target._
         0 * state._
+        1 * taskInputsListener.onExecute(task, _)
     }
 
     def executesTaskWhenTaskHasNotDeclaredAnySourceFiles() {
@@ -76,5 +80,6 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         1 * target.execute(task, state, executionContext)
         0 * target._
         0 * state._
+        1 * taskInputsListener.onExecute(task, _)
     }
 }

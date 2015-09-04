@@ -20,9 +20,11 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.play.internal.spec.PlayApplicationBinaryRenderer;
+import org.gradle.process.internal.WorkerProcessBuilder;
 
 public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
 
@@ -30,7 +32,13 @@ public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
         registration.add(PlayApplicationBinaryRenderer.class);
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
+    }
+
+    public void registerGradleServices(ServiceRegistration registration) {
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
@@ -39,8 +47,8 @@ public class PlayToolChainServiceRegistry implements PluginServiceRegistry {
 
 
     private static class ProjectScopeCompileServices {
-        PlayToolChainInternal createPlayToolChain(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler) {
-            return new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler);
+        PlayToolChainInternal createPlayToolChain(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
+            return new DefaultPlayToolChain(fileResolver, compilerDaemonManager, configurationContainer, dependencyHandler, workerProcessBuilderFactory);
         }
     }
 }

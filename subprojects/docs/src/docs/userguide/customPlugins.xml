@@ -75,7 +75,7 @@
         <para>
             One thing to note is that a new instance of a given plugin is created for each project it is applied to. Also
             note that the <apilink class="org.gradle.api.Plugin"/> class is a generic type. This example has it receiving the
-            <apilink class="org.gradle.api.Plugin"/> type as a type parameter. It's possible to write unusual custom
+            <apilink class="org.gradle.api.Project"/> type as a type parameter. It's possible to write unusual custom
             plugins that take different type parameters, but this will be unlikely (until someone figures out more
             creative things to do here). 
         </para>
@@ -209,7 +209,7 @@
                 If you are interested in publishing your plugin to be used by the wider Gradle community, you can publish it to the
                 <ulink url="http://plugins.gradle.org">Gradle plugin portal</ulink>.  This site provides the ability to search for and
                 gather information about plugins contributed by the Gradle community.  See the instructions
-                <ulink url="http://plugins.gradle.org/submit">here</ulink> on how to make your plugin available on this site.
+                <ulink url="http://plugins.gradle.org/docs/submit">here</ulink> on how to make your plugin available on this site.
             </para>
         </section>
 

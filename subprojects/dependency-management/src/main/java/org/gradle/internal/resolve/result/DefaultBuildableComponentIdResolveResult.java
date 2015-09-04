@@ -17,12 +17,10 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
-import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwareResolveResult implements BuildableComponentIdResolveResult {
@@ -77,10 +75,6 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     public void failed(ModuleVersionResolveException failure) {
         reset();
         this.failure = failure;
-    }
-
-    public void notFound(ModuleVersionSelector requested) {
-        failed(new ModuleVersionNotFoundException(requested, getAttempted()));
     }
 
     private void assertResolved() {

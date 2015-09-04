@@ -17,9 +17,9 @@ package org.gradle.cache.internal.btree;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.messaging.serialize.Serializer;
-import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
-import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
+import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

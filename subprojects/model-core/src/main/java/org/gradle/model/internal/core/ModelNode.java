@@ -16,123 +16,95 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.collect.Maps;
+import com.google.common.base.Optional;
 import org.gradle.api.Nullable;
-import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.List;
+import java.util.Set;
 
-public class ModelNode {
-    public enum State {
-        Known(true),
-        Created(true),
-        DefaultsApplied(true),
+public interface ModelNode {
+
+    boolean hasLink(String name);
+
+    boolean hasLink(String name, ModelType<?> type);
+
+    // Note: order is crucial here. Nodes are traversed through these states in the order defined below
+    enum State {
+        Known(true), // Initial state. Only type info is available here
+        Created(true), // Private data has been created, initial rules discovered
+        DefaultsApplied(true), // Default values have been applied
         Initialized(true),
         Mutated(true),
         Finalized(false),
         SelfClosed(false),
         GraphClosed(false);
 
-        final boolean mutable;
+        public final boolean mutable;
 
         State(boolean mutable) {
             this.mutable = mutable;
         }
-    }
-    private final ModelPath creationPath;
-    private final ModelRuleDescriptor descriptor;
-    private final ModelPromise promise;
-    private final ModelAdapter adapter;
 
-    private final Map<String, ModelNode> links = Maps.newTreeMap();
-    private Object privateData;
-    private ModelType<?> privateDataType;
-    private State state = State.Known;
-
-    public ModelNode(ModelPath creationPath, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-        this.creationPath = creationPath;
-        this.descriptor = descriptor;
-        this.promise = promise;
-        this.adapter = adapter;
-    }
-
-    public ModelPath getPath() {
-        return creationPath;
-    }
-
-    public ModelRuleDescriptor getDescriptor() {
-        return descriptor;
-    }
-
-    public State getState() {
-        return state;
-    }
-
-    public void setState(State state) {
-        this.state = state;
-    }
-
-    public boolean isMutable() {
-        return state.mutable;
-    }
-
-    public boolean canApply(ModelActionRole type) {
-        return type.ordinal() > state.ordinal() - State.Created.ordinal();
-    }
-
-    public ModelPromise getPromise() {
-        return promise;
-    }
-
-    public ModelAdapter getAdapter() {
-        return adapter;
-    }
-
-    @Override
-    public String toString() {
-        return creationPath.toString();
-    }
-
-    public boolean hasLink(String name) {
-        return links.containsKey(name);
-    }
-
-    @Nullable
-    public ModelNode getLink(String name) {
-        return links.get(name);
-    }
-
-    public ModelNode addLink(String name, ModelRuleDescriptor descriptor, ModelPromise promise, ModelAdapter adapter) {
-        ModelNode node = new ModelNode(creationPath.child(name), descriptor, promise, adapter);
-        links.put(name, node);
-        return node;
-    }
-
-    public Map<String, ModelNode> getLinks() {
-        return Collections.unmodifiableMap(links);
-    }
-
-    @Nullable
-    public ModelNode removeLink(String name) {
-        return links.remove(name);
-    }
-
-    public <T> T getPrivateData(ModelType<T> type) {
-        if (privateData == null) {
-            return null;
+        public State previous() {
+            return ModelNode.State.values()[ordinal() - 1];
         }
-
-        if (!type.isAssignableFrom(privateDataType)) {
-            throw new ClassCastException("Cannot get private data '" + privateData + "' of type '" + privateDataType + "' as type '" + type);
-        }
-        return Cast.uncheckedCast(privateData);
     }
 
-    public <T> void setPrivateData(ModelType<T> type, T object) {
-        this.privateDataType = type;
-        this.privateData = object;
-    }
+    boolean isEphemeral();
+
+    ModelPath getPath();
+
+    ModelRuleDescriptor getDescriptor();
+
+    State getState();
+
+    /**
+     * Creates a read-only view over this node's value.
+     *
+     * Callers should try to {@link ModelView#close()} the returned view when it is done with, allowing any internal cleanup to occur.
+     *
+     * Throws if this node can't be expressed as a read-only view of the requested type.
+     */
+    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
+
+    Set<String> getLinkNames(ModelType<?> type);
+
+    Iterable<? extends ModelNode> getLinks(ModelType<?> type);
+
+    /**
+     * Should this node be hidden from the model report.
+     */
+    boolean isHidden();
+
+    /**
+     * The number of link this node has.
+     */
+    int getLinkCount();
+
+    /**
+     * Gets the value represented by this node.
+     *
+     * Calling this method may create or transition the node.
+     */
+    Optional<String> getValueDescription();
+
+    /**
+     * Gets the underlying type of this node.
+     * <p>
+     * Calling this method may create or transition the node.
+     * <p>
+     * In practice, this describes the type that you would get if you asked for this node as Object, read only.
+     * This is used in the model report.
+     * In the future we may need a more sophisticated (e.g. multi-type aware, visibility aware) mechanism for advertising the type.
+     * <p>
+     * If an absent is returned, this node can not be viewed as an object.
+     */
+    Optional<String> getTypeDescription();
+
+    /**
+     * Gets the rules that have been executed on this node in the order in which they were executed.
+     */
+    List<ModelRuleDescriptor> getExecutedRules();
 }

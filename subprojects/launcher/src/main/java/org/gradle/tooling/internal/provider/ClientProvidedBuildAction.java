@@ -16,48 +16,24 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.BuildCancelledException;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.execution.ProjectConfigurer;
-import org.gradle.initialization.BuildAction;
-import org.gradle.initialization.BuildController;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
-import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
-import org.gradle.tooling.internal.protocol.InternalBuildController;
+import org.gradle.StartParameter;
 
-import java.io.Serializable;
-
-class ClientProvidedBuildAction implements BuildAction<BuildActionResult>, Serializable {
+public class ClientProvidedBuildAction extends SubscribableBuildAction {
+    private final StartParameter startParameter;
     private final SerializedPayload action;
 
-    public ClientProvidedBuildAction(SerializedPayload action) {
+    public ClientProvidedBuildAction(StartParameter startParameter, SerializedPayload action, BuildClientSubscriptions clientSubscriptions) {
+        super(clientSubscriptions);
+        this.startParameter = startParameter;
         this.action = action;
     }
 
-    public BuildActionResult run(final BuildController buildController) {
-        GradleInternal gradle = buildController.getGradle();
-        PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
-        InternalBuildAction<?> action = (InternalBuildAction<?>) payloadSerializer.deserialize(this.action);
+    @Override
+    public StartParameter getStartParameter() {
+        return startParameter;
+    }
 
-        buildController.configure();
-        // Currently need to force everything to be configured
-        gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
-
-        InternalBuildController internalBuildController = new DefaultBuildController(gradle);
-        Object model = null;
-        Throwable failure = null;
-        try {
-            model = action.execute(internalBuildController);
-        } catch (BuildCancelledException e) {
-            failure = new InternalBuildCancelledException(e);
-        } catch (RuntimeException e) {
-            failure = new InternalBuildActionFailureException(e);
-        }
-
-        if (failure != null) {
-            return new BuildActionResult(null, payloadSerializer.serialize(failure));
-        }
-        return new BuildActionResult(payloadSerializer.serialize(model), null);
+    public SerializedPayload getAction() {
+        return action;
     }
 }

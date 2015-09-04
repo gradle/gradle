@@ -27,9 +27,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Nullable;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.*;
 
 import javax.inject.Inject;
 import java.lang.reflect.Constructor;
@@ -57,8 +55,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     private static final Collection<String> SKIP_PROPERTIES = Arrays.asList("class", "metaClass", "conventionMapping", "convention", "asDynamicObject", "extensions");
 
     public <T> T newInstance(Class<T> type, Object... parameters) {
-        Instantiator instantiator = new DirectInstantiator();
-        return instantiator.newInstance(generate(type), parameters);
+        return DirectInstantiator.instantiate(generate(type), parameters);
     }
 
     public <T> Class<? extends T> generate(Class<T> type) {
@@ -216,9 +213,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         boolean extensible = JavaReflectionUtil.getAnnotation(type, NonExtensible.class) == null;
 
         ClassMetaData classMetaData = new ClassMetaData(extensible, isConventionAware);
-        for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
-            inspectType(current, classMetaData);
-        }
+        inspectType(type, classMetaData);
         attachSetMethods(classMetaData);
         findMissingClosureOverloads(classMetaData);
         classMetaData.complete();
@@ -262,49 +257,35 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private void inspectType(Class<?> type, ClassMetaData classMetaData) {
-        for (Method method : type.getDeclaredMethods()) {
+        ClassDetails classDetails = ClassInspector.inspect(type);
+        for (Method method : classDetails.getAllMethods()) {
             if (method.getAnnotation(Inject.class) != null) {
-                if (!Modifier.isPublic(method.getModifiers()) && !Modifier.isProtected(method.getModifiers())){
+                if (!Modifier.isPublic(method.getModifiers()) && !Modifier.isProtected(method.getModifiers())) {
                     throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is not public or protected.", method.getDeclaringClass().getSimpleName(), method.getName()));
                 }
                 if (Modifier.isStatic(method.getModifiers())) {
                     throw new UnsupportedOperationException(String.format("Cannot attach @Inject to method %s.%s() as it is static.", method.getDeclaringClass().getSimpleName(), method.getName()));
                 }
             }
-            if (Modifier.isPrivate(method.getModifiers()) || Modifier.isStatic(method.getModifiers()) || method.isBridge()) {
-                continue;
+        }
+        for (PropertyDetails property : classDetails.getProperties()) {
+            PropertyMetaData propertyMetaData = classMetaData.property(property.getName());
+            for (Method method : property.getGetters()) {
+                propertyMetaData.addGetter(method);
             }
-
+            for (Method method : property.getSetters()) {
+                propertyMetaData.addSetter(method);
+            }
+        }
+        for (Method method : classDetails.getInstanceMethods()) {
             Class<?>[] parameterTypes = method.getParameterTypes();
-            if (method.getName().startsWith("get")
-                    && method.getName().length() > 3
-                    && !method.getReturnType().equals(Void.TYPE)
-                    && parameterTypes.length == 0) {
-                String propertyName = method.getName().substring(3);
-                propertyName = Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
-                classMetaData.property(propertyName).addGetter(method);
-            } else if (method.getName().startsWith("is")
-                    && method.getName().length() > 2
-                    && (method.getReturnType().equals(Boolean.class) || method.getReturnType().equals(Boolean.TYPE))
-                    && parameterTypes.length == 0) {
-                String propertyName = method.getName().substring(2);
-                propertyName = Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
-                classMetaData.property(propertyName).addGetter(method);
-            } else if (method.getName().startsWith("set")
-                    && method.getName().length() > 3
-                    && parameterTypes.length == 1) {
-                String propertyName = method.getName().substring(3);
-                propertyName = Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1);
-                classMetaData.property(propertyName).addSetter(method);
-            } else {
-                if (parameterTypes.length == 1) {
-                    classMetaData.addCandidateSetMethod(method);
-                }
-                if (parameterTypes.length > 0 && parameterTypes[parameterTypes.length-1].equals(Action.class)) {
-                    classMetaData.addActionMethod(method);
-                } else if (parameterTypes.length > 0 && parameterTypes[parameterTypes.length-1].equals(Closure.class)) {
-                    classMetaData.addClosureMethod(method);
-                }
+            if (parameterTypes.length == 1) {
+                classMetaData.addCandidateSetMethod(method);
+            }
+            if (parameterTypes.length > 0 && parameterTypes[parameterTypes.length - 1].equals(Action.class)) {
+                classMetaData.addActionMethod(method);
+            } else if (parameterTypes.length > 0 && parameterTypes[parameterTypes.length - 1].equals(Closure.class)) {
+                classMetaData.addClosureMethod(method);
             }
         }
     }
@@ -314,9 +295,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         private final Set<Method> missingOverloads = new LinkedHashSet<Method>();
         private final boolean extensible;
         private final boolean conventionAware;
-        private MethodSet actionMethods = new MethodSet();
+        private List<Method> actionMethods = new ArrayList<Method>();
         private SetMultimap<String, Method> closureMethods = LinkedHashMultimap.create();
-        private MethodSet setMethods = new MethodSet();
+        private List<Method> setMethods = new ArrayList<Method>();
 
         public ClassMetaData(boolean extensible, boolean conventionAware) {
             this.extensible = extensible;
@@ -375,9 +356,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected static class PropertyMetaData {
         final String name;
-        final MethodSet getters = new MethodSet();
-        final MethodSet setters = new MethodSet();
-        final MethodSet setMethods = new MethodSet();
+        final List<Method> getters = new ArrayList<Method>();
+        final List<Method> setters = new ArrayList<Method>();
+        final List<Method> setMethods = new ArrayList<Method>();
         boolean injector;
 
         private PropertyMetaData(String name) {
@@ -395,9 +376,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
         public Class<?> getType() {
             if (!getters.isEmpty()) {
-                return getters.getValues().get(0).getReturnType();
+                return getters.get(0).getReturnType();
             }
-            return setters.getValues().get(0).getParameterTypes()[0];
+            return setters.get(0).getParameterTypes()[0];
         }
 
         public void addGetter(Method method) {
@@ -412,56 +393,6 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
         public void addSetMethod(Method method) {
             setMethods.add(method);
-        }
-    }
-
-    private static class MethodSet implements Iterable<Method> {
-        private final Set<MethodSignature> signatures = new HashSet<MethodSignature>();
-        private final List<Method> methods = new ArrayList<Method>();
-
-        /**
-         * @return true if the method was added, false if not
-         */
-        public boolean add(Method method) {
-            MethodSignature methodSignature = new MethodSignature(method.getName(), method.getParameterTypes());
-            if (signatures.add(methodSignature)) {
-                methods.add(method);
-                return true;
-            }
-            return false;
-        }
-
-        public Iterator<Method> iterator() {
-            return methods.iterator();
-        }
-
-        public List<Method> getValues() {
-            return methods;
-        }
-
-        public boolean isEmpty() {
-            return methods.isEmpty();
-        }
-    }
-
-    private static class MethodSignature {
-        final String name;
-        final Class<?>[] params;
-
-        private MethodSignature(String name, Class<?>[] params) {
-            this.name = name;
-            this.params = params;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            MethodSignature other = (MethodSignature) obj;
-            return other.name.equals(name) && Arrays.equals(params, other.params);
-        }
-
-        @Override
-        public int hashCode() {
-            return name.hashCode() ^ Arrays.hashCode(params);
         }
     }
 

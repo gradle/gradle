@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
@@ -34,6 +33,7 @@ import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.*;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
+import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -49,18 +49,16 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
-import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
-import org.gradle.model.internal.inspect.ModelRuleInspector;
+import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.persist.ModelRegistryStore;
+import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Contains the services for a given project.
@@ -83,7 +81,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(project.getClassLoaderScope().createChild().lock());
+        return parentRegistry.createChild(project.getClassLoaderScope().createChild("plugins").lock());
+    }
+
+    protected DeferredProjectConfiguration createDeferredProjectConfiguration() {
+        return new DeferredProjectConfiguration(project);
     }
 
     protected FileResolver createFileResolver() {
@@ -102,6 +104,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultFileOperations(get(FileResolver.class), project.getTasks(), get(TemporaryFileProvider.class), get(Instantiator.class), get(FileLookup.class));
     }
 
+    protected ExecActionFactory createExecActionFactory() {
+        return new DefaultExecActionFactory(get(FileResolver.class));
+    }
+
     protected TemporaryFileProvider createTemporaryFileProvider() {
         return new DefaultTemporaryFileProvider(new Factory<File>() {
             public File create() {
@@ -118,15 +124,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultToolingModelBuilderRegistry();
     }
 
-    protected PluginManagerInternal createPluginManager() {
-        List<MethodModelRuleExtractor> handlers = getAll(MethodModelRuleExtractor.class);
-        List<MethodModelRuleExtractor> coreHandlers = MethodModelRuleExtractors.coreExtractors(
-                get(Instantiator.class),
-                get(ModelSchemaStore.class)
-        );
-        ModelRuleInspector inspector = new ModelRuleInspector(Iterables.concat(coreHandlers, handlers));
-        PluginApplicator applicator = new RuleBasedPluginApplicator<ProjectInternal>(project, inspector, get(ModelRuleSourceDetector.class));
-        return new DefaultPluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator) {
+        PluginApplicator applicator = new RuleBasedPluginApplicator<ProjectInternal>(project, get(ModelRuleExtractor.class), get(ModelRuleSourceDetector.class));
+        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
@@ -134,7 +134,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected Factory<TaskContainerInternal> createTaskContainerInternal() {
-        return new DefaultTaskContainerFactory(get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class));
+        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class));
     }
 
     protected SoftwareComponentContainer createSoftwareComponentContainer() {
@@ -150,8 +150,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         };
     }
 
-    protected ModelRegistry createModelRegistry() {
-        return new DefaultModelRegistry();
+    protected ModelRegistry createModelRegistry(ModelRegistryStore modelRegistryStore) {
+        return modelRegistryStore.get(project);
     }
 
     protected ScriptHandler createScriptHandler() {
@@ -163,11 +163,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
-        return new DependencyMetaDataProvider() {
-            public ModuleInternal getModule() {
-                return new ProjectBackedModule(project);
-            }
-        };
+        return new ProjectBackedModuleMetaDataProvider();
     }
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
@@ -183,5 +179,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected ComponentRegistry createComponentRegistry() {
         return new ComponentRegistry();
+    }
+
+    private class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {
+        public ModuleInternal getModule() {
+            return new ProjectBackedModule(project);
+        }
     }
 }

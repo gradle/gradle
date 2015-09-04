@@ -1,9 +1,9 @@
 /*
-    Adds a new testFixtures source set which should contain utilities/fixtures to assist in unit testing 
+    Adds a new testFixtures source set which should contain utilities/fixtures to assist in unit testing
     classes from the main source set.
-    
+
     The test fixtures are automatically made available to the test classpath.
-    
+
     The gradle/groovyProject.gradle script automatically applies this if a project has a src/testFixtures dir.
 */
 apply plugin: 'java'
@@ -13,10 +13,10 @@ configurations {
 
     testFixturesCompile.extendsFrom compile
     testFixturesRuntime.extendsFrom runtime, testFixturesCompile
-        
+
     // Expose configurations that include the test fixture classes for clients to use
     testFixturesUsageCompile.extendsFrom testFixturesCompile, outputDirs
-    testFixturesUsageRuntime.extendsFrom testFixturesRuntime
+    testFixturesUsageRuntime.extendsFrom testFixturesRuntime, testFixturesUsageCompile
 
     // Assume that the project wants to use the fixtures for its tests
     testCompile.extendsFrom testFixturesUsageCompile
@@ -31,7 +31,8 @@ sourceSets {
 }
 
 dependencies {
-    outputDirs sourceSets.testFixtures.output, sourceSets.main.output
+    outputDirs sourceSets.testFixtures.output
+    testFixturesUsageCompile project(project.path)
     testFixturesCompile libraries.junit, libraries.jmock, libraries.spock
 }
 

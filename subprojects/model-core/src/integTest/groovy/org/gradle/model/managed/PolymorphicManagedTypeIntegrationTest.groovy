@@ -23,9 +23,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "rule can provide a managed model element backed by an abstract class that implements interfaces"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+            @Managed
             interface Named {
                 String getName()
             }
@@ -35,15 +33,14 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 abstract void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                     person.name = "foo"
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                void addPersonTask(ModelMap<Task> tasks, Person person) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $person.name"
@@ -65,9 +62,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "rule can provide a managed model element backed by an abstract class that extends other classes"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+            @Managed
             abstract class Named {
                 abstract String getName()
             }
@@ -77,15 +72,14 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 abstract void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                     person.name = "foo"
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                void addPersonTask(ModelMap<Task> tasks, Person person) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $person.name"
@@ -107,9 +101,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "managed model interface can extend other interface"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+            @Managed
             interface Named {
                 String getName()
                 void setName(String name)
@@ -121,8 +113,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 void setValue(String value)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void namedThing(NamedThing namedThing) {
                     namedThing.name = "name"
@@ -130,7 +121,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, NamedThing namedThing) {
+                void addTask(ModelMap<Task> tasks, NamedThing namedThing) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $namedThing.name, value: $namedThing.value"
@@ -152,9 +143,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "can depend on managed super type as input and subject"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+            @Managed
             interface Named {
                 String getName()
                 void setName(String name)
@@ -164,8 +153,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
             interface ManagedNamed extends Named {
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void managedNamed(ManagedNamed namedThing) {
                 }
@@ -176,7 +164,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, Named named) {
+                void addTask(ModelMap<Task> tasks, Named named) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $named.name"
@@ -198,9 +186,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "two managed types can extend the same parent"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+            @Managed
             interface Named {
                 String getName()
                 void setName(String name)
@@ -218,8 +204,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 void setValue(Integer value)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void namedString(NamedString namedString) {
                     namedString.name = "string"
@@ -233,7 +218,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Mutate
-                void addTask(CollectionBuilder<Task> tasks, NamedString string, NamedInteger integer) {
+                void addTask(ModelMap<Task> tasks, NamedString string, NamedInteger integer) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $string.name, value: $string.value"

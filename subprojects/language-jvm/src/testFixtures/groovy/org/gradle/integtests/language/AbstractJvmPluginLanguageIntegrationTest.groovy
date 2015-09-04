@@ -18,6 +18,7 @@ package org.gradle.integtests.language
 
 import com.sun.xml.internal.ws.util.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 
@@ -35,7 +36,9 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         throw new UnsupportedOperationException("Cannot determine language name from class name '${getClass().simpleName}.")
     }
 
-    def setup(){
+    def setup() {
+        EnableModelDsl.enable(executer)
+
         buildFile << """
         plugins {
             id 'jvm-component'
@@ -51,20 +54,24 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         components {
             myLib(JvmLibrarySpec)
         }
-    }
+        tasks {
+            create("validate") {
+                def components = \$("components")
+                doLast {
+                    def myLib = components.myLib
+                    assert myLib instanceof JvmLibrarySpec
 
-    task validate << {
-        def myLib = componentSpecs.myLib
-        assert myLib instanceof JvmLibrarySpec
+                    assert myLib.sources.size() == 2
+                    assert myLib.sources.${languageName} instanceof ${sourceSetTypeName}
+                    assert myLib.sources.resources instanceof JvmResourceSet
 
-        assert myLib.sources.size() == 2
-        assert myLib.sources.${languageName} instanceof ${sourceSetTypeName}
-        assert myLib.sources.resources instanceof JvmResourceSet
+                    assert project.sources as Set == myLib.sources as Set
 
-        assert sources as Set == myLib.sources as Set
-
-        binaries.withType(JarBinarySpec) { jvmBinary ->
-            assert jvmBinary.source == myLib.source
+                    project.binaries.withType(JarBinarySpec) { jvmBinary ->
+                        assert jvmBinary.inputs.toList() == myLib.sources.values().toList()
+                    }
+                }
+            }
         }
     }
 """
@@ -87,22 +94,26 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
                 }
             }
         }
-    }
+        tasks {
+            create("validate") {
+                def components = \$("components")
+                doLast {
+                    def myLib = components.myLib
+                    assert myLib instanceof JvmLibrarySpec
 
-    task validate << {
-        def myLib = componentSpecs.myLib
-        assert myLib instanceof JvmLibrarySpec
+                    assert myLib.sources.size() == 4
+                    assert myLib.sources.${languageName} instanceof ${sourceSetTypeName}
+                    assert myLib.sources.extra${languageName} instanceof ${sourceSetTypeName}
+                    assert myLib.sources.resources instanceof JvmResourceSet
+                    assert myLib.sources.extraResources instanceof JvmResourceSet
 
-        assert myLib.sources.size() == 4
-        assert myLib.sources.${languageName} instanceof ${sourceSetTypeName}
-        assert myLib.sources.extra${languageName} instanceof ${sourceSetTypeName}
-        assert myLib.sources.resources instanceof JvmResourceSet
-        assert myLib.sources.extraResources instanceof JvmResourceSet
+                    assert project.sources as Set == myLib.sources as Set
 
-        assert sources as Set == myLib.sources as Set
-
-        binaries.withType(JarBinarySpec) { jvmBinary ->
-            assert jvmBinary.source == myLib.source
+                    project.binaries.withType(JarBinarySpec) { jvmBinary ->
+                        assert jvmBinary.inputs.toList() == myLib.sources.values().toList()
+                    }
+                }
+            }
         }
     }
 """
@@ -156,19 +167,19 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         and:
         output.contains(TextUtil.toPlatformLineSeparators("""
     JVM resources 'myLib:extraResources'
-        src${File.separator}myLib${File.separator}extraResources"""))
+        srcDir: src${File.separator}myLib${File.separator}extraResources"""))
 
         output.contains(TextUtil.toPlatformLineSeparators("""
     ${StringUtils.capitalize(languageName)} source 'myLib:extra${languageName}'
-        src${File.separator}myLib${File.separator}extra${languageName}"""))
+        srcDir: src${File.separator}myLib${File.separator}extra${languageName}"""))
 
         output.contains(TextUtil.toPlatformLineSeparators("""
     JVM resources 'myLib:resources'
-        src${File.separator}myLib${File.separator}resources"""))
+        srcDir: src${File.separator}myLib${File.separator}resources"""))
 
         output.contains(TextUtil.toPlatformLineSeparators("""
     ${StringUtils.capitalize(languageName)} source 'myLib:${languageName}'
-        src${File.separator}myLib${File.separator}${languageName}"""))
+        srcDir: src${File.separator}myLib${File.separator}${languageName}"""))
     }
 
 }

@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 /**
@@ -28,7 +29,7 @@ public interface ConsumerConnection extends Stoppable {
      * Cleans up resources used by this connection. Blocks until complete.
      */
     void stop();
-    
+
     String getDisplayName();
 
     <T> T run(Class<T> type, ConsumerOperationParameters operationParameters)
@@ -36,4 +37,6 @@ public interface ConsumerConnection extends Stoppable {
 
     <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters)
             throws UnsupportedOperationException, IllegalStateException;
+
+    void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters);
 }

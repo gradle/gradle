@@ -48,7 +48,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractIntegrationSpec {
                             def dependency = asNode().appendNode('dependencies').appendNode('dependency')
                             dependency.appendNode('groupId', 'junit')
                             dependency.appendNode('artifactId', 'junit')
-                            dependency.appendNode('version', '4.11')
+                            dependency.appendNode('version', '4.12')
                             dependency.appendNode('scope', 'runtime')
                         }
                     }
@@ -63,7 +63,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractIntegrationSpec {
         module.assertPublished()
         module.parsedPom.description == 'custom-description'
         module.parsedPom.packaging == 'custom-packaging'
-        module.parsedPom.scopes.runtime.assertDependsOn("junit:junit:4.11")
+        module.parsedPom.scopes.runtime.assertDependsOn("junit:junit:4.12")
     }
 
     def "can generate pom file without publishing"() {

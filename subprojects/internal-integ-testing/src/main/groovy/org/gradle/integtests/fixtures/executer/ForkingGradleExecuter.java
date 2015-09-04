@@ -23,6 +23,7 @@ import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -40,18 +41,59 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     public void assertCanExecute() throws AssertionError {
         if (!getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
-            Map<String, String> mergedEnvironmentVars = getMergedEnvironmentVars();
+            Map<String, String> environmentVars = buildInvocation().environmentVars;
             for (String envVarName : Arrays.asList("JAVA_OPTS", "GRADLE_OPTS")) {
-                String envVarValue = mergedEnvironmentVars.get(envVarName);
+                String envVarValue = environmentVars.get(envVarName);
                 if (envVarValue == null) {
                     continue;
                 }
                 for (String arg : JvmOptions.fromString(envVarValue)) {
                     if (arg.contains(" ")) {
-                        throw new AssertionError(String.format("Env var %s contains arg with space (%s) which is not supported", envVarName, arg));
+                        throw new AssertionError(String.format("Env var %s contains arg with space (%s) which is not supported by Gradle %s", envVarName, arg, getDistribution().getVersion().getVersion()));
                     }
                 }
             }
+        }
+    }
+
+    @Override
+    protected void transformInvocation(GradleInvocation invocation) {
+        if (getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
+            // Mix the implicit launcher JVM args in with the requested JVM args
+            invocation.launcherJvmArgs.addAll(invocation.implicitLauncherJvmArgs);
+        } else {
+            // Need to move those implicit JVM args that contain a space to the Gradle command-line (if possible)
+            // Note that this isn't strictly correct as some system properties can only be set on JVM start up.
+            // Should change the implementation to deal with these properly
+            for (String jvmArg : invocation.implicitLauncherJvmArgs) {
+                if (!jvmArg.contains(" ")) {
+                    invocation.launcherJvmArgs.add(jvmArg);
+                } else if (jvmArg.startsWith("-D")) {
+                    invocation.args.add(jvmArg);
+                } else {
+                    throw new UnsupportedOperationException(String.format("Cannot handle launcher JVM arg '%s' as it contains whitespace. This is not supported by Gradle %s.",
+                            jvmArg, getDistribution().getVersion().getVersion()));
+                }
+            }
+        }
+        invocation.implicitLauncherJvmArgs.clear();
+
+        // Inject the launcher JVM args via one of the environment variables
+        Map<String, String> environmentVars = invocation.environmentVars;
+        String jvmOptsEnvVar;
+        if (!environmentVars.containsKey("GRADLE_OPTS")) {
+            jvmOptsEnvVar = "GRADLE_OPTS";
+        } else if (!environmentVars.containsKey("JAVA_OPTS")) {
+            jvmOptsEnvVar = "JAVA_OPTS";
+        } else {
+            // This could be handled, just not implemented yet
+            throw new UnsupportedOperationException(String.format("Both GRADLE_OPTS and JAVA_OPTS environment variables are being used. Cannot provide JVM args %s to Gradle command.", invocation.launcherJvmArgs));
+        }
+        environmentVars.put(jvmOptsEnvVar, toJvmArgsString(invocation.launcherJvmArgs));
+
+        // Add a JAVA_HOME if none provided
+        if (!environmentVars.containsKey("JAVA_HOME")) {
+            environmentVars.put("JAVA_HOME", getJavaHome().getAbsolutePath());
         }
     }
 
@@ -60,16 +102,27 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         List<String> args = new ArrayList<String>();
         args.addAll(super.getAllArgs());
         args.add("--stacktrace");
+        addPropagatedSystemProperties(args);
         return args;
+    }
+
+    private void addPropagatedSystemProperties(List<String> args) {
+        for (String propName : propagatedSystemProperties) {
+            String propValue = System.getProperty(propName);
+            if (propValue != null) {
+                args.add("-D" + propName + "=" + propValue);
+            }
+        }
     }
 
     private ExecHandleBuilder createExecHandleBuilder() {
         TestFile gradleHomeDir = getDistribution().getGradleHomeDir();
         if (!gradleHomeDir.isDirectory()) {
             fail(gradleHomeDir + " is not a directory.\n"
-                    + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
+                + "If you are running tests from IDE make sure that gradle tasks that prepare the test image were executed. Last time it was 'intTestImage' task.");
         }
 
+        NativeServicesTestFixture.initialize();
         ExecHandleBuilder builder = new ExecHandleBuilder() {
             @Override
             public File getWorkingDir() {
@@ -85,11 +138,13 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.environment("GRADLE_OPTS", "");
         builder.environment("JAVA_OPTS", "");
 
-        builder.environment(getMergedEnvironmentVars());
-        builder.workingDir(getWorkingDir());
-        builder.setStandardInput(getStdin());
+        GradleInvocation invocation = buildInvocation();
 
-        builder.args(getAllArgs());
+        builder.environment(invocation.environmentVars);
+        builder.workingDir(getWorkingDir());
+        builder.setStandardInput(connectStdIn());
+
+        builder.args(invocation.args);
 
         ExecHandlerConfigurer configurer = OperatingSystem.current().isWindows() ? new WindowsConfigurer() : new UnixConfigurer();
         configurer.configure(builder);
@@ -109,7 +164,7 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     protected ForkingGradleHandle createGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<ExecHandleBuilder> execHandleFactory) {
-        return new ForkingGradleHandle(resultAssertion, encoding, execHandleFactory);
+        return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory);
     }
 
     protected ExecutionResult doRun() {
@@ -118,23 +173,6 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     protected ExecutionFailure doRunWithFailure() {
         return start().waitForFailure();
-    }
-
-    @Override
-    protected List<String> getGradleOpts() {
-        List<String> gradleOpts = new ArrayList<java.lang.String>(super.getGradleOpts());
-        for (Map.Entry<String, String> entry : getImplicitJvmSystemProperties().entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            gradleOpts.add(String.format("-D%s=%s", key, value));
-        }
-        gradleOpts.add("-ea");
-
-        //uncomment for debugging
-//        gradleOpts.add("-Xdebug");
-//        gradleOpts.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
-
-        return gradleOpts;
     }
 
     private interface ExecHandlerConfigurer {

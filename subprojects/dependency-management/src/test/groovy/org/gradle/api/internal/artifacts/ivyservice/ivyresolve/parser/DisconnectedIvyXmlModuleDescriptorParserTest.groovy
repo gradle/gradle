@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.internal.resource.ExternalResource
-import org.gradle.internal.resource.LocallyAvailableExternalResource
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import spock.lang.Specification
 

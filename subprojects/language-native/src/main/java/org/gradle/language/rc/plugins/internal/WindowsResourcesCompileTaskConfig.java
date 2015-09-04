@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -44,7 +45,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
         return WindowsResourceCompile.class;
     }
 
-    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
+    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
         configureResourceCompileTask((WindowsResourceCompile) task, (NativeBinarySpecInternal) binary, (WindowsResourceSet) sourceSet);
     }
 

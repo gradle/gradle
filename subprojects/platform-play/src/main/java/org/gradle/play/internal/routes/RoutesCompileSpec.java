@@ -16,21 +16,22 @@
 
 package org.gradle.play.internal.routes;
 
-import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.List;
+import java.util.Collection;
 
 public interface RoutesCompileSpec extends PlayCompileSpec, Serializable {
     Iterable<File> getSources();
 
-    BaseForkOptions getForkOptions();
-
     boolean isJavaProject();
 
-    public List<String> getAdditionalImports();
+    boolean isNamespaceReverseRouter();
 
-    public boolean isNamespaceReverseRouter();
+    boolean isGenerateReverseRoutes();
+
+    boolean isInjectedRoutesGenerator();
+
+    Collection<String> getAdditionalImports();
 }

@@ -19,8 +19,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -115,7 +116,7 @@ public class DefaultResolvedDependencyTest {
             allowing(version).getId();
             will(returnValue(new DefaultModuleVersionIdentifier("group", name, "1.2")));
         }});
-        return new DefaultResolvedArtifact(resolvedDependency.getModule(), artifactStub, artifactSource, 0);
+        return new DefaultResolvedArtifact(resolvedDependency.getModule(), artifactStub, context.mock(ComponentArtifactIdentifier.class), artifactSource);
     }
 
     private DefaultResolvedDependency createResolvedDependency() {

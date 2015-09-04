@@ -38,6 +38,8 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     SourceFile getLibraryHeader() {
         sourceFile("headers", "hello.h", """
+            #ifndef HELLO_H
+            #define HELLO_H
             #ifdef _WIN32
             #define DLL_FUNC __declspec(dllexport)
             #else
@@ -46,13 +48,31 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
 
             void DLL_FUNC sayHello();
             int DLL_FUNC sum(int a, int b);
+
+            #ifdef FRENCH
+            #pragma message("<==== compiling bonjour.h ====>")
+            #else
+            #pragma message("<==== compiling hello.h ====>")
+            #endif
+
+            #endif
         """);
+    }
+
+    @Override
+    def SourceFile getCommonHeader() {
+        sourceFile("headers", "common.h", """
+            #ifndef COMMON_H
+            #define COMMON_H
+            #include "hello.h"
+            #include <stdio.h>
+            #endif
+        """)
     }
 
     List<SourceFile> librarySources = [
         sourceFile("c", "hello.c", """
-            #include <stdio.h>
-            #include "hello.h"
+            #include "common.h"
 
             #ifdef FRENCH
             char* greeting() {
@@ -74,7 +94,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
             }
         """),
         sourceFile("c", "sum.c","""
-            #include "hello.h"
+            #include "common.h"
 
             int DLL_FUNC sum(int a, int b) {
                 return a + b;
@@ -98,8 +118,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
 
     List<SourceFile> alternateLibrarySources = [
             sourceFile("c", "hello.c", """
-                #include <stdio.h>
-                #include "hello.h"
+                #include "common.h"
 
                 void DLL_FUNC sayHello() {
                     printf("[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\\n");
@@ -112,7 +131,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                 }
             """),
             sourceFile("c", "sum.c","""
-                #include "hello.h"
+                #include "common.h"
 
                 int DLL_FUNC sum(int a, int b) {
                     return a + b;
@@ -165,5 +184,14 @@ Run Summary:    Type  Total    Ran Passed Failed Inactive
              asserts      3      3      3      0      n/a
 """
         };
+    }
+
+    public SourceFile getBrokenFile() {
+        return sourceFile("c", "broken.c", """'broken""")
+    }
+
+    @Override
+    String getSourceSetType() {
+        return "CSourceSet"
     }
 }

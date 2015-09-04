@@ -21,7 +21,7 @@ import org.gradle.cache.*;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

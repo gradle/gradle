@@ -31,8 +31,6 @@ import java.io.File;
 import java.util.Set;
 
 public class DownloadingScalaToolChain implements ScalaToolChainInternal {
-    public static final String DEFAULT_ZINC_VERSION = "0.3.0";
-
     private ProjectFinder projectFinder;
     private CompilerDaemonManager compilerDaemonManager;
     private final ConfigurationContainer configurationContainer;
@@ -58,7 +56,7 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
     public ToolProvider select(ScalaPlatform targetPlatform) {
         try {
             Configuration scalaClasspath = resolveDependency(String.format("org.scala-lang:scala-compiler:%s", targetPlatform.getScalaVersion()));
-            Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", DEFAULT_ZINC_VERSION));
+            Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
             Set<File> resolvedScalaClasspath = scalaClasspath.resolve();
             Set<File> resolvedZincClasspath = zincClasspath.resolve();
             return new DefaultScalaToolProvider(projectFinder, compilerDaemonManager, resolvedScalaClasspath, resolvedZincClasspath);

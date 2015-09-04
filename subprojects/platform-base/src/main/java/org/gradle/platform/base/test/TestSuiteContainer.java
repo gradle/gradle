@@ -17,11 +17,11 @@
 package org.gradle.platform.base.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.model.ModelMap;
 
 /**
  * A container of {@link TestSuiteSpec} instances.
  */
 @Incubating
-public interface TestSuiteContainer extends NamedDomainObjectContainer<TestSuiteSpec> {
+public interface TestSuiteContainer extends ModelMap<TestSuiteSpec> {
 }

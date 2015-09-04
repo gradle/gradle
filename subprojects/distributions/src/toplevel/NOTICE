@@ -10,7 +10,6 @@ The Apache Software Foundation (http://www.apache.org/).
 It includes the following other software:
 
 Groovy (http://groovy.codehaus.org)
-Logback (http://logback.qos.ch)
 SLF4J (http://www.slf4j.org)
 Junit (http://www.junit.org)
 JCIFS (http://jcifs.samba.org)

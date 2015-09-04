@@ -16,17 +16,39 @@
 
 package org.gradle.internal;
 
+import org.gradle.api.Action;
+
 public abstract class BiActions {
+
+    private static final BiAction<Object, Object> NOOP = new BiAction<Object, Object>() {
+        public void execute(Object o, Object o2) {
+
+        }
+    };
 
     private BiActions() {
     }
 
     public static BiAction<Object, Object> doNothing() {
-        return new BiAction<Object, Object>() {
-            public void execute(Object o, Object o2) {
+        return NOOP;
+    }
 
+    public static <A, B> BiAction<A, B> composite(final BiAction<? super A, ? super B>... actions) {
+        return new BiAction<A, B>() {
+            @Override
+            public void execute(A a, B b) {
+                for (BiAction<? super A, ? super B> action : actions) {
+                    action.execute(a, b);
+                }
             }
         };
     }
 
+    public static <A> BiAction<A, Object> usingFirstArgument(final Action<? super A> action) {
+        return new BiAction<A, Object>() {
+            public void execute(A a, Object o) {
+                action.execute(a);
+            }
+        };
+    }
 }

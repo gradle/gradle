@@ -31,7 +31,7 @@ import javax.inject.Inject
 class AsmBackedClassGeneratorGroovyTest extends Specification {
 
     def generator = new AsmBackedClassGenerator()
-    def instantiator = new ClassGeneratorBackedInstantiator(generator, new DirectInstantiator())
+    def instantiator = new ClassGeneratorBackedInstantiator(generator, DirectInstantiator.INSTANCE)
 
     private <T> T create(Class<T> clazz, Object... args) {
         instantiator.newInstance(clazz, *args)

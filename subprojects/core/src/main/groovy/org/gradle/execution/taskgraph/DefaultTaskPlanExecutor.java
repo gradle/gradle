@@ -16,11 +16,13 @@
 
 package org.gradle.execution.taskgraph;
 
-import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.Action;
+import org.gradle.api.internal.TaskInternal;
 
 class DefaultTaskPlanExecutor extends AbstractTaskPlanExecutor {
-    public void process(final TaskExecutionPlan taskExecutionPlan, final TaskExecutionListener taskListener) {
-        taskWorker(taskExecutionPlan, taskListener).run();
+    @Override
+    public void process(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
+        taskWorker(taskExecutionPlan, taskWorker).run();
         taskExecutionPlan.awaitCompletion();
     }
 }

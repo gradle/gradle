@@ -17,14 +17,14 @@ package org.gradle.initialization.layout
 
 import org.gradle.StartParameter
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class BuildLayoutFactoryTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final BuildLayoutFactory locator = new BuildLayoutFactory()
 
     def "returns current directory when it contains a settings file"() {
@@ -140,7 +140,7 @@ class BuildLayoutFactoryTest extends Specification {
         def currentDir = tmpDir.createDir("current")
         currentDir.createFile("settings.gradle")
         def rootDir = tmpDir.createDir("root")
-        def settingsFile = rootDir.createDir("some-settings.gradle")
+        def settingsFile = rootDir.createFile("some-settings.gradle")
         def startParameter = new StartParameter()
         startParameter.currentDir = currentDir
         startParameter.settingsFile = settingsFile
@@ -174,7 +174,6 @@ class BuildLayoutFactoryTest extends Specification {
     }
 
     void isEmpty(ScriptSource scriptSource) {
-        assert scriptSource instanceof StringScriptSource
-        assert scriptSource.resource.contents == ''
+        assert scriptSource.resource.text == ''
     }
 }

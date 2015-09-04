@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.artifacts.repositories
-
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
@@ -24,6 +23,8 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
+import org.gradle.internal.authentication.AuthenticationSchemeRegistry
+import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.logging.ProgressLoggerFactory
@@ -38,10 +39,11 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final ResolverStrategy resolverStrategy = Mock()
     final MetaDataParser pomParser = Mock()
+    final AuthenticationSchemeRegistry authenticationSchemeRegistry = new DefaultAuthenticationSchemeRegistry()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
-            localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder,
-            resolverStrategy, artifactIdentifierFileStore, pomParser
+            localMavenRepoLocator, fileResolver, DirectInstantiator.INSTANCE, transportFactory, locallyAvailableResourceFinder,
+            resolverStrategy, artifactIdentifierFileStore, pomParser, authenticationSchemeRegistry
     )
 
     def testCreateFlatDirResolver() {

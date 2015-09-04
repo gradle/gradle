@@ -17,28 +17,34 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
-import org.gradle.internal.io.ClassLoaderObjectInputStream;
+import org.gradle.api.logging.LogLevel;
 
-import java.io.ByteArrayInputStream;
+import java.net.URL;
+import java.util.Collection;
 import java.util.concurrent.Callable;
 
 /**
- * <p>Stage 3 of the start-up for a worker process with the application classes loaded in the system ClassLoader. Takes
- * care of adding the application classes to the system ClassLoader and then invoking the next stage of start-up.</p>
+ * <p>Stage 2 of the start-up for a worker process with the application classes loaded in the system ClassLoader. Takes
+ * care of deserializing and then invoking the next stage of start-up.</p>
  *
- * <p> Instantiated in the worker bootstrap ClassLoader and invoked from {@link org.gradle.process.internal.launcher.BootstrapClassLoaderWorker}.
+ * <p> Instantiated in the infrastructure ClassLoader and invoked from {@link org.gradle.process.internal.launcher.GradleWorkerMain}.
  * See {@link ApplicationClassesInSystemClassLoaderWorkerFactory} for details.</p>
  */
 public class SystemApplicationClassLoaderWorker implements Callable<Void> {
+    private final int logLevel;
+    private final Collection<String> sharedPackages;
+    private final Collection<URL> workerClassPath;
     private final byte[] serializedWorker;
 
-    public SystemApplicationClassLoaderWorker(byte[] serializedWorker) {
+    public SystemApplicationClassLoaderWorker(int logLevel, Collection<String> sharedPackages, Collection<URL> workerClassPath, byte[] serializedWorker) {
+        this.logLevel = logLevel;
+        this.sharedPackages = sharedPackages;
+        this.workerClassPath = workerClassPath;
         this.serializedWorker = serializedWorker;
     }
 
     public Void call() throws Exception {
-        ClassLoaderObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
-        final Action<WorkerContext> action = (Action<WorkerContext>) instr.readObject();
+        final Action<WorkerContext> action = new ImplementationClassLoaderWorker(LogLevel.values()[logLevel], sharedPackages, workerClassPath, serializedWorker);
 
         action.execute(new WorkerContext() {
             public ClassLoader getApplicationClassLoader() {

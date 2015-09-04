@@ -55,4 +55,37 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/classes/main/Foo.class").exists()
     }
+
+    def "don't implicitly compile source files from classpath"() {
+        settingsFile << "include 'a', 'b'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'java'
+                tasks.withType(JavaCompile) {
+                    options.compilerArgs << '-Xlint:all' << '-Werror'
+                }
+            }
+            project(':b') {
+                dependencies {
+                    compile project(':a')
+                }
+            }
+"""
+
+        file("a/src/main/resources/Foo.java") << "public class Foo {}"
+
+        file("b/src/main/java/Bar.java") << "public class Bar extends Foo {}"
+
+        expect:
+        fails("compileJava")
+        failure.assertHasDescription("Execution failed for task ':b:compileJava'.")
+
+        // This makes sure the test above is correct AND you can get back javac's default behavior if needed
+        when:
+        buildFile << "project(':b').compileJava { options.sourcepath = classpath }"
+        run("compileJava")
+        then:
+        file("b/build/classes/main/Bar.class").exists()
+        file("b/build/classes/main/Foo.class").exists()
+    }
 }

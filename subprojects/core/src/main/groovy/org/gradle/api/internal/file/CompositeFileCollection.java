@@ -138,11 +138,19 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
         }
     }
 
-    protected List<? extends FileCollection> getSourceCollections() {
+    protected Collection<? extends FileCollectionInternal> getSourceCollections() {
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
         resolve(context);
         return context.resolveAsFileCollections();
     }
 
     public abstract void resolve(FileCollectionResolveContext context);
+
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        for (FileCollectionInternal files : getSourceCollections()) {
+            files.registerWatchPoints(builder);
+        }
+    }
+
 }

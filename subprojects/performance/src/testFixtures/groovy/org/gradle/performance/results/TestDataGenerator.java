@@ -19,7 +19,6 @@ package org.gradle.performance.results;
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
 import org.gradle.performance.fixture.MeasuredOperationList;
-import org.gradle.performance.fixture.PerformanceResults;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.IOException;
@@ -45,10 +44,10 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
             out.print("\"" + format.date(new Date(results.getTestTime())) + "\"");
         }
         out.println("],");
-        out.print("\"executionTime\":");
+        out.print("\"totalTime\":");
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
-                return format.seconds(original.getExecutionTime().getAverage());
+                return format.seconds(original.getTotalTime().getAverage());
             }
         }, out);
         out.println(",");
@@ -65,7 +64,7 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
     void render(TestExecutionHistory testHistory, Transformer<String, MeasuredOperationList> valueRenderer, PrintWriter out) {
         List<PerformanceResults> sortedResults = Lists.reverse(testHistory.getPerformanceResults());
         out.println("  [");
-        List<String> labels = testHistory.getOperationLabels();
+        List<String> labels = testHistory.getExperimentLabels();
         for (int i = 0; i < labels.size(); i++) {
             if (i > 0) {
                 out.println(",");
@@ -76,7 +75,7 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
             boolean empty = true;
             for (int j = 0; j < sortedResults.size(); j++) {
                 PerformanceResults results = sortedResults.get(j);
-                MeasuredOperationList measuredOperations = results.getExecutionOperations().get(i);
+                MeasuredOperationList measuredOperations = results.getExperiments().get(i);
                 if (!measuredOperations.isEmpty()) {
                     if (!empty) {
                         out.print(", ");

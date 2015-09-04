@@ -16,9 +16,17 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.Module;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.serialize.FlushableEncoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
 import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
 import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
@@ -28,16 +36,16 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.child.EncodedStream;
 import org.gradle.util.Clock;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultDaemonStarter implements DaemonStarter {
 
@@ -47,61 +55,90 @@ public class DefaultDaemonStarter implements DaemonStarter {
     private final DaemonParameters daemonParameters;
     private final DaemonGreeter daemonGreeter;
     private final DaemonStartListener listener;
+    private final JvmVersionValidator versionValidator;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, DaemonStartListener listener) {
+    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, DaemonStartListener listener, JvmVersionValidator versionValidator) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
         this.daemonGreeter = daemonGreeter;
         this.listener = listener;
+        this.versionValidator = versionValidator;
     }
 
     public DaemonStartupInfo startDaemon() {
-        DefaultModuleRegistry registry = new DefaultModuleRegistry();
-        Set<File> bootstrapClasspath = new LinkedHashSet<File>();
-        bootstrapClasspath.addAll(registry.getModule("gradle-launcher").getImplementationClasspath().getAsFiles());
-        if (registry.getGradleHome() == null) {
-            // Running from the classpath - chuck in everything we can find
-            bootstrapClasspath.addAll(registry.getFullClasspath());
+        ModuleRegistry registry = new DefaultModuleRegistry();
+        ClassPath classpath;
+        List<File> searchClassPath;
+        if (new DefaultGradleDistributionLocator().getGradleHome() != null) {
+            // When running from a Gradle distro, only need launcher jar. The daemon can find everything from there.
+            classpath = registry.getModule("gradle-launcher").getImplementationClasspath();
+            searchClassPath = Collections.emptyList();
+        } else {
+            // When not running from a Gradle distro, need runtime impl for launcher plus the search path to look for other modules
+            classpath = new DefaultClassPath();
+            for (Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
+                classpath = classpath.plus(module.getClasspath());
+            }
+            searchClassPath = registry.getAdditionalClassPath().getAsFiles();
         }
-        if (bootstrapClasspath.isEmpty()) {
+        if (classpath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }
 
-        new JvmVersionValidator().validate(daemonParameters);
+        versionValidator.validate(daemonParameters);
 
         List<String> daemonArgs = new ArrayList<String>();
-        daemonArgs.add(daemonParameters.getEffectiveJavaExecutable());
+        daemonArgs.add(daemonParameters.getEffectiveJvm().getJavaExecutable().getAbsolutePath());
 
         List<String> daemonOpts = daemonParameters.getEffectiveJvmArgs();
-        LOGGER.debug("Using daemon opts: {}", daemonOpts);
         daemonArgs.addAll(daemonOpts);
-        //Useful for debugging purposes - simply uncomment and connect to debug
-//        daemonArgs.add("-Xdebug");
-//        daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006");
         daemonArgs.add("-cp");
-        daemonArgs.add(CollectionUtils.join(File.pathSeparator, bootstrapClasspath));
+        daemonArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()));
+
+        if (Boolean.getBoolean("org.gradle.daemon.debug")) {
+            daemonArgs.add("-Xdebug");
+            daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
+        }
+        LOGGER.debug("Using daemon args: {}", daemonArgs);
+
         daemonArgs.add(GradleDaemon.class.getName());
+        // Version isn't used, except by a human looking at the output of jps.
         daemonArgs.add(GradleVersion.current().getVersion());
-        daemonArgs.add(daemonDir.getBaseDir().getAbsolutePath());
-        daemonArgs.add(String.valueOf(daemonParameters.getIdleTimeout()));
-        daemonArgs.add(daemonParameters.getUid());
 
-        //all remaining arguments are daemon startup jvm opts.
-        //we need to pass them as *program* arguments to avoid problems with getInputArguments().
-        daemonArgs.addAll(daemonOpts);
+        // Serialize configuration to daemon via the process' stdin
+        ByteArrayOutputStream serializedConfig = new ByteArrayOutputStream();
+        FlushableEncoder encoder = new KryoBackedEncoder(new EncodedStream.EncodedOutput(serializedConfig));
+        try {
+            encoder.writeString(daemonParameters.getGradleUserHomeDir().getAbsolutePath());
+            encoder.writeString(daemonDir.getBaseDir().getAbsolutePath());
+            encoder.writeSmallInt(daemonParameters.getIdleTimeout());
+            encoder.writeString(daemonParameters.getUid());
+            encoder.writeSmallInt(daemonOpts.size());
+            for (String daemonOpt : daemonOpts) {
+                encoder.writeString(daemonOpt);
+            }
+            encoder.writeSmallInt(searchClassPath.size());
+            for (File file : searchClassPath) {
+                encoder.writeString(file.getAbsolutePath());
+            }
+            encoder.flush();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        ByteArrayInputStream stdInput = new ByteArrayInputStream(serializedConfig.toByteArray());
 
-        DaemonStartupInfo daemonInfo = startProcess(daemonArgs, daemonDir.getVersionedDir());
+        DaemonStartupInfo daemonInfo = startProcess(daemonArgs, daemonDir.getVersionedDir(), stdInput);
         listener.daemonStarted(daemonInfo);
         return daemonInfo;
     }
 
-    private DaemonStartupInfo startProcess(final List<String> args, final File workingDir) {
+    private DaemonStartupInfo startProcess(List<String> args, File workingDir, InputStream stdInput) {
         LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         Clock clock = new Clock();
         try {
             GFileUtils.mkdirs(workingDir);
 
-            DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
+            DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer(stdInput);
             ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer);
 
             handle.start();

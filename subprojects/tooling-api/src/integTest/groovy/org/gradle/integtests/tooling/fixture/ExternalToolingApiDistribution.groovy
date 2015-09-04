@@ -37,8 +37,7 @@ class ExternalToolingApiDistribution implements ToolingApiDistribution {
     }
     
     ClassLoader getClassLoader() {
-        def classLoaderFactory = new DefaultClassLoaderFactory()
-        classLoaderFactory.createIsolatedClassLoader(classpath.collect { it.toURI() })
+        return new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath*.toURI())
     }
     
     String toString() {

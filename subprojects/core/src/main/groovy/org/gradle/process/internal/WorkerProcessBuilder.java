@@ -43,6 +43,7 @@ public abstract class WorkerProcessBuilder {
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private boolean loadApplicationInSystemClassLoader;
     private String baseName = "Gradle Worker";
+    private File gradleUserHomeDir;
 
     public WorkerProcessBuilder(FileResolver fileResolver) {
         javaCommand = new JavaExecHandleBuilder(fileResolver);
@@ -107,6 +108,14 @@ public abstract class WorkerProcessBuilder {
 
     public void setLoadApplicationInSystemClassLoader(boolean loadApplicationInSystemClassLoader) {
         this.loadApplicationInSystemClassLoader = loadApplicationInSystemClassLoader;
+    }
+
+    public File getGradleUserHomeDir() {
+        return gradleUserHomeDir;
+    }
+
+    public void setGradleUserHomeDir(File gradleUserHomeDir) {
+        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
     public abstract WorkerProcess build();

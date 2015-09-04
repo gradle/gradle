@@ -22,7 +22,6 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.Clang;
@@ -40,6 +39,7 @@ import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
@@ -108,7 +108,7 @@ public class AvailableToolChains {
 
     static private ToolChainCandidate findVisualCpp() {
         // Search in the standard installation locations
-        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServices.getInstance().get(WindowsRegistry.class), NativeServices.getInstance().get(SystemInfo.class));
+        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), NativeServicesTestFixture.getInstance().get(SystemInfo.class));
         VisualStudioLocator.SearchResult searchResult = vsLocator.locateVisualStudioInstalls(null);
         if (searchResult.isAvailable()) {
             VisualStudioInstall install = searchResult.getVisualStudio();
@@ -181,7 +181,7 @@ public class AvailableToolChains {
    }
     
     public abstract static class InstalledToolChain extends ToolChainCandidate {
-        private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
+        private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServicesTestFixture.getInstance().get(ProcessEnvironment.class);
         protected final List<File> pathEntries = new ArrayList<File>();
         private final String displayName;
         protected final String pathVarName;

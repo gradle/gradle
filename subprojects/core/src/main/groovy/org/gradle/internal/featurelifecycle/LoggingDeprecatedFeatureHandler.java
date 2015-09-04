@@ -51,7 +51,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             StringBuilder message = new StringBuilder();
             locationReporter.reportLocation(usage, message);
             if (message.length() > 0) {
-                message.append(SystemProperties.getLineSeparator());
+                message.append(SystemProperties.getInstance().getLineSeparator());
             }
             message.append(usage.getMessage());
             logTraceIfNecessary(usage.getStack(), message);
@@ -62,7 +62,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     private void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
         if (isTraceLoggingEnabled()) {
             for (StackTraceElement frame : stack) {
-                message.append(SystemProperties.getLineSeparator());
+                message.append(SystemProperties.getInstance().getLineSeparator());
                 message.append("    ");
                 message.append(frame.toString());
             }

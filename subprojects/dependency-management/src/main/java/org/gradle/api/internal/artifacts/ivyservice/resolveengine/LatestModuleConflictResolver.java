@@ -15,19 +15,55 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 class LatestModuleConflictResolver implements ModuleConflictResolver {
-    private final VersionComparator versionComparator;
+    private final Comparator<Version> versionComparator;
+    private final VersionParser versionParser = new VersionParser();
 
-        LatestModuleConflictResolver(VersionComparator versionComparator) {
-        this.versionComparator = versionComparator;
+    LatestModuleConflictResolver(VersionComparator versionComparator) {
+        this.versionComparator = versionComparator.asVersionComparator();
     }
 
-    public <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates) {
-        return Collections.max(candidates, versionComparator);
+    public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
+        // Find the candidates with the highest base version
+        Version baseVersion = null;
+        Map<Version, T> matches = new LinkedHashMap<Version, T>();
+        for (T candidate : candidates) {
+            Version version = versionParser.transform(candidate.getVersion());
+            if (baseVersion == null || versionComparator.compare(version.getBaseVersion(), baseVersion) > 0) {
+                matches.clear();
+                baseVersion = version.getBaseVersion();
+                matches.put(version, candidate);
+            } else if (version.getBaseVersion().equals(baseVersion)) {
+                matches.put(version, candidate);
+            }
+        }
+
+        if (matches.size() == 1) {
+            return matches.values().iterator().next();
+        }
+
+        // Work backwards from highest version, return the first candidate with qualified version and release status, or candidate with unqualified version
+        List<Version> sorted = new ArrayList<Version>(matches.keySet());
+        Collections.sort(sorted, Collections.reverseOrder(versionComparator));
+        for (Version version : sorted) {
+            T component = matches.get(version);
+            if (!version.isQualified()) {
+                return component;
+            }
+            ComponentResolveMetaData metaData = component.getMetaData();
+            if (metaData != null && "release".equals(metaData.getStatus())) {
+                return component;
+            }
+        }
+
+        // Nothing - just return the highest version
+        return matches.get(sorted.get(0));
     }
 }

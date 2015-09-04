@@ -40,8 +40,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.listener.ListenerBroadcast;
-import org.gradle.listener.ListenerManager;
+import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;

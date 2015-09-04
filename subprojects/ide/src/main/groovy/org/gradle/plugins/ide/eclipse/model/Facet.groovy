@@ -18,6 +18,11 @@ package org.gradle.plugins.ide.eclipse.model
 
 class Facet {
 
+    /**
+     * An {@code installed} facet is really present on an Eclipse project whereas facet type {@code fixed} means that
+     * this facet is locked and cannot be simply removed. See also
+     * <a href="https://eclipse.org/articles/Article-BuildingProjectFacets/tutorial.html#defining.presets">here</a>.
+     */
     @SuppressWarnings("FieldName")
     enum FacetType { installed, fixed }
 

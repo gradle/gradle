@@ -20,11 +20,13 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
+@UsesNativeServices
 class BaseDirFileResolverSpec extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -161,7 +163,7 @@ class BaseDirFileResolverSpec extends Specification {
 
     @Requires(TestPrecondition.WINDOWS)
     def "normalizes non-existent file system root"() {
-        def file = new File("Q:\\")
+        def file = nonexistentFsRoot()
         assert !file.exists()
         assert file.absolute
 
@@ -184,8 +186,8 @@ class BaseDirFileResolverSpec extends Specification {
         UnsupportedNotationException e = thrown()
         e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a File or URI: 12.
 The following types/formats are supported:
-  - A String or CharSequence path, e.g 'src/main/java' or '/usr/include'
-  - A String or CharSequence URI, e.g 'file:/usr/include'
+  - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
+  - A String or CharSequence URI, for example 'file:/usr/include'.
   - A File instance.
   - A URI or URL instance.""")
     }
@@ -214,5 +216,13 @@ The following types/formats are supported:
 
     private File[] getFsRoots() {
         File.listRoots().findAll { !it.absolutePath.startsWith("A:") }
+    }
+    
+    private File nonexistentFsRoot() {
+        ('Z'..'A').collect { 
+            "$it:\\" 
+        }.findResult {
+            new File(it).exists() ? null : new File(it)
+        }
     }
 }

@@ -16,25 +16,43 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.fixture.BuildExperimentRunner
+import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
+import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
+@Category(PerformanceTest)
 class AbstractCrossBuildPerformanceTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     static def resultStore = new CrossBuildResultsStore()
 
-    final def runner = new CrossBuildPerformanceTestRunner(
-            testDirectoryProvider: tmpDir,
-            runs: 5,
-            warmUpRuns: 1,
-            subRuns: 1
-    )
+    final def runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
+        @Override
+        protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+            builder.invocationCount(5).warmUpCount(1)
+            super.defaultSpec(builder)
+            AbstractCrossBuildPerformanceTest.this.defaultSpec(builder)
+        }
 
-    def setup() {
-        runner.reporter = resultStore
+        @Override
+        protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
+            super.finalizeSpec(builder)
+            AbstractCrossBuildPerformanceTest.this.finalizeSpec(builder)
+        }
+    }
+
+    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+
+    }
+
+    protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
+
     }
 
     static {

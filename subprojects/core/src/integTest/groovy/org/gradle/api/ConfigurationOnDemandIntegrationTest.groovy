@@ -15,13 +15,15 @@
  */
 
 package org.gradle.api
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
+import org.junit.runner.RunWith
 import spock.lang.IgnoreIf
 
+@RunWith(FluidDependenciesResolveRunner)
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
@@ -259,20 +261,24 @@ project(':api') {
             dependencies { compile project(":api") }
         """
         file("api/build.gradle") << "apply plugin: 'java'"
+        // Provide a source file so that the compile task doesn't skip resolving inputs
+        file("impl/src/main/java/Foo.java") << "public class Foo {}"
 
         when:
         run("impl:build")
 
         then:
+        executed ":api:jar", ":impl:jar"
         fixture.assertProjectsConfigured(":", ":impl", ":api")
 
         when:
         run("impl:build", "--no-rebuild") // impl -> api
 
         then:
-        //api tasks are not executed and api is not configured
-        !result.executedTasks.find { it.startsWith ":api" }
-        fixture.assertProjectsConfigured(":", ":impl")
+        executed ":impl:jar"
+        notExecuted ":api:jar"
+        // :api is configured to resolve impl.compile configuration
+        fixture.assertProjectsConfigured(":", ":impl", ":api")
     }
 
     def "respects external task dependencies"() {

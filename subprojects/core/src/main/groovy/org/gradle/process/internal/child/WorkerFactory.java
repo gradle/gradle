@@ -18,14 +18,7 @@ package org.gradle.process.internal.child;
 
 import org.gradle.process.JavaExecSpec;
 
-import java.util.concurrent.Callable;
-
 public interface WorkerFactory {
-    /**
-     * Creates the worker action to be serialized across to the child process.
-     */
-    Callable<?> create();
-
     /**
      * Configures the Java command that will be used to launch the child process.
      */

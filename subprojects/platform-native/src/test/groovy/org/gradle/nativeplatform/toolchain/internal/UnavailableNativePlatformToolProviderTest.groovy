@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativeplatform.toolchain.internal
-
 import org.gradle.api.GradleException
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
 import org.gradle.platform.base.internal.toolchain.ToolChainAvailability
@@ -41,7 +40,7 @@ class UnavailableNativePlatformToolProviderTest extends Specification {
 
     def "throws failure when attempting to create a compiler"() {
         when:
-        toolChain.newCompiler(Stub(NativeCompileSpec))
+        toolChain.newCompiler(NativeCompileSpec.class)
 
         then:
         GradleException e = thrown()

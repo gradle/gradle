@@ -17,6 +17,8 @@
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]plugins[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]plugins[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]jvm[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]scala[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]base-services[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
@@ -26,6 +28,11 @@
               files=".*[/\\]subprojects[/\\]base-services-groovy[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]specs[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]language-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]javadoc[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]language-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]compile[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]language-java[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]compile[/\\][^/\\]+"/>
+
     <!-- Don't require api docs for projects only used internally -->
     <suppress checks="Javadoc.*"
               files=".*[/\\]subprojects[/\\]internal-.+[/\\]src[/\\]main[/\\].+"/>
@@ -33,6 +40,13 @@
     <!-- JavaScript plugin is incubating -->
     <suppress checks="Javadoc.*"
               files=".*[/\\]subprojects[/\\]javascript[/\\].+"/>
+
+    <suppress checks="Javadoc.*"
+              files=".*[/\\]subprojects[/\\]core[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]logging[/\\]LogLevel.java"/>
+
+    <!-- Protocol types may only define constants in interfaces -->
+    <suppress checks="InterfaceIsTypeCheck"
+              files=".*[/\\]subprojects[/\\]tooling-api[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]tooling[/\\]internal[/\\]protocol.+"/>
 
 
 </suppressions>

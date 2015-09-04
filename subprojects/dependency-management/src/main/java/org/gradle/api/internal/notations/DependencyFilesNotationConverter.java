@@ -18,12 +18,11 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
-
-import java.util.Collection;
 
 public class DependencyFilesNotationConverter implements NotationConverter<FileCollection, SelfResolvingDependency> {
     private final Instantiator instantiator;
@@ -32,8 +31,9 @@ public class DependencyFilesNotationConverter implements NotationConverter<FileC
         this.instantiator = instantiator;
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("FileCollections, e.g. files('some.jar', 'someOther.jar').");
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("FileCollections").example("files('some.jar', 'someOther.jar')");
     }
 
     public void convert(FileCollection notation, NotationConvertResult<? super SelfResolvingDependency> result) throws TypeConversionException {

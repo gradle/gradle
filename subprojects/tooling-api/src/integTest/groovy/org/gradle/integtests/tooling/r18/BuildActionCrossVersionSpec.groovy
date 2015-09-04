@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r18
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.UnsupportedVersionException
@@ -26,6 +27,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 
 @ToolingApiVersion('>=1.8')
 @TargetGradleVersion('>=1.8')
+@LeaksFileHandles
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def "client receives the result of running a build action"() {
         given:
@@ -133,6 +135,6 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support execution of build actions provided by the tooling API client. Support for this was added in Gradle 1.8 and is available in all later versions."
+        e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the BuildActionExecuter API. Support for this is available in Gradle 1.8 and all later versions."
     }
 }

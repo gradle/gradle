@@ -18,55 +18,63 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 
+import java.util.Arrays;
+
 /**
  * Provides implementations of classloader ids
  */
 public class ClassLoaderIds {
 
-    /**
-     * class loader that is a part of class loader scope (hierarchy)
-     */
-    static ClassLoaderId scopeNode(String node) {
-        return new DefaultClassLoaderId("scope:" + node);
+    public enum Type {
+        SCRIPT,
+        TEST_TASK_CLASSPATH
     }
 
-    /**
-     * build script classloader
-     */
-    public static ClassLoaderId buildScript(String fileName) {
-        return new DefaultClassLoaderId("build script:" + fileName);
+    private static ClassLoaderId of(Type type, String... attributes) {
+        return new DefaultClassLoaderId(type, attributes);
     }
 
-    /**
-     * test task classpath classloader
-     */
+    public static ClassLoaderId buildScript(String fileName, String operationId) {
+        return of(Type.SCRIPT, fileName, operationId);
+    }
+
     public static ClassLoaderId testTaskClasspath(String testTaskPath) {
-        return new DefaultClassLoaderId("test classpath:" + testTaskPath);
+        return of(Type.TEST_TASK_CLASSPATH, testTaskPath);
     }
 
     private static class DefaultClassLoaderId implements ClassLoaderId {
-        private final String node;
-        public DefaultClassLoaderId(String node) {
-            this.node = node;
+        private final Type type;
+        private final String[] attributes;
+
+        public DefaultClassLoaderId(Type type, String[] attributes) {
+            this.type = type;
+            this.attributes = attributes;
         }
-        public String toString() {
-            return node;
-        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof DefaultClassLoaderId)) {
+            if (o == null || getClass() != o.getClass()) {
                 return false;
             }
 
             DefaultClassLoaderId that = (DefaultClassLoaderId) o;
 
-            return node.equals(that.node);
-
+            return type == that.type && Arrays.equals(attributes, that.attributes);
         }
+
+        @Override
         public int hashCode() {
-            return node.hashCode();
+            int result = type.hashCode();
+            result = 31 * result + Arrays.hashCode(attributes);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "ClassLoaderId{type=" + type + ", attributes=" + Arrays.toString(attributes) + '}';
         }
     }
 }

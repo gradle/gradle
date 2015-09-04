@@ -47,7 +47,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.integration.'
+        failureHasCause 'Could not find any matches for org.test:projectA:latest.integration as no versions of org.test:projectA are available.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.0').withNoMetaData().publish()
@@ -117,21 +117,30 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.milestone.'
+        failureHasCause 'Could not find any matches for org.test:projectA:latest.milestone as no versions of org.test:projectA are available.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '2.0').withNoMetaData().publish()
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.milestone.'
+        failureHasCause '''Could not find any version that matches org.test:projectA:latest.milestone.
+Versions that do not match:
+    2.0
+Searched in the following locations:
+'''
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.milestone.'
+        failureHasCause '''Could not find any version that matches org.test:projectA:latest.milestone.
+Versions that do not match:
+    2.0
+    1.3
+Searched in the following locations:
+'''
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus('milestone').publish()
@@ -190,14 +199,18 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.release.'
+        failureHasCause 'Could not find any matches for org.test:projectA:latest.release as no versions of org.test:projectA are available.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '2.0').withNoMetaData().publish()
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.release.'
+        failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
+Versions that do not match:
+    2.0
+Searched in the following locations:
+'''
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
@@ -205,7 +218,13 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         runAndFail 'checkDeps'
 
         then:
-        failureHasCause 'Could not find any version that matches org.test:projectA:latest.release.'
+        failureHasCause '''Could not find any version that matches org.test:projectA:latest.release.
+Versions that do not match:
+    2.0
+    1.3
+    1.2
+Searched in the following locations:
+'''
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus('release').publish()
@@ -220,8 +239,8 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.2').withStatus('milestone').publish()
-        ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
+        ivyRepo.module('org.test', 'projectA', '1.1.1').withStatus('milestone').publish()
+        ivyRepo.module('org.test', 'projectA', '1.1-beta2').withStatus('integration').publish()
         run 'checkDeps'
 
         then:
@@ -374,6 +393,42 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.4")
+            }
+        }
+    }
+
+    @Issue("GRADLE-3334")
+    def "can resolve version range with single value specified"() {
+        given:
+        buildFile << """
+repositories {
+    ivy {
+        url "${ivyRepo.uri}"
+    }
+}
+
+configurations { compile }
+
+dependencies {
+    compile group: "org.test", name: "projectA", version: "[1.1]"
+}
+"""
+        and:
+        ivyRepo.module('org.test', 'projectB', '2.0').publish()
+        ivyRepo.module('org.test', 'projectA', '1.1').dependsOn('org.test', 'projectB', '[2.0]').publish()
+
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:projectA:[1.1]", "org.test:projectA:1.1") {
+                    edge("org.test:projectB:2.0", "org.test:projectB:2.0") // Transitive version range is lost when converting to Ivy ModuleDescriptor
+                }
             }
         }
     }

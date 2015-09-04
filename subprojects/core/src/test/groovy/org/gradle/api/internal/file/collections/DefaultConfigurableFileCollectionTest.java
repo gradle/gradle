@@ -18,15 +18,18 @@ package org.gradle.api.internal.file.collections;
 import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +54,11 @@ public class DefaultConfigurableFileCollectionTest {
     private final TaskResolver taskResolverStub = context.mock(TaskResolver.class);
     private final DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock,
             taskResolverStub);
+
+    @Before
+    public void setUp() {
+        NativeServicesTestFixture.initialize();
+    }
 
     @Test
     public void resolvesSpecifiedFilesUseFileResolver() {
@@ -211,7 +219,7 @@ public class DefaultConfigurableFileCollectionTest {
         final File file1 = new File("1");
         final File file2 = new File("2");
 
-        final FileCollection src = context.mock(FileCollection.class);
+        final FileCollectionInternal src = context.mock(FileCollectionInternal.class);
 
         collection.from(src);
 
@@ -364,5 +372,5 @@ public class DefaultConfigurableFileCollectionTest {
         assertThat(collection.getAsFileTree().getBuildDependencies().getDependencies(null), equalTo((Set) toSet(task)));
         assertThat(collection.getAsFileTree().matching(TestUtil.TEST_CLOSURE).getBuildDependencies().getDependencies(null), equalTo((Set) toSet(task)));
     }
-    
+
 }

@@ -17,6 +17,7 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.ObjectConnection;
@@ -25,6 +26,7 @@ import org.gradle.process.internal.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -38,13 +40,15 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
     private final Object workerId;
     private final String displayName;
     private final Address serverAddress;
+    private final File gradleUserHomeDir;
 
     public ActionExecutionWorker(Action<? super WorkerProcessContext> action, Object workerId, String displayName,
-                                 Address serverAddress) {
+                                 Address serverAddress, File gradleUserHomeDir) {
         this.action = action;
         this.workerId = workerId;
         this.displayName = displayName;
         this.serverAddress = serverAddress;
+        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
     public void execute(final WorkerContext workerContext) {
@@ -74,6 +78,9 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
 
                 ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
                 Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
+
+                NativeServices.initialize(gradleUserHomeDir, false);
+
                 try {
                     action.execute(context);
                 } finally {

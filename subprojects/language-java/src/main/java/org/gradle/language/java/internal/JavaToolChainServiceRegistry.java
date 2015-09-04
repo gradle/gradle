@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.DefaultJavaToolChain;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
+import org.gradle.api.internal.tasks.compile.JavaHomeBasedJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerClientsManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonStarter;
@@ -31,27 +32,42 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 
+import javax.tools.JavaCompiler;
+
 public class JavaToolChainServiceRegistry implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
+    }
+
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new BuildSessionScopeCompileServices());
     }
 
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScopeCompileServices());
     }
 
+    public void registerGradleServices(ServiceRegistration registration) {
+    }
+
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeCompileServices());
     }
 
-    private static class BuildScopeCompileServices {
+    private static class BuildSessionScopeCompileServices {
         CompilerDaemonManager createCompilerDaemonManager(Factory<WorkerProcessBuilder> workerFactory, StartParameter startParameter) {
             return new CompilerDaemonManager(new CompilerClientsManager(new CompilerDaemonStarter(workerFactory, startParameter)));
         }
     }
 
+    private static class BuildScopeCompileServices {
+        Factory<JavaCompiler> createJavaHomeBasedJavaCompilerFactory() {
+            return new JavaHomeBasedJavaCompilerFactory();
+        }
+    }
+
     private static class ProjectScopeCompileServices {
-        JavaCompilerFactory createJavaCompilerFactory(GradleInternal gradle, CompilerDaemonManager compilerDaemonManager) {
-            return new DefaultJavaCompilerFactory(gradle.getRootProject().getProjectDir(), compilerDaemonManager);
+        JavaCompilerFactory createJavaCompilerFactory(GradleInternal gradle, CompilerDaemonManager compilerDaemonManager, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
+            return new DefaultJavaCompilerFactory(gradle.getRootProject().getProjectDir(), compilerDaemonManager, javaHomeBasedJavaCompilerFactory);
         }
 
         JavaToolChainInternal createJavaToolChain(JavaCompilerFactory compilerFactory, ExecActionFactory execActionFactory) {

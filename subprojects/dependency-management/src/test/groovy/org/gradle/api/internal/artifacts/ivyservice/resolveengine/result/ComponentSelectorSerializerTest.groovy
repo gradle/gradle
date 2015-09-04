@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.messaging.serialize.SerializerSpec
+import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.internal.serialize.SerializerSpec
+import spock.lang.Unroll
 
 public class ComponentSelectorSerializerTest extends SerializerSpec {
     ComponentSelectorSerializer serializer = new ComponentSelectorSerializer()
@@ -56,5 +59,25 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
 
         then:
         result.projectPath == ':myPath'
+    }
+
+    @Unroll
+    def "serializes LibraryComponentSelector project #projectPath library #libraryName variant #variant"() {
+        given:
+        LibraryComponentSelector selection = new DefaultLibraryComponentSelector(projectPath, libraryName)
+
+        when:
+        LibraryComponentSelector result = serialize(selection, serializer)
+
+        then:
+        result.projectPath == projectPath
+        result.libraryName == libraryName
+
+        where:
+        projectPath | libraryName
+        ':myPath'   | null
+        ':myPath'   | 'myLib'
+        ':myPath'   | null
+        ':myPath'   | 'myLib'
     }
 }

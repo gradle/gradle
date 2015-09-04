@@ -18,11 +18,8 @@ package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
-import org.gradle.model.internal.report.unbound.UnboundRule
-import org.gradle.model.internal.report.unbound.UnboundRuleInput
 import spock.lang.Unroll
 
-import static org.gradle.model.report.unbound.UnboundRulesReportMatchers.unbound
 import static org.hamcrest.Matchers.containsString
 
 class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec {
@@ -30,6 +27,80 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
         EnableModelDsl.enable(executer)
+    }
+
+    @Unroll
+    def "can reference input - #syntax"() {
+        when:
+        buildScript """
+          @Managed
+          interface Thing {
+            String getValue(); void setValue(String str)
+          }
+
+          model {
+            thing(Thing) {
+                value = "foo"
+            }
+            tasks {
+                create("echo") {
+                    doLast {
+                        println "thing.value: " + $syntax
+                    }
+                }
+            }
+          }
+        """
+
+        then:
+        succeeds "echo"
+        output.contains "thing.value: foo"
+
+        where:
+        syntax << [
+            '$("thing.value")',
+            '$("thing").value',
+            "thing.value",
+            "(thing).value",
+            "(thing).(value)",
+            "thing.\"\${'value'}\"",
+            "thing.'value'",
+            "thing.value.toUpperCase().toLowerCase()",
+            "thing.value[0] + 'oo'",
+            "(true ? thing.value : 'bar')",
+            "new String(thing.value)",
+            "thing.getValue()"
+        ]
+    }
+
+    def "can reference property of subject"() {
+        when:
+        buildScript """
+          @Managed
+          interface Thing {
+            String getValue(); void setValue(String str)
+          }
+
+          model {
+            thing(Thing) {
+              value = "foo"
+              value = value + "-bar"
+            }
+            tasks {
+              create("echo") {
+                doLast {
+                  println "thing.value: " + thing.value
+                }
+              }
+            }
+          }
+        """
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains "thing.value: foo-bar"
     }
 
     @Unroll
@@ -51,14 +122,14 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         where:
         code << [
-                '$(1)',
-                '$("$name")',
-                '$("a" + "b")',
-                'def a = "foo"; $(a)',
-                '$("foo", "bar")',
-                '$()',
-                '$(null)',
-                '$("")'
+            '$(1)',
+            '$("$name")',
+            '$("a" + "b")',
+            'def a = "foo"; $(a)',
+            '$("foo", "bar")',
+            '$()',
+            '$(null)',
+            '$("")'
         ]
     }
 
@@ -66,11 +137,8 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
     def "dollar method is only detected with no explicit receiver - #code"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 String foo() {
                   "foo"
@@ -92,7 +160,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         where:
         code << [
-                'something.$(1)',
+            'something.$(1)',
 //                'this.$("$name")',
 //                'foo.bar().$("a" + "b")',
         ]
@@ -101,13 +169,9 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
     def "input references are found in nested code - #code"() {
         when:
         buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             class MyPlugin {
-                @RuleSource
-                static class Rules {
-                    @Mutate void addPrintTask(CollectionBuilder<Task> tasks, List<String> strings) {
+                static class Rules extends RuleSource {
+                    @Mutate void addPrintTask(ModelMap<Task> tasks, List<String> strings) {
                         tasks.create("printMessage", PrintTask) {
                             it.message = strings
                         }
@@ -147,26 +211,23 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         where:
         code << [
-                'if (true) { add $("foo") }',
-                'if (false) {} else if (true) { add $("foo") }',
-                'if (false) {} else { add $("foo") }',
-                'def i = true; while(i) { add $("foo"); i = false }',
-                '[1].each { add $("foo") }',
-                'add "${$("foo")}"',
-                'def v = $("foo"); add(v)',
-                'add($("foo"))',
-                'add($("foo").toString())',
+            'if (true) { add $("foo") }',
+            'if (false) {} else if (true) { add $("foo") }',
+            'if (false) {} else { add $("foo") }',
+            'def i = true; while(i) { add $("foo"); i = false }',
+            '[1].each { add $("foo") }',
+            'add "${$("foo")}"',
+            'def v = $("foo"); add(v)',
+            'add($("foo"))',
+            'add($("foo").toString())',
         ]
     }
 
     def "input model path must be valid"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
-              @RuleSource
-              static class Rules {
+              static class Rules extends RuleSource {
                 @Model
                 List<String> strings() {
                   []
@@ -185,23 +246,67 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         then:
         fails "tasks"
-        failure.assertHasLineNumber(18)
+        failure.assertHasLineNumber(15)
         failure.assertThatCause(containsString("Invalid model path given as rule input."))
         failure.assertThatCause(containsString("Model path 'foo. bar' is invalid due to invalid name component."))
         failure.assertThatCause(containsString("Model element name ' bar' has illegal first character ' ' (names must start with an ASCII letter or underscore)."))
     }
 
+    def "location and suggestions are provided for unbound rule subject specified using a name"() {
+        given:
+        buildScript '''
+            class MyPlugin extends RuleSource {
+                @Model
+                String foobar() {
+                    return "value"
+                }
+                @Model
+                String raboof() {
+                    return "value"
+                }
+            }
+
+            apply type: MyPlugin
+
+            model {
+                foonar {
+                }
+                foobah {
+                }
+                fooar {
+                }
+            }
+        '''
+
+        when:
+        fails "tasks"
+
+        then:
+        failureCauseContains('''
+  model.fooar @ build.gradle line 20, column 17
+    subject:
+      - fooar Object [*]
+          suggestions: foobar
+
+  model.foobah @ build.gradle line 18, column 17
+    subject:
+      - foobah Object [*]
+          suggestions: foobar
+
+  model.foonar @ build.gradle line 16, column 17
+    subject:
+      - foonar Object [*]
+          suggestions: foobar
+''')
+    }
+
     def "location and suggestions are provided for unbound rule inputs specified using a name"() {
         given:
-        buildScript """
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
+        buildScript '''
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Mutate
-                    void addTasks(CollectionBuilder<Task> tasks) {
+                    void addTasks(ModelMap<Task> tasks) {
                         tasks.create("foobar")
                         tasks.create("raboof")
                     }
@@ -211,38 +316,46 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             apply type: MyPlugin
 
             model {
-                tasks {
-                    \$('tasks.foonar')
-                    \$('tasks.fooar')
-                    \$('tasks.foonar')
+                tasks.raboof {
+                    $('tasks.foonar')
+                    $('tasks.fooar')
+                    $('tasks.foobarr')
                 }
             }
-        """
+        '''
 
         when:
         fails "tasks"
 
         then:
-        failure.assertThatCause(unbound(
-                UnboundRule.descriptor("model.tasks", buildFile, 19, 17)
-                        .mutableInput(UnboundRuleInput.type(Object).path("tasks").bound())
-                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.foonar").suggestions("tasks.foobar").description("@ line 20"))
-                        .immutableInput(UnboundRuleInput.type(Object).path("tasks.fooar").suggestions("tasks.foobar").description("@ line 21"))
-        ))
+        failureCauseContains('''
+  model.tasks.raboof @ build.gradle line 15, column 17
+    subject:
+      - tasks.raboof Object
+    inputs:
+      - tasks.foonar Object (@ line 16) [*]
+          suggestions: tasks.foobar
+      - tasks.fooar Object (@ line 17) [*]
+          suggestions: tasks.foobar
+      - tasks.foobarr Object (@ line 18) [*]
+          suggestions: tasks.foobar
+''')
     }
 
-    def "owner chain for rule script does not include intermediate objects"() {
+    def "can not access project or script from rule"() {
         when:
         buildScript """
-            def o
-            def c = {
-                o = owner
-            }
-            c()
-
             model {
                 tasks {
-                    assert owner.is(o)
+                    assert owner == null
+                    assert this == null
+
+                    try {
+                        project.tasks
+                        assert false : "should not reach here"
+                    } catch (MissingPropertyException ignore) {
+
+                    }
                 }
             }
         """
@@ -250,4 +363,5 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         then:
         succeeds "tasks"
     }
+
 }

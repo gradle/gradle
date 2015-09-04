@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,33 @@
 package org.gradle.model.internal.manage.instance;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 public class ManagedProxyFactory {
 
-    public <T> T createProxy(ModelElementState state, ModelSchema<T> schema) {
+    public static final ManagedProxyFactory INSTANCE = new ManagedProxyFactory();
+
+    public <T> T createProxy(ModelElementState state, ModelManagedImplStructSchema<T> schema) {
         try {
-            Class<? extends T> generatedClass = schema.getManagedImpl();
+            Class<? extends T> generatedClass = schema.getImplementationType();
             if (generatedClass == null) {
                 throw new IllegalStateException("No managed implementation class available for: " + schema.getType());
             }
-            Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class);
-            return constructor.newInstance(state);
-        } catch (NoSuchMethodException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            Class<?> delegateType = schema.getDelegateType();
+            if (delegateType == null) {
+                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class);
+                return constructor.newInstance(state);
+            } else {
+                Object delegate = state.getBackingNode().getPrivateData(delegateType);
+                Constructor<? extends T> constructor = generatedClass.getConstructor(ModelElementState.class, delegateType);
+                return constructor.newInstance(state, delegate);
+            }
         } catch (InvocationTargetException e) {
             throw UncheckedException.throwAsUncheckedException(e.getTargetException());
-        } catch (InstantiationException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }

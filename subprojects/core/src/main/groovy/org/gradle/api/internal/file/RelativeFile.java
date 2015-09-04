@@ -39,4 +39,16 @@ public class RelativeFile implements Serializable {
         return relativePath;
     }
 
+    public File getBaseDir() {
+        if (file == null || relativePath == null) {
+            return null;
+        }
+        int relativeSegments = relativePath.getSegments().length;
+        File parentFile = file;
+        for (int i=0; i<relativeSegments; i++) {
+            parentFile = parentFile.getParentFile();
+        }
+        return parentFile;
+    }
+
 }

@@ -28,14 +28,13 @@ public class DefaultJavaPlatform implements JavaPlatform {
     private final String name;
     private JavaVersion targetCompatibility;
 
-    public DefaultJavaPlatform(String name) {
-        this.name = name;
-        this.targetCompatibility = JavaVersion.current();
-    }
-
     public DefaultJavaPlatform(JavaVersion javaVersion) {
         this.name = generateName(javaVersion);
         this.targetCompatibility = javaVersion;
+    }
+
+    public static JavaPlatform current() {
+        return new DefaultJavaPlatform(JavaVersion.current());
     }
 
     public JavaVersion getTargetCompatibility() {

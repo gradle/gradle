@@ -19,7 +19,9 @@ package org.gradle.language.c
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
+@LeaksFileHandles
 class CppCallingCLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
     HelloWorldApp helloWorldApp = new CppCallingCHelloWorldApp()
 }

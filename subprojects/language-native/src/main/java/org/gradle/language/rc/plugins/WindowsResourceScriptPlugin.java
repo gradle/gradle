@@ -47,12 +47,8 @@ public class WindowsResourceScriptPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<WindowsResourceSet> builder) {
             builder.setLanguageName("rc");

@@ -334,6 +334,7 @@ task javadocAll(type: Javadoc) {
     classpath = files(publicGroovyProjects.collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
     include 'org/gradle/*'
     include 'org/gradle/api/**'
+    include 'org/gradle/authentication/**'
     include 'org/gradle/buildinit/**'
     include 'org/gradle/external/javadoc/**'
     include 'org/gradle/ide/**'
@@ -351,8 +352,8 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/testing/jacoco/**'
     include 'org/gradle/sonar/runner/**'
     include 'org/gradle/tooling/**'
-    include 'org/gradle/model/Mutate.*'
-    include 'org/gradle/model/Model.*'
+    include 'org/gradle/model/**'
+    include 'org/gradle/testkit/**'
     exclude '**/internal/**'
     options.links(javaApiUrl, groovyApiUrl, "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")
@@ -365,7 +366,8 @@ task javadocAll(type: Javadoc) {
 task configureGroovydocAll {
     doFirst {
         project.configure(groovydocAll) {
-            [javaApiUrl, groovyApiUrl].each {
+            [javaApiUrl].each {
+//            [javaApiUrl, groovyApiUrl].each {
                 link(it, *(new URL("$it/package-list").text.tokenize("\n")))
             }
             docTitle = "Gradle API $version"
@@ -471,6 +473,12 @@ test {
     systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.source.singleFile
     systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
 
+}
+
+java9Test {
+    dependsOn releaseNotes
+    systemProperty "org.gradle.docs.releasenotes.source", releaseNotesMarkdown.source.singleFile
+    systemProperty "org.gradle.docs.releasenotes.rendered", new File(releaseNotes.destinationDir, releaseNotes.fileName)
 }
 
 task docs {

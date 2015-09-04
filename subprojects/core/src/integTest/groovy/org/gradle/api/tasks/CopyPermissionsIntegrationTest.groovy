@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Unroll
 
 import static org.junit.Assert.assertTrue
 
@@ -93,6 +94,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Unroll
     def "fileMode can be modified in copy task"() {
         given:
 
@@ -117,6 +119,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Unroll
     def "fileMode can be modified in copy action"() {
         given:
         file("reference.txt") << 'test file"'
@@ -143,6 +146,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Unroll
     def "dirMode can be modified in copy task"() {
         given:
         TestFile parent = getTestDirectory().createDir("testparent")

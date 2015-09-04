@@ -26,14 +26,14 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.ParallelizableTask
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.nativeintegration.services.NativeServices
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
-import spock.util.concurrent.PollingConditions
 
 import static org.gradle.util.TestUtil.createChildProject
 import static org.gradle.util.TestUtil.createRootProject
@@ -42,7 +42,7 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
-    FileSystem fs = NativeServices.instance.get(FileSystem)
+    FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
 
     DefaultTaskExecutionPlan executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), true)
     DefaultProject root = createRootProject()
@@ -88,11 +88,10 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
     static class ParallelChild extends Parallel {}
 
     Thread blockedThread(Runnable target) {
-        def conditions = new PollingConditions(timeout: 3, delay: 0.01)
         def thread = new Thread(target)
 
         thread.start()
-        conditions.eventually {
+        ConcurrentTestUtil.poll(3, 0.01) {
             assert thread.state == Thread.State.WAITING
         }
         thread
@@ -319,6 +318,9 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
 
         then:
         noMoreTasksCurrentlyAvailableForExecution()
+
+        cleanup:
+        assert symlink.delete()
     }
 
     def "tasks from two different projects that have the same file in outputs are not executed in parallel"() {

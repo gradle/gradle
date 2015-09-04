@@ -40,7 +40,9 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     }
 
     public void item(String title, String value) {
-        textOutput.append("    ").append(title).append(": ").append(value).println();
+        textOutput.append("    ").append(title).append(": ");
+        StyledTextOutput itemOutput = new LinePrefixingStyledTextOutput(textOutput, "    ", false);
+        itemOutput.append(value).println();
     }
 
     public void item(String title, File value) {
@@ -48,7 +50,8 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     }
 
     public void item(String value) {
-        textOutput.append("    ").append(value).println();
+        StyledTextOutput itemOutput = new LinePrefixingStyledTextOutput(textOutput, "    ");
+        itemOutput.append(value).println();
     }
 
     public void item(File value) {
@@ -72,18 +75,31 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         textOutput.style(Normal).println();
     }
 
-    public <T> void collection(String title, Collection<? extends T> collection, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
-        textOutput.println(title);
-        if (collection.isEmpty()) {
-            textOutput.formatln("    No %s.", elementsPlural);
-            return;
-        }
+    public <T> void itemCollection(String title, Collection<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
         StyledTextOutput original = textOutput;
         try {
             textOutput = new LinePrefixingStyledTextOutput(original, "    ");
-            // TODO - change LinePrefixingStyledTextOutput to prefix every line
-            textOutput.append("    ");
-            for (T t : collection) {
+            collection(title + ":", items, renderer, elementsPlural);
+        } finally {
+            textOutput = original;
+        }
+    }
+
+    public <T> void collection(String title, Collection<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
+        textOutput.println(title);
+        if (items.isEmpty()) {
+            textOutput.formatln("    No %s.", elementsPlural);
+            return;
+        }
+        collection(items, renderer);
+    }
+
+    @Override
+    public <T> void collection(Iterable<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer) {
+        StyledTextOutput original = textOutput;
+        try {
+            textOutput = new LinePrefixingStyledTextOutput(original, "    ");
+            for (T t : items) {
                 try {
                     renderer.render(t, this);
                 } catch (IOException e) {

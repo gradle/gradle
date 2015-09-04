@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.maven.DelegatingMavenModule
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.test.fixtures.maven.MavenPom
 
-class MavenHttpModule implements MavenModule, HttpModule {
+class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements MavenModule, HttpModule {
     private final HttpServer server
     private final String moduleRootPath
     private final MavenFileModule backingModule
 
     MavenHttpModule(HttpServer server, String repoRoot, MavenFileModule backingModule) {
+        super(backingModule)
         this.backingModule = backingModule
         this.server = server
         this.moduleRootPath = "${repoRoot}/${backingModule.groupId.replace('.', '/')}/${backingModule.artifactId}"
@@ -58,70 +56,9 @@ class MavenHttpModule implements MavenModule, HttpModule {
         return this
     }
 
-    MavenHttpModule publish() {
-        backingModule.publish()
-        return this
-    }
-
-    MavenHttpModule publishPom() {
-        backingModule.publishPom()
-        return this
-    }
-
-    MavenHttpModule publishWithChangedContent() {
-        backingModule.publishWithChangedContent()
-        return this
-    }
-
-    MavenHttpModule withNonUniqueSnapshots() {
-        backingModule.withNonUniqueSnapshots()
-        return this
-    }
-
-    MavenHttpModule parent(String group, String artifactId, String version) {
-        backingModule.parent(group, artifactId, version)
-        return this
-    }
-
-    MavenHttpModule dependsOn(String group, String artifactId, String version) {
-        backingModule.dependsOn(group, artifactId, version)
-        return this
-    }
-
-    MavenHttpModule dependsOn(String group, String artifactId, String version, String type) {
-        backingModule.dependsOn(group, artifactId, version, type)
-        return this
-    }
-
-    MavenHttpModule hasPackaging(String packaging) {
-        backingModule.hasPackaging(packaging)
-        return this
-    }
-
-    MavenHttpModule hasType(String type) {
-        backingModule.hasType(type)
-        return this
-    }
-
     MavenHttpModule withNoMetaData() {
         backingModule.withNoMetaData()
         return this
-    }
-
-    TestFile getPomFile() {
-        return backingModule.pomFile
-    }
-
-    TestFile getArtifactFile(Map options = [:]) {
-        return backingModule.getArtifactFile(options)
-    }
-
-    TestFile getMetaDataFile() {
-        return backingModule.metaDataFile
-    }
-
-    MavenPom getParsedPom() {
-        return backingModule.parsedPom;
     }
 
     PomHttpArtifact getPom() {
@@ -136,8 +73,9 @@ class MavenHttpModule implements MavenModule, HttpModule {
         return backingModule.rootMetaDataFile
     }
 
-    void allowAll() {
+    MavenHttpModule allowAll() {
         server.allowGetOrHead(moduleVersionPath, backingModule.moduleDir)
+        return this
     }
 
     void missing() {

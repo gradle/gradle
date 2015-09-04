@@ -15,9 +15,12 @@
  */
 package org.gradle.integtests.tooling.fixture
 
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnector
@@ -26,6 +29,7 @@ import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import spock.lang.Specification
 
@@ -46,12 +50,18 @@ import spock.lang.Specification
 abstract class ToolingApiSpecification extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties()
-    @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
+
+    TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider();
+    final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
+
+    final GradleVersion toolingApiVersion = GradleVersion.current() // works due to classloading arrangement by ToolingApiCompatibilitySuiteRunner
+
+    @Rule
+    public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi);
 
     static void selectTargetDist(GradleDistribution version) {
         VERSION.set(version)
@@ -65,15 +75,15 @@ abstract class ToolingApiSpecification extends Specification {
         new ConnectorServices().reset()
     }
 
-    public void withConnector(@DelegatesTo(GradleConnector) Closure cl) {
+    public void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
         toolingApi.withConnector(cl)
     }
 
-    public <T> T withConnection(@DelegatesTo(ProjectConnection) Closure<T> cl) {
+    public <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         toolingApi.withConnection(cl)
     }
 
-    public <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) Closure<T> cl) {
+    public <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         toolingApi.withConnection(connector, cl)
     }
 
@@ -119,7 +129,9 @@ abstract class ToolingApiSpecification extends Specification {
      * Returns the set of implicit task names expected for a non-root project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.1")) {
+        if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.4")) {
+            return ['components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks', 'model']
+        } else if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.1")) {
             return ['components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks']
         } else {
             return ['dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks']
@@ -169,4 +181,21 @@ abstract class ToolingApiSpecification extends Specification {
         }
         return rootProjectImplicitTasks
     }
+
+    /**
+     * Returns the set of implicit tasks returned by GradleProject.getTasks()
+     *
+     * <p>Note that in some versions the handling of implicit tasks was broken, so this method may return a different value
+     * to {@link #getRootProjectImplicitTasks()}.
+     */
+    Set<String> getRootProjectImplicitTasksForGradleProjectModel() {
+        def targetVersion = GradleVersion.version(targetDist.version.baseVersion.version)
+        if (targetVersion == GradleVersion.version("1.6")) {
+            // Implicit tasks were ignored, and setupBuild was added as a regular task
+            return ['setupBuild']
+        }
+
+        targetVersion < GradleVersion.version("2.3") ? [] : rootProjectImplicitTasks
+    }
+
 }

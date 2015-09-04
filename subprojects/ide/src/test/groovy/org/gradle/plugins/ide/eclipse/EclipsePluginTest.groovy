@@ -132,6 +132,9 @@ class EclipsePluginTest extends Specification {
         assert eclipseProjectTask instanceof GenerateEclipseProject
         assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseProjectTask)
         assert eclipseProjectTask.outputFile == project.file('.project')
+
+        assert project.eclipse.project.buildCommands == buildCommands
+        assert project.eclipse.project.natures == natures
     }
 
     private void checkEclipseClasspath(def configurations, def additionalContainers = []) {

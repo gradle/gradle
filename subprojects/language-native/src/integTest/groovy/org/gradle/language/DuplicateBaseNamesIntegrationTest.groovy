@@ -20,12 +20,14 @@ import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.language.fixtures.app.*
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
 
 // TODO add coverage for mixed sources
+@LeaksFileHandles
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can have sourcefiles with same base name but different directories"() {

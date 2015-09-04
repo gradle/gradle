@@ -38,7 +38,7 @@ class TestFileHelper {
 
     void unzipTo(File target, boolean nativeTools) {
         // Check that each directory in hierarchy is present
-        file.withInputStream {InputStream instr ->
+        file.withInputStream { InputStream instr ->
             def dirs = [] as Set
             def zipStr = new ZipInputStream(instr)
             def entry
@@ -159,7 +159,7 @@ class TestFileHelper {
                 throw new RuntimeException("Could not delete '$file': $error")
             }
         } else {
-            FileUtils.deleteQuietly(file);
+            FileUtils.deleteQuietly(file)
         }
     }
 

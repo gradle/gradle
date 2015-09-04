@@ -43,7 +43,7 @@ public class TextUtil {
      * Returns the line separator for this platform.
      */
     public static String getPlatformLineSeparator() {
-        return SystemProperties.getLineSeparator();
+        return SystemProperties.getInstance().getLineSeparator();
     }
 
     /**
@@ -122,5 +122,9 @@ public class TextUtil {
         } else {
             return s2;
         }
+    }
+
+    public static String normaliseFileAndLineSeparators(String in) {
+        return normaliseLineSeparators(normaliseFileSeparators(in));
     }
 }

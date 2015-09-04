@@ -1,0 +1,8 @@
+:core:compileJava6MainJarMainJava UP-TO-DATE
+:core:compileJava6MainJarMainJava6 UP-TO-DATE
+:core:processJava6MainJarMainResources UP-TO-DATE
+:core:createJava6MainJar UP-TO-DATE
+:core:java6MainJar UP-TO-DATE
+
+BUILD SUCCESSFUL
+

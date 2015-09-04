@@ -16,11 +16,12 @@
 
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.initialization.BuildAction;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.launcher.exec.BuildActionParameters;
 
 public class BuildAndStop extends Build {
-    public BuildAndStop(Object identifier, BuildAction<?> action, BuildActionParameters parameters) {
-        super(identifier, action, parameters);
+    public BuildAndStop(Object identifier, BuildAction action, BuildClientMetaData buildClientMetaData, long startTime, BuildActionParameters parameters) {
+        super(identifier, action, buildClientMetaData, startTime, parameters);
     }
 }

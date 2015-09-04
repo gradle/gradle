@@ -26,34 +26,51 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.RuleSource;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 public class ModelRuleSourceDetector {
 
-    final LoadingCache<Class<?>, Collection<Reference<Class<?>>>> cache = CacheBuilder.newBuilder()
+    private static final Comparator<Class<?>> COMPARE_BY_CLASS_NAME = new Comparator<Class<?>>() {
+        public int compare(Class<?> left, Class<?> right) {
+            return left.getName().compareTo(right.getName());
+        }
+    };
+
+    final LoadingCache<Class<?>, Collection<Reference<Class<? extends RuleSource>>>> cache = CacheBuilder.newBuilder()
             .weakKeys()
-            .build(new CacheLoader<Class<?>, Collection<Reference<Class<?>>>>() {
+            .build(new CacheLoader<Class<?>, Collection<Reference<Class<? extends RuleSource>>>>() {
                 @Override
-                public Collection<Reference<Class<?>>> load(Class<?> container) throws Exception {
-                    if (container.isAnnotationPresent(RuleSource.class)) {
-                        return ImmutableSet.<Reference<Class<?>>>of(new WeakReference<Class<?>>(container));
+                public Collection<Reference<Class<? extends RuleSource>>> load(@SuppressWarnings("NullableProblems") Class<?> container) throws Exception {
+                    if (isRuleSource(container)) {
+                        Class<? extends RuleSource> castClass = Cast.uncheckedCast(container);
+                        return ImmutableSet.<Reference<Class<? extends RuleSource>>>of(new WeakReference<Class<? extends RuleSource>>(castClass));
                     }
+
                     Class<?>[] declaredClasses = container.getDeclaredClasses();
+
                     if (declaredClasses.length == 0) {
                         return Collections.emptySet();
                     } else {
-                        ImmutableList.Builder<Reference<Class<?>>> found = ImmutableList.builder();
-                        for (Class<?> declaredClass : declaredClasses) {
-                            if (declaredClass.isAnnotationPresent(RuleSource.class)) {
-                                found.add(new WeakReference<Class<?>>(declaredClass));
+                        Class<?>[] sortedDeclaredClasses = new Class<?>[declaredClasses.length];
+                        System.arraycopy(declaredClasses, 0, sortedDeclaredClasses, 0, declaredClasses.length);
+                        Arrays.sort(sortedDeclaredClasses, COMPARE_BY_CLASS_NAME);
+
+                        ImmutableList.Builder<Reference<Class<? extends RuleSource>>> found = ImmutableList.builder();
+                        for (Class<?> declaredClass : sortedDeclaredClasses) {
+                            if (isRuleSource(declaredClass)) {
+                                Class<? extends RuleSource> castClass = Cast.uncheckedCast(declaredClass);
+                                found.add(new WeakReference<Class<? extends RuleSource>>(castClass));
                             }
                         }
 
@@ -63,12 +80,12 @@ public class ModelRuleSourceDetector {
             });
 
     // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
-    public Iterable<Class<?>> getDeclaredSources(Class<?> container) {
+    public Iterable<Class<? extends RuleSource>> getDeclaredSources(Class<?> container) {
         try {
             return FluentIterable.from(cache.get(container))
-                    .transform(new Function<Reference<Class<?>>, Class<?>>() {
+                    .transform(new Function<Reference<Class<? extends RuleSource>>, Class<? extends RuleSource>>() {
                         @Override
-                        public Class<?> apply(Reference<Class<?>> input) {
+                        public Class<? extends RuleSource> apply(Reference<Class<? extends RuleSource>> input) {
                             return input.get();
                         }
                     })
@@ -78,7 +95,11 @@ public class ModelRuleSourceDetector {
         }
     }
 
-    public boolean hasModelSources(Class<?> container) {
+    public boolean hasRules(Class<?> container) {
         return !Iterables.isEmpty(getDeclaredSources(container));
+    }
+
+    private boolean isRuleSource(Class<?> clazz) {
+        return RuleSource.class.isAssignableFrom(clazz);
     }
 }

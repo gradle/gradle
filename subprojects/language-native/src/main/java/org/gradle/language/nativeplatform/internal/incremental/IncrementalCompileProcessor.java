@@ -17,6 +17,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.cache.PersistentStateCache;
+import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +48,7 @@ public class IncrementalCompileProcessor {
             result.processSource(sourceFile);
         }
 
-        previousCompileStateCache.set(result.current);
-
-        return new DefaultIncrementalCompilation(result.getModifiedSources(), result.getRemovedSources());
+        return new DefaultIncrementalCompilation(result.current, result.getModifiedSources(), result.getRemovedSources());
     }
 
     private class IncrementalCompileFiles {

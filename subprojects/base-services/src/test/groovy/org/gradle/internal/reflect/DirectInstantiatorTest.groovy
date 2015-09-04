@@ -18,7 +18,7 @@ package org.gradle.internal.reflect
 import spock.lang.Specification
 
 class DirectInstantiatorTest extends Specification {
-    final DirectInstantiator instantiator = new DirectInstantiator()
+    final DirectInstantiator instantiator = DirectInstantiator.INSTANCE
 
     def "creates instance with constructor parameters"() {
         CharSequence param = Mock()

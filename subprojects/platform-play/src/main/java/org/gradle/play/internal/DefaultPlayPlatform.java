@@ -17,19 +17,20 @@ package org.gradle.play.internal;
 
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.scala.ScalaPlatform;
-import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.internal.platform.PlayPlatformInternal;
 
-public class DefaultPlayPlatform implements PlayPlatform {
+public class DefaultPlayPlatform implements PlayPlatformInternal {
+    public final static String DEFAULT_PLAY_VERSION = "2.3.9";
     private final String playVersion;
     private final ScalaPlatform scalaPlatform;
     private final JavaPlatform javaPlatform;
     private final String name;
 
-    public DefaultPlayPlatform(String playVersion, ScalaPlatform scalaPlatform, JavaPlatform javaPlatform) {
+    public DefaultPlayPlatform(String name, String playVersion, ScalaPlatform scalaPlatform, JavaPlatform javaPlatform) {
+        this.name = name;
         this.playVersion = playVersion;
         this.scalaPlatform = scalaPlatform;
         this.javaPlatform = javaPlatform;
-        this.name = "play-" + playVersion;
     }
 
     @Override
@@ -39,7 +40,7 @@ public class DefaultPlayPlatform implements PlayPlatform {
 
     @Override
     public String getDisplayName() {
-        return String.format("Play Platform (Play %s, Scala: %s, Java: %s)", playVersion, scalaPlatform.getScalaVersion(), javaPlatform.getDisplayName());
+        return String.format("Play Platform (Play %s, Scala: %s, Java: %s)", playVersion, scalaPlatform.getScalaCompatibilityVersion(), javaPlatform.getDisplayName());
     }
 
     @Override
@@ -55,5 +56,15 @@ public class DefaultPlayPlatform implements PlayPlatform {
     @Override
     public JavaPlatform getJavaPlatform() {
         return javaPlatform;
+    }
+
+    @Override
+    public String getDependencyNotation(String playModule) {
+        return String.format("com.typesafe.play:%s_%s:%s", playModule, scalaPlatform.getScalaCompatibilityVersion(), playVersion);
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 }

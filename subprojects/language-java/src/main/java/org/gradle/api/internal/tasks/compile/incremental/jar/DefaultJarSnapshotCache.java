@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.jar;
 import org.gradle.api.internal.cache.MinimalPersistentCache;
 import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.BaseSerializerFactory;
+import org.gradle.internal.serialize.BaseSerializerFactory;
 
 import java.io.File;
 import java.util.HashMap;

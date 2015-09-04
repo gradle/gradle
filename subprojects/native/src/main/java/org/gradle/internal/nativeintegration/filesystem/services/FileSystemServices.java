@@ -16,7 +16,6 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
-import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.PosixFiles;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.UncheckedException;
@@ -38,21 +37,19 @@ public class FileSystemServices {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    public FileSystem createFileSystem(OperatingSystem operatingSystem) throws Exception {
+    public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles) throws Exception {
         // Use no-op implementations for windows
         if (operatingSystem.isWindows()) {
             return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), new WindowsSymlink());
         }
 
-        // Use the native-platform integration, if available
-        try {
-            PosixFiles posixFiles = net.rubygrapefruit.platform.Native.get(PosixFiles.class);
+        if (posixFiles instanceof UnavailablePosixFiles) {
+            LOGGER.debug("Native-platform file system integration is not available. Continuing with fallback.");
+        } else {
             Symlink symlink = new NativePlatformBackedSymlink(posixFiles);
             FileModeMutator chmod = new NativePlatformBackedChmod(posixFiles);
             FileModeAccessor stat = new NativePlatformBackedStat(posixFiles);
             return new GenericFileSystem(chmod, stat, symlink);
-        } catch (NativeIntegrationUnavailableException ex) {
-            LOGGER.debug("Native-platform file system integration is not available. Continuing with fallback.");
         }
 
         LOGGER.debug("Using UnsupportedSymlink implementation.");
@@ -66,7 +63,7 @@ public class FileSystemServices {
     private Object newInstance(String jdk7Type, Class<?> fallbackType) {
         // Use java 7 APIs, if available
         Class<?> handlerClass = null;
-        if (JavaVersion.current().isJava7()) {
+        if (JavaVersion.current().isJava7Compatible()) {
             try {
                 handlerClass = FileSystemServices.class.getClassLoader().loadClass(jdk7Type);
                 LOGGER.debug("Using JDK 7 file service {}", jdk7Type);

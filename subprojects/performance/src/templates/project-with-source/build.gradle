@@ -11,19 +11,26 @@ repositories {
     mavenCentral()
 }
 
+<% if (binding.hasVariable("projectDependencies")) { %>
+    configurations {
+        compile.extendsFrom projectsConfiguration
+    }
+<% } %>
+
 dependencies {
     compile 'commons-lang:commons-lang:2.5'
     compile "commons-httpclient:commons-httpclient:3.0"
     compile "commons-codec:commons-codec:1.2"
-    compile "org.slf4j:jcl-over-slf4j:1.7.7"
-    compile "org.codehaus.groovy:groovy:2.3.6"
-    compile "commons-codec:commons-codec:1.2"
-    testCompile 'junit:junit:4.11'
-    testCompile 'org.testng:testng:6.4'
+    compile "org.slf4j:jcl-over-slf4j:1.7.10"
+    compile "org.codehaus.groovy:groovy:2.4.4"
+    testCompile 'junit:junit:4.12'
     runtime 'com.googlecode:reflectasm:1.01'
 
     <% if (dependencies) { dependencies.each { %>
     compile "${it.shortNotation()}" <% } %>
+    <% } %>
+    <% if (binding.hasVariable("projectDependencies") && subprojectNumber > 1) { (1..<subprojectNumber).each { %>
+    projectsConfiguration project(":project${it}") <% } %>
     <% } %>
 }
 
@@ -34,7 +41,7 @@ test {
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {
-    compile 'org.codehaus:groovy:groovy-all:2.0.5'
+    compile 'org.codehaus:groovy:groovy-all:2.4.4'
 }
 <% } %>
 
@@ -48,6 +55,16 @@ tasks.withType(ScalaCompile) {
         useAnt = false
         fork = true
         forkOptions.jvmArgs = ["-XX:MaxPermSize=512m"]
+    }
+}
+<% } %>
+
+<% if (binding.hasVariable("resolveDependenciesTask")) { %>
+task resolveDependencies {
+    dependsOn configurations.testRuntime
+    // Need this to ensure that configuration is actually resolved
+    doLast {
+        configurations.testRuntime.files.size()
     }
 }
 <% } %>

@@ -26,8 +26,9 @@ import org.gradle.logging.internal.LoggingOutputInternal;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 
-class LogToClient extends BuildCommandOnly {
+public class LogToClient extends BuildCommandOnly {
 
+    public static final String DISABLE_OUTPUT = "org.gradle.daemon.disable-output";
     private static final Logger LOGGER = Logging.getLogger(LogToClient.class);
 
     private final LoggingOutputInternal loggingOutput;
@@ -39,6 +40,11 @@ class LogToClient extends BuildCommandOnly {
     }
 
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
+        if (Boolean.getBoolean(DISABLE_OUTPUT)) {
+            execution.proceed();
+            return;
+        }
+
         final LogLevel buildLogLevel = build.getParameters().getLogLevel();
         OutputEventListener listener = new OutputEventListener() {
             public void onOutput(OutputEvent event) {
@@ -61,6 +67,6 @@ class LogToClient extends BuildCommandOnly {
         } finally {
             loggingOutput.removeOutputEventListener(listener);
         }
-    } 
+    }
 }
 

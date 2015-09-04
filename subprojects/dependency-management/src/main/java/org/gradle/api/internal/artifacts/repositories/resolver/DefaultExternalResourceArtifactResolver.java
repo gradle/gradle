@@ -16,9 +16,10 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.model.ModuleDescriptorArtifactMetaData;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -30,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifactResolver {
@@ -53,11 +53,10 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         this.resourceAccessor = resourceAccessor;
     }
 
-    public LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
-        return downloadStaticResource(ivyPatterns, artifact, result);
-    }
-
     public LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
+        if (artifact instanceof ModuleDescriptorArtifactMetaData) {
+            return downloadStaticResource(ivyPatterns, artifact, result);
+        }
         return downloadStaticResource(artifactPatterns, artifact, result);
     }
 
@@ -74,8 +73,8 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
                 if (repository.getResourceMetaData(location.getUri()) != null) {
                     return true;
                 }
-            } catch (IOException e) {
-                throw new ResourceException(String.format("Could not get resource '%s'.", location), e);
+            } catch (Exception e) {
+                throw ResourceException.failure(location.getUri(), String.format("Could not get resource '%s'.", location), e);
             }
         }
         return false;
@@ -96,8 +95,8 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
                 if (resource != null) {
                     return resource;
                 }
-            } catch (IOException e) {
-                throw new ResourceException(String.format("Could not get resource '%s'.", location), e);
+            } catch (Exception e) {
+                throw ResourceException.failure(location.getUri(), String.format("Could not get resource '%s'.", location), e);
             }
         }
         return null;

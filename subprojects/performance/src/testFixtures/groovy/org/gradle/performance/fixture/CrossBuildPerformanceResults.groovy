@@ -16,16 +16,13 @@
 
 package org.gradle.performance.fixture
 
-class CrossBuildPerformanceResults {
-    String testId
-    String jvm
-    String versionUnderTest
-    String operatingSystem
-    long testTime
-    String vcsBranch
-    String vcsCommit
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 
-    private final Map<BuildSpecification, MeasuredOperationList> buildResults = new LinkedHashMap<>()
+class CrossBuildPerformanceResults extends PerformanceTestResult {
+    String testGroup
+    String versionUnderTest
+
+    private final Map<BuildDisplayInfo, MeasuredOperationList> buildResults = new LinkedHashMap<>()
 
     def clear() {
         buildResults.clear()
@@ -36,17 +33,17 @@ class CrossBuildPerformanceResults {
         return testId
     }
 
-    MeasuredOperationList buildResult(BuildSpecification buildSpecification) {
-        def buildResult = buildResults[buildSpecification]
+    MeasuredOperationList buildResult(BuildDisplayInfo buildInfo) {
+        def buildResult = buildResults[buildInfo]
         if (buildResult == null) {
-            buildResult = new MeasuredOperationList(name: buildSpecification.displayName)
-            buildResults[buildSpecification] = buildResult
+            buildResult = new MeasuredOperationList(name: buildInfo.displayName)
+            buildResults[buildInfo] = buildResult
         }
         return buildResult
     }
 
-    public Set<BuildSpecification> getBuildSpecifications() {
-        return buildResults.keySet();
+    public Set<BuildDisplayInfo> getBuilds() {
+        buildResults.keySet()
     }
 
     List<Exception> getFailures() {
@@ -56,6 +53,8 @@ class CrossBuildPerformanceResults {
     }
 
     void assertEveryBuildSucceeds() {
-        assert failures.empty
+        if (failures) {
+            throw new DefaultMultiCauseException("Performance test '$testId' failed", failures)
+        }
     }
 }

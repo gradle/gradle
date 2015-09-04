@@ -19,9 +19,9 @@ package org.gradle.cache.internal;
 import org.gradle.api.GradleException;
 import org.gradle.internal.Factory;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.messaging.serialize.InputStreamBackedDecoder;
-import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.InputStreamBackedDecoder;
+import org.gradle.internal.serialize.OutputStreamBackedEncoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.*;
 

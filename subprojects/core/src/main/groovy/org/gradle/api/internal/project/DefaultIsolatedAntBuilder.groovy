@@ -19,6 +19,8 @@ import com.google.common.collect.Lists
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.ant.BasicAntBuilder
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.Logger
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
@@ -57,6 +59,8 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         loggingLoader.allowPackage('org.slf4j')
         loggingLoader.allowPackage('org.apache.commons.logging')
         loggingLoader.allowPackage('org.apache.log4j')
+        loggingLoader.allowClass(Logger)
+        loggingLoader.allowClass(LogLevel)
         this.baseAntLoader = new MultiParentClassLoader(antLoader, loggingLoader)
 
         // Need gradle core to pick up ant logging adapter, AntBuilder and such

@@ -19,11 +19,13 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@LeaksFileHandles
 class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
@@ -81,7 +83,7 @@ project(":other") {
         where:
         label                                  | dependencyNotation                      | description                                                | cause
         "does not exist"                       | "library: 'unknown'"                    | "Could not locate library 'unknown'."                      | "NativeLibrarySpec with name 'unknown' not found."
-        "project that does not exist"          | "project: ':unknown', library: 'hello'" | "Could not locate library 'hello' for project ':unknown'." | "Project with path ':unknown' could not be found in project ':exe'."
+        "project that does not exist"          | "project: ':unknown', library: 'hello'" | "Could not locate library 'hello' for project ':unknown'." | "Project with path ':unknown' not found."
         "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' for project ':other'." | "NativeLibrarySpec with name 'unknown' not found."
     }
 

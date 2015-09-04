@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.quality
-
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 
 class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
+    public static final String DEFAULT_CHECKSTYLE_VERSION = "5.9"
     private CheckstyleExtension extension
 
     @Override
@@ -36,7 +36,7 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         extension = project.extensions.create("checkstyle", CheckstyleExtension, project)
 
         extension.with {
-            toolVersion = "5.7"
+            toolVersion = DEFAULT_CHECKSTYLE_VERSION
             config = project.resources.text.fromFile("config/checkstyle/checkstyle.xml")
         }
 
@@ -46,10 +46,8 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     @Override
     protected void configureTaskDefaults(Checkstyle task, String baseName) {
         def conf = project.configurations['checkstyle']
-        conf.incoming.beforeResolve {
-            if (conf.dependencies.empty) {
-                conf.dependencies.add(project.dependencies.create("com.puppycrawl.tools:checkstyle:$extension.toolVersion"))
-            }
+        conf.defaultDependencies { dependencies ->
+            dependencies.add(this.project.dependencies.create("com.puppycrawl.tools:checkstyle:${this.extension.toolVersion}"))
         }
 
         task.conventionMapping.with {

@@ -17,12 +17,11 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.*;
 import org.gradle.nativeplatform.NativeLibraryRequirement;
 import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement;
-
-import java.util.Collection;
 
 class NativeDependencyNotationParser {
     public static NotationParser<Object, NativeLibraryRequirement> parser() {
@@ -46,8 +45,9 @@ class NativeDependencyNotationParser {
 
     private static class NativeLibraryRequirementMapNotationConverter extends MapNotationConverter<NativeLibraryRequirement> {
 
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Map with mandatory 'library' and optional 'project' and 'linkage' keys, e.g. [project: ':someProj', library: 'mylib', linkage: 'static']");
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Map with mandatory 'library' and optional 'project' and 'linkage' keys").example("[project: ':someProj', library: 'mylib', linkage: 'static']");
         }
 
         @SuppressWarnings("unused")

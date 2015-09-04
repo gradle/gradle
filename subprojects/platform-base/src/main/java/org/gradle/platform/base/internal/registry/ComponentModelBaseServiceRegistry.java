@@ -16,34 +16,59 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.resolve.DefaultProjectModelResolver;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.language.base.internal.resolve.DependentSourceSetLocalComponentConverter;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractionStrategy;
+import org.gradle.platform.base.internal.VariantAspectExtractionStrategy;
 
 public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry {
 
     public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new GlobalScopeServices());
+    }
+
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+
     }
 
     public void registerBuildServices(ServiceRegistration registration){
+        registration.addProvider(new BuildScopeServices());
+    }
+
+    public void registerGradleServices(ServiceRegistration registration) {
     }
 
     public void registerProjectServices(ServiceRegistration registration) {
-            registration.addProvider(new ProjectScopeServices());
     }
 
-    private static class ProjectScopeServices {
-        MethodModelRuleExtractor createLanguageTypePluginInspector() {
-            return new LanguageTypeModelRuleExtractor();
+    private static class BuildScopeServices {
+        DependentSourceSetLocalComponentConverter createLocalComponentFactory() {
+            return new DependentSourceSetLocalComponentConverter();
         }
 
-        MethodModelRuleExtractor createComponentModelPluginInspector(Instantiator instantiator) {
-            return new ComponentTypeModelRuleExtractor(instantiator);
+        ProjectModelResolver createProjectLocator(final ProjectRegistry<ProjectInternal> projectRegistry) {
+            return new DefaultProjectModelResolver(projectRegistry);
+        }
+    }
+
+    private static class GlobalScopeServices {
+        MethodModelRuleExtractor createLanguageTypePluginInspector(ModelSchemaStore schemaStore) {
+            return new LanguageTypeModelRuleExtractor(schemaStore);
         }
 
-        MethodModelRuleExtractor createBinaryTypeModelPluginInspector(Instantiator instantiator) {
-            return new BinaryTypeModelRuleExtractor(instantiator);
+        MethodModelRuleExtractor createComponentModelPluginInspector(ModelSchemaStore schemaStore) {
+            return new ComponentTypeModelRuleExtractor(schemaStore);
+        }
+
+        MethodModelRuleExtractor createBinaryTypeModelPluginInspector(ModelSchemaStore schemaStore) {
+            return new BinaryTypeModelRuleExtractor(schemaStore);
         }
 
         MethodModelRuleExtractor createComponentBinariesPluginInspector() {
@@ -53,5 +78,8 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
             return new BinaryTasksModelRuleExtractor();
         }
 
+        ModelSchemaAspectExtractionStrategy createVariantAspectExtractionStrategy() {
+            return new VariantAspectExtractionStrategy();
+        }
     }
 }

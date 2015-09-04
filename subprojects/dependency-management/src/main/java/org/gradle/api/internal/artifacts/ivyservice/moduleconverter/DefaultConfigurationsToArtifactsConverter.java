@@ -16,38 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
-import org.gradle.util.GUtil;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
 
 public class DefaultConfigurationsToArtifactsConverter implements ConfigurationsToArtifactsConverter {
 
-    public void addArtifacts(MutableLocalComponentMetaData metaData, Iterable<? extends Configuration> configurations) {
-        ModuleVersionIdentifier id = metaData.getId();
+    public void addArtifacts(BuildableLocalComponentMetaData metaData, Iterable<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
-            for (PublishArtifact publishArtifact : configuration.getArtifacts()) {
-                IvyArtifactName ivyArtifact = createIvyArtifact(publishArtifact, id);
-                metaData.addArtifact(configuration.getName(), ivyArtifact, publishArtifact.getFile());
-            }
+            metaData.addArtifacts(configuration.getName(), configuration.getArtifacts());
         }
-    }
-
-    public IvyArtifactName createIvyArtifact(PublishArtifact publishArtifact, ModuleVersionIdentifier moduleVersionIdentifier) {
-        Map<String, String> extraAttributes = new HashMap<String, String>();
-        if (GUtil.isTrue(publishArtifact.getClassifier())) {
-            extraAttributes.put(Dependency.CLASSIFIER, publishArtifact.getClassifier());
-        }
-        String name = publishArtifact.getName();
-        if (!GUtil.isTrue(name)) {
-            name = moduleVersionIdentifier.getName();
-        }
-        return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), extraAttributes);
     }
 }

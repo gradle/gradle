@@ -23,9 +23,11 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.MissingMethodException
 import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.initialization.ProjectAccessListener
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.listener.ListenerManager
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
@@ -35,7 +37,6 @@ import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-
 @RunWith(JMock)
 class DefaultConfigurationContainerTest {
     private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
@@ -43,10 +44,11 @@ class DefaultConfigurationContainerTest {
     private ConfigurationResolver resolver = context.mock(ConfigurationResolver)
     private ListenerManager listenerManager = context.mock(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class)
-    private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    private ProjectAccessListener projectAccessListener = context.mock(ProjectAccessListener.class)
+    private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
             resolver, instantiator, { name -> name } as DomainObjectContext,
-            listenerManager, metaDataProvider)
+            listenerManager, metaDataProvider, projectAccessListener, context.mock(ProjectFinder))
 
     @Before
     public void setup() {

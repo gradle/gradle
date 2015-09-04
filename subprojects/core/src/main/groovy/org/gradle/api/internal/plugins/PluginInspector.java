@@ -32,7 +32,7 @@ public class PluginInspector {
 
     public <T> PotentialPlugin<T> inspect(Class<T> type) {
         boolean implementsInterface = Plugin.class.isAssignableFrom(type);
-        boolean hasRules = this.modelRuleSourceDetector.hasModelSources(type);
+        boolean hasRules = this.modelRuleSourceDetector.hasRules(type);
 
         if (implementsInterface) {
             @SuppressWarnings("unchecked") Class<? extends Plugin<?>> cast = (Class<? extends Plugin<?>>) type;

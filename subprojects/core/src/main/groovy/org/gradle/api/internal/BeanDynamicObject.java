@@ -19,12 +19,10 @@ import groovy.lang.*;
 import groovy.lang.MissingMethodException;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
-import org.gradle.api.internal.coerce.TypeCoercingMethodArgumentsTransformer;
+import org.gradle.api.internal.coerce.PropertySetTransformer;
+import org.gradle.api.internal.coerce.StringToEnumTransformer;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A {@link DynamicObject} which uses groovy reflection to provide access to the properties and methods of a bean.
@@ -37,7 +35,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     private final boolean implementsMissing;
 
     // NOTE: If this guy starts caching internally, consider sharing an instance
-    private final MethodArgumentsTransformer argsTransformer = new TypeCoercingMethodArgumentsTransformer();
+    private final MethodArgumentsTransformer argsTransformer = StringToEnumTransformer.INSTANCE;
+    private final PropertySetTransformer propertySetTransformer = StringToEnumTransformer.INSTANCE;
 
     public BeanDynamicObject(Object bean) {
         this(bean, true);
@@ -124,9 +123,20 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     @Override
     public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
-        // Maybe transform the arguments before calling the method (e.g. type coercion)
-        arguments = argsTransformer.transform(bean, name, arguments);
-        return delegate.invokeMethod(name, arguments);
+        try {
+            return delegate.invokeMethod(name, arguments);
+        } catch (MissingMethodException e) {
+            if (e.isStatic() || !e.getMethod().equals(name) || !Arrays.equals(e.getArguments(), arguments)) {
+                throw e;
+            } else {
+                Object[] transformedArguments = argsTransformer.transform(bean, name, arguments);
+                if (transformedArguments != arguments) {
+                    return delegate.invokeMethod(name, transformedArguments);
+                } else {
+                    throw e;
+                }
+            }
+        }
     }
 
     private class MetaClassAdapter implements DynamicObject {
@@ -180,10 +190,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 };
             }
             try {
-
-                // Attempt type coercion before trying to set the property
-                value = argsTransformer.transform(bean, MetaProperty.getSetterName(name), value)[0];
-
+                value = propertySetTransformer.transformValue(bean, property, value);
                 metaClass.setProperty(bean, name, value);
             } catch (InvokerInvocationException e) {
                 if (e.getCause() instanceof RuntimeException) {

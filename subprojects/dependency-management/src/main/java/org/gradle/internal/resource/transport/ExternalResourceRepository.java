@@ -18,46 +18,55 @@ package org.gradle.internal.resource.transport;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
 public interface ExternalResourceRepository {
     /**
+     * Returns a copy of this repository with progress logging enabled.
+     */
+    ExternalResourceRepository withProgressLogging();
+
+    /**
      * Attempts to fetch the given resource.
      *
      * @return null if the resource is not found.
+     * @throws ResourceException On failure to fetch resource.
      */
-    ExternalResource getResource(URI source) throws IOException;
+    @Nullable
+    ExternalResource getResource(URI source) throws ResourceException;
 
     /**
      * Transfer a resource to the repository
      *
-     * @param source The local file to be transferred.
+     * @param source The local resource to be transferred.
      * @param destination Where to transfer the resource.
      * @throws IOException On publication failure.
      */
-    void put(File source, URI destination) throws IOException;
+    void put(LocalResource source, URI destination) throws IOException;
 
     /**
      * Fetches only the metadata for the result.
      *
      * @param source The location of the resource to obtain the metadata for
      * @return The resource metadata, or null if the resource does not exist
+     * @throws ResourceException On failure to fetch resource metadata.
      */
     @Nullable
-    ExternalResourceMetaData getResourceMetaData(URI source) throws IOException;
+    ExternalResourceMetaData getResourceMetaData(URI source) throws ResourceException;
 
     /**
      * Return a listing of child resources names.
      *
      * @param parent The parent directory from which to generate the listing.
      * @return A listing of the direct children of the given parent. Returns null when the parent resource does not exist.
-     * @throws IOException On listing failure.
+     * @throws ResourceException On listing failure.
      */
     @Nullable
-    List<String> list(URI parent) throws IOException;
+    List<String> list(URI parent) throws ResourceException;
 }

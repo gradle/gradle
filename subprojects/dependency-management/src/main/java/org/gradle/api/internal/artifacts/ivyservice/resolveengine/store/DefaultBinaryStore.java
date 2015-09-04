@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.io.RandomAccessFileInputStream;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
-import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 import java.io.*;
 
@@ -82,7 +82,9 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
                 encoder.close();
             }
         } finally {
-            file.delete();
+            if (file != null) {
+                file.delete();
+            }
             encoder = null;
             file = null;
         }

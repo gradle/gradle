@@ -28,6 +28,11 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         "all"
     }
 
+    @Override
+    int getLibJarsCount() {
+        158
+    }
+
     def allZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()
@@ -51,7 +56,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
                 buildAndGradleDirs << it
             }
         }
-        buildAndGradleDirs.empty
+        buildAndGradleDirs == []
 
         // Javadoc
         contentsDir.file('docs/javadoc/index.html').assertIsFile()

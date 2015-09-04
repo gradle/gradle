@@ -10,7 +10,7 @@
             </thead>
             <tr>
                 <td>toolVersion</td>
-                <td><literal>4.3</literal></td>
+                <td><literal>5.2.3</literal></td>
             </tr>
             <tr>
                 <td>reportsDir</td>
@@ -31,6 +31,14 @@
             <tr>
                 <td>targetJdk</td>
                 <td><literal>project.sourceCompatibility</literal></td>
+            </tr>
+            <tr>
+                <td>ignoreFailures</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>rulePriority</td>
+                <td><literal>5</literal></td>
             </tr>
             <tr>
                 <td>consoleOutput</td>

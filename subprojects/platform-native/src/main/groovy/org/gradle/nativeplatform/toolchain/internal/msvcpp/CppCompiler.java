@@ -17,13 +17,15 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
-import org.gradle.nativeplatform.toolchain.internal.*;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CppCompileSpec;
 
 class CppCompiler extends VisualCppNativeCompiler<CppCompileSpec> {
 
-    CppCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<CppCompileSpec, CppCompileSpec> specTransformer, String objectFileSuffix, boolean useCommandFile) {
-        super(commandLineTool, invocation, new CppCompilerArgsTransformer(), specTransformer, objectFileSuffix, useCommandFile);
+    CppCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<CppCompileSpec, CppCompileSpec> specTransformer, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineToolInvocationWorker, invocationContext, new CppCompilerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile);
     }
 
     private static class CppCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CppCompileSpec> {
@@ -31,5 +33,4 @@ class CppCompiler extends VisualCppNativeCompiler<CppCompileSpec> {
             return "/TP";
         }
     }
-
 }

@@ -28,7 +28,11 @@ public class DefaultSourceSetContainer extends AbstractNamedDomainObjectContaine
     private final Instantiator instantiator;
 
     public DefaultSourceSetContainer(FileResolver fileResolver, TaskResolver taskResolver, Instantiator classGenerator) {
-        super(SourceSet.class, classGenerator, new Namer<SourceSet>() { public String determineName(SourceSet ss) { return ss.getName(); }});
+        super(SourceSet.class, classGenerator, new Namer<SourceSet>() {
+            public String determineName(SourceSet ss) {
+                return ss.getName();
+            }
+        });
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.instantiator = classGenerator;

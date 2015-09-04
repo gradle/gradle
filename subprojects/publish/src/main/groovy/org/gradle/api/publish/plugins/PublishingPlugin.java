@@ -16,7 +16,10 @@
 
 package org.gradle.api.publish.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
@@ -32,9 +35,9 @@ import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Model;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 
 import javax.inject.Inject;
 
@@ -70,11 +73,7 @@ public class PublishingPlugin implements Plugin<Project> {
         publishLifecycleTask.setGroup(PUBLISH_TASK_GROUP);
     }
 
-    /**
-     * Model rules.
-     */
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @Model
         PublishingExtension publishing(ExtensionContainer extensions) {
             return extensions.getByType(PublishingExtension.class);
@@ -94,7 +93,7 @@ public class PublishingPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void tasksDependOnProjectPublicationRegistry(CollectionBuilder<Task> tasks, ProjectPublicationRegistry publicationRegistry) {
+        void tasksDependOnProjectPublicationRegistry(ModelMap<Task> tasks, ProjectPublicationRegistry publicationRegistry) {
             //do nothing, the rule is here to introduce a dependency on ProjectPublicationRegistry to TaskContainer
         }
     }

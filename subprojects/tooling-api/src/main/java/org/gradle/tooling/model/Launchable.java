@@ -46,8 +46,8 @@ public interface Launchable {
     String getDescription();
 
     /**
-     * Returns whether launchable is public or not.
-     * Public tasks are those that have non-null {@code group} property.
+     * Returns whether launchable is public or not. A public launchable is one that is considered a public 'entry point' to the build, that is interesting for
+     * an end user of the build to run.
      *
      * @return Public property.
      * @since 2.1

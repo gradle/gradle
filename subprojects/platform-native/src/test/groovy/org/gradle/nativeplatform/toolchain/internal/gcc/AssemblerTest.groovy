@@ -15,56 +15,24 @@
  */
 
 package org.gradle.nativeplatform.toolchain.internal.gcc
-
-import org.gradle.internal.hash.HashUtil
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext
+import org.gradle.nativeplatform.toolchain.internal.NativeCompiler
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation
-import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
-import spock.lang.Specification
 
-class AssemblerTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
+class AssemblerTest extends GccCompatibleNativeCompilerTest {
 
-    def executable = new File("executable")
-    def baseInvocation = Mock(CommandLineToolInvocation)
-    def invocation = Mock(MutableCommandLineToolInvocation)
-    def commandLineTool = Mock(CommandLineTool)
-    def assembler = new Assembler(commandLineTool, baseInvocation, ".o");
-
-    def "assembles each source file independently"() {
-        given:
-        def testDir = tmpDirProvider.testDirectory
-        def objectFileDir = testDir.file("output/objects")
-
-        def sourceOne = testDir.file("one.s")
-        def sourceTwo = testDir.file("two.s")
-
-        when:
-        AssembleSpec assembleSpec = Mock(AssembleSpec)
-        assembleSpec.getObjectFileDir() >> objectFileDir
-        assembleSpec.getAllArgs() >> ["-firstArg", "-secondArg"]
-        assembleSpec.getSourceFiles() >> [sourceOne, sourceTwo]
-
-        and:
-        assembler.execute(assembleSpec)
-
-        then:
-        1 * baseInvocation.copy() >> invocation
-        1 * invocation.setWorkDirectory(objectFileDir)
-        1 * invocation.setArgs(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceOne), sourceOne.absolutePath])
-        1 * commandLineTool.execute(invocation)
-
-        1 * invocation.setArgs(["-firstArg", "-secondArg", "-o", outputFilePathFor(objectFileDir, sourceTwo), sourceTwo.absolutePath])
-        1 * commandLineTool.execute(invocation)
-        0 * _
+    @Override
+    protected NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
+        new Assembler(buildOperationProcessor, commandLineTool, invocationContext, objectFileExtension, useCommandFile)
     }
 
-    String outputFilePathFor(File objectFileRoot, File sourceFile) {
-        String relativeObjectFilePath = "${HashUtil.createCompactMD5(sourceFile.absolutePath)}/${sourceFile.name - ".s"}.o"
-        String outputFilePath = new File(objectFileRoot, relativeObjectFilePath).absolutePath;
-        outputFilePath
+    @Override
+    protected Class<AssembleSpec> getCompileSpecType() {
+        AssembleSpec
+    }
+
+    @Override
+    protected List<String> getCompilerSpecificArguments(File includeDir) {
+        [ '-x', 'assembler' ] + super.getCompilerSpecificArguments(includeDir)
     }
 }

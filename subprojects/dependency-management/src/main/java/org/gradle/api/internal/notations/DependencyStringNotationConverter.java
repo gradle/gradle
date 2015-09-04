@@ -21,12 +21,12 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dsl.ParsedModuleStringNotation;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
-import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,8 +39,9 @@ public class DependencyStringNotationConverter<T extends ExternalDependency> imp
         this.wantedType = wantedType;
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("String or CharSequence values, e.g. 'org.gradle:gradle-core:1.0'.");
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("String or CharSequence values").example("'org.gradle:gradle-core:1.0'");
     }
 
     public void convert(String notation, NotationConvertResult<? super T> result) throws TypeConversionException {

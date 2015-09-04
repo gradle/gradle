@@ -23,16 +23,17 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ReflectiveDependencyDescriptorFactory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.local.model.DefaultProjectDependencyMetaData;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultDependencyMetaData implements DependencyMetaData {
     private final DependencyDescriptor dependencyDescriptor;
@@ -63,12 +64,34 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return requested;
     }
 
+    @Override
+    public String[] getModuleConfigurations() {
+        return dependencyDescriptor.getModuleConfigurations();
+    }
+
+    @Override
+    public String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration) {
+        return dependencyDescriptor.getDependencyConfigurations(moduleConfiguration, requestedConfiguration);
+    }
+
+    public ExcludeRule[] getExcludeRules(Collection<String> configurations) {
+        return dependencyDescriptor.getExcludeRules(configurations.toArray(new String[configurations.size()]));
+    }
+
     public boolean isChanging() {
         return dependencyDescriptor.isChanging();
     }
 
     public boolean isTransitive() {
         return dependencyDescriptor.isTransitive();
+    }
+
+    public boolean isForce() {
+        return dependencyDescriptor.isForce();
+    }
+
+    public String getDynamicConstraintVersion() {
+        return dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision();
     }
 
     public DependencyDescriptor getDescriptor() {
@@ -83,9 +106,8 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         }
         Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
         for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
-            ModuleRevisionId id = toConfiguration.getComponent().getDescriptor().getModuleRevisionId();
-            Artifact artifact = new DefaultArtifact(id, null, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
-            artifacts.add(toConfiguration.getComponent().artifact(artifact));
+            DefaultIvyArtifactName artifact = DefaultIvyArtifactName.forIvyArtifact(artifactDescriptor);
+            artifacts.add(toConfiguration.artifact(artifact));
         }
         return artifacts;
     }
@@ -96,8 +118,9 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
             return Collections.emptySet();
         }
         Set<IvyArtifactName> artifactSet = Sets.newLinkedHashSet();
-        for (DependencyArtifactDescriptor artifact : dependencyArtifacts) {
-            artifactSet.add(new DefaultIvyArtifactName(artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttributes()));
+        for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
+            DefaultIvyArtifactName artifact = DefaultIvyArtifactName.forIvyArtifact(artifactDescriptor);
+            artifactSet.add(artifact);
         }
         return artifactSet;
     }
@@ -109,14 +132,24 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return new DefaultDependencyMetaData(dependencyDescriptor.clone(IvyUtil.createModuleRevisionId(dependencyDescriptor.getDependencyRevisionId(), requestedVersion)));
     }
 
-    public DependencyMetaData withRequestedVersion(ModuleVersionSelector requestedVersion) {
-        if (requestedVersion.equals(requested)) {
-            return this;
+    @Override
+    public DependencyMetaData withTarget(ComponentSelector target) {
+        if (target instanceof ModuleComponentSelector) {
+            ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
+            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion());
+            if (requestedVersion.equals(requested)) {
+                return this;
+            }
+            ModuleRevisionId requestedId = IvyUtil.createModuleRevisionId(requestedVersion.getGroup(), requestedVersion.getName(), requestedVersion.getVersion());
+            DependencyDescriptor substitutedDescriptor = new ReflectiveDependencyDescriptorFactory().create(dependencyDescriptor, requestedId);
+            return new DefaultDependencyMetaData(substitutedDescriptor);
+        } else if (target instanceof ProjectComponentSelector) {
+            // TODO:Prezi what to do here?
+            ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
+            return new DefaultProjectDependencyMetaData(dependencyDescriptor, projectTarget.getProjectPath());
+        } else {
+            throw new AssertionError();
         }
-
-        ModuleRevisionId requestedId = IvyUtil.createModuleRevisionId(requestedVersion.getGroup(), requestedVersion.getName(), requestedVersion.getVersion());
-        DependencyDescriptor substitutedDescriptor = new ReflectiveDependencyDescriptorFactory().create(dependencyDescriptor, requestedId);
-        return new DefaultDependencyMetaData(substitutedDescriptor);
     }
 
     public DependencyMetaData withChanging() {

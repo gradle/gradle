@@ -16,23 +16,48 @@
 package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
-import org.codehaus.groovy.classgen.Verifier;
+import org.codehaus.groovy.ast.ClassNode;
+import org.gradle.api.Action;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.Transformer;
 
 public class ShortCircuitEmptyScriptCompiler implements ScriptClassCompiler {
     private final ScriptClassCompiler compiler;
-    private final EmptyScriptGenerator emptyScriptGenerator;
+    private final ClassLoaderCache classLoaderCache;
 
-    public ShortCircuitEmptyScriptCompiler(ScriptClassCompiler compiler, EmptyScriptGenerator emptyScriptGenerator) {
+    public ShortCircuitEmptyScriptCompiler(ScriptClassCompiler compiler, ClassLoaderCache classLoaderCache) {
         this.compiler = compiler;
-        this.emptyScriptGenerator = emptyScriptGenerator;
+        this.classLoaderCache = classLoaderCache;
     }
 
-    public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass, Verifier verifier) {
+    @Override
+    public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source, final ClassLoader classLoader, final ClassLoaderId classLoaderId, final CompileOperation<M> operation,
+                                                              final Class<T> scriptBaseClass, Action<? super ClassNode> verifier) {
         if (source.getResource().getText().matches("\\s*")) {
-            return emptyScriptGenerator.generate(scriptBaseClass);
+            classLoaderCache.remove(classLoaderId);
+            return new CompiledScript<T, M>() {
+                @Override
+                public boolean getRunDoesSomething() {
+                    return false;
+                }
+
+                @Override
+                public boolean getHasMethods() {
+                    return false;
+                }
+
+                public Class<? extends T> loadClass() {
+                    throw new UnsupportedOperationException("Cannot load a script that does nothing.");
+                }
+
+                @Override
+                public M getData() {
+                    return operation.getExtractedData();
+                }
+            };
         }
-        return compiler.compile(source, classLoader, transformer, scriptBaseClass, verifier);
+        return compiler.compile(source, classLoader, classLoaderId, operation, scriptBaseClass, verifier);
     }
+
 }

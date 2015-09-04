@@ -16,31 +16,30 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
-import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation
 import org.gradle.nativeplatform.toolchain.internal.NativeCompilerTest
 
-/**
- */
 abstract class VisualCppNativeCompilerTest extends NativeCompilerTest {
+    String getObjectFileFlag() {
+        return '/Fo'
+    }
+
     @Override
     protected List<String> getCompilerSpecificArguments(File includeDir) {
-        ['/nologo', '/Dfoo=bar', '/Dempty', '-firstArg', '-secondArg', '/c',
+        ['/nologo', '/c', '/Dfoo=bar', '/Dempty', '-firstArg', '-secondArg',
          '/I' + includeDir.absoluteFile.toString()]
     }
 
     def "arguments include MSVC output flag and output file name"() {
         given:
-        def invocation = Mock(MutableCommandLineToolInvocation)
-        def compiler = getCompiler(invocation)
+        def compiler = getCompiler()
         def testDir = tmpDirProvider.testDirectory
-        def args = []
         def outputFile = testDir.file("output.ext")
 
         when:
-        compiler.addOutputArgs(args, outputFile)
+        def args = compiler.getOutputArgs(outputFile)
 
         then:
-        args == ['/Fo' + outputFile.absoluteFile.toString()]
+        args == [objectFileFlag + outputFile.absoluteFile.toString()]
     }
 
 }

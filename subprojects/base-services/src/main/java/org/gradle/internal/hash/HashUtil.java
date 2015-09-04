@@ -85,4 +85,16 @@ public class HashUtil {
     public static HashValue sha1(File file) {
         return createHash(file, "SHA1");
     }
+
+    public static HashValue sha256(byte[] bytes) {
+        return createHash(new ByteArrayInputStream(bytes), "SHA-256");
+    }
+
+    public static HashValue sha256(InputStream inputStream) {
+        return createHash(inputStream, "SHA-256");
+    }
+
+    public static HashValue sha256(File file) {
+        return createHash(file, "SHA-256");
+    }
 }

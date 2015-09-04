@@ -16,9 +16,9 @@
 
 package org.gradle.internal.featurelifecycle
 
+import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import spock.lang.Specification
-import org.gradle.groovy.scripts.Script
 
 class ScriptUsageLocationReporterTest extends Specification {
     final reporter = new ScriptUsageLocationReporter()
@@ -44,9 +44,6 @@ class ScriptUsageLocationReporterTest extends Specification {
             getFileName() >> "some-file.gradle"
             getDisplayName() >> "build script 'some-file.gradle'"
         }
-        def script = Stub(Script) {
-            getScriptSource() >> scriptSource
-        }
         def stack = [
                 new StackTraceElement("SomeClass", "method", "some-file.gradle", 12),
                 new StackTraceElement("SomeClass", "method", "some-file.gradle", 77)]
@@ -56,8 +53,7 @@ class ScriptUsageLocationReporterTest extends Specification {
         def result = new StringBuilder()
 
         given:
-        reporter.beforeScript(script)
-        reporter.afterScript(script, null)
+        reporter.scriptClassLoaded(scriptSource, Script)
 
         when:
         reporter.reportLocation(usage, result)
@@ -71,9 +67,6 @@ class ScriptUsageLocationReporterTest extends Specification {
             getFileName() >> "some-file.gradle"
             getDisplayName() >> "build script 'some-file.gradle'"
         }
-        def script = Stub(Script) {
-            getScriptSource() >> scriptSource
-        }
         def stack = [
                 new StackTraceElement("SomeLibrary", "method", "SomeLibrary.java", 103),
                 new StackTraceElement("SomeLibrary", "method", "SomeLibrary.java", 67),
@@ -85,8 +78,7 @@ class ScriptUsageLocationReporterTest extends Specification {
         def result = new StringBuilder()
 
         given:
-        reporter.beforeScript(script)
-        reporter.afterScript(script, null)
+        reporter.scriptClassLoaded(scriptSource, Script)
 
         when:
         reporter.reportLocation(usage, result)
@@ -100,9 +92,6 @@ class ScriptUsageLocationReporterTest extends Specification {
             getFileName() >> "some-file.gradle"
             getDisplayName() >> "build script 'some-file.gradle'"
         }
-        def script = Stub(Script) {
-            getScriptSource() >> scriptSource
-        }
         def stack = [
                 new StackTraceElement("SomeLibrary", "method", "SomeLibrary.java", 103),
                 new StackTraceElement("OtherLibrary", "method", "OtherLibrary.java", 67),
@@ -114,8 +103,7 @@ class ScriptUsageLocationReporterTest extends Specification {
         def result = new StringBuilder()
 
         given:
-        reporter.beforeScript(script)
-        reporter.afterScript(script, null)
+        reporter.scriptClassLoaded(scriptSource, Script)
 
         when:
         reporter.reportLocation(usage, result)

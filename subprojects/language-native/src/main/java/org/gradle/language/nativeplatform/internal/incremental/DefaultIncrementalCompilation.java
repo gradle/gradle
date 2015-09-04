@@ -21,8 +21,10 @@ import java.util.List;
 public class DefaultIncrementalCompilation implements IncrementalCompilation {
     private final List<File> recompile;
     private final List<File> removed;
+    private CompilationState finalState;
 
-    public DefaultIncrementalCompilation(List<File> recompile, List<File> removed) {
+    public DefaultIncrementalCompilation(CompilationState finalState, List<File> recompile, List<File> removed) {
+        this.finalState = finalState;
         this.recompile = recompile;
         this.removed = removed;
     }
@@ -33,5 +35,9 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
 
     public List<File> getRemoved() {
         return removed;
+    }
+
+    public CompilationState getFinalState() {
+        return finalState;
     }
 }

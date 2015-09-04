@@ -19,13 +19,12 @@ package org.gradle.api.publish.maven.internal.tasks;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.apache.maven.model.Model;
-import org.apache.maven.project.MavenProject;
+import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.publication.maven.internal.MavenVersionRangeMapper;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
@@ -41,12 +40,13 @@ public class MavenPomFileGenerator {
     private static final String POM_FILE_ENCODING = "UTF-8";
     private static final String POM_VERSION = "4.0.0";
 
-    private MavenProject mavenProject = new MavenProject();
+    private Model model = new Model();
     private XmlTransformer xmlTransformer = new XmlTransformer();
-    private VersionRangeMapper versionRangeMapper= new MavenVersionRangeMapper();
+    private final VersionRangeMapper versionRangeMapper;
 
-    public MavenPomFileGenerator(MavenProjectIdentity identity) {
-        mavenProject.setModelVersion(POM_VERSION);
+    public MavenPomFileGenerator(MavenProjectIdentity identity, VersionRangeMapper versionRangeMapper) {
+        this.versionRangeMapper = versionRangeMapper;
+        model.setModelVersion(POM_VERSION);
         Model model = getModel();
         model.setGroupId(identity.getGroupId());
         model.setArtifactId(identity.getArtifactId());
@@ -59,7 +59,7 @@ public class MavenPomFileGenerator {
     }
 
     private Model getModel() {
-        return mavenProject.getModel();
+        return model;
     }
 
     public void addRuntimeDependency(MavenDependencyInternal dependency) {
@@ -108,7 +108,7 @@ public class MavenPomFileGenerator {
         xmlTransformer.transform(file, POM_FILE_ENCODING, new Action<Writer>() {
             public void execute(Writer writer) {
                 try {
-                    mavenProject.writeModel(writer);
+                    new MavenXpp3Writer().write(writer, model);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }

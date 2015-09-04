@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.gcc
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -33,8 +34,8 @@ import spock.lang.Specification
 class ClangToolChainTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
-    final Instantiator instantiator = new DirectInstantiator()
-    final toolChain = new ClangToolChain("clang", Stub(OperatingSystem), fileResolver, Stub(ExecActionFactory), Stub(CompilerMetaDataProviderFactory), instantiator)
+    final Instantiator instantiator = DirectInstantiator.INSTANCE
+    final toolChain = new ClangToolChain("clang", Stub(BuildOperationProcessor), Stub(OperatingSystem), fileResolver, Stub(ExecActionFactory), Stub(CompilerMetaDataProviderFactory), instantiator)
 
     def "provides default tools"() {
         def action = Mock(Action)
@@ -45,7 +46,7 @@ class ClangToolChainTest extends Specification {
 
         then:
         1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
-            assert platformToolChain.assembler.executable == 'as'
+            assert platformToolChain.assembler.executable == 'clang'
             assert platformToolChain.cCompiler.executable == 'clang'
             assert platformToolChain.cppCompiler.executable == 'clang++'
             assert platformToolChain.objcCompiler.executable == 'clang'

@@ -32,13 +32,11 @@ import org.gradle.tooling.internal.consumer.connection.*;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Enumeration;
 
 public class DefaultToolingImplementationLoader implements ToolingImplementationLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultToolingImplementationLoader.class);
@@ -69,7 +67,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
             AbstractConsumerConnection adaptedConnection;
-            if (connection instanceof StoppableConnection) {
+            if (connection instanceof InternalTestExecutionConnection){
+                adaptedConnection = new TestExecutionConsumerConnection(connection, modelMapping, adapter);
+            } else if (connection instanceof StoppableConnection) {
                 adaptedConnection = new ShutdownAwareConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof InternalCancellableConnection) {
                 adaptedConnection = new CancellableConsumerConnection(connection, modelMapping, adapter);
@@ -82,7 +82,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             } else if (connection instanceof InternalConnection) {
                 adaptedConnection = new InternalConnectionBackedConsumerConnection(connection, modelMapping, adapter);
             } else {
-                return new ConnectionVersion4BackedConsumerConnection(distribution, connection, adapter);
+                return new UnsupportedOlderVersionConnection(distribution, connection, adapter);
             }
             adaptedConnection.configure(connectionParameters);
             if (!adaptedConnection.getVersionDetails().supportsCancellation()) {
@@ -105,42 +105,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         MultiParentClassLoader parentObfuscatingClassLoader = new MultiParentClassLoader(classLoader);
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(parentObfuscatingClassLoader);
         filteringClassLoader.allowPackage("org.gradle.tooling.internal.protocol");
-        filteringClassLoader.allowResource("tooling-api-logback.xml");
-        filteringClassLoader.allowResource("tooling-api-logback-test.xml");
-        return new MutableURLClassLoaderWithLogback(filteringClassLoader, implementationClasspath.getAsURLArray(), "tooling-api-");
-    }
-
-    /**
-     * A classloader that makes it possible to pass logback configuration applied early when provider classes
-     * are loader before Gradle's own configuration is used.
-     *
-     * The loaded logback configuration cannot be the same as is used for the consumer because classes and resources would not
-     * be accessible so it will use special resources.
-     */
-    private static class MutableURLClassLoaderWithLogback extends MutableURLClassLoader {
-        private final String logbackConfigPrefix;
-
-        public MutableURLClassLoaderWithLogback(ClassLoader parent, URL[] classPath, String logbackConfigPrefix) {
-            super(parent, classPath);
-            this.logbackConfigPrefix = logbackConfigPrefix;
-        }
-
-        @Override
-        public URL getResource(String name) {
-            if ("logback.xml".equals(name)
-                    || "logback-test.xml".equals(name)) {
-                return super.getResource(logbackConfigPrefix + name);
-            }
-            return super.getResource(name);
-        }
-
-        @Override
-        public Enumeration<URL> getResources(String name) throws IOException {
-            if ("logback.xml".equals(name)
-                    || "logback-test.xml".equals(name)) {
-                return super.getResources(logbackConfigPrefix + name);
-            }
-            return super.getResources(name);
-        }
+        return new MutableURLClassLoader(filteringClassLoader, implementationClasspath.getAsURLArray());
     }
 }

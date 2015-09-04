@@ -1164,6 +1164,8 @@ TBD
 
 # Open issues
 
+* Add options for seeing full tool command-line (like make -n)
+* Add configuration hook for command-line tools to configure their environment
 * For incremental build with visual c++, use `dumpbin  /RAWDATA` to strip timestamps from binary files before comparison
 * Add ABI as an aspect of target platform.
 * Output of any custom post link task should be treated as input to anything that depends on the binary.

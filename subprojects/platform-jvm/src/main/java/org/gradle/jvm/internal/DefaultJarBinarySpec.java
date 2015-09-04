@@ -16,33 +16,41 @@
 
 package org.gradle.jvm.internal;
 
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.jvm.JvmBinaryTasks;
+import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
+import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
 
 public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpecInternal {
-    private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(this);
+    private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(super.getTasks());
     private JavaToolChain toolChain;
     private JavaPlatform platform;
     private File classesDir;
     private File resourcesDir;
     private File jarFile;
-    private String baseName;
+    private ComponentSpec component;
 
     @Override
     protected String getTypeName() {
         return "Jar";
     }
 
-    public String getBaseName() {
-        return baseName == null ? getName() : baseName;
+    @Override
+    public void setComponent(ComponentSpec componentSpec) {
+        this.component = componentSpec;
     }
 
-    public void setBaseName(String baseName) {
-        this.baseName = baseName;
+    @Override
+    public LibraryBinaryIdentifier getId() {
+        return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
 
     public JvmBinaryTasks getTasks() {
@@ -87,5 +95,10 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
 
     public void setResourcesDir(File resourcesDir) {
         this.resourcesDir = resourcesDir;
+    }
+
+    @Override
+    protected BinaryBuildAbility getBinaryBuildAbility() {
+        return new ToolSearchBuildAbility(((JavaToolChainInternal) getToolChain()).select(getTargetPlatform()));
     }
 }

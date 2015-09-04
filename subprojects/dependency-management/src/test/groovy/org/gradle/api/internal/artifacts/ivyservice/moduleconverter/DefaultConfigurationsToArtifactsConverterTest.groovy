@@ -15,86 +15,34 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
-
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.internal.DefaultDomainObjectSet
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
-import org.gradle.internal.component.model.IvyArtifactName
-import org.gradle.internal.component.local.model.MutableLocalComponentMetaData
+import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData
 import spock.lang.Specification
 
 class DefaultConfigurationsToArtifactsConverterTest extends Specification {
     def converter = new DefaultConfigurationsToArtifactsConverter()
 
     def "adds artifacts from each configuration"() {
-        def metaData = Mock(MutableLocalComponentMetaData)
+        def metaData = Mock(BuildableLocalComponentMetaData)
         def config1 = Stub(Configuration)
         def config2 = Stub(Configuration)
-        def artifact1 = Stub(PublishArtifact)
-        def artifact2 = Stub(PublishArtifact)
-        def file1 = new File("file-1")
-        def file2 = new File("file-2")
+        def artifacts1 = Stub(PublishArtifactSet)
+        def artifacts2 = Stub(PublishArtifactSet)
 
         given:
         config1.name >> "config1"
-        config1.artifacts >> new DefaultPublishArtifactSet("art1", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact, [artifact1]))
+        config1.artifacts >> artifacts1
         config2.name >> "config2"
-        config2.artifacts >> new DefaultPublishArtifactSet("art1", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact, [artifact2]))
+        config2.artifacts >> artifacts2
 
-        and:
-        artifact1.name >> 'art1'
-        artifact1.type >> 'type1'
-        artifact1.extension >> 'ext1'
-        artifact2.name >> 'art2'
-        artifact2.type >> 'type2'
-        artifact2.extension >> 'ext2'
-        artifact2.classifier >> 'classifier'
 
         when:
         converter.addArtifacts(metaData, [config1, config2])
 
         then:
-        1 * metaData.addArtifact("config1", _, file1) >> { name, IvyArtifactName artifact, file ->
-            assert artifact.name == 'art1'
-            assert artifact.type == 'type1'
-            assert artifact.extension == 'ext1'
-            assert artifact.attributes == [:]
-        }
-        1 * metaData.addArtifact("config2", _, file2) >> { name, IvyArtifactName artifact, file ->
-            assert artifact.name == 'art2'
-            assert artifact.type == 'type2'
-            assert artifact.extension == 'ext2'
-            assert artifact.attributes == [(Dependency.CLASSIFIER): 'classifier']
-        }
-        _ * metaData.id
-        0 * metaData._
-    }
-
-    def "artifact name defaults to module name when not specified"() {
-        def metaData = Mock(MutableLocalComponentMetaData)
-        def config = Stub(Configuration)
-        def artifact = Stub(PublishArtifact)
-        def file = new File("file-1")
-
-        given:
-        config.name >> "config1"
-        config.artifacts >> new DefaultPublishArtifactSet("art1", new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact, [artifact]))
-
-        and:
-        artifact.type >> 'type1'
-        artifact.extension >> 'ext1'
-
-        when:
-        converter.addArtifacts(metaData, [config])
-
-        then:
-        1 * metaData.addArtifact("config1", _, file) >> { name, IvyArtifactName ivyArtifact, f ->
-            assert ivyArtifact.name == 'module'
-        }
-        _ * metaData.id >> DefaultModuleVersionIdentifier.newId("group", "module", "version")
+        1 * metaData.addArtifacts("config1", artifacts1)
+        1 * metaData.addArtifacts("config2", artifacts2)
         0 * metaData._
     }
 }

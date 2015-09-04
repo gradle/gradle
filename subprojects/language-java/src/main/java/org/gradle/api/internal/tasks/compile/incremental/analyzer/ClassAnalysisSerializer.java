@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.Serializer;
-import org.gradle.messaging.serialize.SetSerializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.SetSerializer;
 
 import java.util.Set;
 
-import static org.gradle.messaging.serialize.BaseSerializerFactory.STRING_SERIALIZER;
+import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER;
 
 public class ClassAnalysisSerializer implements Serializer<ClassAnalysis> {
 

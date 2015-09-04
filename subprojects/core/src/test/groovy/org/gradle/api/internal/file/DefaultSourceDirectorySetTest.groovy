@@ -22,12 +22,14 @@ import org.gradle.api.tasks.StopExecutionException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GFileUtils
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes
 import static org.hamcrest.Matchers.equalTo
 
+@UsesNativeServices
 public class DefaultSourceDirectorySetTest extends Specification {
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final TestFile testDir = tmpDir.testDirectory

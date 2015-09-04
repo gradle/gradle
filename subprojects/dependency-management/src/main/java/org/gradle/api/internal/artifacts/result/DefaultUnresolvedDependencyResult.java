@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult implements UnresolvedDependencyResult {
@@ -40,9 +37,8 @@ public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult 
         return failure;
     }
 
-    public ModuleComponentSelector getAttempted() {
-        ModuleVersionSelector moduleVersionSelector = failure.getSelector();
-        return DefaultModuleComponentSelector.newSelector(moduleVersionSelector.getGroup(), moduleVersionSelector.getName(), moduleVersionSelector.getVersion());
+    public ComponentSelector getAttempted() {
+        return failure.getSelector();
     }
 
     public ComponentSelectionReason getAttemptedReason() {

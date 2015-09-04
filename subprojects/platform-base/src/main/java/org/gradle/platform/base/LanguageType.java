@@ -28,16 +28,12 @@ import java.lang.annotation.Target;
  * {@link LanguageType} annotation.
  *
  * <pre autoTested=''>
- * import org.gradle.model.*
- * import org.gradle.model.collection.*
- *
  * interface CustomLanguageSourceSet extends LanguageSourceSet {}
  * class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {}
  *
  * apply plugin: MySamplePlugin
  *
- * {@literal @}RuleSource
- * class MySamplePlugin {
+ * class MySamplePlugin extends RuleSource {
  *     {@literal @}LanguageType
  *     void declareCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
  *         builder.setLanguageName("custom")

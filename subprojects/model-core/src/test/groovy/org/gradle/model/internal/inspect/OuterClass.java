@@ -16,15 +16,17 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.model.RuleSource;
+
 @SuppressWarnings("UnusedDeclaration")
 public class OuterClass {
-    public static abstract class AbstractClass {
+    public static abstract class AbstractClass extends RuleSource {
     }
 
     public static interface AnInterface {
     }
 
-    public class InnerInstanceClass {
+    public class InnerInstanceClass extends RuleSource {
     }
 
     private class PrivateInnerStaticClass {
@@ -33,7 +35,10 @@ public class OuterClass {
     public static class HasSuperclass extends InnerPublicStaticClass {
     }
 
-    public static class HasTwoConstructors {
+    public static class DoesNotExtendRuleSource {
+    }
+
+    public static class HasTwoConstructors extends RuleSource {
         public HasTwoConstructors() {
         }
 
@@ -41,27 +46,27 @@ public class OuterClass {
         }
     }
 
-    public static class HasInstanceVar {
+    public static class HasInstanceVar extends RuleSource {
         private String foo;
     }
 
-    public static class HasFinalInstanceVar {
+    public static class HasFinalInstanceVar extends RuleSource {
         private final String foo = null;
     }
 
-    public static class HasNonFinalStaticVar {
+    public static class HasNonFinalStaticVar extends RuleSource {
         private static String foo;
     }
 
-    public static class InnerPublicStaticClass {
+    public static class InnerPublicStaticClass extends RuleSource {
     }
 
-    public static class HasExplicitDefaultConstructor {
+    public static class HasExplicitDefaultConstructor extends RuleSource {
         public HasExplicitDefaultConstructor() {
         }
     }
 
-    public static class HasStaticFinalField {
+    public static class HasStaticFinalField extends RuleSource {
         private static final Object VALUE = null;
     }
 }

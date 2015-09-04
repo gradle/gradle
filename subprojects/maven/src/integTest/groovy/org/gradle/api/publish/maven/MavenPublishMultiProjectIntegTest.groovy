@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+
 class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
     def project1 = mavenRepo.module("org.gradle.test", "project1", "1.0")
     def project2 = mavenRepo.module("org.gradle.test", "project2", "2.0")
@@ -83,7 +85,7 @@ project(":project3") {
         fails "publish"
 
         then:
-        failure.assertHasDescription "A problem occurred configuring project ':project1'."
+        failure.assertHasCause "Exception thrown while executing model rule: PublishingPlugin.Rules#publishing"
         failure.assertHasCause "Publishing is not yet able to resolve a dependency on a project with multiple different publications."
     }
 

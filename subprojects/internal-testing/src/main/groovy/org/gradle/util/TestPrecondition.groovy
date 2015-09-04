@@ -18,7 +18,8 @@ package org.gradle.util
 import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 
-enum TestPrecondition {
+enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
+    NULL_REQUIREMENT({ true }),
     SWING({
         !UNKNOWN_OS.fulfilled
     }),
@@ -76,6 +77,9 @@ enum TestPrecondition {
     UNIX({
         OperatingSystem.current().unix
     }),
+    UNIX_DERIVATIVE({
+        MAC_OS_X.fulfilled || LINUX.fulfilled || UNIX.fulfilled
+    }),
     UNKNOWN_OS({
         OperatingSystem.current().name == "unknown operating system"
     }),
@@ -106,6 +110,12 @@ enum TestPrecondition {
     NOT_JDK_IBM({
         System.getProperty('java.vm.vendor') != 'IBM Corporation'
     }),
+    JDK_IBM({
+        !NOT_JDK_IBM
+    }),
+    JDK_ORACLE({
+        System.getProperty('java.vm.vendor') == 'Oracle Corporation'
+    }),
     ONLINE({
         try {
             new URL("http://google.com").openConnection().getInputStream().close()
@@ -120,6 +130,18 @@ enum TestPrecondition {
     // TODO:DAZ Should be detecting this based on tool chain, not OS
     OBJECTIVE_C_SUPPORT({
         NOT_WINDOWS.fulfilled && NOT_UNKNOWN_OS.fulfilled
+    }),
+    SMART_TERMINAL({
+        System.getenv("TERM")?.toUpperCase() != "DUMB"
+    }),
+    NOT_PULL_REQUEST_BUILD({
+        if (System.getenv("TRAVIS")?.toUpperCase() == "TRUE") {
+            return false
+        }
+        if (System.getenv("PULL_REQUEST_BUILD")?.toUpperCase() == "TRUE") {
+            return false
+        }
+        return true
     });
 
     /**
@@ -136,6 +158,11 @@ enum TestPrecondition {
      */
     boolean isFulfilled() {
         predicate()
+    }
+
+    @Override
+    Boolean create() {
+        return isFulfilled()
     }
 }
 

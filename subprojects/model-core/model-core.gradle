@@ -21,7 +21,10 @@ apply plugin: "groovy"
 
 dependencies {
     compile libraries.slf4j_api
+    compile project(':baseServices')
     compile project(':baseServicesGroovy')
+    compile libraries.groovy
+    compile libraries.guava
     compile libraries.commons_lang
     compile libraries.jcip
     compile libraries.asm
@@ -36,5 +39,7 @@ dependencies {
 }
 
 useTestFixtures()
-useClassycle()
-strictCompile()
+useTestFixtures(project: ':diagnostics', sourceSet: 'testFixtures')
+//Re-enable classycle after removal of CollectionBuilder
+//useClassycle()
+strictCompileIgnoreDeprecations()

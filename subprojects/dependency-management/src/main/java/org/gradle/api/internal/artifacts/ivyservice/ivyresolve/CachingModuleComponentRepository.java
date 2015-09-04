@@ -36,7 +36,10 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
-import org.gradle.internal.resolve.result.*;
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.cached.CachedArtifact;
 import org.gradle.internal.resource.cached.CachedArtifactIndex;
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey;
@@ -105,8 +108,12 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
+        @Override
+        public String toString() {
+            return "cache lookup for " + delegate.toString();
+        }
 
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
             delegate.getLocalAccess().listModuleVersions(dependency, result);
             if (result.hasResult()) {
@@ -116,15 +123,15 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             listModuleVersionsFromCache(dependency, result);
         }
 
-        private void listModuleVersionsFromCache(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
+        private void listModuleVersionsFromCache(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             ModuleVersionSelector requested = dependency.getRequested();
             final ModuleIdentifier moduleId = getCacheKey(requested);
             ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
             if (cachedModuleVersionList != null) {
-                ModuleVersionListing versionList = cachedModuleVersionList.getModuleVersions();
-                Set<ModuleVersionIdentifier> versions = CollectionUtils.collect(versionList.getVersions(), new Transformer<ModuleVersionIdentifier, Versioned>() {
-                    public ModuleVersionIdentifier transform(Versioned original) {
-                        return new DefaultModuleVersionIdentifier(moduleId, original.getVersion());
+                Set<String> versionList = cachedModuleVersionList.getModuleVersions();
+                Set<ModuleVersionIdentifier> versions = CollectionUtils.collect(versionList, new Transformer<ModuleVersionIdentifier, String>() {
+                    public ModuleVersionIdentifier transform(String original) {
+                        return new DefaultModuleVersionIdentifier(moduleId, original);
                     }
                 });
                 if (cachePolicy.mustRefreshVersionList(moduleId, versions, cachedModuleVersionList.getAgeMillis())) {
@@ -137,17 +144,17 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
         }
 
-        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
-            delegate.getLocalAccess().resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+            delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
             if (result.hasResult()) {
                 return;
             }
 
-            resolveComponentMetaDataFromCache(dependency, moduleComponentIdentifier, result);
+            resolveComponentMetaDataFromCache(moduleComponentIdentifier, requestMetaData, result);
         }
 
-        private void resolveComponentMetaDataFromCache(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
+        private void resolveComponentMetaDataFromCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.getCachedModuleDescriptor(delegate, moduleComponentIdentifier);
             if (cachedMetaData == null) {
                 return;
@@ -165,7 +172,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
             MutableModuleComponentResolveMetaData metaData = cachedMetaData.getMetaData();
             metadataProcessor.processMetadata(metaData);
-            if (dependency.isChanging() || metaData.isChanging()) {
+            if (requestMetaData.isChanging() || metaData.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
                     LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                     return;
@@ -264,12 +271,17 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess {
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
+        @Override
+        public String toString() {
+            return "cache > " + delegate.getRemoteAccess().toString();
+        }
+
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             delegate.getRemoteAccess().listModuleVersions(dependency, result);
             switch (result.getState()) {
                 case Listed:
                     ModuleIdentifier moduleId = getCacheKey(dependency.getRequested());
-                    ModuleVersionListing versionList = result.getVersions();
+                    Set<String> versionList = result.getVersions();
                     moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
                     break;
                 case Failed:
@@ -279,9 +291,10 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
         }
 
-        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
-            DependencyMetaData forced = dependency.withChanging();
-            delegate.getRemoteAccess().resolveComponentMetaData(forced, moduleComponentIdentifier, result);
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
+            ComponentOverrideMetadata forced = requestMetaData.withChanging();
+
+            delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, forced, result);
             switch (result.getState()) {
                 case Missing:
                     moduleMetaDataCache.cacheMissing(delegate, moduleComponentIdentifier);
@@ -291,7 +304,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     ModuleSource moduleSource = metaData.getSource();
                     ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData);
                     metadataProcessor.processMetadata(metaData);
-                    moduleSource = new CachingModuleSource(cachedMetaData.getDescriptorHash(), dependency.isChanging() || metaData.isChanging(), moduleSource);
+                    moduleSource = new CachingModuleSource(cachedMetaData.getDescriptorHash(), requestMetaData.isChanging() || metaData.isChanging(), moduleSource);
                     metaData.setSource(moduleSource);
                     result.resolved(metaData);
                     break;

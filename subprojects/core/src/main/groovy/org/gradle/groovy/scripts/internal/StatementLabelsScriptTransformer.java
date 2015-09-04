@@ -28,10 +28,6 @@ public class StatementLabelsScriptTransformer extends AbstractScriptTransformer 
         return Phases.CANONICALIZATION;
     }
 
-    public String getId() {
-        return "labels";
-    }
-
     @Override
     public void call(final SourceUnit source) throws CompilationFailedException {
         // currently we only look in script code; could extend this to build script classes

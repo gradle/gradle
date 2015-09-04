@@ -27,7 +27,7 @@ class DaemonsState {
         this.idle = Math.max(idle, 0)
     }
 
-    static getWildcard() {
+    static getWildcardState() {
         new DaemonsState()
     }
 

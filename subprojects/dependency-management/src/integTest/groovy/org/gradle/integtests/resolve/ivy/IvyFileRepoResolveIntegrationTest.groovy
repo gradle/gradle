@@ -122,4 +122,34 @@ task retrieve(type: Sync) {
         jarC1.assertIsCopyOf(projectC1.jarFile)
         jarC1.assertHasChangedSince(jarCsnapshot)
     }
+
+    def "cannot define authentication for local file repo"() {
+        given:
+        def repo = ivyRepo()
+        def moduleA = repo.module('group', 'projectA', '1.2')
+        moduleA.publish()
+        and:
+        buildFile << """
+repositories {
+    ivy {
+        url "${ivyRepo().uri}"
+        authentication {
+            auth(BasicAuthentication)
+        }
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+        expect:
+        fails 'retrieve'
+        and:
+        errorOutput.contains("> Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 'file'")
+    }
 }

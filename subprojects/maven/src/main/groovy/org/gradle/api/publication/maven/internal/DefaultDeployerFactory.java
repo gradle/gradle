@@ -20,9 +20,11 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.publication.maven.internal.ant.BaseMavenInstaller;
-import org.gradle.api.publication.maven.internal.ant.DefaultGroovyMavenDeployer;
+import org.gradle.api.publication.maven.internal.deployer.BaseMavenInstaller;
+import org.gradle.api.publication.maven.internal.deployer.DefaultGroovyMavenDeployer;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -33,29 +35,36 @@ public class DefaultDeployerFactory implements DeployerFactory {
     private final MavenPomMetaInfoProvider pomMetaInfoProvider;
     private final ConfigurationContainer configurationContainer;
     private final Conf2ScopeMappingContainer scopeMapping;
+    private final MavenSettingsProvider mavenSettingsProvider;
+    private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
     public DefaultDeployerFactory(MavenFactory mavenFactory, Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver, MavenPomMetaInfoProvider pomMetaInfoProvider,
-                                  ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping) {
+                                  ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMapping, 
+                                  MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.mavenFactory = mavenFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.fileResolver = fileResolver;
         this.pomMetaInfoProvider = pomMetaInfoProvider;
         this.configurationContainer = configurationContainer;
         this.scopeMapping = scopeMapping;
+        this.mavenSettingsProvider = mavenSettingsProvider;
+        this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
     public DefaultGroovyMavenDeployer createMavenDeployer() {
         PomFilterContainer pomFilterContainer = createPomFilterContainer(
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
         return new DefaultGroovyMavenDeployer(pomFilterContainer, createArtifactPomContainer(
-                pomMetaInfoProvider, pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create());
+                pomMetaInfoProvider, pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create(),
+                mavenSettingsProvider, mavenRepositoryLocator);
     }
 
     public MavenResolver createMavenInstaller() {
         PomFilterContainer pomFilterContainer = createPomFilterContainer(
                 mavenFactory.createMavenPomFactory(configurationContainer, scopeMapping, fileResolver));
         return new BaseMavenInstaller(pomFilterContainer, createArtifactPomContainer(pomMetaInfoProvider,
-                pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create());
+                pomFilterContainer, createArtifactPomFactory()), loggingManagerFactory.create(),
+                mavenSettingsProvider, mavenRepositoryLocator);
     }
 
     private PomFilterContainer createPomFilterContainer(Factory<MavenPom> mavenPomFactory) {

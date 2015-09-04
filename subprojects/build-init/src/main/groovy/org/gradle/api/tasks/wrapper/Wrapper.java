@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
+import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -203,6 +204,7 @@ public class Wrapper extends DefaultTask {
      * The version of the gradle distribution required by the wrapper. This is usually the same version of Gradle you
      * use for building your project.
      */
+    @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper.")
     public void setGradleVersion(String gradleVersion) {
         this.gradleVersion = GradleVersion.version(gradleVersion);
     }
@@ -230,6 +232,7 @@ public class Wrapper extends DefaultTask {
         }
     }
 
+    @Option(option = "gradle-distribution-url", description = "The URL to download the gradle distribution from.")
     public void setDistributionUrl(String url) {
         this.distributionUrl = url;
     }

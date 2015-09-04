@@ -22,6 +22,7 @@ import org.gradle.api.specs.Spec;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 
 public abstract class Actions {
 
@@ -48,7 +49,7 @@ public abstract class Actions {
      * @param <T> The type of the object that action is for
      * @return The composite action.
      */
-    public static <T> Action<T> composite(Iterable<Action<? super T>> actions) {
+    public static <T> Action<T> composite(Iterable<? extends Action<? super T>> actions) {
         return new CompositeAction<T>(actions);
     }
 
@@ -64,9 +65,9 @@ public abstract class Actions {
     }
 
     private static class CompositeAction<T> implements Action<T> {
-        private final Iterable<Action<? super T>> actions;
+        private final Iterable<? extends Action<? super T>> actions;
 
-        private CompositeAction(Iterable<Action<? super T>> actions) {
+        private CompositeAction(Iterable<? extends Action<? super T>> actions) {
             this.actions = actions;
         }
 
@@ -201,6 +202,20 @@ public abstract class Actions {
                 action.execute(t);
             }
         }
+    }
+
+    public static <T> T with(T instance, Action<? super T> action) {
+        action.execute(instance);
+        return instance;
+    }
+
+    public static <T> Action<T> add(final Collection<? super T> collection) {
+        return new Action<T>() {
+            @Override
+            public void execute(T t) {
+                collection.add(t);
+            }
+        };
     }
 
 }

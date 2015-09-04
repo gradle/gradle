@@ -22,10 +22,12 @@ import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.process.internal.WorkerProcessContext;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -36,6 +38,9 @@ import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class ActionExecutionWorkerTest {
+    @Rule
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
+
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final Action<WorkerProcessContext> action = context.mock(Action.class);
     private final ObjectConnection connection = context.mock(ObjectConnection.class);
@@ -45,7 +50,7 @@ public class ActionExecutionWorkerTest {
     private final Address serverAddress = context.mock(Address.class);
     private final ClassLoader appClassLoader = new ClassLoader() {
     };
-    private final ActionExecutionWorker main = new ActionExecutionWorker(action, 12, "<display name>", serverAddress) {
+    private final ActionExecutionWorker main = new ActionExecutionWorker(action, 12, "<display name>", serverAddress, testDirectoryProvider.getTestDirectory()) {
         @Override
         MessagingServices createClient() {
             return messagingServices;

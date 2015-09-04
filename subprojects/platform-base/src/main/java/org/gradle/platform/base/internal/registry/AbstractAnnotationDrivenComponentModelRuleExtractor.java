@@ -16,11 +16,11 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import org.gradle.model.collection.CollectionBuilder;
+import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.inspect.AbstractAnnotationDrivenModelRuleExtractor;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.InvalidModelException;
 
 import java.lang.annotation.Annotation;
@@ -29,24 +29,26 @@ import java.util.HashMap;
 import java.util.List;
 
 public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
-    protected <R> void assertIsVoidMethod(MethodRuleDefinition<R> ruleDefinition) {
+    protected void assertIsVoidMethod(MethodRuleDefinition<?, ?> ruleDefinition) {
         if (!ModelType.of(Void.TYPE).equals(ruleDefinition.getReturnType())) {
             throw new InvalidModelException(String.format("Method %s must not have a return value.", getDescription()));
         }
     }
 
-    protected <R, V> void visitCollectionBuilderSubject(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, Class<V> typeParameter) {
+    protected <V> void visitSubject(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, Class<V> typeParameter) {
         if (ruleDefinition.getReferences().size() == 0) {
-            throw new InvalidModelException(String.format("Method %s must have a parameter of type '%s'.", getDescription(), CollectionBuilder.class.getName()));
+            throw new InvalidModelException(String.format("Method %s must have a parameter of type '%s'.", getDescription(), ModelMap.class.getName()));
         }
 
-        ModelType<?> builder = ruleDefinition.getReferences().get(0).getType();
+        @SuppressWarnings("ConstantConditions") ModelType<?> builder = ruleDefinition.getSubjectReference().getType();
 
-        if (!ModelType.of(CollectionBuilder.class).isAssignableFrom(builder)) {
-            throw new InvalidModelException(String.format("Method %s first parameter must be of type '%s'.", getDescription(), CollectionBuilder.class.getName()));
+        @SuppressWarnings("deprecation")
+        Class<?> containerClass = org.gradle.model.collection.CollectionBuilder.class;
+        if (!ModelType.of(containerClass).isAssignableFrom(builder)) {
+            throw new InvalidModelException(String.format("Method %s first parameter must be of type '%s'.", getDescription(), ModelMap.class.getName()));
         }
         if (builder.getTypeVariables().size() != 1) {
-            throw new InvalidModelException(String.format("Parameter of type '%s' must declare a type parameter extending '%s'.", CollectionBuilder.class.getSimpleName(), typeParameter.getSimpleName()));
+            throw new InvalidModelException(String.format("Parameter of type '%s' must declare a type parameter extending '%s'.", ModelMap.class.getSimpleName(), typeParameter.getSimpleName()));
         }
         ModelType<?> subType = builder.getTypeVariables().get(0);
 
@@ -65,14 +67,14 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
         }
 
         public <S> void put(Class<S> baseClass, Class<? extends S> concreteClass) {
-            if(!baseClass.isAssignableFrom(concreteClass)){
+            if (!baseClass.isAssignableFrom(concreteClass)) {
                 throw new InvalidParameterException(String.format("Class %s must be assignable from Class %s", baseClass.getName(), concreteClass.getName()));
             }
             parameterTypes.put(baseClass, concreteClass);
         }
     }
 
-    protected <R, S> void visitDependency(RuleMethodDataCollector dataCollector, MethodRuleDefinition<R> ruleDefinition, ModelType<S> expectedDependency) {
+    protected <S> void visitDependency(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ModelType<S> expectedDependency) {
         // TODO:DAZ Use ModelType.toString instead of getSimpleName()
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         ModelType<? extends S> dependency = null;

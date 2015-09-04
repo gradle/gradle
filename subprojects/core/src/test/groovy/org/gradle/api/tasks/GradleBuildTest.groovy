@@ -16,7 +16,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.BuildResult
-import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.util.TestUtil
@@ -24,8 +23,7 @@ import spock.lang.Specification
 
 public class GradleBuildTest extends Specification {
     GradleLauncherFactory launcherFactory = Mock()
-    BuildCancellationToken cancellationToken = Mock()
-    GradleBuild task = TestUtil.createTask(GradleBuild, [gradleLauncherFactory: launcherFactory, cancellationToken: cancellationToken])
+    GradleBuild task = TestUtil.createTask(GradleBuild, [gradleLauncherFactory: launcherFactory])
 
     void usesCopyOfCurrentBuildsStartParams() {
         def expectedStartParameter = task.project.gradle.startParameter.newBuild()
@@ -50,9 +48,24 @@ public class GradleBuildTest extends Specification {
         task.build()
 
         then:
-        1 * launcherFactory.newInstance(task.startParameter, cancellationToken) >> launcher
+        1 * launcherFactory.newInstance(task.startParameter) >> launcher
         1 * launcher.run() >> resultMock
-        1 * resultMock.rethrowFailure()
+        1 * launcher.stop()
+        0 * _._
+    }
+
+    void cleansUpOnBuildFailure() {
+        GradleLauncher launcher = Mock()
+        def failure = new RuntimeException()
+
+        when:
+        task.build()
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+        1 * launcherFactory.newInstance(task.startParameter) >> launcher
+        1 * launcher.run() >> { throw failure }
         1 * launcher.stop()
         0 * _._
     }

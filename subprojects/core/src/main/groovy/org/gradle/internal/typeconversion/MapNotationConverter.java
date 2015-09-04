@@ -18,12 +18,16 @@ package org.gradle.internal.typeconversion;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.util.ConfigureUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Converts a {@code Map<String, Object>} to the target type. Subclasses should define a {@code T parseMap()} method which takes a parameter 
@@ -38,10 +42,11 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
     public MapNotationConverter() {
         super(Map.class);
         convertMethod = findConvertMethod();
-        keyNames = new String[convertMethod.getParameterAnnotations().length];
-        optional = new boolean[convertMethod.getParameterAnnotations().length];
-        for (int i = 0; i < convertMethod.getParameterAnnotations().length; i++) {
-            Annotation[] annotations = convertMethod.getParameterAnnotations()[i];
+        Annotation[][] parameterAnnotations = convertMethod.getParameterAnnotations();
+        keyNames = new String[parameterAnnotations.length];
+        optional = new boolean[parameterAnnotations.length];
+        for (int i = 0; i < parameterAnnotations.length; i++) {
+            Annotation[] annotations = parameterAnnotations[i];
             keyNames[i] = keyName(annotations);
             optional[i] = optional(annotations);
         }
@@ -57,8 +62,9 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
         throw new UnsupportedOperationException(String.format("No parseMap() method found on class %s.", getClass().getSimpleName()));
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Maps");
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("Maps");
     }
 
     public T parseType(Map values) throws UnsupportedNotationException {

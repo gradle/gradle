@@ -111,4 +111,10 @@ class Instants implements InstantFactory, OperationListener {
             return time
         }
     }
+
+    void assertNotReached(String name) {
+        synchronized (lock) {
+            assert timePoints[name] == null
+        }
+    }
 }

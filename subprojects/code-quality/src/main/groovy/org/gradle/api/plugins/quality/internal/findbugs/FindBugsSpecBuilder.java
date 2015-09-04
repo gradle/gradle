@@ -16,11 +16,7 @@
 
 package org.gradle.api.plugins.quality.internal.findbugs;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.quality.FindBugsReports;
@@ -28,7 +24,10 @@ import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
-import com.google.common.collect.ImmutableSet;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
 
 public class FindBugsSpecBuilder {
     private static final Set<String> VALID_EFFORTS = ImmutableSet.of("min", "default", "max");
@@ -47,6 +46,8 @@ public class FindBugsSpecBuilder {
     private Collection<String> omitVisitors;
     private File excludeFilter;
     private File includeFilter;
+    private File excludeBugsFilter;
+    private Collection<String> extraArgs;
     private boolean debugEnabled;
 
     public FindBugsSpecBuilder(FileCollection classes) {
@@ -92,7 +93,7 @@ public class FindBugsSpecBuilder {
         this.reportLevel = reportLevel;
         return this;
     }
-    
+
     public FindBugsSpecBuilder withMaxHeapSize(String maxHeapSize) {
         this.maxHeapSize = maxHeapSize;
         return this;
@@ -125,6 +126,22 @@ public class FindBugsSpecBuilder {
         }
 
         this.includeFilter = includeFilter;
+        return this;
+    }
+
+    public FindBugsSpecBuilder withExcludeBugsFilter(File excludeBugsFilter) {
+        if (excludeBugsFilter != null && !excludeBugsFilter.canRead()) {
+            String errorStr = String.format("Cannot read file specified for FindBugs 'excludeBugsFilter' property: %s", excludeBugsFilter);
+            throw new InvalidUserDataException(errorStr);
+        }
+
+        this.excludeBugsFilter = excludeBugsFilter;
+
+        return this;
+    }
+
+    public FindBugsSpecBuilder withExtraArgs(Collection<String> extraArgs) {
+        this.extraArgs = extraArgs;
         return this;
     }
 
@@ -203,10 +220,19 @@ public class FindBugsSpecBuilder {
             args.add(includeFilter.getPath());
         }
 
+        if (has(excludeBugsFilter)) {
+            args.add("-excludeBugs");
+            args.add(excludeBugsFilter.getPath());
+        }
+
+        if (has(extraArgs)) {
+            args.addAll(extraArgs);
+        }
+
         for (File classFile : classes.getFiles()) {
             args.add(classFile.getAbsolutePath());
         }
-        
+
         return new FindBugsSpec(args, maxHeapSize, debugEnabled);
     }
 

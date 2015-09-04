@@ -16,27 +16,21 @@
 
 package org.gradle.messaging.remote.internal.hub;
 
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.internal.MessageSerializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.ObjectReader;
+import org.gradle.internal.serialize.ObjectWriter;
+import org.gradle.internal.serialize.StatefulSerializer;
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier;
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage;
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.FlushableEncoder;
-import org.gradle.messaging.serialize.ObjectReader;
-import org.gradle.messaging.serialize.ObjectWriter;
-import org.gradle.messaging.serialize.kryo.StatefulSerializer;
-import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
-import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InterHubMessageSerializer implements MessageSerializer<InterHubMessage> {
+public class InterHubMessageSerializer implements StatefulSerializer<InterHubMessage> {
     private static final byte CHANNEL_MESSAGE = 1;
     private static final byte END_STREAM_MESSAGE = 2;
     private final StatefulSerializer<Object> payloadSerializer;
@@ -45,13 +39,13 @@ public class InterHubMessageSerializer implements MessageSerializer<InterHubMess
         this.payloadSerializer = payloadSerializer;
     }
 
-    public ObjectReader<InterHubMessage> newReader(InputStream inputStream, Address localAddress, Address remoteAddress) {
-        Decoder decoder = new KryoBackedDecoder(inputStream);
+    @Override
+    public ObjectReader<InterHubMessage> newReader(Decoder decoder) {
         return new MessageReader(decoder, payloadSerializer.newReader(decoder));
     }
 
-    public ObjectWriter<InterHubMessage> newWriter(OutputStream outputStream) {
-        FlushableEncoder encoder = new KryoBackedEncoder(outputStream);
+    @Override
+    public ObjectWriter<InterHubMessage> newWriter(Encoder encoder) {
         return new MessageWriter(encoder, payloadSerializer.newWriter(encoder));
     }
 
@@ -92,10 +86,10 @@ public class InterHubMessageSerializer implements MessageSerializer<InterHubMess
 
     private static class MessageWriter implements ObjectWriter<InterHubMessage> {
         private final Map<ChannelIdentifier, Integer> channels = new HashMap<ChannelIdentifier, Integer>();
-        private final FlushableEncoder encoder;
+        private final Encoder encoder;
         private final ObjectWriter<Object> payloadWriter;
 
-        public MessageWriter(FlushableEncoder encoder, ObjectWriter<Object> payloadWriter) {
+        public MessageWriter(Encoder encoder, ObjectWriter<Object> payloadWriter) {
             this.encoder = encoder;
             this.payloadWriter = payloadWriter;
         }
@@ -111,7 +105,6 @@ public class InterHubMessageSerializer implements MessageSerializer<InterHubMess
             } else {
                 throw new IllegalArgumentException();
             }
-            encoder.flush();
         }
 
         private void writeChannelId(ChannelMessage channelMessage) throws IOException {

@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileCollection;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,8 +32,13 @@ import static org.junit.Assert.assertThat;
 @RunWith(JMock.class)
 public class UnionFileCollectionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final FileCollection source1 = context.mock(FileCollection.class, "source1");
-    private final FileCollection source2 = context.mock(FileCollection.class, "source2");
+    private final FileCollectionInternal source1 = context.mock(FileCollectionInternal.class, "source1");
+    private final FileCollectionInternal source2 = context.mock(FileCollectionInternal.class, "source2");
+
+    @Before
+    public void setup() {
+        NativeServicesTestFixture.initialize();
+    }
 
     @Test
     public void containsUnionOfAllSourceCollections() {

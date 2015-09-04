@@ -31,7 +31,7 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
         this.annotationType = annotationType;
     }
 
-    public Spec<MethodRuleDefinition<?>> getSpec() {
+    public Spec<MethodRuleDefinition<?, ?>> getSpec() {
         return new AnnotationMatchingSpec();
     }
 
@@ -39,8 +39,8 @@ public abstract class AbstractAnnotationDrivenModelRuleExtractor<T extends Annot
         return String.format("annotated with @%s", annotationType.getSimpleName());
    }
 
-    private class AnnotationMatchingSpec implements Spec<MethodRuleDefinition<?>> {
-        public boolean isSatisfiedBy(MethodRuleDefinition<?> ruleDefinition) {
+    private class AnnotationMatchingSpec implements Spec<MethodRuleDefinition<?, ?>> {
+        public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> ruleDefinition) {
            return ruleDefinition.getAnnotation(annotationType) != null;
        }
     }

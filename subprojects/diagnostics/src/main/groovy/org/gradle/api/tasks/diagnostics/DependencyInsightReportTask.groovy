@@ -23,6 +23,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
 import org.gradle.api.internal.tasks.options.Option
 import org.gradle.api.specs.Spec
@@ -88,6 +89,11 @@ public class DependencyInsightReportTask extends DefaultTask {
     @Inject
     protected VersionSelectorScheme getVersionSelectorScheme() {
         throw new UnsupportedOperationException()
+    }
+
+    @Inject
+    protected VersionComparator getVersionComparator() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -170,7 +176,7 @@ public class DependencyInsightReportTask extends DefaultTask {
             return
         }
 
-        def sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, versionSelectorScheme)
+        def sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, versionSelectorScheme, versionComparator)
 
         def nodeRenderer = new NodeRenderer() {
             void renderNode(StyledTextOutput target, RenderableDependency node, boolean alreadyRendered) {

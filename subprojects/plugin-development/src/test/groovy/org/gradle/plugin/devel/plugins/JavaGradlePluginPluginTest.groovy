@@ -16,8 +16,6 @@
 
 package org.gradle.plugin.devel.plugins
 
-import ch.qos.logback.classic.spi.LoggingEvent
-import ch.qos.logback.core.AppenderBase
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.FileCopyDetails
@@ -27,15 +25,18 @@ import org.gradle.api.internal.plugins.PluginDescriptor
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.logging.ConfigureLogging
+import org.gradle.logging.internal.LogEvent
+import org.gradle.logging.internal.OutputEvent
+import org.gradle.logging.internal.OutputEventListener
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
 class JavaGradlePluginPluginTest extends Specification {
-    final ResettableAppender appender = new ResettableAppender()
+    final ResettableOutputEventListener outputEventListener = new ResettableOutputEventListener()
 
     @Rule
-    final ConfigureLogging logging = new ConfigureLogging(appender)
+    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE
     final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.split('%')[0]
@@ -110,11 +111,11 @@ class JavaGradlePluginPluginTest extends Specification {
             classes.add(implFile)
         }
         Action<Task> pluginValidationAction = new JavaGradlePluginPlugin.PluginValidationAction(descriptors, classes)
-        appender.reset()
+        outputEventListener.reset()
 
         expect:
         pluginValidationAction.execute(stubTask)
-        expectedMessage == null || appender.toString().contains(expectedMessage)
+        expectedMessage == null || outputEventListener.toString().contains(expectedMessage)
 
         where:
         impl    | implFile      | expectedMessage
@@ -180,17 +181,8 @@ class JavaGradlePluginPluginTest extends Specification {
         return mockJar
     }
 
-    static class ResettableAppender extends AppenderBase<LoggingEvent> {
+    static class ResettableOutputEventListener implements OutputEventListener {
         final StringBuffer buffer = new StringBuffer()
-
-        synchronized void doAppend(LoggingEvent e) {
-            append(e)
-        }
-
-        @Override
-        protected void append(LoggingEvent eventObject) {
-            buffer.append(eventObject.formattedMessage)
-        }
 
         void reset() {
             buffer.delete(0, buffer.size())
@@ -199,6 +191,12 @@ class JavaGradlePluginPluginTest extends Specification {
         @Override
         String toString() {
             return buffer.toString()
+        }
+
+        @Override
+        synchronized void onOutput(OutputEvent event) {
+            LogEvent logEvent = event as LogEvent
+            buffer.append(logEvent.message)
         }
     }
 }

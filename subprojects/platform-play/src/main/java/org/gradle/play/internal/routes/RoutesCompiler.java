@@ -18,36 +18,33 @@ package org.gradle.play.internal.routes;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.scala.internal.reflect.ScalaMethod;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class RoutesCompiler implements Compiler<VersionedRoutesCompileSpec>, Serializable {
-    public WorkResult execute(VersionedRoutesCompileSpec spec) {
+public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable {
+    private final VersionedRoutesCompilerAdapter adapter;
+
+    public RoutesCompiler(VersionedRoutesCompilerAdapter adapter) {
+        this.adapter = adapter;
+    }
+
+    public WorkResult execute(RoutesCompileSpec spec) {
         boolean didWork = false;
-        Iterable<File> sources = spec.getSources();
-
+        // Need to compile all secondary routes ("Foo.routes") before primary ("routes")
+        ArrayList<File> primaryRoutes = Lists.newArrayList();
         ArrayList<File> secondaryRoutes = Lists.newArrayList();
-        CollectionUtils.filter(sources, secondaryRoutes, new Spec<File>() {
-            @Override
-            public boolean isSatisfiedBy(File file) {
-                return !file.getName().equals("routes");
+        for (File source : spec.getSources()) {
+            if (source.getName().equals("routes")) {
+                primaryRoutes.add(source);
+            } else {
+                secondaryRoutes.add(source);
             }
-        });
-
-        ArrayList<File> routes = Lists.newArrayList();
-        CollectionUtils.filter(sources, secondaryRoutes, new Spec<File>() {
-            @Override
-            public boolean isSatisfiedBy(File file) {
-                return file.getName().equals("routes");
-            }
-        });
+        }
 
         // Compile all secondary routes files first
         for (File sourceFile : secondaryRoutes) {
@@ -56,7 +53,7 @@ public class RoutesCompiler implements Compiler<VersionedRoutesCompileSpec>, Ser
         }
 
         // Compile all main routes files last
-        for (File sourceFile : routes) {
+        for (File sourceFile : primaryRoutes) {
             Boolean ret = compile(sourceFile, spec);
             didWork = ret || didWork;
         }
@@ -64,12 +61,12 @@ public class RoutesCompiler implements Compiler<VersionedRoutesCompileSpec>, Ser
         return new SimpleWorkResult(didWork);
     }
 
-    private Boolean compile(File sourceFile, VersionedRoutesCompileSpec spec) {
+    private Boolean compile(File sourceFile, RoutesCompileSpec spec) {
 
         try {
             ClassLoader cl = getClass().getClassLoader();
-            ScalaMethod compile = spec.getCompileMethod(cl);
-            Object ret = compile.invoke(spec.createCompileParameters(cl, sourceFile));
+            ScalaMethod compile = adapter.getCompileMethod(cl);
+            Object ret = compile.invoke(adapter.createCompileParameters(cl, sourceFile, spec.getDestinationDir(), spec.isJavaProject(), spec.isNamespaceReverseRouter(), spec.isGenerateReverseRoutes(), spec.isInjectedRoutesGenerator(), spec.getAdditionalImports()));
             if (ret != null && ret instanceof Boolean) {
                 return (Boolean) ret;
             } else {
@@ -78,5 +75,13 @@ public class RoutesCompiler implements Compiler<VersionedRoutesCompileSpec>, Ser
         } catch (Exception e) {
             throw new RuntimeException("Error invoking the Play routes compiler.", e);
         }
+    }
+
+    public Object getDependencyNotation() {
+        return adapter.getDependencyNotation();
+    }
+
+    public Iterable<String> getClassLoaderPackages() {
+        return adapter.getClassLoaderPackages();
     }
 }

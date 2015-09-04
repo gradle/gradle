@@ -16,22 +16,13 @@
 
 package org.gradle.play.internal.distribution;
 
-import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.internal.Actions;
+import org.gradle.api.distribution.Distribution;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.play.distribution.PlayDistribution;
+import org.gradle.api.internal.rules.RuleAwarePolymorphicDomainObjectContainer;
 import org.gradle.play.distribution.PlayDistributionContainer;
 
-public class DefaultPlayDistributionContainer extends AbstractNamedDomainObjectContainer<PlayDistribution> implements PlayDistributionContainer {
-    private final FileOperations fileOperations;
-
-    public DefaultPlayDistributionContainer(Class<PlayDistribution> type, Instantiator instantiator, FileOperations fileOperations) {
-        super(type, instantiator);
-        this.fileOperations = fileOperations;
-    }
-
-    protected PlayDistribution doCreate(String name) {
-        return getInstantiator().newInstance(DefaultPlayDistribution.class, name, fileOperations.copySpec(Actions.doNothing()));
+public class DefaultPlayDistributionContainer extends RuleAwarePolymorphicDomainObjectContainer<Distribution> implements PlayDistributionContainer {
+    public DefaultPlayDistributionContainer(Instantiator instantiator) {
+        super(Distribution.class, instantiator);
     }
 }

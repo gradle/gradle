@@ -41,9 +41,9 @@ import org.gradle.language.base.internal.compile.Compiler;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.List;
 
 public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
+    private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac");
     private final Iterable<File> zincClasspath;
 
     public DaemonScalaCompiler(File daemonWorkingDir, Compiler<T> delegate, CompilerDaemonFactory daemonFactory, Iterable<File> zincClasspath) {
@@ -63,9 +63,8 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
 
     private DaemonForkOptions createScalaForkOptions(T spec) {
         ScalaForkOptions options = spec.getScalaCompileOptions().getForkOptions();
-        List<String> sharedPackages = Arrays.asList("scala", "com.typesafe.zinc", "xsbti", "com.sun.tools.javac");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
-                options.getJvmArgs(), zincClasspath, sharedPackages);
+                options.getJvmArgs(), zincClasspath, SHARED_PACKAGES);
     }
 }
 

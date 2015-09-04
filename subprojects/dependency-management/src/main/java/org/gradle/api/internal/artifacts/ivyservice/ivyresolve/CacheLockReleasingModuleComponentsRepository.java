@@ -22,7 +22,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
 /**
  * A wrapper around a {@link ModuleComponentRepository} that handles releasing the cache lock before making remote calls.
@@ -45,13 +45,18 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
         private final ModuleComponentRepositoryAccess delegate;
         private final CacheLockingManager cacheLockingManager;
 
+        @Override
+        public String toString() {
+            return "unlocking > " + delegate.toString();
+        }
+
         private LockReleasingRepositoryAccess(String name, ModuleComponentRepositoryAccess delegate, CacheLockingManager cacheLockingManager) {
             this.name = name;
             this.delegate = delegate;
             this.cacheLockingManager = cacheLockingManager;
         }
 
-        public void listModuleVersions(final DependencyMetaData dependency, final BuildableModuleComponentVersionSelectionResolveResult result) {
+        public void listModuleVersions(final DependencyMetaData dependency, final BuildableModuleVersionListingResolveResult result) {
             cacheLockingManager.longRunningOperation(String.format("List %s using repository %s", dependency, name), new Runnable() {
                 public void run() {
                     delegate.listModuleVersions(dependency, result);
@@ -59,10 +64,11 @@ public class CacheLockReleasingModuleComponentsRepository extends BaseModuleComp
             });
         }
 
-        public void resolveComponentMetaData(final DependencyMetaData dependency, final ModuleComponentIdentifier moduleComponentIdentifier, final BuildableModuleComponentMetaDataResolveResult result) {
-            cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", dependency, name), new Runnable() {
+        public void resolveComponentMetaData(final ModuleComponentIdentifier moduleComponentIdentifier,
+                                             final ComponentOverrideMetadata requestMetaData, final BuildableModuleComponentMetaDataResolveResult result) {
+            cacheLockingManager.longRunningOperation(String.format("Resolve %s using repository %s", moduleComponentIdentifier, name), new Runnable() {
                 public void run() {
-                    delegate.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+                    delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
                 }
             });
         }

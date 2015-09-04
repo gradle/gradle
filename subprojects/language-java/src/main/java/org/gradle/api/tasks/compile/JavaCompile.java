@@ -22,6 +22,7 @@ import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInte
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassAnalysisCache;
@@ -36,8 +37,10 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.internal.Factory;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.util.SingleMessageLogger;
 
 import javax.inject.Inject;
@@ -142,14 +145,12 @@ public class JavaCompile extends AbstractCompile {
     }
 
     private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
-        // TODO:DAZ Supply the target platform to the task, using the compatibility flags as overrides
-        // Or maybe split the legacy compile task from the new one
-        Compiler<JavaCompileSpec> javaCompiler = ((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec);
+        Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
         return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }
 
     protected JavaPlatform getPlatform() {
-        return null;
+        return DefaultJavaPlatform.current();
     }
 
     private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
@@ -158,7 +159,7 @@ public class JavaCompile extends AbstractCompile {
     }
 
     private DefaultJavaCompileSpec createSpec() {
-        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpec();
+        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());

@@ -58,19 +58,15 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
     def "can remove task in after evaluate if task is used by unbound #annotationClass rule"() {
         given:
         buildScript """
-            import org.gradle.model.*
-
             task foo {}
-            task bar {}
 
             afterEvaluate {
                 tasks.remove(foo)
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
                 @$annotationClass
-                void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
+                void linkFooToBar(String bar, @Path("tasks.foo") Task foo) {
                    // do nothing
                 }
             }
@@ -79,10 +75,10 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "foo"
+        fails "dependencies"
 
         then:
-        failure.assertThatCause(Matchers.startsWith("The following model rules are unbound"))
+        failure.assertThatCause(Matchers.startsWith("The following model rules could not be applied"))
 
         where:
         annotationClass << ["Defaults", "Mutate", "Finalize", "Validate"]
@@ -91,13 +87,10 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
     def "cant remove task if used by rule"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             task foo {}
             task bar { doLast { tasks.remove(foo) } }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
                 @Mutate
                 void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
                    // do nothing
@@ -108,8 +101,8 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
-        fails "bar"
-        failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by other model elements"))
+        fails ":bar"
+        failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by: tasks.bar"))
 
     }
 }

@@ -24,6 +24,8 @@ import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
+import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GUtil;
@@ -137,7 +139,7 @@ public class Javadoc extends SourceTask {
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setOptionsFile(getOptionsFile());
 
-        Compiler<JavadocSpec> generator = ((JavaToolChainInternal) getToolChain()).select(null).newCompiler(spec);
+        Compiler<JavadocSpec> generator = ((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(JavadocSpec.class);
         generator.execute(spec);
     }
 
@@ -157,6 +159,10 @@ public class Javadoc extends SourceTask {
     public void setToolChain(JavaToolChain toolChain) {
         // Implementation is generated
         throw new UnsupportedOperationException();
+    }
+
+    private JavaPlatform getPlatform() {
+        return DefaultJavaPlatform.current();
     }
 
     /**

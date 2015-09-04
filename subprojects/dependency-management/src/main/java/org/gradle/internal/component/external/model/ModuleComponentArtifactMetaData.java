@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 
@@ -25,11 +24,6 @@ import org.gradle.internal.component.model.ComponentArtifactMetaData;
  */
 public interface ModuleComponentArtifactMetaData extends ComponentArtifactMetaData {
     ModuleComponentArtifactIdentifier getId();
-
-    /**
-     * Converts this artifact to an Ivy artifact. This method is here while we transition away from the Ivy types.
-     */
-    Artifact toIvyArtifact();
 
     /**
      * Produces an ArtifactIdentifier for this artifact (it's not actually an identifier - just a bucket of attributes).

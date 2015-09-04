@@ -44,6 +44,8 @@ dependencies {
 
     testCompile "com.google.inject:guice:2.0@jar"
     testCompile libraries.jsoup
+
+    integTestRuntime project(":maven")
 }
 
 evaluationDependsOn(":wrapper")
@@ -62,3 +64,4 @@ useTestFixtures()
 useTestFixtures(sourceSet: "testFixtures")
 useTestFixtures(project: ":dependencyManagement")
 useTestFixtures(project: ':diagnostics')
+useTestFixtures(project: ':messaging')

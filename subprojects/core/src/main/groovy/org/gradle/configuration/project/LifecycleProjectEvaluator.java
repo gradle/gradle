@@ -15,7 +15,6 @@
  */
 package org.gradle.configuration.project;
 
-import org.gradle.api.Action;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -25,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Manages lifecycle concerns while delegating actual evaluation to another evaluator
- * 
+ *
  * @see org.gradle.internal.service.scopes.BuildScopeServices#createProjectEvaluator()
  */
 public class LifecycleProjectEvaluator implements ProjectEvaluator {
@@ -33,11 +32,8 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
     private final ProjectEvaluator delegate;
 
-    private final Action<? super ProjectInternal> projectFinalizer;
-
-    public LifecycleProjectEvaluator(ProjectEvaluator delegate, Action<? super ProjectInternal> projectFinalizer) {
+    public LifecycleProjectEvaluator(ProjectEvaluator delegate) {
         this.delegate = delegate;
-        this.projectFinalizer = projectFinalizer;
     }
 
     public void evaluate(ProjectInternal project, ProjectStateInternal state) {
@@ -63,14 +59,6 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             state.setExecuting(false);
             state.executed();
             notifyAfterEvaluate(listener, project, state);
-        }
-
-        if (!state.hasFailure()) {
-            try {
-                projectFinalizer.execute(project);
-            } catch (Exception e) {
-                addConfigurationFailure(project, state, e);
-            }
         }
     }
 

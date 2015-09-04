@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse
-
+import junit.framework.AssertionFailedError
+import org.custommonkey.xmlunit.Diff
+import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
+import org.custommonkey.xmlunit.XMLAssert
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
+import org.junit.ComparisonFailure
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
+
+import java.util.regex.Pattern
 
 class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     private static String nonAscii = "\\u7777\\u8888\\u9999"
@@ -29,22 +37,66 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
     void canCreateAndDeleteMetaData() {
+        when:
         File buildFile = testFile("master/build.gradle")
-        usingBuildFile(buildFile).run()
+        usingBuildFile(buildFile).withTasks("eclipse").run()
+
+        assertHasExpectedContents(getClasspathFile(project:"api"), "apiClasspath.xml")
+        assertHasExpectedContents(getProjectFile(project:"api"), "apiProject.xml")
+        assertHasExpectedContents(getComponentFile(project:"api"), "apiWtpComponent.xml")
+        assertHasExpectedContents(getFacetFile(project:"api"), "apiWtpFacet.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project:"api"), "apiJdt.properties")
+
+        assertHasExpectedContents(getClasspathFile(project:"common"), "commonClasspath.xml")
+        assertHasExpectedContents(getProjectFile(project:"common"), "commonProject.xml")
+        assertHasExpectedContents(getComponentFile(project:"common"), "commonWtpComponent.xml")
+        assertHasExpectedContents(getFacetFile(project:"common"), "commonWtpFacet.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project:"common"), "commonJdt.properties")
+
+        assertHasExpectedContents(getClasspathFile(project:"groovyproject"), "groovyprojectClasspath.xml")
+        assertHasExpectedContents(getProjectFile(project:"groovyproject"), "groovyprojectProject.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project:"groovyproject"), "groovyprojectJdt.properties")
+
+        assertHasExpectedContents(getClasspathFile(project:"javabaseproject"), "javabaseprojectClasspath.xml")
+        assertHasExpectedContents(getProjectFile(project:"javabaseproject"), "javabaseprojectProject.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project:"javabaseproject"), "javabaseprojectJdt.properties")
+
+
+        assertHasExpectedContents(getProjectFile(project:"master"), "masterProject.xml")
+
+        assertHasExpectedContents(getClasspathFile(project:"webAppJava6"), "webAppJava6Classpath.xml")
+        assertHasExpectedContents(getProjectFile(project:"webAppJava6"), "webAppJava6Project.xml")
+        assertHasExpectedContents(getComponentFile(project:"webAppJava6"), "webAppJava6WtpComponent.xml")
+        assertHasExpectedContents(getFacetFile(project:"webAppJava6"), "webAppJava6WtpFacet.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project:"webAppJava6"), "webAppJava6Jdt.properties")
+
+        assertHasExpectedContents(getClasspathFile(project:"webAppWithVars"), "webAppWithVarsClasspath.xml")
+        assertHasExpectedContents(getProjectFile(project:"webAppWithVars"), "webAppWithVarsProject.xml")
+        assertHasExpectedContents(getComponentFile(project:"webAppWithVars"), "webAppWithVarsWtpComponent.xml")
+        assertHasExpectedContents(getFacetFile(project:"webAppWithVars"), "webAppWithVarsWtpFacet.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project:"webAppWithVars"), "webAppWithVarsJdt.properties")
+
+        assertHasExpectedContents(getClasspathFile(project:"webservice"), "webserviceClasspath.xml")
+        assertHasExpectedContents(getProjectFile(project:"webservice"), "webserviceProject.xml")
+        assertHasExpectedContents(getComponentFile(project:"webservice"), "webserviceWtpComponent.xml")
+        assertHasExpectedContents(getFacetFile(project:"webservice"), "webserviceWtpFacet.xml")
+        assertHasExpectedProperties(getJdtPropertiesFile(project:"webservice"), "webserviceJdt.properties")
+
+        usingBuildFile(buildFile).withTasks("cleanEclipse").run()
     }
 
     @Test
     void sourceEntriesInClasspathFileAreSortedAsPerUsualConvention() {
         def expectedOrder = [
-                "src/main/java",
-                "src/main/groovy",
-                "src/main/resources",
-                "src/test/java",
-                "src/test/groovy",
-                "src/test/resources",
-                "src/integTest/java",
-                "src/integTest/groovy",
-                "src/integTest/resources"
+            "src/main/java",
+            "src/main/groovy",
+            "src/main/resources",
+            "src/test/java",
+            "src/test/groovy",
+            "src/test/resources",
+            "src/integTest/java",
+            "src/integTest/groovy",
+            "src/integTest/resources"
         ]
 
         expectedOrder.each { testFile(it).mkdirs() }
@@ -361,4 +413,46 @@ dependencies {
 }
         """
     }
+
+    void assertHasExpectedContents(TestFile actualFile, String expectedFileName) {
+        actualFile.assertExists()
+        TestFile expectedFile = testDirectory.file("expectedFiles/$expectedFileName").assertIsFile()
+        String expectedXml = expectedFile.text
+        String actualXml = getActualXml(actualFile)
+        Diff diff = new Diff(expectedXml, actualXml)
+
+        diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
+        try {
+            XMLAssert.assertXMLEqual(diff, true)
+        } catch (AssertionFailedError error) {
+            println "EXPECTED:\n${expectedXml}"
+            println "ACTUAL:\n${actualXml}"
+            throw new ComparisonFailure("Comparison filure: expected: $expectedFile, actual: $actualFile"
+                + "\nUnexpected content for generated actualFile: ${error.message}", expectedXml, actualXml).initCause(error)
+        }
+    }
+
+    void assertHasExpectedProperties(TestFile actualFile, String expectedFileName) {
+        actualFile.assertExists()
+        TestFile expectedFile = testDirectory.file("expectedFiles/$expectedFileName").assertIsFile()
+        Properties expected = new Properties()
+        expected.load(new ByteArrayInputStream(expectedFile.bytes))
+        Properties actual = new Properties()
+        actual.load(new ByteArrayInputStream(actualFile.bytes))
+        assert expected == actual
+    }
+
+    String getActualXml(File file) {
+        def gradleUserHomeDir = executer.getGradleUserHomeDir()
+        def homeDir = gradleUserHomeDir.absolutePath.replace(File.separator, '/')
+        def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}/([^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
+        def text = file.text.replaceAll(pattern, '@CACHE_DIR@/$1/@SHA1@/')
+        pattern = Pattern.compile("GRADLE_USER_HOME/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}/([^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
+        text = text.replaceAll(pattern, 'GRADLE_USER_HOME/@CACHE@/$1/@SHA1@/')
+
+        //remove trailing slashes for windows paths
+        text = text.replaceAll("jar:file:/", 'jar:file:')
+        return text
+    }
+
 }

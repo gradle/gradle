@@ -26,4 +26,14 @@ public class DummyClassLoaderCache implements ClassLoaderCache {
     public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec) {
         return new URLClassLoader(classPath.getAsURLArray(), parent);
     }
+
+    @Override
+    public void remove(ClassLoaderId id) {
+
+    }
+
+    @Override
+    public int size() {
+        return 0;
+    }
 }

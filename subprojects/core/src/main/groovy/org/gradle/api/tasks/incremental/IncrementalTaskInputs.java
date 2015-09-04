@@ -29,14 +29,17 @@ import org.gradle.api.NonExtensible;
  *
  * <pre autoTested="true">
  * class IncrementalReverseTask extends DefaultTask {
- *      @InputDirectory
+ *      {@literal @}InputDirectory
  *      def File inputDir
  *
- *      @OutputDirectory
+ *      {@literal @}OutputDirectory
  *      def File outputDir
  *
- *      @TaskAction
+ *      {@literal @}TaskAction
  *      void execute(IncrementalTaskInputs inputs) {
+ *          if (!inputs.incremental)
+ *              project.delete(outputDir.listFiles())
+ *
  *          inputs.outOfDate { change ->
  *              def targetFile = project.file("$outputDir/${change.file.name}")
  *              targetFile.text = change.file.text.reverse()

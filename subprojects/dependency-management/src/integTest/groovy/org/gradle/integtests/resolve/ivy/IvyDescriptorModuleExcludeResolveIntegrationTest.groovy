@@ -191,12 +191,13 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         assertResolvedFiles(['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar'])
 
         where:
-        name                    | excludeAttributes
-        'non-matching module'   | [module: 'other']
-        'non-matching artifact' | [artifact: 'other']
-        'matching all modules'  | [module: '*']
-        'matching module'       | [module: 'd']
-        'matching artifact'     | [artifact: 'd']
+        name                     | excludeAttributes
+        'non-matching module'    | [module: 'other']
+        'non-matching artifact'  | [artifact: 'other']
+        'matching all modules'   | [module: '*']
+        'matching module'        | [module: 'd']
+        'matching all artifacts' | [artifact: '*']
+        'matching artifact'      | [artifact: 'd']
     }
 
     /**
@@ -224,12 +225,13 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         assertResolvedFiles(resolvedJars)
 
         where:
-        name                    | excludeAttributes   | resolvedJars
-        'non-matching module'   | [module: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'non-matching artifact' | [artifact: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching all modules'  | [module: '*']       | ['a-1.0.jar']
-        'matching module'       | [module: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'matching artifact'     | [artifact: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        name                     | excludeAttributes   | resolvedJars
+        'non-matching module'    | [module: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'non-matching artifact'  | [artifact: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'matching all modules'   | [module: '*']       | ['a-1.0.jar']
+        'matching all artifacts' | [artifact: '*']     | ['a-1.0.jar']
+        'matching module'        | [module: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'matching artifact'      | [artifact: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
     /**

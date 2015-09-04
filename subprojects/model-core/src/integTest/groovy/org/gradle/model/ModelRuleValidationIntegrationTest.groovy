@@ -23,11 +23,8 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
     def "invalid model name produces error message"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model(" ")
                     List<String> strings() {
                       []
@@ -43,18 +40,15 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyPlugin']")
-        failure.assertHasCause("Path of declared model element created by rule MyPlugin\$Rules#strings() is invalid.")
+        failure.assertHasCause("Path of declared model element created by rule MyPlugin.Rules#strings is invalid.")
         failure.assertHasCause("Model element name ' ' has illegal first character ' ' (names must start with an ASCII letter or underscore)")
     }
 
     def "model name can be at nested path"() {
         when:
         buildScript """
-            import org.gradle.model.*
-
             class MyPlugin {
-                @RuleSource
-                static class Rules {
+                static class Rules extends RuleSource {
                     @Model("foo. bar")
                     List<String> strings() {
                       []
@@ -70,7 +64,7 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyPlugin']")
-        failure.assertHasCause("Path of declared model element created by rule MyPlugin\$Rules#strings() is invalid.")
+        failure.assertHasCause("Path of declared model element created by rule MyPlugin.Rules#strings is invalid.")
         failure.assertHasCause("Model path 'foo. bar' is invalid due to invalid name component")
         failure.assertHasCause("Model element name ' bar' has illegal first character ' ' (names must start with an ASCII letter or underscore)")
     }

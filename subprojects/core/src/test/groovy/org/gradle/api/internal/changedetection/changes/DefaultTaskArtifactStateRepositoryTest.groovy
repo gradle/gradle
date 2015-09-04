@@ -28,8 +28,8 @@ import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.id.RandomLongIdGenerator
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.messaging.serialize.DefaultSerializerRegistry
-import org.gradle.messaging.serialize.SerializerRegistry
+import org.gradle.internal.serialize.DefaultSerializerRegistry
+import org.gradle.internal.serialize.SerializerRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
@@ -76,7 +76,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         inputFilesSnapshotter.registerSerializers(serializerRegistry);
         outputFilesSnapshotter.registerSerializers(serializerRegistry);
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(), new RandomLongIdGenerator()))
-        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, new DirectInstantiator(), outputFilesSnapshotter, inputFilesSnapshotter)
+        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, outputFilesSnapshotter, inputFilesSnapshotter)
     }
 
     def artifactsAreNotUpToDateWhenCacheIsEmpty() {

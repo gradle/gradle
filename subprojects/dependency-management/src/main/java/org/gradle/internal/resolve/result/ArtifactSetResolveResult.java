@@ -21,6 +21,9 @@ import org.gradle.internal.resolve.ArtifactResolveException;
 
 import java.util.Set;
 
+/**
+ * The result of resolving a set of artifacts that match some criteria.
+ */
 public interface ArtifactSetResolveResult extends ResolveResult {
     /**
      * Returns the resolve failure, if any.

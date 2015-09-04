@@ -14,139 +14,16 @@ This would involve adding support for dependency resolution, as well as for publ
 
 # Stories
 
-## Support an ivy repository declared with 'sftp' as the URL scheme, using password credentials
+## Support publishing to a Maven or Ivy SFTP repository using legacy publishing plugins
 
-This story allows an ivy repository to be declared with an 'sftp' scheme, with credentials supplied explicitly via the credentials DSL.
+## Support publishing to a Maven or Ivy AWS S3 repository using legacy publishing plugins
 
-### User visible changes
+## Make it easier to test a repository transport implementation
 
-Configuring a repository for sftp transport:
-
-    repositories {
-        ivy {
-            credentials {
-                username 'testuser'
-                password 'password'
-            }
-            url 'sftp://my.host.com/path/to/repo'
-            layout 'maven'
-        }
-        ivy {
-            credentials {
-                username 'testuser'
-                password 'password'
-            }
-            ivyPattern 'sftp://my.host.com:4444/path/to/repo/[module]/[revision]/ivy.xml'
-            artifactPattern 'sftp://my.host.com:4444/path/to/repo/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
-        }
-    }
-
-### Implementation
-
-- Add new `org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport` implementation for sftp.
-    - Provide implementations of `ExternalResourceAccessor`, `ExternalResourceLister` and `ExternalResourceUploader`
-    - Use a `PasswordCredentials` instance for authentication information.
-- Change `RepositoryTransportFactory` so that it provides a transport based on a set of schemes, and an optional `PasswordCredentials` instance.
-    - This will replace the logic in `org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository.createResolver`
-- Add support for the 'sftp' scheme to `RepositoryTransportFactory`
-
-### Test coverage
-
-Probably use the existing SFTPServer fixture for these, together with `IvyFileRepository` to configure and verify the repository content.
-
-- Resolve via 'sftp' from ivy repository.
-    - with default ivy layout
-    - with 'maven' layout, using group == 'org.group.name'
-    - with custom 'pattern' layout (with and without m2Compatible)
-    - with multiple `ivyPattern` and `artifactPattern` configured
-- Publish via 'sftp' to ivy repository
-    - with default ivy layout
-    - with 'maven' layout, using group == 'org.group.name'
-    - with custom 'pattern' layout (with and without m2Compatible)
-    - with multiple `ivyPattern` and `artifactPattern` configured
-- Resolve dynamic version from ivy repository with 'sftp'
-- Reasonable error message produced when:
-    - attempt to resolve missing module with valid credentials
-    - publish or resolve with invalid credentials
-    - publish or resolve where cannot connect to server
-    - publish or resolve where server throws exception
-
-Note that the coverage described for successful publish and resolve is greater than we currently have for HTTP or File transports.
-The plan will be to include this coverage for HTTP transport in a later story.
-
-### Open issues
-
-## Verify server interactions for 'sftp' publish and resolve
-
-### Implementation
-
-- Modify the `SFTPServer` fixture so that call expectations can be explicitly configured
-    - Extract a `RemoteServer` API with call expectation configuration out of `HttpServer`
-    - Extract `IvyRemoteRepository` and `IvyRemoteModule` out of `IvyHttp*`, such that they deal in terms of `RemoteServer`.
-- Adapt the 'sftp' integration test coverage to use `IvyRemoteRepository`, verifying the server interactions.
-- Adapt the 'sftp' integration tests so that they can be run against both sftp and http repository instances
-    - Multiple test subclasses would be sufficient.
-
-### Open issues
-
-- At the moment we can't differentiate between "password auth not supported" and "invalid credentials". 
-    - The ssh library we use (Jsch + underlaying apache sshd library) does not expose this information.
-- Add an `AbstractMultiTestRunner` implementation to permit a test to be run with different repository transports.
-
-## Support resolving from a maven repository declared with 'sftp' as the URL scheme, using password credentials
-
-### User visible changes
-
-Configuring a repository for sftp transport:
-
-    repositories {
-        maven {
-            credentials {
-                username 'testuser'
-                password 'password'
-            }
-            url 'sftp://my.host.com/path/to/repo'
-        }
-    }
-
-### Test cases
-
-In many cases, this may be a matter of adapting existing test coverage to run against multiple transports.
-
-- Resolve via 'sftp' from maven repository.
-- Resolve dynamic version from maven repository with 'sftp'
-- Reasonable error message produced when:
-    - attempt to resolve missing module with valid credentials
-    - resolve with invalid credentials
-    - resolve where cannot connect to server
-    - resolve where server throws exception
-
-## Support publishing to a maven repository declared with 'sftp' as the URL scheme, using password credentials
-
-### Test cases
-
-In many cases, this may be a matter of adapting existing test coverage to run against multiple transports.
-
-- Un `@Ignore` `MavenPublishSftpIntegrationTest`.
-- Publish via 'sftp' to maven repository (old and new plugins)
-- Reasonable error message produced when:
-    - publish with invalid credentials
-    - publish where cannot connect to server
-    - publish where server throws exception
-
-## Run more remote publish and resolve integration tests against an sftp repository
-
-Adapt more existing test coverage to execute against an 'sftp' repository:
-
-- Most of the tests in `org.gradle.integtests.resolve.ivy`
-- Most of the tests in `org.gradle.integtests.resolve.maven`
-- `org.gradle.api.publish.ivy.IvyPublishHttpIntegTest`
-- `org.gradle.api.publish.ivy.IvyPublishMultipleRepositoriesIntegTest`
-- `org.gradle.api.publish.maven.MavenPublishHttpIntegTest`
-
-## All repository transports support using `sha1` resources to avoid downloads
-
-Currently only the HTTP transports support using for a `.sha1` resource.
+- Introduce an integration test suite that tests ResourceConnector directly: run the tests against each ResourceConnector implementation.
+    - Each resource connector project will provide a fixture that allows it to be executed against the ResourceConnector test suite
+    - Should include specific transport tests, together with some publish/resolve smoke tests
+- Remove coverage of different transports from dependency management integration suite
 
 ## Support 'scp' scheme for ivy and maven repository URL
 
@@ -155,9 +32,9 @@ Currently only the HTTP transports support using for a `.sha1` resource.
 Provide some way in the repository DSL to specify that public key authentication be used for any transport that
 supports it. For sftp and scp, provide a way to use the user's SSH settings.
 
-## Apply build scripts from an sftp/scp URL
+## Apply build scripts from an sftp/scp/s3 URL
 
-Generalise the repository transports so that they can be reused to download build scripts. This will add sftp/scp support.
+Generalise the repository transports so that they can be reused to download build scripts. This will add sftp/scp/s3 support.
 
 * Add some way to provide credentials, possibly by modelling as a plugin repository.
 
@@ -176,4 +53,6 @@ use a remote resource that requires authentication, and where no credentials hav
 ## Prompt IDE user for credentials when not provided
 
 Allow tooling API clients to provide a credentials provider. This will allow IDE integrations to prompt the user for and manage their credentials.
+
+## org.gradle.api.resources.Resource implementation backed by transport infrastructure
 

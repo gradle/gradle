@@ -85,6 +85,11 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return this
     }
 
+    @Override
+    MavenModule dependsOn(MavenModule module) {
+        return dependsOn(module.groupId, module.artifactId, module.version)
+    }
+
     MavenModule dependsOn(String group, String artifactId, String version, String type = null) {
         this.dependencies << [groupId: group, artifactId: artifactId, version: version, type: type]
         return this
@@ -163,24 +168,25 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
      * Asserts that exactly the given artifacts have been deployed, along with their checksum files
      */
     void assertArtifactsPublished(String... names) {
-        def artifactNames = names as Set
-        if (publishesMetaDataFile()) {
-            artifactNames.add(MAVEN_METADATA_FILE)
+        Set allFileNames = []
+        for (name in names) {
+            allFileNames.addAll([name, "${name}.sha1", "${name}.md5"])
         }
-        assert moduleDir.isDirectory()
-        Set actual = moduleDir.list() as Set
-        for (name in artifactNames) {
-            assert actual.remove(name)
 
-            if(publishesHashFiles()) {
-                assert actual.remove("${name}.md5" as String)
-                assert actual.remove("${name}.sha1" as String)
-            }
+        assert moduleDir.list() as Set == allFileNames
+        for (name in names) {
+            assertChecksumsPublishedFor(moduleDir.file(name))
         }
-        assert actual.isEmpty()
     }
 
-    //abstract String getPublishArtifactVersion()
+    void assertChecksumsPublishedFor(TestFile testFile) {
+        def sha1File = sha1File(testFile)
+        sha1File.assertIsFile()
+        assert new BigInteger(sha1File.text, 16) == getHash(testFile, "SHA1")
+        def md5File = md5File(testFile)
+        md5File.assertIsFile()
+        assert new BigInteger(md5File.text, 16) == getHash(testFile, "MD5")
+    }
 
     MavenPom getParsedPom() {
         return new MavenPom(pomFile)

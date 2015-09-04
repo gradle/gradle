@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.typeconversion.*;
 
@@ -24,7 +25,6 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,11 +46,12 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
                 .toComposite();
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("A String or CharSequence path, e.g 'src/main/java' or '/usr/include'");
-        candidateFormats.add("A String or CharSequence URI, e.g 'file:/usr/include'");
-        candidateFormats.add("A File instance.");
-        candidateFormats.add("A URI or URL instance.");
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("A String or CharSequence path").example("'src/main/java' or '/usr/include'");
+        visitor.candidate("A String or CharSequence URI").example("'file:/usr/include'");
+        visitor.candidate("A File instance.");
+        visitor.candidate("A URI or URL instance.");
     }
 
     public void convert(Object notation, NotationConvertResult<? super Object> result) throws TypeConversionException {

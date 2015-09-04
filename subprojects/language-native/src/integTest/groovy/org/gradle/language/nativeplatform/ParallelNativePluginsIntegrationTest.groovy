@@ -22,6 +22,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
 import org.gradle.nativeplatform.fixtures.app.*
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
@@ -31,7 +32,8 @@ import spock.lang.IgnoreIf
 class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
-        executer.withArgument("--parallel-threads=4")
+        executer.withArgument("--parallel")
+                .withArgument("--max-workers=4")
                 .withArgument("-D${DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE}=true")
     }
 
@@ -75,6 +77,7 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @LeaksFileHandles("can't delete build/install/firstMainExecutable/lib")
     def "can produce multiple executables that use a library from a single project in parallel"() {
         given:
         Map<String, ExeWithLibraryUsingLibraryHelloWorldApp> apps = [

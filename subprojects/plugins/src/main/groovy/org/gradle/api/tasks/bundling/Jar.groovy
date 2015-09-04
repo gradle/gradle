@@ -17,9 +17,17 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.tasks.ParallelizableTask
+
 /**
  * Assembles a JAR archive.
  */
 @ParallelizableTask
 public class Jar extends org.gradle.jvm.tasks.Jar {
+
+    @Override
+    Jar manifest(Closure<?> configureClosure) {
+        super.manifest(configureClosure)
+        return this;
+    }
+
 }

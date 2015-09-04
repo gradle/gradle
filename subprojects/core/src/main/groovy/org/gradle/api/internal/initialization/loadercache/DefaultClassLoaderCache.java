@@ -16,103 +16,169 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.net.URLClassLoader;
-import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache {
 
-    public int getSize() {
-        return storage.size();
+    private final Object lock = new Object();
+    private final Map<ClassLoaderId, CachedClassLoader> byId = Maps.newHashMap();
+    private final Map<ClassLoaderSpec, CachedClassLoader> bySpec = Maps.newHashMap();
+    private final ClassPathSnapshotter snapshotter;
+
+    public DefaultClassLoaderCache(ClassPathSnapshotter snapshotter) {
+        this.snapshotter = snapshotter;
     }
 
-    public static class Key {
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec) {
+        ClassPathSnapshot classPathSnapshot = snapshotter.snapshot(classPath);
+        ClassLoaderSpec spec = new ClassLoaderSpec(parent, classPathSnapshot, filterSpec);
+
+        synchronized (lock) {
+            CachedClassLoader cachedLoader = byId.get(id);
+            if (cachedLoader == null || !cachedLoader.is(spec)) {
+                CachedClassLoader newLoader = getAndRetainLoader(classPath, spec, id);
+                byId.put(id, newLoader);
+
+                if (cachedLoader != null) {
+                    cachedLoader.release(id);
+                }
+
+                return newLoader.classLoader;
+            } else {
+                return cachedLoader.classLoader;
+            }
+        }
+    }
+
+    @Override
+    public void remove(ClassLoaderId id) {
+        CachedClassLoader cachedClassLoader = byId.remove(id);
+        if (cachedClassLoader != null) {
+            cachedClassLoader.release(id);
+        }
+    }
+
+    private CachedClassLoader getAndRetainLoader(ClassPath classPath, ClassLoaderSpec spec, ClassLoaderId id) {
+        CachedClassLoader cachedLoader = bySpec.get(spec);
+        if (cachedLoader == null) {
+            ClassLoader classLoader;
+            CachedClassLoader parentCachedLoader = null;
+            if (spec.isFiltered()) {
+                parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
+                classLoader = new FilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
+            } else {
+                classLoader = new URLClassLoader(classPath.getAsURLArray(), spec.parent);
+            }
+            cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
+            bySpec.put(spec, cachedLoader);
+        }
+
+        return cachedLoader.retain(id);
+    }
+
+    @Override
+    public int size() {
+        return bySpec.size();
+    }
+
+    private static class ClassLoaderSpec {
         private final ClassLoader parent;
         private final ClassPathSnapshot classPathSnapshot;
         private final FilteringClassLoader.Spec filterSpec;
 
-        private Key(ClassLoader parent, ClassPathSnapshot classPathSnapshot, FilteringClassLoader.Spec filterSpec) {
+        public ClassLoaderSpec(ClassLoader parent, ClassPathSnapshot classPathSnapshot, FilteringClassLoader.Spec filterSpec) {
             this.parent = parent;
             this.classPathSnapshot = classPathSnapshot;
             this.filterSpec = filterSpec;
         }
 
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            Key key = (Key) o;
-
-            if (!classPathSnapshot.equals(key.classPathSnapshot)) {
-                return false;
-            }
-            if (filterSpec != null ? !filterSpec.equals(key.filterSpec) : key.filterSpec != null) {
-                return false;
-            }
-            return Objects.equal(parent, key.parent);
+        public ClassLoaderSpec unfiltered() {
+            return new ClassLoaderSpec(parent, classPathSnapshot, null);
         }
 
+        public boolean isFiltered() {
+            return filterSpec != null;
+        }
+
+        @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+        @Override
+        public boolean equals(Object o) {
+            ClassLoaderSpec that = (ClassLoaderSpec) o;
+            return Objects.equal(this.parent, that.parent)
+                    && this.classPathSnapshot.equals(that.classPathSnapshot)
+                    && Objects.equal(this.filterSpec, that.filterSpec);
+        }
+
+        @Override
         public int hashCode() {
-            int result = parent == null ? 0 : parent.hashCode();
-            result = 31 * result + classPathSnapshot.hashCode();
+            int result = classPathSnapshot.hashCode();
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
+            result = 31 * result + (parent != null ? parent.hashCode() : 0);
             return result;
         }
     }
 
-    private final Map<Key, ClassLoader> storage;
-    private final Map<ClassLoaderId, Key> idCache = new HashMap<ClassLoaderId, Key>(); //needed for correct invalidation of stale classloaders
-    final ClassPathSnapshotter snapshotter;
-    private final Object lock = new Object();
+    private class CachedClassLoader {
+        private final ClassLoader classLoader;
+        private final ClassLoaderSpec spec;
+        private final CachedClassLoader parent;
+        private final Multiset<ClassLoaderId> usedBy = HashMultiset.create();
 
-    public DefaultClassLoaderCache(Map<Key, ClassLoader> storage) {
-        this(storage, new FileClassPathSnapshotter());
-    }
+        private CachedClassLoader(ClassLoader classLoader, ClassLoaderSpec spec, @Nullable CachedClassLoader parent) {
+            this.classLoader = classLoader;
+            this.spec = spec;
+            this.parent = parent;
+        }
 
-    public DefaultClassLoaderCache(Map<Key, ClassLoader> storage, ClassPathSnapshotter snapshotter) {
-        this.storage = storage;
-        this.snapshotter = snapshotter;
-    }
+        public boolean is(ClassLoaderSpec spec) {
+            return this.spec.equals(spec);
+        }
 
-    public ClassLoader get(final ClassLoaderId id, final ClassPath classPath, final ClassLoader parent, @Nullable final FilteringClassLoader.Spec filterSpec) {
-        ClassPathSnapshot s = snapshotter.snapshot(classPath);
-        Key key = new Key(parent, s, filterSpec);
+        public CachedClassLoader retain(ClassLoaderId loaderId) {
+            usedBy.add(loaderId);
+            return this;
+        }
 
-        synchronized (lock) {
-            //if the classloader with given id is already cached
-            //invalidate it when the key does not match (e.g. when the classpath or parent has changed)
-            invalidateStaleEntries(id, key);
+        public void release(ClassLoaderId loaderId) {
+            if (usedBy.isEmpty()) {
+                throw new IllegalStateException("Cannot release already released classloader: " + classLoader);
+            }
 
-            ClassLoader existingLoader = storage.get(key);
-            if (existingLoader != null) {
-                idCache.put(id, key);
-                return existingLoader;
+            if (usedBy.remove(loaderId)) {
+                if (usedBy.isEmpty()) {
+                    if (parent != null) {
+                        parent.release(loaderId);
+                    }
+                    bySpec.remove(spec);
+                }
             } else {
-                ClassLoader newLoader = (filterSpec == null) ? new URLClassLoader(classPath.getAsURLArray(), parent) : new FilteringClassLoader(get(id, classPath, parent, null), filterSpec);
-                storage.put(key, newLoader);
-                return newLoader;
+                throw new IllegalStateException("Classloader '" + this + "' not used by '" + loaderId + "'");
             }
         }
     }
 
-    private void invalidateStaleEntries(ClassLoaderId id, Key key) {
-        Key existingKey = idCache.get(id);
-        if (existingKey == null) {
-            //we haven't yet served classloader with this identifier (or it was previously invalidated)
-            idCache.put(id, key); //remember the id
-        } else if (!existingKey.equals(key)) {
-            //we have already served classloader with this id but the key has changed - invalidate this classloader
-            idCache.put(id, key); //refresh the id
-            storage.remove(existingKey); //invalidate stale entry
+    // Used in org.gradle.api.internal.initialization.loadercache.ClassLoadersCachingIntegrationTest
+    @SuppressWarnings("UnusedDeclaration")
+    public void assertInternalIntegrity() {
+        Map<ClassLoaderId, CachedClassLoader> orphaned = Maps.newHashMap();
+        for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : byId.entrySet()) {
+            if (!bySpec.containsKey(entry.getValue().spec)) {
+                orphaned.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        if (!orphaned.isEmpty()) {
+            throw new IllegalStateException("The following class loaders are orphaned: " + Joiner.on(",").withKeyValueSeparator(":").join(orphaned));
         }
     }
 }

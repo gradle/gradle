@@ -32,8 +32,8 @@ import spock.lang.Specification
 import java.util.logging.Logger
 
 class LoggingServiceRegistryTest extends Specification {
-    final TestAppender appender = new TestAppender()
-    @Rule ConfigureLogging logging = new ConfigureLogging(appender)
+    final TestOutputEventListener outputEventListener = new TestOutputEventListener()
+    @Rule ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     @Rule RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
 
     def providesALoggingManagerFactory() {
@@ -82,7 +82,7 @@ class LoggingServiceRegistryTest extends Specification {
         logger.warn("before")
 
         then:
-        appender.toString() == '[WARN before]'
+        outputEventListener.toString() == '[WARN before]'
 
         when:
         loggingManager.level = LogLevel.INFO
@@ -91,7 +91,7 @@ class LoggingServiceRegistryTest extends Specification {
         logger.warn("warning")
 
         then:
-        appender.toString() == '[WARN before]'
+        outputEventListener.toString() == '[WARN before]'
     }
 
     def routesSlf4jToListenersWhenStarted() {

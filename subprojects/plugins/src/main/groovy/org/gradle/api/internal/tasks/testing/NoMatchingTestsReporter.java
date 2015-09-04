@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.GradleException;
+import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
@@ -32,7 +32,7 @@ public class NoMatchingTestsReporter implements TestListener {
 
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (suite.getParent() == null && result.getTestCount() == 0) {
-            throw new GradleException(message);
+            throw new TestExecutionException(message);
         }
     }
 

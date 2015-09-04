@@ -23,7 +23,7 @@ import java.io.File;
 
 public class DefaultMavenFileLocations implements MavenFileLocations {
     public File getUserMavenDir() {
-        return new File(SystemProperties.getUserHome(), ".m2");
+        return new File(SystemProperties.getInstance().getUserHome(), ".m2");
     }
 
     @Nullable

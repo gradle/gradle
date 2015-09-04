@@ -23,7 +23,6 @@ import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.DependencyToComponentResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -32,17 +31,13 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 /**
  * Used as a fallback when no repositories are defined for a given resolution.
  */
-public class NoRepositoriesResolver implements RepositoryChain, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+public class NoRepositoriesResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
     public DependencyToComponentIdResolver getComponentIdResolver() {
         return this;
     }
 
-    public ComponentMetaDataResolver getComponentMetaDataResolver() {
+    public ComponentMetaDataResolver getComponentResolver() {
         return this;
-    }
-
-    public DependencyToComponentResolver getDependencyResolver() {
-        throw new UnsupportedOperationException();
     }
 
     public ArtifactResolver getArtifactResolver() {
@@ -50,10 +45,10 @@ public class NoRepositoriesResolver implements RepositoryChain, DependencyToComp
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
-        result.failed(new ModuleVersionNotFoundException(dependency.getRequested(), "Cannot resolve external dependency %s because no repositories are defined."));
+        result.failed(new ModuleVersionNotFoundException(dependency.getRequested(), String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getRequested())));
     }
 
-    public void resolve(DependencyMetaData dependency, ComponentIdentifier identifier, BuildableComponentResolveResult result) {
+    public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         throw new UnsupportedOperationException();
     }
 

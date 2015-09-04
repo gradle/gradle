@@ -23,8 +23,14 @@ public class PublishServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(ProjectDependencyPublicationResolver.class);
+    }
+
+    public void registerGradleServices(ServiceRegistration registration) {
     }
 
     public void registerProjectServices(ServiceRegistration registration) {

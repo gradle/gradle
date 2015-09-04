@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.deps
 
-import org.gradle.messaging.serialize.InputStreamBackedDecoder
-import org.gradle.messaging.serialize.OutputStreamBackedEncoder
+import org.gradle.internal.serialize.InputStreamBackedDecoder
+import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 import spock.lang.Subject
 

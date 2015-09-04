@@ -10,7 +10,7 @@
             </thead>
             <tr>
                 <td>toolVersion</td>
-                <td><literal>5.5</literal></td>
+                <td><literal>5.9</literal></td>
             </tr>
             <tr>
                 <td>reportsDir</td>

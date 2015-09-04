@@ -35,7 +35,7 @@ class BuildLayoutParametersTest extends Specification {
         def params = new BuildLayoutParameters()
         params.searchUpwards
         params.gradleUserHomeDir == canonicalise(BuildLayoutParameters.DEFAULT_GRADLE_USER_HOME)
-        params.currentDir == canonicalise(SystemProperties.getCurrentDir())
+        params.currentDir == canonicalise(SystemProperties.instance.getCurrentDir())
         params.projectDir == null
         params.searchDir == params.currentDir
     }

@@ -19,11 +19,10 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
-
-import java.util.Collection;
 
 public class DependencyProjectNotationConverter implements NotationConverter<Project, ProjectDependency> {
 
@@ -33,8 +32,9 @@ public class DependencyProjectNotationConverter implements NotationConverter<Pro
         this.factory = factory;
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Projects, e.g. project(':some:project:path').");
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("Projects").example("project(':some:project:path')");
     }
 
     public void convert(Project notation, NotationConvertResult<? super ProjectDependency> result) throws TypeConversionException {

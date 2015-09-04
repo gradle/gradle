@@ -63,7 +63,22 @@ class JavaReflectionUtilTest extends Specification {
 
     def "read property"() {
         expect:
-        readableProperty(JavaTestSubject, "myProperty").getValue(myProperties) == "myValue"
+        readableProperty(JavaTestSubject, String, "myProperty").getValue(myProperties) == "myValue"
+    }
+
+    def "read property using instance"() {
+        expect:
+        readableProperty(myProperties, String, "myProperty").getValue(myProperties) == "myValue"
+    }
+
+    def "read field" () {
+        expect:
+        readableField(JavaTestSubject, String, "myField").getValue(myProperties) == "myFieldValue"
+    }
+
+    def "read field using instance" () {
+        expect:
+        readableField(myProperties, String, "myField").getValue(myProperties) == "myFieldValue"
     }
 
     def "write property"() {
@@ -71,25 +86,47 @@ class JavaReflectionUtilTest extends Specification {
         writeableProperty(JavaTestSubject, "myProperty").setValue(myProperties, "otherValue")
 
         then:
-        readableProperty(JavaTestSubject, "myProperty").getValue(myProperties) == "otherValue"
+        readableProperty(JavaTestSubject, String, "myProperty").getValue(myProperties) == "otherValue"
     }
 
     def "read boolean property"() {
         expect:
-        readableProperty(JavaTestSubject, "myBooleanProperty").getValue(myProperties) == true
+        readableProperty(JavaTestSubject, Boolean, "myBooleanProperty").getValue(myProperties) == true
     }
+
+    def "read boolean field" () {
+        expect:
+        readableField(JavaTestSubject, Boolean, "myBooleanField").getValue(myProperties) == true
+    }
+
+    def "set boolean field" () {
+        when:
+        writeableField(JavaTestSubject, "myBooleanField").setValue(myProperties, false)
+
+        then:
+        readableField(JavaTestSubject, Boolean, "myBooleanField").getValue(myProperties) == false
+    }
+
+    def "cannot set value on non public fields"(){
+        when:
+        writeableField(JavaTestSubject, "myBooleanProperty").setValue(myProperties, false)
+
+        then:
+        thrown(NoSuchPropertyException);
+    }
+
 
     def "write boolean property"() {
         when:
         writeableProperty(JavaTestSubject, "myBooleanProperty").setValue(myProperties, false)
 
         then:
-        readableProperty(JavaTestSubject, "myBooleanProperty").getValue(myProperties) == false
+        readableProperty(JavaTestSubject, Boolean, "myBooleanProperty").getValue(myProperties) == false
     }
 
     def "cannot read property that doesn't have a well formed getter"() {
         when:
-        readableProperty(JavaTestSubject, property)
+        readableProperty(JavaTestSubject, String, property)
 
         then:
         NoSuchPropertyException e = thrown()
@@ -107,7 +144,7 @@ class JavaReflectionUtilTest extends Specification {
 
     def "cannot read property that is not public"() {
         when:
-        readableProperty(JavaTestSubject, property)
+        readableProperty(JavaTestSubject, String, property)
 
         then:
         NoSuchPropertyException e = thrown()
@@ -159,6 +196,21 @@ class JavaReflectionUtilTest extends Specification {
 
         then:
         method(myProperties.class, String, "getMyProperty").invoke(myProperties) == "foo"
+    }
+
+    def "call static methods successfully reflectively" () {
+        when:
+        staticMethod(myProperties.class, Void, "setStaticProperty", String.class).invokeStatic("foo")
+
+        then:
+        staticMethod(myProperties.class, String, "getStaticProperty").invokeStatic() == "foo"
+    }
+
+    def "static methods are identifiable" () {
+        expect:
+        staticMethod(myProperties.class, Void, "setStaticProperty", String.class).isStatic()
+        staticMethod(myProperties.class, String, "getStaticProperty").isStatic()
+        method(myProperties.class, String, "getMyProperty").isStatic() == false
     }
 
     def "call failing methods reflectively"() {
@@ -238,7 +290,7 @@ class JavaReflectionUtilTest extends Specification {
     }
 
     def "new instance"() {
-        def instantiator = new DirectInstantiator()
+        def instantiator = DirectInstantiator.INSTANCE
 
         expect:
         factory(instantiator, Thing).create().name == null
@@ -246,6 +298,18 @@ class JavaReflectionUtilTest extends Specification {
         !factory(instantiator, Thing).create().is(factory(instantiator, Thing).create())
     }
 
+    def "default toString methods"() {
+        expect:
+        hasDefaultToString(clazz)
+
+        where:
+        clazz << [new Object(), new Root()]
+    }
+
+    def "should not have a default toString"() {
+        expect:
+        !hasDefaultToString(new ClassWithToString())
+    }
 }
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -287,3 +351,10 @@ class OverrideLast implements RootInterface, SubInterface, HasAnnotations {}
 class SuperWithInterface implements RootInterface {}
 
 class InheritsInterface extends SuperWithInterface {}
+
+class ClassWithToString {
+    @Override
+    public String toString() {
+        return "ClassWithToString{}";
+    }
+}

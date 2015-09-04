@@ -16,14 +16,14 @@
 package org.gradle.internal.nativeintegration.filesystem.services
 
 import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.TestAppender
+import org.gradle.logging.TestOutputEventListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class UnsupportedFilePermissionsTest extends Specification {
-    def appender = new TestAppender()
-    @Rule ConfigureLogging logging = new ConfigureLogging(appender)
+    def outputEventListener = new TestOutputEventListener()
+    @Rule ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def permissions = new UnsupportedFilePermissions()
 
@@ -33,7 +33,7 @@ class UnsupportedFilePermissionsTest extends Specification {
         permissions.getUnixMode(tmpDir.createDir("dir"))
 
         then:
-        appender.toString() == '[WARN Support for reading or changing file permissions is only available on this platform using Java 7 or later.]'
+        outputEventListener.toString() == '[WARN Support for reading or changing file permissions is only available on this platform using Java 7 or later.]'
     }
 
     def "warns on first attempt to chmod a file"() {
@@ -42,7 +42,7 @@ class UnsupportedFilePermissionsTest extends Specification {
         permissions.chmod(tmpDir.createDir("dir"), 0644)
 
         then:
-        appender.toString() == '[WARN Support for reading or changing file permissions is only available on this platform using Java 7 or later.]'
+        outputEventListener.toString() == '[WARN Support for reading or changing file permissions is only available on this platform using Java 7 or later.]'
     }
 
     def "warns at most once"() {
@@ -52,6 +52,6 @@ class UnsupportedFilePermissionsTest extends Specification {
         permissions.getUnixMode(tmpDir.createFile("file"))
 
         then:
-        appender.toString() == '[WARN Support for reading or changing file permissions is only available on this platform using Java 7 or later.]'
+        outputEventListener.toString() == '[WARN Support for reading or changing file permissions is only available on this platform using Java 7 or later.]'
     }
 }

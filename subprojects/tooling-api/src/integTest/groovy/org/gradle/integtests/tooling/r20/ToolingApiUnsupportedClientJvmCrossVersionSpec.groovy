@@ -44,7 +44,7 @@ repositories {
 
 dependencies {
     compile "org.gradle:gradle-tooling-api:${GradleVersion.current().version}"
-    runtime 'org.slf4j:slf4j-simple:1.7.7'
+    runtime 'org.slf4j:slf4j-simple:1.7.10'
 }
 
 mainClassName = 'TestClient'

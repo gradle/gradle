@@ -22,7 +22,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ResolvableDependencies
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.internal.Factory
@@ -84,17 +84,14 @@ class EnvJsPlugin implements Plugin<Project> {
 
     Configuration addConfiguration(ConfigurationContainer configurations, DependencyHandler dependencies, EnvJsExtension extension) {
         Configuration configuration = configurations.create(EnvJsExtension.CONFIGURATION_NAME)
-        configuration.incoming.beforeResolve(new Action<ResolvableDependencies>() {
-            void execute(ResolvableDependencies resolvableDependencies) {
-                if (configuration.dependencies.empty) {
-                    String notation = "${DEFAULT_DEPENDENCY_GROUP}:${DEFAULT_DEPENDENCY_MODULE}:${extension.version}@js"
-                    Dependency dependency = dependencies.create(notation)
-                    configuration.dependencies.add(dependency)
-                }
+        configuration.defaultDependencies(new Action<DependencySet>() {
+            @Override
+            void execute(DependencySet configDependencies) {
+                String notation = "${DEFAULT_DEPENDENCY_GROUP}:${DEFAULT_DEPENDENCY_MODULE}:${extension.version}@js"
+                Dependency dependency = dependencies.create(notation)
+                configDependencies.add(dependency)
             }
         })
         configuration
-
-
     }
 }

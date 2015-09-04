@@ -44,9 +44,9 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
         failure.assertHasCause("""Cannot convert the provided notation to a String: [].
 The following types/formats are supported:
-  - String or CharSequence instances e.g. 'some/path'
-  - Boolean values e.g. true, Boolean.TRUE
-  - Number values e.g. 42, 3.14
+  - String or CharSequence instances, for example 'some/path'.
+  - Boolean values, for example true, Boolean.TRUE.
+  - Number values, for example 42, 3.14.
   - A File instance
   - A Closure that returns any supported value.
   - A Callable that returns any supported value.""")

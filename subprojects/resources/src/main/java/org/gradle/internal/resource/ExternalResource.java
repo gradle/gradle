@@ -37,13 +37,6 @@ public interface ExternalResource extends Closeable {
     public String getName();
 
     /**
-     * Get the resource size
-     *
-     * @return a <code>long</code> value representing the size of the resource in bytes.
-     */
-    public long getContentLength();
-
-    /**
      * Is this resource local to this host, i.e. is it on the file system?
      *
      * @return <code>boolean</code> value indicating if the resource is local.
@@ -52,28 +45,52 @@ public interface ExternalResource extends Closeable {
 
     /**
      * Copies the contents of this resource to the given file.
+     *
+     * @throws ResourceException on failure to copy the content.
      */
-    void writeTo(File destination) throws IOException;
+    void writeTo(File destination) throws ResourceException;
 
     /**
-     * Copies the contents of this resource to the given stream. Does not close the stream.
+     * Copies the binary contents of this resource to the given stream. Does not close the provided stream.
+     *
+     * @throws ResourceException on failure to copy the content.
      */
-    void writeTo(OutputStream destination) throws IOException;
+    void writeTo(OutputStream destination) throws ResourceException;
 
     /**
-     * Executes the given action against the contents of this resource.
+     * Executes the given action against the binary contents of this resource.
+     *
+     * @throws ResourceException on failure to read the content.
+     * @throws ResourceNotFoundException when the resource does not exist
      */
-    void withContent(Action<? super InputStream> readAction) throws IOException;
+    void withContent(Action<? super InputStream> readAction) throws ResourceException;
 
     /**
-     * Executes the given action against the contents of this resource.
+     * Executes the given action against the binary contents of this resource.
+     *
+     * @throws ResourceException on failure to read the content.
+     * @throws ResourceNotFoundException when the resource does not exist
      */
-    <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws IOException;
+    <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
 
-    void close() throws IOException;
+    /**
+     * Executes the given action against the binary contents and meta-data of this resource.
+     * Generally, this method will be less efficient than one of the other {@code withContent} methods that do
+     * not provide the meta-data, as additional requests may need to be made to obtain the meta-data.
+     *
+     * @throws ResourceException on failure to read the content.
+     * @throws ResourceNotFoundException when the resource does not exist
+     */
+    <T> T withContent(ContentAction<? extends T> readAction) throws ResourceException;
+
+    void close() throws ResourceException;
 
     /**
      * Returns the meta-data for this resource.
      */
     ExternalResourceMetaData getMetaData();
+
+    interface ContentAction<T> {
+        T execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException;
+    }
 }

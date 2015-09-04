@@ -45,12 +45,8 @@ public class AssemblerLangPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<AssemblerSourceSet> builder) {
             builder.setLanguageName("asm");

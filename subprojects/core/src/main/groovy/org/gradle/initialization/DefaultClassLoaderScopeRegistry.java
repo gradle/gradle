@@ -26,8 +26,8 @@ public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry
     private final ClassLoaderScope coreScope;
 
     public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry, ClassLoaderCache classLoaderCache) {
-        this.coreScope = new RootClassLoaderScope(loaderRegistry.getGradleCoreApiClassLoader(), classLoaderCache);
-        this.coreAndPluginsScope = new RootClassLoaderScope(loaderRegistry.getGradleApiClassLoader(), classLoaderCache);
+        this.coreScope = new RootClassLoaderScope(loaderRegistry.getRuntimeClassLoader(), loaderRegistry.getGradleCoreApiClassLoader(), classLoaderCache);
+        this.coreAndPluginsScope = new RootClassLoaderScope(loaderRegistry.getPluginsClassLoader(), loaderRegistry.getGradleApiClassLoader(), classLoaderCache);
     }
 
     public ClassLoaderScope getCoreAndPluginsScope() {

@@ -17,10 +17,18 @@
 package org.gradle.nativeplatform.test.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.nativeplatform.internal.AbstractNativeBinaryRenderer;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 
+import javax.inject.Inject;
+
 public class NativeTestSuiteBinaryRenderer extends AbstractNativeBinaryRenderer<NativeTestSuiteBinarySpec> {
+    @Inject
+    public NativeTestSuiteBinaryRenderer(ModelSchemaStore schemaStore) {
+        super(schemaStore);
+    }
+
     @Override
     public Class<NativeTestSuiteBinarySpec> getTargetType() {
         return NativeTestSuiteBinarySpec.class;

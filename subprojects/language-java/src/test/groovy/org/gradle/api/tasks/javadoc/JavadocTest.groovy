@@ -61,7 +61,7 @@ public class JavadocTest extends Specification {
         task.execute();
 
         then:
-        1 * toolChain.select(null) >> toolProvider
+        1 * toolChain.select(_) >> toolProvider
         1 * toolProvider.newCompiler(!null) >> generator
         1 * generator.execute(_)
     }
@@ -77,7 +77,7 @@ public class JavadocTest extends Specification {
         task.execute()
 
         then:
-        1 * toolChain.select(null) >> toolProvider
+        1 * toolChain.select(_) >> toolProvider
         1 * toolProvider.newCompiler(!null) >> generator
         1 * generator.execute(_)
     }
@@ -91,7 +91,7 @@ public class JavadocTest extends Specification {
         task.execute();
 
         then:
-        1 * toolChain.select(null) >> toolProvider
+        1 * toolChain.select(_) >> toolProvider
         1 * toolProvider.newCompiler(!null) >> generator
         1 * generator.execute(_)
 

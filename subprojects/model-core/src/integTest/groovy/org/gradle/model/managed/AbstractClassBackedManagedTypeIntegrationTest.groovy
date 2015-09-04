@@ -23,24 +23,20 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
     def "rule can provide a managed model element backed by an abstract class"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             abstract class Person {
                 abstract String getName()
                 abstract void setName(String name)
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                     person.name = "foo"
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                void addPersonTask(ModelMap<Task> tasks, Person person) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $person.name"
@@ -62,9 +58,6 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
     def "managed type implemented as abstract class can have generative getters"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             @Managed
             abstract class Person {
                 abstract String getFirstName()
@@ -77,8 +70,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
             }
 
-            @RuleSource
-            class RulePlugin {
+            class RulePlugin extends RuleSource {
                 @Model
                 void createPerson(Person person) {
                     person.firstName = "Alan"
@@ -86,7 +78,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
                 }
 
                 @Mutate
-                void addPersonTask(CollectionBuilder<Task> tasks, Person person) {
+                void addPersonTask(ModelMap<Task> tasks, Person person) {
                     tasks.create("echo") {
                         it.doLast {
                             println "name: $person.name"
@@ -104,4 +96,190 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
         and:
         output.contains("name: Alan Turing")
     }
+
+    def "managed type implemented as abstract class can have a custom toString() implementation"() {
+        when:
+        buildScript '''
+            @Managed
+            abstract class CustomToString {
+                abstract String getStringRepresentation()
+                abstract void setStringRepresentation(String representation)
+
+                String toString() {
+                    stringRepresentation
+                }
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void createElement(CustomToString element) {
+                    element.stringRepresentation = "custom string representation"
+                }
+
+                @Mutate
+                void addEchoTask(ModelMap<Task> tasks, CustomToString element) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "element: ${element.toString()}"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("element: custom string representation")
+    }
+
+    def "calling setters from custom toString() implementation is not allowed"() {
+        when:
+        buildFile << '''
+            @Managed
+            abstract class CustomToStringCallingSetter {
+                abstract String getStringRepresentation()
+                abstract void setStringRepresentation(String representation)
+
+                String toString() {
+                    stringRepresentation = "foo"
+                }
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void createModelElementCallingSetterInCustomToString(CustomToStringCallingSetter element) {
+                }
+
+                @Mutate
+                void addEchoTask(ModelMap<Task> tasks, CustomToStringCallingSetter element) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "element: ${element.toString()}"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails 'echo'
+
+        and:
+        failure.assertHasCause("Calling setters of a managed type on itself is not allowed")
+    }
+
+    private void defineCallsSetterInNonAbstractGetterClass() {
+        buildFile << '''
+            @Managed
+            abstract class CallsSetterInNonAbstractGetter {
+                abstract String getName()
+                abstract void setName(String name)
+
+                String getInvalidGenerativeProperty() {
+                    name = "foo"
+                }
+            }
+        '''
+    }
+
+    def "calling setters from non-abstract getters is not allowed"() {
+        when:
+        defineCallsSetterInNonAbstractGetterClass()
+        buildFile << '''
+            class RulePlugin extends RuleSource {
+                @Model
+                void createModelElementCallingSetterInNonAbstractGetter(CallsSetterInNonAbstractGetter element) {
+                }
+
+                @Mutate
+                void accessInvalidGenerativeProperty(ModelMap<Task> tasks, CallsSetterInNonAbstractGetter element) {
+                    element.invalidGenerativeProperty
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails 'tasks'
+
+        and:
+        failure.assertHasCause("Calling setters of a managed type on itself is not allowed")
+    }
+
+    def "calling setters of super class from non-abstract getters is not allowed"() {
+        when:
+        defineCallsSetterInNonAbstractGetterClass()
+        buildFile << '''
+            @Managed
+            abstract class CallsSuperGetterInNonAbstractGetter extends CallsSetterInNonAbstractGetter {
+
+                String getInvalidGenerativeProperty() {
+                    super.getInvalidGenerativeProperty()
+                }
+
+                String getGenerativeProperty() {
+                    super.getGenerativeProperty()
+                }
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void createModelElementCallingSuperGetterInNonAbstractGetter(CallsSuperGetterInNonAbstractGetter element) {
+                }
+
+                @Mutate
+                void accessInvalidGenerativeProperty(ModelMap<Task> tasks, CallsSuperGetterInNonAbstractGetter element) {
+                    element.invalidGenerativeProperty
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails 'tasks'
+
+        and:
+        failure.assertHasCause("Calling setters of a managed type on itself is not allowed")
+    }
+
+    def "reports managed abstract type in missing property error message"() {
+        when:
+        buildScript '''
+            @Managed
+            abstract class Person {
+                abstract String getName()
+                abstract void setName(String name)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void someone(Person person) {
+                }
+
+                @Mutate
+                void tasks(ModelMap<Task> tasks, Person person) {
+                    println person.unknown
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "help"
+
+        and:
+        failure.assertHasFileName("Build file '$buildFile'")
+        failure.assertHasLineNumber(15)
+        failure.assertHasCause("No such property: unknown for class: Person")
+    }
+
 }

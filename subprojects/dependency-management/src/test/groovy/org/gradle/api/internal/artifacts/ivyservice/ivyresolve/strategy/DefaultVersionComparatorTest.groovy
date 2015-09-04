@@ -16,46 +16,89 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo
-
 import spock.lang.Specification
 
 class DefaultVersionComparatorTest extends Specification {
-    def strategy = new DefaultVersionComparator()
+    def comparator = new DefaultVersionComparator()
 
     def compare(String s1, String s2) {
-        return strategy.compare(new VersionInfo(s1), new VersionInfo(s2))
+        return comparator.compare(new VersionInfo(s1), new VersionInfo(s2))
     }
 
-    def "compares versions lexicographically"() {
+    def "compares versions numerically when parts are digits"() {
         expect:
-        compare(v1, v2) < 0
-        compare(v2, v1) > 0
-        compare(v1, v1) == 0
-        compare(v2, v2) == 0
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
 
         where:
-        v1          | v2
-        "1.0"       | "2.0"
-        "1.0"       | "1.1"
-        "1.0.1"     | "1.1.0"
-        "1.2"       | "1.2.3"
-        "1.0-1"     | "1.0-2"
+        smaller | larger
+        "1.0"   | "2.0"
+        "1.0"   | "1.1"
+        "1.2"   | "1.10"
+        "1.0.1" | "1.1.0"
+        "1.2"   | "1.2.3"
+        "12"    | "12.2.3"
+        "12"    | "13"
+        "1.0-1" | "1.0-2"
+        "1.0-1" | "1.0.2"
+        "1.0-1" | "1+0_2"
+    }
+
+    def "compares versions lexicographically when parts are not digits"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller     | larger
         "1.0.a"     | "1.0.b"
-        "1.0-alpha" | "1.0"
         "1.0-alpha" | "1.0-beta"
         "1.0.alpha" | "1.0.b"
-        "1.0.a"     | "1.0.0"
+        "alpha"     | "beta"
+    }
+
+    def "considers parts that are digits as larger than parts that are not"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller     | larger
+        "1.0-alpha" | "1.0.1"
+        "a.b.c"     | "a.b.123"
+        "a"         | "123"
+    }
+
+    def "considers a trailing part that contains no digits as smaller"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller     | larger
+        "1.0-alpha" | "1.0"
+        "1.0.a"     | "1.0"
+        "1.beta.a"  | "1.beta"
+        "a-b-c"     | "a.b"
     }
 
     def "gives some special treatment to 'dev', 'rc', and 'final' qualifiers"() {
         expect:
-        compare(v1, v2) < 0
-        compare(v2, v1) > 0
-        compare(v1, v1) == 0
-        compare(v2, v2) == 0
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
 
         where:
-        v1          | v2
+        smaller     | larger
         "1.0-dev-1" | "1.0"
         "1.0-dev-1" | "1.0-dev-2"
         "1.0-rc-1"  | "1.0"
@@ -100,24 +143,59 @@ class DefaultVersionComparatorTest extends Specification {
     // original Ivy behavior - should we change it?
     def "does not compare versions with different number of trailing .0's equal"() {
         expect:
-        compare(v1, v2) > 0
-        compare(v2, v1) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, larger) < 0
 
         where:
-        v1          | v2
-        "1.0.0"     | "1.0"
-        "1.0.0"     | "1"
+        larger  | smaller
+        "1.0.0" | "1.0"
+        "1.0.0" | "1"
     }
 
     def "does not compare versions with different capitalization equal"() {
         expect:
-        compare(v1, v2) > 0
-        compare(v2, v1) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, larger) < 0
 
         where:
-        v1          | v2
+        larger      | smaller
         "1.0-alpha" | "1.0-ALPHA"
     }
 
+    def "incorrectly compares Maven snapshot-like versions (current behaviour not necessarily desired behaviour"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
 
+        where:
+        smaller                   | larger
+        "1.0-SNAPSHOT"            | "1.0"
+        "1.0"                     | "1.0-20150201.121010-123" // incorrect!
+        "1.0-20150201.121010-123" | "1.0-20150201.121010-124"
+        "1.0-20150201.121010-123" | "1.0-20150201.131010-1"
+        "1.0-SNAPSHOT"            | "1.0-20150201.131010-1" // probably not right
+        "1.0"                     | "1.1-SNAPSHOT"
+        "1.0"                     | "1.1-20150201.121010-12"
+    }
+
+    def "can compare version strings"() {
+        expect:
+        def stringComparator = comparator.asStringComparator()
+        stringComparator.compare("1.2", "1.3") < 0
+    }
+
+    def "can compare Version objects"() {
+        def v1 = Stub(Version) {
+            getParts() >> ["1", "2"]
+        }
+        def v2 = Stub(Version) {
+            getParts() >> ["1", "3"]
+        }
+
+        expect:
+        def versionComparator = comparator.asVersionComparator()
+        versionComparator.compare(v1, v2) < 0
+    }
 }

@@ -16,12 +16,14 @@
 
 package org.gradle.groovy.compile
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.integtests.fixtures.TargetVersions
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 @TargetVersions(['2.0.5:indy'])
+@LeaksFileHandles
 class InvokeDynamicGroovyCompilerSpec extends ApiGroovyCompilerIntegrationSpec {
     def canEnableAndDisableInvokeDynamicOptimization() {
         when:

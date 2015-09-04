@@ -19,9 +19,9 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.*;
 
-import java.util.Collection;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
@@ -47,8 +47,8 @@ public class ModuleVersionSelectorParsers {
 
     static class MapConverter extends MapNotationConverter<ModuleVersionSelector> {
         @Override
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Maps, e.g. [group: 'org.gradle', name:'gradle-core', version: '1.0'].");
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Maps").example("[group: 'org.gradle', name:'gradle-core', version: '1.0']");
         }
 
         protected ModuleVersionSelector parseMap(@MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
@@ -57,8 +57,9 @@ public class ModuleVersionSelectorParsers {
     }
 
     static class StringConverter implements NotationConverter<String, ModuleVersionSelector> {
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("String or CharSequence values, e.g. 'org.gradle:gradle-core:1.0'.");
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("String or CharSequence values").example("'org.gradle:gradle-core:1.0'");
         }
 
         public void convert(String notation, NotationConvertResult<? super ModuleVersionSelector> result) throws TypeConversionException {

@@ -577,7 +577,7 @@ Table styles
     background-image: none;
 }
 /** Don't show superfluous table headers */
-.overviewSummary th, .packageSummary th, .contentContainer ul.blockList li.blockList th, .summary th, .classUseContainer th, .constantValuesContainer th {
+.overviewSummary th, .packageSummary th, .summary th, .classUseContainer th, .constantValuesContainer th {
     display: none;
 }
 

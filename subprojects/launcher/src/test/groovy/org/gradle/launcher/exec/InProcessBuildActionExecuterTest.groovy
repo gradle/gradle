@@ -19,199 +19,191 @@ package org.gradle.launcher.exec
 import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
-import org.gradle.initialization.*
+import org.gradle.initialization.BuildRequestContext
+import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.initialization.DefaultGradleLauncher
+import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.internal.invocation.BuildAction
+import org.gradle.internal.invocation.BuildActionRunner
+import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
 class InProcessBuildActionExecuterTest extends Specification {
     final GradleLauncherFactory factory = Mock()
     final DefaultGradleLauncher launcher = Mock()
-    final BuildCancellationToken cancellationToken = Mock()
+    final BuildRequestContext buildRequestContext = Mock()
     final BuildActionParameters param = Mock()
     final BuildRequestMetaData metaData = Mock()
     final BuildResult buildResult = Mock()
     final GradleInternal gradle = Mock()
-    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(factory)
+    final BuildActionRunner actionRunner = Mock()
+    final StartParameter startParameter = Mock()
+    BuildAction action = Mock() {
+        getStartParameter() >> startParameter
+    }
+    final ServiceRegistry sessionServices = Mock()
+    final InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(factory, actionRunner)
 
     def setup() {
         _ * param.buildRequestMetaData >> metaData
     }
 
-    def "does nothing when action does not use the build"() {
-        BuildAction<String> action = Mock()
-
-        when:
-        def result = executer.execute(action, cancellationToken, param)
-
-        then:
-        result == '<result>'
-
-        and:
-        1 * action.run(!null) >> { BuildController controller ->
-            return '<result>'
-        }
-    }
-
-    def "creates a launcher using a default StartParameter when the action does not specify any"() {
-        BuildAction<String> action = Mock()
-
-        when:
-        def result = executer.execute(action, cancellationToken, param)
-
-        then:
-        result == '<result>'
-
-        and:
-        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
-        1 * action.run(!null) >> { BuildController controller ->
-            assert controller.launcher == launcher
-            return '<result>'
-        }
-        1 * launcher.stop()
-    }
-
-    def "creates a launcher using StartParameter specified by the action"() {
-        BuildAction<String> action = Mock()
-        def startParam = new StartParameter()
-
-        when:
-        def result = executer.execute(action, cancellationToken, param)
-
-        then:
-        result == '<result>'
-
-        and:
-        1 * factory.newInstance(startParam, cancellationToken, metaData) >> launcher
-        1 * action.run(!null) >> { BuildController controller ->
-            controller.startParameter = startParam
-            assert controller.launcher == launcher
-            return '<result>'
-        }
-        1 * launcher.stop()
-    }
-
-    def "cannot set start parameters after launcher created"() {
-        BuildAction<String> action = Mock()
-        def startParam = new StartParameter()
-
+    def "creates launcher and forwards action to action runner"() {
         given:
-        _ * action.run(!null) >> { BuildController controller ->
-            controller.launcher
-            controller.startParameter = startParam
-        }
-        _ * factory.newInstance(!null, cancellationToken, metaData) >> launcher
+        param.envVariables >> [:]
 
         when:
-        executer.execute(action, cancellationToken, param)
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'Cannot change start parameter after build has started.'
-
-        and:
-        1 * launcher.stop()
-    }
-
-    def "creates launcher when Gradle instance is requested"() {
-        BuildAction<String> action = Mock()
-
-        when:
-        def result = executer.execute(action, cancellationToken, param)
+        def result = executer.execute(action, buildRequestContext, param, sessionServices)
 
         then:
         result == '<result>'
 
         and:
-        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
-        1 * launcher.getGradle() >> gradle
-        1 * action.run(!null) >> { BuildController controller ->
-            assert controller.getGradle() == gradle
-            return '<result>'
+        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
+        1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
+            controller.result = '<result>'
+        }
+        1 * launcher.stop()
+    }
+
+    def "can have null result"() {
+        given:
+        param.envVariables >> [:]
+
+        when:
+        def result = executer.execute(action, buildRequestContext, param, sessionServices)
+
+        then:
+        result == null
+
+        and:
+        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
+        1 * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
+            assert !controller.hasResult()
+            controller.result = null
+            assert controller.hasResult()
         }
         1 * launcher.stop()
     }
 
     def "runs build when requested by action"() {
-        BuildAction<String> action = Mock()
+        given:
+        param.envVariables >> [:]
 
         when:
-        def result = executer.execute(action, cancellationToken, param)
+        def result = executer.execute(action, buildRequestContext, param, sessionServices)
 
         then:
         result == '<result>'
 
         and:
-        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
+        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
         1 * launcher.run() >> buildResult
-        _ * buildResult.failure >> null
         _ * buildResult.gradle >> gradle
-        1 * action.run(!null) >> { BuildController controller ->
+        _ * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             assert controller.run() == gradle
-            return '<result>'
+            controller.result = '<result>'
         }
         1 * launcher.stop()
     }
 
     def "configures build when requested by action"() {
-        BuildAction<String> action = Mock()
+        given:
+        param.envVariables >> [:]
 
         when:
-        def result = executer.execute(action, cancellationToken, param)
+        def result = executer.execute(action, buildRequestContext, param, sessionServices)
 
         then:
         result == '<result>'
 
         and:
-        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
+        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
         1 * launcher.getBuildAnalysis() >> buildResult
-        _ * buildResult.failure >> null
         _ * buildResult.gradle >> gradle
-        1 * action.run(!null) >> { BuildController controller ->
+        _ * actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             assert controller.configure() == gradle
-            return '<result>'
+            controller.result = '<result>'
         }
         1 * launcher.stop()
     }
 
     def "cannot request configuration after build has been run"() {
-        BuildAction<String> action = Mock()
-
         given:
-        action.run(!null) >> { BuildController controller ->
+        actionRunner.run(action, !null) >> { BuildAction a, BuildController controller ->
             controller.run()
             controller.configure()
         }
 
         when:
-        executer.execute(action, cancellationToken, param)
+        executer.execute(action, buildRequestContext, param, sessionServices)
 
         then:
         IllegalStateException e = thrown()
         e.message == 'Cannot use launcher after build has completed.'
 
         and:
-        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
+        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
         1 * launcher.run() >> buildResult
         1 * launcher.stop()
     }
 
-    def "wraps build failure"() {
+    def "forwards build failure and cleans up"() {
         def failure = new RuntimeException()
-        BuildAction<String> action = Mock()
-
-        given:
-        buildResult.failure >> failure
 
         when:
-        executer.execute(action, cancellationToken, param)
+        executer.execute(action, buildRequestContext, param, sessionServices)
 
         then:
-        ReportedException e = thrown()
-        e.cause == failure
+        RuntimeException e = thrown()
+        e == failure
 
         and:
-        1 * factory.newInstance(!null, cancellationToken, metaData) >> launcher
-        1 * launcher.run() >> buildResult
-        1 * action.run(!null) >> { BuildController controller ->
+        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
+        1 * launcher.run() >> { throw failure }
+        _ * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller ->
+            controller.run()
+        }
+        1 * launcher.stop()
+    }
+
+    def "forwards configure failure and cleans up"() {
+        def failure = new RuntimeException()
+
+        when:
+        executer.execute(action, buildRequestContext, param, sessionServices)
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+
+        and:
+        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
+        1 * launcher.buildAnalysis >> { throw failure }
+        _ * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller ->
+            controller.configure()
+        }
+        1 * launcher.stop()
+    }
+
+    def "cannot run after configuration failure"() {
+        when:
+        executer.execute(action, buildRequestContext, param, sessionServices)
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot use launcher after build has completed.'
+
+        and:
+        1 * factory.newInstance(startParameter, buildRequestContext, sessionServices) >> launcher
+        1 * launcher.buildAnalysis >> { throw new RuntimeException() }
+        _ * actionRunner.run(action, !null) >> { BuildAction action, BuildController controller ->
+            try {
+                controller.configure()
+            } catch (RuntimeException) {
+                // Ignore
+            }
             controller.run()
         }
         1 * launcher.stop()

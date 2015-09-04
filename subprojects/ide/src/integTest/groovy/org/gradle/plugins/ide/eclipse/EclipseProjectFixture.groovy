@@ -56,4 +56,9 @@ class EclipseProjectFixture {
     void assertHasBuilders(String... builders) {
         assert getProject().buildSpec.buildCommand.name*.text() == builders as List
     }
+
+    void assertHasLinkedResources(String... names) {
+        assert getProject().linkedResources.link.name*.text() == names as List
+    }
+
 }

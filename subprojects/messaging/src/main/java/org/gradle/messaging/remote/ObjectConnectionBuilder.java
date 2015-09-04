@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.remote;
 
-import org.gradle.messaging.serialize.kryo.StatefulSerializer;
+import org.gradle.internal.serialize.Serializer;
 
 public interface ObjectConnectionBuilder {
     /**
@@ -41,9 +41,9 @@ public interface ObjectConnectionBuilder {
     <T> void addIncoming(Class<T> type, T instance);
 
     /**
-     * Use the specified serializer for all incoming and outgoing parameters.
+     * Use the specified serializer for all incoming and outgoing method parameters.
      */
-    void useParameterSerializer(StatefulSerializer<Object[]> serializer);
+    void useParameterSerializer(Serializer<Object[]> serializer);
 
     /**
      * Use Java serialization for the parameters of incoming and outgoing method calls, with the specified ClassLoader used to deserialize incoming

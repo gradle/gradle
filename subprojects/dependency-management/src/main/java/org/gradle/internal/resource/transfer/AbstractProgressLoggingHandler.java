@@ -19,6 +19,9 @@ package org.gradle.internal.resource.transfer;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 public class AbstractProgressLoggingHandler {
     protected final ProgressLoggerFactory progressLoggerFactory;
 
@@ -37,5 +40,41 @@ public class AbstractProgressLoggingHandler {
         progressLogger.setLoggingHeader(description);
         progressLogger.started();
         return progressLogger;
+    }
+
+    protected static class ProgressLoggingInputStream extends InputStream {
+        private final InputStream inputStream;
+        private final ResourceOperation resourceOperation;
+
+        public ProgressLoggingInputStream(InputStream inputStream, ResourceOperation resourceOperation) {
+            this.inputStream = inputStream;
+            this.resourceOperation = resourceOperation;
+        }
+
+        @Override
+        public void close() throws IOException {
+            inputStream.close();
+        }
+
+        @Override
+        public int read() throws IOException {
+            int result = inputStream.read();
+            if (result >= 0) {
+                doLogProgress(1);
+            }
+            return result;
+        }
+
+        public int read(byte[] b, int off, int len) throws IOException {
+            int read = inputStream.read(b, off, len);
+            if (read > 0) {
+                doLogProgress(read);
+            }
+            return read;
+        }
+
+        private void doLogProgress(long numberOfBytes) {
+            resourceOperation.logProcessedBytes(numberOfBytes);
+        }
     }
 }

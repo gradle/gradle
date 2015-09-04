@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling.fixture
 
+import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
@@ -25,6 +26,7 @@ import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.util.*
 
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
@@ -140,6 +142,7 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowClass(SetSystemProperties)
             sharedClassLoader.allowClass(RedirectStdOutAndErr)
             sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
+            sharedClassLoader.allowPackage('org.gradle.play.integtest.fixtures')
             sharedClassLoader.allowPackage('org.gradle.test.fixtures')
             sharedClassLoader.allowPackage('org.gradle.launcher.daemon.testing')
             sharedClassLoader.allowClass(OperatingSystem)
@@ -147,6 +150,8 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
             sharedClassLoader.allowClass(TestPrecondition)
             sharedClassLoader.allowClass(TargetGradleVersion)
             sharedClassLoader.allowClass(ToolingApiVersion)
+            sharedClassLoader.allowClass(DaemonUsageSuggestingBuildActionExecuter)
+            sharedClassLoader.allowClass(TeeOutputStream)
             sharedClassLoader.allowResources(target.name.replace('.', '/'))
 
             def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)

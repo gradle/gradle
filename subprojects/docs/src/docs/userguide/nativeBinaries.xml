@@ -3,7 +3,7 @@
 
     <note>
         <para>
-            The Gradle support for building native binaries is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+            Support for building native binaries is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
         </para>
     </note>
 
@@ -118,8 +118,9 @@
             </para>
         </section>
     </section>
+
     <section>
-        <title>Component model</title>
+        <title>Native software model</title>
         <para>
             To build native binaries using Gradle, your project should define one or more <firstterm>native components</firstterm>. Each component represents either an
             executable or a library that Gradle should build. A project can define any number of components. Gradle does not define any components by default.
@@ -143,6 +144,24 @@
             These binaries may vary based on the tool chain used to build, the compiler/linker flags supplied, the dependencies
             provided, or additional source files provided. Each native binary produced for a component is referred to as <firstterm>variant</firstterm>.
             Binary variants are discussed in detail below.
+        </para>
+    </section>
+
+    <section>
+        <title>Parallel Compilation</title>
+        <para>
+            Gradle uses the single build worker pool to concurrently compile and link native components, by default.
+            No special configuration is required to enable concurrent building.
+        </para>
+        <para>
+            By default, the worker pool size is determined by the number of available processors on the build machine (as reported to the build JVM).
+            To explicitly set the number of workers use the <literal>--max-workers</literal> command-line option or <literal>org.gradle.workers.max</literal> system property.
+            There is generally no need to change this setting from its default.
+        </para>
+        <para>
+            The build worker pool is shared across all build tasks.
+            This means that when using <link linkend="sec:parallel_execution">parallel project execution</link>, the maximum number of concurrent individual compilation operations does not increase.
+            For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only use 4 total workers, not 40.
         </para>
     </section>
     <section>
@@ -467,6 +486,42 @@
         </section>
     </section>
 
+    <section id="native_binaries:preCompiledHeaders">
+        <title>Precompiled Headers</title>
+        <para>
+            Precompiled headers are a performance optimization that reduces the cost of compiling widely used headers multiple times.
+            This feature <firstterm>precompiles</firstterm> a header such that the compiled object file can be reused when
+            compiling each source file rather than recompiling the header each time.  This support is available for C, C++, Objective-C,
+            and Objective-C++ builds.
+        </para>
+        <para>
+            To configure a precompiled header, first a header file needs to be defined that includes all of the headers that should
+            be precompiled.  It must be specified as the first included header in every source file where the precompiled header
+            should be used.  It is assumed that this header file, and any headers it contains, make use of header guards so that they can be included
+            in an idempotent manner.  If header guards are not used in a header file, it is possible the header could be compiled more
+            than once and could potentially lead to a broken build.
+        </para>
+        <sample id="preCompiledHeaderFile" dir="native-binaries/pre-compiled-headers" title="Creating a precompiled header file">
+            <sourcefile file="src/hello/headers/pch.h" />
+        </sample>
+        <sample id="preCompiledHeaderFile" dir="native-binaries/pre-compiled-headers" title="Including a precompiled header file in a source file">
+            <sourcefile file="src/hello/cpp/hello.cpp" />
+        </sample>
+        <para>
+            Precompiled headers are specified on a source set.  Only one precompiled header file can be specified on a given source set and will
+            be applied to all source files that declare it as the first include.  If a source files does not include this header file as the
+            first header, the file will be compiled in the normal manner (without making use of the precompiled header object file).  The string provided
+            should be the same as that which is used in the "#include" directive in the source files.
+        </para>
+        <sample id="preCompiledHeaderConfig" dir="native-binaries/pre-compiled-headers" title="Configuring a precompiled header">
+            <sourcefile file="build.gradle" snippet="libraries"/>
+        </sample>
+        <para>
+            A precompiled header must be included in the same way for all files that use it.  Usually, this means the header file should exist
+            in the source set "headers" directory or in a directory included on the compiler include path.
+        </para>
+    </section>
+
     <section id="native_binaries:variants">
         <title>Native Binary Variants</title>
         <para>
@@ -719,7 +774,7 @@
             <title>CUnit sources</title>
             <para>
                 Gradle will create a <apilink class="org.gradle.language.c.CSourceSet"/> named 'cunit' for each <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec"/> component
-                in the project. This source set should contain the cunit test files for the component sources. Source files can be located in the conventional location
+                in the project. This source set should contain the cunit test files for the component under test. Source files can be located in the conventional location
                 (<literal>src/${component.name}Test/cunit</literal>) or can be configured like any other source set.
             </para>
             <para>
@@ -798,7 +853,7 @@
             <title>GoogleTest sources</title>
             <para>
                 Gradle will create a <apilink class="org.gradle.language.cpp.CppSourceSet"/> named 'cpp' for each <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec"/> component
-                in the project. This source set should contain the GoogleTest test files for the component sources. Source files can be located in the conventional location
+                in the project. This source set should contain the GoogleTest test files for the component under test. Source files can be located in the conventional location
                 (<literal>src/${component.name}Test/cpp</literal>) or can be configured like any other source set.
             </para>
         </section>
@@ -812,7 +867,7 @@
                 <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec"/> will be configured on the test suite component.
                 These test suite binaries can be configured in a similar way to any other binary instance:
             </para>
-            <sample id="googleTestSources" dir="native-binaries/google-test" title="Registering GoogleTest tests">
+            <sample id="googleTestSources" dir="native-binaries/google-test" title="Registering GoogleTest tests" includeLocation="true">
                 <sourcefile file="build.gradle" snippet="configure-test-binary"/>
             </sample>
             <note>
@@ -828,7 +883,7 @@
                 which will run all of the registered GoogleTest tests.
                 Test results will be found in the <literal><replaceable>${build.dir}</replaceable>/test-results</literal> directory.
             </para>
-            <!-- TODO:DAZ Add this back in when we have functional libs -->
+            <!-- Google test sample output is nondeterministic -->
             <!--<sample id="completeGoogleTestExample" dir="native-binaries/google-test" title="Running GoogleTest tests" includeLocation="true">-->
                 <!--<sourcefile file="build.gradle" snippet="complete-example"/>-->
                 <!--<output args='-q runFailingOperatorsTestGoogleTestExe' expectFailure="true"/>-->

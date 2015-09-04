@@ -23,12 +23,14 @@ public class VersionRangeSelectorTest extends AbstractVersionSelectorTest {
         expect:
         isDynamic("[1.0,2.0]")
         isDynamic("[1.0,)")
+        isDynamic("[1.0]")
     }
 
     def "never needs metadata"() {
         expect:
         !requiresMetadata("[1.0,2.0]")
         !requiresMetadata("[1.0,)")
+        !requiresMetadata("[1.0]")
     }
 
     def "accepts candidate versions that fall into the selector's range"() {
@@ -148,8 +150,19 @@ public class VersionRangeSelectorTest extends AbstractVersionSelectorTest {
         "2.5"           | false
     }
 
+    def "single-value range accepts only exact match"() {
+        expect:
+        accept("[1.0]", "1.0")
+
+        !accept("[1.0]", "1.1")
+        !accept("[1.0]", "1")
+        !accept("[1.0]", "1.01")
+        !accept("[1.0]", "0.9")
+        !accept("[1.0]", "1.0-beta1")
+    }
+
     @Override
     VersionSelector getSelector(String selector) {
-        return new VersionRangeSelector(selector)
+        return new VersionRangeSelector(selector, new DefaultVersionComparator().asStringComparator())
     }
 }

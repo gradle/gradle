@@ -18,7 +18,9 @@ package org.gradle.api.tasks;
 import org.gradle.api.*;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
+import org.gradle.internal.Cast;
 
 import java.io.File;
 import java.util.Collections;
@@ -28,7 +30,7 @@ import java.util.regex.Pattern;
 
 /**
  * Provides information related to the Scala runtime(s) used in a project. Added by the
- * {@link org.gradle.api.plugins.scala.ScalaBasePlugin} as a project extension named {@code scalaRuntime}.
+ * {@code org.gradle.api.plugins.scala.ScalaBasePlugin} as a project extension named {@code scalaRuntime}.
  *
  * <p>Example usage:
  *
@@ -77,7 +79,7 @@ public class ScalaRuntime {
         // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
         return new LazilyInitializedFileCollection() {
             @Override
-            public FileCollection createDelegate() {
+            public FileCollectionInternal createDelegate() {
                 if (project.getRepositories().isEmpty()) {
                     throw new GradleException(String.format("Cannot infer Scala class path because no repository is declared in %s", project));
                 }
@@ -93,8 +95,8 @@ public class ScalaRuntime {
                     throw new AssertionError(String.format("Unexpectedly failed to parse version of Scala Jar file: %s in %s", scalaLibraryJar, project));
                 }
 
-                return project.getConfigurations().detachedConfiguration(
-                        new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion));
+                return Cast.cast(FileCollectionInternal.class, project.getConfigurations().detachedConfiguration(
+                    new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion)));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)

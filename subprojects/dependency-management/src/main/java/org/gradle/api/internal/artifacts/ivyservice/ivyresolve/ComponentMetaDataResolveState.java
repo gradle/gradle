@@ -17,37 +17,33 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.Factories;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 
-/**
-* Created by adam on 14/09/2014.
-*/
 class ComponentMetaDataResolveState {
     private final DefaultBuildableModuleComponentMetaDataResolveResult resolveResult = new DefaultBuildableModuleComponentMetaDataResolveResult();
-    private final ComponentChooser componentChooser;
-    private final DependencyMetaData dependency;
-    final ModuleComponentIdentifier componentIdentifier;
+    private final VersionedComponentChooser versionedComponentChooser;
+    private final ComponentOverrideMetadata componentOverrideMetadata;
+    private final ModuleComponentIdentifier componentIdentifier;
     final ModuleComponentRepository repository;
 
     private boolean searchedLocally;
     private boolean searchedRemotely;
 
-    public ComponentMetaDataResolveState(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, ModuleComponentRepository repository, ComponentChooser componentChooser) {
-        this.dependency = dependency;
+    public ComponentMetaDataResolveState(ModuleComponentIdentifier componentIdentifier, ComponentOverrideMetadata componentOverrideMetadata, ModuleComponentRepository repository, VersionedComponentChooser versionedComponentChooser) {
+        this.componentOverrideMetadata = componentOverrideMetadata;
         this.componentIdentifier = componentIdentifier;
         this.repository = repository;
-        this.componentChooser = componentChooser;
+        this.versionedComponentChooser = versionedComponentChooser;
     }
 
     BuildableModuleComponentMetaDataResolveResult resolve() {
         if (!searchedLocally) {
             searchedLocally = true;
-            process(dependency, componentIdentifier, repository.getLocalAccess(), resolveResult);
-            if (resolveResult.getState() != BuildableModuleComponentMetaDataResolveResult.State.Unknown) {
+            process(repository.getLocalAccess());
+            if (resolveResult.hasResult()) {
                 if (resolveResult.isAuthoritative()) {
                     // Don't bother searching remotely
                     searchedRemotely = true;
@@ -59,20 +55,17 @@ class ComponentMetaDataResolveState {
 
         if (!searchedRemotely) {
             searchedRemotely = true;
-            process(dependency, componentIdentifier, repository.getRemoteAccess(), resolveResult);
+            process(repository.getRemoteAccess());
             return resolveResult;
         }
 
         throw new IllegalStateException();
     }
 
-    protected void process(DependencyMetaData dependency, ModuleComponentIdentifier componentIdentifier, ModuleComponentRepositoryAccess moduleAccess, BuildableModuleComponentMetaDataResolveResult resolveResult) {
-        moduleAccess.resolveComponentMetaData(dependency, componentIdentifier, resolveResult);
-        if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Failed) {
-            throw resolveResult.getFailure();
-        }
+    protected void process(ModuleComponentRepositoryAccess moduleAccess) {
+        moduleAccess.resolveComponentMetaData(componentIdentifier, componentOverrideMetadata, resolveResult);
         if (resolveResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-            if (componentChooser.isRejectedByRules(componentIdentifier, Factories.constant(resolveResult.getMetaData()))) {
+            if (versionedComponentChooser.isRejectedComponent(componentIdentifier, new MetadataProvider(resolveResult))) {
                 resolveResult.missing();
             }
         }

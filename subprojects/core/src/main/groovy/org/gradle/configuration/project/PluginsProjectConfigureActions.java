@@ -16,18 +16,19 @@
 
 package org.gradle.configuration.project;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceLocator;
 
 public class PluginsProjectConfigureActions implements ProjectConfigureAction {
-    private final ServiceLocator serviceLocator;
+    private final Iterable<ProjectConfigureAction> actions;
 
     public PluginsProjectConfigureActions(ClassLoader pluginsClassLoader) {
-        this.serviceLocator = new ServiceLocator(pluginsClassLoader);
+        actions = ImmutableList.copyOf(new ServiceLocator(pluginsClassLoader).getAll(ProjectConfigureAction.class));
     }
 
     public void execute(ProjectInternal project) {
-        for (ProjectConfigureAction configureAction : serviceLocator.getAll(ProjectConfigureAction.class)) {
+        for (ProjectConfigureAction configureAction : actions) {
             configureAction.execute(project);
         }
     }

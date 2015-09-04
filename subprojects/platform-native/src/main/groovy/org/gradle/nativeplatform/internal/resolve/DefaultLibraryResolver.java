@@ -17,7 +17,7 @@ package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.util.GUtil;
@@ -25,13 +25,11 @@ import org.gradle.util.GUtil;
 import java.util.Set;
 
 class DefaultLibraryResolver {
-    private final Instantiator instantiator;
     private final NativeLibraryRequirement requirement;
     private final NativeBinarySpec context;
     private final LibraryBinaryLocator libraryBinaryLocator;
 
-    public DefaultLibraryResolver(LibraryBinaryLocator libraryBinaryLocator, Instantiator instantiator, NativeLibraryRequirement requirement, NativeBinarySpec context) {
-        this.instantiator = instantiator;
+    public DefaultLibraryResolver(LibraryBinaryLocator libraryBinaryLocator, NativeLibraryRequirement requirement, NativeBinarySpec context) {
         this.requirement = requirement;
         this.context = context;
         this.libraryBinaryLocator = libraryBinaryLocator;

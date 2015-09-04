@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.classpath;
 
+import org.gradle.internal.classpath.ClassPath;
+
 /**
  * A registry of dynamically loadable modules.
  */
@@ -32,4 +34,9 @@ public interface ModuleRegistry {
      * @return the module. Does not return null.
      */
     Module getModule(String name) throws UnknownModuleException;
+
+    /**
+     * Returns the classpath used to search for modules, in addition to default locations in the Gradle distribution (if available). May be empty.
+     */
+    ClassPath getAdditionalClassPath();
 }

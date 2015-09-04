@@ -27,7 +27,7 @@ import org.junit.runner.RunWith
 
 @RunWith(JMock.class)
 class AnsiConsoleTest {
-    private static final String EOL = SystemProperties.lineSeparator
+    private static final String EOL = SystemProperties.instance.lineSeparator
 
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Ansi ansi = context.mock(Ansi.class)

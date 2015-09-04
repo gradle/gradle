@@ -15,23 +15,24 @@
  */
 package org.gradle.groovy.scripts.internal
 
-import org.codehaus.groovy.classgen.Verifier
-import spock.lang.Specification
-import org.gradle.internal.resource.Resource
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.groovy.scripts.Transformer
+import org.gradle.api.Action
+import org.gradle.api.internal.initialization.ClassLoaderIds
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.groovy.scripts.Script
-import org.gradle.groovy.scripts.TestScript
+import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.resource.Resource
+import spock.lang.Specification
 
 class ShortCircuitEmptyScriptCompilerTest extends Specification {
-    final EmptyScriptGenerator emptyScriptGenerator = Mock()
     final ScriptClassCompiler target = Mock()
     final ScriptSource source = Mock()
     final Resource resource = Mock()
     final ClassLoader classLoader = Mock()
-    final Transformer transformer = Mock()
-    final verifier = Mock(Verifier)
-    final ShortCircuitEmptyScriptCompiler compiler = new ShortCircuitEmptyScriptCompiler(target, emptyScriptGenerator)
+    final CompileOperation<?> operation = Mock()
+    final Action verifier = Mock()
+    final classLoaderCache = Mock(ClassLoaderCache)
+    final ShortCircuitEmptyScriptCompiler compiler = new ShortCircuitEmptyScriptCompiler(target, classLoaderCache)
+    def loaderId = ClassLoaderIds.buildScript(source.getFileName(), operation.getId())
 
     def setup() {
         _ * source.resource >> resource
@@ -39,29 +40,35 @@ class ShortCircuitEmptyScriptCompilerTest extends Specification {
 
     def "returns empty script object when script contains only whitespace"() {
         given:
+        def metadata = "metadata"
         _ * resource.text >> '  \n\t'
+        _ * operation.extractedData >> metadata
+
 
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script, verifier)
+        def compiledScript = compiler.compile(source, classLoader, loaderId, operation, Script, verifier)
 
         then:
-        result == TestScript
-        1 * emptyScriptGenerator.generate(Script) >> TestScript
-        0 * emptyScriptGenerator._
+        !compiledScript.runDoesSomething
+        !compiledScript.hasMethods
+        compiledScript.data == metadata
+
+        and:
         0 * target._
     }
 
     def "compiles script when script contains anything other than whitespace"() {
         given:
         _ * resource.text >> 'some script'
+        CompiledScript<?> compiledScript = Mock()
 
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script, verifier)
+        def result = compiler.compile(source, classLoader, ClassLoaderIds.buildScript(source.getFileName(), operation.getId()), operation, Script, verifier)
 
         then:
-        result == TestScript
-        1 * target.compile(source, classLoader, transformer, Script, verifier) >> TestScript
-        0 * emptyScriptGenerator._
+        result == compiledScript
+        1 * target.compile(source, classLoader, ClassLoaderIds.buildScript(source.getFileName(), operation.getId()), operation, Script, verifier) >> compiledScript
         0 * target._
+        0 * classLoaderCache._
     }
 }

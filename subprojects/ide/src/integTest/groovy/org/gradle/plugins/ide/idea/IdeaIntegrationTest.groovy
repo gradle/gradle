@@ -15,14 +15,15 @@
  */
 
 package org.gradle.plugins.ide.idea
-
+import junit.framework.AssertionFailedError
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
+import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.ComparisonFailure
 import org.junit.Rule
 import org.junit.Test
 
@@ -165,8 +166,8 @@ dependencies {
         def libs = module.component.orderEntry.library
         assert libs.size() == 1
         assert libs.CLASSES.root*.@url*.text().collect { new File(it).name } as Set == [artifact1.name + "!"] as Set
-        assert libs.CLASSES.root*.@url*.text().findAll(){ it.contains("\$GRADLE_REPO\$") }.size() == 1
-        assert libs.CLASSES.root*.@url*.text().collect { it.replace("\$GRADLE_REPO\$", relPath(repoDir))} as Set == ["jar://${relPath(artifact1)}!/"] as Set
+        assert libs.CLASSES.root*.@url*.text().findAll() { it.contains("\$GRADLE_REPO\$") }.size() == 1
+        assert libs.CLASSES.root*.@url*.text().collect { it.replace("\$GRADLE_REPO\$", relPath(repoDir)) } as Set == ["jar://${relPath(artifact1)}!/"] as Set
     }
 
     @Test
@@ -365,26 +366,24 @@ idea.project {
     }
 
     private void assertHasExpectedContents(String path) {
-        TestFile file = testDirectory.file(path).assertIsFile()
+        TestFile actualFile = testDirectory.file(path).assertIsFile()
         TestFile expectedFile = testDirectory.file("expectedFiles/${path}.xml").assertIsFile()
 
         def expectedXml = expectedFile.text
 
         def homeDir = executer.gradleUserHomeDir.absolutePath.replace(File.separator, '/')
         def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}/([^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
-        def actualXml = file.text.replaceAll(pattern, '@CACHE_DIR@/$1/@SHA1@/')
+        def actualXml = actualFile.text.replaceAll(pattern, '@CACHE_DIR@/$1/@SHA1@/')
 
         Diff diff = new Diff(expectedXml, actualXml)
         diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
         try {
-            assert diff.similar()
-        } catch (AssertionError e) {
-            if (OperatingSystem.current().unix) {
-                def process = ["diff", expectedFile.absolutePath, file.absolutePath].execute()
-                process.consumeProcessOutput(System.out, System.err)
-                process.waitFor()
-            }
-            throw new AssertionError("generated file '$path' does not contain the expected contents: ${e.message}.\nExpected:\n${expectedXml}\nActual:\n${actualXml}").initCause(e)
+            XMLAssert.assertXMLEqual(diff, true)
+        } catch (AssertionFailedError error) {
+            println "EXPECTED:\n${expectedXml}"
+            println "ACTUAL:\n${actualXml}"
+            throw new ComparisonFailure("Comparison filure: expected: $expectedFile, actual: $actualFile"
+                + "\nUnexpected content for generated actualFile: ${error.message}", expectedXml, actualXml).initCause(error)
         }
     }
 
@@ -437,7 +436,7 @@ idea.project {
         urls.any { it.endsWith(path) }
     }
 
-    private String relPath(File file){
+    private String relPath(File file) {
         return file.absolutePath.replace(File.separator, "/")
     }
 }

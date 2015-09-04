@@ -16,8 +16,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.*
+import org.junit.runner.RunWith
 import spock.lang.Issue
 
+@RunWith(FluidDependenciesResolveRunner)
 class DependencyResolutionEventsIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2047")

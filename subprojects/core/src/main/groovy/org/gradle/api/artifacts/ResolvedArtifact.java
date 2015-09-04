@@ -15,6 +15,9 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+
 import java.io.File;
 
 /**
@@ -37,4 +40,7 @@ public interface ResolvedArtifact {
     String getExtension();
 
     String getClassifier();
+
+    @Incubating
+    ComponentArtifactIdentifier getId();
 }

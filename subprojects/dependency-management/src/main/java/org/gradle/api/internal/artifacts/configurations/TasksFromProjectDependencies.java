@@ -22,16 +22,19 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.initialization.ProjectAccessListener;
 
 import java.util.Set;
 
 class TasksFromProjectDependencies extends AbstractTaskDependency {
     private final String taskName;
     private final DependencySet dependencies;
+    private final ProjectAccessListener projectAccessListener;
 
-    public TasksFromProjectDependencies(String taskName, DependencySet dependencies) {
+    public TasksFromProjectDependencies(String taskName, DependencySet dependencies, ProjectAccessListener projectAccessListener) {
         this.taskName = taskName;
         this.dependencies = dependencies;
+        this.projectAccessListener = projectAccessListener;
     }
 
     public void resolve(TaskDependencyResolveContext context) {
@@ -40,9 +43,7 @@ class TasksFromProjectDependencies extends AbstractTaskDependency {
 
     void resolveProjectDependencies(TaskDependencyResolveContext context, Set<ProjectDependency> projectDependencies) {
         for (ProjectDependency projectDependency : projectDependencies) {
-            //in configure-on-demand we don't know if the project was configured, hence explicit evaluate.
-            // Not especially tidy, we should clean this up while working on new configuration model.
-            ((ProjectInternal) projectDependency.getDependencyProject()).evaluate();
+            projectAccessListener.beforeResolvingProjectDependency((ProjectInternal) projectDependency.getDependencyProject());
 
             Task nextTask = projectDependency.getDependencyProject().getTasks().findByName(taskName);
             if (nextTask != null) {

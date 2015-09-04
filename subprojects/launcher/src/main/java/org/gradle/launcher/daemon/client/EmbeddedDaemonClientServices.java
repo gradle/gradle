@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -35,8 +34,7 @@ import org.gradle.launcher.daemon.server.DaemonServerConnector;
 import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
-import org.gradle.launcher.daemon.server.exec.StopHandlingCommandExecuter;
-import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEvent;
@@ -70,19 +68,19 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
 
     protected DaemonCommandExecuter createDaemonCommandExecuter() {
         LoggingManagerInternal mgr = newInstance(LoggingManagerInternal.class);
-        return new StopHandlingCommandExecuter(
-                new DefaultDaemonCommandExecuter(
-                        new InProcessBuildActionExecuter(
-                                get(GradleLauncherFactory.class)),
-                        get(ProcessEnvironment.class),
-                        mgr,
-                        new File("dummy"),
-                        new StubDaemonHealthServices()));
+        return new DefaultDaemonCommandExecuter(
+            get(BuildExecuter.class),
+            this,
+            get(ProcessEnvironment.class),
+            mgr,
+            new File("dummy"),
+            new StubDaemonHealthServices()
+        );
     }
 
     public EmbeddedDaemonClientServices(ServiceRegistry loggingServices) {
         super(ServiceRegistryBuilder.builder().parent(loggingServices).parent(NativeServices.getInstance()).build(), System.in);
-        addProvider(new GlobalScopeServices(false));
+        addProvider(new GlobalScopeServices(true));
         add(EmbeddedDaemonFactory.class, new EmbeddedDaemonFactory());
     }
 
@@ -91,7 +89,10 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     }
 
     protected OutputEventListener createOutputEventListener() {
-        return new OutputEventListener() { public void onOutput(OutputEvent event) {} };
+        return new OutputEventListener() {
+            public void onOutput(OutputEvent event) {
+            }
+        };
     }
 
     @Override

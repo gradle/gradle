@@ -23,16 +23,15 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.PlayApplicationSpec;
-import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.JavaScriptMinify;
 
 import java.io.File;
@@ -43,45 +42,59 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * Plugin for adding javascript processing to a Play application.  Registers "javascript" language support with the {@link org.gradle.language.javascript.JavaScriptSourceSet}.
  */
 @SuppressWarnings("UnusedDeclaration")
-@RuleSource
 @Incubating
-public class PlayJavaScriptPlugin {
+public class PlayJavaScriptPlugin extends RuleSource {
     @LanguageType
-    void registerCoffeeScript(LanguageTypeBuilder<JavaScriptSourceSet> builder) {
+    void registerJavascript(LanguageTypeBuilder<JavaScriptSourceSet> builder) {
         builder.setLanguageName("javaScript");
         builder.defaultImplementation(DefaultJavaScriptSourceSet.class);
     }
 
     @Mutate
-    void createJavascriptSourceSets(CollectionBuilder<PlayApplicationSpec> components) {
+    void createJavascriptSourceSets(ModelMap<PlayApplicationSpec> components) {
         components.beforeEach(new Action<PlayApplicationSpec>() {
             @Override
             public void execute(PlayApplicationSpec playComponent) {
-                // TODO - should have some way to lookup using internal type
-                JavaScriptSourceSet javaScriptSourceSet = ((ComponentSpecInternal) playComponent).getSources().create("javaScriptAssets", JavaScriptSourceSet.class);
-                javaScriptSourceSet.getSource().srcDir("app/assets");
-                javaScriptSourceSet.getSource().include("**/*.js");
+                playComponent.getSources().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {
+                    @Override
+                    public void execute(JavaScriptSourceSet javaScriptSourceSet) {
+                        javaScriptSourceSet.getSource().srcDir("app/assets");
+                        javaScriptSourceSet.getSource().include("**/*.js");
+                    }
+                });
             }
         });
     }
 
     @BinaryTasks
-    void createJavaScriptTasks(CollectionBuilder<Task> tasks, final PlayApplicationBinarySpecInternal binary, final ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
-        for (final JavaScriptSourceSet javaScriptSourceSet : binary.getSource().withType(JavaScriptSourceSet.class)) {
+    void createJavaScriptTasks(ModelMap<Task> tasks, final PlayApplicationBinarySpec binary, ServiceRegistry serviceRegistry, @Path("buildDir") final File buildDir) {
+        for (JavaScriptSourceSet javaScriptSourceSet : binary.getInputs().withType(JavaScriptSourceSet.class)) {
             if (((LanguageSourceSetInternal) javaScriptSourceSet).getMayHaveSources()) {
-                final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());
-                final File minifyOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), minifyTaskName));
-                tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {
-                    @Override
-                    public void execute(JavaScriptMinify javaScriptMinify) {
-                        javaScriptMinify.setSource(javaScriptSourceSet.getSource());
-                        javaScriptMinify.setDestinationDir(minifyOutputDirectory);
-
-                        binary.getAssets().builtBy(javaScriptMinify);
-                        binary.getAssets().addAssetDir(minifyOutputDirectory);
-                    }
-                });
+                createJavaScriptMinifyTask(tasks, javaScriptSourceSet, binary, buildDir);
             }
         }
+
+        for (JavaScriptSourceSet javaScriptSourceSet : binary.getGeneratedJavaScript().values()) {
+            createJavaScriptMinifyTask(tasks, javaScriptSourceSet, binary, buildDir);
+        }
+    }
+
+    void createJavaScriptMinifyTask(ModelMap<Task> tasks, final JavaScriptSourceSet javaScriptSourceSet, final PlayApplicationBinarySpec binary, @Path("buildDir") final File buildDir) {
+        final String minifyTaskName = "minify" + capitalize(binary.getName()) + capitalize(javaScriptSourceSet.getName());
+        final File minifyOutputDirectory = new File(buildDir, String.format("%s/src/%s", binary.getName(), minifyTaskName));
+        tasks.create(minifyTaskName, JavaScriptMinify.class, new Action<JavaScriptMinify>() {
+            @Override
+            public void execute(JavaScriptMinify javaScriptMinify) {
+                javaScriptMinify.setDescription("Minifies javascript for the '" + javaScriptSourceSet.getName() +"' source set.");
+                javaScriptMinify.setSource(javaScriptSourceSet.getSource());
+                javaScriptMinify.setDestinationDir(minifyOutputDirectory);
+                javaScriptMinify.setPlayPlatform(binary.getTargetPlatform());
+
+                binary.getAssets().builtBy(javaScriptMinify);
+                binary.getAssets().addAssetDir(minifyOutputDirectory);
+
+                javaScriptMinify.dependsOn(javaScriptSourceSet.getBuildDependencies());
+            }
+        });
     }
 }

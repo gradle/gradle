@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+
 class DispachingFailureIntegrationSpec extends DaemonIntegrationSpec {
 
     def "failing build does not make the daemon send corrupted message"() {

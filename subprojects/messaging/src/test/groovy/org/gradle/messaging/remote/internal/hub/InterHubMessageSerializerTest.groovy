@@ -16,15 +16,18 @@
 
 package org.gradle.messaging.remote.internal.hub
 
+import org.gradle.internal.serialize.DefaultSerializer
+import org.gradle.internal.serialize.InputStreamBackedDecoder
+import org.gradle.internal.serialize.OutputStreamBackedEncoder
+import org.gradle.internal.serialize.Serializers
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
-import org.gradle.messaging.serialize.kryo.JavaSerializer
 import spock.lang.Specification
 
 class InterHubMessageSerializerTest extends Specification {
-    final InterHubMessageSerializer serializer = new InterHubMessageSerializer(new JavaSerializer<Object>())
+    final InterHubMessageSerializer serializer = new InterHubMessageSerializer(Serializers.stateful(new DefaultSerializer<Object>(getClass().classLoader)))
 
     def "can serialise ChannelMessage"() {
         def channelId = new ChannelIdentifier("channel name")
@@ -97,19 +100,21 @@ class InterHubMessageSerializerTest extends Specification {
 
     def serialize(InterHubMessage... messages) {
         def outStr = new ByteArrayOutputStream()
-        def writer = serializer.newWriter(outStr)
+        def encoder = new OutputStreamBackedEncoder(outStr)
+        def writer = serializer.newWriter(encoder)
         messages.each {
             writer.write(it)
         }
+        encoder.flush()
         return outStr.toByteArray()
     }
 
     def deserialize(byte[] data) {
-        return serializer.newReader(new ByteArrayInputStream(data), null, null).read()
+        return serializer.newReader(new InputStreamBackedDecoder(new ByteArrayInputStream(data))).read()
     }
 
     def deserializeMultiple(byte[] data, int count) {
-        def reader = serializer.newReader(new ByteArrayInputStream(data), null, null)
+        def reader = serializer.newReader(new InputStreamBackedDecoder(new ByteArrayInputStream(data)))
         def result = []
         count.times {
             result << reader.read()

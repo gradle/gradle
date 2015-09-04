@@ -9,7 +9,6 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
-
 ## Test output directories
 
 The current defaults for the outputs of tasks of type `Test` conflict with each other:
@@ -28,6 +27,7 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
 
 ## Archive tasks + base plugin
 
+* Remove `org.gradle.api.tasks.bundling.Jar`, replaced by `org.gradle.jvm.tasks.Jar`.
 * Move defaults for output directory and other attributes from the base plugin to an implicitly applied plugin, so that they are applied to all instances.
 * Use `${task.name}.${task.extension}` as the default archive name, so that the default does not conflict with the default for any other archive task.
 
@@ -69,7 +69,7 @@ Alternatively, default the group to `null` and status to `integration`.
 
 Currently required for in-process Ant-based compilation on Java 5. Dropping support for one of (in-process, ant-based, java 5) would allow us to remove this.
 
-## Decouple publishing DSL from Maven Ant tasks
+## Decouple publishing DSL from Maven classes
 
 * Change the old publishing DSL to use the Maven 3 classes instead of Maven 2 classes. This affects:
     * `MavenResolver.settings`
@@ -118,6 +118,10 @@ types and to offer a more consistent DSL.
 
 ## Tooling API clean ups
 
+* `LongRunningOperation.withArguments()` should be called `setArguments()` for consistency.
+* Remove support for consumers older than 1.6, will allow the provider to drop support for `BuildActionRunner` protocol.
+* Remove the old `ProgressListener` interfaces and methods. These are superseded by the new interfaces. However, the new interfaces are supported only
+  by Gradle 2.5 and later, so might need to defer the removal until 4.0.
 * Move `UnsupportedBuildArgumentException` and `UnsupportedOperationConfigurationException` up to `org.gradle.tooling`, to remove
   package cycle from the API.
 

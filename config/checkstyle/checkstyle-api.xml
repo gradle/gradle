@@ -29,7 +29,7 @@
         </module>
 
         <module name="JavadocType">
-            <property name="scope" value="package"/>
+            <property name="scope" value="protected"/>
         </module>
 
         <!-- TODO - switch this on -->

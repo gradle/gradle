@@ -17,17 +17,14 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ArtifactRepositoryContainer;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.maven.internal.publisher.AntTaskBackedMavenLocalPublisher;
+import org.gradle.api.publish.maven.internal.publisher.MavenLocalPublisher;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
 import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
-
-import javax.inject.Inject;
+import org.gradle.api.tasks.TaskAction;
 
 /**
  * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to the Maven Local repository.
@@ -35,33 +32,22 @@ import javax.inject.Inject;
  * @since 1.4
  */
 @Incubating
-public class PublishToMavenLocal extends PublishToMavenRepository {
-    @Inject
-    protected BaseRepositoryFactory getBaseRepositoryFactory() {
-        throw new UnsupportedOperationException();
-    }
+public class PublishToMavenLocal extends AbstractPublishToMaven {
 
-    @Override
-    public MavenArtifactRepository getRepository() {
-        if (super.getRepository() == null) {
-            // Instantiate the default MavenLocal repository if none has been set explicitly
-            MavenArtifactRepository mavenLocalRepository = getBaseRepositoryFactory().createMavenLocalRepository();
-            mavenLocalRepository.setName(ArtifactRepositoryContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME);
-            setRepository(mavenLocalRepository);
+    @TaskAction
+    public void publish() {
+        final MavenPublicationInternal publication = getPublicationInternal();
+        if (publication == null) {
+            throw new InvalidUserDataException("The 'publication' property is required");
         }
 
-        return super.getRepository();
-    }
-
-    @Override
-    protected void doPublish(final MavenPublicationInternal publication, final MavenArtifactRepository repository) {
-        new PublishOperation(publication, repository) {
+        new PublishOperation(publication, "mavenLocal") {
             @Override
             protected void publish() throws Exception {
-                MavenPublisher antBackedPublisher = new AntTaskBackedMavenLocalPublisher(getLoggingManagerFactory(), getTemporaryDirFactory());
-                MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(antBackedPublisher);
+                MavenPublisher localPublisher = new MavenLocalPublisher(getLoggingManagerFactory(), getMavenRepositoryLocator());
+                MavenPublisher staticLockingPublisher = new StaticLockingMavenPublisher(localPublisher);
                 MavenPublisher validatingPublisher = new ValidatingMavenPublisher(staticLockingPublisher);
-                validatingPublisher.publish(publication.asNormalisedPublication(), repository);
+                validatingPublisher.publish(publication.asNormalisedPublication(), null);
             }
         }.run();
     }

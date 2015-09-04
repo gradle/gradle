@@ -19,10 +19,10 @@ import java.util.Collection;
 import java.util.Formatter;
 
 class StrictConflictResolver implements ModuleConflictResolver {
-    public <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates) {
+    public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
         Formatter formatter = new Formatter();
         formatter.format("A conflict was found between the following modules:");
-        for (ModuleRevisionResolveState candidate : candidates) {
+        for (ComponentResolutionState candidate : candidates) {
             formatter.format("%n - %s", candidate.getId());
         }
         throw new RuntimeException(formatter.toString());

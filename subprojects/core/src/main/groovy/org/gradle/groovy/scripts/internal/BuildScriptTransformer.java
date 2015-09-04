@@ -15,33 +15,47 @@
  */
 package org.gradle.groovy.scripts.internal;
 
+import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationUnit;
+import org.gradle.api.specs.Spec;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.internal.Factory;
 import org.gradle.model.dsl.internal.transform.ModelBlockTransformer;
 
-public class BuildScriptTransformer implements Transformer {
+import java.util.Arrays;
+import java.util.List;
 
-    private final String id;
-    private final Transformer extractionTransformer;
+public class BuildScriptTransformer implements Transformer, Factory<BuildScriptData> {
+
+    private final Spec<? super Statement> filter;
     private final ScriptSource scriptSource;
 
-    public BuildScriptTransformer(String id, Transformer extractionTransformer, ScriptSource scriptSource) {
-        this.id = id;
-        this.extractionTransformer = extractionTransformer;
+    private final ImperativeStatementDetectingTransformer imperativeStatementDetectingTransformer = new ImperativeStatementDetectingTransformer();
+
+    public BuildScriptTransformer(String classpathClosureName, ScriptSource scriptSource) {
+        final List<String> blocksToIgnore = Arrays.asList(classpathClosureName, InitialPassStatementTransformer.PLUGINS);
+        this.filter = new Spec<Statement>() {
+            @Override
+            public boolean isSatisfiedBy(Statement statement) {
+                return AstUtils.detectScriptBlock(statement, blocksToIgnore) != null;
+            }
+        };
         this.scriptSource = scriptSource;
     }
 
-    public String getId() {
-        return id;
+    public void register(CompilationUnit compilationUnit) {
+        new FilteringScriptTransformer(filter).register(compilationUnit);
+        new TaskDefinitionScriptTransformer().register(compilationUnit);
+        new FixMainScriptTransformer().register(compilationUnit);
+        new StatementLabelsScriptTransformer().register(compilationUnit);
+        new ScriptSourceTransformer(scriptSource.getDisplayName(), scriptSource.getResource().getURI()).register(compilationUnit);
+        new ModelBlockTransformer().register(compilationUnit);
+        imperativeStatementDetectingTransformer.register(compilationUnit);
     }
 
-    public void register(CompilationUnit compilationUnit) {
-        extractionTransformer.register(compilationUnit);
-        new TaskDefinitionScriptTransformer().register(compilationUnit);
-        new FixMainScriptTransformer().register(compilationUnit); // TODO - remove this
-        new StatementLabelsScriptTransformer().register(compilationUnit);
-        new ScriptSourceDescriptionTransformer(scriptSource.getDisplayName()).register(compilationUnit);
-        new ModelBlockTransformer().register(compilationUnit);
+    @Override
+    public BuildScriptData create() {
+        return new BuildScriptData(imperativeStatementDetectingTransformer.isImperativeStatementDetected());
     }
 }

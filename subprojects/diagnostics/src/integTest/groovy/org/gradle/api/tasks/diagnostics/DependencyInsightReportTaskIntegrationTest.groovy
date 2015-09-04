@@ -297,7 +297,7 @@ org:leaf:latest.integration -> 1.0
 """))
     }
 
-    def "shows substituted versions"() {
+    def "shows versions substitute by resolve rule"() {
         given:
         mavenRepo.module("org", "leaf", 1.0).publish()
         mavenRepo.module("org", "leaf", 2.0).publish()
@@ -342,7 +342,7 @@ org:leaf:2.0 -> 1.0
         given:
         mavenRepo.module("org", "new-leaf", 77).publish()
 
-        mavenRepo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "foo", 2.0).dependsOn('org', 'leaf', '1.0').publish()
         mavenRepo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
 
         file("build.gradle") << """
@@ -351,7 +351,10 @@ org:leaf:2.0 -> 1.0
             }
             configurations {
                 conf {
-                    resolutionStrategy.eachDependency { if (it.requested.name == 'leaf') { it.useTarget('org:new-leaf:77') } }
+                    resolutionStrategy.dependencySubstitution {
+                        substitute module('org:leaf') with module('org:new-leaf:77')
+                        substitute module('org:foo') with module('org:foo:2.0')
+                    }
                 }
             }
             dependencies {
@@ -371,7 +374,7 @@ org:leaf:2.0 -> 1.0
 org:new-leaf:77 (selected by rule)
 
 org:leaf:1.0 -> org:new-leaf:77
-\\--- org:foo:1.0
+\\--- org:foo:2.0
      \\--- conf
 
 org:leaf:2.0 -> org:new-leaf:77
@@ -729,7 +732,9 @@ org:middle:1.0 -> 2.0 FAILED
             }
             configurations {
                 conf {
-                    resolutionStrategy.eachDependency { if (it.requested.name == 'middle') { it.useVersion('2.0+') } }
+                    resolutionStrategy.dependencySubstitution {
+                        substitute module("org:middle") with module("org:middle:2.0+")
+                    }
                 }
             }
             dependencies {

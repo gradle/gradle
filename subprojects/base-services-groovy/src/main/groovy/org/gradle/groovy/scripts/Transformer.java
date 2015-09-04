@@ -18,11 +18,6 @@ package org.gradle.groovy.scripts;
 import org.codehaus.groovy.control.CompilationUnit;
 
 public interface Transformer {
-    /**
-     * A unique id for this transformer. Used to distinguish between the classes compiled from the same script with
-     * different transformers, so should be a valid java identifier.
-     */
-    String getId();
 
     void register(CompilationUnit compilationUnit);
 }

@@ -19,20 +19,18 @@ package org.gradle.internal.resource.transport.http;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ContentType;
-import org.gradle.internal.Factory;
+import org.gradle.internal.resource.local.LocalResource;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 public class RepeatableInputStreamEntity extends AbstractHttpEntity {
-    private final Factory<InputStream> source;
-    private final Long contentLength;
+    private final LocalResource source;
 
-    public RepeatableInputStreamEntity(Factory<InputStream> source, Long contentLength, ContentType contentType) {
+    public RepeatableInputStreamEntity(LocalResource source, ContentType contentType) {
         super();
         this.source = source;
-        this.contentLength = contentLength;
         if (contentType != null) {
             setContentType(contentType.toString());
         }
@@ -43,15 +41,20 @@ public class RepeatableInputStreamEntity extends AbstractHttpEntity {
     }
 
     public long getContentLength() {
-        return contentLength;
+        return source.getContentLength();
     }
 
     public InputStream getContent() throws IOException, IllegalStateException {
-        return source.create();
+        return source.open();
     }
 
     public void writeTo(OutputStream outstream) throws IOException {
-        IOUtils.copyLarge(getContent(), outstream);
+        InputStream content = getContent();
+        try {
+            IOUtils.copyLarge(content, outstream);
+        } finally {
+            IOUtils.closeQuietly(content);
+        }
     }
 
     public boolean isStreaming() {

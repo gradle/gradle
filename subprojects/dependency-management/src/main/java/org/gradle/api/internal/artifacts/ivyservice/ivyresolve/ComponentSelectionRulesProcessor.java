@@ -70,6 +70,11 @@ public class ComponentSelectionRulesProcessor {
 
         List<Object> inputValues = getInputValues(rule.getAction().getInputTypes(), metadataProvider);
 
+        if (inputValues == null) {
+            // Broken meta-data, bail
+            return;
+        }
+
         if (inputValues.contains(null)) {
             // If any of the input values are not available for this selection, ignore the rule
             return;
@@ -85,6 +90,10 @@ public class ComponentSelectionRulesProcessor {
     private List<Object> getInputValues(List<Class<?>> inputTypes, MetadataProvider metadataProvider) {
         if (inputTypes.size() == 0) {
             return Collections.emptyList();
+        }
+
+        if (!metadataProvider.resolve()) {
+            return null;
         }
 
         List<Object> inputs = new ArrayList<Object>(inputTypes.size());

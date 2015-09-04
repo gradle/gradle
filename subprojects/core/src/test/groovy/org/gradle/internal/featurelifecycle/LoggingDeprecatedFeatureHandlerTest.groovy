@@ -17,15 +17,15 @@
 package org.gradle.internal.featurelifecycle
 
 import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.TestAppender
+import org.gradle.logging.TestOutputEventListener
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 
 class LoggingDeprecatedFeatureHandlerTest extends Specification {
-    final appender = new TestAppender()
-    @Rule final ConfigureLogging logging = new ConfigureLogging(appender)
+    final outputEventListener = new TestOutputEventListener()
+    @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
     final locationReporter = Mock(UsageLocationReporter)
     final handler = new LoggingDeprecatedFeatureHandler(locationReporter)
@@ -37,7 +37,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage("feature2", LoggingDeprecatedFeatureHandlerTest))
 
         then:
-        appender.toString() == '[WARN feature1][WARN feature2]'
+        outputEventListener.toString() == '[WARN feature1][WARN feature2]'
     }
 
     def "location reporter can prepend text"() {
@@ -52,6 +52,6 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         }
 
         and:
-        appender.toString() == TextUtil.toPlatformLineSeparators('[WARN location\nfeature]')
+        outputEventListener.toString() == TextUtil.toPlatformLineSeparators('[WARN location\nfeature]')
     }
 }

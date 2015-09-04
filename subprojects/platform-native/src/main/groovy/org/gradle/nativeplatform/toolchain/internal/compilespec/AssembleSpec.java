@@ -16,20 +16,11 @@
 
 package org.gradle.nativeplatform.toolchain.internal.compilespec;
 
-import org.gradle.nativeplatform.internal.BinaryToolSpec;
-
-import java.io.File;
-import java.util.List;
+import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
 /**
  * A compile spec that will be used to generate object files for combining into a native binary.
  */
-public interface AssembleSpec extends BinaryToolSpec {
-    File getObjectFileDir();
+public interface AssembleSpec extends NativeCompileSpec {
 
-    void setObjectFileDir(File objectFileDir);
-
-    List<File> getSourceFiles();
-
-    void source(Iterable<File> sources);
 }

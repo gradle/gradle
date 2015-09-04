@@ -22,8 +22,8 @@ import org.gradle.messaging.remote.internal.MessageOriginator;
 import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.inet.InetEndpoint;
 import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
-import org.gradle.messaging.serialize.ObjectReader;
-import org.gradle.messaging.serialize.ObjectWriter;
+import org.gradle.internal.serialize.ObjectReader;
+import org.gradle.internal.serialize.ObjectWriter;
 
 import java.io.*;
 import java.net.InetAddress;

@@ -34,6 +34,7 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.Exceptions;
+import org.gradle.util.GradleVersion;
 
 /**
  * An adapter for a {@link InternalConnection} based provider.
@@ -49,8 +50,12 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         ModelProducer modelProducer = new InternalConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, (InternalConnection) delegate);
         modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer);
         modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
-        this.modelProducer = new BuildExecutingModelProducer(modelProducer);
-        this.actionRunner = new UnsupportedActionRunner(getVersionDetails());
+        modelProducer = new BuildExecutingModelProducer(modelProducer);
+        if (GradleVersion.version(getVersionDetails().getVersion()).compareTo(GradleVersion.version("1.0")) < 0) {
+            modelProducer = new NoCommandLineArgsModelProducer(modelProducer);
+        }
+        this.modelProducer = modelProducer;
+        this.actionRunner = new UnsupportedActionRunner(getVersionDetails().getVersion());
     }
 
     @Override
@@ -85,6 +90,22 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         }
     }
 
+    private class NoCommandLineArgsModelProducer implements ModelProducer {
+        private final ModelProducer delegate;
+
+        public NoCommandLineArgsModelProducer(ModelProducer delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+            if (operationParameters.getArguments() != null && !operationParameters.getArguments().isEmpty()) {
+                 throw Exceptions.unsupportedOperationConfiguration(operationParameters.getEntryPointName() + " withArguments()", getVersionDetails().getVersion(), "1.0");
+            }
+            return delegate.produceModel(type, operationParameters);
+        }
+    }
+
     private class BuildExecutingModelProducer implements ModelProducer {
         private final ModelProducer delegate;
 
@@ -98,7 +119,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
                 return null;
             } else {
                 if (operationParameters.getTasks() != null) {
-                    throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()", getVersionDetails().getVersion());
+                    throw Exceptions.unsupportedOperationConfiguration(operationParameters.getEntryPointName() + " forTasks()", getVersionDetails().getVersion(), "1.2");
                 }
                 return delegate.produceModel(type, operationParameters);
             }

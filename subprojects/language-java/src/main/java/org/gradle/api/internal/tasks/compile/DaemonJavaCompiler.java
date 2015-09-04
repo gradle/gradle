@@ -25,6 +25,8 @@ import java.io.File;
 import java.util.Collections;
 
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
+    private static final Iterable<String> SHARED_PACKAGES = Collections.singleton("com.sun.tools.javac");
+
     public DaemonJavaCompiler(File daemonWorkingDir, Compiler<JavaCompileSpec> delegate, CompilerDaemonFactory compilerDaemonFactory) {
         super(daemonWorkingDir, delegate, compilerDaemonFactory);
     }
@@ -34,6 +36,6 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         return new DaemonForkOptions(
                 forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(),
-                Collections.<File>emptyList(), Collections.singleton("com.sun.tools.javac"));
+                Collections.<File>emptyList(), SHARED_PACKAGES);
     }
 }

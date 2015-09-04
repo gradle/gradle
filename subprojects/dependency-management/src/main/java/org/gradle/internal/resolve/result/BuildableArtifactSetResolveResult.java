@@ -24,6 +24,4 @@ public interface BuildableArtifactSetResolveResult extends ArtifactSetResolveRes
     void resolved(Collection<? extends ComponentArtifactMetaData> artifacts);
 
     void failed(ArtifactResolveException failure);
-
-    boolean hasResult();
 }

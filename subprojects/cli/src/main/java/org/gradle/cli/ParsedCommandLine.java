@@ -20,6 +20,7 @@ import java.util.*;
 public class ParsedCommandLine {
     private final Map<String, ParsedCommandLineOption> optionsByString = new HashMap<String, ParsedCommandLineOption>();
     private final Set<String> presentOptions = new HashSet<String>();
+    private final Set<String> removedOptions = new HashSet<String>();
     private final List<String> extraArguments = new ArrayList<String>();
 
     ParsedCommandLine(Iterable<CommandLineOption> options) {
@@ -33,7 +34,7 @@ public class ParsedCommandLine {
 
     @Override
     public String toString() {
-        return String.format("options: %s, extraArguments: %s", quoteAndJoin(presentOptions), quoteAndJoin(extraArguments));
+        return String.format("options: %s, extraArguments: %s, removedOptions: %s", quoteAndJoin(presentOptions), quoteAndJoin(extraArguments), quoteAndJoin(removedOptions));
     }
 
     private String quoteAndJoin(Iterable<String> strings) {
@@ -60,6 +61,18 @@ public class ParsedCommandLine {
     public boolean hasOption(String option) {
         option(option);
         return presentOptions.contains(option);
+    }
+
+    /**
+     * Returns true if the given option was present in this command-line,
+     * but was removed because another option appeared later that replaces it.
+     *
+     * @param option The option, without the '-' or '--' prefix.
+     * @return true if the option was present.
+     */
+    public boolean hadOptionRemoved(String option) {
+        option(option);
+        return removedOptions.contains(option);
     }
 
     /**
@@ -106,6 +119,11 @@ public class ParsedCommandLine {
     }
 
     void removeOption(CommandLineOption option) {
-        presentOptions.removeAll(option.getOptions());
+        for (String optionStr : option.getOptions()) {
+            if (presentOptions.remove(optionStr)) {
+                // Only keep track of removed options that were present in the command line
+                removedOptions.add(optionStr);
+            }
+        }
     }
 }

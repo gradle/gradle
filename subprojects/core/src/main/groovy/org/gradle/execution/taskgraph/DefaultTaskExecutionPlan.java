@@ -22,16 +22,18 @@ import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.*;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.ParallelizableTask;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskFailureHandler;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.Tuple;
+import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
@@ -65,6 +67,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private final Set<TaskInfo> entryTasks = new LinkedHashSet<TaskInfo>();
     private final TaskDependencyGraph graph = new TaskDependencyGraph();
     private final LinkedHashMap<Task, TaskInfo> executionPlan = new LinkedHashMap<Task, TaskInfo>();
+    private final List<TaskInfo> executionQueue = new LinkedList<TaskInfo>();
     private final List<Throwable> failures = new ArrayList<Throwable>();
     private Spec<? super Task> filter = Specs.satisfyAll();
 
@@ -132,7 +135,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (visiting.add(node)) {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
-                Set<? extends Task> dependsOnTasks = context.getDependencies(task);
+                Set<? extends Task> dependsOnTasks = realizedDependencies(task, context);
                 for (Task dependsOnTask : dependsOnTasks) {
                     TaskInfo targetNode = graph.addNode(dependsOnTask);
                     node.addDependencySuccessor(targetNode);
@@ -140,7 +143,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                         queue.add(0, targetNode);
                     }
                 }
-                for (Task finalizerTask : task.getFinalizedBy().getDependencies(task)) {
+                for (Task finalizerTask : realizedDependencies(task, task.getFinalizedBy())) {
                     TaskInfo targetNode = graph.addNode(finalizerTask);
                     addFinalizerNode(node, targetNode);
                     if (!visiting.contains(targetNode)) {
@@ -172,6 +175,15 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         }
         resolveTasksInUnknownState();
+    }
+
+    Set<? extends Task> realizedDependencies(Task task, TaskDependency dependencies) {
+        Set<? extends Task> resolvedDependencies = dependencies.getDependencies(task);
+        for (Task resolvedDependency : resolvedDependencies) {
+            ProjectInternal project = (ProjectInternal) resolvedDependency.getProject();
+            project.getTasks().maybeRealizeTask(resolvedDependency.getName());
+        }
+        return resolvedDependencies;
     }
 
     private void resolveTasksInUnknownState() {
@@ -301,6 +313,8 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
             }
         }
+        executionQueue.clear();
+        executionQueue.addAll(executionPlan.values());
     }
 
     private void maybeRemoveProcessedShouldRunAfterEdge(Stack<GraphEdge> walkedShouldRunAfterEdges, TaskInfo taskNode) {
@@ -421,6 +435,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             graph.clear();
             entryTasks.clear();
             executionPlan.clear();
+            executionQueue.clear();
             failures.clear();
             projectsWithRunningTasks.clear();
             projectsWithRunningNonParallelizableTasks.clear();
@@ -455,10 +470,13 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
                 TaskInfo nextMatching = null;
                 boolean allTasksComplete = true;
-                for (TaskInfo taskInfo : executionPlan.values()) {
+                Iterator<TaskInfo> iterator = executionQueue.iterator();
+                while (iterator.hasNext()) {
+                    TaskInfo taskInfo = iterator.next();
                     allTasksComplete = allTasksComplete && taskInfo.isComplete();
                     if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && canRunWithWithCurrentlyExecutedTasks(taskInfo)) {
                         nextMatching = taskInfo;
+                        iterator.remove();
                         break;
                     }
                 }
@@ -501,7 +519,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
         }
 
-        Tuple<TaskInternal, String> overlap = firstTaskWithOverlappingOutput(task);
+        Pair<TaskInternal, String> overlap = firstTaskWithOverlappingOutput(task);
         if (overlap == null) {
             return true;
         } else {
@@ -533,7 +551,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     @Nullable
-    private Tuple<TaskInternal, String> firstTaskWithOverlappingOutput(TaskInternal candidateTask) {
+    private Pair<TaskInternal, String> firstTaskWithOverlappingOutput(TaskInternal candidateTask) {
         if (runningTasks.isEmpty()) {
             return null;
         }
@@ -542,7 +560,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             for (TaskInternal runningTask : runningTasks) {
                 for (String runningTaskOutputPath : canonicalizedOutputPaths(runningTask)) {
                     if (pathsOverlap(candidateTaskOutputPath, runningTaskOutputPath)) {
-                        return Tuple.of(runningTask, TextUtil.shorterOf(candidateTaskOutputPath, runningTaskOutputPath));
+                        return Pair.of(runningTask, TextUtil.shorterOf(candidateTaskOutputPath, runningTaskOutputPath));
                     }
                 }
             }

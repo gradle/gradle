@@ -31,7 +31,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
     def agedFred = new DefaultAgeAwarePerson(name: "fred", age: 42)
     def agedBarney = new DefaultAgeAwarePerson(name: "barney", age: 42)
 
-    def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, new DirectInstantiator())
+    def container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE)
 
     interface Person extends Named {}
 
@@ -116,7 +116,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects without specifying a type"() {
-        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, new DirectInstantiator())
+        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE)
 
         when:
         container.create("fred")
@@ -160,7 +160,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
     }
 
     def "create elements with specified type based on type binding"() {
-        container = new DefaultPolymorphicDomainObjectContainer<?>(Object, new DirectInstantiator(),
+        container = new DefaultPolymorphicDomainObjectContainer<?>(Object, DirectInstantiator.INSTANCE,
                 { it instanceof Named ? it.name : "unknown" } as Named.Namer)
 
         container.registerBinding(UnnamedPerson, DefaultUnnamedPerson)
@@ -210,7 +210,7 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects with the specified type"() {
-        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, new DirectInstantiator())
+        container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, DirectInstantiator.INSTANCE)
 
         when:
         container.create("fred", Person)

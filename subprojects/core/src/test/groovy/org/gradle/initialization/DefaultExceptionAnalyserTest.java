@@ -22,7 +22,7 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.listener.ListenerManager;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -47,6 +47,8 @@ public class DefaultExceptionAnalyserTest {
     private final StackTraceElement element = new StackTraceElement("class", "method", "filename", 7);
     private final StackTraceElement callerElement = new StackTraceElement("class", "method", "filename", 11);
     private final StackTraceElement otherElement = new StackTraceElement("class", "method", "otherfile", 11);
+    private final StackTraceElement elementWithNoSourceFile = new StackTraceElement("class", "method", null, 11);
+    private final StackTraceElement elementWithNoLineNumber = new StackTraceElement("class", "method", "filename", -1);
     private final ScriptSource source = context.mock(ScriptSource.class);
 
     @Before
@@ -54,6 +56,8 @@ public class DefaultExceptionAnalyserTest {
         context.checking(new Expectations() {{
             allowing(source).getFileName();
             will(returnValue("filename"));
+            allowing(source).getDisplayName();
+            will(returnValue("build file filename"));
         }});
     }
 
@@ -100,9 +104,9 @@ public class DefaultExceptionAnalyserTest {
     }
 
     @Test
-    public void addsLocationInfoFromDeepestStackFrame() {
+    public void addsLocationInfoFromDeepestStackFrameWithMatchingSourceFileAndLineInformation() {
         Throwable failure = new ContextualException();
-        failure.setStackTrace(toArray(element, otherElement, callerElement));
+        failure.setStackTrace(toArray(elementWithNoSourceFile, elementWithNoLineNumber, otherElement, element, callerElement));
 
         DefaultExceptionAnalyser analyser = analyser();
         notifyAnalyser(analyser, source);
@@ -111,7 +115,7 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getScriptSource(), sameInstance(source));
+        assertThat(gse.getSourceDisplayName(), equalTo(source.getDisplayName()));
         assertThat(gse.getLineNumber(), equalTo(7));
     }
 
@@ -129,7 +133,7 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getScriptSource(), sameInstance(source));
+        assertThat(gse.getSourceDisplayName(), equalTo(source.getDisplayName()));
         assertThat(gse.getLineNumber(), equalTo(7));
     }
 
@@ -140,7 +144,7 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getScriptSource(), nullValue());
+        assertThat(gse.getSourceDisplayName(), nullValue());
         assertThat(gse.getLineNumber(), nullValue());
     }
 
@@ -224,7 +228,7 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getScriptSource(), sameInstance(source));
+        assertThat(gse.getSourceDisplayName(), equalTo(source.getDisplayName()));
         assertThat(gse.getLineNumber(), equalTo(7));
         assertThat(gse.getCause(), sameInstance(failure));
     }
@@ -241,12 +245,7 @@ public class DefaultExceptionAnalyserTest {
     }
 
     private void notifyAnalyser(DefaultExceptionAnalyser analyser, final ScriptSource source) {
-        final Script script = context.mock(Script.class);
-        context.checking(new Expectations() {{
-            allowing(script).getScriptSource();
-            will(returnValue(source));
-        }});
-        analyser.beforeScript(script);
+        analyser.scriptClassLoaded(source, Script.class);
     }
 
     private DefaultExceptionAnalyser analyser() {

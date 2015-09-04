@@ -140,16 +140,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
                     if (node == scriptException) {
                         details.details.text(getMessage(scriptException.getCause()));
                     } else {
-                        details.details.format("%n");
-                        StringBuilder prefix = new StringBuilder();
-                        for (int i = 1; i < depth; i++) {
-                            prefix.append("   ");
-                        }
-                        details.details.text(prefix);
-                        prefix.append("  ");
-                        details.details.style(Info).text("> ").style(Normal);
-
-                        final LinePrefixingStyledTextOutput output = new LinePrefixingStyledTextOutput(details.details, prefix);
+                        final LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput();
                         output.text(getMessage(node));
                     }
                 }
@@ -162,6 +153,19 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
                 @Override
                 public void endChildren() {
                     depth--;
+                }
+
+                private LinePrefixingStyledTextOutput getLinePrefixingStyledTextOutput() {
+                    details.details.format("%n");
+                    StringBuilder prefix = new StringBuilder();
+                    for (int i = 1; i < depth; i++) {
+                        prefix.append("   ");
+                    }
+                    details.details.text(prefix);
+                    prefix.append("  ");
+                    details.details.style(Info).text("> ").style(Normal);
+
+                    return new LinePrefixingStyledTextOutput(details.details, prefix, false);
                 }
             });
         } else {

@@ -19,10 +19,12 @@ import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
@@ -38,11 +40,13 @@ import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
+    private final File tarFile;
     private final ReadableResource resource;
     private final Chmod chmod;
     private final File tmpDir;
 
-    public TarFileTree(ReadableResource resource, File tmpDir, Chmod chmod) {
+    public TarFileTree(@Nullable File tarFile, ReadableResource resource, File tmpDir, Chmod chmod) {
+        this.tarFile = tarFile;
         this.resource = resource;
         this.chmod = chmod;
         String expandDirName = String.format("%s_%s", resource.getBaseName(), HashUtil.createCompactMD5(resource.getURI().toString()));
@@ -73,9 +77,9 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
             }
         } catch (Exception e) {
             String message = "Unable to expand " + getDisplayName() + "\n"
-                    + "  The tar might be corrupted or it is compressed in an unexpected way.\n"
-                    + "  By default the tar tree tries to guess the compression based on the file extension.\n"
-                    + "  If you need to specify the compression explicitly please refer to the DSL reference.";
+                + "  The tar might be corrupted or it is compressed in an unexpected way.\n"
+                + "  By default the tar tree tries to guess the compression based on the file extension.\n"
+                + "  If you need to specify the compression explicitly please refer to the DSL reference.";
             throw new GradleException(message, e);
         }
     }
@@ -166,6 +170,13 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
 
         public TarEntry getCurrent() {
             return currEntry;
+        }
+    }
+
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        if (tarFile != null) {
+            builder.add(tarFile);
         }
     }
 }

@@ -17,7 +17,7 @@
     <bookinfo>
         <title>Gradle User Guide</title>
         <copyright>
-            <year>2007-2012</year>
+            <year>2007-2015</year>
             <holder>Hans Dockter, Adam Murdoch</holder>
         </copyright>
         <legalnotice>
@@ -40,12 +40,12 @@
     <xi:include href='commandLineTutorial.xml'/>
     <xi:include href='guiTutorial.xml'/>
     <xi:include href='writingBuildScripts.xml'/>
-    <xi:include href='thisAndThat.xml'/>
     <xi:include href='tasks.xml'/>
     <xi:include href='workingWithFiles.xml'/>
     <xi:include href='ant.xml'/>
     <xi:include href='logging.xml'/>
     <xi:include href='gradleDaemon.xml'/>
+    <xi:include href='continuousBuild.xml'/>
     <xi:include href='buildEnvironment.xml'/>
     <xi:include href='plugins.xml'/>
     <xi:include href='standardPlugins.xml'/>
@@ -77,11 +77,13 @@
     <xi:include href='wrapperPlugin.xml'/>
     <xi:include href='buildDashboardPlugin.xml'/>
     <xi:include href='javaGradlePlugin.xml' />
+    <xi:include href='testKit.xml' />
     <xi:include href='depMngmt.xml'/>
     <xi:include href='artifactMngmt.xml'/>
     <xi:include href='mavenPlugin.xml'/>
     <xi:include href='signingPlugin.xml'/>
     <xi:include href='nativeBinaries.xml'/>
+    <xi:include href='playPlugin.xml'/>
     <xi:include href='buildLifecycle.xml'/>
     <xi:include href='multiproject.xml'/>
     <xi:include href='customTasks.xml'/>
@@ -93,6 +95,8 @@
     <xi:include href='comparingBuilds.xml'/>
     <xi:include href='publishingIvy.xml'/>
     <xi:include href='publishingMaven.xml'/>
+    <xi:include href='newModel.xml'/>
+    <xi:include href='newJavaPlugin.xml'/>
     <!-- this is generated -->
     <xi:include href='../../../build/src/samplesList.xml'/>
     <xi:include href='potentialTraps.xml'/>

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.typeconversion;
 
-import java.util.Collection;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 public abstract class TypedNotationConverter<N, T> implements NotationConverter<Object, T> {
 
@@ -32,8 +32,9 @@ public abstract class TypedNotationConverter<N, T> implements NotationConverter<
         this.typeToken = typeToken.getTargetType();
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add(String.format("Instances of %s.", typeToken.getSimpleName()));
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate(String.format("Instances of %s.", typeToken.getSimpleName()));
     }
 
     @Override

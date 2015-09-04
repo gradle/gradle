@@ -16,10 +16,9 @@
 
 package org.gradle.test.fixtures.ivy
 
-import org.gradle.test.fixtures.resource.RemoteResource
+import org.gradle.test.fixtures.resource.RemoteArtifact
 
 interface RemoteIvyModule extends IvyModule {
-
-    RemoteResource getIvy()
-    RemoteResource getJar()
+    RemoteArtifact getIvy()
+    RemoteArtifact getJar()
 }

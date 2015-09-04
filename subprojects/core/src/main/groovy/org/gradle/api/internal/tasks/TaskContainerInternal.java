@@ -15,30 +15,25 @@
  */
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.model.internal.core.ModelPath;
-
-import java.util.Map;
+import org.gradle.model.internal.type.ModelType;
 
 public interface TaskContainerInternal extends TaskContainer, TaskResolver, PolymorphicDomainObjectContainerInternal<Task> {
 
     // The path to the project's task container in the model registry
-    public ModelPath MODEL_PATH = ModelPath.path("tasks");
+    ModelPath MODEL_PATH = ModelPath.path("tasks");
+    ModelType<TaskContainerInternal> MODEL_TYPE = ModelType.of(TaskContainerInternal.class);
+    ModelType<Task> TASK_MODEL_TYPE = ModelType.of(Task.class);
 
     DynamicObject getTasksAsDynamicObject();
 
-    /**
-     * <p>Add placeholder action if task is referenced by name that does not (yet) exist.
-     * If a task is referenced by name and not listed as task, the provided action is executed and the task name is looked up again before proceeding
-     * This allows lazy application of plugins if task is referenced but not yet part of the taskcontainer.</p>
-     *
-     * @param placeholderName the placeholderName that references the placeholder action.
-     * @param runnable the Runnable executed when referencing a task that does not exist, but a placeholder with the given name is defined.
-     */
-    void addPlaceholderAction(String placeholderName, Runnable runnable);
+    <T extends TaskInternal> void addPlaceholderAction(String placeholderName, Class<T> type, Action<? super T> configure);
 
     /**
      * Force the entire graph to come into existence.
@@ -49,7 +44,14 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
      *
      * As part of this, all placeholder actions are materialized to show up in 'tasks' and 'tasks --all' overview.
      */
-    void actualize();
+    void realize();
 
-    Map<String, Runnable> getPlaceholderActions();
+    /**
+     * Performs work to discover more tasks.
+     *
+     * This method differs from {@link #realize} in that it does not discover new tasks by traversing task dependencies.
+     */
+    void discoverTasks();
+
+    void maybeRealizeTask(String name);
 }

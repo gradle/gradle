@@ -30,7 +30,8 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         and:
-        def lock = new RandomAccessFile(file("build/newFile").createFile(), "rw").channel.lock()
+        def channel = new RandomAccessFile(file("build/newFile").createFile(), "rw").channel
+        def lock = channel.lock()
 
         when:
         fails "clean"
@@ -40,6 +41,32 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
         cleanup:
         lock?.release()
+        channel?.close()
+    }
+
+    def "can define 'build' and 'check' tasks when applying plugin"() {
+        buildFile << """
+            apply plugin: 'base'
+
+            task build {
+                dependsOn 'check'
+                doLast {
+                    println "CUSTOM BUILD"
+                }
+            }
+
+            task check << {
+                println "CUSTOM CHECK"
+            }
+"""
+        when:
+        executer.withDeprecationChecksDisabled()
+        succeeds "build"
+
+        then:
+        executedAndNotSkipped ":check", ":build"
+        output.contains "CUSTOM CHECK"
+        output.contains "CUSTOM BUILD"
     }
 
 }

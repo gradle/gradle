@@ -45,7 +45,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
     def "all non-rejecting rules are evaluated" () {
         def metadataProvider = Stub(MetadataProvider) {
-            getIvyModuleDescriptor() >> Stub(IvyModuleDescriptor)
+            resolve() >> true
         }
         def closureCalled = []
         when:
@@ -71,7 +71,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
     def "all non-rejecting targeted rules are evaluated" () {
         def metadataProvider = Stub(MetadataProvider) {
-            getIvyModuleDescriptor() >> Stub(IvyModuleDescriptor)
+            resolve() >> true
         }
         def closureCalled = []
         when:
@@ -97,7 +97,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
     def "can call both targeted and untargeted rules" () {
         def metadataProvider = Stub(MetadataProvider) {
-            getIvyModuleDescriptor() >> Stub(IvyModuleDescriptor)
+            resolve() >> true
         }
         def closureCalled = []
         when:
@@ -244,6 +244,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
     def "rule expecting IvyMetadataDescriptor does not get called when not an ivy component" () {
         def metadataProvider = Stub(MetadataProvider) {
+            resolve() >> true
             getIvyModuleDescriptor() >> null
         }
         def closuresCalled = []
@@ -259,7 +260,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
 
     def "only matching targeted rules get called" () {
         def metadataProvider = Stub(MetadataProvider) {
-            getIvyModuleDescriptor() >> Stub(IvyModuleDescriptor)
+            resolve() >> true
         }
         def closuresCalled = []
         when:
@@ -282,6 +283,24 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         then:
         !componentSelection.rejected
         closuresCalled.sort() == [0, 2, 4, 5, 6, 8, 9, 10]
+    }
+
+    def "does not invoke rules that require meta-data when it cannot be resolved" () {
+        def metadataProvider = Stub(MetadataProvider) {
+            resolve() >> false
+        }
+        def closuresCalled = []
+        when:
+        rule { ComponentSelection cs -> closuresCalled << 0 }
+        rule { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 1 }
+        rule { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 2 }
+
+        and:
+        apply(metadataProvider)
+
+        then:
+        !componentSelection.rejected
+        closuresCalled == [0]
     }
 
     def rule(Closure<?> closure) {

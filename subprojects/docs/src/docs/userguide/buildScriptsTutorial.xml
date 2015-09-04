@@ -202,9 +202,9 @@
     </section>
     <section id='sec:default_tasks'>
         <title>Default tasks</title>
-        <para>Gradle allows you to define one or more default tasks for your build.
+        <para>Gradle allows you to define one or more default tasks that are executed if no other tasks are specified.
         </para>
-        <sample id="defaultTasks" dir="userguide/tutorial/defaultTasks" title="Defining a default tasks">
+        <sample id="defaultTasks" dir="userguide/tutorial/defaultTasks" title="Defining a default task">
             <sourcefile file="build.gradle"/>
             <output args="-q"/>
         </sample>

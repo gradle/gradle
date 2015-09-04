@@ -18,6 +18,8 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativeplatform.internal.LinkerSpec;
@@ -32,23 +34,30 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs
 
 class LinkExeLinker implements Compiler<LinkerSpec> {
 
-    private final CommandLineTool commandLineTool;
+    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
     private final Transformer<LinkerSpec, LinkerSpec> specTransformer;
     private final ArgsTransformer<LinkerSpec> argsTransformer;
-    private final CommandLineToolInvocation baseInvocation;
+    private final CommandLineToolContext invocationContext;
+    private final BuildOperationProcessor buildOperationProcessor;
 
-    public LinkExeLinker(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
-        argsTransformer = new LinkerArgsTransformer();
-        this.commandLineTool = commandLineTool;
-        this.baseInvocation = invocation;
+    LinkExeLinker(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext, Transformer<LinkerSpec, LinkerSpec> specTransformer) {
+        this.buildOperationProcessor = buildOperationProcessor;
+        this.argsTransformer = new LinkerArgsTransformer();
+        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
+        this.invocationContext = invocationContext;
         this.specTransformer = specTransformer;
     }
 
     public WorkResult execute(LinkerSpec spec) {
-        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
-        invocation.addPostArgsAction(new VisualCppOptionsFileArgsWriter(spec.getTempDir()));
-        invocation.setArgs(argsTransformer.transform(specTransformer.transform(spec)));
-        commandLineTool.execute(invocation);
+        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
+        LinkerSpec transformedSpec = specTransformer.transform(spec);
+        List<String> args = argsTransformer.transform(transformedSpec);
+        invocationContext.getArgAction().execute(args);
+        new VisualCppOptionsFileArgsWriter(spec.getTempDir()).execute(args);
+        CommandLineToolInvocation invocation = invocationContext.createInvocation(
+                String.format("linking %s", spec.getOutputFile().getName()), args, spec.getOperationLogger());
+        queue.add(invocation);
+        queue.waitForCompletion();
         return new SimpleWorkResult(true);
     }
 

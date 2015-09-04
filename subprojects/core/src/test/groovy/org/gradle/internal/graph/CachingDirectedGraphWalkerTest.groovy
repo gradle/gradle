@@ -119,6 +119,25 @@ class CachingDirectedGraphWalkerTest extends Specification {
         values == ['1', '1->1', '1->2', '2', '2->3', '2->4', '3', '3->2', '4'] as Set
     }
 
+    def collectsValuesAndCyclesInComplexCyclicGraph() {
+        when:
+        walker.add(0)
+
+        and:
+        _ * graph.getNodeValues(0, _, _) >> { args -> args[2] << 4; args[2] << 1 }
+        _ * graph.getNodeValues(1, _, _) >> { args -> args[2] << 4; args[2] << 2 }
+        _ * graph.getNodeValues(2, _, _) >> { args -> args[2] << 1; args[2] << 3 }
+        _ * graph.getNodeValues(3, _, _) >> { args -> args[2] << 2 }
+        _ * graph.getNodeValues(4, _, _) >> { args -> args[2] << 5 }
+        _ * graph.getNodeValues(5, _, _) >> { args -> args[2] << 3 }
+
+        _ * graph.getEdgeValues(_, _, _) >> { args -> args[2] << "${args[0]}->${args[1]}".toString() }
+
+        then:
+        walker.findValues() == ['0->1', '0->4', '1->2', '1->4', '2->1', '2->3', '3->2', '4->5', '5->3'] as Set
+        walker.findCycles() == [[1, 2, 3, 4, 5] as Set]
+    }
+
     def locatesCyclesWhenSingleCycleInGraph() {
         when:
         walker.add(1)

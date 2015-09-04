@@ -23,7 +23,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.listener.ListenerBroadcast;
+import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
 import org.gradle.process.internal.streams.StreamsHandler;
@@ -78,6 +78,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final StreamsHandler streamsHandler;
     private final boolean redirectErrorStream;
     private final ProcessLauncher processLauncher;
+    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
     private int timeoutMillis;
     private boolean daemon;
 
@@ -121,7 +122,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.lock = new ReentrantLock();
         this.condition = lock.newCondition();
         this.state = ExecHandleState.INIT;
-        executor = new DefaultExecutorFactory().create(String.format("Run %s", displayName));
+        executor = executorFactory.create(String.format("Run %s", displayName));
         processLauncher = NativeServices.getInstance().get(ProcessLauncher.class);
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
         broadcast = new ListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
@@ -228,7 +229,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             }
             setState(ExecHandleState.STARTING);
 
-            execHandleRunner = new ExecHandleRunner(this, streamsHandler, processLauncher);
+            execHandleRunner = new ExecHandleRunner(this, streamsHandler, processLauncher, executorFactory);
             executor.execute(execHandleRunner);
 
             while(stateIn(ExecHandleState.STARTING)) {
@@ -261,6 +262,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 throw new IllegalStateException(String.format("Cannot abort process '%s' because it is not in started or detached state", displayName));
             }
             this.execHandleRunner.abortProcess();
+            this.waitForFinish();
         } finally {
             lock.unlock();
         }

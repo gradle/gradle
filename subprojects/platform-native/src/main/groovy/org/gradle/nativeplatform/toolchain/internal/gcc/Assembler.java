@@ -16,65 +16,31 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
+import org.gradle.internal.Transformers;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
-import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
-import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-class Assembler implements Compiler<AssembleSpec> {
+class Assembler extends GccCompatibleNativeCompiler<AssembleSpec> {
 
-    private final CommandLineTool commandLineTool;
-    private final CommandLineToolInvocation baseInvocation;
-    private String outputFileSuffix;
-
-    public Assembler(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation, String outputFileSuffix) {
-        this.commandLineTool = commandLineTool;
-        this.baseInvocation = baseInvocation;
-        this.outputFileSuffix = outputFileSuffix;
+    Assembler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineTool, invocationContext, new AssemblerArgsTransformer(), Transformers.<AssembleSpec>noOpTransformer(), objectFileExtension, useCommandFile);
     }
 
-    public WorkResult execute(AssembleSpec spec) {
-        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
-        invocation.setWorkDirectory(spec.getObjectFileDir());
-        for (File sourceFile : spec.getSourceFiles()) {
-            ArgsTransformer<AssembleSpec> arguments = new AssembleSpecToArgsList(sourceFile, spec.getObjectFileDir(), outputFileSuffix);
-            invocation.setArgs(arguments.transform(spec));
-            commandLineTool.execute(invocation);
+    @Override
+    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
+        if (pchArgs != null && !pchArgs.isEmpty()) {
+            throw new UnsupportedOperationException("Precompiled header arguments cannot be specified for an Assembler compiler.");
         }
-        return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
+        return super.buildPerFileArgs(genericArgs, sourceArgs, outputArgs, pchArgs);
     }
 
-    private static class AssembleSpecToArgsList implements ArgsTransformer<AssembleSpec> {
-        private final File inputFile;
-        private final File outputFile;
-
-        public AssembleSpecToArgsList(File inputFile, File objectFileRootDir, String outputFileSuffix) {
-            this.inputFile = inputFile;
-            this.outputFile = new CompilerOutputFileNamingScheme()
-                                    .withOutputBaseFolder(objectFileRootDir)
-                                    .withObjectFileNameSuffix(outputFileSuffix)
-                                    .map(inputFile);
-        }
-
-        public List<String> transform(AssembleSpec spec) {
-            List<String> args = new ArrayList<String>();
-            args.addAll(spec.getAllArgs());
-            if (!outputFile.getParentFile().exists()) {
-                outputFile.getParentFile().mkdirs();
-            }
-            Collections.addAll(args, "-o", outputFile.getAbsolutePath());
-            args.add(inputFile.getAbsolutePath());
-            return args;
+    private static class AssemblerArgsTransformer  extends GccCompilerArgsTransformer<AssembleSpec> {
+        protected String getLanguage() {
+            return "assembler";
         }
     }
 }

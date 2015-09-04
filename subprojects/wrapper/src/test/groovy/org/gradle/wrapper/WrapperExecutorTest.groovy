@@ -38,6 +38,7 @@ class WrapperExecutorTest extends Specification {
         properties.distributionPath = 'testDistPath'
         properties.zipStoreBase = 'testZipBase'
         properties.zipStorePath = 'testZipPath'
+        properties.distributionSha256Sum = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
         propertiesFile.parentFile.mkdirs()
         propertiesFile.withOutputStream { properties.store(it, 'header') }
     }
@@ -52,6 +53,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.distributionPath == 'testDistPath'
         wrapper.configuration.zipBase == 'testZipBase'
         wrapper.configuration.zipPath == 'testZipPath'
+        wrapper.configuration.distributionSha256Sum == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
     }
 
     def "loads wrapper meta data from specified project directory"() {
@@ -64,6 +66,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.distributionPath == 'testDistPath'
         wrapper.configuration.zipBase == 'testZipBase'
         wrapper.configuration.zipPath == 'testZipPath'
+        wrapper.configuration.distributionSha256Sum == 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
     }
 
     def "uses default meta data when properties file does not exist in project directory"() {
@@ -76,6 +79,7 @@ class WrapperExecutorTest extends Specification {
         wrapper.configuration.distributionPath == Install.DEFAULT_DISTRIBUTION_PATH
         wrapper.configuration.zipBase == PathAssembler.GRADLE_USER_HOME_STRING
         wrapper.configuration.zipPath == Install.DEFAULT_DISTRIBUTION_PATH
+        wrapper.configuration.distributionSha256Sum == null
     }
 
     def "properties file need contain only the distribution URL"() {
@@ -83,7 +87,7 @@ class WrapperExecutorTest extends Specification {
         def properties = new Properties()
         properties.distributionUrl = 'http://server/test/gradle.zip'
         propertiesFile.withOutputStream { properties.store(it, 'header') }
-        
+
         def wrapper = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out)
 
         expect:

@@ -138,7 +138,7 @@ public class PublishToIvyRepository extends DefaultTask {
     }
 
     private void doPublish(final IvyPublicationInternal publication, final IvyArtifactRepository repository) {
-        new PublishOperation(publication, repository) {
+        new PublishOperation(publication, repository.getName()) {
             @Override
             protected void publish() throws Exception {
                 IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();

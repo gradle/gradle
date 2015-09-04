@@ -16,14 +16,14 @@
 
 package org.gradle.internal.resolve.result;
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.internal.resolve.ArtifactResolveException;
-import org.gradle.internal.component.model.ComponentArtifactIdentifier;
 
 import java.io.File;
 
 public interface BuildableArtifactResolveResult extends ArtifactResolveResult, ResourceAwareResolveResult {
     /**
-     * Marks the module version as resolved, with the given artifact resolver.
+     * Marks the artifact as resolved to the given file.
      */
     void resolved(File file);
 

@@ -17,17 +17,22 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Delete;
 import org.gradle.language.base.internal.plugins.CleanRule;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle.</p>
  */
 @Incubating
-public class LifecycleBasePlugin implements Plugin<Project> {
+public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     public static final String CLEAN_TASK_NAME = "clean";
     public static final String ASSEMBLE_TASK_NAME = "assemble";
     public static final String CHECK_TASK_NAME = "check";
@@ -35,21 +40,29 @@ public class LifecycleBasePlugin implements Plugin<Project> {
     public static final String BUILD_GROUP = "build";
     public static final String VERIFICATION_GROUP = "verification";
 
-    public void apply(Project project) {
+    private static final String CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG = "Defining custom '%s' task when using the standard Gradle lifecycle plugins";
+    private final Set<String> placeholders = new HashSet<String>();
+
+    public void apply(ProjectInternal project) {
         addClean(project);
         addCleanRule(project);
         addAssemble(project);
         addCheck(project);
         addBuild(project);
+        addDeprecationWarningsAboutCustomLifecycleTasks(project);
     }
 
-    private void addClean(final Project project) {
-        Delete clean = project.getTasks().create(CLEAN_TASK_NAME, Delete.class);
-        clean.setDescription("Deletes the build directory.");
-        clean.setGroup(BUILD_GROUP);
-        clean.delete(new Callable<File>() {
-            public File call() throws Exception {
-                return project.getBuildDir();
+    private void addClean(final ProjectInternal project) {
+        addPlaceholderAction(project, CLEAN_TASK_NAME, Delete.class, new Action<Delete>() {
+            @Override
+            public void execute(Delete clean) {
+                clean.setDescription("Deletes the build directory.");
+                clean.setGroup(BUILD_GROUP);
+                clean.delete(new Callable<File>() {
+                    public File call() throws Exception {
+                        return project.getBuildDir();
+                    }
+                });
             }
         });
     }
@@ -58,23 +71,57 @@ public class LifecycleBasePlugin implements Plugin<Project> {
         project.getTasks().addRule(new CleanRule(project.getTasks()));
     }
 
-    private void addAssemble(Project project) {
-        Task assembleTask = project.getTasks().create(ASSEMBLE_TASK_NAME);
-        assembleTask.setDescription("Assembles the outputs of this project.");
-        assembleTask.setGroup(BUILD_GROUP);
+    private void addAssemble(ProjectInternal project) {
+        addPlaceholderAction(project, ASSEMBLE_TASK_NAME, DefaultTask.class, new Action<TaskInternal>() {
+            @Override
+            public void execute(TaskInternal assembleTask) {
+                assembleTask.setDescription("Assembles the outputs of this project.");
+                assembleTask.setGroup(BUILD_GROUP);
+            }
+        });
     }
 
-    private void addCheck(Project project) {
-        Task checkTask = project.getTasks().create(CHECK_TASK_NAME);
-        checkTask.setDescription("Runs all checks.");
-        checkTask.setGroup(VERIFICATION_GROUP);
+    private void addCheck(ProjectInternal project) {
+        addPlaceholderAction(project, CHECK_TASK_NAME, DefaultTask.class, new Action<TaskInternal>() {
+            @Override
+            public void execute(TaskInternal checkTask) {
+                checkTask.setDescription("Runs all checks.");
+                checkTask.setGroup(VERIFICATION_GROUP);
+            }
+        });
     }
 
-    private void addBuild(Project project) {
-        DefaultTask buildTask = project.getTasks().create(BUILD_TASK_NAME, DefaultTask.class);
-        buildTask.setDescription("Assembles and tests this project.");
-        buildTask.setGroup(BUILD_GROUP);
-        buildTask.dependsOn(ASSEMBLE_TASK_NAME);
-        buildTask.dependsOn(CHECK_TASK_NAME);
+    private void addBuild(final ProjectInternal project) {
+        addPlaceholderAction(project, BUILD_TASK_NAME, DefaultTask.class, new Action<DefaultTask>() {
+            @Override
+            public void execute(DefaultTask buildTask) {
+                buildTask.setDescription("Assembles and tests this project.");
+                buildTask.setGroup(BUILD_GROUP);
+                buildTask.dependsOn(ASSEMBLE_TASK_NAME);
+                buildTask.dependsOn(CHECK_TASK_NAME);
+            }
+        });
+    }
+
+    <T extends TaskInternal> void addPlaceholderAction(ProjectInternal project, final String placeholderName, Class<T> type, final Action<? super T> configure) {
+        placeholders.add(placeholderName);
+        project.getTasks().addPlaceholderAction(placeholderName, type, new Action<T>() {
+            @Override
+            public void execute(T t) {
+                t.getExtensions().getExtraProperties().set("placeholder", true);
+                configure.execute(t);
+            }
+        });
+    }
+
+    private void addDeprecationWarningsAboutCustomLifecycleTasks(ProjectInternal project) {
+        project.getTasks().all(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                if (placeholders.contains(task.getName()) && !task.getExtensions().getExtraProperties().has("placeholder")) {
+                    DeprecationLogger.nagUserOfDeprecated(String.format(CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG, task.getName()));
+                }
+            }
+        });
     }
 }

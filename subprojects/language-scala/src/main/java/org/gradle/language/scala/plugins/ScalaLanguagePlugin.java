@@ -56,12 +56,8 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
         project.getPluginManager().apply(JvmResourcesPlugin.class);
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
 
         @Model
         ScalaToolChain scalaToolChain(ServiceRegistry serviceRegistry) {
@@ -103,7 +99,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     return PlatformScalaCompile.class;
                 }
 
-                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
+                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
                     ScalaLanguageSourceSet scalaSourceSet = (ScalaLanguageSourceSet) sourceSet;
                     JvmBinarySpec binary = (JvmBinarySpec) binarySpec;

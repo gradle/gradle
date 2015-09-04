@@ -21,6 +21,7 @@ public class WrapperConfiguration {
     private URI distribution;
     private String distributionBase = PathAssembler.GRADLE_USER_HOME_STRING;
     private String distributionPath = Install.DEFAULT_DISTRIBUTION_PATH;
+    private String distributionSha256Sum;
     private String zipBase = PathAssembler.GRADLE_USER_HOME_STRING;
     private String zipPath = Install.DEFAULT_DISTRIBUTION_PATH;
 
@@ -46,6 +47,14 @@ public class WrapperConfiguration {
 
     public void setDistributionPath(String distributionPath) {
         this.distributionPath = distributionPath;
+    }
+
+    public String getDistributionSha256Sum() {
+        return distributionSha256Sum;
+    }
+
+    public void setDistributionSha256Sum(String distributionSha256Sum) {
+        this.distributionSha256Sum = distributionSha256Sum;
     }
 
     public String getZipBase() {

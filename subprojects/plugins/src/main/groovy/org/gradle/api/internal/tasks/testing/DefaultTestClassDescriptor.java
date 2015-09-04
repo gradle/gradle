@@ -28,6 +28,6 @@ public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
 
     @Override
     public String toString() {
-        return String.format("test class %s", getClassName());
+        return String.format("Test class %s", getClassName());
     }
 }

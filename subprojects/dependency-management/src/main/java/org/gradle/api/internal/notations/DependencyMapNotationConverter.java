@@ -17,12 +17,11 @@ package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
+import org.gradle.api.tasks.Optional;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
-import org.gradle.api.tasks.Optional;
-import org.gradle.internal.reflect.Instantiator;
-
-import java.util.Collection;
 
 public class DependencyMapNotationConverter<T extends ExternalDependency> extends MapNotationConverter<T> {
 
@@ -35,8 +34,8 @@ public class DependencyMapNotationConverter<T extends ExternalDependency> extend
     }
 
     @Override
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Maps, e.g. [group: 'org.gradle', name: 'gradle-core', version: '1.0'].");
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("Maps").example("[group: 'org.gradle', name: 'gradle-core', version: '1.0']");
     }
 
     protected T parseMap(@MapKey("group") @Optional String group,

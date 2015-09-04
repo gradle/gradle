@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult
 import org.gradle.internal.resource.ResourceException
 import org.gradle.internal.resource.transport.ExternalResourceRepository
 import spock.lang.Specification
@@ -43,7 +43,7 @@ class ResourceVersionListerTest extends Specification {
 
     def "visit propagates Exceptions as ResourceException"() {
         setup:
-        def failure = new IOException("Test IO Exception")
+        def failure = new RuntimeException("Test IO Exception")
         def testPattern = pattern("/a/pattern/with/[revision]/")
         1 * repo.list(_) >> { throw failure }
 

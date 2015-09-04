@@ -33,11 +33,12 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.publication.maven.internal.DefaultDeployerFactory;
-import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenRepositoryHandlerConvention;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.tasks.Upload;
@@ -66,23 +67,28 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     private final FileResolver fileResolver;
     private final ProjectPublicationRegistry publicationRegistry;
     private final ProjectConfigurationActionContainer configurationActionContainer;
+    private final MavenSettingsProvider mavenSettingsProvider;
+    private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
     private Project project;
 
     @Inject
     public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver,
-                       ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer) {
+                       ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer,
+                       MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.fileResolver = fileResolver;
         this.publicationRegistry = publicationRegistry;
         this.configurationActionContainer = configurationActionContainer;
+        this.mavenSettingsProvider = mavenSettingsProvider;
+        this.mavenRepositoryLocator = mavenRepositoryLocator;
     }
 
     public void apply(final ProjectInternal project) {
         this.project = project;
         project.getPluginManager().apply(BasePlugin.class);
 
-        DefaultMavenFactory mavenFactory = new DefaultMavenFactory();
+        MavenFactory mavenFactory = project.getServices().get(MavenFactory.class);
         final MavenPluginConvention pluginConvention = addConventionObject(project, mavenFactory);
         final DefaultDeployerFactory deployerFactory = new DefaultDeployerFactory(
                 mavenFactory,
@@ -90,7 +96,9 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                 fileResolver,
                 pluginConvention,
                 project.getConfigurations(),
-                pluginConvention.getConf2ScopeMappings());
+                pluginConvention.getConf2ScopeMappings(),
+                mavenSettingsProvider,
+                mavenRepositoryLocator);
 
         configureUploadTasks(deployerFactory);
         configureUploadArchivesTask();

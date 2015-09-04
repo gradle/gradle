@@ -16,22 +16,24 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;
 
 public abstract class AbstractModuleDescriptorBackedMetaData implements ComponentResolveMetaData {
-    private static final List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
 
-    private final ModuleVersionIdentifier moduleVersionIdentifier;
+    private ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleDescriptor moduleDescriptor;
-    private final ComponentIdentifier componentIdentifier;
+    private ComponentIdentifier componentIdentifier;
     private ModuleSource moduleSource;
     private boolean changing;
     private String status;
@@ -56,11 +58,15 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
 
     @Override
     public String toString() {
-        return moduleVersionIdentifier.toString();
+        return componentIdentifier.getDisplayName();
     }
 
     public ModuleVersionIdentifier getId() {
         return moduleVersionIdentifier;
+    }
+
+    public void setId(ModuleVersionIdentifier moduleVersionIdentifier) {
+        this.moduleVersionIdentifier = moduleVersionIdentifier;
     }
 
     public ModuleSource getSource() {
@@ -99,6 +105,10 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
         return componentIdentifier;
     }
 
+    public void setComponentId(ComponentIdentifier componentIdentifier) {
+        this.componentIdentifier = componentIdentifier;
+    }
+
     public void setChanging(boolean changing) {
         this.changing = changing;
     }
@@ -131,6 +141,11 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
         for (DefaultConfigurationMetaData configuration : configurations.values()) {
             configuration.dependencies = null;
         }
+    }
+
+    @Override
+    public Set<String> getConfigurationNames() {
+        return Sets.newHashSet(moduleDescriptor.getConfigurationsNames());
     }
 
     public DefaultConfigurationMetaData getConfiguration(final String name) {
@@ -174,7 +189,7 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
 
         @Override
         public String toString() {
-            return String.format("%s:%s", moduleVersionIdentifier, name);
+            return String.format("%s:%s", componentIdentifier.getDisplayName(), name);
         }
 
         public ComponentResolveMetaData getComponent() {
@@ -193,6 +208,10 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
             return descriptor.isTransitive();
         }
 
+        public boolean isVisible() {
+            return descriptor.getVisibility() == Configuration.Visibility.PUBLIC;
+        }
+
         public List<DependencyMetaData> getDependencies() {
             if (dependencies == null) {
                 dependencies = new ArrayList<DependencyMetaData>();
@@ -206,7 +225,7 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
         }
 
         private boolean include(DependencyMetaData dependency) {
-            String[] moduleConfigurations = dependency.getDescriptor().getModuleConfigurations();
+            String[] moduleConfigurations = dependency.getModuleConfigurations();
             for (int i = 0; i < moduleConfigurations.length; i++) {
                 String moduleConfiguration = moduleConfigurations[i];
                 if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
@@ -252,6 +271,10 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
                 artifacts = getArtifactsForConfiguration(this);
             }
             return artifacts;
+        }
+
+        public ModuleComponentArtifactMetaData artifact(IvyArtifactName artifact) {
+            return new DefaultModuleComponentArtifactMetaData((org.gradle.api.artifacts.component.ModuleComponentIdentifier) getComponentId(), artifact);
         }
     }
 }

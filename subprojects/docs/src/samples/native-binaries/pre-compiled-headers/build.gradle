@@ -1,0 +1,59 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// START SNIPPET apply-plugin
+apply plugin: 'cpp'
+// END SNIPPET apply-plugin
+
+// START SNIPPET libraries
+model {
+    components {
+        hello(NativeLibrarySpec) {
+            sources {
+                cpp {
+                    preCompiledHeader "pch.h"
+                }
+            }
+        }
+    }
+}
+// END SNIPPET libraries
+
+// START SNIPPET executables
+model {
+    components {
+        main(NativeExecutableSpec) {
+// START SNIPPET source-library
+            sources {
+                cpp {
+                    lib library: "hello"
+                }
+            }
+// END SNIPPET source-library
+        }
+    }
+}
+
+// END SNIPPET executables
+
+// For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
+binaries.withType(SharedLibraryBinarySpec) {
+    if (toolChain in VisualCpp) {
+        cppCompiler.define "DLL_EXPORT"
+    }
+}
+
+

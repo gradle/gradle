@@ -18,13 +18,15 @@ package org.gradle.nativeplatform.toolchain.internal.gcc;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
-import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,21 +36,27 @@ import java.util.List;
  * A static library archiver based on the GNU 'ar' utility
  */
 class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
-    private final CommandLineTool commandLineTool;
-    private final ArgsTransformer<StaticLibraryArchiverSpec> arguments = new ArchiverSpecToArguments();
-    private final CommandLineToolInvocation baseInvocation;
+    private final CommandLineToolInvocationWorker commandLineToolInvocationWorker;
+    private final ArgsTransformer<StaticLibraryArchiverSpec> argsTransformer = new ArchiverSpecToArguments();
+    private final CommandLineToolContext invocationContext;
+    private final BuildOperationProcessor buildOperationProcessor;
 
-    public ArStaticLibraryArchiver(CommandLineTool commandLineTool, CommandLineToolInvocation baseInvocation) {
-        this.commandLineTool = commandLineTool;
-        this.baseInvocation = baseInvocation;
+    ArStaticLibraryArchiver(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineToolInvocationWorker, CommandLineToolContext invocationContext) {
+        this.buildOperationProcessor = buildOperationProcessor;
+        this.commandLineToolInvocationWorker = commandLineToolInvocationWorker;
+        this.invocationContext = invocationContext;
     }
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
         deletePreviousOutput(spec);
 
-        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
-        invocation.setArgs(arguments.transform(spec));
-        commandLineTool.execute(invocation);
+        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
+        List<String> args = argsTransformer.transform(spec);
+        invocationContext.getArgAction().execute(args);
+        CommandLineToolInvocation invocation = invocationContext.createInvocation(
+                String.format("archiving %s", spec.getOutputFile().getName()), args, spec.getOperationLogger());
+        queue.add(invocation);
+        queue.waitForCompletion();
         return new SimpleWorkResult(true);
     }
 

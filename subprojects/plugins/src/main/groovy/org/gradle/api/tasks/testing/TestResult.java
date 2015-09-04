@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Nullable;
+
 import java.util.List;
 
 /**
@@ -42,11 +44,12 @@ public interface TestResult {
      *
      * @return The exception, if any, logged for this test.  If none, a null is returned.
      */
+    @Nullable
     Throwable getException();
 
     /**
      * If the test failed with any exceptions, this will contain the exceptions.  Some test frameworks do not fail
-     * without an exception (JUnit), so in those cases this method will never return null.
+     * without an exception (JUnit), so in those cases this method will never return an empty list.
      *
      * @return The exceptions, if any, logged for this test.  If none, an empty list is returned.
      */

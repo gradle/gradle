@@ -31,10 +31,11 @@ public class ReportGenerator {
 
             fileRenderer.render(store, new IndexPageGenerator(), new File(outputDirectory, "index.html"));
 
+            File testsDir = new File(outputDirectory, "tests");
             for (String testName : store.getTestNames()) {
                 TestExecutionHistory testResults = store.getTestResults(testName);
-                fileRenderer.render(testResults, testHtmlRenderer, new File(outputDirectory, testResults.getId() + ".html"));
-                fileRenderer.render(testResults, testDataRenderer, new File(outputDirectory, testResults.getId() + ".json"));
+                fileRenderer.render(testResults, testHtmlRenderer, new File(testsDir, testResults.getId() + ".html"));
+                fileRenderer.render(testResults, testDataRenderer, new File(testsDir, testResults.getId() + ".json"));
             }
 
             copyResource("jquery.min-1.11.0.js", outputDirectory);

@@ -69,13 +69,13 @@ class ChainedVersionListerTest extends Specification {
         versionList.visit(pattern, artifact)
 
         then:
-        1 * versionList1.visit(pattern, artifact) >> { throw new ResourceNotFoundException("ignore me") }
+        1 * versionList1.visit(pattern, artifact) >> { throw new ResourceNotFoundException(URI.create("scheme:thing"), "ignore me") }
         1 * versionList2.visit(pattern, artifact)
     }
 
     def "visit fails when VersionLister throws exception"() {
         def versions = []
-        def exception = new ResourceException("test resource exception")
+        def exception = new ResourceException(URI.create("scheme:thing"), "test resource exception")
 
         given:
         lister1.newVisitor(module, versions, result) >> versionList1
@@ -98,7 +98,7 @@ class ChainedVersionListerTest extends Specification {
 
     def "visit rethrows ResourceNotFoundException of failed first VersionLister"() {
         given:
-        def exception = new ResourceNotFoundException("not found")
+        def exception = new ResourceNotFoundException(URI.create("scheme:thing"), "not found")
         def versions = []
         lister1.newVisitor(module, versions, result) >> versionList1
         lister2.newVisitor(module, versions, result) >> versionList2
@@ -114,7 +114,7 @@ class ChainedVersionListerTest extends Specification {
 
         and:
         1 * versionList1.visit(pattern, artifact) >> { throw exception }
-        1 * versionList2.visit(pattern, artifact) >> { throw new ResourceNotFoundException("ignore me") }
+        1 * versionList2.visit(pattern, artifact) >> { throw new ResourceNotFoundException(URI.create("scheme:thing"), "ignore me") }
     }
 
     def "visit wraps failed last VersionLister"() {
@@ -135,7 +135,7 @@ class ChainedVersionListerTest extends Specification {
         e.cause == exception
 
         and:
-        1 * versionList1.visit(pattern, artifact) >> { throw new ResourceNotFoundException("ignore me") }
+        1 * versionList1.visit(pattern, artifact) >> { throw new ResourceNotFoundException(URI.create("scheme:thing"), "ignore me") }
         1 * versionList2.visit(pattern, artifact) >> { throw exception }
     }
 }

@@ -16,25 +16,25 @@
 
 package org.gradle.performance.results;
 
-import com.googlecode.jatl.Html;
 import org.gradle.api.Transformer;
 import org.gradle.performance.fixture.MeasuredOperationList;
-import org.gradle.performance.fixture.PerformanceResults;
-import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
     @Override
+    protected int getDepth() {
+        return 1;
+    }
+
+    @Override
     public void render(final TestExecutionHistory testHistory, Writer writer) throws IOException {
-        new Html(writer) {{
+        new MetricsHtml(writer) {{
             html();
                 head();
                     headSection(this);
@@ -45,7 +45,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                         text("  success: function(data) {\n");
                         text("    var labels = data.labels;\n");
                         text("    var options = { series: { points: { show: true }, lines: { show: true } }, legend: { noColumns: 0, margin: 1 }, grid: { hoverable: true, clickable: true }, xaxis: { tickFormatter: function(index, value) { return labels[index]; } } };\n");
-                        text("    $.plot('#executionTimeChart', data.executionTime, options);\n");
+                        text("    $.plot('#executionTimeChart', data.totalTime, options);\n");
                         text("    $.plot('#heapUsageChart', data.heapUsage, options);\n");
                         text("    $('#executionTimeChart').bind('plothover', function (event, pos, item) {\n");
                         text("      if (!item) {\n");
@@ -85,12 +85,14 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                     table().classAttr("history");
                         tr().classAttr("control-groups");
                             th().colspan("4").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average execution time").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average heap usage (old measurement)").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average total heap usage").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average max heap usage").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average max uncollected heap").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average max committed heap").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average build time").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average configuration time").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average execution time").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average heap usage (old measurement)").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average total heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max uncollected heap").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average max committed heap").end();
                             th().colspan("4").text("Details").end();
                         end();
                         tr();
@@ -98,8 +100,8 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                             th().text("Test version").end();
                             th().text("Branch").end();
                             th().text("Git commit").end();
-                            for (int i = 0; i < 6; i++) {
-                                for (String label : testHistory.getOperationLabels()) {
+                            for (int i = 0; i < 8; i++) {
+                                for (String label : testHistory.getExperimentLabels()) {
                                     th().classAttr("numeric").text(label).end();
                                 }
                             }
@@ -112,32 +114,42 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                                 td().text(results.getVersionUnderTest()).end();
                                 td().text(results.getVcsBranch()).end();
                                 td().text(results.getVcsCommit()).end();
-                                renderMetricForVersions(results.getExecutionOperations(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                    public DataSeries<Duration> transform(MeasuredOperationList original) {
+                                        return original.getTotalTime();
+                                    }
+                                });
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                    public DataSeries<Duration> transform(MeasuredOperationList original) {
+                                        return original.getConfigurationTime();
+                                    }
+                                });
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                                         return original.getExecutionTime();
                                     }
                                 });
-                                renderMetricForVersions(results.getExecutionOperations(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getTotalMemoryUsed();
                                     }
                                 });
-                                renderMetricForVersions(results.getExecutionOperations(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getTotalHeapUsage();
                                     }
                                 });
-                                renderMetricForVersions(results.getExecutionOperations(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getMaxHeapUsage();
                                     }
                                 });
-                                renderMetricForVersions(results.getExecutionOperations(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getMaxUncollectedHeap();
                                     }
                                 });
-                                renderMetricForVersions(results.getExecutionOperations(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                                         return original.getMaxCommittedHeap();
                                     }
@@ -150,48 +162,7 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                 end();
                 footer(this);
             endAll();
-        }
-
-            private <T> void renderMetricForVersions(Iterable<MeasuredOperationList> testExecutions, Transformer<DataSeries<T>, MeasuredOperationList> transformer) {
-                List<Amount<T>> values = new ArrayList<Amount<T>>();
-                Amount<T> min = null;
-                Amount<T> max = null;
-                for (MeasuredOperationList testExecution : testExecutions) {
-                    DataSeries<T> data = transformer.transform(testExecution);
-                    if (data.isEmpty()) {
-                        values.add(null);
-                    } else {
-                        Amount<T> value = data.getAverage();
-                        values.add(value);
-                        if (min == null || value.compareTo(min) < 0) {
-                            min = value;
-                        }
-                        if (max == null || value.compareTo(max) > 0) {
-                            max = value;
-                        }
-                    }
-                }
-                if (min != null && min.equals(max)) {
-                    min = null;
-                    max = null;
-                }
-
-                for (Amount<?> value : values) {
-                    if (value == null) {
-                        td().text("").end();
-                    } else {
-                        String classAttr = "numeric";
-                        if (value.equals(min)) {
-                            classAttr += " min-value";
-                        }
-                        if (value.equals(max)) {
-                            classAttr += " max-value";
-                        }
-                        td().classAttr(classAttr).text(value.format()).end();
-                    }
-                }
-            }
-        };
+        }};
     }
 
 }

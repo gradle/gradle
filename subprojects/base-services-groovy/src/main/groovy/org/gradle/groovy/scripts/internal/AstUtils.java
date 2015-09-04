@@ -24,9 +24,11 @@ import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
+import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.Nullable;
+import org.gradle.internal.Pair;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -138,6 +140,32 @@ public abstract class AstUtils {
         return closureExpression == null ? null : new ScriptBlock(methodName, closureExpression);
     }
 
+    public static Pair<ClassExpression, ClosureExpression> getClassAndClosureArgs(MethodCall methodCall) {
+        if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
+            return null;
+        }
+
+        ArgumentListExpression args = (ArgumentListExpression) methodCall.getArguments();
+        if (args.getExpressions().size() == 2 && args.getExpression(0) instanceof ClassExpression && args.getExpression(1) instanceof ClosureExpression) {
+            return Pair.of((ClassExpression) args.getExpression(0), (ClosureExpression) args.getExpression(1));
+        } else {
+            return null;
+        }
+    }
+
+    public static ClassExpression getClassArg(MethodCall methodCall) {
+        if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
+            return null;
+        }
+
+        ArgumentListExpression args = (ArgumentListExpression) methodCall.getArguments();
+        if (args.getExpressions().size() == 1 && args.getExpression(0) instanceof ClassExpression) {
+            return (ClassExpression) args.getExpression(0);
+        } else {
+            return null;
+        }
+    }
+
     public static ClosureExpression getSingleClosureArg(MethodCall methodCall) {
         if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
             return null;
@@ -207,4 +235,28 @@ public abstract class AstUtils {
         return doCallMethods.get(0);
     }
 
+    /**
+     * Returns true if the the given statement may have some effect as part of a script body.
+     * Returns false when the given statement may be ignored, provided all other statements in the script body may also be ignored.
+     */
+    public static boolean mayHaveAnEffect(Statement statement) {
+        if (statement instanceof ReturnStatement) {
+            ReturnStatement returnStatement = (ReturnStatement) statement;
+            if (returnStatement.getExpression() instanceof ConstantExpression) {
+                return false;
+            }
+        } else if (statement instanceof ExpressionStatement) {
+            ExpressionStatement expressionStatement = (ExpressionStatement) statement;
+            if (expressionStatement.getExpression() instanceof ConstantExpression) {
+                return false;
+            }
+            if (expressionStatement.getExpression() instanceof DeclarationExpression) {
+                DeclarationExpression declarationExpression = (DeclarationExpression) expressionStatement.getExpression();
+                if (declarationExpression.getRightExpression() instanceof EmptyExpression || declarationExpression.getRightExpression() instanceof ConstantExpression) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }

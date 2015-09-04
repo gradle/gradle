@@ -17,11 +17,17 @@
 package org.gradle.language.jvm
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class ResourceOnlyJvmLibraryIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        EnableModelDsl.enable(executer)
+    }
+
     def "can define a library containing resources only"() {
-        buildFile << """
+        buildFile << '''
 plugins {
     id 'jvm-component'
     id 'jvm-resources'
@@ -30,22 +36,26 @@ model {
     components {
         myLib(JvmLibrarySpec)
     }
-}
+    tasks {
+        create("validate") {
+            def components = $("components")
+            doLast {
+                def myLib = components.myLib
+                assert myLib instanceof JvmLibrarySpec
 
-task validate << {
-    def myLib = componentSpecs.myLib
-    assert myLib instanceof JvmLibrarySpec
+                assert myLib.sources.size() == 1
+                assert myLib.sources.resources instanceof JvmResourceSet
 
-    assert myLib.sources.size() == 1
-    assert myLib.sources.resources instanceof JvmResourceSet
+                assert project.sources as Set == myLib.sources as Set
 
-    assert sources as Set == myLib.sources as Set
-
-    binaries.withType(JarBinarySpec) { jvmBinary ->
-        assert jvmBinary.source == myLib.source
+                project.binaries.withType(JarBinarySpec) { jvmBinary ->
+                    assert jvmBinary.inputs.toList() == myLib.sources.values().toList()
+                }
+            }
+        }
     }
 }
-"""
+'''
 
         expect:
         run 'validate'

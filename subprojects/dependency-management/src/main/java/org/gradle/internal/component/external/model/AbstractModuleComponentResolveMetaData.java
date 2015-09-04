@@ -19,26 +19,19 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.model.AbstractModuleDescriptorBackedMetaData;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ConfigurationMetaData;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.*;
 
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDescriptorBackedMetaData implements MutableModuleComponentResolveMetaData {
-    private Set<ModuleComponentArtifactMetaData> artifacts;
     private Multimap<String, ModuleComponentArtifactMetaData> artifactsByConfig;
 
     public AbstractModuleComponentResolveMetaData(ModuleDescriptor moduleDescriptor) {
@@ -59,7 +52,6 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
 
     protected void copyTo(AbstractModuleComponentResolveMetaData copy) {
         super.copyTo(copy);
-        copy.artifacts = artifacts;
         copy.artifactsByConfig = artifactsByConfig;
     }
 
@@ -76,25 +68,18 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
         return (ModuleComponentIdentifier) super.getComponentId();
     }
 
-    public ModuleComponentArtifactMetaData artifact(Artifact artifact) {
-        return new DefaultModuleComponentArtifactMetaData(getComponentId(), artifact);
+    @Override
+    public void setComponentId(ModuleComponentIdentifier componentId) {
+        super.setComponentId(componentId);
+        setId(DefaultModuleVersionIdentifier.newId(componentId));
     }
 
     public ModuleComponentArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier) {
-        Map extraAttributes = classifier == null ? Collections.emptyMap() : Collections.singletonMap("m:classifier", classifier);
-        Artifact artifact = new DefaultArtifact(getDescriptor().getModuleRevisionId(), null, getId().getName(), type, extension, extraAttributes);
-        return new DefaultModuleComponentArtifactMetaData(getComponentId(), artifact);
-    }
-
-    public Set<ModuleComponentArtifactMetaData> getArtifacts() {
-        if (artifacts == null) {
-            populateArtifactsFromDescriptor();
-        }
-        return artifacts;
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
+        return new DefaultModuleComponentArtifactMetaData(getComponentId(), ivyArtifactName);
     }
 
     public void setArtifacts(Iterable<? extends ModuleComponentArtifactMetaData> artifacts) {
-        this.artifacts = Sets.newLinkedHashSet(artifacts);
         this.artifactsByConfig = LinkedHashMultimap.create();
         for (String config : getDescriptor().getConfigurationsNames()) {
             artifactsByConfig.putAll(config, artifacts);
@@ -115,11 +100,10 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
     private void populateArtifactsFromDescriptor() {
         Map<Artifact, ModuleComponentArtifactMetaData> artifactToMetaData = Maps.newLinkedHashMap();
         for (Artifact descriptorArtifact : getDescriptor().getAllArtifacts()) {
-            ModuleComponentArtifactMetaData artifact = artifact(descriptorArtifact);
+            IvyArtifactName artifactName = DefaultIvyArtifactName.forIvyArtifact(descriptorArtifact);
+            ModuleComponentArtifactMetaData artifact = new DefaultModuleComponentArtifactMetaData(getComponentId(), artifactName);
             artifactToMetaData.put(descriptorArtifact, artifact);
         }
-
-        artifacts = Sets.newLinkedHashSet(artifactToMetaData.values());
 
         this.artifactsByConfig = LinkedHashMultimap.create();
         for (String configuration : getDescriptor().getConfigurationsNames()) {

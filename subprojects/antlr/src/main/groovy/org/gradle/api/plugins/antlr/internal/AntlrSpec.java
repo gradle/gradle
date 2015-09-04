@@ -16,17 +16,26 @@
 
 package org.gradle.api.plugins.antlr.internal;
 
-import java.io.Serializable;
+import com.google.common.collect.Lists;
 
+import java.io.File;
+import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 public class AntlrSpec implements Serializable {
 
     private List<String> arguments;
+    private Set<File> inputDirectories;
+    private Set<File> grammarFiles;
     private String maxHeapSize;
+    private File outputDirectory;
 
-    public AntlrSpec(List<String> arguments, String maxHeapSize) {
+    public AntlrSpec(List<String> arguments, Set<File> grammarFiles, Set<File> inputDirectories, File outputDirectory, String maxHeapSize) {
         this.arguments = arguments;
+        this.inputDirectories = inputDirectories;
+        this.grammarFiles = grammarFiles;
+        this.outputDirectory = outputDirectory;
         this.maxHeapSize = maxHeapSize;
     }
 
@@ -34,7 +43,30 @@ public class AntlrSpec implements Serializable {
         return arguments;
     }
 
+    public Set<File> getGrammarFiles() {
+        return grammarFiles;
+    }
+
     public String getMaxHeapSize() {
         return maxHeapSize;
+    }
+
+    public File getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    public List<String> asArgumentsWithFiles() {
+        List<String> commandLine = Lists.newLinkedList(arguments);
+        commandLine.add("-o");
+        commandLine.add(getOutputDirectory().getAbsolutePath());
+        for (File file : getGrammarFiles()) {
+            commandLine.add(file.getAbsolutePath());
+        }
+
+        return commandLine;
+    }
+
+    public Set<File> getInputDirectories() {
+        return inputDirectories;
     }
 }

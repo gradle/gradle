@@ -177,7 +177,7 @@ task check(type: Sync) {
 
         where:
         name                       | excludeAttributes                          | transitiveJars
-        "empty exclude"            | [:]                                        | []
+        "empty exclude"            | [:]                                        | ['dep_module-1.134.jar'] // Does not exclude the depended-on module itself
         "unmatched exclude"        | [module: "different"]                      | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
         "module exclude"           | [module: "mod_one"]                        | ['dep_module-1.134.jar', 'mod_two-2.2.jar']
         "org exclude"              | [org: "org.gradle.two"]                    | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war']
@@ -185,8 +185,9 @@ task check(type: Sync) {
         "regex module exclude"     | [module: "mod.*"]                          | ['dep_module-1.134.jar']
         "matching config exclude"  | [module: "mod_one", conf: "default,other"] | ['dep_module-1.134.jar', 'mod_two-2.2.jar']
         "unmatched config exclude" | [module: "mod_one", conf: "other"]         | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
-//  GRADLE-2674
-//        "type exclude"           | [type: "war"]                              | ['mod_one-1.1.jar', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
+        "type exclude"             | [type: "war"]                              | ['dep_module-1.134.jar', 'mod_one-1.1.jar', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
+        "extension exclude"        | [ext: "jar"]                               | ['mod_one-1.1.war']
+        "name exclude"             | [name: "dep_module-*"]                     | ['mod_one-1.1.jar', 'mod_one-1.1.war', 'mod_one-2.1.jar', 'mod_two-2.2.jar']
     }
 
     def "transitive dependencies are only excluded if excluded from each dependency declaration"() {
@@ -201,16 +202,16 @@ task check(type: Sync) {
         ivyRepo.module("a")
                 .dependsOn("c")
                 .withXml({
-                    asNode().dependencies[0].dependency[0].appendNode("exclude", [module: "d"])
-                })
+            asNode().dependencies[0].dependency[0].appendNode("exclude", [module: "d"])
+        })
                 .publish()
         ivyRepo.module("b")
                 .dependsOn("c")
                 .withXml({
-                    def dep = asNode().dependencies[0].dependency[0]
-                    dep.appendNode("exclude", [module: "d"])
-                    dep.appendNode("exclude", [module: "e"])
-                })
+            def dep = asNode().dependencies[0].dependency[0]
+            dep.appendNode("exclude", [module: "d"])
+            dep.appendNode("exclude", [module: "e"])
+        })
                 .publish()
 
         and:

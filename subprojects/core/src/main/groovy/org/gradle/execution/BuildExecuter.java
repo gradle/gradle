@@ -18,17 +18,11 @@ package org.gradle.execution;
 import org.gradle.api.internal.GradleInternal;
 
 /**
- * Selects and executes the tasks requested for a build.
+ * Executes the tasks requested for a build.
  */
 public interface BuildExecuter {
-
     /**
-     * Selects the tasks to execute, if any. This method is called before any other methods on this executer.
+     * Executes the selected tasks.
      */
-    void select(GradleInternal gradle);
-
-    /**
-     * Executes the selected tasks. Called after {@link #select(org.gradle.api.internal.GradleInternal)}.
-     */
-    void execute();
+    void execute(GradleInternal gradle);
 }

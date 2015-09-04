@@ -68,7 +68,7 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
     }
 
     public void graphPopulated(TaskExecutionGraph graph) {
-        logger.info(String.format("Tasks to be executed: %s", graph.getAllTasks()));
+        logger.info("Tasks to be executed: {}", graph.getAllTasks());
     }
 
     public void buildFinished(BuildResult result) {

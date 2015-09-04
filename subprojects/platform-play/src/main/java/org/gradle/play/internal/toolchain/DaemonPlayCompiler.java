@@ -21,25 +21,24 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.play.internal.spec.VersionedPlayCompileSpec;
+import org.gradle.play.internal.spec.PlayCompileSpec;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.List;
 
-public class DaemonPlayCompiler<T extends VersionedPlayCompileSpec> extends AbstractDaemonCompiler<T> {
+public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemonCompiler<T> {
     private final Iterable<File> compilerClasspath;
+    private final Iterable<String> classLoaderPackages;
 
-    public DaemonPlayCompiler(File projectDir, Compiler<T> compiler, CompilerDaemonFactory compilerDaemonFactory, Iterable<File> compilerClasspath) {
+    public DaemonPlayCompiler(File projectDir, Compiler<T> compiler, CompilerDaemonFactory compilerDaemonFactory, Iterable<File> compilerClasspath, Iterable<String> classLoaderPackages) {
         super(projectDir, compiler, compilerDaemonFactory);
         this.compilerClasspath = compilerClasspath;
+        this.classLoaderPackages = classLoaderPackages;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected DaemonForkOptions toDaemonOptions(VersionedPlayCompileSpec spec) {
-        List<String> routesPackages = spec.getClassLoaderPackages();
+    protected DaemonForkOptions toDaemonOptions(PlayCompileSpec spec) {
         BaseForkOptions forkOptions = spec.getForkOptions();
-        return new DaemonForkOptions(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), Collections.EMPTY_LIST, compilerClasspath, routesPackages);
+        return new DaemonForkOptions(forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), Collections.<String>emptyList(), compilerClasspath, classLoaderPackages);
     }
 }

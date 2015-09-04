@@ -67,7 +67,7 @@ import java.util.Set;
  * <code>Project</code> instances.</li>
  *
  * <li>Finally, evaluate each <code>Project</code> by executing its <code>{@value #DEFAULT_BUILD_FILE}</code> file, if
- * present, against the project. The project are evaluated in breadth-wise order, such that a project is evaluated
+ * present, against the project. The projects are evaluated in breadth-wise order, such that a project is evaluated
  * before its child projects. This order can be overridden by calling <code>{@link #evaluationDependsOnChildren()}</code> or by adding an
  * explicit evaluation dependency using <code>{@link #evaluationDependsOn(String)}</code>.</li>
  *
@@ -100,7 +100,7 @@ import java.util.Set;
  *
  * <p>
  * Plugins can be used to modularise and reuse project configuration.
- * Plugins can be applied using the {@link #apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec plugins script block}.
+ * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec plugins script block}.
  * </p>
  *
  * <a name="properties"/> <h3>Properties</h3>
@@ -296,7 +296,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Returns the group of this project. Gradle always uses the {@code toString()} value of the group. The group
-     * defaults to the path with dots a separators.</p>
+     * defaults to the path with dots as separators.</p>
      *
      * @return The group of this project. Never returns null.
      */
@@ -1286,14 +1286,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void dependencies(Closure configureClosure);
 
     /**
-     * Returns the plugins container for this project. The returned container can be used to manage the plugins which
-     * are used by this project.
-     *
-     * @return the plugin container. Never returns null.
-     */
-    PluginContainer getPlugins();
-
-    /**
      * Returns the build script handler for this project. You can use this handler to query details about the build
      * script for this project, and manage the classpath used to compile and execute the project's build script.
      *
@@ -1362,28 +1354,30 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     CopySpec copySpec(Closure closure);
 
     /**
-     * <p>Configures this project using plugins or scripts. The given closure is used to configure an {@link
-     * org.gradle.api.plugins.ObjectConfigurationAction} which is then used to configure this project.</p>
-     *
-     * @param closure The closure to configure the {@code ObjectConfigurationAction}.
+     * Copies the specified files.  The given action is used to configure a {@link CopySpec}, which is then used to
+     * copy the files.
+     * @see #copy(Closure)
+     * @param action Action to configure the CopySpec
+     * @return {@link WorkResult} that can be used to check if the copy did any work.
      */
-    void apply(Closure closure);
+    WorkResult copy(Action<? super CopySpec> action);
 
     /**
-     * <p>Configures this project using plugins or scripts. The following options are available:</p>
+     * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given action is used
+     * to configure the {@link CopySpec} before it is returned by this method.
      *
-     * <ul><li>{@code from}: A script to apply to the project. Accepts any path supported by {@link #uri(Object)}.</li>
-     *
-     * <li>{@code plugin}: The id or implementation class of the plugin to apply to the project.</li>
-     *
-     * <li>{@code to}: The target delegate object or objects. Use this to configure objects other than the
-     * project.</li></ul>
-     *
-     * <p>For more detail, see {@link org.gradle.api.plugins.ObjectConfigurationAction}.</p>
-     *
-     * @param options The options to use to configure the {@code ObjectConfigurationAction}.
+     * @see #copySpec(Closure)
+     * @param action Action to configure the CopySpec
+     * @return The CopySpec
      */
-    void apply(Map<String, ?> options);
+    CopySpec copySpec(Action<? super CopySpec> action);
+
+    /**
+     * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
+     *
+     * @return a newly created copy spec
+     */
+    CopySpec copySpec();
 
     /**
      * Returns the evaluation state of this project. You can use this to access information about the evaluation of this

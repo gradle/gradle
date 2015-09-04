@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.m8
 
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.junit.Assume
 
@@ -86,7 +87,7 @@ project.logger.info ("info logging");
 project.logger.debug("debug logging");
 """
         when:
-        def commandLineResult = targetDist.executer(temporaryFolder).run();
+        def commandLineResult = runUsingCommandLine();
 
         and:
         def op = withBuild()
@@ -107,6 +108,12 @@ project.logger.debug("debug logging");
         out.count("quiet logging") == 1
         out.count("info") == 0
         out.count("debug") == 0
+    }
+
+    private ExecutionResult runUsingCommandLine() {
+        targetDist.executer(temporaryFolder)
+            .withArgument("--no-daemon") //suppress daemon usage suggestions
+            .run()
     }
 
     String normaliseOutput(String output) {

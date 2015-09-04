@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.Variant;
 
 import java.io.File;
 
@@ -29,13 +30,15 @@ import java.io.File;
 @Incubating
 public interface JvmBinarySpec extends BinarySpec {
     /**
-     * The set of tasks associated with this binary.
+     * {@inheritDoc}
      */
+    @Override
     JvmBinaryTasks getTasks();
 
     /**
      * The target platform for this binary.
      */
+    @Variant
     JavaPlatform getTargetPlatform();
 
     /**

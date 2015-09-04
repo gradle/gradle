@@ -21,11 +21,14 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Ignore
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(VisualCpp)
+@LeaksFileHandles
 class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
@@ -50,7 +53,8 @@ model {
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.");
-        failure.assertHasCause("Windows resource compiler failed; see the error output for details.")
+        failure.assertHasCause("A build operation failed.")
+        failure.assertThatCause(containsText("Windows resource compiler failed while compiling broken.rc"))
     }
 
     def "can create resources-only shared library"() {

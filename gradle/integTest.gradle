@@ -1,3 +1,5 @@
+import java.util.regex.Pattern
+
 apply plugin: 'java'
 
 sourceSets {
@@ -17,22 +19,21 @@ dependencies {
 
     //so that implicit help tasks are available:
     integTestRuntime project(':diagnostics')
+
+    //So that the wrapper and init task are added when integTests are run via commandline
+    integTestRuntime project(':buildInit')
     //above can be removed when we implement the auto-apply plugins
 }
 
-ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
-
-import org.gradle.util.GradleVersion
-
-import java.util.regex.Pattern
+ext.integTestTasks = tasks.withType(Test).matching { !['test', 'java9Test'].contains(it.name) }
 
 def removeDodgyCacheFiles(File dir) {
     if (dir.directory) {
-        for (File cacheDir: dir.listFiles()) {
+        for (File cacheDir : dir.listFiles()) {
             if (!cacheDir.name.matches("\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?")) {
                 continue
             }
-            for (String name: ["fileHashes", "outputFileStates", "fileSnapshots"]) {
+            for (String name : ["fileHashes", "outputFileStates", "fileSnapshots"]) {
                 def stateDir = new File(cacheDir, name)
                 if (stateDir.directory) {
                     println "Removing old cache directory : ${stateDir}"
@@ -46,7 +47,7 @@ def removeDodgyCacheFiles(File dir) {
 def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
     if (dir.directory) {
 
-        for (File cacheDir: dir.listFiles()) {
+        for (File cacheDir : dir.listFiles()) {
             if (!cacheDir.name.startsWith(dirPrefix) || !cacheDir.name.endsWith(dirSuffix)) {
                 continue
             }
@@ -110,47 +111,81 @@ project(":") {
     }
 }
 
+def forEachJavaProcess(Closure action) {
+    String queryString = "(?i)${Pattern.quote(File.separator)}(java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?org\\.gradle\\.)|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?org\\.gradle\\.)).+)"
+    def output = new ByteArrayOutputStream()
+    def pidPattern
+    if (org.gradle.internal.os.OperatingSystem.current().windows) {
+        exec {
+            commandLine('wmic', 'process', 'get', 'processid,commandline')
+            standardOutput = output
+        }
+        pidPattern = /([0-9]+)\s*$/
+    } else {
+        exec {
+            commandLine('ps', 'x')
+            standardOutput = output
+        }
+        pidPattern = /([0-9]+)/
+    }
+    output.toString().readLines().each { String line ->
+        def processMatcher = line =~ queryString
+        if (processMatcher.find()) {
+            def pidMatcher = line =~ pidPattern
+            if (pidMatcher.find()) {
+                def pid = pidMatcher.group(1)
+                def process = processMatcher.group(1)
+                action.call(pid, process)
+            }
+        }
+    }
+}
+
+def pkill(pid) {
+    def killOutput = new ByteArrayOutputStream()
+    def result = exec {
+        if (org.gradle.internal.os.OperatingSystem.current().windows) {
+            commandLine = ["taskkill.exe", "/F", "/T", "/PID", pid]
+        } else {
+            commandLine = ["kill", pid]
+        }
+        standardOutput = killOutput
+        errorOutput = killOutput
+        ignoreExitValue = true
+    }
+    if (result.exitValue != 0) {
+        String out = killOutput.toString()
+        if (!out.contains('No such process')) {
+            logger.warn("""Failed to kill daemon process $pid. Maybe already killed?
+Output: ${killOutput}
+""")
+        }
+    }
+}
+
 project(":") {
     if (tasks.findByName('cleanUpDaemons')) {
         return
     }
-    task cleanUpDaemons {
-        onlyIf { !org.gradle.internal.jvm.Jvm.current().ibmJvm }
+    task killExistingDaemons {
         doLast {
-            def output = new ByteArrayOutputStream()
-            exec {
-                commandLine(org.gradle.internal.jvm.Jvm.current().getExecutable("jps").absolutePath, "-m")
-                standardOutput = output
+            forEachJavaProcess { pid, process ->
+                logger.warn("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid (Command line: $process)")
+                pkill(pid)
             }
-            def pattern = Pattern.compile("(\\d+)\\s+GradleDaemon\\s+(\\S+)\\s+(.+)")
-            output.toString().readLines().each { String line ->
-                def matcher = pattern.matcher(line)
-                if (!matcher.matches()) {
-                    return
-                }
-                def remainder = matcher.group(3)
-                if (!remainder.startsWith("${project.projectDir}${File.separator}")) {
-                    return
-                }
-                def pid = matcher.group(1)
-                println "killing daemon with pid $pid"
-                def killOutput = new ByteArrayOutputStream()
-                def result = exec {
-                    if (org.gradle.internal.os.OperatingSystem.current().windows) {
-                        commandLine = ["taskkill.exe", "/F", "/T", "/PID", pid]
-                    } else {
-                        commandLine = ["kill", pid]
-                    }
-                    standardOutput = killOutput
-                    errorOutput = killOutput
-                    ignoreExitValue = true
-                }
-                if (result.exitValue != 0) {
-                    String out = killOutput.toString()
-                    if (!out.contains('No such process')) {
-                        throw new GradleException("""Failed to kill daemon process $pid.
-Output: ${killOutput}
-""")
+        }
+    }
+
+    task cleanUpDaemons {
+        ext.suspiciousDaemons = [:].withDefault { [].asSynchronized() }.asSynchronized()
+        ext.daemonPids = ([] as Set).asSynchronized()
+        doLast {
+            Set alreadyKilled = []
+            forEachJavaProcess { pid, process ->
+                suspiciousDaemons.each { suite, pids ->
+                    if (pids.contains(pid) && !alreadyKilled.contains(pid)) {
+                        logger.warn("A process was created in $suite but wasn't shutdown properly. Killing PID $pid (Command line: $process)")
+                        pkill(pid)
                     }
                 }
             }
@@ -158,24 +193,30 @@ Output: ${killOutput}
     }
 }
 
+allprojects {
+    tasks.whenTaskAdded {
+        it.dependsOn(':killExistingDaemons')
+    }
+}
+
 integTestTasks.all { Test task ->
-    dependsOn ':intTestImage', ':cleanUpCaches'
-    finalizedBy ':cleanUpDaemons'
+    dependsOn ':intTestImage'
+    finalizedBy(':cleanUpDaemons', ':cleanUpCaches')
     shouldRunAfter 'test'
-    
+
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
-    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
+    jvmArgs '-Xmx512m', '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
 
     reports.junitXml.destination = file("${project.testResultsDir}/$name")
 
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     systemProperties['org.gradle.integtest.versions'] = project.hasProperty('testVersions') ? project.testVersions : 'latest'
 
-    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") ? 'all' : 'default'
+    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") && project.testAllPlatforms ? 'all' : 'default'
 
-    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("multiVersion") ? 'all' : 'default'
+    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
 
     dependsOn project.task("configure${task.name.capitalize()}") << {
         configure(task) {
@@ -183,7 +224,7 @@ integTestTasks.all { Test task ->
             systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
             systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
             systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
-            
+
             // If the projects int test need the distributions, they should add:
             // inputs.files rootProject.buildDists
             systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
@@ -193,11 +234,48 @@ integTestTasks.all { Test task ->
             systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
         }
     }
+
+    ext.daemonListener = null
+
+    doFirst {
+        def daemonPids = rootProject.cleanUpDaemons.daemonPids
+        def suspiciousDaemons = rootProject.cleanUpDaemons.suspiciousDaemons
+        daemonListener = [
+            beforeTest : { test -> },
+            afterTest  : { test, result -> },
+            beforeSuite: { suite ->
+                forEachJavaProcess { pid, process ->
+                    // processes that exist before the test suite execution should
+                    // not trigger a warning
+                    daemonPids << pid
+                }
+            },
+            afterSuite : { suite, result ->
+                forEachJavaProcess { pid, process ->
+                    if (!daemonPids.contains(pid)) {
+                        daemonPids << pid
+                        suspiciousDaemons."$suite" << pid
+                    }
+                }
+            }] as TestListener
+        gradle.addListener(daemonListener)
+    }
+
+    doLast {
+        gradle.removeListener(daemonListener)
+    }
 }
 
 task integTest(type: Test) {
     def defaultExecuter = project.hasProperty("defaultIntegTestExecuter") ? project.defaultIntegTestExecuter : "embedded"
     systemProperties['org.gradle.integtest.executer'] = defaultExecuter
+    if (project.hasProperty('org.gradle.integtest.debug')) {
+        systemProperties['org.gradle.integtest.debug'] = 'true'
+        testLogging.showStandardStreams = true
+    }
+    if (project.hasProperty('org.gradle.integtest.verbose')) {
+        testLogging.showStandardStreams = true
+    }
 }
 check.dependsOn(integTest)
 

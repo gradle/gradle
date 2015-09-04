@@ -16,8 +16,8 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.PersistentStateCache
-import org.gradle.messaging.serialize.DefaultSerializer
-import org.gradle.messaging.serialize.Serializer
+import org.gradle.internal.serialize.DefaultSerializer
+import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

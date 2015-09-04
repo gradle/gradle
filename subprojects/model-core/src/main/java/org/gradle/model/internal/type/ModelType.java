@@ -68,8 +68,14 @@ public abstract class ModelType<T> {
         return new Simple<T>(method.getGenericReturnType());
     }
 
+    @Nullable
     public static <T> ModelType<T> paramType(Method method, int i) {
-        return new Simple<T>(method.getGenericParameterTypes()[i]);
+        Type[] parameterTypes = method.getGenericParameterTypes();
+        if (i < parameterTypes.length) {
+            return new Simple<T>(parameterTypes[i]);
+        } else {
+            return null;
+        }
     }
 
     public static <T> ModelType<T> typeOf(T instance) {
@@ -219,13 +225,25 @@ public abstract class ModelType<T> {
             for (Type type : ((WildcardType) runtimeType).getUpperBounds()) {
                 ModelType.of(type).addAllClasses(builder);
             }
+        } else if (runtimeType instanceof TypeVariable) {
+            for (Type type : ((TypeVariable) runtimeType).getBounds()) {
+                ModelType.of(type).addAllClasses(builder);
+            }
         } else {
             throw new IllegalArgumentException("Unable to deal with type " + runtimeType + " (" + runtimeType.getClass() + ")");
         }
     }
 
+    public String getName() {
+        return wrapper.getRepresentation(true);
+    }
+
+    public String getSimpleName() {
+        return wrapper.getRepresentation(false);
+    }
+
     public String toString() {
-        return wrapper.getRepresentation();
+        return wrapper.getRepresentation(true);
     }
 
     @Override
@@ -311,16 +329,17 @@ public abstract class ModelType<T> {
     private static final Type[] EMPTY_TYPE_ARRAY = new Type[0];
     private static final TypeWrapper[] EMPTY_TYPE_WRAPPER_ARRAY = new TypeWrapper[0];
 
+    @Nullable
     private static TypeWrapper wrap(Type type) {
         if (type == null) {
-            return NullTypeWrapper.INSTANCE;
+            return null;
         } else if (type instanceof Class) {
             return new ClassTypeWrapper((Class<?>) type);
         } else if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             return new ParameterizedTypeWrapper(
                     toWrappers(parameterizedType.getActualTypeArguments()),
-                    wrap(parameterizedType.getRawType()),
+                    (ClassTypeWrapper) wrap(parameterizedType.getRawType()),
                     wrap(parameterizedType.getOwnerType()),
                     type.hashCode()
             );
@@ -330,6 +349,13 @@ public abstract class ModelType<T> {
                     toWrappers(wildcardType.getUpperBounds()),
                     toWrappers(wildcardType.getLowerBounds()),
                     type.hashCode()
+            );
+        } else if (type instanceof TypeVariable) {
+            TypeVariable<?> typeVariable = (TypeVariable<?>) type;
+            return new TypeVariableTypeWrapper<GenericDeclaration>(
+                typeVariable.getName(),
+                toWrappers(typeVariable.getBounds()),
+                type.hashCode()
             );
         } else {
             throw new IllegalArgumentException("cannot wrap type of type " + type.getClass());

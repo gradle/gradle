@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,116 +16,11 @@
 
 package org.gradle.listener;
 
-import org.gradle.api.Action;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
-
 /**
- * <p>Manages a set of listeners of type T. Provides an implementation of T which can be used to broadcast to all
- * registered listeners.</p>
+ * DO NOT REMOVE.
  *
- * <p>Ordering is maintained for events, so that events are delivered to listeners in the order they are generated.
- * Events are delivered to listeners in the order that listeners are added to this broadcaster.</p>
- *
- * @param <T> The listener type.
+ * @deprecated This is here because tasks implemented in Groovy that are compiled against older versions of Gradle have this type baked into their byte-code, and cannot be loaded if it's not found.
  */
-public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
-    private final ProxyDispatchAdapter<T> source;
-    private final BroadcastDispatch<T> broadcast;
-    private final Class<T> type;
-
-    public ListenerBroadcast(Class<T> type) {
-        this.type = type;
-        broadcast = new BroadcastDispatch<T>(type);
-        source = new ProxyDispatchAdapter<T>(broadcast, type);
-    }
-
-    /**
-     * Returns the broadcaster. Any method call on this object is broadcast to all listeners.
-     *
-     * @return The broadcaster.
-     */
-    public T getSource() {
-        return source.getSource();
-    }
-
-    /**
-     * Returns the type of listener to which this class broadcasts.
-     *
-     * @return The type of the broadcaster.
-     */
-    public Class<T> getType() {
-        return type;
-    }
-
-    /**
-     * Adds a listener.
-     *
-     * @param listener The listener.
-     */
-    public void add(T listener) {
-        broadcast.add(listener);
-    }
-
-    /**
-     * Adds the given listeners.
-     *
-     * @param listeners The listeners
-     */
-    public void addAll(Iterable<? extends T> listeners) {
-        for (T listener : listeners) {
-            broadcast.add(listener);
-        }
-    }
-
-    /**
-     * Adds a {@link org.gradle.messaging.dispatch.Dispatch} to receive events from this broadcast.
-     */
-    public void add(Dispatch<MethodInvocation> dispatch) {
-        broadcast.add(dispatch);
-    }
-
-    /**
-     * Adds an action to be executed when the given method is called.
-     */
-    public void add(String methodName, Action<?> action) {
-        broadcast.add(methodName, action);
-    }
-
-    /**
-     * Removes the given listener.
-     *
-     * @param listener The listener.
-     */
-    public void remove(Object listener) {
-        broadcast.remove(listener);
-    }
-
-    /**
-     * Removes the given listeners.
-     *
-     * @param listeners The listeners
-     */
-    public void removeAll(Iterable<?> listeners) {
-        for (Object listener : listeners) {
-            remove(listener);
-        }
-    }
-
-    /**
-     * Removes all listeners.
-     */
-    public void removeAll() {
-        broadcast.removeAll();
-    }
-
-    /**
-     * Broadcasts the given event to all listeners.
-     *
-     * @param event The event
-     */
-    public void dispatch(MethodInvocation event) {
-        broadcast.dispatch(event);
-    }
+@Deprecated
+public class ListenerBroadcast {
 }

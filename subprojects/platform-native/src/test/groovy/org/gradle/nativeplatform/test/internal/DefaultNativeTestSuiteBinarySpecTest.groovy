@@ -19,11 +19,12 @@ package org.gradle.nativeplatform.test.internal
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultNativeTestSuiteBinarySpecTest extends Specification {
-    def tasks = new DefaultNativeTestSuiteBinarySpec.DefaultTasksCollection()
+    def tasks = new DefaultNativeTestSuiteBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, null))
 
     def "returns null for link, install and run when none defined"() {
         expect:

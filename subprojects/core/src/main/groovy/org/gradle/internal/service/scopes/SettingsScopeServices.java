@@ -24,6 +24,7 @@ import org.gradle.api.internal.plugins.*;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -43,9 +44,9 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         return parentRegistry.createChild(settings.getClassLoaderScope());
     }
 
-    protected PluginManagerInternal createPluginManager() {
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator, PluginRegistry pluginRegistry) {
         PluginApplicator applicator = new ImperativeOnlyPluginApplicator<SettingsInternal>(settings);
-        return new DefaultPluginManager(get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this), applicator);
     }
 
     protected ProjectDescriptorRegistry createProjectDescriptorRegistry() {

@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.tooling.internal.provider.jdk6.Jdk6ClassLookup;
 
 import java.io.*;
@@ -30,12 +31,13 @@ import java.util.Set;
 @ThreadSafe
 public class PayloadSerializer {
     private static final short SYSTEM_CLASS_LOADER_ID = (short) -1;
+    private static final ClassLoader SYSTEM_CLASS_LOADER = new DefaultClassLoaderFactory().getIsolatedSystemClassLoader();
     private static final Set<ClassLoader> SYSTEM_CLASS_LOADERS = new HashSet<ClassLoader>();
     private final Transformer<ObjectStreamClass, Class<?>> classLookup;
     private final PayloadClassLoaderRegistry classLoaderRegistry;
 
     static {
-        for (ClassLoader cl = ClassLoader.getSystemClassLoader().getParent(); cl != null; cl = cl.getParent()) {
+        for (ClassLoader cl = SYSTEM_CLASS_LOADER; cl != null; cl = cl.getParent()) {
             SYSTEM_CLASS_LOADERS.add(cl);
         }
     }
@@ -95,7 +97,7 @@ public class PayloadSerializer {
     public Object deserialize(SerializedPayload payload) {
         final DeserializeMap map = classLoaderRegistry.newDeserializeSession();
         try {
-            final ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader().getParent();
+            final ClassLoader systemClassLoader = SYSTEM_CLASS_LOADER;
             final Map<Short, ClassLoaderDetails> classLoaderDetails = (Map<Short, ClassLoaderDetails>) payload.getHeader();
 
             final ObjectInputStream objectStream = new ObjectInputStream(new ByteArrayInputStream(payload.getSerializedModel())) {

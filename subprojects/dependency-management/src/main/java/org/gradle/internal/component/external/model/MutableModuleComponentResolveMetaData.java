@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.ModuleSource;
 
@@ -25,6 +26,11 @@ public interface MutableModuleComponentResolveMetaData extends ModuleComponentRe
      * Creates a deep copy of this meta-data.
      */
     MutableModuleComponentResolveMetaData copy();
+
+    /**
+     * Also sets the {@link #getId()} based on the provided component id.
+     */
+    void setComponentId(ModuleComponentIdentifier componentId);
 
     void setChanging(boolean changing);
     void setStatus(String status);

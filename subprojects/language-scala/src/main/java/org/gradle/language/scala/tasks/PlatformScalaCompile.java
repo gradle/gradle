@@ -19,6 +19,7 @@ package org.gradle.language.scala.tasks;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.language.scala.internal.toolchain.ScalaToolChainInternal;
 import org.gradle.language.scala.ScalaPlatform;
 
@@ -52,6 +53,6 @@ public class PlatformScalaCompile extends AbstractScalaCompile {
 
     @Override
     protected Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
-        return getToolChain().select(getPlatform()).newCompiler(spec);
+        return CompilerUtil.castCompiler(getToolChain().select(getPlatform()).newCompiler(spec.getClass()));
     }
 }

@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
@@ -75,7 +76,7 @@ abstract public class AbstractScalaCompile extends AbstractCompile {
     }
 
     protected ScalaJavaJointCompileSpec createSpec() {
-        DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec();
+        DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpecFactory(compileOptions).create();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setWorkingDir(getProject().getProjectDir());

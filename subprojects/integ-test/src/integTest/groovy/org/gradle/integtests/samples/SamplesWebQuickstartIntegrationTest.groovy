@@ -17,13 +17,16 @@
 package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.junit.Rule
 import spock.lang.Timeout
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.UrlValidator.available
 
+@LeaksFileHandles
 class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/quickstart')
 
@@ -51,18 +54,22 @@ class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
     @Timeout(120)
     @Unroll
     def "can use #jettyTask for testing"() {
+        def portFinder = FixedAvailablePortAllocator.getInstance()
+        def httpPort = portFinder.assignPort()
+        def stopPort = portFinder.assignPort()
+
         expect:
-        jettyLifecycle(jettyTask)
+        jettyLifecycle(jettyTask, httpPort, stopPort)
+
+        cleanup:
+        portFinder.releasePort(httpPort)
+        portFinder.releasePort(stopPort)
 
         where:
         jettyTask << ["jettyRun", "jettyRunWar"]
     }
 
-    private void jettyLifecycle(String jettyStartTask) {
-        def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
-        def httpPort = portFinder.nextAvailable
-        def stopPort = portFinder.nextAvailable
-
+    private void jettyLifecycle(String jettyStartTask, int httpPort, int stopPort) {
         // Inject some int test stuff
         sample.dir.file('build.gradle') << """
 httpPort = ${httpPort}

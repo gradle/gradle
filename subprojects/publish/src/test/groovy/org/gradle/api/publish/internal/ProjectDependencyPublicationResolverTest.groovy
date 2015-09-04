@@ -28,7 +28,7 @@ public class ProjectDependencyPublicationResolverTest extends Specification {
     def project = Mock(ProjectInternal)
     def extensions = Mock(ExtensionContainerInternal)
     def publishing = Mock(PublishingExtension)
-    def publications = new DefaultPublicationContainer(new DirectInstantiator())
+    def publications = new DefaultPublicationContainer(DirectInstantiator.INSTANCE)
     def publication = Mock(PublicationInternal)
 
     def "resolves project coordinates if project does not have publishing extension"() {

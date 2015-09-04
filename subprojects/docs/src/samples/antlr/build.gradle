@@ -10,14 +10,16 @@ repositories {
 
 dependencies {
     antlr "org.antlr:antlr:3.5.2" // use ANTLR version 3
+    // antlr "org.antlr:antlr4:4.5" // use ANTLR version 4
 // END SNIPPET declare-dependency
-    testCompile 'junit:junit:4.11'
+    testCompile 'junit:junit:4.12'
 // START SNIPPET declare-dependency
 }
 // END SNIPPET declare-dependency
 
-// START SNIPPET memory-settings
+// START SNIPPET generate-grammar-settings
 generateGrammarSource {
     maxHeapSize = "64m"
+    arguments += ["-visitor", "-long-messages"]
 }
-// END SNIPPET memory-settings
+// END SNIPPET generate-grammar-settings

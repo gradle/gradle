@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.jvm
 
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.toolchain.JavaToolChain
 import spock.lang.Specification
@@ -76,13 +78,13 @@ public class DefaultClassDirectoryBinarySpecTest extends Specification {
         binary.displayName == displayName
 
         where:
-        name    | displayName
+        name           | displayName
         'mainClasses'  | 'classes \'main\''
         'otherClasses' | 'classes \'other\''
-        'otherBinary' | 'classes \'otherBinary\''
+        'otherBinary'  | 'classes \'otherBinary\''
     }
 
     private DefaultClassDirectoryBinarySpec binary(String name) {
-        new DefaultClassDirectoryBinarySpec(name, toolChain, platform)
+        new DefaultClassDirectoryBinarySpec(name, toolChain, platform, DirectInstantiator.INSTANCE, Mock(ITaskFactory))
     }
 }

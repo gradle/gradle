@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
 
 class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
@@ -88,8 +89,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
         then:
         mavenModule.assertPublished()
         mavenModule.parsedPom.packaging == 'foo'
-        // The .foo artifact is just a copy of the pom. It should not be published, or publication should fail.
-        mavenModule.assertArtifactsPublished("publishTest-1.9-custom.txt", "publishTest-1.9.foo", "publishTest-1.9.pom")
+        mavenModule.assertArtifactsPublished("publishTest-1.9-custom.txt", "publishTest-1.9.pom")
     }
 
     @Issue("GRADLE-3211")
@@ -109,8 +109,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
         then:
         mavenModule.assertPublished()
         mavenModule.parsedPom.packaging == 'txt'
-        // The unclassified artifact is just a copy of the classified artifact. It should not be published, or publication should fail.
-        mavenModule.assertArtifactsPublished("publishTest-1.9-custom.txt", "publishTest-1.9.txt", "publishTest-1.9.pom")
+        mavenModule.assertArtifactsPublished("publishTest-1.9-custom.txt", "publishTest-1.9.pom")
     }
 
     @Issue("GRADLE-3211")

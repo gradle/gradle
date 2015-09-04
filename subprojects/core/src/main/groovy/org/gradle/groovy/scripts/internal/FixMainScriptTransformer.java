@@ -26,10 +26,6 @@ import org.codehaus.groovy.control.SourceUnit;
  * the static method.
  */
 public class FixMainScriptTransformer extends AbstractScriptTransformer {
-    public String getId() {
-        return "fixMain";
-    }
-
     @Override
     protected int getPhase() {
         return Phases.CONVERSION;

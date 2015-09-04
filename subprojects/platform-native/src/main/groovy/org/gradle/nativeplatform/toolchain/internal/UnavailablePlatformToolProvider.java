@@ -25,11 +25,11 @@ import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
 
 public class UnavailablePlatformToolProvider implements PlatformToolProvider {
-    private final OperatingSystemInternal operatingSystem;
     private final ToolSearchResult failure;
+    private final OperatingSystemInternal targetOperatingSystem;
 
-    public UnavailablePlatformToolProvider(OperatingSystemInternal operatingSystem, ToolSearchResult failure) {
-        this.operatingSystem = operatingSystem;
+    public UnavailablePlatformToolProvider(OperatingSystemInternal targetOperatingSystem, ToolSearchResult failure) {
+        this.targetOperatingSystem = targetOperatingSystem;
         this.failure = failure;
     }
 
@@ -47,27 +47,35 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider {
         return new GradleException(formatter.toString());
     }
 
+    @Override
     public String getObjectFileExtension() {
         throw failure();
     }
 
     public String getExecutableName(String executablePath) {
-        return operatingSystem.getInternalOs().getExecutableName(executablePath);
+        return targetOperatingSystem.getInternalOs().getExecutableName(executablePath);
     }
 
     public String getSharedLibraryName(String libraryPath) {
-        return operatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
+        return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
     }
 
     public String getSharedLibraryLinkFileName(String libraryPath) {
-        return operatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
+        return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
     }
 
     public String getStaticLibraryName(String libraryPath) {
-        return operatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
+        return targetOperatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
     }
 
-    public <T extends CompileSpec> Compiler<T> newCompiler(T spec) {
+    @Override
+    public <T> T get(Class<T> toolType) {
+        throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
+    }
+
+    @Override
+    public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> specType) {
         throw failure();
     }
+
 }

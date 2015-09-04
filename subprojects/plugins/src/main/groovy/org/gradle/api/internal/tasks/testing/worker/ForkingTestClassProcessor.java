@@ -72,7 +72,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         workerProcess.start();
 
         ObjectConnection connection = workerProcess.getConnection();
-        connection.useParameterSerializer(new TestEventSerializer());
+        connection.useParameterSerializer(TestEventSerializer.create());
         connection.addIncoming(TestResultProcessor.class, resultProcessor);
         RemoteTestClassProcessor remoteProcessor = connection.addOutgoing(RemoteTestClassProcessor.class);
         connection.connect();

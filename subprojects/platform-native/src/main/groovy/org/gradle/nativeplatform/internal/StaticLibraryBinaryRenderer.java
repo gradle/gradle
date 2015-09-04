@@ -17,9 +17,17 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 
+import javax.inject.Inject;
+
 public class StaticLibraryBinaryRenderer extends AbstractNativeBinaryRenderer<StaticLibraryBinarySpec> {
+    @Inject
+    public StaticLibraryBinaryRenderer(ModelSchemaStore schemaStore) {
+        super(schemaStore);
+    }
+
     @Override
     public Class<StaticLibraryBinarySpec> getTargetType() {
         return StaticLibraryBinarySpec.class;

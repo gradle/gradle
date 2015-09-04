@@ -16,7 +16,7 @@
 package org.gradle.internal.resource.transport.http.ntlm;
 
 
-import org.gradle.internal.resource.PasswordCredentials;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

@@ -20,10 +20,8 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver;
@@ -39,14 +37,13 @@ import org.gradle.api.publish.ivy.tasks.PublishToIvyRepository;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.model.collection.CollectionBuilder;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.concurrent.Callable;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -84,14 +81,10 @@ public class IvyPublishPlugin implements Plugin<Project> {
         });
     }
 
-    /**
-     * Model rules.
-     */
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @Mutate
         @SuppressWarnings("UnusedDeclaration")
-        public void createTasks(CollectionBuilder<Task> tasks, final @Path("tasks.publish") Task publishLifecycleTask, PublishingExtension publishingExtension) {
+        public void createTasks(ModelMap<Task> tasks, PublishingExtension publishingExtension, @Path("buildDir") final File buildDir) {
             PublicationContainer publications = publishingExtension.getPublications();
             RepositoryHandler repositories = publishingExtension.getRepositories();
 
@@ -105,17 +98,10 @@ public class IvyPublishPlugin implements Plugin<Project> {
                         descriptorTask.setDescription(String.format("Generates the Ivy Module Descriptor XML file for publication '%s'.", publication.getName()));
                         descriptorTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                         descriptorTask.setDescriptor(publication.getDescriptor());
-
-                        ConventionMapping descriptorTaskConventionMapping = new DslObject(descriptorTask).getConventionMapping();
-                        descriptorTaskConventionMapping.map("destination", new Callable<Object>() {
-                            public Object call() throws Exception {
-                                return new File(descriptorTask.getProject().getBuildDir(), "publications/" + publication.getName() + "/ivy.xml");
-                            }
-                        });
-
-                        publication.setDescriptorFile(descriptorTask.getOutputs().getFiles());
+                        descriptorTask.setDestination(new File(buildDir, "publications/" + publication.getName() + "/ivy.xml"));
                     }
                 });
+                publication.setDescriptorFile(tasks.get(descriptorTaskName).getOutputs().getFiles());
 
                 for (final IvyArtifactRepository repository : repositories.withType(IvyArtifactRepository.class)) {
                     final String repositoryName = repository.getName();
@@ -127,11 +113,9 @@ public class IvyPublishPlugin implements Plugin<Project> {
                             publishTask.setRepository(repository);
                             publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                             publishTask.setDescription(String.format("Publishes Ivy publication '%s' to Ivy repository '%s'.", publicationName, repositoryName));
-
-                            //Because dynamic rules are not yet implemented we have to violate input immutability here as an interim step
-                            publishLifecycleTask.dependsOn(publishTask);
                         }
                     });
+                    tasks.get(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME).dependsOn(publishTaskName);
                 }
             }
         }

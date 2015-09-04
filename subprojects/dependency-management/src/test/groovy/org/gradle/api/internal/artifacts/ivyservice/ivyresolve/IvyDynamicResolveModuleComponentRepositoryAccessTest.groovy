@@ -16,18 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
-import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.model.ComponentOverrideMetadata
+import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 
 class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification {
     final target = Mock(ModuleComponentRepositoryAccess)
     final metaData = Mock(MutableModuleComponentResolveMetaData)
-    final requestedDependency = Mock(DependencyMetaData)
+    final requestedDependency = Mock(ComponentOverrideMetadata)
     final moduleComponentId = Mock(ModuleComponentIdentifier)
     final result = Mock(BuildableModuleComponentMetaDataResolveResult)
     final ModuleComponentRepositoryAccess access = new IvyDynamicResolveModuleComponentRepositoryAccess(target)
@@ -41,10 +40,10 @@ class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification
         result.metaData >> metaData
 
         when:
-        access.resolveComponentMetaData(requestedDependency, moduleComponentId, result)
+        access.resolveComponentMetaData(moduleComponentId, requestedDependency, result)
 
         then:
-        1 * target.resolveComponentMetaData(requestedDependency, moduleComponentId, result)
+        1 * target.resolveComponentMetaData(moduleComponentId, requestedDependency, result)
 
         and:
         1 * metaData.dependencies >> [original]
@@ -54,19 +53,17 @@ class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification
 
     def "does nothing when dependency has not been resolved"() {
         when:
-        access.resolveComponentMetaData(requestedDependency, moduleComponentId, result)
+        access.resolveComponentMetaData(moduleComponentId, requestedDependency, result)
 
         then:
-        1 * target.resolveComponentMetaData(requestedDependency, moduleComponentId, result)
+        1 * target.resolveComponentMetaData(moduleComponentId, requestedDependency, result)
         _ * result.state >> BuildableModuleComponentMetaDataResolveResult.State.Missing
         0 * result._
     }
 
     def dependency(String revConstraint = '1.0') {
         def dep = Mock(DependencyMetaData)
-        def descriptor = Mock(DependencyDescriptor)
-        _ * descriptor.dynamicConstraintDependencyRevisionId >> IvyUtil.createModuleRevisionId('org', 'module', revConstraint)
-        _ * dep.descriptor >> descriptor
+        _ * dep.dynamicConstraintVersion >> revConstraint
         return dep
     }
 }

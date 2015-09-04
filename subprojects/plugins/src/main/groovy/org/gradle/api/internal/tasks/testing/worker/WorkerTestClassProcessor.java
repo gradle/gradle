@@ -33,7 +33,7 @@ public class WorkerTestClassProcessor extends SuiteTestClassProcessor {
 
         @Override
         public String toString() {
-            return String.format("process '%s'", getName());
+            return getName();
         }
     }
 }

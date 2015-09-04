@@ -19,12 +19,14 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.util.GUtil;
 
 public class BasicTemplateBasedProjectInitDescriptor extends TemplateBasedProjectInitDescriptor{
-    public BasicTemplateBasedProjectInitDescriptor(TemplateOperationFactory templateOperationFactory , TemplateOperation settingsTemplateOperation) {
+    public BasicTemplateBasedProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, TemplateLibraryVersionProvider libraryVersionProvider, TemplateOperation settingsTemplateOperation) {
         register(settingsTemplateOperation);
         register(templateOperationFactory.newTemplateOperation()
                         .withTemplate("build.gradle.template")
                         .withTarget("build.gradle")
                         .withDocumentationBindings(GUtil.map("ref_userguide_java_tutorial", "tutorial_java_projects"))
+                        .withBindings(GUtil.map("slf4jVersion", libraryVersionProvider.getVersion("slf4j")))
+                        .withBindings(GUtil.map("junitVersion", libraryVersionProvider.getVersion("junit")))
                         .create()
         );
     }

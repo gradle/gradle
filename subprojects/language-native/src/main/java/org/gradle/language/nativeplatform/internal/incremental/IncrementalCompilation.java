@@ -22,4 +22,6 @@ public interface IncrementalCompilation {
     List<File> getRecompile();
 
     List<File> getRemoved();
+
+    CompilationState getFinalState();
 }

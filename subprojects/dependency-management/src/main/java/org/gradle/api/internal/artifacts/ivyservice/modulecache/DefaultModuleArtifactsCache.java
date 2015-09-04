@@ -22,10 +22,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifierSerializer;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.Serializer;
-import org.gradle.messaging.serialize.SetSerializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.math.BigInteger;

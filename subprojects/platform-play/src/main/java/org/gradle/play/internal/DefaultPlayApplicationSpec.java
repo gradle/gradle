@@ -26,6 +26,7 @@ import java.util.List;
 
 public class DefaultPlayApplicationSpec extends BaseComponentSpec implements PlayApplicationSpecInternal {
     private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
+    private boolean injectedRoutesGenerator;
 
     protected String getTypeName() {
         return "Play Application";
@@ -37,5 +38,21 @@ public class DefaultPlayApplicationSpec extends BaseComponentSpec implements Pla
 
     public void targetPlatform(String targetPlatform) {
         this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
+    }
+
+    @Override
+    public void platform(Object platformRequirements) {
+        PlatformRequirement requirement = PlayPlatformNotationParser.parser().parseNotation(platformRequirements);
+        this.targetPlatforms.add(requirement);
+    }
+
+    @Override
+    public void setInjectedRoutesGenerator(boolean injectedRoutesGenerator) {
+        this.injectedRoutesGenerator = injectedRoutesGenerator;
+    }
+
+    @Override
+    public boolean getInjectedRoutesGenerator() {
+        return injectedRoutesGenerator;
     }
 }

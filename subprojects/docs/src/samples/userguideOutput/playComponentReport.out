@@ -1,0 +1,38 @@
+:components
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+Play Application 'play'
+-----------------------
+
+Source sets
+    Java source 'play:java'
+        srcDir: app
+        includes: **/*.java
+    JavaScript source 'play:javaScript'
+        srcDir: app/assets
+        includes: **/*.js
+    JVM resources 'play:resources'
+        srcDir: conf
+    Routes source 'play:routes'
+        srcDir: conf
+        includes: routes, *.routes
+    Scala source 'play:scala'
+        srcDir: app
+        includes: **/*.scala
+    Twirl template source 'play:twirlTemplates'
+        srcDir: app
+        includes: **/*.html
+
+Binaries
+    Play Application Jar 'playBinary'
+        build using task: :playBinary
+        targetPlatform: Play Platform (Play 2.3.9, Scala: 2.11, Java: Java SE 8)
+
+Note: currently not all plugins register their components, so some components may not be visible here.
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

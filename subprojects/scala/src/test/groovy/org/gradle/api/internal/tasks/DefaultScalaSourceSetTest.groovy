@@ -17,13 +17,22 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.junit.Before
 import org.junit.Test
+
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
 class DefaultScalaSourceSetTest {
-    private final DefaultScalaSourceSet sourceSet = new DefaultScalaSourceSet("<set-display-name>", [resolve: {it as File}] as FileResolver)
+
+    @Before
+    void before() {
+        NativeServicesTestFixture.initialize()
+    }
+
+    private final DefaultScalaSourceSet sourceSet = new DefaultScalaSourceSet("<set-display-name>", [resolve: { it as File }] as FileResolver)
 
     @Test
     public void defaultValues() {

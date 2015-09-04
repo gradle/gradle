@@ -26,10 +26,14 @@ import org.gradle.cache.CacheRepository
 import org.gradle.execution.*
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.TimeProvider
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
+import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.listener.ListenerManager
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import spock.lang.Specification
 
@@ -38,7 +42,6 @@ import static org.hamcrest.Matchers.sameInstance
 public class GradleScopeServicesTest extends Specification {
     private GradleInternal gradle = Stub()
     private ServiceRegistry parent = Stub()
-    private ListenerManager listenerManager = Stub()
     private CacheRepository cacheRepository = Stub()
     private GradleScopeServices registry = new GradleScopeServices(parent, gradle)
     private StartParameter startParameter = new StartParameter()
@@ -49,7 +52,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(StartParameter) >> Stub(StartParameter)
         parent.get(GradleBuildEnvironment) >> Stub(GradleBuildEnvironment)
         parent.get(InMemoryTaskArtifactCache) >> Stub(InMemoryTaskArtifactCache)
-        parent.get(ListenerManager) >> listenerManager
+        parent.get(ListenerManager) >> new DefaultListenerManager()
         parent.get(CacheRepository) >> cacheRepository
         parent.get(PluginRegistry) >> pluginRegistryParent
         parent.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
@@ -57,6 +60,9 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(BuildCancellationToken) >> Stub(BuildCancellationToken)
         parent.get(ProjectConfigurer) >> Stub(ProjectConfigurer)
         parent.get(ModelRuleSourceDetector) >> Stub(ModelRuleSourceDetector)
+        parent.get(TimeProvider) >> Stub(TimeProvider)
+        parent.get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
+        parent.get(Instantiator) >> Stub(Instantiator)
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _, _) >> pluginRegistryChild
     }
@@ -101,6 +107,16 @@ public class GradleScopeServicesTest extends Specification {
         buildExecuter sameInstance(secondExecuter)
     }
 
+    def "provides a build configuration action executer"() {
+        when:
+        def firstExecuter = registry.get(BuildConfigurationActionExecuter)
+        def secondExecuter = registry.get(BuildConfigurationActionExecuter)
+
+        then:
+        firstExecuter instanceof BuildConfigurationActionExecuter
+        firstExecuter sameInstance(secondExecuter)
+    }
+
     def "provides a task graph executer"() {
         when:
         def graphExecuter = registry.get(TaskGraphExecuter)
@@ -129,5 +145,20 @@ public class GradleScopeServicesTest extends Specification {
         then:
         optionReader instanceof OptionReader
         secondOptionReader sameInstance(optionReader)
+    }
+
+    def "adds all plugin gradle scope services"() {
+        def plugin1 = Mock(PluginServiceRegistry)
+        def plugin2 = Mock(PluginServiceRegistry)
+
+        given:
+        parent.getAll(PluginServiceRegistry) >> [plugin1, plugin2]
+
+        when:
+        new GradleScopeServices(parent, gradle)
+
+        then:
+        1 * plugin1.registerGradleServices(_)
+        1 * plugin2.registerGradleServices(_)
     }
 }

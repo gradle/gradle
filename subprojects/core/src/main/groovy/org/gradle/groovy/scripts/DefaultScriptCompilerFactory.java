@@ -15,11 +15,14 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.codehaus.groovy.classgen.Verifier;
+import org.codehaus.groovy.ast.ClassNode;
+import org.gradle.api.Action;
+import org.gradle.api.internal.initialization.ClassLoaderIds;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.groovy.scripts.internal.CompiledScript;
+import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
-import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
     private final ScriptRunnerFactory scriptRunnerFactory;
@@ -36,36 +39,16 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
 
     private class ScriptCompilerImpl implements ScriptCompiler {
         private final ScriptSource source;
-        private ClassLoader classloader;
-        private Transformer transformer;
-        private Verifier verifier = new Verifier();
-        private final Instantiator instantiator = new DirectInstantiator();
 
         public ScriptCompilerImpl(ScriptSource source) {
             this.source = new CachingScriptSource(source);
         }
 
-        public ScriptCompiler setClassloader(ClassLoader classloader) {
-            this.classloader = classloader;
-            return this;
-        }
-
-        public ScriptCompiler setTransformer(Transformer transformer) {
-            this.transformer = transformer;
-            return this;
-        }
-
-        public ScriptCompiler setVerifier(Verifier verifier) {
-            this.verifier = verifier;
-            return this;
-        }
-
-        public <T extends Script> ScriptRunner<T> compile(Class<T> scriptType) {
-            Class<? extends T> scriptClass = scriptClassCompiler.compile(source, classloader, transformer, scriptType, verifier);
-            T script = instantiator.newInstance(scriptClass);
-            script.setScriptSource(source);
-            script.setContextClassloader(classloader);
-            return scriptRunnerFactory.create(script);
+        @Override
+        public <T extends Script, M> ScriptRunner<T, M> compile(Class<T> scriptType, CompileOperation<M> extractingTransformer, ClassLoader classloader, Action<? super ClassNode> verifier) {
+            ClassLoaderId classLoaderId = ClassLoaderIds.buildScript(source.getFileName(), extractingTransformer.getId());
+            CompiledScript<T, M> compiledScript = scriptClassCompiler.compile(source, classloader, classLoaderId, extractingTransformer, scriptType, verifier);
+            return scriptRunnerFactory.create(compiledScript, source, classloader);
         }
     }
 }

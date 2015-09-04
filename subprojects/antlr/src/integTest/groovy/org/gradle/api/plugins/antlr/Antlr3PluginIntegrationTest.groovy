@@ -21,13 +21,47 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     def "analyze good grammar"() {
         goodGrammar()
-
+        goodProgram()
         expect:
         succeeds("generateGrammarSource")
-        file("build/generated-src/antlr/main/Test.tokens").exists()
-        file("build/generated-src/antlr/main/TestLexer.java").exists()
-        file("build/generated-src/antlr/main/TestParser.java").exists()
+
+        assertGrammarSourceGenerated("AnotherGrammar")
+        assertGrammarSourceGenerated("org/acme/test/Test")
         assertAntlrVersion(3)
+
+        succeeds("build")
+    }
+
+    private goodProgram() {
+        file("src/main/java/com/example/Main.java") << """
+            package com.example;
+            import org.acme.test.TestLexer;
+            import org.acme.test.TestParser;
+            import org.antlr.runtime.CommonTokenStream;
+            import org.antlr.runtime.RecognitionException;
+            import org.antlr.runtime.ANTLRFileStream;
+            import java.io.IOException;
+
+            public class Main {
+                public static void main(String[] args) throws IOException {
+                    TestLexer lexer = new TestLexer(new ANTLRFileStream(args[0]));
+                    CommonTokenStream tokens = new CommonTokenStream(lexer);
+                    TestParser parser = new TestParser(tokens);
+                    try {
+                        parser.list();
+                    } catch (RecognitionException e)  {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        """
+    }
+
+    private void assertGrammarSourceGenerated(String grammarName) {
+        def slashIndex = grammarName.lastIndexOf("/")
+        assert file("build/generated-src/antlr/main/${slashIndex == -1 ? grammarName : grammarName.substring(slashIndex)}.tokens").exists()
+        assert file("build/generated-src/antlr/main/${grammarName}Lexer.java").exists()
+        assert file("build/generated-src/antlr/main/${grammarName}Parser.java").exists()
     }
 
     def "analyze bad grammar"() {
@@ -39,11 +73,34 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     private goodGrammar() {
-        file("src/main/antlr/Test.g") << """grammar Test;
+        file("src/main/antlr/org/acme/test/Test.g") << """grammar Test;
+            @header {
+                package org.acme.test;
+            }
+            @lexer::header {
+                package org.acme.test;
+            }
+
             list    :   item (item)*
                     ;
 
-            item    :   
+            item    :
+                ID
+                | INT
+                ;
+
+            ID  :   ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*
+                ;
+
+            INT :   '0'..'9'+
+                ;
+        """
+
+        file("src/main/antlr/AnotherGrammar.g") << """grammar AnotherGrammar;
+            list    :   item (item)*
+                    ;
+
+            item    :
                 ID
                 | INT
                 ;
@@ -61,7 +118,7 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
             list    :   item (item)*
                     ; some extra stuff
 
-            item    :   
+            item    :
                 ID
                 | INT
                 ;

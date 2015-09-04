@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.*;
 
 import java.util.ArrayList;
@@ -31,10 +32,9 @@ public class OptionNotationParserFactory {
             parsers.add(new UnsupportedNotationParser());
         }
         if (targetType.isAssignableFrom(String.class)) {
-            parsers.add(new NoDescriptionValuesJustReturningParser<Object>(targetType));
+            parsers.add(new NoDescriptionValuesJustReturningParser());
         }
         if (targetType.isEnum()) {
-            parsers.add(new NoDescriptionValuesJustReturningParser<Object>(targetType));
             parsers.add(new EnumFromCharSequenceNotationParser<Enum>(targetType.asSubclass(Enum.class)));
         }
         if (parsers.isEmpty()) {
@@ -49,20 +49,25 @@ public class OptionNotationParserFactory {
             throw new UnsupportedOperationException();
         }
 
-        public void describe(Collection<String> candidateFormats) {
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
         }
 
         public void describeValues(Collection<String> collector) {
         }
     }
 
-    private static class NoDescriptionValuesJustReturningParser<T> extends JustReturningParser<CharSequence, T> implements ValueAwareNotationParser<T> {
-        public NoDescriptionValuesJustReturningParser(Class<? extends T> targetType) {
-            super(targetType);
+    private static class NoDescriptionValuesJustReturningParser implements ValueAwareNotationParser<String> {
+        public String parseNotation(CharSequence notation) {
+            return notation.toString();
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Instances of String or CharSequence.");
         }
 
         public void describeValues(Collection<String> collector) {
-
         }
     }
 

@@ -15,11 +15,11 @@
  */
 package org.gradle.ide.visualstudio.tasks
 import org.gradle.api.Incubating
+import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
-import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioProjectFile
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 

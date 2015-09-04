@@ -17,20 +17,38 @@
 package org.gradle.tooling.internal.build;
 
 import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
+import org.gradle.tooling.model.build.GradleEnvironment;
 import org.gradle.tooling.model.build.JavaEnvironment;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-public class DefaultBuildEnvironment extends VersionOnlyBuildEnvironment implements InternalBuildEnvironment, Serializable {
+public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serializable {
+
+    private final File gradleUserHome;
+    private final String gradleVersion;
     private final File javaHome;
     private final List<String> jvmArguments;
 
-    public DefaultBuildEnvironment(String gradleVersion, File javaHome, List<String> jvmArguments) {
-        super(gradleVersion);
+    public DefaultBuildEnvironment(File gradleUserHome, String gradleVersion, File javaHome, List<String> jvmArguments) {
+        this.gradleUserHome = gradleUserHome;
+        this.gradleVersion = gradleVersion;
         this.javaHome = javaHome;
         this.jvmArguments = jvmArguments;
+    }
+
+    public GradleEnvironment getGradle() {
+        return new GradleEnvironment() {
+            @Override
+            public File getGradleUserHome() {
+                return gradleUserHome;
+            }
+
+            public String getGradleVersion() {
+                return gradleVersion;
+            }
+        };
     }
 
     public JavaEnvironment getJava() {
@@ -44,4 +62,5 @@ public class DefaultBuildEnvironment extends VersionOnlyBuildEnvironment impleme
             }
         };
     }
+
 }

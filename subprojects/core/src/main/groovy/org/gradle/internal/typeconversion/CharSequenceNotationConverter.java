@@ -16,7 +16,7 @@
 
 package org.gradle.internal.typeconversion;
 
-import java.util.Collection;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 class CharSequenceNotationConverter<N, T> implements NotationConverter<N, T> {
     private final NotationConverter<String, ? extends T> delegate;
@@ -32,7 +32,8 @@ class CharSequenceNotationConverter<N, T> implements NotationConverter<N, T> {
         }
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        delegate.describe(candidateFormats);
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        delegate.describe(visitor);
     }
 }

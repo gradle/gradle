@@ -16,12 +16,35 @@
 
 package org.gradle.integtests.tooling.fixture;
 
+import java.io.File;
+import java.util.regex.Pattern;
+
 public class TextUtil {
 
     /**
      * TODO - hack to avoid classloading issues. We should use org.gradle.util.TextUtil
+     *
+     * Currently we can't use it reliably because it causes CNF issues with cross version integration tests running against tooling api < 1.3.
      */
     public static String escapeString(Object obj) {
         return obj.toString().replaceAll("\\\\", "\\\\\\\\");
+    }
+
+    public static String normaliseFileSeparators(String path) {
+        return path.replaceAll(Pattern.quote(File.separator), "/");
+    }
+
+    /**
+     * Converts all line separators in the specified string to a single new line character.
+     */
+    public static String normaliseLineSeparators(String str) {
+        return str == null ? null : convertLineSeparators(str, "\n");
+    }
+
+    /**
+     * Converts all line separators in the specified string to the specified line separator.
+     */
+    public static String convertLineSeparators(String str, String sep) {
+        return str == null ? null : str.replaceAll("\r\n|\r|\n", sep);
     }
 }

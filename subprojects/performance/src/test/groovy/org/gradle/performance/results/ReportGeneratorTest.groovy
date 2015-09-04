@@ -18,8 +18,10 @@ package org.gradle.performance.results
 
 import org.gradle.performance.ResultSpecification
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
+@LeaksFileHandles
 class ReportGeneratorTest extends ResultSpecification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final ReportGenerator generator = new ReportGenerator()

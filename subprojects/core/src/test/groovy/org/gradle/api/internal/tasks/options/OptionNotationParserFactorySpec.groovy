@@ -36,7 +36,6 @@ class OptionNotationParserFactorySpec extends Specification {
         when:
         def parser = factory.toComposite(TestEnum.class);
         then:
-        parser.parseNotation(TestEnum.ABC) == TestEnum.ABC
         parser.parseNotation("ABC") == TestEnum.ABC
     }
 

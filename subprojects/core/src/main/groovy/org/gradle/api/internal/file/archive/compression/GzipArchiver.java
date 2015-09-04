@@ -28,7 +28,7 @@ import java.net.URI;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-public class GzipArchiver implements ReadableResource {
+public class GzipArchiver implements CompressedReadableResource {
 
     private ReadableResource resource;
     private URI uri;

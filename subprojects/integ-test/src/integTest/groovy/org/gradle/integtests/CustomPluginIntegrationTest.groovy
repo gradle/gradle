@@ -17,7 +17,9 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
+@LeaksFileHandles
 public class CustomPluginIntegrationTest extends AbstractIntegrationSpec {
     public void "can reference plugin in buildSrc by id"() {
         given:
@@ -156,7 +158,7 @@ repositories { mavenCentral() }
 dependencies {
     compile gradleApi()
     compile localGroovy()
-    testCompile 'junit:junit:4.11'
+    testCompile 'junit:junit:4.12'
 }
 """
 
@@ -197,7 +199,7 @@ repositories { mavenCentral() }
 dependencies {
     compile gradleApi()
     compile localGroovy()
-    testCompile 'junit:junit:4.11'
+    testCompile 'junit:junit:4.12'
 }
 """
 

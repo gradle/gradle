@@ -22,13 +22,13 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
-import org.gradle.internal.typeconversion.*;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.*;
 
 import java.io.File;
-import java.util.Collection;
 
 public class PublishArtifactNotationParserFactory implements Factory<NotationParser<Object, PublishArtifact>> {
     private final Instantiator instantiator;
@@ -55,8 +55,8 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         }
 
         @Override
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Instances of AbstractArchiveTask, e.g. jar.");
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Instances of AbstractArchiveTask").example("jar.");
         }
 
         @Override

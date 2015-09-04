@@ -16,8 +16,8 @@
 
 package org.gradle.sonar.runner.tasks;
 
-import com.beust.jcommander.internal.Maps;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
@@ -38,15 +38,15 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Analyses one or more projects with the <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+Sonar+Runner">Sonar Runner</a>.
+ * Analyses one or more projects with the <a href="http://redirect.sonarsource.com/doc/analyzing-with-sq-runner.html">SonarQube Runner</a>.
  * <p>
  * Can be used with or without the {@code "sonar-runner"} plugin.
  * If used together with the plugin, {@code sonarProperties} will be populated with defaults based on Gradle's object model and user-defined
  * values configured via {@link SonarRunnerExtension} and {@link org.gradle.sonar.runner.SonarRunnerRootExtension}.
  * If used without the plugin, all properties have to be configured manually.
  * <p>
- * For more information on how to configure the Sonar Runner, and on which properties are available, see the
- * <a href="http://docs.codehaus.org/display/SONAR/Analyzing+with+SonarQube+Runner">Sonar Runner documentation</a>.
+ * For more information on how to configure the SonarQube Runner, and on which properties are available, see the
+ * <a href="http://redirect.sonarsource.com/doc/analyzing-with-sq-runner.html">SonarQube Runner documentation</a>.
  */
 @Incubating
 public class SonarRunner extends DefaultTask {
@@ -65,11 +65,11 @@ public class SonarRunner extends DefaultTask {
     JavaExecHandleBuilder prepareExec() {
         Map<String, Object> properties = getSonarProperties();
         if(getProject().file("sonar-project.properties").exists()){
-            LOGGER.warn("Found 'sonar-project.properties' in project directory: Sonar Runner may read this file to override the Gradle 'sonarRunner' configuration.");
+            LOGGER.warn("Found 'sonar-project.properties' in project directory: SonarQube Runner may read this file to override the Gradle 'sonarRunner' configuration.");
         }
 
         if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Executing Sonar Runner with properties:\n[{}]", Joiner.on(", ").withKeyValueSeparator(": ").join(properties));
+            LOGGER.info("Executing SonarQube Runner with properties:\n[{}]", Joiner.on(", ").withKeyValueSeparator(": ").join(properties));
         }
 
         JavaExecHandleBuilder javaExec = new JavaExecHandleBuilder(getFileResolver());
@@ -85,7 +85,7 @@ public class SonarRunner extends DefaultTask {
         return javaExec
                 .systemProperty("project.settings", propertyFile.getAbsolutePath())
 
-                // This value is set in the properties file, but Sonar Runner 2.4 requires it on the command line as well
+                // This value is set in the properties file, but SonarQube Runner 2.4 requires it on the command line as well
                 // http://forums.gradle.org/gradle/topics/gradle-2-2-nightly-sonarrunner-task-fails-with-toolversion-2-4
                 .systemProperty("project.home", getProject().getProjectDir().getAbsolutePath())
 

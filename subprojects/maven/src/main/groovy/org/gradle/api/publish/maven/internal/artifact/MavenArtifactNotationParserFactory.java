@@ -22,11 +22,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.*;
 
 import java.io.File;
-import java.util.Collection;
 
 public class MavenArtifactNotationParserFactory implements Factory<NotationParser<Object, MavenArtifact>> {
     private final Instantiator instantiator;
@@ -70,8 +70,9 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
             result.converted(artifact);
         }
 
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Instances of AbstractArchiveTask e.g. jar");
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Instances of AbstractArchiveTask").example("jar");
         }
     }
 
@@ -84,8 +85,9 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
             result.converted(artifact);
         }
 
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Instances of PublishArtifact");
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Instances of PublishArtifact");
         }
     }
 
@@ -106,8 +108,9 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
             return instantiator.newInstance(DefaultMavenArtifact.class, file, extension, null);
         }
 
-        public void describe(Collection<String> candidateFormats) {
-            fileResolverNotationParser.describe(candidateFormats);
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            fileResolverNotationParser.describe(visitor);
         }
     }
 
@@ -123,8 +126,8 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         }
 
         @Override
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Maps containing a 'source' entry, e.g. [source: '/path/to/file', extension: 'zip'].");
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Maps containing a 'source' entry").example("[source: '/path/to/file', extension: 'zip']");
         }
     }
 }

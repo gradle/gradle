@@ -16,12 +16,11 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -29,13 +28,17 @@ import java.util.Set;
  * The meta-data for a component instance that is required during dependency resolution.
  */
 public interface ComponentResolveMetaData {
+    List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
+
     /**
      * Returns the identifier for this component.
      */
     ComponentIdentifier getComponentId();
 
     /**
-     * Returns the module version identifier for this component. This is a legacy identifier and is here while we transition the meta-data away from ivy-like
+     * Returns the module version identifier for this component. Currently this reflects the (group, module, version) that was used to request this component.
+     *
+     * <p>This is a legacy identifier and is here while we transition the meta-data away from ivy-like
      * module versions to the more general component instances. Currently, the module version and component identifiers are used interchangeably. However, over
      * time more things will use the component identifier. At some point, the module version identifier will become optional for a component.
      */
@@ -51,32 +54,18 @@ public interface ComponentResolveMetaData {
      */
     ComponentResolveMetaData withSource(ModuleSource source);
 
-    /**
-     * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
-     * and will be removed.
-     *
-     * <p>You should avoid using this method.
-     */
-    ModuleDescriptor getDescriptor();
-
     List<DependencyMetaData> getDependencies();
+
+    /**
+     * Returns the names of all of the configurations for this component.
+     */
+    Set<String> getConfigurationNames();
 
     /**
      * Locates the configuration with the given name, if any.
      */
     @Nullable
     ConfigurationMetaData getConfiguration(String name);
-
-    /**
-     * Converts the given Ivy artifact to the corresponding artifact meta-data. This method is here to allow us to migrate away from the Ivy types and
-     * will be removed.
-     */
-    ComponentArtifactMetaData artifact(Artifact artifact);
-
-    /**
-     * Returns the known artifacts for this component. There may be additional component available that are not included in this set.
-     */
-    Set<? extends ComponentArtifactMetaData> getArtifacts();
 
     boolean isGenerated();
 

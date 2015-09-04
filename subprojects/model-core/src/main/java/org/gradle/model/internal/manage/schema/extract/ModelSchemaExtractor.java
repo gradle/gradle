@@ -23,34 +23,46 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.Factory;
+import org.gradle.internal.SystemProperties;
+import org.gradle.model.Managed;
+import org.gradle.model.ModelMap;
+import org.gradle.model.ModelSet;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 
-import static org.gradle.internal.SystemProperties.getLineSeparator;
-
 @ThreadSafe
-class ModelSchemaExtractor {
+public class ModelSchemaExtractor {
 
-    private final Factory<String> supportedTypeDescriptions = new Factory<String>() {
-        public String create() {
-            return getSupportedTypesDescription();
-        }
-    };
-    private final List<ModelSchemaExtractionStrategy> strategies = ImmutableList.of(
-            new PrimitiveStrategy(),
-            new EnumStrategy(),
-            new JdkValueTypeStrategy(),
-            new ManagedSetStrategy(supportedTypeDescriptions),
-            new StructStrategy(this, supportedTypeDescriptions),
-            new UnmanagedStrategy()
-    );
+    private final List<? extends ModelSchemaExtractionStrategy> strategies;
 
-    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
+    public ModelSchemaExtractor() {
+        this(Collections.<ModelSchemaExtractionStrategy>emptyList(), new ModelSchemaAspectExtractor());
+    }
+
+    public ModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies, ModelSchemaAspectExtractor aspectExtractor) {
+        this.strategies = ImmutableList.<ModelSchemaExtractionStrategy>builder()
+            .addAll(strategies)
+            .add(new PrimitiveStrategy())
+            .add(new EnumStrategy())
+            .add(new JdkValueTypeStrategy())
+            .add(new ModelSetStrategy())
+            .add(new ManagedSetStrategy())
+            .add(new SpecializedMapStrategy())
+            .add(new ModelMapStrategy())
+            .add(new ScalarCollectionStrategy())
+            .add(new ManagedImplStructStrategy(aspectExtractor))
+            .add(new UnmanagedImplStructStrategy(aspectExtractor))
+            .build();
+    }
+
+    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaStore store, ModelSchemaCache cache) {
         ModelSchemaExtractionContext<T> context = ModelSchemaExtractionContext.root(type);
         List<ModelSchemaExtractionContext<?>> validations = Lists.newLinkedList();
         Queue<ModelSchemaExtractionContext<?>> unsatisfiedDependencies = Lists.newLinkedList();
@@ -58,7 +70,7 @@ class ModelSchemaExtractor {
         validations.add(extractionContext);
 
         while (extractionContext != null) {
-            ModelSchemaExtractionResult<?> nextSchema = extractSchema(extractionContext, cache);
+            ModelSchemaExtractionResult<?> nextSchema = extractSchema(extractionContext, store, cache);
             Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = nextSchema.getDependencies();
             Iterables.addAll(validations, dependencies);
             pushUnsatisfiedDependencies(dependencies, unsatisfiedDependencies, cache);
@@ -80,7 +92,7 @@ class ModelSchemaExtractor {
         }));
     }
 
-    private <T> ModelSchemaExtractionResult<T> extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
+    private <T> ModelSchemaExtractionResult<T> extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
         final ModelType<T> type = extractionContext.getType();
         ModelSchema<T> cached = cache.get(type);
         if (cached != null) {
@@ -88,7 +100,7 @@ class ModelSchemaExtractor {
         }
 
         for (ModelSchemaExtractionStrategy strategy : strategies) {
-            ModelSchemaExtractionResult<T> result = strategy.extract(extractionContext, cache);
+            ModelSchemaExtractionResult<T> result = strategy.extract(extractionContext, store, cache);
             if (result != null) {
                 cache.set(type, result.getSchema());
                 return result;
@@ -99,20 +111,26 @@ class ModelSchemaExtractor {
         throw new IllegalStateException("No extraction strategy found for type: " + type);
     }
 
-    private String getSupportedTypesDescription() {
-        return Joiner.on(getLineSeparator()).join(Iterables.transform(getSupportedTypes(), new Function<String, String>() {
+    public static String getManageablePropertyTypesDescription() {
+        return Joiner.on(SystemProperties.getInstance().getLineSeparator()).join(Iterables.transform(getSupportedTypes(), new Function<String, String>() {
             public String apply(String input) {
                 return " - " + input;
             }
         }));
     }
 
-    private Iterable<String> getSupportedTypes() {
-        return Iterables.concat(Iterables.transform(strategies, new Function<ModelSchemaExtractionStrategy, Iterable<String>>() {
-            public Iterable<String> apply(ModelSchemaExtractionStrategy input) {
-                return input.getSupportedManagedTypes();
-            }
-        }));
+    private static Iterable<String> getSupportedTypes() {
+        return Arrays.asList(
+            "interfaces and abstract classes annotated with " + Managed.class.getName(),
+            "JDK value types: " + Joiner.on(", ").join(Iterables.transform(ScalarTypes.TYPES, new Function<ModelType<?>, Object>() {
+                public Object apply(ModelType<?> input) {
+                    return input.getRawClass().getSimpleName();
+                }
+            })),
+            "Enum types",
+            ModelMap.class.getName() + " of a managed type",
+            ModelSet.class.getName() + " of a managed type"
+        );
     }
 
 }

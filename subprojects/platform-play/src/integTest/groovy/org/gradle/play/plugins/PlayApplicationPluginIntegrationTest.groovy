@@ -15,6 +15,7 @@
  */
 
 package org.gradle.play.plugins
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -27,42 +28,25 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
-        settingsFile << """
-        rootProject.name = 'play-app'
-"""
+        settingsFile << """ rootProject.name = 'play-app' """
         buildFile << """
         plugins {
             id 'play-application'
         }
 
-        repositories{
+        repositories {
             jcenter()
-            maven{
-                name = "typesafe-maven-release"
-                url = "https://repo.typesafe.com/typesafe/maven-releases"
+            maven {
+                name "typesafe-maven-release"
+                url "https://repo.typesafe.com/typesafe/maven-releases"
+            }
+            ivy {
+                name "typesafe-ivy-release"
+                url "https://repo.typesafe.com/typesafe/ivy-releases"
+                layout "ivy"
             }
         }
 """
-    }
-
-    def "can register PlayApplicationSpec component"() {
-        when:
-        succeeds "components"
-
-        then:
-        output.contains(TextUtil.toPlatformLineSeparators("""
-Play Application 'play'
------------------------
-
-Source sets
-    Scala source 'play:appSources'
-        app
-
-Binaries
-    Play Application Jar 'playBinary'
-        build using task: :playBinary
-        platform: play-2.3.7
-        tool chain: Default Play Toolchain"""))
     }
 
     def "cannot register multiple PlayApplicationSpec components"() {
@@ -87,12 +71,77 @@ Binaries
         succeeds("assemble")
 
         then:
-        executedAndNotSkipped(":createPlayBinaryJar", ":createPlayBinaryAssetsJar", ":playBinary", ":assemble")
-        skipped(":routesCompilePlayBinary" , ":twirlCompilePlayBinary", ":scalaCompilePlayBinary")
+        executedAndNotSkipped(
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
+                ":playBinary",
+                ":assemble")
+        skipped(":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates",
+                ":compilePlayBinaryScala")
 
         and:
-        jar("build/playBinary/lib/play.jar").hasDescendants()
-        jar("build/playBinary/lib/play-assets.jar").hasDescendants()
+        jar("build/playBinary/lib/play-app.jar").hasDescendants()
+        jar("build/playBinary/lib/play-app-assets.jar").hasDescendants()
+    }
+
+    def "can declare additional scala and java sourceSets"() {
+        given:
+        buildFile << """
+        model {
+            components {
+                play {
+                    sources {
+                        extraJava(JavaSourceSet) {
+                            source.srcDir "src/extraJava"
+                        }
+                        extraScala(ScalaLanguageSourceSet) {
+                            source.srcDir "src/extraScala"
+                        }
+                    }
+                }
+            }
+        }
+"""
+        and:
+        file("src/extraJava/org/acme/model/JavaPerson.java") << """
+            package org.acme.model;
+            class JavaPerson {}
+"""
+        file("src/extraScala/org/acme/model/ScalaPerson.scala") << """
+            package org.acme.model;
+            class ScalaPerson {}
+"""
+
+        when:
+        succeeds("components")
+
+        then:
+        output.contains(TextUtil.toPlatformLineSeparators("""
+    Java source 'play:extraJava'
+        srcDir: src${File.separator}extraJava
+"""))
+        output.contains(TextUtil.toPlatformLineSeparators("""
+    Scala source 'play:extraScala'
+        srcDir: src${File.separator}extraScala
+"""))
+
+        when:
+        succeeds("assemble")
+
+        then:
+        executedAndNotSkipped(
+                ":compilePlayBinaryScala",
+                ":createPlayBinaryJar",
+                ":createPlayBinaryAssetsJar",
+                ":playBinary",
+                ":assemble")
+        skipped(":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates")
+
+        and:
+        jar("build/playBinary/lib/play-app.jar").hasDescendants("org/acme/model/JavaPerson.class", "org/acme/model/ScalaPerson.class")
+        jar("build/playBinary/lib/play-app-assets.jar").hasDescendants()
     }
 
     JarTestFixture jar(String fileName) {

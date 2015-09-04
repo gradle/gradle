@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Task;
 
@@ -27,4 +28,7 @@ public interface BinaryTasksCollection extends DomainObjectSet<Task> {
      * The 'lifecycle' task, that can be used to construct this binary.
      */
     Task getBuild();
+
+    <T extends Task> void create(String name, Class<T> type, Action<? super T> config);
+
 }

@@ -16,66 +16,32 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
+import com.google.common.collect.Iterables;
+import org.gradle.api.Transformer;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec;
-import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineTool;
-import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocation;
-import org.gradle.nativeplatform.toolchain.internal.MutableCommandLineToolInvocation;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
+class Assembler extends VisualCppNativeCompiler<AssembleSpec> {
 
-class Assembler implements Compiler<AssembleSpec> {
-
-    private final CommandLineTool commandLineTool;
-    private final CommandLineToolInvocation baseInvocation;
-
-    public Assembler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation) {
-        this.commandLineTool = commandLineTool;
-        this.baseInvocation = invocation;
+    Assembler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<AssembleSpec, AssembleSpec> specTransformer, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineTool, invocationContext, new AssemblerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile);
     }
 
-    public WorkResult execute(AssembleSpec spec) {
-        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
-        invocation.setWorkDirectory(spec.getObjectFileDir());
-        for (File sourceFile : spec.getSourceFiles()) {
-            invocation.setArgs(new AssemblerArgsTransformer(sourceFile).transform(spec));
-            commandLineTool.execute(invocation);
+    @Override
+    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
+        if (pchArgs != null && !pchArgs.isEmpty()) {
+            throw new UnsupportedOperationException("Precompiled header arguments cannot be specified for a Assembler compiler.");
         }
-        return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
+        // ml/ml64 have position sensitive arguments,
+        // e.g., /Fo must appear before /c and /c must appear before the source file.
+
+        return Iterables.concat(outputArgs, genericArgs, sourceArgs);
     }
 
-
-    private static class AssemblerArgsTransformer implements ArgsTransformer<AssembleSpec> {
-        private final File inputFile;
-
-        public AssemblerArgsTransformer(File inputFile) {
-            this.inputFile = inputFile;
-        }
-
-        public List<String> transform(AssembleSpec spec) {
-            List<String> args = new ArrayList<String>();
-            args.addAll(escapeUserArgs(spec.getAllArgs()));
-            args.add("/nologo");
-            args.add("/c");
-            File outputFile = new CompilerOutputFileNamingScheme()
-                    .withOutputBaseFolder(spec.getObjectFileDir())
-                    .withObjectFileNameSuffix(".obj")
-                    .map(inputFile);
-
-            if (!outputFile.getParentFile().exists()) {
-                outputFile.getParentFile().mkdirs();
-            }
-            args.add("/Fo" + outputFile);
-            args.add(inputFile.getAbsolutePath());
-            return args;
-        }
+    private static class AssemblerArgsTransformer extends VisualCppCompilerArgsTransformer<AssembleSpec> {
     }
 }

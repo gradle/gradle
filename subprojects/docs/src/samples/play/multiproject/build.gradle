@@ -3,17 +3,24 @@ plugins {
 }
 
 allprojects {
-    repositories{
+    repositories {
         jcenter()
-        maven{
-            name = "typesafe-maven-release"
-            url = "https://repo.typesafe.com/typesafe/maven-releases"
+        maven {
+            name "typesafe-maven-release"
+            url "https://repo.typesafe.com/typesafe/maven-releases"
+        }
+        ivy {
+            name "typesafe-ivy-release"
+            url "https://repo.typesafe.com/typesafe/ivy-releases"
+            layout "ivy"
         }
     }
 }
 
+// START SNIPPET play-multiproject-dependencies
 dependencies {
     play project(":admin")
     play project(":user")
     play project(":util")
 }
+// END SNIPPET play-multiproject-dependencies

@@ -17,6 +17,7 @@
 package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -140,7 +141,7 @@ task check << {
         """, expectedEncoding
 
         when:
-        run "echoDefaultEncoding"
+        succeeds "echoDefaultEncoding"
 
         then:
         output.contains "default encoding: $expectedEncoding"
@@ -171,7 +172,6 @@ task check << {
             }
         """, executer.getDefaultCharacterEncoding()
 
-
         and:
         buildFile.write """
             apply plugin: "java"
@@ -183,7 +183,7 @@ task check << {
         """, expectedEncoding
 
         when:
-        run "echoDefaultEncoding"
+        succeeds "echoDefaultEncoding"
 
         then:
         output.contains "default encoding: $expectedEncoding"
@@ -195,4 +195,9 @@ task check << {
         null          | Charset.defaultCharset().name()
     }
 
+    @Override
+    protected ExecutionResult succeeds(String... tasks) {
+        executer.useDefaultBuildJvmArgs()
+        return super.succeeds(tasks)
+    }
 }

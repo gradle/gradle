@@ -41,7 +41,7 @@ project(':web') {
         providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
         compile 'org.apache.commons:commons-lang3:3.0'
         compile project(':java')
-        testCompile "junit:junit:4.11"
+        testCompile "junit:junit:4.12"
     }
 }
 project(':java') {
@@ -52,7 +52,7 @@ project(':java') {
     dependencies {
         compile 'com.google.guava:guava:18.0'
         compile 'javax.servlet:javax.servlet-api:3.1.0'
-        testCompile "junit:junit:4.11"
+        testCompile "junit:junit:4.12"
     }
 }
 """
@@ -72,17 +72,17 @@ project(':java') {
 
         // Classpath
         def javaClasspath = classpath('java')
-        javaClasspath.assertHasLibs('guava-18.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.11.jar', 'hamcrest-core-1.3.jar')
+        javaClasspath.assertHasLibs('guava-18.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.12.jar', 'hamcrest-core-1.3.jar')
         javaClasspath.lib('guava-18.0.jar').assertIsDeployedTo('../')
         javaClasspath.lib('javax.servlet-api-3.1.0.jar').assertIsDeployedTo('../') // TODO - this is not right
-        javaClasspath.lib('junit-4.11.jar').assertIsExcludedFromDeployment()
+        javaClasspath.lib('junit-4.12.jar').assertIsExcludedFromDeployment()
         javaClasspath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
 
         def webClasspath = classpath('web')
-        webClasspath.assertHasLibs('commons-lang3-3.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.11.jar', 'hamcrest-core-1.3.jar')
+        webClasspath.assertHasLibs('commons-lang3-3.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.12.jar', "guava-18.0.jar", 'hamcrest-core-1.3.jar')
         webClasspath.lib('commons-lang3-3.0.jar').assertIsExcludedFromDeployment()
         webClasspath.lib('javax.servlet-api-3.1.0.jar').assertIsExcludedFromDeployment()
-        webClasspath.lib('junit-4.11.jar').assertIsExcludedFromDeployment()
+        webClasspath.lib('junit-4.12.jar').assertIsExcludedFromDeployment()
         webClasspath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
 
         // Facets
@@ -106,7 +106,7 @@ project(':java') {
         webComponent.resources.size() == 2
         webComponent.sourceDirectory('src/main/java').assertDeployedAt('/WEB-INF/classes')
         webComponent.sourceDirectory('src/main/webapp').assertDeployedAt('/')
-        webComponent.modules.size() == 2
+        webComponent.modules.size() == 3
         webComponent.lib('commons-lang3-3.0.jar').assertDeployedAt('/WEB-INF/lib')
         webComponent.project('java').assertDeployedAt('/WEB-INF/lib')
     }

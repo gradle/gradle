@@ -1,0 +1,5 @@
+gradle.settingsEvaluated {
+    rootProject {
+        it.ext.settingsEvaluatedTimestamp = System.currentTimeMillis()
+    }
+}

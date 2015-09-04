@@ -17,14 +17,19 @@
 package org.gradle.language.scala.internal;
 
 import org.gradle.language.scala.ScalaPlatform;
+import org.gradle.util.VersionNumber;
 
 public class DefaultScalaPlatform implements ScalaPlatform {
     private final String scalaCompatibilityVersion;
     private final String scalaVersion;
 
     public DefaultScalaPlatform(String scalaVersion) {
-        this.scalaVersion = scalaVersion;
-        this.scalaCompatibilityVersion = scalaVersion.substring(0, scalaVersion.lastIndexOf('.'));
+        this(VersionNumber.parse(scalaVersion));
+    }
+
+    public DefaultScalaPlatform(VersionNumber versionNumber) {
+        this.scalaVersion = versionNumber.getMajor() + "." + versionNumber.getMinor() + "." + versionNumber.getMicro();
+        this.scalaCompatibilityVersion = versionNumber.getMajor() + "." + versionNumber.getMinor();
     }
 
     public String getScalaVersion() {

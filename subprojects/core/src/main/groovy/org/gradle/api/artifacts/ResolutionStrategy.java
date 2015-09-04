@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Defines the strategies around dependency resolution.
- * For example, forcing certain dependency versions, conflict resolutions or snapshot timeouts.
+ * For example, forcing certain dependency versions, substitutions, conflict resolutions or snapshot timeouts.
  * <p>
  * Examples:
  * <pre autoTested=''>
@@ -42,16 +42,10 @@ import java.util.concurrent.TimeUnit;
  *     //  *replace existing forced modules with new ones:
  *     forcedModules = ['asm:asm-all:3.3.1']
  *
- *     // add a dependency resolve rule
- *     eachDependency { DependencyResolveDetails details ->
- *       //specifying a fixed version for all libraries with 'org.gradle' group
- *       if (details.requested.group == 'org.gradle') {
- *           details.useVersion'1.4'
- *       }
- *       //changing 'groovy-all' into 'groovy':
- *       if (details.requested.name == 'groovy-all') {
- *          details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version
- *       }
+ *     // add dependency substitution rules
+ *     dependencySubstitution {
+ *       substitute module('org.gradle:api') with project(':api')
+ *       substitute project(':util') with module('org.gradle:util:3.0')
  *     }
  *
  *     // cache dynamic versions for 10 minutes
@@ -140,15 +134,13 @@ public interface ResolutionStrategy {
     Set<ModuleVersionSelector> getForcedModules();
 
     /**
-     * Adds a dependency resolve rule that is triggered for every dependency (including transitive)
+     * Adds a dependency substitution rule that is triggered for every dependency (including transitive)
      * when the configuration is being resolved. The action receives an instance of {@link DependencyResolveDetails}
      * that can be used to find out what dependency is being resolved and to influence the resolution process.
      * Example:
      * <pre autoTested=''>
-     * apply plugin: 'java' //so that there are some configurations
-     *
-     * configurations.all {
-     *   resolutionStrategy {
+     * configurations {
+     *   compile.resolutionStrategy {
      *     eachDependency { DependencyResolveDetails details ->
      *       //specifying a fixed version for all libraries with 'org.gradle' group
      *       if (details.requested.group == 'org.gradle') {
@@ -238,4 +230,38 @@ public interface ResolutionStrategy {
      */
     @Incubating
     ResolutionStrategy componentSelection(Action<? super ComponentSelectionRules> action);
+
+    /**
+     * Returns the set of dependency substitution rules that are set for this configuration.
+     *
+     * @since 2.5
+     */
+    @Incubating
+    DependencySubstitutions getDependencySubstitution();
+
+    /**
+     * Configures the set of dependency substitution rules for this configuration.  The action receives an instance of {@link DependencySubstitutions} which
+     * can then be configured with substitution rules.
+     * <p/>
+     * Examples:
+     * <pre autoTested=''>
+     * // add dependency substitution rules
+     * configurations.all {
+     *   resolutionStrategy.dependencySubstitution {
+     *     // Substitute project and module dependencies
+     *     substitute module('org.gradle:api') with project(':api')
+     *     substitute project(':util') with module('org.gradle:util:3.0')
+     *
+     *     // Substitute one module dependency for another
+     *     substitute module('org.gradle:api:2.0') with module('org.gradle:api:2.1')
+     *   }
+     * }
+     * </pre>
+     *
+     * @return this ResolutionStrategy instance
+     * @see DependencySubstitutions
+     * @since 2.5
+     */
+    @Incubating
+    ResolutionStrategy dependencySubstitution(Action<? super DependencySubstitutions> action);
 }

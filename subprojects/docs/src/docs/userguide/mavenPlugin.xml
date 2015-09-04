@@ -77,27 +77,13 @@
             </thead>
             <tr>
                 <td>
-                    <literal>pomDirName</literal>
+                    <literal>mavenPomDir</literal>
                 </td>
                 <td>
-                    <classname>String</classname>
+                    <classname>File</classname>
                 </td>
                 <td>
-                    <literal>poms</literal>
-                </td>
-                <td>
-                    The path of the directory to write the generated POMs, relative to the build directory.
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>pomDir</literal>
-                </td>
-                <td>
-                    <classname>File (read-only)</classname>
-                </td>
-                <td>
-                    <literal><replaceable>buildDir</replaceable>/<replaceable>pomDirName</replaceable></literal>
+                    <literal><replaceable>${project.buildDir}</replaceable>/poms</literal>
                 </td>
                 <td>
                     The directory where the generated POMs are written to.
@@ -236,7 +222,7 @@
                 <tr>
                     <td>repository</td>
                     <td>
-                        <ulink url='http://maven.apache.org/ant-tasks/apidocs/org/apache/maven/artifact/ant/RemoteRepository.html'>
+                        <ulink url='http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/RemoteRepository.html'>
                             org.apache.maven.artifact.ant.RemoteRepository
                         </ulink>
                     </td>
@@ -244,7 +230,7 @@
                 <tr>
                     <td>authentication</td>
                     <td>
-                        <ulink url='http://maven.apache.org/ant-tasks/apidocs/org/apache/maven/artifact/ant/Authentication.html'>
+                        <ulink url='http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/Authentication.html'>
                             org.apache.maven.artifact.ant.Authentication
                         </ulink>
                     </td>
@@ -252,7 +238,7 @@
                 <tr>
                     <td>releases</td>
                     <td>
-                        <ulink url='http://maven.apache.org/ant-tasks/apidocs/org/apache/maven/artifact/ant/RepositoryPolicy.html'>
+                        <ulink url='http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/RepositoryPolicy.html'>
                             org.apache.maven.artifact.ant.RepositoryPolicy
                         </ulink>
                     </td>
@@ -260,7 +246,7 @@
                 <tr>
                     <td>snapshots</td>
                     <td>
-                        <ulink url='http://maven.apache.org/ant-tasks/apidocs/org/apache/maven/artifact/ant/RepositoryPolicy.html'>
+                        <ulink url='http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/RepositoryPolicy.html'>
                             org.apache.maven.artifact.ant.RepositoryPolicy
                         </ulink>
                     </td>
@@ -268,7 +254,7 @@
                 <tr>
                     <td>proxy</td>
                     <td>
-                        <ulink url='http://maven.apache.org/ant-tasks/apidocs/org/apache/maven/artifact/ant/Proxy.html'>
+                        <ulink url='http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/Proxy.html'>
                             org.apache.maven.artifact.ant.Proxy
                         </ulink>
                     </td>
@@ -276,7 +262,7 @@
                 <tr>
                     <td>snapshotRepository</td>
                     <td>
-                        <ulink url='http://maven.apache.org/ant-tasks/apidocs/org/apache/maven/artifact/ant/RemoteRepository.html'>
+                        <ulink url='http://www.docjar.com/docs/api/org/apache/maven/artifact/ant/RemoteRepository.html'>
                             org.apache.maven.artifact.ant.RemoteRepository
                         </ulink>
                     </td>

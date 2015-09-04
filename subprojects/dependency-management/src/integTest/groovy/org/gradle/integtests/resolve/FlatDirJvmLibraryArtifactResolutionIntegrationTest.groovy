@@ -49,13 +49,17 @@ repositories {
     }
 
     def "resolves artifacts of non-existing component"() {
-        def location1 = file("repo/some-artifact-1.0.jar").toURL().toString()
-        def location2 = file("repo/some-artifact.jar").toURL().toString()
+        def location1 = file("repo/some-artifact-1.0.jar").toURL()
+        def location2 = file("repo/some-artifact.jar").toURL()
 
-        fixture.expectComponentNotFound([location1, location2]).prepare()
+        fixture.expectComponentNotFound().prepare()
 
         expect:
-        succeeds("verify")
+        fails("verify")
+        failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
+Searched in the following locations:
+    ${location1}
+    ${location2}""")
     }
 
     def "resolve missing source and javadoc artifacts"() {
@@ -84,10 +88,14 @@ repositories {
         def location1 = file("repo/some-artifact-1.0.jar").toURL().toString()
         def location2 = file("repo/some-artifact.jar").toURL().toString()
 
-        fixture.expectComponentNotFound([location1, location2]).prepare()
+        fixture.expectComponentNotFound().prepare()
 
         expect:
-        succeeds("verify")
+        fails("verify")
+        failure.assertHasCause("""Could not find some.group:some-artifact:1.0.
+Searched in the following locations:
+    ${location1}
+    ${location2}""")
     }
 
     private publishModule() {

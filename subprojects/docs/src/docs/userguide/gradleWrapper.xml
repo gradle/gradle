@@ -18,24 +18,34 @@
     <para>
         The Gradle Wrapper (henceforth referred to as the “wrapper”) is the preferred way of starting a Gradle build. The wrapper
         is a batch script on Windows, and a shell script for other operating systems. When you start a Gradle build via the wrapper,
-        Gradle will be automatically downloaded and used to run the build. 
+        Gradle will be automatically downloaded and used to run the build.
     </para>
     <para>
         The wrapper is something you <emphasis>should</emphasis> check into version control. By distributing the wrapper with your project,
-        anyone can work with it without needing to install Gradle beforehand. Even better, users of the build are guaranteed to use the 
-        version of Gradle that the build was designed to work with. Of course, this is also great for 
+        anyone can work with it without needing to install Gradle beforehand. Even better, users of the build are guaranteed to use the
+        version of Gradle that the build was designed to work with. Of course, this is also great for
         <ulink url="http://en.wikipedia.org/wiki/Continuous_integration">continuous integration</ulink> servers (i.e. servers that regularly
         build your project) as it requires no configuration on the server.
     </para>
     <para>
-        You install the wrapper into your project by adding and configuring a <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/> 
+        You install the wrapper into your project by running the <literal>wrapper</literal> task. (This task is always available, even if
+        you don't add it to your build). To specify a Gradle version use <literal>--gradle-version</literal> on the command-line.
+        You can also set the URL to download Gradle from directly via <literal>--gradle-distribution-url</literal>. If no version or distribution
+        URL is specified, the wrapper will be configured to use the gradle version the wrapper task is executed with.
+        So if you run the wrapper task with Gradle 2.4 and the wrapper configuration will default to Gradle 2.4.
+    </para>
+    <sample id="wrapperCommandLine" dir="userguide/wrapper/simple" title="Running the wrapper task">
+        <output args="wrapper --gradle-version 2.0"/>
+    </sample>
+    <para>
+        The wrapper can be further customized by adding and configuring a <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/>
         task in your build script, and then executing it.
     </para>
     <sample id="wrapperSimple" dir="userguide/wrapper/simple" title="Wrapper task">
         <sourcefile file="build.gradle"/>
     </sample>
     <para>
-        After such an execution you find the following new or updated files in your project directory 
+        After such an execution you find the following new or updated files in your project directory
         (in case the default configuration of the wrapper task is used).
     </para>
     <sample id="wrapperSimple" dir="userguide/wrapper/simple" title="Wrapper generated files">
@@ -78,6 +88,33 @@
         </para>
         <para>If you build via the wrapper, any existing Gradle distribution installed on the machine is ignored.
         </para>
+    </section>
+    <section id='sec:verification'>
+        <title>Verification of downloaded Gradle distributions</title>
+        <para>The Gradle Wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison.
+            This increases security against targeted attacks by preventing a man-in-the-middle attacker from tampering with the downloaded Gradle distribution.
+        </para>
+        <para>
+            To enable this feature you'll want to first calculate the SHA-256 hash of a known Gradle distribution. You can generate a SHA-256 hash from Linux and
+            OSX or Windows (via <ulink url="https://www.cygwin.com/">Cygwin</ulink>) with the <command>shasum</command> command.
+        </para>
+        <example>
+            <title>Generating a SHA-256 hash</title>
+            <programlisting><![CDATA[
+> shasum -a 256 gradle-2.4-all.zip
+371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b82368bcf10  gradle-2.4-all.zip
+]]></programlisting>
+        </example>
+        <para>
+            Add the returned hash sum to the <literal>gradle-wrapper.properties</literal> using the <literal>distributionSha256Sum</literal> property.
+        </para>
+        <example>
+            <title>Configuring SHA-256 checksum verification</title>
+            <para><filename>gradle-wrapper.properties</filename></para>
+            <programlisting><![CDATA[
+distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b82368bcf10
+]]></programlisting>
+        </example>
     </section>
     <section id='sec:unix_file_permissions'>
         <title>Unix file permissions</title>

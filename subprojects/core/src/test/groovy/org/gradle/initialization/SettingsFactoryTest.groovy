@@ -57,7 +57,7 @@ class SettingsFactoryTest extends Specification {
         GradleInternal gradle = Mock(GradleInternal)
 
         DefaultSettings settings = (DefaultSettings) settingsFactory.createSettings(gradle,
-                settingsDir, scriptSource, expectedGradleProperties, startParameter, new RootClassLoaderScope(getClass().classLoader, new DummyClassLoaderCache()));
+                settingsDir, scriptSource, expectedGradleProperties, startParameter, new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache()));
 
         then:
         gradle.is(settings.gradle)

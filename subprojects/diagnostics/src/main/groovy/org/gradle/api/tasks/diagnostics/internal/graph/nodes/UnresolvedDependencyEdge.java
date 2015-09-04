@@ -32,6 +32,7 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
 
     public UnresolvedDependencyEdge(UnresolvedDependencyResult dependency) {
         this.dependency = dependency;
+        // TODO:Prezi Is this cast safe? Can't this be a LibraryComponentSelector, say?
         ModuleComponentSelector attempted = (ModuleComponentSelector)dependency.getAttempted();
         actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getModule(), attempted.getVersion());
     }

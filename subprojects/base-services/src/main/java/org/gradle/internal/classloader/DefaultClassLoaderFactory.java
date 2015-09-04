@@ -32,6 +32,11 @@ import java.util.Collection;
 import java.util.List;
 
 public class DefaultClassLoaderFactory implements ClassLoaderFactory {
+    @Override
+    public ClassLoader getIsolatedSystemClassLoader() {
+        return getSystemClassLoader().getParent();
+    }
+
     public ClassLoader createIsolatedClassLoader(Iterable<URI> uris) {
         return doCreateIsolatedClassLoader(CollectionUtils.collect(uris, Transformers.toURL()));
     }
@@ -57,20 +62,20 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
 
         if (needJaxpImpl()) {
             try {
-                classpath.add(ClasspathUtil.getClasspathForResource(ClassLoader.getSystemClassLoader(), "META-INF/services/javax.xml.parsers.SAXParserFactory").toURI().toURL());
+                classpath.add(ClasspathUtil.getClasspathForResource(getSystemClassLoader(), "META-INF/services/javax.xml.parsers.SAXParserFactory").toURI().toURL());
             } catch (MalformedURLException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
-        return new URLClassLoader(classpath.toArray(new URL[classpath.size()]), ClassLoader.getSystemClassLoader().getParent());
+        return new URLClassLoader(classpath.toArray(new URL[classpath.size()]), getIsolatedSystemClassLoader());
     }
 
     public FilteringClassLoader createFilteringClassLoader(ClassLoader parent) {
         // See the comment for {@link #createIsolatedClassLoader} above
         FilteringClassLoader classLoader = new FilteringClassLoader(parent);
         if (needJaxpImpl()) {
-            ServiceLocator locator = new ServiceLocator(ClassLoader.getSystemClassLoader());
+            ServiceLocator locator = new ServiceLocator(getSystemClassLoader());
             makeServiceVisible(locator, classLoader, SAXParserFactory.class);
             makeServiceVisible(locator, classLoader, DocumentBuilderFactory.class);
             makeServiceVisible(locator, classLoader, DatatypeFactory.class);
@@ -100,6 +105,11 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         throw new IllegalArgumentException(String.format("Don't know how to create a ClassLoader from spec %s", spec));
     }
 
+    @Override
+    public FilteringClassLoader createSystemFilteringClassLoader() {
+        return createFilteringClassLoader(getSystemClassLoader());
+    }
+
     private void makeServiceVisible(ServiceLocator locator, FilteringClassLoader classLoader, Class<?> serviceType) {
         classLoader.allowClass(locator.getFactory(serviceType).getImplementationClass());
         classLoader.allowResource("META-INF/services/" + serviceType.getName());
@@ -107,5 +117,9 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
 
     private boolean needJaxpImpl() {
         return ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory") != null;
+    }
+
+    private ClassLoader getSystemClassLoader() {
+        return ClassLoader.getSystemClassLoader();
     }
 }

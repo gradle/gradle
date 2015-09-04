@@ -26,12 +26,12 @@ public class OrSpecTest extends AbstractCompositeSpecTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
     public org.gradle.api.specs.CompositeSpec createCompositeSpec(Spec... specs) {
-        return new org.gradle.api.specs.OrSpec(specs);
+        return new OrSpec(specs);
     }
 
     @Test
     public void isSatisfiedWhenNoSpecs() {
-        assertTrue(new org.gradle.api.specs.OrSpec().isSatisfiedBy(new Object()));
+        assertTrue(new OrSpec().isSatisfiedBy(new Object()));
     }
     
     @Test
@@ -41,6 +41,6 @@ public class OrSpecTest extends AbstractCompositeSpecTest {
 
     @Test
     public void isSatisfiedByWithAllFalse() {
-        assertFalse(new AndSpec(createAtomicElements(false, false, false)).isSatisfiedBy(context.mock(Dependency.class)));
+        assertFalse(new OrSpec(createAtomicElements(false, false, false)).isSatisfiedBy(context.mock(Dependency.class)));
     }
 }

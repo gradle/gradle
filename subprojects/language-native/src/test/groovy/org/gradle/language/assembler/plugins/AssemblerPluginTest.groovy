@@ -20,14 +20,21 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
-import org.gradle.language.base.FunctionalSourceSet
+import org.gradle.model.ModelMap
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.*
+import org.gradle.platform.base.ComponentSpec
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class AssemblerPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
+
+    ModelMap<ComponentSpec> realizeComponents() {
+        project.modelRegistry.realize(ModelPath.path("components"), ModelTypes.modelMap(ComponentSpec))
+    }
 
     def "creates asm source set with conventional locations for components"() {
         when:
@@ -40,9 +47,11 @@ class AssemblerPluginTest extends Specification {
             }
         }
 
+
         then:
-        def exe = project.componentSpecs.exe
-        exe.sources instanceof FunctionalSourceSet
+        def components = realizeComponents()
+        def exe = components.exe
+        exe.sources instanceof ModelMap
         exe.sources.asm instanceof AssemblerSourceSet
         exe.sources.asm.source.srcDirs == [project.file("src/exe/asm")] as Set
 
@@ -70,7 +79,7 @@ class AssemblerPluginTest extends Specification {
         }
 
         expect:
-        project.componentSpecs.exe.sources.asm.source.srcDirs*.name == ["d1", "d2"]
+        realizeComponents().exe.sources.asm.source.srcDirs*.name == ["d1", "d2"]
     }
 
     def "creates assemble tasks for each non-empty executable source set "() {
@@ -166,6 +175,7 @@ class AssemblerPluginTest extends Specification {
     def dsl(@DelegatesTo(Project) Closure closure) {
         closure.delegate = project
         closure()
-        project.evaluate()
+        project.tasks.realize()
+        project.bindAllModelRules()
     }
 }

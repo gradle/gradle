@@ -18,10 +18,12 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.internal.typeconversion.*;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.typeconversion.MapKey;
+import org.gradle.internal.typeconversion.MapNotationConverter;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 
-import java.util.Collection;
 import java.util.Map;
 
 public class ProjectDependencyFactory {
@@ -50,8 +52,9 @@ public class ProjectDependencyFactory {
             return factory.create(projectFinder.getProject(path), configuration);
         }
 
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Map with mandatory 'path' and optional 'configuration' key, e.g. [path: ':someProj', configuration: 'someConf']");
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Map with mandatory 'path' and optional 'configuration' key").example("[path: ':someProj', configuration: 'someConf']");
         }
     }
 }

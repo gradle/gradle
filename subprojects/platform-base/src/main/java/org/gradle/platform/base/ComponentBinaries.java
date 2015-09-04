@@ -31,24 +31,20 @@ import java.lang.annotation.Target;
  * Furthermore the plugin registers 'DefaultSampleBinary' as implementation for {@link org.gradle.platform.base.BinarySpec}.
  *
  * <pre autoTested='true'>
- * import org.gradle.model.*
- * import org.gradle.model.collection.*
- *
  * interface SampleComponent extends ComponentSpec {}
  * interface SampleBinary extends BinarySpec {}
  * class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
  *
  * apply plugin: MyCustomBinariesPlugin
  *
- * {@literal @}RuleSource
- * class MyCustomBinariesPlugin {
+ * class MyCustomBinariesPlugin extends RuleSource {
  *     {@literal @}BinaryType
  *     void register(BinaryTypeBuilder<SampleBinary> builder) {
  *         builder.defaultImplementation(DefaultSampleBinary)
  *     }
  *
  *     {@literal @}ComponentBinaries
- *     void createBinariesForSampleLibrary(CollectionBuilder<SampleBinary> binaries, SampleComponent component) {
+ *     void createBinariesForSampleLibrary(ModelMap<SampleBinary> binaries, SampleComponent component) {
  *         binaries.create("${component.name}Binary", SampleBinary)
  *     }
  * }

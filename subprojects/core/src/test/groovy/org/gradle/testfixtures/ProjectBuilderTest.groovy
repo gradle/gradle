@@ -170,8 +170,7 @@ public class CustomPlugin implements Plugin<Project> {
     }
 }
 
-@RuleSource
-public class CustomRuleSource {
+public class CustomRuleSource extends RuleSource {
 
     @Model
     String foo() {

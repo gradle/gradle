@@ -31,9 +31,9 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.listener.ContextClassLoaderProxy;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
+import org.gradle.messaging.dispatch.ContextClassLoaderProxy;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.WorkerProcessContext;
 import org.slf4j.Logger;
@@ -89,7 +89,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         processor = proxy.getSource();
 
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
-        serverConnection.useParameterSerializer(new TestEventSerializer());
+        serverConnection.useParameterSerializer(TestEventSerializer.create());
         this.resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
         serverConnection.addIncoming(RemoteTestClassProcessor.class, this);
         serverConnection.connect();

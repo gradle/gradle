@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifier {
-    private final String displayName;
     private final String group;
     private final String module;
     private final String version;
@@ -28,14 +27,19 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         assert group != null : "group cannot be null";
         assert module != null : "module cannot be null";
         assert version != null : "version cannot be null";
-        displayName = String.format("%s:%s:%s", group, module, version);
         this.group = group;
         this.module = module;
         this.version = version;
     }
 
     public String getDisplayName() {
-        return displayName;
+        StringBuilder builder = new StringBuilder(group.length() + module.length() + version.length() + 2);
+        builder.append(group);
+        builder.append(":");
+        builder.append(module);
+        builder.append(":");
+        builder.append(version);
+        return builder.toString();
     }
 
     public String getGroup() {
@@ -84,7 +88,7 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
 
     @Override
     public String toString() {
-        return displayName;
+        return getDisplayName();
     }
 
     public static ModuleComponentIdentifier newId(String group, String name, String version) {

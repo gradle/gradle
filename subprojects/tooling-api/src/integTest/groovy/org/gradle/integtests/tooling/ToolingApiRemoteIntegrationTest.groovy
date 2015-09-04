@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.tooling.*
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 import org.mortbay.jetty.MimeTypes
 
@@ -41,6 +42,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         toolingApi.requireIsolatedUserHome()
     }
 
+    @LeaksFileHandles
     def "downloads distribution with valid user-agent information"() {
         assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
 

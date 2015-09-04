@@ -23,13 +23,14 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.concurrent.CompositeStoppable
-import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BuildScopeServices
+import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.ProjectScopeServices
 import org.gradle.logging.LoggingServiceRegistry
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TestUtil
 
 class ToolingApiDistributionResolver {
@@ -75,16 +76,18 @@ class ToolingApiDistributionResolver {
     private DependencyResolutionServices createResolutionServices() {
         ServiceRegistry globalRegistry = ServiceRegistryBuilder.builder()
                 .parent(LoggingServiceRegistry.newEmbeddableLogging())
-                .parent(NativeServices.getInstance())
+                .parent(NativeServicesTestFixture.getInstance())
                 .provider(new GlobalScopeServices(false))
                 .build()
         StartParameter startParameter = new StartParameter()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
-        BuildScopeServices topLevelRegistry = new BuildScopeServices(globalRegistry, startParameter)
+        BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(globalRegistry, startParameter)
+        BuildScopeServices topLevelRegistry = new BuildScopeServices(sessionScopeServices)
         ProjectScopeServices projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.createRootProject())
 
         stopLater.add(projectRegistry)
         stopLater.add(topLevelRegistry)
+        stopLater.add(sessionScopeServices)
         stopLater.add(globalRegistry)
 
         return projectRegistry.get(DependencyResolutionServices)

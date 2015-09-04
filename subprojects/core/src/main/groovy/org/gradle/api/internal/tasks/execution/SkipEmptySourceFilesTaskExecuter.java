@@ -15,29 +15,39 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Cast;
 
 /**
  * A {@link TaskExecuter} which skips tasks whose source file collection is empty.
  */
 public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(SkipEmptySourceFilesTaskExecuter.class);
+    private final TaskInputsListener taskInputsListener;
     private final TaskExecuter executer;
 
-    public SkipEmptySourceFilesTaskExecuter(TaskExecuter executer) {
+    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, TaskExecuter executer) {
+        this.taskInputsListener = taskInputsListener;
         this.executer = executer;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        if (task.getInputs().getHasSourceFiles() && task.getInputs().getSourceFiles().isEmpty()) {
+        FileCollection sourceFiles = task.getInputs().getSourceFiles();
+        if (task.getInputs().getHasSourceFiles() && sourceFiles.isEmpty()) {
             LOGGER.info("Skipping {} as it has no source files.", task);
             state.upToDate();
+            taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
             return;
+        } else {
+            taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, task.getInputs().getFiles()));
         }
         executer.execute(task, state, context);
     }

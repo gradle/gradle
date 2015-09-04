@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -108,6 +109,26 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("1.0-milestone-3");
     }
 
+    @Override
+    public boolean isToolingApiTargetJvmSupported(JavaVersion javaVersion) {
+        if (isSameOrNewer("2.7")) {
+            return true;
+        }
+
+        // Gradle versions older than 2.7 did not fully support Java 1.9 as the target JVM
+        if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
+            return false;
+        }
+
+        // Use Java 1.6 or later for Gradle 2.0 and later
+        if (isSameOrNewer("2.0")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_6) >= 0;
+        }
+
+        // Use Java 1.5 or later for earlier Gradle versions
+        return javaVersion.compareTo(JavaVersion.VERSION_1_5) >= 0;
+    }
+
     public boolean isToolingApiNonAsciiOutputSupported() {
         if (OperatingSystem.current().isWindows()) {
             return !isVersion("1.0-milestone-7") && !isVersion("1.0-milestone-8") && !isVersion("1.0-milestone-8a");
@@ -119,8 +140,15 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return isSameOrNewer("2.2-rc-1");
     }
 
+    @Override
+    public boolean isToolingApiEventsInEmbeddedModeSupported() {
+        return isSameOrNewer("2.6-rc-1");
+    }
+
     public VersionNumber getArtifactCacheLayoutVersion() {
-        if (isSameOrNewer("2.2-rc-1")) {
+        if (isSameOrNewer("2.4-rc-1")) {
+            return VersionNumber.parse("2.15");
+        } else if (isSameOrNewer("2.2-rc-1")) {
             return VersionNumber.parse("2.14");
         } else if (isSameOrNewer("2.1-rc-3")) {
             return VersionNumber.parse("2.13");

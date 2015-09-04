@@ -16,14 +16,18 @@
 package org.gradle.groovy.compile
 
 import com.google.common.collect.Ordering
+import org.gradle.api.Action
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.6', '2.4.0-beta-2'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.3', '2.4.4'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
@@ -50,6 +54,252 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
         where:
         module << ["groovy-all", "groovy"]
+    }
+
+    def "compileWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
+        when:
+        writeAnnotationProcessingBuild(
+            "", // no Java
+            "$annotationText class Groovy {}"
+        )
+        setupAnnotationProcessor()
+        enableAnnotationProcessingOfJavaStubs()
+
+        then:
+        succeeds("compileGroovy")
+        !errorOutput
+        file('build/classes/main/Groovy.class').exists()
+        file('build/classes/main/Groovy$$Generated.java').exists()
+        file('build/classes/main/Groovy$$Generated.class').exists()
+    }
+
+    def "compileBadCodeWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
+        when:
+        writeAnnotationProcessingBuild(
+            "", // no Java
+            "$annotationText class Groovy { def m() { $nonCompilableImperativeGroovy } }"
+        )
+        setupAnnotationProcessor()
+        enableAnnotationProcessingOfJavaStubs()
+
+        then:
+        fails("compileGroovy")
+        compileErrorOutput.contains 'unable to resolve class'
+        failure.assertHasCause(compilationFailureMessage)
+
+        file('build/classes/stub/Groovy.java').exists()
+        file('build/classes/main/Groovy.class').exists()
+        file('build/classes/main/Groovy$$Generated.java').exists()
+        file('build/classes/main/Groovy$$Generated.class').exists()
+    }
+
+    def "compileBadCodeWithoutAnnotationProcessor"() {
+        when:
+        writeAnnotationProcessingBuild(
+            "", // no Java
+            "$annotationText class Groovy { def m() { $nonCompilableImperativeGroovy } }"
+        )
+        enableAnnotationProcessingOfJavaStubs()
+
+        then:
+        fails("compileGroovy")
+        compileErrorOutput.contains 'unable to resolve class'
+        failure.assertHasCause(compilationFailureMessage)
+
+        // No Groovy stubs will be created if there are no java files
+        // and an annotation processor is not on the classpath
+        !file('build/classes/stub/Groovy.java').exists()
+        !file('build/classes/main/Groovy.class').exists()
+        !file('build/classes/main/Groovy$$Generated.java').exists()
+        !file('build/classes/main/Groovy$$Generated.class').exists()
+    }
+
+    def "compileBadCodeWithAnnotationProcessorDisabled"() {
+        when:
+        writeAnnotationProcessingBuild(
+            "", // no Java
+            "$annotationText class Groovy { void m() { $nonCompilableImperativeGroovy } }")
+        setupAnnotationProcessor()
+        enableAnnotationProcessingOfJavaStubs()
+
+        buildFile << """
+            compileGroovy {
+                options.compilerArgs << '-proc:none'
+            }
+        """
+
+        then:
+        fails("compileGroovy")
+        compileErrorOutput.contains 'unable to resolve class'
+        failure.assertHasCause(compilationFailureMessage)
+
+        // Because annotation processing is disabled
+        // No Groovy stubs will be created
+        !file('build/classes/stub/Groovy.java').exists()
+        !file('build/classes/main/Groovy.class').exists()
+        !file('build/classes/main/Groovy$$Generated.java').exists()
+        !file('build/classes/main/Groovy$$Generated.class').exists()
+    }
+
+    def "jointCompileBadCodeWithoutAnnotationProcessor"() {
+        when:
+        writeAnnotationProcessingBuild(
+            "public class Java {}",
+            "class Groovy { def m() { $nonCompilableImperativeGroovy } }"
+        )
+        enableAnnotationProcessingOfJavaStubs()
+
+        then:
+        fails("compileGroovy")
+        compileErrorOutput.contains 'unable to resolve class'
+        failure.assertHasCause(compilationFailureMessage)
+
+        // If there is no annotation processor on the classpath,
+        // the Groovy stub class won't be compiled, because it is not
+        // referenced by any java code in the joint compile
+        file('build/classes/stub/Groovy.java').exists()
+        !file('build/classes/main/Groovy.class').exists()
+        file('build/classes/main/Java.class').exists()
+    }
+
+    def "jointCompileWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
+        when:
+        writeAnnotationProcessingBuild(
+            "$annotationText public class Java {}",
+            "$annotationText class Groovy {}"
+        )
+        setupAnnotationProcessor()
+        enableAnnotationProcessingOfJavaStubs()
+
+        then:
+        succeeds("compileGroovy")
+        !errorOutput
+        file('build/classes/main/Groovy.class').exists()
+        file('build/classes/main/Java.class').exists()
+        file('build/classes/main/Groovy$$Generated.java').exists()
+        file('build/classes/main/Java$$Generated.java').exists()
+        file('build/classes/main/Groovy$$Generated.class').exists()
+        file('build/classes/main/Java$$Generated.class').exists()
+    }
+
+    def "jointCompileWithJavaAnnotationProcessorOnly"() {
+        when:
+        writeAnnotationProcessingBuild(
+            "$annotationText public class Java {}",
+            "$annotationText class Groovy {}"
+        )
+        setupAnnotationProcessor()
+
+        then:
+        succeeds("compileGroovy")
+        !errorOutput
+        file('build/classes/main/Java.class').exists()
+        file('build/classes/main/Groovy.class').exists()
+        !file('build/classes/main/Groovy$$Generated.java').exists()
+        file('build/classes/main/Java$$Generated.java').exists()
+        !file('build/classes/main/Groovy$$Generated.class').exists()
+        file('build/classes/main/Java$$Generated.class').exists()
+    }
+
+    def "jointCompileBadCodeWithAnnotationProcessor"() {
+        if (versionLowerThan("1.7")) {
+            return
+        }
+
+        when:
+        writeAnnotationProcessingBuild(
+            "$annotationText public class Java {}",
+            "$annotationText class Groovy { void m() { $nonCompilableImperativeGroovy } }"
+        )
+        setupAnnotationProcessor()
+        enableAnnotationProcessingOfJavaStubs()
+
+        then:
+        fails("compileGroovy")
+        compileErrorOutput.contains 'unable to resolve class'
+        failure.assertHasCause(compilationFailureMessage)
+
+        // Because there is an annotation processor on the classpath,
+        // the Java stub of Groovy.groovy will be compiled even if
+        // it's not referenced by any other java code, even if the
+        // Groovy compiler fails to compile the same class.
+        file('build/classes/stub/Groovy.java').exists()
+        file('build/classes/main/Groovy.class').exists()
+        file('build/classes/main/Java.class').exists()
+        file('build/classes/main/Groovy$$Generated.java').exists()
+        file('build/classes/main/Java$$Generated.java').exists()
+        file('build/classes/main/Groovy$$Generated.class').exists()
+        file('build/classes/main/Java$$Generated.class').exists()
+    }
+
+    def "jointCompileWithAnnotationProcessorDisabled"() {
+        when:
+        writeAnnotationProcessingBuild(
+            "$annotationText public class Java {}",
+            "$annotationText class Groovy { }"
+        )
+        setupAnnotationProcessor()
+        enableAnnotationProcessingOfJavaStubs()
+
+        buildFile << """
+            compileGroovy {
+                options.compilerArgs << '-proc:none'
+            }
+        """
+
+        then:
+        succeeds("compileGroovy")
+        !errorOutput
+        file('build/classes/main/Groovy.class').exists()
+        file('build/classes/main/Java.class').exists()
+        !file('build/classes/main/Groovy$$Generated.java').exists()
+        !file('build/classes/main/Java$$Generated.java').exists()
+        !file('build/classes/main/Groovy$$Generated.class').exists()
+        !file('build/classes/main/Java$$Generated.class').exists()
+    }
+
+    def "jointCompileBadCodeWithAnnotationProcessorDisabled"() {
+        when:
+        writeAnnotationProcessingBuild(
+            "$annotationText public class Java {}",
+            "$annotationText class Groovy { void m() { $nonCompilableImperativeGroovy } }"
+        )
+        setupAnnotationProcessor()
+        enableAnnotationProcessingOfJavaStubs()
+
+        buildFile << """
+            compileGroovy {
+                options.compilerArgs << '-proc:none'
+            }
+        """
+
+        then:
+        fails("compileGroovy")
+        compileErrorOutput.contains 'unable to resolve class'
+        failure.assertHasCause(compilationFailureMessage)
+
+        // Because annotation processing is disabled
+        // the Groovy class won't be compiled, because it is not
+        // referenced by any java code in the joint compile
+        file('build/classes/stub/Groovy.java').exists()
+        !file('build/classes/main/Groovy.class').exists()
+        file('build/classes/main/Java.class').exists()
+        !file('build/classes/main/Groovy$$Generated.java').exists()
+        !file('build/classes/main/Java$$Generated.java').exists()
+        !file('build/classes/main/Groovy$$Generated.class').exists()
+        !file('build/classes/main/Java$$Generated.class').exists()
     }
 
     def "groovyToolClassesAreNotVisible"() {
@@ -142,6 +392,30 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         failure.assertHasCause("Could not execute Groovy compiler configuration script: ${file('groovycompilerconfig.groovy')}")
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "compileJavaFx8Code"() {
+        expect:
+        succeeds("compileGroovy")
+    }
+
+    def "cant compile against gradle base services"() {
+        def gradleBaseServicesClass = Action
+        buildScript """
+            apply plugin: 'groovy'
+            repositories { mavenCentral() }
+        """
+
+        when:
+        file("src/main/groovy/Groovy.groovy") << """
+            import ${gradleBaseServicesClass.name}
+            class Groovy {}
+        """
+
+        then:
+        fails("compileGroovy")
+        compileErrorOutput.contains("unable to resolve class ${gradleBaseServicesClass.name}")
+    }
+
     protected ExecutionResult run(String... tasks) {
         configureGroovy()
         super.run(tasks)
@@ -191,5 +465,138 @@ ${compilerConfiguration()}
         def otherParts = other.split("\\.") as List
         def ordering = Ordering.<Integer> natural().lexicographical()
         ordering.compare(versionParts, otherParts)
+    }
+
+    String getAnnotationText() {
+        "@com.test.SimpleAnnotation"
+    }
+
+    String getNonCompilableImperativeGroovy() {
+        "Bad code = new thatDoesntAffectStubGeneration()"
+    }
+
+    def writeAnnotationProcessorProject() {
+        file("processor").create {
+            file("build.gradle") << "apply plugin: 'java'"
+            "src/main" {
+                file("resources/META-INF/services/javax.annotation.processing.Processor") << "com.test.SimpleAnnotationProcessor"
+                "java/com/test/" {
+                    file("SimpleAnnotation.java") << """
+                        package com.test;
+
+                        import java.lang.annotation.ElementType;
+                        import java.lang.annotation.Retention;
+                        import java.lang.annotation.RetentionPolicy;
+                        import java.lang.annotation.Target;
+
+                        @Retention(RetentionPolicy.SOURCE)
+                        @Target(ElementType.TYPE)
+                        public @interface SimpleAnnotation {}
+                    """
+
+                    file("SimpleAnnotationProcessor.java") << """
+                        package com.test;
+
+                        import java.io.BufferedWriter;
+                        import java.io.IOException;
+                        import java.io.Writer;
+                        import java.util.Set;
+
+                        import javax.annotation.processing.AbstractProcessor;
+                        import javax.annotation.processing.RoundEnvironment;
+                        import javax.annotation.processing.SupportedAnnotationTypes;
+                        import javax.lang.model.element.Element;
+                        import javax.lang.model.element.TypeElement;
+                        import javax.lang.model.SourceVersion;
+                        import javax.tools.JavaFileObject;
+
+                        @SupportedAnnotationTypes("com.test.SimpleAnnotation")
+                        public class SimpleAnnotationProcessor extends AbstractProcessor {
+                            @Override
+                            public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
+                                if (isClasspathContaminated()) {
+                                    throw new RuntimeException("Annotation Processor Classpath is contaminated by Gradle ClassLoader");
+                                }
+
+                                for (final Element classElement : roundEnv.getElementsAnnotatedWith(SimpleAnnotation.class)) {
+                                    final String className = String.format("%s\$\$Generated", classElement.getSimpleName().toString());
+
+                                    Writer writer = null;
+                                    try {
+                                        final JavaFileObject file = processingEnv.getFiler().createSourceFile(className);
+
+                                        writer = new BufferedWriter(file.openWriter());
+                                        writer.append(String.format("public class %s {\\n", className));
+                                        writer.append("}");
+                                    } catch (final IOException e) {
+                                        throw new RuntimeException(e);
+                                    } finally {
+                                        if (writer != null) {
+                                            try {
+                                                writer.close();
+                                            } catch (final IOException e) {
+                                                throw new RuntimeException(e);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                return true;
+                            }
+
+                            @Override
+                            public SourceVersion getSupportedSourceVersion() {
+                                return SourceVersion.latestSupported();
+                            }
+
+                            private boolean isClasspathContaminated() {
+                                try {
+                                    Class.forName("$Action.name");
+                                    return true;
+                                } catch (final ClassNotFoundException e) {
+                                    return false;
+                                }
+                            }
+                        }
+                    """
+                }
+            }
+        }
+    }
+
+    def writeAnnotationProcessingBuild(String java, String groovy) {
+        buildFile << """
+            apply plugin: "groovy"
+            repositories { mavenCentral() }
+            compileGroovy {
+                groovyOptions.with {
+                    stubDir = file("\$buildDir/classes/stub")
+                    keepStubs = true
+                }
+            }
+        """
+
+        if (java) {
+            file("src/main/groovy/Java.java") << java
+        }
+        if (groovy) {
+            file("src/main/groovy/Groovy.groovy") << groovy
+        }
+    }
+
+    private void setupAnnotationProcessor() {
+        settingsFile << "include 'processor'"
+        writeAnnotationProcessorProject()
+        buildFile << """
+                dependencies {
+                    compile project(":processor")
+                }
+            """
+    }
+
+    private TestFile enableAnnotationProcessingOfJavaStubs() {
+        buildFile << """
+                compileGroovy.groovyOptions.javaAnnotationProcessing = true
+            """
     }
 }

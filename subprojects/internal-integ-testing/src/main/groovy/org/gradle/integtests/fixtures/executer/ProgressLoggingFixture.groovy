@@ -67,7 +67,7 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
     }
 
     boolean downloadProgressLogged(String url) {
-        return progressLogged("Download", url)
+        return progressLogged("Download $url")
     }
 
     boolean uploadProgressLogged(URI url) {
@@ -75,17 +75,17 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
     }
 
     boolean uploadProgressLogged(String url) {
-        return progressLogged("Upload", url)
+        return progressLogged("Upload $url")
     }
 
-    private boolean progressLogged(String operation, String url) {
+    boolean progressLogged(String operation) {
         def lines = progressContent
-        def startIndex = lines.indexOf("[START " + operation + " " + url + "]")
+        def startIndex = lines.indexOf("[START " + operation + "]")
         if (startIndex == -1) {
             return false
         }
         lines = lines[startIndex..<lines.size()]
-        lines = lines[0..lines.indexOf("[END " + operation + " " + url + "]")]
+        lines = lines[0..lines.indexOf("[END " + operation + "]")]
         lines.size() >= 2
     }
 }

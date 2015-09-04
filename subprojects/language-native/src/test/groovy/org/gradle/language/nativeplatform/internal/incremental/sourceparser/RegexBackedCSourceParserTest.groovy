@@ -15,6 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser
 
+import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -38,15 +39,15 @@ class RegexBackedCSourceParserTest extends Specification {
     }
 
     def getIncludes() {
-        return parsedSource.includes
+        return parsedSource.includesOnly
     }
 
     def getImports() {
-        return parsedSource.imports
+        return parsedSource.includesAndImports - parsedSource.includesOnly
     }
 
     def getFound() {
-        return includes + imports
+        return parsedSource.includesAndImports.collect { it.value }
     }
     
     def noIncludes() {
@@ -61,6 +62,10 @@ class RegexBackedCSourceParserTest extends Specification {
 
     def useDirective(String directive) {
         sourceFile.text = sourceFile.text.replace("include", directive)
+    }
+
+    Include include(String value, boolean isImport = false) {
+        return DefaultInclude.parse(value, isImport)
     }
 
     def "parses file with no includes"() {
@@ -79,7 +84,7 @@ class RegexBackedCSourceParserTest extends Specification {
 """
 
         then:
-        includes == ['"test.h"']
+        includes == ['"test.h"'].collect { include(it) }
 
         and:
         noImports()
@@ -90,7 +95,7 @@ class RegexBackedCSourceParserTest extends Specification {
         sourceFile << '#include "test.h"'
 
         then:
-        includes == ['"test.h"']
+        includes == ['"test.h"'].collect { include(it) }
 
         and:
         noImports()
@@ -103,7 +108,7 @@ class RegexBackedCSourceParserTest extends Specification {
 """
 
         then:
-        includes == ['<test.h>']
+        includes == ['<test.h>'].collect { include(it) }
         
         and:
         noImports()
@@ -114,7 +119,7 @@ class RegexBackedCSourceParserTest extends Specification {
         sourceFile << '#include <test.h>'
 
         then:
-        includes == ['<test.h>']
+        includes == ['<test.h>'].collect { include(it) }
 
         and:
         noImports()
@@ -127,7 +132,7 @@ class RegexBackedCSourceParserTest extends Specification {
 """
 
         then:
-        includes == ['DEFINED']
+        includes == ['DEFINED'].collect { include(it) }
 
         and:
         noImports()
@@ -143,7 +148,7 @@ class RegexBackedCSourceParserTest extends Specification {
     #include DEFINED
 """
         then:
-        includes == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED']
+        includes == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED'].collect { include(it) }
         
         and:
         noImports()
@@ -156,7 +161,7 @@ class RegexBackedCSourceParserTest extends Specification {
         """
 
         then:
-        imports == ['"test.h"']
+        imports == ['"test.h"'].collect { include(it, true) }
 
         and:
         noIncludes()
@@ -169,7 +174,7 @@ class RegexBackedCSourceParserTest extends Specification {
         """
 
         then:
-        imports == ['<test.h>']
+        imports == ['<test.h>'].collect { include(it, true) }
         
         and:
         noIncludes()
@@ -182,7 +187,7 @@ class RegexBackedCSourceParserTest extends Specification {
         """
 
         then:
-        imports == ['DEFINED']
+        imports == ['DEFINED'].collect { include(it, true) }
 
         and:
         noIncludes()
@@ -198,7 +203,7 @@ class RegexBackedCSourceParserTest extends Specification {
     #import DEFINED
 """
         then:
-        imports == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED']
+        imports == ['"test1"', '"test2"', '<system1>', '<system2>', 'DEFINED'].collect { include(it, true) }
 
         and:
         noIncludes()
@@ -219,8 +224,26 @@ class RegexBackedCSourceParserTest extends Specification {
     #import DEFINED2
 """
         then:
-        includes == ['"test2"', '"test4"', '<system3>', 'DEFINED1']
-        imports == ['"test1"', '"test3"', '<system1>', '<system2>', '<system4>', 'DEFINED2']
+        includes == ['"test2"', '"test4"', '<system3>', 'DEFINED1'].collect { include(it) }
+        imports == ['"test1"', '"test3"', '<system1>', '<system2>', '<system4>', 'DEFINED2'].collect { include(it, true) }
+    }
+
+    def "preserves order of all includes and imports"() {
+        when:
+        sourceFile << """
+    #import "test1"
+    #include "test2"
+    #import "test3"
+    #include "test4"
+    #import <system1>
+    #import <system2>
+    #include <system3>
+    #import <system4>
+    #include DEFINED1
+    #import DEFINED2
+"""
+        then:
+        found == ['test1', 'test2', 'test3', 'test4', 'system1', 'system2', 'system3', 'system4', 'DEFINED1', 'DEFINED2']
     }
 
     @Unroll
@@ -241,8 +264,8 @@ class RegexBackedCSourceParserTest extends Specification {
         useDirective(directive)
 
         then:
-        found == ['"test1"', '"test2"', '"test3"', '"test4"',
-                  '<system1>', '<system2>', '<system3>', '<system4>']
+        found == ['test1', 'test2', 'test3', 'test4',
+                  'system1', 'system2', 'system3', 'system4']
 
         where:
         directive << ["include", "import"]
@@ -264,7 +287,7 @@ class RegexBackedCSourceParserTest extends Specification {
         useDirective(directive)
 
         then:
-        found == ['"test1"', '"test2"', '"test3"', '<system1>', '<system2>', '<system3>']
+        found == ['test1', 'test2', 'test3', 'system1', 'system2', 'system3']
 
         where:
         directive << ["include", "import"]
@@ -285,7 +308,7 @@ class RegexBackedCSourceParserTest extends Specification {
 */
 """
         then:
-        includes == ['"test1"', '"test2"', '"test3"', '<system1>', '<system2>', '<system3>']
+        includes == ['"test1"', '"test2"', '"test3"', '<system1>', '<system2>', '<system3>'].collect { include(it) }
     }
 
     @Unroll
@@ -304,7 +327,7 @@ class RegexBackedCSourceParserTest extends Specification {
         useDirective(directive)
 
         then:
-        found == ['"test1"', '"test2"', '"test3"', '<system1>', '<system2>', 'DEFINED']
+        found == ['test1', 'test2', 'test3', 'system1', 'system2', 'DEFINED']
 
         where:
         directive << ["include", "import"]
@@ -317,8 +340,8 @@ class RegexBackedCSourceParserTest extends Specification {
     #import "$included"
 """
         then:
-        includes == ['"' + included + '"']
-        imports == ['"' + included + '"']
+        includes == ['"' + included + '"'].collect { include(it) }
+        imports == ['"' + included + '"'].collect { include(it, true) }
 
         where:
         included << ["test'file", "testfile'", "'testfile'", "test<>file", "test>file", "<testFile>", "test<file", "test file"]
@@ -331,8 +354,8 @@ class RegexBackedCSourceParserTest extends Specification {
     #import <$included>
 """
         then:
-        includes == ['<' + included + '>']
-        imports == ['<' + included + '>']
+        includes == ['<' + included + '>'].collect { include(it) }
+        imports == ['<' + included + '>'].collect { include(it, true) }
 
         where:
         included << ["test'file", "testfile'", "'testfile'", "test<file", "test\"file", "\"testFile\"", "test file"]
@@ -345,8 +368,8 @@ class RegexBackedCSourceParserTest extends Specification {
     #import $included
 """
         then:
-        includes == [included]
-        imports == [included]
+        includes == [included].collect { include(it) }
+        imports == [included].collect { include(it, true) }
 
         where:
         included << ["DEFINED", "mixedDefined", "DEF_INED", "_DEFINED", "__DEFINED__"]
@@ -441,6 +464,6 @@ st3"
 """
 
         then:
-        includes == ['"test1"', '"test2"', '"test3"']
+        includes == ['"test1"', '"test2"', '"test3"'].collect { include(it) }
     }
 }

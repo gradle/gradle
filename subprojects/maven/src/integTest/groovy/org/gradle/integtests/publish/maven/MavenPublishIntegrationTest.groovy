@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.integtests.publish.maven
-
+import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.M2Installation
-import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.spockframework.util.TextUtil
@@ -59,6 +59,36 @@ uploadArchives {
         then:
         def module = mavenRepo.module('group', 'root', 1.0)
         module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.pom')
+    }
+
+    def "upload status is logged on on info level"() {
+        given:
+        def resourceFile = file("src/main/resources/testfile.properties")
+        resourceFile << RandomStringUtils.random(5000)
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'maven'
+group = 'group'
+version = '1.0'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "${mavenRepo.uri}")
+        }
+    }
+}
+"""
+        when:
+        executer.withArgument("-i")
+        succeeds 'uploadArchives'
+
+        then:
+        output.contains("Uploading: group/root/1.0/root-1.0.jar to repository remote at ${mavenRepo.uri.toString()[0..-2]}")
+        output.contains("Transferring 12K from remote")
+        output.contains("Uploaded 12K")
     }
 
     @Issue("GRADLE-2456")
@@ -125,7 +155,8 @@ uploadArchives {
 
         then:
         def module = mavenRepo.module('group', 'root', 1.0)
-        module.assertArtifactsPublished('root-1.0-source.jar')
+        module.assertPublished()
+        module.assertArtifactsPublished('root-1.0.pom', 'root-1.0-source.jar')
     }
 
     def "can publish a project with metadata artifacts"() {
@@ -203,7 +234,10 @@ uploadArchives {
 
         then:
         def module = mavenRepo.module('org.gradle', 'test', '1.0-SNAPSHOT')
-        module.assertArtifactsPublished("test-${module.publishArtifactVersion}.jar", "test-${module.publishArtifactVersion}.pom")
+        module.assertArtifactsPublished("maven-metadata.xml", "test-${module.publishArtifactVersion}.jar", "test-${module.publishArtifactVersion}.pom")
+
+        and:
+        module.parsedPom.version == '1.0-SNAPSHOT'
     }
 
     def "can publish multiple deployments with attached artifacts"() {
@@ -384,5 +418,32 @@ uploadArchives {
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
         // TODO: Does not work with DIGEST authentication
+    }
+
+    @Issue('GRADLE-3272')
+    def "can publish to custom maven local repo defined with system property"() {
+        given:
+        def m2Installation = new M2Installation(testDirectory)
+        def localM2Repo = m2Installation.mavenRepo()
+        def customLocalRepo = mavenLocal("customMavenLocal")
+        executer.beforeExecute(m2Installation)
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+        """
+
+        when:
+        args "-Dmaven.repo.local=${customLocalRepo.rootDir.getAbsolutePath()}"
+        succeeds 'install'
+
+        then:
+        !localM2Repo.module("group", "root", "1.0").artifactFile(type: "jar").exists()
+        customLocalRepo.module("group", "root", "1.0").assertPublishedAsJavaModule()
     }
 }

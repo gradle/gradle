@@ -1,0 +1,8 @@
+dependencies {
+    compile project(':plugins')
+    compile project(':launcher')
+    compile project(':toolingApi')
+}
+
+useClassycle()
+strictCompile()

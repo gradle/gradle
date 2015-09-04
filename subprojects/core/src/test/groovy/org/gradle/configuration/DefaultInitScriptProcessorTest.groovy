@@ -15,12 +15,12 @@
  */
 package org.gradle.configuration
 
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.InitScript
+import org.gradle.internal.resource.Resource
 import spock.lang.Specification
 
 class DefaultInitScriptProcessorTest extends Specification {
@@ -30,17 +30,22 @@ class DefaultInitScriptProcessorTest extends Specification {
         def scriptPluginFactory = Mock(ScriptPluginFactory)
         def scriptHandlerFactory = Mock(ScriptHandlerFactory)
         def gradleScope = Mock(ClassLoaderScope)
-        def initScriptMock = Mock(ScriptSource)
+        def uri = new URI("file:///foo")
+        def initScriptMock = Mock(ScriptSource) {
+            getResource() >> Mock(Resource) {
+                getURI() >> uri
+            }
+        }
         def gradleMock = Mock(GradleInternal)
         def siblingScope = Mock(ClassLoaderScope)
-        def scriptHandler = Mock(ScriptHandler)
+        def scriptHandler = Mock(ScriptHandlerInternal)
         def scriptPlugin = Mock(ScriptPlugin)
 
         1 * gradleMock.getClassLoaderScope() >> gradleScope
-        1 * gradleScope.createChild() >> siblingScope
+        1 * gradleScope.createChild("init-$uri") >> siblingScope
 
         1 * scriptHandlerFactory.create(initScriptMock, siblingScope) >> scriptHandler
-        1 * scriptPluginFactory.create(initScriptMock, scriptHandler, siblingScope, gradleScope, "initscript", InitScript, false) >> scriptPlugin
+        1 * scriptPluginFactory.create(initScriptMock, scriptHandler, siblingScope, gradleScope, true) >> scriptPlugin
         1 * scriptPlugin.apply(gradleMock)
 
         DefaultInitScriptProcessor processor = new DefaultInitScriptProcessor(scriptPluginFactory, scriptHandlerFactory)

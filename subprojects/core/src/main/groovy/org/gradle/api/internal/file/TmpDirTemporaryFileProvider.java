@@ -26,7 +26,7 @@ public class TmpDirTemporaryFileProvider extends DefaultTemporaryFileProvider {
     public TmpDirTemporaryFileProvider() {
         super(new Factory<File>() {
             public File create() {
-                return GFileUtils.canonicalise(new File(SystemProperties.getJavaIoTmpDir()));
+                return GFileUtils.canonicalise(new File(SystemProperties.getInstance().getJavaIoTmpDir()));
             }
         });
     }

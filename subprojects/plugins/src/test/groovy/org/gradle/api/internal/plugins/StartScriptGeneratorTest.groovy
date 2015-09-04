@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,159 +14,74 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.internal.plugins
 
+import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
+import org.gradle.jvm.application.scripts.ScriptGenerator
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.util.WrapUtil
-import org.gradle.util.TextUtil
 
 class StartScriptGeneratorTest extends Specification {
 
-    def generator = new StartScriptGenerator();
+    private static final String APP_NAME = 'Gradle'
+    private static final String OPTS_ENV_VAR = 'GRADLE_OPTS'
+    private static final String EXIT_ENV_VAR = 'GRADLE_EXIT_CONSOLE'
+    private static final String MAIN_CLASSNAME = 'org.gradle.launcher.GradleMain'
+    private static final Iterable<String> DEFAULT_JVM_OPTS = ['-Xmx1024m']
+    private static final Iterable<String> CLASSPATH = ['libs/gradle.jar']
+    private static final String SCRIPT_REL_PATH = 'bin/gradle'
+    private static final String APP_NAME_SYS_PROP = 'org.gradle.appname'
 
-    def "classpath for unix script uses slashes as path separator"() {
-        given:
-        generator.applicationName = "TestApp"
-        generator.setClasspath(WrapUtil.toList("path\\to\\Jar.jar"))
-        generator.scriptRelPath = "bin"
-        when:
-        String unixScriptContent = generator.generateUnixScriptContent()
-        then:
-        unixScriptContent.contains("CLASSPATH=\$APP_HOME/path/to/Jar.jar")
+    ScriptGenerator unixStartScriptGenerator = Mock()
+    ScriptGenerator windowsStartScriptGenerator = Mock()
+    StartScriptGenerator.UnixFileOperation unixFileOperation = Mock()
+    StartScriptGenerator startScriptGenerator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator, unixFileOperation)
+    @Rule TestNameTestDirectoryProvider temporaryFolder
+
+    def setup() {
+        populateStartScriptGenerator()
     }
 
-
-    def "unix script uses unix line separator"() {
+    def "can generate Unix script"() {
         given:
-        generator.applicationName = "TestApp"
-        generator.scriptRelPath = "bin"
+        TestFile script = temporaryFolder.file('unix.sh')
+
         when:
-        String unixScriptContent = generator.generateUnixScriptContent()
+        startScriptGenerator.generateUnixScript(script)
+
         then:
-        unixScriptContent.split(TextUtil.windowsLineSeparator).length == 1
-        unixScriptContent.split(TextUtil.unixLineSeparator).length == 164
+        1 * unixStartScriptGenerator.generateScript(createJavaAppStartScriptGenerationDetails(), _ as Writer)
+        0 * windowsStartScriptGenerator.generateScript(_, _)
+        1 * unixFileOperation.createExecutablePermission(script)
     }
 
-    def "classpath for windows script uses backslash as path separator and windows line separator"() {
+    def "can generate Windows script"() {
         given:
-        generator.applicationName = "TestApp"
-        generator.setClasspath(WrapUtil.toList("path/to/Jar.jar"))
-        generator.scriptRelPath = "bin"
+        TestFile script = temporaryFolder.file('windows.bat')
+
         when:
-        String windowsScriptContent = generator.generateWindowsScriptContent()
+        startScriptGenerator.generateWindowsScript(script)
+
         then:
-        windowsScriptContent.contains("set CLASSPATH=%APP_HOME%\\path\\to\\Jar.jar")
-        windowsScriptContent.split(TextUtil.windowsLineSeparator).length == 90
+        1 * windowsStartScriptGenerator.generateScript(createJavaAppStartScriptGenerationDetails(), _ as Writer)
+        0 * unixStartScriptGenerator.generateScript(_, _)
+        0 * unixFileOperation.createExecutablePermission(script)
     }
 
-    def "windows script uses windows line separator"() {
-        given:
-        generator.applicationName = "TestApp"
-        generator.scriptRelPath = "bin"
-        when:
-        String windowsScriptContent = generator.generateWindowsScriptContent()
-        then:
-        windowsScriptContent.split(TextUtil.windowsLineSeparator).length == 90
+    private void populateStartScriptGenerator() {
+        startScriptGenerator.applicationName = APP_NAME
+        startScriptGenerator.optsEnvironmentVar = OPTS_ENV_VAR
+        startScriptGenerator.exitEnvironmentVar = EXIT_ENV_VAR
+        startScriptGenerator.mainClassName = MAIN_CLASSNAME
+        startScriptGenerator.defaultJvmOpts = DEFAULT_JVM_OPTS
+        startScriptGenerator.classpath = CLASSPATH
+        startScriptGenerator.scriptRelPath = SCRIPT_REL_PATH
+        startScriptGenerator.appNameSystemProperty = APP_NAME_SYS_PROP
     }
 
-    def "defaultJvmOpts is expanded properly in windows script"() {
-        given:
-        generator.defaultJvmOpts = ['-Dfoo=bar', '-Xint']
-        generator.scriptRelPath = "bin"
-        when:
-        String windowsScriptContent = generator.generateWindowsScriptContent()
-        then:
-        windowsScriptContent.contains('set DEFAULT_JVM_OPTS="-Dfoo=bar" "-Xint"')
-    }
-
-    def "defaultJvmOpts is expanded properly in windows script -- spaces"() {
-        given:
-        generator.defaultJvmOpts = ['-Dfoo=bar baz', '-Xint']
-        generator.scriptRelPath = "bin"
-        when:
-        String windowsScriptContent = generator.generateWindowsScriptContent()
-        then:
-        windowsScriptContent.contains(/set DEFAULT_JVM_OPTS="-Dfoo=bar baz" "-Xint"/)
-    }
-
-    def "defaultJvmOpts is expanded properly in windows script -- double quotes"() {
-        given:
-        generator.defaultJvmOpts = ['-Dfoo=b"ar baz', '-Xi""nt', '-Xpatho\\"logical']
-        generator.scriptRelPath = "bin"
-        when:
-        String windowsScriptContent = generator.generateWindowsScriptContent()
-        then:
-        windowsScriptContent.contains(/set DEFAULT_JVM_OPTS="-Dfoo=b\"ar baz" "-Xi\"\"nt" "-Xpatho\\\"logical"/)
-    }
-
-    def "defaultJvmOpts is expanded properly in windows script -- backslashes and shell metacharacters"() {
-        given:
-        generator.defaultJvmOpts = ['-Dfoo=b\\ar baz', '-Xint%PATH%']
-        generator.scriptRelPath = "bin"
-        when:
-        String windowsScriptContent = generator.generateWindowsScriptContent()
-        then:
-        windowsScriptContent.contains(/set DEFAULT_JVM_OPTS="-Dfoo=b\ar baz" "-Xint%%PATH%%"/)
-    }
-
-    def "defaultJvmOpts is expanded properly in unix script"() {
-        given:
-        generator.defaultJvmOpts = ['-Dfoo=bar', '-Xint']
-        generator.scriptRelPath = "bin"
-        when:
-        String unixScriptContent = generator.generateUnixScriptContent()
-        then:
-        unixScriptContent.contains('DEFAULT_JVM_OPTS=\'"-Dfoo=bar" "-Xint"\'')
-    }
-
-    def "defaultJvmOpts is expanded properly in unix script -- spaces"() {
-        given:
-        generator.defaultJvmOpts = ['-Dfoo=bar baz', '-Xint']
-        generator.scriptRelPath = "bin"
-        when:
-        String unixScriptContent = generator.generateUnixScriptContent()
-        then:
-        unixScriptContent.contains(/DEFAULT_JVM_OPTS='"-Dfoo=bar baz" "-Xint"'/)
-    }
-
-    def "defaultJvmOpts is expanded properly in unix script -- double quotes"() {
-        given:
-        generator.defaultJvmOpts = ['-Dfoo=b"ar baz', '-Xi""nt']
-        generator.scriptRelPath = "bin"
-        when:
-        String unixScriptContent = generator.generateUnixScriptContent()
-        then:
-        unixScriptContent.contains(/DEFAULT_JVM_OPTS='"-Dfoo=b\"ar baz" "-Xi\"\"nt"'/)
-    }
-
-    def "defaultJvmOpts is expanded properly in unix script -- single quotes"() {
-        given:
-        generator.defaultJvmOpts = ['-Dfoo=b\'ar baz', '-Xi\'\'n`t']
-        generator.scriptRelPath = "bin"
-        when:
-        String unixScriptContent = generator.generateUnixScriptContent()
-        then:
-        unixScriptContent.contains(/DEFAULT_JVM_OPTS='"-Dfoo=b'"'"'ar baz" "-Xi'"'"''"'"'n'"`"'t"'/)
-    }
-
-    def "defaultJvmOpts is expanded properly in unix script -- backslashes and shell metacharacters"() {
-        given:
-        generator.defaultJvmOpts = ['-Dfoo=b\\ar baz', '-Xint$PATH']
-        generator.scriptRelPath = "bin"
-        when:
-        String unixScriptContent = generator.generateUnixScriptContent()
-        then:
-        unixScriptContent.contains(/DEFAULT_JVM_OPTS='"-Dfoo=b\\ar baz" "-Xint/ + '\\$PATH' + /"'/)
-    }
-
-    def "defaultJvmOpts is expanded properly in unix script -- empty list"() {
-        given:
-        generator.scriptRelPath = "bin"
-        when:
-        String unixScriptContent = generator.generateUnixScriptContent()
-        then:
-        unixScriptContent.contains(/DEFAULT_JVM_OPTS=""/)
+    private JavaAppStartScriptGenerationDetails createJavaAppStartScriptGenerationDetails() {
+        return new DefaultJavaAppStartScriptGenerationDetails(APP_NAME, OPTS_ENV_VAR, EXIT_ENV_VAR, MAIN_CLASSNAME, DEFAULT_JVM_OPTS, CLASSPATH, SCRIPT_REL_PATH, APP_NAME_SYS_PROP)
     }
 }

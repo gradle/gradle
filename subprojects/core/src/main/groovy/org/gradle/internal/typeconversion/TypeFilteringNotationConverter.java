@@ -16,7 +16,7 @@
 
 package org.gradle.internal.typeconversion;
 
-import java.util.Collection;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 class TypeFilteringNotationConverter<N, S, T> implements NotationConverter<N, T> {
     private final Class<S> type;
@@ -33,7 +33,8 @@ class TypeFilteringNotationConverter<N, S, T> implements NotationConverter<N, T>
         }
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        delegate.describe(candidateFormats);
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        delegate.describe(visitor);
     }
 }

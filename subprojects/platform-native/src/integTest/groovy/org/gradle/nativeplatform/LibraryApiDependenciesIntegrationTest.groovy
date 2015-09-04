@@ -17,11 +17,13 @@ package org.gradle.nativeplatform
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@LeaksFileHandles
 class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
@@ -144,9 +146,7 @@ model {
             binaries.all { binary ->
                 sources {
                     buildTypeSources(CppSourceSet) {
-                        sources {
-                            exportedHeaders.srcDir "src/util/\${binary.buildType.name}"
-                        }
+                        exportedHeaders.srcDir "src/util/\${binary.buildType.name}"
                     }
                 }
             }

@@ -25,8 +25,8 @@ import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.Clock;
 
 import java.io.IOException;
@@ -45,7 +45,6 @@ public class TransientConfigurationResultsBuilder {
     private static final byte ROOT = 2;
     private static final byte FIRST_LVL = 3;
     private static final byte PARENT_CHILD = 4;
-    private static final byte PARENT_ARTIFACT = 5;
 
     private final Object lock = new Object();
 
@@ -84,12 +83,8 @@ public class TransientConfigurationResultsBuilder {
         writeId(FIRST_LVL, id);
     }
 
-    public void parentChildMapping(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child) {
+    public void parentChildMapping(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, final long artifactId) {
         writeId(PARENT_CHILD, parent, child);
-    }
-
-    public void parentSpecificArtifact(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, final long artifactId) {
-        writeId(PARENT_ARTIFACT, child, parent);
         binaryStore.write(new BinaryStore.WriteAction() {
             public void write(Encoder encoder) throws IOException {
                 encoder.writeLong(artifactId);
@@ -164,19 +159,7 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
-                        break;
-                    case PARENT_ARTIFACT:
-                        ResolvedConfigurationIdentifier artifactParentId = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        ResolvedConfigurationIdentifier artifactChildId = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        DefaultResolvedDependency artifactParent = allDependencies.get(artifactParentId);
-                        DefaultResolvedDependency artifactChild = allDependencies.get(artifactChildId);
-                        if (artifactParent == null) {
-                            throw new IllegalStateException(String.format("Unexpected parent dependency id %s. Seen ids: %s", artifactParentId, allDependencies.keySet()));
-                        }
-                        if (artifactChild == null) {
-                            throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", artifactChildId, allDependencies.keySet()));
-                        }
-                        artifactParent.addParentSpecificArtifacts(artifactChild, newHashSet(mapping.getArtifact(decoder.readLong())));
+                        child.addParentSpecificArtifacts(parent, newHashSet(mapping.getArtifacts(decoder.readLong())));
                         break;
                     default:
                         throw new IOException("Unknown value type read from stream: " + type);

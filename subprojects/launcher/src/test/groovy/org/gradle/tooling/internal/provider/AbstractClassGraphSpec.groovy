@@ -22,6 +22,9 @@ import org.gradle.util.TestClassLoader
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+
 abstract class AbstractClassGraphSpec extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -31,6 +34,7 @@ abstract class AbstractClassGraphSpec extends Specification {
     List<File> originalClassPath(Class<?>... classes) {
         return classes.collect { ClasspathUtil.getClasspathForClass(it) }
     }
+
 
     /**
      * Makes a copy of the given classes and returns the classpath for these copies. Each class is added to its own classpath root.
@@ -45,6 +49,22 @@ abstract class AbstractClassGraphSpec extends Specification {
             classFile.bytes = resource.bytes
             classPathRoot
         }
+    }
+
+    /**
+     * Copies the given classes to a jar file and returns the file.
+     */
+    File isolatedClassesInJar(String filename = "test.jar", Class<?>... classes) {
+        File zipFile = tmpDir.file(filename)
+        ZipOutputStream zip = new ZipOutputStream(new FileOutputStream(zipFile))
+        classes.each {
+            def name = it.name.replace('.', '/') + '.class'
+            def resource = it.classLoader.getResource(name)
+            zip.putNextEntry(new ZipEntry(name))
+            zip.write(resource.bytes)
+        }
+        zip.close()
+        return zipFile
     }
 
     /**

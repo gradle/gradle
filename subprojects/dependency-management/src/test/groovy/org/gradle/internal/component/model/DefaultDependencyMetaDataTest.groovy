@@ -18,12 +18,16 @@ package org.gradle.internal.component.model
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import spock.lang.Specification
 
 class DefaultDependencyMetaDataTest extends Specification {
@@ -75,7 +79,7 @@ class DefaultDependencyMetaDataTest extends Specification {
 
         expect:
         metaData.withRequestedVersion("1.2+").is(metaData)
-        metaData.withRequestedVersion(DefaultModuleVersionSelector.newSelector("org", "module", "1.2+")).is(metaData)
+        metaData.withTarget(DefaultModuleComponentSelector.newSelector("org", "module", "1.2+")).is(metaData)
     }
 
     def "can set changing flag"() {
@@ -136,8 +140,8 @@ class DefaultDependencyMetaDataTest extends Specification {
         descriptor.addDependencyArtifact("config", new DefaultDependencyArtifactDescriptor(descriptor, "art1", "type", "ext", null, [:]))
         descriptor.addDependencyArtifact("other", new DefaultDependencyArtifactDescriptor(descriptor, "art2", "type", "ext", null, [:]))
         descriptor.addDependencyArtifact("super", new DefaultDependencyArtifactDescriptor(descriptor, "art3", "type", "ext", null, [:]))
-        targetComponent.artifact({it.name == 'art1'}) >> artifact1
-        targetComponent.artifact({it.name == 'art3'}) >> artifact2
+        toConfiguration.artifact({it.name == 'art1'}) >> artifact1
+        toConfiguration.artifact({it.name == 'art3'}) >> artifact2
 
         expect:
         metaData.getArtifacts(fromConfiguration, toConfiguration) == [artifact1, artifact2] as Set
@@ -173,5 +177,27 @@ class DefaultDependencyMetaDataTest extends Specification {
         componentSelector.group == 'org'
         componentSelector.module == 'module'
         componentSelector.version == '1.2+'
+    }
+
+    def "retains transitive and changing flags in substituted dependency"() {
+        given:
+        def requestedModuleDescriptor = DefaultModuleDescriptor.newDefaultInstance(requestedModuleId)
+        def descriptor = new DefaultDependencyDescriptor(requestedModuleDescriptor, requestedModuleId, false, changing, transitive)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+
+        when:
+        DependencyMetaData replacedMetaData = metaData.withTarget(DefaultProjectComponentSelector.newSelector("test"))
+
+        then:
+        replacedMetaData.getSelector() instanceof ProjectComponentSelector
+        replacedMetaData.isTransitive() == metaData.isTransitive()
+        replacedMetaData.isChanging() == metaData.isChanging()
+
+        where:
+        transitive | changing
+        true       | true
+        false      | true
+        true       | false
+        false      | false
     }
 }

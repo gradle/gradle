@@ -16,36 +16,44 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
-import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.internal.Factory;
+import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 
+import javax.tools.JavaCompiler;
 import java.io.File;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final File daemonWorkingDir;
     private final CompilerDaemonFactory compilerDaemonFactory;
+    private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
 
-    public DefaultJavaCompilerFactory(File daemonWorkingDir, CompilerDaemonFactory compilerDaemonFactory) {
+    public DefaultJavaCompilerFactory(File daemonWorkingDir, CompilerDaemonFactory compilerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory) {
         this.daemonWorkingDir = daemonWorkingDir;
         this.compilerDaemonFactory = compilerDaemonFactory;
+        this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
     }
 
-    public Compiler<JavaCompileSpec> createForJointCompilation(CompileOptions options) {
-        return createTargetCompiler(options, true);
+    public Compiler<JavaCompileSpec> createForJointCompilation(Class<? extends CompileSpec> type) {
+        return createTargetCompiler(type, true);
     }
 
-    public Compiler<JavaCompileSpec> create(CompileOptions options) {
-        Compiler<JavaCompileSpec> result = createTargetCompiler(options, false);
+    public Compiler<JavaCompileSpec> create(Class<? extends CompileSpec> type) {
+        Compiler<JavaCompileSpec> result = createTargetCompiler(type, false);
         return new NormalizingJavaCompiler(result);
     }
 
-    private Compiler<JavaCompileSpec> createTargetCompiler(CompileOptions options, boolean jointCompilation) {
-        if (options.isFork() && options.getForkOptions().getExecutable() != null) {
+    private Compiler<JavaCompileSpec> createTargetCompiler(Class<? extends CompileSpec> type, boolean jointCompilation) {
+        if (!JavaCompileSpec.class.isAssignableFrom(type)) {
+            throw new IllegalArgumentException(String.format("Cannot create a compiler for a spec with type %s", type.getSimpleName()));
+        }
+
+        if (CommandLineJavaCompileSpec.class.isAssignableFrom(type)) {
             return new CommandLineJavaCompiler();
         }
 
-        Compiler<JavaCompileSpec> compiler = new JdkJavaCompiler();
-        if (options.isFork() && !jointCompilation) {
+        Compiler<JavaCompileSpec> compiler = new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
+        if (ForkingJavaCompileSpec.class.isAssignableFrom(type) && !jointCompilation) {
             return new DaemonJavaCompiler(daemonWorkingDir, compiler, compilerDaemonFactory);
         }
 

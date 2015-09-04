@@ -17,13 +17,13 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.TestRuleSource
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -31,9 +31,9 @@ public class DefaultPluginContainerTest extends Specification {
 
     def PluginInspector pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
     def classLoader = new GroovyClassLoader(getClass().classLoader)
-    def pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoader)
+    def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(classLoader))
     def applicator = Mock(PluginApplicator)
-    def instantiator = new DirectInstantiator()
+    def instantiator = DirectInstantiator.INSTANCE
     def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, applicator)
 
     @Subject
@@ -57,9 +57,8 @@ public class DefaultPluginContainerTest extends Specification {
         }
     """)
 
-
     def setup() {
-        classLoader.addURL(testDirectoryProvider.testDirectory.toURL())
+        classLoader.addURL(testDirectoryProvider.testDirectory.toURI().toURL())
         testDirectoryProvider.file("META-INF/gradle-plugins/plugin.properties") << "implementation-class=${plugin1Class.name}"
     }
 
@@ -155,7 +154,7 @@ public class DefaultPluginContainerTest extends Specification {
         """
         classPathAdditions.file("META-INF/gradle-plugins/plugin.properties") << "implementation-class=${pluginClass.name}"
 
-        def pluginRegistry = new DefaultPluginRegistry(pluginInspector, groovyLoader)
+        def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(groovyLoader))
         def container = new DefaultPluginContainer(pluginRegistry, pluginManager)
         def plugin = pluginClass.newInstance()
         def plugins = []
@@ -193,7 +192,7 @@ public class DefaultPluginContainerTest extends Specification {
         """
         classPathAdditions.file("META-INF/gradle-plugins/plugin.properties") << "implementation-class=${pluginClass.name}"
 
-        def pluginRegistry = new DefaultPluginRegistry(pluginInspector, groovyLoader.parent)
+        def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(groovyLoader.parent))
         def container = new DefaultPluginContainer(pluginRegistry, pluginManager)
         def plugin = pluginClass.newInstance()
         def plugins = []
@@ -234,7 +233,7 @@ public class DefaultPluginContainerTest extends Specification {
             }
         """
 
-        def pluginRegistry = new DefaultPluginRegistry(pluginInspector, groovyLoader.parent)
+        def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(groovyLoader.parent))
         def container = new DefaultPluginContainer(pluginRegistry, pluginManager)
         def plugin = pluginClass.newInstance()
         def plugins = []
@@ -283,16 +282,9 @@ public class DefaultPluginContainerTest extends Specification {
         e.message == "'$TestRuleSource.name' does not implement the Plugin interface."
     }
 
-    @Ignore("not sure if we can support this as a valid imperative plugin with the id may come along later")
-    def "a useful error message is set when an id for plain rule source type is passed to withId"() {
-        given:
-        testDirectoryProvider.file("META-INF/gradle-plugins/custom-rule-source.properties") << "implementation-class=${TestRuleSource.name}"
-
-        when:
-        container.withId("custom-rule-source") {}
-
-        then:
-        IllegalArgumentException e = thrown()
-        e.message == "The type for id 'custom-rule-source' (class: '$TestRuleSource.name') is not a plugin implementing the Plugin interface. Please use PluginAware.withPlugin() instead to detect it."
+    def scope(ClassLoader classLoader) {
+        return Stub(ClassLoaderScope) {
+            getLocalClassLoader() >> classLoader
+        }
     }
 }

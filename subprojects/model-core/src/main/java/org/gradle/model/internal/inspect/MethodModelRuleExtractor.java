@@ -18,13 +18,13 @@ package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
-import org.gradle.model.internal.core.ModelRuleRegistration;
+import org.gradle.model.internal.core.ExtractedModelRule;
 
 public interface MethodModelRuleExtractor {
-    Spec<MethodRuleDefinition<?>> getSpec();
+    Spec<MethodRuleDefinition<?, ?>> getSpec();
 
     String getDescription();
 
     @Nullable
-    <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies);
+    <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition);
 }

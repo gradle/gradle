@@ -10,13 +10,13 @@ repositories {
 }
 
 dependencies {
-    compile module('org.codehaus.groovy:groovy:1.6.0') {
+    compile module('org.codehaus.groovy:groovy:2.4.4') {
         dependency('asm:asm-all:2.2.3')
         dependency('antlr:antlr:2.7.7')
         dependency('commons-cli:commons-cli:1.2')
-        module('org.apache.ant:ant:1.9.3') {
-            dependencies('org.apache.ant:ant-junit:1.9.3@jar',
-                         'org.apache.ant:ant-launcher:1.9.3')
+        module('org.apache.ant:ant:1.9.4') {
+            dependencies('org.apache.ant:ant-junit:1.9.4@jar',
+                         'org.apache.ant:ant-launcher:1.9.4')
         }
     }
 }

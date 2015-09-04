@@ -17,31 +17,33 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.internal.Factory;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
 public class DefaultResolvedArtifact implements ResolvedArtifact {
     private final ResolvedModuleVersion owner;
     private final IvyArtifactName artifact;
-    private long id;
+    private final ComponentArtifactIdentifier artifactId;
     private Factory<File> artifactSource;
     private File file;
 
-    public DefaultResolvedArtifact(ResolvedModuleVersion owner, IvyArtifactName artifact, Factory<File> artifactSource, long id) {
+    public DefaultResolvedArtifact(ResolvedModuleVersion owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, Factory<File> artifactSource) {
         this.owner = owner;
         this.artifact = artifact;
-        this.id = id;
+        this.artifactId = artifactId;
         this.artifactSource = artifactSource;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public ResolvedModuleVersion getModuleVersion() {
         return owner;
+    }
+
+    @Override
+    public ComponentArtifactIdentifier getId() {
+        return artifactId;
     }
 
     @Override
@@ -87,7 +89,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     public String getClassifier() {
         return artifact.getClassifier();
     }
-    
+
     public File getFile() {
         if (file == null) {
             file = artifactSource.create();

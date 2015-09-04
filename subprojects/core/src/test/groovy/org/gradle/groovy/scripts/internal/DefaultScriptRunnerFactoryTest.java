@@ -20,6 +20,8 @@ import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.StandardOutputCapture;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
@@ -34,47 +36,65 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class DefaultScriptRunnerFactoryTest {
     private final JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
+    private final CompiledScript<? extends Script, Void> compiledScriptMock = context.mock(CompiledScript.class);
     private final Script scriptMock = context.mock(Script.class, "<script-to-string>");
     private final StandardOutputCapture standardOutputCaptureMock = context.mock(StandardOutputCapture.class);
     private final ClassLoader classLoaderDummy = context.mock(ClassLoader.class);
     private final ScriptSource scriptSourceDummy = context.mock(ScriptSource.class);
     private final ScriptExecutionListener scriptExecutionListenerMock = context.mock(ScriptExecutionListener.class);
-    private final DefaultScriptRunnerFactory factory = new DefaultScriptRunnerFactory(scriptExecutionListenerMock);
+    private final Instantiator instantiatorMock = context.mock(Instantiator.class);
+    private final Object target = new Object();
+    private final ServiceRegistry scriptServices = context.mock(ServiceRegistry.class);
+    private final DefaultScriptRunnerFactory factory = new DefaultScriptRunnerFactory(scriptExecutionListenerMock, instantiatorMock);
 
     @Before
     public void setUp() {
         context.checking(new Expectations() {{
-            allowing(scriptMock).getStandardOutputCapture();
-            will(returnValue(standardOutputCaptureMock));
-            allowing(scriptMock).getScriptSource();
-            will(returnValue(scriptSourceDummy));
-            allowing(scriptMock).getContextClassloader();
-            will(returnValue(classLoaderDummy));
             ignoring(scriptSourceDummy);
         }});
     }
 
     @Test
-    public void createsScriptRunner() {
-        ScriptRunner<Script> scriptRunner = factory.create(scriptMock);
-        assertThat(scriptRunner.getScript(), sameInstance(scriptMock));
+    public void doesNotLoadScriptWhenScriptRunnerCreated() {
+        ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
+        assertThat(scriptRunner, notNullValue());
     }
 
     @Test
-    public void redirectsStandardOutputAndSetsContextClassLoaderWhenScriptIsRun() {
-        ScriptRunner<Script> scriptRunner = factory.create(scriptMock);
+    public void runDoesNothingWhenEmptyScriptIsRun() {
+        ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
 
+        context.checking(new Expectations() {{
+            allowing(compiledScriptMock).getRunDoesSomething();
+            will(returnValue(false));
+        }});
+
+        scriptRunner.run(target, scriptServices);
+    }
+
+    @Test
+    public void setsUpAndTearsDownWhenNonEmptyScriptIsRun() {
+        ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
+
+        expectScriptInstantiated();
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
 
-            one(scriptExecutionListenerMock).beforeScript(scriptMock);
+            allowing(compiledScriptMock).getRunDoesSomething();
+            will(returnValue(true));
+
+            one(scriptExecutionListenerMock).scriptClassLoaded(scriptSourceDummy, Script.class);
+            inSequence(sequence);
+
+            one(scriptMock).init(target, scriptServices);
             inSequence(sequence);
 
             one(standardOutputCaptureMock).start();
@@ -95,15 +115,12 @@ public class DefaultScriptRunnerFactoryTest {
 
             one(standardOutputCaptureMock).stop();
             inSequence(sequence);
-
-            one(scriptExecutionListenerMock).afterScript(scriptMock, null);
-            inSequence(sequence);
         }});
 
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
         assertThat(originalClassLoader, not(sameInstance(classLoaderDummy)));
 
-        scriptRunner.run();
+        scriptRunner.run(target, scriptServices);
 
         assertThat(Thread.currentThread().getContextClassLoader(), sameInstance(originalClassLoader));
     }
@@ -112,12 +129,19 @@ public class DefaultScriptRunnerFactoryTest {
     public void wrapsExecutionExceptionAndRestoresStateWhenScriptFails() {
         final RuntimeException failure = new RuntimeException();
 
-        ScriptRunner<Script> scriptRunner = factory.create(scriptMock);
+        ScriptRunner<?, Void> scriptRunner = factory.create(compiledScriptMock, scriptSourceDummy, classLoaderDummy);
 
+        expectScriptInstantiated();
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
 
-            one(scriptExecutionListenerMock).beforeScript(scriptMock);
+            allowing(compiledScriptMock).getRunDoesSomething();
+            will(returnValue(true));
+
+            one(scriptExecutionListenerMock).scriptClassLoaded(scriptSourceDummy, Script.class);
+            inSequence(sequence);
+
+            one(scriptMock).init(target, scriptServices);
             inSequence(sequence);
 
             one(standardOutputCaptureMock).start();
@@ -129,16 +153,13 @@ public class DefaultScriptRunnerFactoryTest {
 
             one(standardOutputCaptureMock).stop();
             inSequence(sequence);
-
-            one(scriptExecutionListenerMock).afterScript(with(sameInstance(scriptMock)), with(notNullValue(Throwable.class)));
-            inSequence(sequence);
         }});
 
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
         assertThat(originalClassLoader, not(sameInstance(classLoaderDummy)));
 
         try {
-            scriptRunner.run();
+            scriptRunner.run(target, scriptServices);
             fail();
         } catch (GradleScriptException e) {
             assertThat(e.getMessage(), equalTo("A problem occurred evaluating <script-to-string>."));
@@ -147,4 +168,22 @@ public class DefaultScriptRunnerFactoryTest {
 
         assertThat(Thread.currentThread().getContextClassLoader(), sameInstance(originalClassLoader));
     }
+
+    void expectScriptInstantiated() {
+        context.checking(new Expectations() {{
+            allowing(compiledScriptMock).loadClass();
+            will(returnValue(Script.class));
+            allowing(instantiatorMock).newInstance(Script.class);
+            will(returnValue(scriptMock));
+            allowing(scriptMock).getStandardOutputCapture();
+            will(returnValue(standardOutputCaptureMock));
+            allowing(scriptMock).getScriptSource();
+            will(returnValue(scriptSourceDummy));
+            allowing(scriptMock).getContextClassloader();
+            will(returnValue(classLoaderDummy));
+            allowing(scriptMock).setScriptSource(scriptSourceDummy);
+            allowing(scriptMock).setContextClassloader(classLoaderDummy);
+        }});
+    }
+
 }

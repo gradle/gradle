@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.junit;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.TimeProvider;
-import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.internal.id.IdGenerator;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
@@ -33,6 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JUnitTestEventAdapter extends RunListener {
+    private static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("(.*)\\((.*)\\)", Pattern.DOTALL);
     private final TestResultProcessor resultProcessor;
     private final TimeProvider timeProvider;
     private final IdGenerator<?> idGenerator;
@@ -42,7 +42,7 @@ public class JUnitTestEventAdapter extends RunListener {
 
     public JUnitTestEventAdapter(TestResultProcessor resultProcessor, TimeProvider timeProvider,
                                  IdGenerator<?> idGenerator) {
-        assert resultProcessor instanceof ThreadSafe;
+        assert resultProcessor instanceof org.gradle.internal.concurrent.ThreadSafe;
         this.resultProcessor = resultProcessor;
         this.timeProvider = timeProvider;
         this.idGenerator = idGenerator;
@@ -133,15 +133,16 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private TestDescriptorInternal nullSafeDescriptor(Object id, Description description) {
-        if (methodName(description) != null) {
-            return new DefaultTestDescriptor(id, className(description), methodName(description));
+        String methodName = methodName(description);
+        if (methodName != null) {
+            return new DefaultTestDescriptor(id, className(description), methodName);
         } else {
             return new DefaultTestDescriptor(id, className(description), "classMethod");
         }
     }
 
     // Use this instead of Description.getMethodName(), it is not available in JUnit <= 4.5
-    private String methodName(Description description) {
+    public static String methodName(Description description) {
         Matcher matcher = methodStringMatcher(description);
         if (matcher.matches()) {
             return matcher.group(1);
@@ -150,13 +151,13 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     // Use this instead of Description.getClassName(), it is not available in JUnit <= 4.5
-    private String className(Description description) {
+    public static String className(Description description) {
         Matcher matcher = methodStringMatcher(description);
         return matcher.matches() ? matcher.group(2) : description.toString();
     }
 
-    private Matcher methodStringMatcher(Description description) {
-        return Pattern.compile("(.*)\\((.*)\\)", Pattern.DOTALL).matcher(description.toString());
+    private static Matcher methodStringMatcher(Description description) {
+        return DESCRIPTOR_PATTERN.matcher(description.toString());
     }
 
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.typeconversion;
 
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
+
 import java.util.Collection;
 
 public class CompositeNotationParser<N, T> implements NotationParser<N, T> {
@@ -26,9 +28,10 @@ public class CompositeNotationParser<N, T> implements NotationParser<N, T> {
         this.delegates = delegates;
     }
 
-    public void describe(Collection<String> candidateFormats) {
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
         for (NotationParser<?, ?> delegate : delegates) {
-            delegate.describe(candidateFormats);
+            delegate.describe(visitor);
         }
     }
 

@@ -19,12 +19,14 @@ package org.gradle.play.plugins
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.scala.tasks.PlatformScalaCompile
-import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.ModelMap
 import org.gradle.platform.base.BinaryContainer
+import org.gradle.platform.base.BinaryTasksCollection
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal
 import org.gradle.play.internal.toolchain.PlayToolChainInternal
 import org.gradle.play.internal.toolchain.PlayToolProvider
@@ -33,7 +35,7 @@ import spock.lang.Specification
 
 class PlayTestPluginTest extends Specification {
 
-    CollectionBuilder<Task> taskCollectionBuilder = Mock(CollectionBuilder)
+    ModelMap<Task> taskModelMap = Mock(ModelMap)
     def binaryContainer = Mock(BinaryContainer)
     def projectIdentifier = Mock(ProjectIdentifier)
     def binary = Mock(PlayApplicationBinarySpecInternal)
@@ -43,6 +45,7 @@ class PlayTestPluginTest extends Specification {
 
     def configuration = Stub(Configuration)
     def configurations = Mock(ConfigurationContainer)
+    def dependencyHandler = Mock(DependencyHandler)
 
     File buildDir = new File("tmp")
 
@@ -52,6 +55,7 @@ class PlayTestPluginTest extends Specification {
         _ * binaryContainer.withType(PlayApplicationBinarySpecInternal.class) >> binaryContainer
         _ * binaryContainer.iterator() >> [binary].iterator()
         _ * binary.name >> "someBinary"
+        _ * binary.getTasks() >> Mock(BinaryTasksCollection)
 
         _ * configurations.create(_) >> configuration
         _ * configurations.maybeCreate(_) >> configuration
@@ -67,12 +71,12 @@ class PlayTestPluginTest extends Specification {
         1 * playToolChain.select(playPlatform) >> playToolProvider
 
         when:
-        plugin.createTestTasks(taskCollectionBuilder, binaryContainer, new PlayPluginConfigurations(configurations), fileResolver, projectIdentifier, buildDir)
+        plugin.createTestTasks(taskModelMap, binaryContainer, new PlayPluginConfigurations(configurations, dependencyHandler), fileResolver, projectIdentifier, buildDir)
 
         then:
-        1 * taskCollectionBuilder.create("compileSomeBinaryTests", PlatformScalaCompile, _)
-        1 * taskCollectionBuilder.create("testSomeBinary", Test, _)
-        0 * taskCollectionBuilder.create(_)
-        0 * taskCollectionBuilder.create(_, _, _)
+        1 * taskModelMap.create("compileSomeBinaryTests", PlatformScalaCompile, _)
+        1 * taskModelMap.create("testSomeBinary", Test, _)
+        0 * taskModelMap.create(_)
+        0 * taskModelMap.create(_, _, _)
     }
 }

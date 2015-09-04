@@ -39,7 +39,9 @@ import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.junit.result.*;
 import org.gradle.api.internal.tasks.testing.logging.*;
+import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.reporting.DirectoryReport;
@@ -52,10 +54,10 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.listener.ListenerBroadcast;
-import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ConsoleRenderer;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.StyledTextOutputFactory;
@@ -121,6 +123,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
+    private final ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster;
     private final TestLoggingContainer testLogging;
     private final DefaultJavaForkOptions forkOptions;
     private final DefaultTestFilter filter;
@@ -143,6 +146,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     public Test() {
         ListenerManager listenerManager = getListenerManager();
+        testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
         testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
         forkOptions = new DefaultJavaForkOptions(getFileResolver());
@@ -206,6 +210,18 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     void setTestExecuter(TestExecuter testExecuter) {
         this.testExecuter = testExecuter;
+    }
+
+    ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
+        return testListenerBroadcaster;
+    }
+
+    ListenerBroadcast<TestListenerInternal> getTestListenerInternalBroadcaster() {
+        return testListenerInternalBroadcaster;
+    }
+
+    ListenerBroadcast<TestOutputListener> getTestOutputListenerBroadcaster() {
+        return testOutputListenerBroadcaster;
     }
 
     /**
@@ -479,7 +495,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
-        if (!getFilter().getIncludePatterns().isEmpty()) {
+        if (getFilter().isFailOnNoMatchingTests() && !getFilter().getIncludePatterns().isEmpty()) {
             addTestListener(new NoMatchingTestsReporter("No tests found for given includes: " + getFilter().getIncludePatterns()));
         }
 
@@ -499,8 +515,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
         addTestListener(testCountLogger);
 
-        TestResultProcessor resultProcessor = new TestListenerAdapter(
-                getTestListenerBroadcaster().getSource(), testOutputListenerBroadcaster.getSource());
+        testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerBroadcaster.getSource(), testOutputListenerBroadcaster.getSource()));
+
+        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
 
         if (testExecuter == null) {
             testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory());
@@ -512,6 +529,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
             testExecuter = null;
             testListenerBroadcaster.removeAll();
             testOutputListenerBroadcaster.removeAll();
+            testListenerInternalBroadcaster.removeAll();
             outputWriter.close();
         }
 
@@ -548,13 +566,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         }
-    }
-
-    /**
-     * Returns the {@link org.gradle.api.tasks.testing.TestListener} broadcaster.  This broadcaster will send messages to all listeners that have been registered with the ListenerManager.
-     */
-    ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
-        return testListenerBroadcaster;
     }
 
     /**

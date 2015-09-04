@@ -82,7 +82,7 @@ class DependencyResultSpecNotationParserSpec extends Specification {
 The following types/formats are supported:
   - Instances of Spec.
   - Closure that returns boolean and takes a single DependencyResult as a parameter.
-  - Non-empty String or CharSequence value, e.g. 'some-lib' or 'org.libs:some-lib'.
+  - Non-empty String or CharSequence value, for example 'some-lib' or 'org.libs:some-lib'.
 
 Please check the input for the DependencyInsight.dependency element.""")
     }

@@ -39,6 +39,16 @@ class DefaultTestFilterTest extends Specification {
         then: spec.includePatterns == ["x"] as Set
     }
 
+    def "allows configuring by test class and methodname"() {
+        expect: spec.includePatterns.isEmpty()
+
+        when:
+        spec.includeTest("acme.FooTest", "bar")
+        spec.includeTest("acme.BarTest", null)
+
+        then: spec.includePatterns == ["acme.FooTest.bar", "acme.BarTest.*"] as Set
+    }
+
     def "prevents empty names"() {
         when: spec.includeTestsMatching(null)
         then: thrown(InvalidUserDataException)

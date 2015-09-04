@@ -18,16 +18,21 @@
 
 package org.gradle.api.reporting.components
 
+import org.gradle.api.Transformer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.SystemProperties
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
 abstract class AbstractComponentReportIntegrationTest extends AbstractIntegrationSpec {
+    Transformer<String, String> formatter = new ComponentReportOutputFormatter()
+
     def setup() {
         settingsFile << "rootProject.name = 'test'"
     }
 
     boolean outputMatches(String actualOutput, String expectedOutput) {
         String cleaned = actualOutput.substring(0, actualOutput.lastIndexOf("BUILD SUCCESSFUL"))
+        cleaned = cleaned.replaceAll(/Download .*${SystemProperties.instance.lineSeparator}/, "")
         assert cleaned == expected(expectedOutput)
         return true
     }
@@ -42,7 +47,7 @@ Root project
 Note: currently not all plugins register their components, so some components may not be visible here.
 
 """
-        return new ComponentReportOutputFormatter(toolChain).transform(raw)
+        return formatter.transform(raw)
     }
 
     AvailableToolChains.InstalledToolChain getToolChain() {

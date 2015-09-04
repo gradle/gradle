@@ -20,38 +20,58 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.performance.measure.MeasuredOperation
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
 class CrossBuildPerformanceTestRunner {
-    TestDirectoryProvider testDirectoryProvider
-    GradleDistribution gradleDistribution = new UnderDevelopmentGradleDistribution()
-    TestProjectLocator testProjectLocator = new TestProjectLocator()
-    GradleExecuterProvider executerProvider = new GradleExecuterProvider()
-
-    OperationTimer timer = new OperationTimer()
+    final GradleDistribution gradleDistribution = new UnderDevelopmentGradleDistribution()
+    final BuildExperimentRunner experimentRunner
+    final TestProjectLocator testProjectLocator = new TestProjectLocator()
 
     String testId
-    int runs = 5
-    int warmUpRuns = 1
-    int subRuns = 1
-    List<BuildSpecification> buildSpecifications = []
+    String testGroup
+    List<BuildExperimentSpec> specs = []
 
-    private GCLoggingCollector gcCollector = new GCLoggingCollector()
-    DataCollector dataCollector = new CompositeDataCollector(
-            new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt"),
-            gcCollector)
+    final DataReporter<CrossBuildPerformanceResults> reporter
 
-    CrossBuildPerformanceResults results
-    DataReporter<CrossBuildPerformanceResults> reporter
+    public CrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter) {
+        this.reporter = dataReporter
+        this.experimentRunner = experimentRunner
+    }
 
-    CrossBuildPerformanceResults run() {
-        assert !buildSpecifications.empty
+    public void baseline(@DelegatesTo(BuildExperimentSpec.Builder) Closure<?> configureAction) {
+        buildSpec(configureAction)
+    }
+
+    public void buildSpec(@DelegatesTo(BuildExperimentSpec.Builder) Closure<?> configureAction) {
+        def builder = BuildExperimentSpec.builder()
+        defaultSpec(builder)
+        builder.with(configureAction)
+        finalizeSpec(builder)
+        def specification = builder.build()
+
+        if (specs.any { it.displayName == specification.displayName }) {
+            throw new IllegalStateException("Multiple specifications with display name '${specification.displayName}.")
+        }
+        specs << specification
+    }
+
+    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+        YourkitSupport.handleBuildInvocation(builder.invocation)
+        builder.invocation.distribution(gradleDistribution)
+    }
+
+    protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
+        assert builder.projectName
+        builder.invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
+    }
+
+    public CrossBuildPerformanceResults run() {
+        assert !specs.empty
         assert testId
 
-        results = new CrossBuildPerformanceResults(
+        def results = new CrossBuildPerformanceResults(
                 testId: testId,
+                testGroup: testGroup,
                 jvm: Jvm.current().toString(),
                 operatingSystem: OperatingSystem.current().toString(),
                 versionUnderTest: GradleVersion.current().getVersion(),
@@ -60,38 +80,19 @@ class CrossBuildPerformanceTestRunner {
                 testTime: System.currentTimeMillis()
         )
 
-        warmUpRuns.times {
-            runNow(1) //warm-up will not do any sub-runs
-        }
-        results.clear()
-        runs.times {
-            runNow(subRuns)
-        }
+        runAllSpecifications(results)
+
+        results.assertEveryBuildSucceeds()
         reporter.report(results)
-        results
+
+        return results
     }
 
-    void runNow(int subRuns) {
-        buildSpecifications.each {
-            File projectDir = testProjectLocator.findProjectDir(it.projectName)
-            runNow(it, projectDir, results.buildResult(it), subRuns)
+    void runAllSpecifications(CrossBuildPerformanceResults results) {
+        specs.each {
+            def operations = results.buildResult(it.displayInfo)
+            experimentRunner.run(it, operations)
         }
     }
 
-    void runNow(BuildSpecification buildSpecification, File projectDir, MeasuredOperationList results, int subRuns) {
-        def operation = timer.measure { MeasuredOperation operation ->
-            subRuns.times {
-                //creation of executer is included in measuer operation
-                //this is not ideal but it does not prevent us from finding performance regressions
-                //because extra time is equally added to all executions
-                def executer = executerProvider.executer(buildSpecification, gradleDistribution, projectDir, testDirectoryProvider)
-                dataCollector.beforeExecute(projectDir, executer)
-                executer.run()
-            }
-        }
-        if (operation.exception == null) {
-            dataCollector.collect(projectDir, operation)
-        }
-        results.add(operation)
-    }
 }

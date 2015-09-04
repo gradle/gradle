@@ -39,7 +39,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
                 mavenCentral()
             }
             dependencies {
-                testCompile 'junit:junit:4.11'
+                testCompile 'junit:junit:4.12'
             }
         """
         createTestFiles()

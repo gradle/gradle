@@ -20,7 +20,9 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
+import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner
+import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator
 import org.gradle.nativeplatform.internal.LinkerSpec
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
@@ -92,6 +94,11 @@ abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBina
         this.libs.from libs
     }
 
+    @Inject
+    public BuildOperationLoggerFactory getOperationLoggerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     void link() {
         def cleaner = new SimpleStaleClassCleaner(getOutputs())
@@ -112,7 +119,10 @@ abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBina
         spec.libraries getLibs()
         spec.args getLinkerArgs()
 
-        def result = toolChain.select(targetPlatform).newCompiler(spec).execute(spec)
+        def operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir())
+        spec.operationLogger = operationLogger
+
+        def result = BuildOperationLoggingCompilerDecorator.wrap(toolChain.select(targetPlatform).newCompiler(spec.getClass())).execute(spec)
         didWork = result.didWork
     }
 

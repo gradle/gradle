@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.hamcrest.Matchers
 
+import static org.gradle.util.Matchers.containsText
+
+@LeaksFileHandles
 class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
 
@@ -51,23 +58,23 @@ model {
 
         and:
         buildFile << """
+import org.gradle.nativeplatform.platform.internal.NativePlatforms
+
 apply plugin: 'c'
 
 model {
-    buildTypes {
-        debug
-        optimised
-        release
+    platforms {
+        unknown {
+            architecture "unknown"
+        }
     }
 }
 model {
     components {
-        main(NativeExecutableSpec)
-    }
-}
-binaries.all { binary ->
-    if (binary.buildType == buildTypes.optimised) {
-        binary.buildable = false
+        main(NativeExecutableSpec) {
+            targetPlatform "unknown"
+            targetPlatform "${NativePlatformsTestFixture.defaultPlatformName}"
+        }
     }
 }
 """
@@ -75,13 +82,52 @@ binaries.all { binary ->
         succeeds "assemble"
 
         then:
-        executedAndNotSkipped ":debugMainExecutable", ":releaseMainExecutable"
-        notExecuted ":optimisedMainExecutable"
+        executedAndNotSkipped ":${NativePlatformsTestFixture.defaultPlatformName}MainExecutable"
+        notExecuted ":unknownMainExecutable"
 
         and:
-        executable("build/binaries/mainExecutable/debug/main").assertExists()
-        executable("build/binaries/mainExecutable/optimised/main").assertDoesNotExist()
-        executable("build/binaries/mainExecutable/release/main").assertExists()
+        executable("build/binaries/mainExecutable/${NativePlatformsTestFixture.defaultPlatformName}/main").assertExists()
+        executable("build/binaries/mainExecutable/unknown/main").assertDoesNotExist()
+    }
+
+    def "assemble task produces sensible error when there are no buildable binaries" () {
+        buildFile << """
+apply plugin: 'c'
+
+model {
+    platforms {
+        unknown {
+            architecture "unknown"
+        }
+    }
+}
+model {
+    components {
+        main(NativeExecutableSpec) {
+            targetPlatform "unknown"
+        }
+        hello(NativeLibrarySpec) {
+            targetPlatform "unknown"
+        }
+        another(NativeLibrarySpec) {
+            binaries.all { buildable = false }
+        }
+    }
+}
+"""
+        when:
+        fails "assemble"
+
+        then:
+        failureDescriptionContains("Execution failed for task ':assemble'.")
+        failure.assertThatCause(Matchers.<String>allOf(
+                Matchers.startsWith("No buildable binaries found:"),
+                Matchers.containsString("helloSharedLibrary: No tool chain is available to build for platform 'unknown'"),
+                Matchers.containsString("helloStaticLibrary: No tool chain is available to build for platform 'unknown'"),
+                Matchers.containsString("mainExecutable: No tool chain is available to build for platform 'unknown'"),
+                Matchers.containsString("anotherStaticLibrary: Disabled by user"),
+                Matchers.containsString("anotherSharedLibrary: Disabled by user")
+        ))
     }
 
     def "assemble executable from component with multiple language source sets"() {
@@ -183,7 +229,7 @@ model {
 
         then:
         fails "mainExecutable"
-        failure.assertHasDescription("A problem occurred configuring root project 'test'.");
+        failure.assertHasCause("Exception thrown while executing model rule: model.components > create(main) > components.main.getSources() > create(java)");
         failure.assertHasCause("Cannot create a JavaSourceSet because this type is not known to this container. Known types are: CSourceSet, CppSourceSet")
     }
 
@@ -210,7 +256,9 @@ model {
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.");
-        failure.assertHasCause("Linker failed; see the error output for details.")
+        failure.assertHasCause("A build operation failed.")
+        def exeName = executable("build/binaries/mainExecutable/main").file.name
+        failure.assertThatCause(containsText("Linker failed while linking ${exeName}"))
     }
 
     def "build fails when link library fails"() {
@@ -241,7 +289,9 @@ model {
 
         then:
         failure.assertHasDescription("Execution failed for task ':linkMainSharedLibrary'.");
-        failure.assertHasCause("Linker failed; see the error output for details.")
+        failure.assertHasCause("A build operation failed.")
+        def libName = sharedLibrary("build/binaries/mainSharedLibrary/main").file.name
+        failure.assertThatCause(containsText("Linker failed while linking ${libName}"))
     }
 
     def "build fails when create static library fails"() {
@@ -270,7 +320,9 @@ binaries.withType(StaticLibraryBinarySpec) {
 
         then:
         failure.assertHasDescription("Execution failed for task ':createMainStaticLibrary'.");
-        failure.assertHasCause("Static library archiver failed; see the error output for details.")
+        failure.assertHasCause("A build operation failed.")
+        def libName = staticLibrary("build/binaries/mainSharedLibrary/main").file.name
+        failure.assertThatCause(containsText("Static library archiver failed while archiving ${libName}"))
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

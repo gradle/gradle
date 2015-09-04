@@ -15,79 +15,174 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.transport.file.FileTransport;
-import org.gradle.internal.resource.transport.http.HttpTransport;
-import org.gradle.internal.resource.transport.sftp.SftpClientFactory;
-import org.gradle.internal.resource.transport.sftp.SftpTransport;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.authentication.Authentication;
+import org.gradle.internal.authentication.AuthenticationInternal;
+import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
+import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
+import org.gradle.internal.resource.transfer.ExternalResourceConnector;
+import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport;
+import org.gradle.internal.resource.transport.file.FileTransport;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.gradle.util.WrapUtil;
 
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class RepositoryTransportFactory {
+    private final List<ResourceConnectorFactory> registeredProtocols = Lists.newArrayList();
+
     private final TemporaryFileProvider temporaryFileProvider;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildCommencedTimeProvider timeProvider;
-    private final SftpClientFactory sftpClientFactory;
     private final CacheLockingManager cacheLockingManager;
 
-    public RepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
+    public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
+                                      ProgressLoggerFactory progressLoggerFactory,
                                       TemporaryFileProvider temporaryFileProvider,
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                       BuildCommencedTimeProvider timeProvider,
-                                      SftpClientFactory sftpClientFactory,
                                       CacheLockingManager cacheLockingManager) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
-        this.sftpClientFactory = sftpClientFactory;
         this.cacheLockingManager = cacheLockingManager;
-    }
 
-    private RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return new HttpTransport(name, convertPasswordCredentials(credentials), progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager);
-    }
-
-    private RepositoryTransport createFileTransport(String name) {
-        return new FileTransport(name);
-    }
-
-    private RepositoryTransport createSftpTransport(String name, PasswordCredentials credentials) {
-        return new SftpTransport(name, convertPasswordCredentials(credentials), progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, sftpClientFactory, cacheLockingManager);
-    }
-
-    public RepositoryTransport createTransport(String scheme, String name, PasswordCredentials credentials) {
-        Set<String> schemes = new HashSet<String>();
-        schemes.add(scheme);
-        return createTransport(schemes, name, credentials);
-    }
-
-    private org.gradle.internal.resource.PasswordCredentials convertPasswordCredentials(PasswordCredentials credentials) {
-        return new org.gradle.internal.resource.PasswordCredentials(credentials.getUsername(), credentials.getPassword());
-    }
-
-    public RepositoryTransport createTransport(Set<String> schemes, String name, PasswordCredentials credentials) {
-        if (!WrapUtil.toSet("http", "https", "file", "sftp").containsAll(schemes)) {
-            throw new InvalidUserDataException("You may only specify 'file', 'http', 'https' and 'sftp' URLs for a repository.");
+        for (ResourceConnectorFactory connectorFactory : resourceConnectorFactory) {
+            register(connectorFactory);
         }
-        if (WrapUtil.toSet("http", "https").containsAll(schemes)) {
-            return createHttpTransport(name, credentials);
+    }
+
+    public void register(ResourceConnectorFactory resourceConnectorFactory) {
+        registeredProtocols.add(resourceConnectorFactory);
+    }
+
+    public Set<String> getRegisteredProtocols() {
+        Set<String> validSchemes = Sets.newLinkedHashSet();
+        for (ResourceConnectorFactory registeredProtocol : registeredProtocols) {
+            validSchemes.addAll(registeredProtocol.getSupportedProtocols());
         }
-        if (WrapUtil.toSet("file").containsAll(schemes)) {
-            return createFileTransport(name);
+        return validSchemes;
+    }
+
+    public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications) {
+        return createTransport(Collections.singleton(scheme), name, authentications);
+    }
+
+    public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications) {
+        validateSchemes(schemes);
+
+        ResourceConnectorFactory connectorFactory = findConnectorFactory(schemes);
+
+        // Ensure resource transport protocol, authentication types and credentials are all compatible
+        validateConnectorFactoryCredentials(schemes, connectorFactory, authentications);
+
+        // File resources are handled slightly differently at present.
+        // file:// repos are treated differently
+        // 1) we don't cache their files
+        // 2) we don't do progress logging for "downloading"
+        if (Collections.singleton("file").containsAll(schemes)) {
+            return new FileTransport(name);
         }
-        if (WrapUtil.toSet("sftp").containsAll(schemes)) {
-            return createSftpTransport(name, credentials);
+        ResourceConnectorSpecification connectionDetails = new DefaultResourceConnectorSpecification(authentications);
+        ExternalResourceConnector resourceConnector = connectorFactory.createResourceConnector(connectionDetails);
+        return new ResourceConnectorRepositoryTransport(name, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, cacheLockingManager, resourceConnector);
+    }
+
+    private void validateSchemes(Set<String> schemes) {
+        Set<String> validSchemes = getRegisteredProtocols();
+        for (String scheme : schemes) {
+            if (!validSchemes.contains(scheme)) {
+                throw new InvalidUserDataException(String.format("Not a supported repository protocol '%s': valid protocols are %s", scheme, validSchemes));
+            }
+        }
+    }
+
+    private void validateConnectorFactoryCredentials(Set<String> schemes, ResourceConnectorFactory factory, Collection<Authentication> authentications) {
+        Multiset duplicatedAuthentications = HashMultiset.create();
+
+        for (Authentication authentication : authentications) {
+            AuthenticationInternal authenticationInternal = (AuthenticationInternal)authentication;
+            boolean isAuthenticationSupported = false;
+            Credentials credentials = authenticationInternal.getCredentials();
+
+            for (Class<?> authenticationType : factory.getSupportedAuthentication()) {
+                if (authenticationType.isAssignableFrom(authentication.getClass())) {
+                    isAuthenticationSupported = true;
+                    break;
+                }
+            }
+
+            if (!isAuthenticationSupported) {
+                throw new InvalidUserDataException(String.format("Authentication scheme %s is not supported by protocol '%s'",
+                    authentication, schemes.iterator().next()));
+            }
+
+            if (credentials != null) {
+                if (!((AuthenticationInternal) authentication).supports(credentials)) {
+                    throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme %s",
+                        credentials.getClass().getSimpleName(), authentication));
+                }
+            } else {
+                throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
+            }
+
+            int count = duplicatedAuthentications.add(authenticationInternal.getType(), 1);
+            if (count > 0) {
+                throw new InvalidUserDataException(String.format("You cannot configure multiple authentication schemes of the same type.  The duplicate one is %s.", authentication));
+            }
+        }
+    }
+
+    private ResourceConnectorFactory findConnectorFactory(Set<String> schemes) {
+        for (ResourceConnectorFactory protocolRegistration : registeredProtocols) {
+            if (protocolRegistration.getSupportedProtocols().containsAll(schemes)) {
+                return protocolRegistration;
+            }
         }
         throw new InvalidUserDataException("You cannot mix different URL schemes for a single repository. Please declare separate repositories.");
+    }
+
+    private class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
+        private final Collection<Authentication> authentications;
+
+        private DefaultResourceConnectorSpecification(Collection<Authentication> authentications) {
+            this.authentications = authentications;
+        }
+
+        @Override
+        public <T> T getCredentials(Class<T> type) {
+            if (authentications == null || authentications.size() < 1) {
+                return null;
+            }
+
+            Credentials credentials = ((AuthenticationInternal)authentications.iterator().next()).getCredentials();
+
+            if(credentials == null) {
+                return null;
+            }
+            if (type.isAssignableFrom(credentials.getClass())) {
+                return type.cast(credentials);
+            } else {
+                throw new IllegalArgumentException(String.format("Credentials must be an instance of '%s'.", type.getCanonicalName()));
+            }
+        }
+
+        @Override
+        public Collection<Authentication> getAuthentications() {
+            return authentications;
+        }
     }
 }

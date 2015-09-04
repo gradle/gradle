@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import org.gradle.build.Install
 import org.gradle.build.BuildTypes
+import org.gradle.build.BuildTypes.BuildType
+import org.gradle.build.Install
 
 defaultTasks 'assemble'
 apply plugin: 'java-base'
@@ -23,51 +24,55 @@ archivesBaseName = 'gradle'
 
 extensions.buildTypes = new BuildTypes(project)
 
-buildTypes {
-    sanityCheck "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
-
-    // The minimum to be run before check-in
-    preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
-    quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
-
-    // For testing pull requests
-    pullRequestValidation "doc:checkstyleApi", "docs:check", "codeQuality", "classes"
-
-    // A full (in-process) test
-    developerBuild "check"
-
-    // Used by the first phase of the build pipeline, running only last version on multiversion - tests
-    quickTest "runtimeTests", "runtimeIntegTests"
-
-    // Used for builds to run all tests, but not necessarily on all platforms
-    fullTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking", testAllVersions: true
-
-    // Used for builds to test the code on certain platforms
-    platformTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking", testAllVersions: true, testAllPlatforms: true
-
-    // Tests using the daemon mode
-    daemonTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "daemon"
-
-    // Run the integration tests using the parallel executer
-    parallelTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "parallel"
-
-    // Run the performance tests
-    performanceTest "performance:integTest", useIncomingDistributions: true
-
-    // Run the performance tests
-    localPerformanceTest "performance:integTest"
-
-    // Used for cross version tests on CI
-    crossVersionTest "crossVersionIntegTest", useIncomingDistributions: true
-
-    // Used to build production distros and smoke test them
-    packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
-
-    // Used to build production distros and smoke test them
-    promotionBuild "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"
-}
-
 ext {
+    buildTypeList = [
+        BuildType.from('sanityCheck', ["classes", "doc:checkstyleApi", "codeQuality", "docs:check"]),
+
+        // The minimum to be run before check-in
+        BuildType.from('preCommitBuild', ["doc:checkstyleApi", "docs:check", "codeQuality", "test"]),
+        BuildType.from('quickCheck', ["doc:checkstyleApi", "docs:check", "codeQuality", "test"]),
+
+        // For testing pull requests
+        BuildType.from('pullRequestValidation', ["doc:checkstyleApi", "docs:check", "codeQuality", "core:test", "dependencyManagement:test"]),
+
+        // A full (in-process) test
+        BuildType.from('developerBuild', ["check"]),
+
+        // Used by the first phase of the build pipeline, running only last version on multiversion - tests
+        BuildType.from('quickTest', ["runtimeTests", "runtimeIntegTests", "performance:test"]),
+
+        // Used for builds to run all tests, but not necessarily on all platforms),
+        BuildType.from('fullTest', ["runtimeTests", "runtimeForkingIntegTests"], [useIncomingDistributions: true, testAllVersions: true]),
+
+        // Used for builds to test the code on certain platforms
+        BuildType.from('platformTest', ["runtimeTests", "runtimeForkingIntegTests", "performance:test"], [useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true]),
+
+        // Tests using the daemon mode
+        BuildType.from('daemonTest', ["runtimeDaemonIntegTests"], [useIncomingDistributions: true]),
+
+        // Run the integration tests using the parallel executer
+        BuildType.from('parallelTest', ["runtimeParallelIntegTests"], [useIncomingDistributions: true]),
+
+        // Run the performance tests
+        BuildType.from('performanceTest', ["performance:performanceTest"], [useIncomingDistributions: true]),
+
+        // Run the performance experiments
+        BuildType.from('performanceExperiments', ["performance:performanceExperiments"], [useIncomingDistributions: true]),
+
+        // Used for cross version tests on CI
+        BuildType.from('crossVersionTest', ["crossVersionIntegTest"], [useIncomingDistributions: true]),
+
+        // Used to build production distros and smoke test them
+        BuildType.from('packageBuild', ["verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"]),
+
+        // Used to build production distros and smoke test them
+        BuildType.from('promotionBuild', ["verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"]),
+
+        //Initial smoke test for java 9
+        BuildType.from('java9Build', ["java9Test", "java9IntegTest"], [useIncomingDistributions: true])
+    ]
+
+
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
     isCiServer = System.getenv().containsKey("TEAMCITY_VERSION")
@@ -85,7 +90,15 @@ ext {
         ext.useIncomingDistributions = false
     }
 
-    internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions"] }
+    agentNum = 1
+    if (System.getenv().containsKey("USERNAME")) {
+        def agentNumEnv = System.getenv("USERNAME") - "tcagent"
+        if (agentNumEnv ==~ /\d+/) {
+            agentNum = agentNumEnv
+        }
+    }
+
+    internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions", "performance"] }
     groovyProjects = subprojects
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
@@ -93,20 +106,27 @@ ext {
         'ide', 'announce', 'scala', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
-        'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'cunit',
-        'pluginDevelopment', 'pluginUse'
+        'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingNative',
+        'pluginDevelopment', 'pluginUse', 'resourcesHttp', 'resourcesSftp', 'resourcesS3',
+        'toolingApiBuilders'
     ].collect {
         project(it)
     }
     publishedProjects = [
-            project(':core'),
-            project(':toolingApi'),
-            project(':wrapper'),
-            project(':baseServices'),
-            project(':baseServicesGroovy'),
-            project(':messaging'),
-            project(':resources')
+        project(':core'),
+        project(':toolingApi'),
+        project(':wrapper'),
+        project(':baseServices'),
+        project(':baseServicesGroovy'),
+        project(':messaging'),
+        project(':resources')
     ]
+}
+
+buildTypes {
+    ext.buildTypeList.each { BuildType bt ->
+        register(bt.name, bt.tasks, bt.projectProperties)
+    }
 }
 
 apply from: "gradle/buildReceipt.gradle"
@@ -138,6 +158,7 @@ subprojects {
     if (project in groovyProjects) {
         apply from: "$rootDir/gradle/groovyProject.gradle"
         apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
+        apply from: "$rootDir/gradle/java9.gradle"
         check.dependsOn ":docs:checkstyleApi"
         check.dependsOn "codeQuality"
     }
@@ -154,6 +175,9 @@ subprojects {
 }
 
 configurations {
+    sonar {
+        visible = false
+    }
     runtime {
         visible = false
     }
@@ -169,14 +193,16 @@ configurations {
 dependencies {
     runtime project(':launcher')
     runtime project(':wrapper')
+    sonar libraries.logback_classic
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
+    gradlePlugins project(':testKit')
 }
 
 task verifyIsProductionBuildEnvironment << {
-    assert javaVersion.java7 : "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${jvm}"
+    assert javaVersion.java7: "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${jvm}"
     def systemCharset = java.nio.charset.Charset.defaultCharset().name()
-    assert systemCharset == "UTF-8" : "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
+    assert systemCharset == "UTF-8": "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
 }
 
 task waitForDaemonsToDie {
@@ -210,3 +236,5 @@ task installAll(type: Install) {
 
 
 apply from: "gradle/intTestImage.gradle"
+apply from: 'gradle/pullRequestBuild.gradle'
+apply from: 'gradle/buildSplits.gradle'

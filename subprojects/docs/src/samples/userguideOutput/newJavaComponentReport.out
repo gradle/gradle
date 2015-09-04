@@ -1,0 +1,29 @@
+:components
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+JVM library 'main'
+------------------
+
+Source sets
+    Java source 'main:java'
+        srcDir: src/main/java
+    Java source 'main:mySourceSet'
+        srcDir: src/main/mySourceSet
+    JVM resources 'main:resources'
+        srcDir: src/main/resources
+
+Binaries
+    Jar 'mainJar'
+        build using task: :mainJar
+        targetPlatform: java7
+        tool chain: JDK 7 (1.7)
+        Jar file: build/jars/mainJar/main.jar
+
+Note: currently not all plugins register their components, so some components may not be visible here.
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

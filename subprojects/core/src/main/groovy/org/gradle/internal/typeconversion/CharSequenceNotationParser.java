@@ -16,14 +16,15 @@
 
 package org.gradle.internal.typeconversion;
 
-import java.util.Collection;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
 class CharSequenceNotationParser implements NotationConverter<String, String> {
     public void convert(String notation, NotationConvertResult<? super String> result) throws TypeConversionException {
         result.converted(notation);
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("String or CharSequence instances.");
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("String or CharSequence instances.");
     }
 }

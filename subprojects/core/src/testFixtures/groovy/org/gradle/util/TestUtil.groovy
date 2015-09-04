@@ -135,7 +135,7 @@ class TestUtil {
      static String createUniqueId() {
          return new UID().toString();
      }
- }
+}
 
 
 interface TestClosure {

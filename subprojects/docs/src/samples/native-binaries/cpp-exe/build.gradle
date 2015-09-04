@@ -13,17 +13,20 @@ model {
             }
         }
     }
-}
-
-binaries.withType(NativeExecutableBinary) { binary ->
-    def linkTask = binary.tasks.link
-    def stripTask = task("strip${binary.name.capitalize()}") {
-        dependsOn linkTask
-        doFirst {
-            if (binary.toolChain in Gcc) {
-                ["strip", linkTask.outputFile].execute()
+    tasks { t ->
+        $("components.main").binaries { binaries ->
+            binaries.values().each { binary ->
+                def stripTask = "strip${binary.name.capitalize()}"
+                t.create(stripTask) {
+                    dependsOn binary.tasks.link
+                    doFirst {
+                        if (binary.toolChain in Gcc) {
+                            ["strip", binary.tasks.link.outputFile].execute()
+                        }
+                    }
+                }
+                binary.tasks.build.dependsOn stripTask
             }
         }
     }
-    binary.builtBy stripTask
 }

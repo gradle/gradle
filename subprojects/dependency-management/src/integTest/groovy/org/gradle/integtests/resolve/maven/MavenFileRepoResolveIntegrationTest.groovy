@@ -133,4 +133,34 @@ task retrieve(type: Sync) {
         buildDir.file('projectA-1.2.jar').assertIsCopyOf(artifactsModuleA.artifactFile)
         buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
     }
+
+    def "cannot define authentication for local file repo"() {
+        given:
+        def repo = mavenRepo()
+        def moduleA = repo.module('group', 'projectA', '1.2')
+        moduleA.publish()
+        and:
+        buildFile << """
+repositories {
+    maven {
+        url "${repo.uri}"
+        authentication {
+            auth(BasicAuthentication)
+        }
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
+"""
+        expect:
+        fails 'retrieve'
+        and:
+        errorOutput.contains("> Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 'file'")
+    }
 }

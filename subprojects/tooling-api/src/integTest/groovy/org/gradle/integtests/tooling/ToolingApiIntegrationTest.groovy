@@ -24,11 +24,9 @@ import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ModelBuilder
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.GradleVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
 class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
@@ -136,21 +134,8 @@ allprojects {
         model != null
     }
 
-    def "empty list of tasks to execute before building model is treated like null tasks"() {
-        projectDir.file('build.gradle')
-
-        when:
-        BuildEnvironment model = toolingApi.withConnection { ProjectConnection connection ->
-            ModelBuilder<BuildEnvironment> modelBuilder = connection.model(BuildEnvironment.class)
-            modelBuilder.forTasks(new String[0])
-            modelBuilder.get()
-        }
-
-        then:
-        model != null
-    }
-
     @Issue("GRADLE-2419")
+    @LeaksFileHandles
     def "tooling API does not hold JVM open"() {
         given:
         def buildFile = projectDir.file("build.gradle")
@@ -173,7 +158,7 @@ allprojects {
 
             dependencies {
                 compile "org.gradle:gradle-tooling-api:${distribution.version.version}"
-                runtime 'org.slf4j:slf4j-simple:1.7.2'
+                runtime 'org.slf4j:slf4j-simple:1.7.10'
             }
 
             mainClassName = 'Main'

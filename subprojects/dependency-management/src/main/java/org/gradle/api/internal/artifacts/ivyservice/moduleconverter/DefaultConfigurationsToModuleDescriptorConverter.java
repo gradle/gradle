@@ -17,20 +17,23 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
+import org.gradle.api.internal.artifacts.configurations.DirectBuildDependencies;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
 
-import java.util.Arrays;
+import java.util.Set;
 
 public class DefaultConfigurationsToModuleDescriptorConverter implements ConfigurationsToModuleDescriptorConverter {
-    public void addConfigurations(MutableLocalComponentMetaData metaData, Iterable<? extends Configuration> configurations) {
+    public void addConfigurations(BuildableLocalComponentMetaData metaData, Iterable<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             addConfiguration(metaData, configuration);
         }
     }
 
-    private void addConfiguration(MutableLocalComponentMetaData metaData, Configuration configuration) {
-        String[] superConfigs = Configurations.getNames(configuration.getExtendsFrom(), false).toArray(new String[configuration.getExtendsFrom().size()]);
-        Arrays.sort(superConfigs);
-        metaData.addConfiguration(configuration.getName(), configuration.isVisible(), configuration.getDescription(), superConfigs, configuration.isTransitive());
+    private void addConfiguration(BuildableLocalComponentMetaData metaData, Configuration configuration) {
+        Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
+        Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
+        TaskDependency directBuildDependencies = DirectBuildDependencies.forDependenciesAndArtifacts(configuration);
+        metaData.addConfiguration(configuration.getName(), configuration.getDescription(), extendsFrom, hierarchy, configuration.isVisible(), configuration.isTransitive(), directBuildDependencies);
     }
 }

@@ -16,15 +16,16 @@
 
 package org.gradle.messaging.remote.internal.hub
 
+import org.gradle.internal.serialize.DefaultSerializer
+import org.gradle.internal.serialize.Serializers
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.messaging.dispatch.MethodInvocation
-import org.gradle.messaging.serialize.kryo.JavaSerializer
-import org.gradle.messaging.serialize.kryo.KryoBackedDecoder
-import org.gradle.messaging.serialize.kryo.KryoBackedEncoder
 import spock.lang.Specification
 
 class MethodInvocationSerializerTest extends Specification {
     final classLoader = new GroovyClassLoader(getClass().classLoader)
-    final serializer = new MethodInvocationSerializer(classLoader, new JavaSerializer<Object[]>(getClass().classLoader))
+    final serializer = new MethodInvocationSerializer(classLoader, Serializers.stateful(new DefaultSerializer<Object[]>(getClass().classLoader)))
 
     def "serializes a method invocation with parameters"() {
         def method = String.class.getMethod("substring", Integer.TYPE, Integer.TYPE)

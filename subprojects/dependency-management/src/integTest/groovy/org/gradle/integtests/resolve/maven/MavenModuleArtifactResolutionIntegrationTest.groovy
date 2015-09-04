@@ -62,7 +62,8 @@ repositories {
 
         when:
         fixture.requestComponent(component).requestArtifact(artifactType)
-                .expectUnresolvedComponentResult(exception).expectMetadataFiles()
+                .expectUnresolvedComponentResult(exception)
+                .expectNoMetadataFiles()
                 .createVerifyTaskModuleComponentIdentifier()
         module.pom.expectGet()
 
@@ -80,8 +81,8 @@ repositories {
 
         when:
         fixture.requestComponent('MavenModule').requestArtifact('MavenPomArtifact')
-               .expectUnresolvedComponentResult(new IllegalArgumentException("Cannot query artifacts for a project component (project :)"))
-               .expectMetadataFiles()
+               .expectUnresolvedComponentResult(new IllegalArgumentException("Cannot query artifacts for a project component (project :)."))
+               .expectNoMetadataFiles()
                .createVerifyTaskForProjectComponentIdentifier()
 
         module.pom.expectGet()
@@ -96,9 +97,12 @@ repositories {
 
         when:
         fixture.requestComponent('MavenModule').requestArtifact('MavenPomArtifact')
-               .expectResolvedComponentResult().expectMetadataFiles()
+               .expectResolvedComponentResult()
+               .expectNoMetadataFiles()
+               .expectUnresolvedArtifactResult(ArtifactResolveException, "Could not find some-artifact.pom (some.group:some-artifact:1.0).")
                .createVerifyTaskModuleComponentIdentifier()
 
+        // TODO - should make a single request
         module.pom.expectGetMissing()
         module.pom.expectGetMissing()
         module.artifact.expectHead()

@@ -35,7 +35,7 @@ class TestWorkspaceBuilder {
 
     def file(String name) {
         TestFile file = baseDir.file(name)
-        file.write('some content')
+        file.createFile()
         file
     }
 

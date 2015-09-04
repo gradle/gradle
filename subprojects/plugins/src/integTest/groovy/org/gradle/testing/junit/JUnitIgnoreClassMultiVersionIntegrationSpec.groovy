@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.testing.fixture.JUnitCoverage
 import org.junit.Rule
 
-@TargetCoverage({JUnitCoverage.STANDARD_COVERAGE})
+@TargetCoverage({JUnitCoverage.IGNORE_ON_CLASS})
 class JUnitIgnoreClassMultiVersionIntegrationSpec extends MultiVersionIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)

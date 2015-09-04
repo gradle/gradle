@@ -17,6 +17,7 @@
 dependencies {
     compile project(':resources')
     compile project(':baseServices')
+    compile project(':core')
     compile libraries.commons_httpclient
     compile libraries.commons_lang
     compile libraries.nekohtml
@@ -26,3 +27,4 @@ dependencies {
 
 useTestFixtures()
 useClassycle()
+strictCompile()

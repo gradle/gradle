@@ -18,48 +18,78 @@ package org.gradle.model.internal.inspect;
 
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.util.CollectionUtils.findFirst;
 
 @ThreadSafe
-public class DefaultMethodRuleDefinition<T, R> implements MethodRuleDefinition<R> {
-    private final Method method;
-    private final ModelType<T> instanceType;
-    private final ModelType<R> returnType;
+public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinition<R, S> {
+    private ImmutableList<ModelReference<?>> references;
+
+    private final WeaklyTypeReferencingMethod<T, R> method;
 
     private DefaultMethodRuleDefinition(Method method, ModelType<T> instanceType, ModelType<R> returnType) {
-        this.method = method;
-        this.instanceType = instanceType;
-        this.returnType = returnType;
+        this.method = new WeaklyTypeReferencingMethod<T, R>(instanceType, returnType, method);
+        
+        ImmutableList.Builder<ModelReference<?>> referencesBuilder = ImmutableList.builder();
+        for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
+            Annotation[] paramAnnotations = method.getParameterAnnotations()[i];
+            referencesBuilder.add(reference(paramAnnotations, i));
+        }
+        this.references = referencesBuilder.build();
     }
 
-    public static <T, R> MethodRuleDefinition<R> create(Class<T> source, Method method) {
-        ModelType<R> returnType = ModelType.returnType(method);
-        return new DefaultMethodRuleDefinition<T, R>(method, ModelType.of(source), returnType);
+    public static <T> MethodRuleDefinition<?, ?> create(Class<T> source, Method method) {
+        return innerCreate(source, method);
     }
+
+    private static <T, R, S> MethodRuleDefinition<R, S> innerCreate(Class<T> source, Method method) {
+        ModelType<R> returnType = ModelType.returnType(method);
+        return new DefaultMethodRuleDefinition<T, R, S>(method, ModelType.of(source), returnType);
+    }
+
 
     public String getMethodName() {
         return method.getName();
     }
 
     public ModelType<R> getReturnType() {
-        return returnType;
+        return method.getReturnType();
+    }
+
+    @Nullable
+    @Override
+    public ModelReference<S> getSubjectReference() {
+        return Cast.uncheckedCast(references.isEmpty() ? null : references.get(0));
+    }
+
+    @Override
+    public List<ModelReference<?>> getTailReferences() {
+        return references.size() > 1 ? references.subList(1, references.size()) : Collections.<ModelReference<?>>emptyList();
     }
 
     public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-        return method.getAnnotation(annotationType);
+        for (Annotation annotation : method.getAnnotations()) {
+            if (annotationType.isAssignableFrom(annotation.getClass())) {
+                return Cast.uncheckedCast(annotation);
+            }
+        }
+        return null;
     }
 
     public ModelRuleDescriptor getDescriptor() {
@@ -67,16 +97,11 @@ public class DefaultMethodRuleDefinition<T, R> implements MethodRuleDefinition<R
     }
 
     public ModelRuleInvoker<R> getRuleInvoker() {
-        return new DefaultModelRuleInvoker<T, R>(method, instanceType, returnType);
+        return new DefaultModelRuleInvoker<T, R>(method);
     }
 
     public List<ModelReference<?>> getReferences() {
-        ImmutableList.Builder<ModelReference<?>> inputBindingBuilder = ImmutableList.builder();
-        for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
-            Annotation[] paramAnnotations = method.getParameterAnnotations()[i];
-            inputBindingBuilder.add(reference(paramAnnotations, i));
-        }
-        return inputBindingBuilder.build();
+        return references;
     }
 
     private ModelReference<?> reference(Annotation[] annotations, int i) {
@@ -86,7 +111,7 @@ public class DefaultMethodRuleDefinition<T, R> implements MethodRuleDefinition<R
             }
         });
         String path = pathAnnotation == null ? null : pathAnnotation.value();
-        ModelType<?> cast = ModelType.paramType(method, i);
+        ModelType<?> cast = ModelType.of(method.getGenericParameterTypes()[i]);
         return ModelReference.of(path == null ? null : validPath(path), cast, String.format("parameter %s", i + 1));
     }
 

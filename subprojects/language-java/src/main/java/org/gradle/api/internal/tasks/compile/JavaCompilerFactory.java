@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 
 /**
  * Creates Java compilers based on the provided compile options.
  */
 public interface JavaCompilerFactory {
-    Compiler<JavaCompileSpec> create(CompileOptions options);
+    Compiler<JavaCompileSpec> create(Class<? extends CompileSpec> type);
 
-    Compiler<JavaCompileSpec> createForJointCompilation(CompileOptions options);
+    Compiler<JavaCompileSpec> createForJointCompilation(Class<? extends CompileSpec> type);
 }

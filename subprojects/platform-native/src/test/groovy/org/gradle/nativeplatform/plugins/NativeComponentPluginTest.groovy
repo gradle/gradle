@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativeplatform.plugins
+
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
@@ -39,11 +40,12 @@ class NativeComponentPluginTest extends Specification {
                 test(NativeExecutableSpec)
             }
         }
-        project.evaluate()
+        project.tasks.realize()
+        project.bindAllModelRules()
 
         then:
         def testExecutable = project.binaries.testExecutable
-        with (project.tasks.linkTestExecutable) {
+        with(project.tasks.linkTestExecutable) {
             it instanceof LinkExecutable
             it == testExecutable.tasks.link
             it.toolChain == testExecutable.toolChain
@@ -66,11 +68,12 @@ class NativeComponentPluginTest extends Specification {
                 test(NativeLibrarySpec)
             }
         }
-        project.evaluate()
+        project.tasks.realize()
+        project.bindAllModelRules()
 
         then:
         def sharedLibraryBinary = project.binaries.testSharedLibrary
-        with (project.tasks.linkTestSharedLibrary) {
+        with(project.tasks.linkTestSharedLibrary) {
             it instanceof LinkSharedLibrary
             it == sharedLibraryBinary.tasks.link
             it.toolChain == sharedLibraryBinary.toolChain
@@ -84,8 +87,8 @@ class NativeComponentPluginTest extends Specification {
 
         and:
         def staticLibraryBinary = project.binaries.testStaticLibrary
-        with (project.tasks.createTestStaticLibrary) {
-            it instanceof  CreateStaticLibrary
+        with(project.tasks.createTestStaticLibrary) {
+            it instanceof CreateStaticLibrary
             it == staticLibraryBinary.tasks.createStaticLib
             it.toolChain == staticLibraryBinary.toolChain
             it.targetPlatform == staticLibraryBinary.targetPlatform

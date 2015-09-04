@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -30,11 +31,14 @@ import org.junit.Test
 
 public class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
-    @Rule public final PreconditionVerifier verifier = new PreconditionVerifier()
+    @Rule
+    public final TestResources resources = new TestResources(testDirectoryProvider)
+    @Rule
+    public final PreconditionVerifier verifier = new PreconditionVerifier()
 
     @Before
     void setup() {
+        NativeServicesTestFixture.initialize()
         executer.requireGradleHome()
     }
 
@@ -84,18 +88,25 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Requires(TestPrecondition.SYMLINKS)
     public void failsWhenJavaHomeNotSetAndPathDoesNotContainJava() {
-        def path
-        if (OperatingSystem.current().windows) {
-            path = ''
-        } else {
-            // Set up a fake bin directory, containing the things that the script needs, minus any java that might be in /usr/bin
-            def binDir = file('fake-bin')
-            ['basename', 'dirname', 'uname', 'which', 'bash'].each { linkToBinary(it, binDir) }
-            path = binDir.absolutePath
-        }
+        def links = ['basename', 'dirname', 'uname', 'which', 'bash']
+        def binDir = file('fake-bin')
+        try {
+            def path
+            if (OperatingSystem.current().windows) {
+                path = ''
+            } else {
+                // Set up a fake bin directory, containing the things that the script needs, minus any java that might be in /usr/bin
+                links.each { linkToBinary(it, binDir) }
+                path = binDir.absolutePath
+            }
 
-        def failure = executer.withEnvironmentVars('PATH': path, 'JAVA_HOME': '').withTasks('checkJavaHome').runWithFailure()
-        assert failure.output.contains("ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.")
+            def failure = executer.withEnvironmentVars('PATH': path, 'JAVA_HOME': '').withTasks('checkJavaHome').runWithFailure()
+            assert failure.output.contains("ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.")
+        } finally {
+            links.each {
+                new File(getTestDirectory(), "fake-bin/$it").delete()
+            }
+        }
     }
 
     def linkToBinary(String command, TestFile binDir) {

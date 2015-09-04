@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,70 +16,77 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Function;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Action;
-import org.gradle.internal.Factory;
 import org.gradle.model.collection.ManagedSet;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
+import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
+import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
-
-import java.util.Collections;
-import java.util.List;
+import org.gradle.model.internal.type.ModelTypes;
 
 @ThreadSafe
-public class ManagedSetStrategy implements ModelSchemaExtractionStrategy {
+public class ManagedSetStrategy extends SetStrategy {
 
-    private static final ModelType<ManagedSet<?>> MANAGED_SET_MODEL_TYPE = new ModelType<ManagedSet<?>>() {
-    };
-    private final Factory<String> supportedTypeDescriptions;
-
-    public ManagedSetStrategy(Factory<String> supportedTypeDescriptions) {
-        this.supportedTypeDescriptions = supportedTypeDescriptions;
+    public ManagedSetStrategy() {
+        super(new ModelType<ManagedSet<?>>() {
+        });
     }
 
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, final ModelSchemaCache cache) {
-        ModelType<T> type = extractionContext.getType();
-        if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(type)) {
-            if (!type.getRawClass().equals(ManagedSet.class)) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("subtyping %s is not supported", ManagedSet.class.getName()));
+    @Override
+    protected <T, E> Function<ModelCollectionSchema<T, E>, NodeInitializer> getNodeInitializer(final ModelSchemaStore store) {
+        return new Function<ModelCollectionSchema<T, E>, NodeInitializer>() {
+            @Override
+            public NodeInitializer apply(ModelCollectionSchema<T, E> schema) {
+                return new ProjectionOnlyNodeInitializer(
+                    TypedModelProjection.of(
+                        ModelTypes.managedSet(schema.getElementType()),
+                        new ManagedSetModelViewFactory<E>(schema.getElementType(), store)
+                    )
+                );
             }
-            if (type.isHasWildcardTypeVariables()) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type parameter of %s cannot be a wildcard", ManagedSet.class.getName()));
+        };
+    }
+
+    private static class ManagedSetModelViewFactory<T> implements ModelViewFactory<ManagedSet<T>> {
+        private final ModelType<T> elementType;
+        private final ModelSchemaStore store;
+
+        public ManagedSetModelViewFactory(ModelType<T> elementType, ModelSchemaStore store) {
+            this.elementType = elementType;
+            this.store = store;
+        }
+
+        @Override
+        public ModelView<ManagedSet<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
+            ModelType<ManagedSet<T>> setType = ModelTypes.managedSet(elementType);
+            DefaultModelViewState state = new DefaultModelViewState(setType, ruleDescriptor, writable, !writable);
+            NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, new ManagedChildNodeCreatorStrategy<T>(store));
+            return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
             }
 
-            List<ModelType<?>> typeVariables = type.getTypeVariables();
-            if (typeVariables.isEmpty()) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type parameter of %s has to be specified", ManagedSet.class.getName()));
-            }
+            ManagedSetModelViewFactory<?> that = (ManagedSetModelViewFactory<?>) o;
+            return elementType.equals(that.elementType);
 
-            ModelType<?> elementType = typeVariables.get(0);
+        }
 
-            if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(elementType)) {
-                throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", ManagedSet.class.getName()));
-            }
-
-            ModelSchema<T> schema = ModelSchema.collection(extractionContext.getType());
-            ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", new Action<ModelSchemaExtractionContext<?>>() {
-                public void execute(ModelSchemaExtractionContext<?> context) {
-                    ModelSchema<?> typeParamSchema = cache.get(context.getType());
-
-                    if (!typeParamSchema.getKind().isManaged()) {
-                        throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
-                                "cannot create a managed set of type %s as it is an unmanaged type.%nSupported types:%n%s",
-                                context.getType(), supportedTypeDescriptions.create()
-                        ));
-                    }
-                }
-            });
-            return new ModelSchemaExtractionResult<T>(schema, ImmutableList.of(typeParamExtractionContext));
-        } else {
-            return null;
+        @Override
+        public int hashCode() {
+            return elementType.hashCode();
         }
     }
 
-    public Iterable<String> getSupportedManagedTypes() {
-        return Collections.singleton(MANAGED_SET_MODEL_TYPE + " of a managed type");
-    }
+
 }

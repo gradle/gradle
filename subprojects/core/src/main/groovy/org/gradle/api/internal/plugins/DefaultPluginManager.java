@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
@@ -31,7 +32,6 @@ import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.plugin.internal.PluginId;
 
 import java.util.Map;
-import java.util.Set;
 
 @NotThreadSafe
 public class DefaultPluginManager implements PluginManagerInternal {
@@ -43,9 +43,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final PluginApplicator applicator;
     private final PluginRegistry pluginRegistry;
     private final DefaultPluginContainer pluginContainer;
-    private final Set<Class<?>> plugins = Sets.newHashSet();
-    private final Set<Plugin<?>> instances = Sets.newHashSet();
-    private final Map<String, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
+    private final Map<Class<?>, PluginImplementation<?>> plugins = Maps.newHashMap();
+    private final Map<Class<?>, Plugin<?>> instances = Maps.newHashMap();
+    private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
 
     public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginApplicator applicator) {
         this.instantiator = instantiator;
@@ -62,99 +62,103 @@ public class DefaultPluginManager implements PluginManagerInternal {
         }
     }
 
-    public <P extends Plugin> P addImperativePlugin(String id, Class<P> type) {
-        return doApply(id, pluginRegistry.inspect(type));
+    @Override
+    public <P extends Plugin> P addImperativePlugin(PluginImplementation<P> plugin) {
+        doApply(plugin);
+        Class<? extends P> pluginClass = plugin.asClass();
+        return pluginClass.cast(instances.get(pluginClass));
     }
 
-    @Nullable
-    public static String maybeQualify(String id) {
-        if (id.startsWith(CORE_PLUGIN_PREFIX)) {
+    public <P extends Plugin> P addImperativePlugin(Class<P> type) {
+        return addImperativePlugin(pluginRegistry.inspect(type));
+    }
+
+    @Nullable // if the plugin has already been added
+    private Runnable addPluginInternal(final PluginImplementation<?> plugin) {
+        final Class<?> pluginClass = plugin.asClass();
+        if (plugins.containsKey(pluginClass)) {
             return null;
-        } else {
-            return CORE_PLUGIN_PREFIX + id;
         }
-    }
 
-    private boolean addPluginInternal(Class<?> pluginClass) {
-        boolean added = plugins.add(pluginClass);
-        if (added) {
-            for (String id : idMappings.keySet()) {
-                if (hasId(pluginClass, id)) {
-                    idMappings.get(id).add(new PluginWithId(id, pluginClass));
+        plugins.put(pluginClass, plugin);
+        return new Runnable() {
+            @Override
+            public void run() {
+                // Take a copy because adding to an idMappings value may result in new mappings being added (i.e. ConcurrentModificationException)
+                Iterable<PluginId> pluginIds = Lists.newArrayList(idMappings.keySet());
+                for (PluginId id : pluginIds) {
+                    if (plugin.isAlsoKnownAs(id)) {
+                        idMappings.get(id).add(new PluginWithId(id, pluginClass));
+                    }
                 }
             }
-        }
-        return added;
+        };
     }
 
     public PluginContainer getPluginContainer() {
         return pluginContainer;
     }
 
+    @Override
+    public void apply(PluginImplementation<?> plugin) {
+        doApply(plugin);
+    }
+
     public void apply(String pluginId) {
-        PotentialPluginWithId potentialPluginWithId = pluginRegistry.lookup(pluginId);
-        if (potentialPluginWithId == null) {
+        PluginImplementation<?> plugin = pluginRegistry.lookup(PluginId.unvalidated(pluginId));
+        if (plugin == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
         }
-        doApply(potentialPluginWithId.getPluginId().toString(), potentialPluginWithId);
+        doApply(plugin);
     }
 
     public void apply(Class<?> type) {
-        PotentialPlugin potentialPlugin = pluginRegistry.inspect(type);
-        doApply(null, potentialPlugin);
+        doApply(pluginRegistry.inspect(type));
     }
 
-    @Nullable
-    private <T> T doApply(@Nullable final String pluginId, PotentialPlugin<T> potentialPlugin) {
-        Class<T> pluginClass = potentialPlugin.asClass();
+    private void doApply(PluginImplementation<?> plugin) {
+        PluginId pluginId = plugin.getPluginId();
+        String pluginIdStr = pluginId == null ? null : pluginId.toString();
+        Class<?> pluginClass = plugin.asClass();
         try {
-            if (potentialPlugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
+            if (plugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
                 throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
             } else {
-                boolean imperative = potentialPlugin.isImperative();
-                if (addPluginInternal(pluginClass)) {
+                boolean imperative = plugin.isImperative();
+                Runnable adder = addPluginInternal(plugin);
+                if (adder != null) {
                     if (imperative) {
                         // This insanity is needed for the case where someone calls pluginContainer.add(new SomePlugin())
                         // That is, the plugin container has the instance that we want, but we don't think (we can't know) it has been applied
-                        T instance = findInstance(pluginClass, pluginContainer);
+                        Object instance = findInstance(pluginClass, pluginContainer);
                         if (instance == null) {
                             instance = instantiatePlugin(pluginClass);
                         }
 
-                        Plugin<?> cast = Cast.uncheckedCast(instance);
-                        instances.add(cast);
+                        Plugin<?> pluginInstance = Cast.uncheckedCast(instance);
+                        instances.put(pluginClass, pluginInstance);
 
-                        if (potentialPlugin.isHasRules()) {
-                            applicator.applyImperativeRulesHybrid(pluginId, cast);
+                        if (plugin.isHasRules()) {
+                            applicator.applyImperativeRulesHybrid(pluginIdStr, pluginInstance);
                         } else {
-                            applicator.applyImperative(pluginId, cast);
+                            applicator.applyImperative(pluginIdStr, pluginInstance);
                         }
 
                         // Important not to add until after it has been applied as there can be
                         // plugins.withType() callbacks waiting to build on what the plugin did
-                        pluginContainer.add(cast);
-                        return instance;
+                        pluginContainer.add(pluginInstance);
                     } else {
-                        applicator.applyRules(pluginId, pluginClass);
+                        applicator.applyRules(pluginIdStr, pluginClass);
                     }
-                } else {
-                    if (imperative) {
-                        T instance = findInstance(pluginClass, instances);
-                        if (instance == null) {
-                            throw new IllegalStateException("Plugin of type " + pluginClass.getName() + " has been applied, but an instance wasn't found in the plugin container");
-                        } else {
-                            return instance;
-                        }
-                    }
+
+                    adder.run();
                 }
             }
         } catch (PluginApplicationException e) {
             throw e;
         } catch (Exception e) {
-            throw new PluginApplicationException(pluginId == null ? "class '" + pluginClass.getName() + "'" : "id '" + pluginId + "'", e);
+            throw new PluginApplicationException(plugin.getDisplayName(), e);
         }
-
-        return null;
     }
 
     private <T> T findInstance(Class<T> clazz, Iterable<?> instances) {
@@ -168,13 +172,14 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     public DomainObjectSet<PluginWithId> pluginsForId(String id) {
-        DomainObjectSet<PluginWithId> pluginsForId = idMappings.get(id);
+        PluginId pluginId = PluginId.unvalidated(id);
+        DomainObjectSet<PluginWithId> pluginsForId = idMappings.get(pluginId);
         if (pluginsForId == null) {
             pluginsForId = new DefaultDomainObjectSet<PluginWithId>(PluginWithId.class, Sets.<PluginWithId>newLinkedHashSet());
-            idMappings.put(id, pluginsForId);
-            for (Class<?> plugin : plugins) {
-                if (hasId(plugin, id)) {
-                    pluginsForId.add(new PluginWithId(id, plugin));
+            idMappings.put(pluginId, pluginsForId);
+            for (PluginImplementation<?> plugin : plugins.values()) {
+                if (plugin.isAlsoKnownAs(pluginId)) {
+                    pluginsForId.add(new PluginWithId(pluginId, plugin.asClass()));
                 }
             }
         }
@@ -182,25 +187,11 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return pluginsForId;
     }
 
-    private boolean hasId(Class<?> plugin, String id) {
-        PotentialPluginWithId potentialPluginWithId = pluginRegistry.lookup(id, plugin.getClassLoader());
-        return potentialPluginWithId != null && potentialPluginWithId.getPluginId().toString().equals(id) && potentialPluginWithId.asClass().equals(plugin);
-    }
-
     public AppliedPlugin findPlugin(final String id) {
-        String qualified = maybeQualify(id);
-        if (qualified != null) {
-            DomainObjectSet<PluginWithId> pluginWithIds = pluginsForId(qualified);
-            if (!pluginWithIds.isEmpty()) {
-                return pluginWithIds.iterator().next().asAppliedPlugin();
-            }
-        }
-
         DomainObjectSet<PluginWithId> pluginWithIds = pluginsForId(id);
         if (!pluginWithIds.isEmpty()) {
             return pluginWithIds.iterator().next().asAppliedPlugin();
         }
-
         return null;
     }
 
@@ -214,12 +205,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
                 action.execute(pluginWithId.asAppliedPlugin());
             }
         };
-
-        String qualified = maybeQualify(id);
-        if (qualified != null) {
-            pluginsForId(qualified).all(wrappedAction);
-        }
-
         pluginsForId(id).all(wrappedAction);
     }
 

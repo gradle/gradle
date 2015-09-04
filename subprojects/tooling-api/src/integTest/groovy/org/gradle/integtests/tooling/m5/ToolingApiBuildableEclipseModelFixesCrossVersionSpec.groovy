@@ -56,10 +56,10 @@ project(':api') {
         then:
         def rootTasks = eclipseProject.gradleProject.tasks.collect { it.name }
 
-        EclipseProject api = eclipseProject.children[1]
+        EclipseProject api = eclipseProject.children.find { it.name == "api" }
         def apiTasks = api.gradleProject.tasks.collect { it.name }
 
-        EclipseProject impl = eclipseProject.children[0]
+        EclipseProject impl = eclipseProject.children.find { it.name == "impl" }
         def implTasks = impl.gradleProject.tasks.collect { it.name }
 
         ['eclipse', 'cleanEclipse', 'eclipseProject', 'cleanEclipseProject'].each {

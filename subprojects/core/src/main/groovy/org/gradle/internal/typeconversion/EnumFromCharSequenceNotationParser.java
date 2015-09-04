@@ -17,6 +17,7 @@
 package org.gradle.internal.typeconversion;
 
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -52,10 +53,11 @@ public class EnumFromCharSequenceNotationParser<T extends Enum> implements Value
         }
     }
 
-    public void describe(Collection<String> candidateFormats) {
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
         List<String> values = new ArrayList<String>();
         describeValues(values);
-        candidateFormats.add(String.format("One of the following values: %s", GUtil.toString(values)));
+        visitor.candidate(String.format("One of the following values: %s", GUtil.toString(values)));
     }
 
     public void describeValues(Collection<String> collector) {

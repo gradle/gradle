@@ -23,8 +23,8 @@
         as well as other information such as when the signature was generated.
     </para>
     <para>
-        The signing plugin currently only provides support for generating <ulink url='http://www.pgpi.org/'>PGP signatures</ulink> 
-        (which is the signature format <ulink url="https://docs.sonatype.org/display/Repository/Central+Sync+Requirements">required for 
+        The signing plugin currently only provides support for generating <ulink url='http://www.pgpi.org/'>PGP signatures</ulink>
+        (which is the signature format <ulink url="http://central.sonatype.org/pages/requirements.html#sign-files-with-gpgpgp">required for
         publication to the Maven Central Repository</ulink>).
     </para>
 
@@ -35,13 +35,13 @@
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
     </section>
-    
+
     <section>
         <title>Signatory credentials</title>
         <para>
-            In order to create PGP signatures, you will need a key pair (instructions on creating a key pair using the <ulink url="http://www.gnupg.org/">GnuPG tools</ulink> 
+            In order to create PGP signatures, you will need a key pair (instructions on creating a key pair using the <ulink url="http://www.gnupg.org/">GnuPG tools</ulink>
             can be found in the <ulink url="http://www.gnupg.org/documentation/howtos.html">GnuPG HOWTOs</ulink>). You need to provide the signing plugin
-            with your key information, which means three things: 
+            with your key information, which means three things:
         </para>
         <itemizedlist>
             <listitem><para>The public key ID (an 8 character hexadecimal string).</para></listitem>
@@ -49,12 +49,12 @@
             <listitem><para>The passphrase used to protect your private key.</para></listitem>
         </itemizedlist>
         <para>
-            These items must be supplied as the values of properties <literal>signing.keyId</literal>,  
+            These items must be supplied as the values of properties <literal>signing.keyId</literal>,
             <literal>signing.secretKeyRingFile</literal>, and <literal>signing.password</literal> respectively. Given the personal and private nature of these values, a good practice
             is to store them in the user <literal>gradle.properties</literal> file (described in <xref linkend="sec:gradle_properties_and_system_properties"/>).
         </para>
         <programlisting>
-            signing.keyId=24875D73
+signing.keyId=24875D73
 signing.password=secret
 signing.secretKeyRingFile=/Users/me/.gnupg/secring.gpg
         </programlisting>
@@ -93,21 +93,21 @@ gradle.taskGraph.whenReady { taskGraph ->
     <section>
         <title>Specifying what to sign</title>
         <para>
-            As well as configuring how things are to be signed (i.e. the signatory configuration), you must also specify what is to be signed. 
+            As well as configuring how things are to be signed (i.e. the signatory configuration), you must also specify what is to be signed.
             The Signing plugin provides a DSL that allows you to specify the tasks and/or configurations that should be signed.
         </para>
         <section>
             <title>Signing Configurations</title>
             <para>
-                It is common to want to sign the artifacts of a configuration. For example, the <link linkend="java_plugin">Java plugin</link> 
-                configures a jar to build and this jar artifact is added to the <literal>archives</literal> configuration. 
+                It is common to want to sign the artifacts of a configuration. For example, the <link linkend="java_plugin">Java plugin</link>
+                configures a jar to build and this jar artifact is added to the <literal>archives</literal> configuration.
                 Using the Signing DSL, you can specify that all of the artifacts of this configuration should be signed.
             </para>
             <sample id="signingArchives" dir="signing/maven" title="Signing a configuration">
                 <sourcefile file="build.gradle" snippet="sign-archives"/>
             </sample>
             <para>
-                This will create a task (of type <apilink class="org.gradle.plugins.signing.Sign"/>) in your project named “<literal>signArchives</literal>”, 
+                This will create a task (of type <apilink class="org.gradle.plugins.signing.Sign"/>) in your project named “<literal>signArchives</literal>”,
                 that will build any <literal>archives</literal> artifacts (if needed) and then generate signatures for them. The signature files will be placed
                 alongside the artifacts being signed.
             </para>
@@ -125,7 +125,7 @@ gradle.taskGraph.whenReady { taskGraph ->
                 <sourcefile file="build.gradle" snippet="sign-task"/>
             </sample>
             <para>
-                This will create a task (of type <apilink class="org.gradle.plugins.signing.Sign"/>) in your project named “<literal>signStuffZip</literal>”, 
+                This will create a task (of type <apilink class="org.gradle.plugins.signing.Sign"/>) in your project named “<literal>signStuffZip</literal>”,
                 that will build the input task's archive (if needed) and then sign it. The signature file will be placed
                 alongside the artifact being signed.
             </para>
@@ -134,7 +134,7 @@ gradle.taskGraph.whenReady { taskGraph ->
             </sample>
             <para>
                 For a task to be “signable”, it must produce an archive of some type. Tasks that do this are the <apilink class="org.gradle.api.tasks.bundling.Tar"/>,
-                <apilink class="org.gradle.api.tasks.bundling.Zip"/>, <apilink class="org.gradle.api.tasks.bundling.Jar"/>, 
+                <apilink class="org.gradle.api.tasks.bundling.Zip"/>, <apilink class="org.gradle.api.tasks.bundling.Jar"/>,
                 <apilink class="org.gradle.api.tasks.bundling.War"/> and <apilink class="org.gradle.plugins.ear.Ear"/> tasks.
             </para>
         </section>
@@ -154,7 +154,7 @@ gradle.taskGraph.whenReady { taskGraph ->
             </para>
         </section>
     </section>
-    
+
     <section>
         <title>Publishing the signatures</title>
         <para>
@@ -163,7 +163,7 @@ gradle.taskGraph.whenReady { taskGraph ->
             with the artifacts you simply execute the <literal>uploadArchives</literal> task as normal.
         </para>
     </section>
-    
+
     <section>
         <title>Signing POM files</title>
         <para>
@@ -179,5 +179,5 @@ gradle.taskGraph.whenReady { taskGraph ->
             <literal>signPom()</literal> method will silently do nothing.
         </para>
     </section>
-    
+
 </chapter>

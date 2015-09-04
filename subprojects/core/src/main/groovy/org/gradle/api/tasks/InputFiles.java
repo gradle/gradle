@@ -21,6 +21,9 @@ import java.lang.annotation.*;
  * <p>Marks a property as specifying the input files for a task.</p>
  *
  * <p>This annotation should be attached to the getter method or the field for the property.</p>
+ *
+ * <p>This will cause the task to be considered out-of-date when the file paths or contents
+ * have changed. Also see {@link org.gradle.api.tasks.InputDirectory}.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

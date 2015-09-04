@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class TypedDomainObjectContainerWrapperTest extends Specification {
 
-    DefaultPolymorphicDomainObjectContainer<Type> parent = new DefaultPolymorphicDomainObjectContainer<Type>(Type, new DirectInstantiator())
+    DefaultPolymorphicDomainObjectContainer<Type> parent = new DefaultPolymorphicDomainObjectContainer<Type>(Type, DirectInstantiator.INSTANCE)
 
     def setup() {
         parent.add(type("typeOne"))

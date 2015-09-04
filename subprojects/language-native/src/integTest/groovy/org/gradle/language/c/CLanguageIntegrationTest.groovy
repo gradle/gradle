@@ -18,9 +18,13 @@ import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 import spock.lang.Unroll
-// TODO:DAZ Some of these tests should apply to all single-language integration tests
+
+import static org.gradle.util.Matchers.containsText
+
+@LeaksFileHandles
 class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new CHelloWorldApp()
@@ -47,7 +51,7 @@ class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     def "can manually define C source sets"() {
         given:
-        helloWorldApp.getLibraryHeader().writeToDir(file("src/shared"))
+        helloWorldApp.library.headerFiles.each { it.writeToDir(file("src/shared")) }
 
         file("src/main/c/main.c") << helloWorldApp.mainSource.content
         file("src/main/c2/hello.c") << helloWorldApp.librarySources[0].content
@@ -203,11 +207,40 @@ model {
 
         'broken
 """
+        expect:
+        fails "mainExecutable"
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
+        failure.assertHasCause("A build operation failed.")
+        failure.assertThatCause(containsText("C compiler failed while compiling broken.c"))
+    }
+
+    def "build fails when multiple compilations fail"() {
+        given:
+        def brokenFileCount = 5
+        buildFile << """
+            model {
+                components {
+                    main(NativeExecutableSpec)
+                }
+            }
+         """
+
+        and:
+        (1..brokenFileCount).each {
+            file("src/main/c/broken${it}.c") << """
+        #include <stdio.h>
+
+        'broken
+"""
+        }
 
         expect:
         fails "mainExecutable"
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
-        failure.assertHasCause("C compiler failed; see the error output for details.")
+        failure.assertHasCause("Multiple build operations failed.")
+        (1..brokenFileCount).each {
+            failure.assertThatCause(containsText("C compiler failed while compiling broken${it}.c"))
+        }
     }
 }
 

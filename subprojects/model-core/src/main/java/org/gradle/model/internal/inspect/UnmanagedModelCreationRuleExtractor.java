@@ -29,58 +29,56 @@ import java.util.List;
 public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
 
     @Override
-    public Spec<MethodRuleDefinition<?>> getSpec() {
-        final Spec<MethodRuleDefinition<?>> superSpec = super.getSpec();
-        return new Spec<MethodRuleDefinition<?>>() {
-            public boolean isSatisfiedBy(MethodRuleDefinition<?> element) {
+    public Spec<MethodRuleDefinition<?, ?>> getSpec() {
+        final Spec<MethodRuleDefinition<?, ?>> superSpec = super.getSpec();
+        return new Spec<MethodRuleDefinition<?, ?>>() {
+            public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> element) {
                 return superSpec.isSatisfiedBy(element) && !element.getReturnType().equals(ModelType.of(Void.TYPE));
             }
         };
     }
 
-    public <T> ModelRuleRegistration registration(MethodRuleDefinition<T> ruleDefinition, RuleSourceDependencies dependencies) {
+    public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
         String modelName = determineModelName(ruleDefinition);
 
-        ModelType<T> returnType = ruleDefinition.getReturnType();
+        ModelType<R> returnType = ruleDefinition.getReturnType();
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
-        BiAction<MutableModelNode, Inputs> transformer = new ModelRuleInvokerBackedTransformer<T>(returnType, ruleDefinition.getRuleInvoker(), descriptor, references);
-        ModelCreator modelCreator = ModelCreators.of(ModelReference.of(ModelPath.path(modelName), returnType), transformer)
-                .withProjection(new UnmanagedModelProjection<T>(returnType, true, true))
+        BiAction<MutableModelNode, List<ModelView<?>>> transformer = new ModelRuleInvokerBackedTransformer<R>(returnType, ruleDefinition.getRuleInvoker(), descriptor);
+        ModelCreator modelCreator = ModelCreators.of(ModelPath.path(modelName), transformer)
+                .withProjection(new UnmanagedModelProjection<R>(returnType, true, true))
                 .descriptor(descriptor)
                 .inputs(references)
                 .build();
 
-        return new ModelCreatorRegistration(modelCreator);
+        return new ExtractedModelCreator(modelCreator);
     }
 
     public String getDescription() {
         return String.format("%s and returning a model element", super.getDescription());
     }
 
-    private static class ModelRuleInvokerBackedTransformer<T> implements BiAction<MutableModelNode, Inputs> {
+    private static class ModelRuleInvokerBackedTransformer<T> implements BiAction<MutableModelNode, List<ModelView<?>>> {
 
         private final ModelType<T> type;
         private final ModelRuleDescriptor descriptor;
         private final ModelRuleInvoker<T> ruleInvoker;
-        private final List<ModelReference<?>> inputReferences;
 
-        private ModelRuleInvokerBackedTransformer(ModelType<T> type, ModelRuleInvoker<T> ruleInvoker, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputReferences) {
+        private ModelRuleInvokerBackedTransformer(ModelType<T> type, ModelRuleInvoker<T> ruleInvoker, ModelRuleDescriptor descriptor) {
             this.type = type;
             this.descriptor = descriptor;
             this.ruleInvoker = ruleInvoker;
-            this.inputReferences = inputReferences;
         }
 
-        public void execute(MutableModelNode modelNode, Inputs inputs) {
+        public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
             T instance;
             if (inputs.size() == 0) {
                 instance = ruleInvoker.invoke();
             } else {
                 Object[] args = new Object[inputs.size()];
                 for (int i = 0; i < inputs.size(); i++) {
-                    args[i] = inputs.get(i, inputReferences.get(i).getType()).getInstance();
+                    args[i] = inputs.get(i).getInstance();
                 }
 
                 instance = ruleInvoker.invoke(args);

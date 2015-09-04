@@ -17,7 +17,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.id.IdGenerator
-import org.gradle.messaging.serialize.Serializer
+import org.gradle.internal.serialize.Serializer
 import spock.lang.Specification
 
 class CacheBackedFileSnapshotRepositoryTest extends Specification {

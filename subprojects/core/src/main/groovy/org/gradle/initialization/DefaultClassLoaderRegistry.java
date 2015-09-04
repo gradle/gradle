@@ -29,19 +29,21 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry, JdkTools
     private final ClassLoader apiOnlyClassLoader;
     private final ClassLoader apiAndPluginsClassLoader;
     private final ClassLoader extensionsClassLoader;
+    private final ClassLoaderFactory classLoaderFactory;
 
     public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+        this.classLoaderFactory = classLoaderFactory;
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
 
-        apiOnlyClassLoader = restrictToGradleApi(classLoaderFactory, runtimeClassLoader);
+        apiOnlyClassLoader = restrictToGradleApi(runtimeClassLoader);
 
         ClassPath pluginsClassPath = classPathRegistry.getClassPath("GRADLE_EXTENSIONS");
         extensionsClassLoader = new MutableURLClassLoader(runtimeClassLoader, pluginsClassPath);
 
-        this.apiAndPluginsClassLoader = restrictToGradleApi(classLoaderFactory, extensionsClassLoader);
+        this.apiAndPluginsClassLoader = restrictToGradleApi(extensionsClassLoader);
     }
 
-    private ClassLoader restrictToGradleApi(ClassLoaderFactory classLoaderFactory, ClassLoader classLoader) {
+    private ClassLoader restrictToGradleApi(ClassLoader classLoader) {
         FilteringClassLoader rootClassLoader = classLoaderFactory.createFilteringClassLoader(classLoader);
         rootClassLoader.allowPackage("org.gradle");
         rootClassLoader.allowResources("META-INF/gradle-plugins");
@@ -60,7 +62,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry, JdkTools
         // Add in tools.jar to the systemClassloader parent
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
-            final ClassLoader systemClassLoaderParent = ClassLoader.getSystemClassLoader().getParent();
+            final ClassLoader systemClassLoaderParent = classLoaderFactory.getIsolatedSystemClassLoader();
             ClasspathUtil.addUrl((URLClassLoader) systemClassLoaderParent, new DefaultClassPath(toolsJar).getAsURLs());
         }
     }

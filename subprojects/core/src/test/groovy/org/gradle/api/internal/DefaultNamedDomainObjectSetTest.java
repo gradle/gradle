@@ -20,10 +20,11 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
-import org.gradle.util.TestUtil;
 import org.gradle.util.TestClosure;
+import org.gradle.util.TestUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -41,8 +42,12 @@ import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultNamedDomainObjectSetTest {
-    private final org.gradle.internal.reflect.Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new org.gradle.internal.reflect.DirectInstantiator());
-    private final Namer<Bean> namer = new Namer<Bean>() { public String determineName(Bean bean) { return bean.name; } };
+    private final org.gradle.internal.reflect.Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE);
+    private final Namer<Bean> namer = new Namer<Bean>() {
+        public String determineName(Bean bean) {
+            return bean.name;
+        }
+    };
     @SuppressWarnings("unchecked")
     private final DefaultNamedDomainObjectSet<Bean> container = instantiator.newInstance(DefaultNamedDomainObjectSet.class, Bean.class, instantiator, namer);
     private final JUnit4Mockery context = new JUnit4Mockery();
@@ -63,11 +68,11 @@ public class DefaultNamedDomainObjectSetTest {
         Bean bean1 = new Bean("a");
         Bean bean2 = new Bean("b");
         Bean bean3 = new Bean("c");
-    
+
         container.add(bean2);
         container.add(bean1);
         container.add(bean3);
-    
+
         assertThat(toList(container), equalTo(toList(bean1, bean2, bean3)));
     }
 
@@ -82,11 +87,11 @@ public class DefaultNamedDomainObjectSetTest {
         Bean bean1 = new Bean("a");
         Bean bean2 = new Bean("b");
         Bean bean3 = new Bean("c");
-    
+
         container.add(bean2);
         container.add(bean1);
         container.add(bean3);
-    
+
         Iterator<Bean> iterator = container.iterator();
         assertThat(iterator.next(), sameInstance(bean1));
         assertThat(iterator.next(), sameInstance(bean2));
@@ -199,7 +204,9 @@ public class DefaultNamedDomainObjectSetTest {
             public OtherBean(String name) {
                 super(name);
             }
-            public OtherBean() {}
+
+            public OtherBean() {
+            }
         }
         final Action<OtherBean> action = context.mock(Action.class);
         Bean bean1 = new Bean("b1");
@@ -208,7 +215,7 @@ public class DefaultNamedDomainObjectSetTest {
         container.add(bean1);
         container.add(bean2);
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(action).execute(bean2);
         }});
 
@@ -221,7 +228,9 @@ public class DefaultNamedDomainObjectSetTest {
             public OtherBean(String name) {
                 super(name);
             }
-            public OtherBean() {}
+
+            public OtherBean() {
+            }
         }
         final TestClosure closure = context.mock(TestClosure.class);
         Bean bean1 = new Bean("b1");
@@ -230,7 +239,7 @@ public class DefaultNamedDomainObjectSetTest {
         container.add(bean1);
         container.add(bean2);
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(closure).call(bean2);
         }});
 
@@ -662,7 +671,7 @@ public class DefaultNamedDomainObjectSetTest {
 
         Bean withType = new Bean("withType");
         container.add(withType);
-        
+
         // Try with an element with the same name as a method
         ConfigureUtil.configure(toClosure("{ withType.beanProperty = 'value 6' }"), container);
         assertThat(withType.getBeanProperty(), equalTo("value 6"));

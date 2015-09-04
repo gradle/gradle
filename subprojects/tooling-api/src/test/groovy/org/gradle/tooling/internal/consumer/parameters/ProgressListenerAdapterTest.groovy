@@ -20,11 +20,7 @@ import spock.lang.Specification
 
 class ProgressListenerAdapterTest extends Specification {
     final ProgressListener listener = Mock()
-    final ProgressListenerAdapter adapter = new ProgressListenerAdapter()
-
-    def setup() {
-        adapter.add(listener)
-    }
+    ProgressListenerAdapter adapter = new ProgressListenerAdapter(Collections.singletonList(listener))
 
     def notifiesListenerOnOperationStartAndEnd() {
         when:
@@ -58,6 +54,5 @@ class ProgressListenerAdapterTest extends Specification {
         1 * listener.statusChanged({it.description == 'main'})
         1 * listener.statusChanged({it.description == ''})
         0 * _._
-
     }
 }

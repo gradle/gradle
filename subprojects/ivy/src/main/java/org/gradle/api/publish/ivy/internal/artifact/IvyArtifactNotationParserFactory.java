@@ -24,11 +24,11 @@ import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.*;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.concurrent.Callable;
 
 public class IvyArtifactNotationParserFactory implements Factory<NotationParser<Object, IvyArtifact>> {
@@ -124,8 +124,9 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
             return createDefaultIvyArtifact(file, extension, extension, null);
         }
 
-        public void describe(Collection<String> candidateFormats) {
-            fileResolverNotationParser.describe(candidateFormats);
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            fileResolverNotationParser.describe(visitor);
         }
     }
 
@@ -141,8 +142,8 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         }
 
         @Override
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Maps containing a 'source' entry, e.g. [source: '/path/to/file', extension: 'zip'].");
+        public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("Maps containing a 'source' entry").example("[source: '/path/to/file', extension: 'zip']");
         }
     }
 }

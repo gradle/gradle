@@ -16,7 +16,9 @@
 
 package org.gradle.language.nativeplatform.internal.incremental
 
-import org.gradle.messaging.serialize.SerializerSpec
+import org.gradle.internal.serialize.SerializerSpec
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultSourceIncludes
 
 class CompilationStateSerializerTest extends SerializerSpec {
     def state = new CompilationState()
@@ -68,15 +70,15 @@ class CompilationStateSerializerTest extends SerializerSpec {
 
         def otherCompileState = newState.getState(fileTwo)
         new String(otherCompileState.hash) == "FooBar"
-        otherCompileState.sourceIncludes.systemIncludes == ["system"]
-        otherCompileState.sourceIncludes.quotedIncludes == ["quoted"]
-        otherCompileState.sourceIncludes.macroIncludes == ["MACRO"]
+        otherCompileState.sourceIncludes.systemIncludes.collect { it.value } == ["system"]
+        otherCompileState.sourceIncludes.quotedIncludes.collect { it.value } == ["quoted"]
+        otherCompileState.sourceIncludes.macroIncludes.collect { it.value } == ["MACRO"]
         otherCompileState.resolvedIncludes == [resolvedInclude("ONE"), resolvedInclude("TWO")] as Set
     }
 
     private static DefaultSourceIncludes createSourceIncludes(String... strings) {
         final DefaultSourceIncludes sourceIncludes = new DefaultSourceIncludes()
-        sourceIncludes.addAll(strings as List<String>)
+        sourceIncludes.addAll(strings.collect { DefaultInclude.parse(it, false) })
         sourceIncludes
     }
 

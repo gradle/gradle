@@ -40,7 +40,9 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
                 vcsCommit: "1234")
         def baseline1 = result1.baseline("1.0")
         def baseline2 = result1.baseline("1.5")
-        result1.current << operation(executionTime: minutes(12),
+        result1.current << operation(totalTime: minutes(12),
+                configurationTime: minutes(1),
+                executionTime: minutes(10),
                 totalMemoryUsed: kbytes(12.33),
                 totalHeapUsage: kbytes(5612.45),
                 maxHeapUsage: kbytes(124.01),
@@ -77,7 +79,11 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         def history = readStore.getTestResults("test1")
 
         then:
+        history.id == "test1"
+        history.name == "test1"
         history.baselineVersions == ["1.0", "1.5"]
+        history.experimentCount == 3
+        history.experimentLabels == ["1.0", "1.5", "master"]
 
         and:
         def results = history.results
@@ -94,7 +100,9 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results[0].vcsBranch == 'master'
         results[0].vcsCommit == '1234'
         results[0].current.size() == 1
-        results[0].current[0].executionTime == minutes(12)
+        results[0].current[0].totalTime == minutes(12)
+        results[0].current[0].configurationTime == minutes(1)
+        results[0].current[0].executionTime == minutes(10)
         results[0].current[0].totalMemoryUsed == kbytes(12.33)
         results[0].current[0].totalHeapUsage == kbytes(5612.45)
         results[0].current[0].maxHeapUsage == kbytes(124.01)
@@ -146,7 +154,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         readStore?.close()
     }
 
-    def "returns test executions in descending date order"() {
+    def "returns top n test executions in descending date order"() {
         given:
         def writeStore = new CrossVersionResultsStore(dbFile)
         writeStore.report(crossVersionResults(testId: "some test", testTime: 30000, versionUnderTest: "1.7-rc-3"))
@@ -162,6 +170,14 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results.results.size() == 3
         results.results*.versionUnderTest == ["1.7-rc-3", "1.7-rc-2", "1.7-rc-1"]
         results.resultsOldestFirst*.versionUnderTest == ["1.7-rc-1", "1.7-rc-2", "1.7-rc-3"]
+
+        when:
+        results = readStore.getTestResults("some test", 2)
+
+        then:
+        results.results.size() == 2
+        results.results*.versionUnderTest == ["1.7-rc-3", "1.7-rc-2"]
+        results.resultsOldestFirst*.versionUnderTest == ["1.7-rc-2", "1.7-rc-3"]
 
         cleanup:
         writeStore?.close()
@@ -196,38 +212,8 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results.baselineVersions == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10"]
         results.branches == ["master", "release"]
         results.knownVersions == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10", "master", "release"]
-
-        cleanup:
-        writeStore?.close()
-        readStore?.close()
-    }
-
-    def "the set of known versions is the union of all baseline versions and branches"() {
-        given:
-        def writeStore = new CrossVersionResultsStore(dbFile)
-
-        def results1 = crossVersionResults(testId: "test-1", vcsBranch: "master")
-        results1.baseline("1.8-rc-2").results << operation()
-        results1.baseline("1.0").results << operation()
-        def results2 = crossVersionResults(testId: "test-2", vcsBranch: "release")
-        results2.baseline("1.8-rc-1").results << operation()
-        results2.baseline("1.0").results << operation()
-        results2.baseline("1.10").results << operation()
-        def results3 = crossVersionResults(testId: "test-3", vcsBranch: "release")
-        results3.baseline("1.8").results << operation()
-        results3.baseline("2.0").results << operation()
-
-        writeStore.report(results1)
-        writeStore.report(results2)
-        writeStore.report(results3)
-        writeStore.close()
-
-        when:
-        def readStore = new CrossVersionResultsStore(dbFile)
-        def results = readStore.getVersions()
-
-        then:
-        results == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10", "2.0", "master", "release"]
+        results.experimentCount == 7
+        results.experimentLabels == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10", "master", "release"]
 
         cleanup:
         writeStore?.close()

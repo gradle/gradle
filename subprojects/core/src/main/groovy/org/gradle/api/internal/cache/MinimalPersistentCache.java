@@ -20,7 +20,7 @@ import org.gradle.cache.*;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Serializer;
 
 import static org.apache.commons.lang.WordUtils.uncapitalize;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;

@@ -17,7 +17,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.artifacts.maven.MavenPom
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.publication.maven.internal.DefaultMavenFactory
+import org.gradle.api.publication.maven.internal.pom.DefaultMavenFactory
 import org.gradle.api.publication.maven.internal.MavenFactory
 import org.gradle.util.TestUtil
 import spock.lang.Specification

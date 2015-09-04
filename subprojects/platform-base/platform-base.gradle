@@ -1,10 +1,13 @@
 dependencies {
     compile libraries.groovy
     compile project(":core")
+    compile project(":dependencyManagement")
+    testFixturesCompile project(path: ":modelCore", configuration: "testFixturesUsageRuntime")
 }
 
 useClassycle()
 strictCompile()
 useTestFixtures()
 useTestFixtures(sourceSet: 'testFixtures')
+useTestFixtures(project: ':diagnostics', sourceSet: 'testFixtures')
 

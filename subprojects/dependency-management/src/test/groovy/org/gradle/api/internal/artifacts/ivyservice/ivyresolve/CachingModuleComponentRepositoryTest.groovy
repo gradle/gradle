@@ -85,28 +85,28 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
     def "does not use cache when module version listing can be determined locally"() {
         def dependency = Mock(DependencyMetaData)
-        def result = new DefaultBuildableModuleComponentVersionSelectionResolveResult()
+        def result = new DefaultBuildableModuleVersionListingResolveResult()
 
         when:
         repo.localAccess.listModuleVersions(dependency, result)
 
         then:
         realLocalAccess.listModuleVersions(dependency, result) >> {
-            result.listed(Mock(ModuleVersionListing))
+            result.listed(['a', 'b', 'c'])
         }
         0 * _
     }
 
     def "does not use cache when component metadata can be determined locally"() {
-        def dependency = Mock(DependencyMetaData)
         def componentId = Mock(ModuleComponentIdentifier)
+        def prescribedMetaData = Mock(ComponentOverrideMetadata)
         def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
 
         when:
-        repo.localAccess.resolveComponentMetaData(dependency, componentId, result)
+        repo.localAccess.resolveComponentMetaData(componentId, prescribedMetaData, result)
 
         then:
-        realLocalAccess.resolveComponentMetaData(dependency, componentId, result) >> {
+        realLocalAccess.resolveComponentMetaData(componentId, prescribedMetaData, result) >> {
             result.resolved(Mock(MutableModuleComponentResolveMetaData))
         }
         0 * _

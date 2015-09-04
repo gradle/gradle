@@ -31,7 +31,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
         container = createResolverContainer()
     }
 
-    ArtifactRepositoryContainer createResolverContainer(Instantiator instantiator = new DirectInstantiator()) {
+    ArtifactRepositoryContainer createResolverContainer(Instantiator instantiator = DirectInstantiator.INSTANCE) {
         new DefaultArtifactRepositoryContainer(instantiator)
     }
 
@@ -75,7 +75,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
 
     def notificationsAreFiredWhenRepositoryIsAdded() {
         Action<ArtifactRepository> action = Mock(Action)
-        ArtifactRepository repository = Mock(ArtifactRepository)
+        ArtifactRepository repository = Mock(ArtifactRepository) { getName() >> "name" }
 
         when:
         container.all(action)
@@ -87,7 +87,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
 
     def notificationsAreFiredWhenRepositoryIsAddedToTheHead() {
         Action<ArtifactRepository> action = Mock(Action)
-        ArtifactRepository repository = Mock(ArtifactRepository)
+        ArtifactRepository repository = Mock(ArtifactRepository) { getName() >> "name" }
 
         when:
         container.all(action)
@@ -99,7 +99,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
 
     def notificationsAreFiredWhenRepositoryIsAddedToTheTail() {
         Action<ArtifactRepository> action = Mock(Action)
-        ArtifactRepository repository = Mock(ArtifactRepository)
+        ArtifactRepository repository = Mock(ArtifactRepository) { getName() >> "name" }
 
         when:
         container.all(action)

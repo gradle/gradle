@@ -16,82 +16,33 @@
 
 package org.gradle.test.fixtures.server.sftp
 
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.maven.DelegatingMavenModule
 import org.gradle.test.fixtures.maven.MavenFileModule
-import org.gradle.test.fixtures.maven.MavenMetaData
 import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.test.fixtures.maven.MavenPom
 
-class MavenSftpModule implements MavenModule {
+class MavenSftpModule extends DelegatingMavenModule<MavenSftpModule> implements MavenModule {
     MavenFileModule backingModule
     SFTPServer server
 
     MavenSftpModule(SFTPServer server, MavenFileModule backingModule) {
+        super(backingModule)
         this.server = server
         this.backingModule = backingModule
     }
 
-    MavenModule publish() {
-        backingModule.publish()
+    SftpArtifact getPom() {
+        return new SftpArtifact(server, pomFile)
     }
 
-    MavenModule publishPom() {
-        backingModule.publishPom()
+    SftpArtifact getArtifact() {
+        return new SftpArtifact(server, artifactFile)
     }
 
-    MavenModule publishWithChangedContent() {
-        backingModule.publishWithChangedContent()
+    SftpArtifact getMavenMetadata() {
+        return new SftpArtifact(server, metaDataFile)
     }
 
-    MavenModule withNonUniqueSnapshots() {
-        backingModule.withNonUniqueSnapshots()
-    }
-
-    MavenModule parent(String group, String artifactId, String version) {
-        backingModule.parent(group, artifactId, version)
-    }
-
-    MavenModule dependsOn(String group, String artifactId, String version) {
-        backingModule.dependsOn(group, artifactId, version)
-    }
-
-    MavenModule dependsOn(String group, String artifactId, String version, String type) {
-        backingModule.dependsOn(group, artifactId, version, type)
-    }
-
-    MavenModule hasPackaging(String packaging) {
-        backingModule.hasPackaging(packaging)
-    }
-
-    MavenModule hasType(String type) {
-        backingModule.hasPackaging(type)
-    }
-
-    TestFile getPomFile() {
-        backingModule.getPomFile()
-    }
-
-    TestFile getArtifactFile() {
-        backingModule.getArtifactFile()
-    }
-
-    TestFile getMetaDataFile() {
-        backingModule.getMetaDataFile()
-    }
-
-    MavenPom getParsedPom() {
-        backingModule.getParsedPom()
-    }
-
-    MavenMetaData getRootMetaData() {
-        backingModule.getRootMetaData()
-    }
-
-    SftpResource getPom() {
-        new SftpResource(server, pomFile)
-    }
-
-    SftpResource getArtifact() {
-        new SftpResource(server, artifactFile)
+    SftpArtifact getRootMavenMetadata() {
+        return new SftpArtifact(server, backingModule.rootMetaDataFile)
     }
 }

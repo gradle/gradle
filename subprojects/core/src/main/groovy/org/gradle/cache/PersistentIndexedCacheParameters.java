@@ -17,8 +17,8 @@ package org.gradle.cache;
 
 import org.gradle.api.Nullable;
 import org.gradle.cache.internal.CacheDecorator;
-import org.gradle.messaging.serialize.BaseSerializerFactory;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.BaseSerializerFactory;
+import org.gradle.internal.serialize.Serializer;
 
 public class PersistentIndexedCacheParameters<K, V> {
     private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory();

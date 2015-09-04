@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.gcc
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.operations.BuildOperationProcessor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
@@ -32,9 +33,9 @@ import spock.lang.Specification
 class GccToolChainTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
-    Instantiator instantiator = new DirectInstantiator()
+    Instantiator instantiator = DirectInstantiator.INSTANCE
 
-    final toolChain = new GccToolChain(instantiator , "gcc", OperatingSystem.current(), fileResolver, Stub(ExecActionFactory), Stub(CompilerMetaDataProviderFactory))
+    final toolChain = new GccToolChain(instantiator , "gcc", Stub(BuildOperationProcessor), OperatingSystem.current(), fileResolver, Stub(ExecActionFactory), Stub(CompilerMetaDataProviderFactory))
 
     def "provides default tools"() {
         def action = Mock(Action)
@@ -45,7 +46,7 @@ class GccToolChainTest extends Specification {
 
         then:
         1 * action.execute(_) >> { GccPlatformToolChain platformToolChain ->
-            assert platformToolChain.assembler.executable == 'as'
+            assert platformToolChain.assembler.executable == 'gcc'
             assert platformToolChain.cCompiler.executable == 'gcc'
             assert platformToolChain.cppCompiler.executable == 'g++'
             assert platformToolChain.objcCompiler.executable == 'gcc'

@@ -111,8 +111,8 @@ public class UserGuideTransformTask extends DefaultTask {
         }
     }
 
-    String normalise(String content) {
-        return content.trim().replace('\t', '    ').replace('\r\n', '\n')
+    static String normalise(String content) {
+        return content.replace('\t', '    ').stripIndent().replace('\r\n', '\n')
     }
 
     def transformApiLinks(Document doc) {

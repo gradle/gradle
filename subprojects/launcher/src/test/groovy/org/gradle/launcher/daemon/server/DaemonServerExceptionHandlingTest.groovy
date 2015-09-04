@@ -16,13 +16,14 @@
 
 package org.gradle.launcher.daemon.server
 
+import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
-import org.gradle.initialization.BuildAction
-import org.gradle.initialization.BuildController
-import org.gradle.initialization.FixedBuildCancellationToken
-import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.initialization.BuildRequestContext
+import org.gradle.internal.invocation.BuildAction
+import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
 import org.gradle.launcher.daemon.client.StubDaemonHealthServices
@@ -31,21 +32,28 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandAction
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
+import org.gradle.launcher.exec.BuildExecuter
 import org.gradle.launcher.exec.DefaultBuildActionParameters
-import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.messaging.remote.internal.MessageIOException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-class DaemonServerExceptionHandlingTest extends Specification {
+import static org.gradle.launcher.daemon.configuration.DaemonUsage.IMPLICITLY_DISABLED
 
+@UsesNativeServices
+class DaemonServerExceptionHandlingTest extends Specification {
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    def cancellationToken = new FixedBuildCancellationToken()
-    def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR)
+    def buildRequestContext = Stub(BuildRequestContext) {
+        getClient() >> new GradleLauncherMetaData()
+    }
+    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, IMPLICITLY_DISABLED, false, false, [])
+    def contextServices = Stub(ServiceRegistry)
 
     static class DummyLauncherAction implements BuildAction, Serializable {
+        StartParameter startParameter
         Object someState
         Object run(BuildController buildController) { null }
     }
@@ -62,7 +70,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         def action = new DummyLauncherAction(someState: unloadableClass)
 
         when:
-        client.execute(action, cancellationToken, parameters)
+        client.execute(action, buildRequestContext, parameters, contextServices)
 
         then:
         def ex = thrown(MessageIOException)
@@ -74,7 +82,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         //we need to override some methods to inject a failure action into the sequence
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
-                return new DefaultDaemonCommandExecuter(new InProcessBuildActionExecuter(get(GradleLauncherFactory)),
+                return new DefaultDaemonCommandExecuter(get(BuildExecuter), this,
                         get(ProcessEnvironment), getFactory(LoggingManagerInternal.class).create(),
                         new File("dummy"), new StubDaemonHealthServices()) {
                     List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
@@ -98,7 +106,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClient).execute(new DummyLauncherAction(), cancellationToken, parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters, contextServices)
 
         then:
         def ex = thrown(Throwable)
@@ -114,7 +122,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         }
 
         when:
-        services.get(DaemonClient).execute(new DummyLauncherAction(), cancellationToken, parameters)
+        services.get(DaemonClient).execute(new DummyLauncherAction(), buildRequestContext, parameters, contextServices)
 
         then:
         def ex = thrown(OutOfMemoryError)

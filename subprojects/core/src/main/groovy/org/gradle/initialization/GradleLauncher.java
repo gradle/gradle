@@ -20,38 +20,36 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.concurrent.Stoppable;
 
 /**
- * This was the old Gradle embedding API (it used to be in the public `org.gradle` package). It is now internal and is due to be merged into
- * {@link org.gradle.initialization.BuildController}.
+ * This was the old Gradle embedding API (it used to be in the public `org.gradle` package). It is now internal and is due to be merged into {@link org.gradle.internal.invocation.BuildController}.
  */
 public abstract class GradleLauncher implements Stoppable {
 
     /**
-     * <p>Executes the build for this {@code GradleLauncher} instance and returns the result. Note that when the build
-     * fails, the exception is available using {@link org.gradle.BuildResult#getFailure()}.</p>
+     * <p>Executes the build for this {@code GradleLauncher} instance and returns the result.</p>
      *
      * @return The result. Never returns null.
+     * @throws ReportedException On build failure. The failure will have been logged.
      */
-    public abstract BuildResult run();
+    public abstract BuildResult run() throws ReportedException;
 
     /**
-     * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via
-     * the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.
+     * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.
      *
      * @return The result. Never returns null.
+     * @throws ReportedException On build failure. The failure will have been logged.
      */
-    public abstract BuildResult getBuildAnalysis();
+    public abstract BuildResult getBuildAnalysis() throws ReportedException;
 
     /**
-     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the execution of
-     * the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for supported listener types.</p>
+     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the execution of the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for
+     * supported listener types.</p>
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
     public abstract void addListener(Object listener);
 
     /**
-     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to
-     * standard output by Gradle's logging system
+     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard output by Gradle's logging system
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
@@ -63,4 +61,5 @@ public abstract class GradleLauncher implements Stoppable {
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
     public abstract void addStandardErrorListener(StandardOutputListener listener);
+
 }

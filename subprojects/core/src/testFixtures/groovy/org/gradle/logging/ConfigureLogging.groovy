@@ -16,49 +16,48 @@
 
 package org.gradle.logging
 
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.Appender
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.Level
+import org.gradle.api.logging.LogLevel
+import org.gradle.logging.internal.OutputEventListener
+import org.gradle.logging.internal.slf4j.OutputEventListenerBackedLogger
+import org.gradle.logging.internal.slf4j.OutputEventListenerBackedLoggerContext
 import org.junit.rules.ExternalResource
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import ch.qos.logback.classic.LoggerContext
 
 import java.util.logging.LogManager
 
 class ConfigureLogging extends ExternalResource {
-    private final Appender<ILoggingEvent> appender;
-    private Logger logger;
+    private final OutputEventListener listener
+    private final OutputEventListenerBackedLoggerContext context
+    private final OutputEventListenerBackedLogger logger
 
-    def ConfigureLogging(appender) {
-        this.appender = appender;
+    ConfigureLogging(OutputEventListener listener) {
+        this.listener = listener
+        context = LoggerFactory.ILoggerFactory as OutputEventListenerBackedLoggerContext
+        logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as OutputEventListenerBackedLogger
     }
 
     @Override
     protected void before() {
-        attachAppender()
+        attachListener()
+    }
+
+    public void attachListener() {
+        context.outputEventListener = listener
+        context.level = LogLevel.DEBUG
     }
 
     @Override
     protected void after() {
-        detachAppender()
+        resetLogging()
     }
 
-    public void attachAppender() {
-        logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("ROOT");
-        logger.detachAndStopAllAppenders()
-        logger.addAppender(appender)
-        logger.setLevel(Level.ALL)
-    }
-
-    public void detachAppender() {
-        logger.detachAppender(appender)
-        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory()
-        lc.reset()
+    public void resetLogging() {
+        context.reset()
         LogManager.getLogManager().reset()
     }
 
-    public void setLevel(Level level) {
-        logger.setLevel(level)
+    public void setLevel(LogLevel level) {
+        context.level = level
     }
 }

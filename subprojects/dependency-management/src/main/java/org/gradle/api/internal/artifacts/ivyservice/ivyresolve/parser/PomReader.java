@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomProfile;
-import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -90,7 +90,7 @@ public class PomReader implements PomParent {
     private final Element projectElement;
     private final Element parentElement;
 
-    public PomReader(final LocallyAvailableExternalResource resource) throws IOException, SAXException {
+    public PomReader(final LocallyAvailableExternalResource resource) throws SAXException {
         final String systemId = resource.getLocalResource().getFile().toURI().toASCIIString();
         Document pomDomDoc = resource.withContent(new Transformer<Document, InputStream>() {
             public Document transform(InputStream inputStream) {
@@ -112,22 +112,21 @@ public class PomReader implements PomParent {
         setActiveProfileProperties();
     }
 
-    public void setPomParent(PomParent pomParent) {
-        this.pomParent = pomParent;
-        setPomParentProperties();
+    private void setDefaultParentGavProperties() {
+        maybeSetGavProperties(GavProperty.PARENT_GROUP_ID, getParentGroupId());
+        maybeSetGavProperties(GavProperty.PARENT_VERSION, getParentVersion());
+        maybeSetGavProperties(GavProperty.PARENT_ARTIFACT_ID, getParentArtifactId());
     }
 
-    private void setPomParentProperties() {
-        Map<String, String> parentPomProps = pomParent.getProperties();
-
-        for(Map.Entry<String, String> entry : parentPomProps.entrySet()) {
-            setProperty(entry.getKey(), entry.getValue());
+    private void maybeSetGavProperties(GavProperty gavProperty, String propertyValue) {
+        for(String name : gavProperty.getNames()) {
+            maybeSetProperty(name, propertyValue);
         }
     }
 
     private void setPomProperties() {
         for(Map.Entry<String, String> pomProperty : getPomProperties().entrySet()) {
-            setProperty(pomProperty.getKey(), pomProperty.getValue());
+            maybeSetProperty(pomProperty.getKey(), pomProperty.getValue());
         }
     }
 
@@ -142,27 +141,40 @@ public class PomReader implements PomParent {
         }
     }
 
-    private void setDefaultParentGavProperties() {
-        setGavPropertyValueWithoutReplacement(GavProperty.PARENT_GROUP_ID, getParentGroupId());
-        setGavPropertyValueWithoutReplacement(GavProperty.PARENT_VERSION, getParentVersion());
+    public void setPomParent(PomParent pomParent) {
+        this.pomParent = pomParent;
+        setPomParentProperties();
     }
 
-    private void setGavPropertyValueWithoutReplacement(GavProperty gavProperty, String propertyValue) {
-        for(String name : gavProperty.getNames()) {
-            setProperty(name, propertyValue);
+    private void setPomParentProperties() {
+        Map<String, String> parentPomProps = pomParent.getProperties();
+        for(Map.Entry<String, String> entry : parentPomProps.entrySet()) {
+            maybeSetProperty(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * Add a property if not yet set and value is not null.
+     * This guarantee that property keep the first value that is put on it and that the properties
+     * are never null.
+     */
+    private void maybeSetProperty(String prop, String val) {
+        if (!properties.containsKey(prop) && val != null) {
+            properties.put(prop, val);
         }
     }
 
     private enum GavProperty {
-        PARENT_VERSION("parent.version", "project.parent.version"),
         PARENT_GROUP_ID("parent.groupId", "project.parent.groupId"),
+        PARENT_ARTIFACT_ID("parent.artifactId", "project.parent.artifactId"),
+        PARENT_VERSION("parent.version", "project.parent.version"),
         GROUP_ID("project.groupId", "pom.groupId", "groupId"),
         ARTIFACT_ID("project.artifactId", "pom.artifactId", "artifactId"),
         VERSION("project.version", "pom.version", "version");
 
         private final String[] names;
 
-        private GavProperty(String... names) {
+        GavProperty(String... names) {
             this.names = names;
         }
 
@@ -193,17 +205,6 @@ public class PomReader implements PomParent {
 
     public boolean hasParent() {
         return parentElement != null;
-    }
-
-    /**
-     * Add a property if not yet set and value is not null.
-     * This guarantee that property keep the first value that is put on it and that the properties
-     * are never null.
-     */
-    public void setProperty(String prop, String val) {
-        if (!properties.containsKey(prop) && val != null) {
-            properties.put(prop, val);
-        }
     }
 
     public Map<String, String> getProperties() {

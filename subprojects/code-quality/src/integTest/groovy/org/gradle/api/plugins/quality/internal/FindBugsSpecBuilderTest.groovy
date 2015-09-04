@@ -124,7 +124,7 @@ class FindBugsSpecBuilderTest extends Specification {
         where:
         reportType << ["xml", "html", "emacs", "text"]
     }
-    
+
     def "with xml with messages report configured"() {
         setup:
         FindBugsXmlReportImpl singleReport = Mock()
@@ -150,7 +150,7 @@ class FindBugsSpecBuilderTest extends Specification {
         args.contains(arg.toString())
         args.contains("-outputFile")
         args.contains(destination.absolutePath)
-        
+
         where:
         withMessages << [true, false]
         arg << ['-xml:withMessages', '-xml']
@@ -228,5 +228,13 @@ class FindBugsSpecBuilderTest extends Specification {
 
         then:
         args.contains("-exclude $file")
+    }
+
+    def "with extra args"() {
+        when:
+        def args = builder.withExtraArgs([ 'abc', 'def' ]).build().arguments
+
+        then:
+        args.containsAll([ "abc", "def" ])
     }
 }

@@ -26,6 +26,7 @@ import java.util.Set;
 public class DefaultTestFilter implements TestFilter {
 
     private Set<String> testNames = new HashSet<String>();
+    private boolean failOnNoMatching = true;
 
     private void validateName(String name) {
         if (name == null || name.length() == 0) {
@@ -37,6 +38,26 @@ public class DefaultTestFilter implements TestFilter {
         validateName(testNamePattern);
         testNames.add(testNamePattern);
         return this;
+    }
+
+    public TestFilter includeTest(String className, String methodName) {
+        validateName(className);
+        if(methodName == null || methodName.trim().isEmpty()){
+            testNames.add(new StringBuilder(className).append(".*").toString());
+        }else{
+            testNames.add(new StringBuilder(className).append(".").append(methodName).toString());
+        }
+        return this;
+    }
+
+    @Override
+    public void setFailOnNoMatchingTests(boolean failOnNoMatchingTests) {
+        this.failOnNoMatching = failOnNoMatchingTests;
+    }
+
+    @Override
+    public boolean isFailOnNoMatchingTests() {
+        return failOnNoMatching;
     }
 
     @Input

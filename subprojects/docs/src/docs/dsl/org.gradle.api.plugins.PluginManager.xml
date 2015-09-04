@@ -1,0 +1,34 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>apply</td>
+            </tr>
+            <tr>
+                <td>findPlugin</td>
+            </tr>
+            <tr>
+                <td>hasPlugin</td>
+            </tr>
+            <tr>
+                <td>withPlugin</td>
+            </tr>
+        </table>
+    </section>
+</section>

@@ -16,13 +16,13 @@
 
 package org.gradle.performance.fixture;
 
-import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.performance.measure.MeasuredOperation;
 
 import java.io.File;
+import java.util.List;
 
 public interface DataCollector {
-    void beforeExecute(File testProjectDir, GradleExecuter executer);
-
+    List<String> getAdditionalJvmOpts(File workingDir);
+    List<String> getAdditionalArgs(File workingDir);
     void collect(File testProjectDir, MeasuredOperation operation);
 }

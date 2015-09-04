@@ -48,10 +48,10 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
         File originalProcessDir = GFileUtils.canonicalise(new File("."));
 
         for (Map.Entry<String, String> entry : build.getParameters().getSystemProperties().entrySet()) {
-            if (SystemProperties.getStandardProperties().contains(entry.getKey())) {
+            if (SystemProperties.getInstance().getStandardProperties().contains(entry.getKey())) {
                 continue;
             }
-            if (SystemProperties.getNonStandardImportantProperties().contains(entry.getKey())) {
+            if (SystemProperties.getInstance().getNonStandardImportantProperties().contains(entry.getKey())) {
                 continue;
             }
             if (entry.getKey().startsWith("sun.")) {

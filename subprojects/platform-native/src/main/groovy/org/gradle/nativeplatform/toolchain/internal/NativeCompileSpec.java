@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.nativeplatform.internal.BinaryToolSpec;
 
 import java.io.File;
@@ -64,4 +65,20 @@ public interface NativeCompileSpec extends BinaryToolSpec {
     boolean isIncrementalCompile();
 
     void setIncrementalCompile(boolean flag);
+
+    File getPrefixHeaderFile();
+
+    void setPrefixHeaderFile(File prefixHeaderFile);
+
+    File getPreCompiledHeaderObjectFile();
+
+    void setPreCompiledHeaderObjectFile(File preCompiledHeaderObjectFile);
+
+    String getPreCompiledHeader();
+
+    void setPreCompiledHeader(String header);
+
+    Map<File, SourceIncludes> getSourceFileIncludes();
+
+    void setSourceFileIncludes(Map<File, SourceIncludes> map);
 }

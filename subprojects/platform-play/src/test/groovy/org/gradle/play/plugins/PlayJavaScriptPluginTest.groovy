@@ -15,12 +15,10 @@
  */
 
 package org.gradle.play.plugins
-
 import org.gradle.api.Action
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.javascript.JavaScriptSourceSet
-import org.gradle.model.collection.CollectionBuilder
+import org.gradle.model.ModelMap
 import org.gradle.platform.base.internal.ComponentSpecInternal
 import org.gradle.play.PlayApplicationSpec
 import spock.lang.Specification
@@ -28,8 +26,8 @@ import spock.lang.Specification
 class PlayJavaScriptPluginTest extends Specification {
     def "adds javaScript source sets to play components" () {
         def plugin = new PlayJavaScriptPlugin()
-        def components = Mock(CollectionBuilder)
-        def sources = Mock(FunctionalSourceSet)
+        def components = Mock(ModelMap)
+        def sources = Mock(ModelMap)
         def sourceSet = Mock(JavaScriptSourceSet)
         def sourceDirSet = Mock(SourceDirectorySet)
 
@@ -39,15 +37,18 @@ class PlayJavaScriptPluginTest extends Specification {
             getSources() >> sources
         }
         _ * components.beforeEach(_) >> { Action a -> a.execute(playApp) }
+        _ * sourceSet.getSource() >> sourceDirSet
 
         and:
         plugin.createJavascriptSourceSets(components)
 
         then:
-        1 * sources.create("javaScriptAssets", JavaScriptSourceSet) >> sourceSet
-        2 * sourceSet.getSource() >> sourceDirSet
+        1 * sources.create("javaScript", JavaScriptSourceSet, _ as Action) >> {
+            String name, Class type, Action a -> a.execute(sourceSet)
+        }
         1 * sourceDirSet.srcDir("app/assets")
         1 * sourceDirSet.include("**/*.js")
+        0 * _._
     }
 
     interface PlayAppInternal extends PlayApplicationSpec, ComponentSpecInternal {}

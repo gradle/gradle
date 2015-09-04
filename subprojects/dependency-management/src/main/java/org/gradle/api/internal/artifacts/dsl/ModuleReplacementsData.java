@@ -20,5 +20,13 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 public interface ModuleReplacementsData {
+    ModuleReplacementsData NO_OP = new ModuleReplacementsData() {
+        @Nullable
+        @Override
+        public ModuleIdentifier getReplacementFor(ModuleIdentifier sourceModule) {
+            return null;
+        }
+    };
+
     @Nullable ModuleIdentifier getReplacementFor(ModuleIdentifier sourceModule);
 }

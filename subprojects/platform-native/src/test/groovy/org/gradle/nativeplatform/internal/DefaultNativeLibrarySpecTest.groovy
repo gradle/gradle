@@ -17,16 +17,14 @@
 package org.gradle.nativeplatform.internal
 
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultNativeLibrarySpecTest extends Specification {
-    FunctionalSourceSet mainSourceSet = new DefaultFunctionalSourceSet("testFS", new DirectInstantiator(), Stub(ProjectSourceSet))
-    final library = BaseComponentSpec.create(DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("project-path", "someLib"), mainSourceSet, new DirectInstantiator())
+    final library = BaseComponentFixtures.create(DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("project-path", "someLib"), Stub(ProjectSourceSet), DirectInstantiator.INSTANCE)
 
     def "has useful string representation"() {
         expect:

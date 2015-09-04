@@ -15,16 +15,16 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.BuildCancelledException;
-import org.gradle.tooling.BuildException;
-import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.ResultHandler;
+import org.gradle.internal.event.ListenerNotificationException;
+import org.gradle.tooling.*;
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException;
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
+import org.gradle.tooling.internal.protocol.test.InternalTestExecutionException;
+import org.gradle.tooling.TestExecutionException;
 
 /**
  * Adapts a {@link ResultHandler} to a {@link ResultHandlerVersion1}.
@@ -53,8 +53,12 @@ abstract class ResultHandlerAdapter<T> implements ResultHandlerVersion1<T> {
             handler.onFailure((GradleConnectionException) failure);
         } else if (failure instanceof InternalBuildCancelledException) {
             handler.onFailure(new BuildCancelledException(connectionFailureMessage(failure), failure.getCause()));
+        } else if (failure instanceof InternalTestExecutionException) {
+            handler.onFailure(new TestExecutionException(connectionFailureMessage(failure), failure.getCause()));
         } else if (failure instanceof BuildExceptionVersion1) {
             handler.onFailure(new BuildException(connectionFailureMessage(failure), failure.getCause()));
+        } else if (failure instanceof ListenerNotificationException) {
+            handler.onFailure(new ListenerFailedException(connectionFailureMessage(failure), ((ListenerNotificationException) failure).getCauses()));
         } else {
             handler.onFailure(new GradleConnectionException(connectionFailureMessage(failure), failure));
         }

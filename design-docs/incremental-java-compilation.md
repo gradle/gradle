@@ -106,6 +106,11 @@ This approach should be reliable but it may be slower. We need to unzip the jar 
 ### Open issues
 
 - handle duplicate classes in compilation classpath
+- Does not work with annotation processors
+    - https://getsatisfaction.com/gradle/topics/incremental-annotation-processing-in-java-compile-task
+    - https://groups.google.com/forum/#!topic/gradle-dev/m2ho6v4EbbU
+    - http://issues.gradle.org//browse/GRADLE-3259
+- Does not work with project dependencies that aren't for JAR artifacts (http://issues.gradle.org//browse/GRADLE-3263)
 
 # Story: Improve performance for cached incremental compilation state
 

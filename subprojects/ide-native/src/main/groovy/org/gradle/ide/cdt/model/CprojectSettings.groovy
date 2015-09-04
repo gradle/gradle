@@ -37,12 +37,12 @@ class CprojectSettings {
         includeRoots = project.files()
         libs = project.files()
 
-        binary.source.withType(HeaderExportingSourceSet).all {
+        binary.sources.withType(HeaderExportingSourceSet).all {
             includeRoots.builtBy(it.exportedHeaders) // have to manually add because we use srcDirs in from, not the real collection
             includeRoots.from(it.exportedHeaders.srcDirs)
         }
 
-        binary.source.withType(CppSourceSet).all { sourceSet ->
+        binary.sources.withType(CppSourceSet).all { sourceSet ->
             sourceSet.libs.each { NativeDependencySet lib ->
                 this.libs.from(lib.linkFiles)
                 this.includeRoots.from(lib.includeRoots)
@@ -76,7 +76,7 @@ class CprojectSettings {
         }
 
         def extension = ""
-        def type 
+        def type
         if (binary instanceof NativeLibrarySpec) {
             type = "org.eclipse.cdt.build.core.buildArtefactType.sharedLib"
         } else if (binary instanceof NativeExecutableSpec) {
@@ -84,7 +84,7 @@ class CprojectSettings {
         } else {
             throw new IllegalStateException("The binary $binary is of a type that we don't know about")
         }
-        
+
         descriptor.configurations.each { conf ->
             conf.@buildArtefactType = type
             conf.@artifactExtension = extension

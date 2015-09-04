@@ -378,6 +378,7 @@ cancellationToken.addCallback {
 new URL("${server.uri}").text
 latch.await()
 """
+
         projectDir.file('sub/build.gradle') << """
 throw new RuntimeException("should not run")
 """

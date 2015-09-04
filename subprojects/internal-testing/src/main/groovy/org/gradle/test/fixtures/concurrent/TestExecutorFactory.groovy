@@ -29,4 +29,9 @@ class TestExecutorFactory implements ExecutorFactory {
     StoppableExecutor create(String displayName) {
         return new TestStoppableExecutor(executor)
     }
+
+    StoppableExecutor create(String displayName, int fixedSize) {
+        // Ignores size of thread pool
+        return new TestStoppableExecutor(executor)
+    }
 }

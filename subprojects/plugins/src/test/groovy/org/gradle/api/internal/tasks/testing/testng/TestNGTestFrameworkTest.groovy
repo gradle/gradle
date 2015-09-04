@@ -32,7 +32,7 @@ import spock.lang.Specification
 
 public class TestNGTestFrameworkTest extends Specification {
 
-    @Shared Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    @Shared Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
 
     private project = new ProjectBuilder().build()
     Test testTask = TestUtil.createTask(Test, project)

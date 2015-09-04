@@ -20,10 +20,14 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmByteCode;
+import org.gradle.jvm.internal.DependencyResolvingClasspath;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
@@ -34,6 +38,7 @@ import org.gradle.language.java.tasks.PlatformJavaCompile;
 import org.gradle.language.jvm.plugins.JvmResourcesPlugin;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.LanguageType;
 import org.gradle.platform.base.LanguageTypeBuilder;
@@ -53,12 +58,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
         project.getPluginManager().apply(JvmResourcesPlugin.class);
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
             builder.setLanguageName("java");
@@ -67,11 +68,18 @@ public class JavaLanguagePlugin implements Plugin<Project> {
 
         @Mutate
         void registerLanguageTransform(LanguageTransformContainer languages, ServiceRegistry serviceRegistry) {
-            languages.add(new Java());
+            ModelSchemaStore schemaStore = serviceRegistry.get(ModelSchemaStore.class);
+            languages.add(new Java(schemaStore));
         }
     }
 
     private static class Java implements LanguageTransform<JavaSourceSet, JvmByteCode> {
+        private final ModelSchemaStore schemaStore;
+
+        public Java(ModelSchemaStore schemaStore) {
+            this.schemaStore = schemaStore;
+        }
+
         public Class<JavaSourceSet> getSourceSetType() {
             return JavaSourceSet.class;
         }
@@ -94,10 +102,12 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     return PlatformJavaCompile.class;
                 }
 
-                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet) {
+                public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformJavaCompile compile = (PlatformJavaCompile) task;
                     JavaSourceSet javaSourceSet = (JavaSourceSet) sourceSet;
-                    JvmBinarySpec binary = (JvmBinarySpec) binarySpec;
+                    JarBinarySpec binary = (JarBinarySpec) binarySpec;
+
+                    ArtifactDependencyResolver dependencyResolver = serviceRegistry.get(ArtifactDependencyResolver.class);
 
                     compile.setDescription(String.format("Compiles %s.", javaSourceSet));
                     compile.setDestinationDir(binary.getClassesDir());
@@ -105,7 +115,8 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                     compile.setPlatform(binary.getTargetPlatform());
 
                     compile.setSource(javaSourceSet.getSource());
-                    compile.setClasspath(javaSourceSet.getCompileClasspath().getFiles());
+                    DependencyResolvingClasspath classpath = new DependencyResolvingClasspath(binary, (DependentSourceSetInternal) javaSourceSet, dependencyResolver, schemaStore);
+                    compile.setClasspath(classpath);
                     compile.setTargetCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
                     compile.setSourceCompatibility(binary.getTargetPlatform().getTargetCompatibility().toString());
 
@@ -120,4 +131,5 @@ public class JavaLanguagePlugin implements Plugin<Project> {
             return binary instanceof JvmBinarySpec;
         }
     }
+
 }

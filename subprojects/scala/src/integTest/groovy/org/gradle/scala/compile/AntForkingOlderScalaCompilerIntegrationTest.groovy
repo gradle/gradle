@@ -18,9 +18,11 @@ package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @TargetCoverage({ScalaCoverage.OLDER})
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
+@LeaksFileHandles
 class AntForkingOlderScalaCompilerIntegrationTest extends AbstractAntForkingScalaCompilerIntegrationTest {}

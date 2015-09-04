@@ -17,14 +17,18 @@
 package org.gradle.model.dsl.internal.transform;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
 @ThreadSafe
 public class SourceLocation {
+    private final String uri;
     private final String scriptSourceDescription;
     private final int lineNumber;
     private final int columnNumber;
 
-    public SourceLocation(String scriptSourceDescription, int lineNumber, int columnNumber) {
+    public SourceLocation(String uri, String scriptSourceDescription, int lineNumber, int columnNumber) {
+        this.uri = uri;
         this.scriptSourceDescription = scriptSourceDescription;
         this.lineNumber = lineNumber;
         this.columnNumber = columnNumber;
@@ -42,8 +46,15 @@ public class SourceLocation {
         return scriptSourceDescription;
     }
 
+    public String getUri() {
+        return uri;
+    }
     @Override
     public String toString() {
         return String.format("%s line %d, column %d", scriptSourceDescription, lineNumber, columnNumber);
+    }
+
+    public ModelRuleDescriptor asDescriptor(String val) {
+        return new SimpleModelRuleDescriptor(String.format("%s @ %s", val, toString()));
     }
 }

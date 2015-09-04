@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
+import com.google.common.base.Objects;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 
@@ -32,6 +33,10 @@ public class NestedModelRuleDescriptor extends AbstractModelRuleDescriptor {
         this.child = child;
     }
 
+    public NestedModelRuleDescriptor(ModelRuleDescriptor parent, String child) {
+        this(parent, new SimpleModelRuleDescriptor(child));
+    }
+
     public void describeTo(Appendable appendable) {
         parent.describeTo(appendable);
         try {
@@ -40,5 +45,31 @@ public class NestedModelRuleDescriptor extends AbstractModelRuleDescriptor {
             throw new UncheckedIOException(e);
         }
         child.describeTo(appendable);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        NestedModelRuleDescriptor that = (NestedModelRuleDescriptor) o;
+        return Objects.equal(parent, that.parent)
+            && Objects.equal(child, that.child);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(parent, child);
+    }
+
+    public static ModelRuleDescriptor append(ModelRuleDescriptor parent, String str) {
+        return new NestedModelRuleDescriptor(parent, new SimpleModelRuleDescriptor(str));
+    }
+
+    public static ModelRuleDescriptor append(ModelRuleDescriptor parent, String str, Object... args) {
+        return append(parent, String.format(str, args));
     }
 }

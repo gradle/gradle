@@ -77,7 +77,23 @@ class LineFilterTest {
         assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three")))
     }
 
+    @Test void testClosureReturningNull() {
+        def input = new StringReader("one\ntwo\nthree\n")
+        def lineCount = 1
+        def filter = new LineFilter(input,  { lineCount++ % 2 == 0 ? null : it })
+
+        assertThat(filter.text, equalTo(lines("one", "three", "")))
+    }
+
+    @Test void testClosureAlwaysReturningNull() {
+        def input = new StringReader("one\ntwo\nthree\n")
+        def lineCount = 1
+        def filter = new LineFilter(input,  { null })
+
+        assertThat(filter.text, equalTo(lines()))
+    }
+
     private String lines(String ... lines) {
-        (lines as List).join(SystemProperties.lineSeparator)
+        (lines as List).join(SystemProperties.instance.lineSeparator)
     }
 }

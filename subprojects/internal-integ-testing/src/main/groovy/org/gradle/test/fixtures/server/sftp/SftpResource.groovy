@@ -43,6 +43,10 @@ class SftpResource implements RemoteResource {
         server.expectLstat(pathOnServer)
     }
 
+    void expectLstatMissing() {
+        server.expectLstatMissing(pathOnServer)
+    }
+
     void expectStat() {
         server.expectStat(pathOnServer)
     }
@@ -65,27 +69,31 @@ class SftpResource implements RemoteResource {
         server.expectFileDownload(pathOnServer)
     }
 
-    void expectFileAndSha1Upload() {
+    void expectFileUpload() {
         server.expectFileUpload(pathOnServer)
-        server.expectFileUpload("${pathOnServer}.sha1")
     }
 
+    @Override
     void expectMetadataRetrieveBroken() {
         server.expectMetadataRetrieveBroken(pathOnServer)
     }
 
+    @Override
     void expectMetadataRetrieveMissing() {
         server.expectLstatMissing(pathOnServer)
     }
 
-    void expectMkdirs() {
-        def directory = FilenameUtils.getFullPathNoEndSeparator(pathOnServer)
+    @Override
+    void expectParentMkdir() {
         withEachDirectory { String path ->
-            if (path != directory) {
-                server.expectLstat(path)
-            }
+            server.expectLstat(path)
             server.expectMkdir(path)
         }
+    }
+
+    @Override
+    void expectParentCheckdir() {
+        server.expectLstat(FilenameUtils.getFullPathNoEndSeparator(pathOnServer))
     }
 
     void withEachDirectory(Closure action) {
@@ -97,24 +105,37 @@ class SftpResource implements RemoteResource {
         }
     }
 
-    void expectWriteBroken() {
-        server.expectWriteBroken(pathOnServer)
-    }
-
+    @Override
     void expectDownload() {
         expectMetadataRetrieve()
         expectFileDownload()
     }
 
+    @Override
     void expectDownloadMissing() {
         expectMetadataRetrieveMissing()
     }
 
+    @Override
     void expectMetadataRetrieve() {
         expectLstat()
     }
 
+    @Override
     void expectDownloadBroken() {
         expectMetadataRetrieveBroken()
+    }
+
+    @Override
+    void expectUpload() {
+        expectFileUpload()
+    }
+
+    @Override
+    void expectUploadBroken() {
+        server.expectOpen(pathOnServer)
+        server.expectWriteBroken(pathOnServer)
+        // TODO - should be a CLOSE
+        server.expectStat(pathOnServer)
     }
 }

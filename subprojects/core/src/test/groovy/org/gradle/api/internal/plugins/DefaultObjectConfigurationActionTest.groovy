@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.plugins
 
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.groovy.scripts.DefaultScript
 import org.junit.Test
 import spock.lang.Specification
 
@@ -32,7 +31,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
     def resolver = Mock(FileResolver)
     def scriptPluginFactory = Mock(ScriptPluginFactory)
     def scriptHandlerFactory = Mock(ScriptHandlerFactory)
-    def scriptHandler = Mock(ScriptHandler)
+    def scriptHandler = Mock(ScriptHandlerInternal)
     def scriptCompileScope = Mock(ClassLoaderScope)
     def parentCompileScope = Mock(ClassLoaderScope)
     def configurer = Mock(ScriptPlugin)
@@ -48,9 +47,9 @@ class DefaultObjectConfigurationActionTest extends Specification {
     public void appliesScriptsToDefaultTargetObject() {
         given:
         1 * resolver.resolveUri('script') >> file
-        1 * parentCompileScope.createChild() >> scriptCompileScope
+        1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, "buildscript", DefaultScript, false) >> configurer
+        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, false) >> configurer
 
         when:
         action.from('script')
@@ -66,11 +65,10 @@ class DefaultObjectConfigurationActionTest extends Specification {
         Object target2 = new Object()
         1 * resolver.resolveUri('script') >> file
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope,  "buildscript", DefaultScript, false) >> configurer
+        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, false) >> configurer
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
-        1 * parentCompileScope.createChild() >> scriptCompileScope
-
+        1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope
 
         then:
         action.from('script')
@@ -86,11 +84,10 @@ class DefaultObjectConfigurationActionTest extends Specification {
         Object target2 = new Object()
         1 * resolver.resolveUri('script') >> file
         1 * scriptHandlerFactory.create(_, scriptCompileScope) >> scriptHandler
-        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, "buildscript", DefaultScript, false) >> configurer
+        1 * scriptPluginFactory.create(_, scriptHandler, scriptCompileScope, parentCompileScope, false) >> configurer
         1 * configurer.apply(target1)
         1 * configurer.apply(target2)
-        1 * parentCompileScope.createChild() >> scriptCompileScope
-
+        1 * parentCompileScope.createChild("script-$file") >> scriptCompileScope
 
         then:
         action.from('script')

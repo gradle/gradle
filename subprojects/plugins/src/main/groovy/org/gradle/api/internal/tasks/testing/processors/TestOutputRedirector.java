@@ -48,8 +48,12 @@ class TestOutputRedirector {
 
     void setOutputOwner(Object testId) {
         assert testId != null;
-        System.out.flush();
-        System.err.flush();
+        if (System.out != null) {
+            System.out.flush();
+        }
+        if (System.err != null) {
+            System.err.flush();
+        }
         outForwarder.outputOwner = testId;
         errForwarder.outputOwner = testId;
     }

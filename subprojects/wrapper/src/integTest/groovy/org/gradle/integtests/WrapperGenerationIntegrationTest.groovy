@@ -20,15 +20,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
+    def "generated wrapper scripts use correct line separators"() {
         buildFile << """
             wrapper {
                 distributionUrl = 'http://localhost:8080/gradlew/dist'
             }
         """
-    }
 
-    def "generated wrapper scripts use correct line separators"() {
         when:
         run "wrapper"
 
@@ -39,11 +37,33 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "wrapper jar is small"() {
+        buildFile << """
+            wrapper {
+                distributionUrl = 'http://localhost:8080/gradlew/dist'
+            }
+        """
+
         when:
         run "wrapper"
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 52 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 53 * 1024
+    }
+
+    def "generated wrapper scripts for given version from command-line"() {
+        when:
+        run "wrapper", "--gradle-version", "2.2.1"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.2.1-bin.zip")
+    }
+
+    def "generated wrapper scripts for given distribution URL from command-line"() {
+        when:
+        run "wrapper", "--gradle-distribution-url", "http://localhost:8080/gradlew/dist"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=http\\://localhost\\:8080/gradlew/dist")
     }
 }

@@ -203,23 +203,7 @@
 
 
 ------------------------------------------------------------------------------
-License for the logback package
-------------------------------------------------------------------------------
-Logback License
-
-
-Logback source code and binaries are distributed under the
-GNU Lesser General Public License  as published by the Free Software Foundation.
-
-Logback: the generic, reliable, fast and flexible logging library for Java.
-
-Copyright (C) 2000-2006, QOS.ch This library is free software, you can
-redistribute it and/or modify it under the terms of the GNU Lesser General Public License
-as published by the Free Software Foundation.
-
-
-------------------------------------------------------------------------------
-License for the sl4j package
+License for the slf4j package
 ------------------------------------------------------------------------------
 SLF4J License
 

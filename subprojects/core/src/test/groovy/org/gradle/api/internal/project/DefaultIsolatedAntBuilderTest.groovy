@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project
 
-import ch.qos.logback.classic.Level
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.taskdefs.ConditionTask
 import org.gradle.api.GradleException
@@ -24,10 +23,11 @@ import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.logging.LogLevel
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.TestAppender
+import org.gradle.logging.TestOutputEventListener
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,15 +40,15 @@ class DefaultIsolatedAntBuilderTest {
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry()
     private final ClassPathRegistry registry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory())
-    private final TestAppender appender = new TestAppender()
+    private final TestOutputEventListener outputEventListener = new TestOutputEventListener()
     @Rule
-    public final ConfigureLogging logging = new ConfigureLogging(appender)
+    public final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     private Collection<File> classpath
 
     @Before
     public void attachAppender() {
         classpath = registry.getClassPath("GROOVY").asFiles
-        logging.setLevel(Level.INFO);
+        logging.setLevel(LogLevel.INFO);
     }
 
     @Test
@@ -85,7 +85,7 @@ class DefaultIsolatedAntBuilderTest {
             echo('${message}')
         }
 
-        assertThat(appender.toString(), equalTo('[WARN [ant:echo] a message]'))
+        assertThat(outputEventListener.toString(), equalTo('[WARN [ant:echo] a message]'))
     }
 
     @Test
@@ -97,9 +97,9 @@ class DefaultIsolatedAntBuilderTest {
             loggingTask()
         }
 
-        assertThat(appender.toString(), containsString('[INFO a jcl log message]'))
-        assertThat(appender.toString(), containsString('[INFO an slf4j log message]'))
-        assertThat(appender.toString(), containsString('[INFO a log4j log message]'))
+        assertThat(outputEventListener.toString(), containsString('[INFO a jcl log message]'))
+        assertThat(outputEventListener.toString(), containsString('[INFO an slf4j log message]'))
+        assertThat(outputEventListener.toString(), containsString('[INFO a log4j log message]'))
     }
 
     @Test

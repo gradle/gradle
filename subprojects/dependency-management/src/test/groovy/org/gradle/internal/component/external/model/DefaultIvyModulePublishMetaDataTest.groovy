@@ -15,13 +15,16 @@
  */
 
 package org.gradle.internal.component.external.model
-
 import org.apache.ivy.core.module.descriptor.Artifact
+import org.apache.ivy.core.module.descriptor.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.internal.component.local.model.LocalConfigurationMetaData
+import org.gradle.internal.component.model.DependencyMetaData
 import spock.lang.Specification
 
 class DefaultIvyModulePublishMetaDataTest extends Specification {
-    def metaData = new DefaultIvyModulePublishMetaData(Stub(ModuleVersionIdentifier))
+    def metaData = new DefaultIvyModulePublishMetaData(Stub(ModuleVersionIdentifier), "status")
 
     def "can add artifacts"() {
         def artifact = Stub(Artifact)
@@ -35,8 +38,57 @@ class DefaultIvyModulePublishMetaDataTest extends Specification {
         def publishArtifact = metaData.artifacts.iterator().next()
         publishArtifact.artifact == artifact
         publishArtifact.file == file
+    }
+
+    def "can add configuration"() {
+        when:
+        metaData.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null)
+
+        then:
+        metaData.moduleDescriptor.configurations.length == 1
+        Configuration conf = metaData.moduleDescriptor.configurations[0]
+        conf.name == "configName"
+        conf.description == "configDescription"
+        conf.extends as List == ["one", "three", "two"]
+        conf.visibility == Configuration.Visibility.PUBLIC
+        conf.transitive
+    }
+
+    def mockConfiguration() {
+        return Stub(LocalConfigurationMetaData) { configuration ->
+            configuration.name >> "configName"
+            configuration.description >> "configDescription"
+            configuration.extendsFrom >> (["one", "two", "three"] as Set)
+            configuration.visible >> true
+            configuration.transitive >> true
+        }
+    }
+
+    def "can add dependencies"() {
+        def dependency = Mock(DependencyMetaData)
+
+        given:
+        metaData.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null)
 
         and:
-        metaData.getArtifact(publishArtifact.id) == publishArtifact
+        dependency.requested >> DefaultModuleVersionSelector.newSelector("group", "module", "version")
+        dependency.force >> true
+        dependency.changing >> true
+        dependency.transitive >> true
+        dependency.moduleConfigurations >> (["configName"] as String[])
+        dependency.getDependencyConfigurations("configName", "configName") >> (["dep1"] as String[])
+        dependency.artifacts >> ([] as Set)
+
+        when:
+        metaData.addDependency(dependency)
+
+        then:
+        metaData.moduleDescriptor.dependencies.length == 1
+        def depDescriptor = metaData.moduleDescriptor.dependencies[0]
+        depDescriptor.force
+        depDescriptor.changing
+        depDescriptor.transitive
+        depDescriptor.moduleConfigurations as List == ["configName"]
+        depDescriptor.allDependencyArtifacts.length == 0
     }
 }

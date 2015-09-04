@@ -17,6 +17,7 @@
 package org.gradle.integtests.language
 import com.sun.xml.internal.ws.util.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -26,6 +27,8 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
     abstract TestJvmComponent getApp()
 
     def setup() {
+        EnableModelDsl.enable(executer)
+
         buildFile << """
         plugins {
             id 'jvm-component'
@@ -167,7 +170,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
     }
 
     def exluceStatementFor(List<String> fileExtensions) {
-        fileExtensions.collect{"exclude '**/*.${it}'"}.join(SystemProperties.lineSeparator)
+        fileExtensions.collect{"exclude '**/*.${it}'"}.join(SystemProperties.instance.lineSeparator)
     }
 
     def "can configure output directories for classes and resources"() {
@@ -177,19 +180,20 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         def expectedOutputs = app.expectedOutputs*.fullPath as String[]
 
         and:
-        buildFile << """
+        buildFile << '''
     model {
         components {
-            myLib(JvmLibrarySpec)
-        }
-        jvm {
-            allBinaries {
-                classesDir = file("\${project.buildDir}/custom-classes")
-                resourcesDir = file("\${project.buildDir}/custom-resources")
+            myLib(JvmLibrarySpec) {
+                binaries {
+                    all {
+                        classesDir = new File($("buildDir"), "custom-classes")
+                        resourcesDir = new File($("buildDir"), "custom-resources")
+                    }
+                }
             }
         }
     }
-"""
+'''
         and:
         succeeds "assemble"
 

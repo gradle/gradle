@@ -18,10 +18,12 @@ package org.gradle.integtests.tooling.r12rc1
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 
 @TargetGradleVersion(">=1.2")
+@LeaksFileHandles
 class ProjectOutcomesModuleCrossVersionSpec extends ToolingApiSpecification {
     def "modelContainsAllArchivesOnTheArchivesConfiguration"() {
         given:

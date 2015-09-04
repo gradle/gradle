@@ -16,5 +16,5 @@
 package org.gradle.test.fixtures
 
 public interface HttpModule extends Module {
-    void allowAll()
+    HttpModule allowAll()
 }

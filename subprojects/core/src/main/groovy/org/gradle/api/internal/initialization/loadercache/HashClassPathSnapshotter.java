@@ -16,73 +16,84 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
-import com.google.common.primitives.Bytes;
-import org.gradle.api.internal.hash.DefaultHasher;
-import org.gradle.api.internal.hash.Hasher;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.zip.Adler32;
 
 public class HashClassPathSnapshotter implements ClassPathSnapshotter {
 
-    private final Hasher hasher = new DefaultHasher();
+    private final FileSnapshotter fileSnapshotter;
 
-    public ClassPathSnapshot snapshot(ClassPath classPath) {
-        List<String> visitedFilePaths = new LinkedList<String>();
-        Set<File> visitedDirs = new LinkedHashSet<File>();
-        byte[] combinedHash = new byte[0];
-        List<File> cpFiles = classPath.getAsFiles();
-        combinedHash = hash(visitedFilePaths, visitedDirs, combinedHash, cpFiles.toArray(new File[cpFiles.size()]));
-        return new ClassPathSnapshotImpl(visitedFilePaths, combinedHash);
+    public HashClassPathSnapshotter(FileSnapshotter fileSnapshotter) {
+        this.fileSnapshotter = fileSnapshotter;
     }
 
-    private byte[] hash(List<String> visitedFilePaths, Set<File> visitedDirs, byte[] combinedHash, File[] toHash) {
-        for (File file : toHash) {
+    public ClassPathSnapshot snapshot(ClassPath classPath) {
+        List<String> visitedFilePaths = Lists.newLinkedList();
+        Set<File> visitedDirs = Sets.newLinkedHashSet();
+        List<File> cpFiles = classPath.getAsFiles();
+
+        Adler32 checksum = new Adler32();
+        hash(checksum, visitedFilePaths, visitedDirs, cpFiles.iterator());
+        return new ClassPathSnapshotImpl(visitedFilePaths, checksum.getValue());
+    }
+
+    private void hash(Adler32 combinedHash, List<String> visitedFilePaths, Set<File> visitedDirs, Iterator<File> toHash) {
+        while (toHash.hasNext()) {
+            File file = toHash.next();
             file = GFileUtils.canonicalise(file);
             if (file.isDirectory()) {
                 if (visitedDirs.add(file)) {
                     //in theory, awkward symbolic links can lead to recursion problems.
                     //TODO - figure out a way to test it. I only tested it 'manually' and the feature is needed.
-                    combinedHash = hash(visitedFilePaths, visitedDirs, combinedHash, file.listFiles());
+                    hash(combinedHash, visitedFilePaths, visitedDirs, Iterators.forArray(file.listFiles()));
                 }
             } else if (file.isFile()) {
                 visitedFilePaths.add(file.getAbsolutePath());
-                //TODO SF Luke prefers keeping a list instead of merging arrays
-                combinedHash = Bytes.concat(combinedHash, hasher.hash(file));
+                combinedHash.update(fileSnapshotter.snapshot(file).getHash());
             }
             //else an empty folder - a legit situation
         }
-        return combinedHash;
     }
 
-    private class ClassPathSnapshotImpl implements ClassPathSnapshot {
+    private static class ClassPathSnapshotImpl implements ClassPathSnapshot {
         private final List<String> files;
-        private final byte[] combinedHash;
+        private final long hash;
 
-        public ClassPathSnapshotImpl(List<String> files, byte[] combinedHash) {
+        public ClassPathSnapshotImpl(List<String> files, long hash) {
             assert files != null;
-            assert combinedHash != null;
 
             this.files = files;
-            this.combinedHash = combinedHash;
+            this.hash = hash;
         }
 
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
             }
-            if (!(o instanceof ClassPathSnapshotImpl)) {
+            if (o == null || getClass() != o.getClass()) {
                 return false;
             }
+
             ClassPathSnapshotImpl that = (ClassPathSnapshotImpl) o;
-            return this.files.equals(that.files) && Arrays.equals(this.combinedHash, that.combinedHash);
+
+            return hash == that.hash && files.equals(that.files);
         }
 
+        @Override
         public int hashCode() {
             int result = files.hashCode();
-            result = 31 * result + Arrays.hashCode(combinedHash);
+            result = 31 * result + (int) (hash ^ (hash >>> 32));
             return result;
         }
     }

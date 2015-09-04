@@ -21,13 +21,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
-import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
 import org.hamcrest.Matchers
 import org.junit.Rule
-import org.mortbay.jetty.HttpStatus
 import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
@@ -49,41 +48,6 @@ credentials {
         ivyHttpRepo = new IvyHttpRepository(server, ivyRepo)
         module = ivyHttpRepo.module("org.gradle", "publish", "2")
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
-    }
-
-    public void canPublishToUnauthenticatedHttpRepository() {
-        given:
-        server.start()
-        settingsFile << 'rootProject.name = "publish"'
-        buildFile << """
-apply plugin: 'java'
-version = '2'
-group = 'org.gradle'
-
-uploadArchives {
-    repositories {
-        ivy {
-            url "${ivyHttpRepo.uri}"
-        }
-    }
-}
-"""
-        and:
-        module.jar.expectPut()
-        module.jar.sha1.expectPut()
-        module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
-        module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
-
-        when:
-        run 'uploadArchives'
-
-        then:
-        module.assertIvyAndJarFilePublished()
-        module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
-
-        and:
-        progressLogging.uploadProgressLogged(module.ivy.uri)
-        progressLogging.uploadProgressLogged(module.jar.uri)
     }
 
     @Unroll
@@ -291,33 +255,5 @@ uploadTools {
         then:
         module.assertIvyAndJarFilePublished()
         module.jarFile.assertIsCopyOf(new TestFile(toolsJar))
-    }
-
-    public void "does not upload meta-data file if artifact upload fails"() {
-        given:
-        server.start()
-
-        settingsFile << 'rootProject.name = "publish"'
-        buildFile << """
-apply plugin: 'java'
-version = '2'
-group = 'org.gradle'
-uploadArchives {
-    repositories {
-        ivy {
-            url "${ivyHttpRepo.uri}"
-        }
-    }
-}
-"""
-        and:
-        module.jar.expectPut(HttpStatus.ORDINAL_500_Internal_Server_Error)
-
-        when:
-        fails 'uploadArchives'
-
-        then:
-        module.jarFile.assertExists()
-        module.ivyFile.assertDoesNotExist()
     }
 }

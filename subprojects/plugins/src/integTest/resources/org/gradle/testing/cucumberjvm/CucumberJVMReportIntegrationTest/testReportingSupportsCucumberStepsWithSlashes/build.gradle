@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    testCompile "junit:junit:4.11"
+    testCompile "junit:junit:4.12"
     testCompile "info.cukes:cucumber-java:1.1.2"
     testCompile "info.cukes:cucumber-junit:1.1.2"
 }

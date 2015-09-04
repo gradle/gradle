@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
-import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 
 import java.util.List;
@@ -33,13 +33,12 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
         this.resolver = resolver;
     }
 
-    public void resolve(final ConfigurationInternal configuration,
-                                   final List<? extends ResolutionAwareRepository> repositories,
-                                   final GlobalDependencyResolutionRules metadataHandler,
-                                   final ResolverResults results) throws ResolveException {
-        lockingManager.useCache(String.format("resolve %s", configuration), new Runnable() {
+    @Override
+    public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler,
+                        final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor) {
+        lockingManager.useCache(String.format("resolve %s", resolveContext), new Runnable() {
             public void run() {
-                resolver.resolve(configuration, repositories, metadataHandler, results);
+                resolver.resolve(resolveContext, repositories, metadataHandler, graphVisitor, artifactsVisitor);
             }
         });
     }

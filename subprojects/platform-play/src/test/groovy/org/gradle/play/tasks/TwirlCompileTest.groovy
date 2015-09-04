@@ -16,24 +16,40 @@
 
 package org.gradle.play.tasks
 import org.gradle.api.Action
+import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.api.tasks.incremental.InputFileDetails
+import org.gradle.language.base.internal.compile.Compiler
+import org.gradle.play.internal.toolchain.PlayToolChainInternal
+import org.gradle.play.internal.toolchain.PlayToolProvider
+import org.gradle.play.internal.twirl.TwirlCompileSpec
+import org.gradle.play.platform.PlayPlatform
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import org.gradle.language.base.internal.compile.Compiler
 
 class TwirlCompileTest extends Specification {
     DefaultProject project = TestUtil.createRootProject()
-    TwirlCompile compile = project.tasks.create("twirlCompile", TwirlCompile)
-    Compiler<TwirlCompile> twirlCompiler = Mock(Compiler)
+    TwirlCompile compile = project.tasks.create("compile", TwirlCompile)
+    Compiler<TwirlCompileSpec> twirlCompiler = Mock(Compiler)
     IncrementalTaskInputs taskInputs = Mock(IncrementalTaskInputs)
+
+    def setup() {
+        def toolChain = Mock(PlayToolChainInternal)
+        def platform = Mock(PlayPlatform)
+        def toolProvider = Mock(PlayToolProvider)
+        toolChain.select(platform) >> toolProvider
+        toolProvider.newCompiler(TwirlCompileSpec) >> twirlCompiler
+
+        compile.toolChain = toolChain
+        compile.platform = platform
+    }
 
     def "invokes twirl compiler"(){
         given:
         def outputDir = Mock(File);
-        compile.compiler = twirlCompiler
         compile.outputDirectory = outputDir
+        compile.outputs.history = Stub(TaskExecutionHistory)
         when:
         compile.compile(withNonIncrementalInputs())
         then:
@@ -48,7 +64,6 @@ class TwirlCompileTest extends Specification {
     def "deletes stale output files"(){
         given:
         def outputDir = new File("outputDir");
-        compile.compiler = twirlCompiler
         compile.outputDirectory = outputDir
         def outputCleaner = Spy(TwirlCompile.TwirlStaleOutputCleaner, constructorArgs: [outputDir])
         compile.setCleaner(outputCleaner)

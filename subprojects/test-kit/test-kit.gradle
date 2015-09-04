@@ -1,0 +1,7 @@
+dependencies {
+    compile project(':toolingApi')
+    testCompile libraries.groovy
+}
+
+strictCompile()
+useTestFixtures()

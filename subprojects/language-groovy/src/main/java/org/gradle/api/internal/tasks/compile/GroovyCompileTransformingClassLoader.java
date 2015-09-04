@@ -31,8 +31,8 @@ import java.util.List;
 class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
     private static final String ANNOTATION_DESCRIPTOR = Type.getType(GroovyASTTransformationClass.class).getDescriptor();
 
-    public GroovyCompileTransformingClassLoader(ClassPath classpath) {
-        super(null, classpath);
+    public GroovyCompileTransformingClassLoader(ClassLoader parent, ClassPath classPath) {
+        super(parent, classPath);
     }
 
     @Override

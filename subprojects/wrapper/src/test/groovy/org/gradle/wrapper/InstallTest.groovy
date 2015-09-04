@@ -16,6 +16,7 @@
 
 package org.gradle.wrapper
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Before
@@ -61,6 +62,7 @@ class InstallTest extends Specification {
         explodedZipDir.zipTo(new TestFile(zipDestination))
     }
 
+    @LeaksFileHandles
     def "installs distribution and reuses on subsequent access"() {
         given:
         _ * pathAssembler.getDistribution(configuration) >> localDistribution
@@ -90,6 +92,7 @@ class InstallTest extends Specification {
         0 * download._
     }
 
+    @LeaksFileHandles
     def "recovers from download failure"() {
         def failure = new RuntimeException("broken")
 

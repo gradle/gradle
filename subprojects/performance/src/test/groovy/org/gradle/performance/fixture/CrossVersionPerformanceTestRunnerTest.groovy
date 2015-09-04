@@ -22,16 +22,18 @@ import org.gradle.performance.ResultSpecification
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
-    final timer = Mock(OperationTimer)
+    final experimentRunner = Mock(BuildExperimentRunner)
     final reporter = Mock(DataReporter)
     final testProjectLocator = Stub(TestProjectLocator)
-    final dataCollector = Stub(DataCollector)
     final currentGradle = Stub(GradleDistribution)
     final mostRecentRelease = new ReleasedVersionDistributions().mostRecentFinalRelease.version.version
     final currentVersionBase = GradleVersion.current().baseVersion.version
 
+    @Requires(TestPrecondition.NOT_PULL_REQUEST_BUILD)
     def "runs test and builds results"() {
         given:
         def runner = runner()
@@ -57,7 +59,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.jvm
         results.operatingSystem
         results.current.size() == 4
-        results.current.executionTime.average == Duration.seconds(10)
+        results.current.totalTime.average == Duration.seconds(10)
         results.current.totalMemoryUsed.average == DataAmount.kbytes(10)
         results.baselineVersions*.version == ['1.0', '1.1']
         results.baseline('1.0').results.size() == 4
@@ -66,14 +68,17 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.baselineVersions.every { it.maxMemoryRegression == runner.maxMemoryRegression }
 
         and:
-        // warmup runs are discarded
-        3 * timer.measure(_) >> operation(executionTime: Duration.seconds(100), totalMemoryUsed: DataAmount.kbytes(100))
-        12 * timer.measure(_) >> operation(executionTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10))
+        3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
         1 * reporter.report(_)
-        0 * timer._
         0 * reporter._
     }
 
+    @Requires(TestPrecondition.NOT_PULL_REQUEST_BUILD)
     def "can use 'last' baseline version to refer to most recently released version"() {
         given:
         def runner = runner()
@@ -86,6 +91,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.baselineVersions*.version == ['1.0', mostRecentRelease]
     }
 
+    @Requires(TestPrecondition.NOT_PULL_REQUEST_BUILD)
     def "ignores baseline version if it has the same base as the version under test"() {
         given:
         def runner = runner()
@@ -99,8 +105,11 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     }
 
     def runner() {
-        return new CrossVersionPerformanceTestRunner(testId: 'some-test',
-                timer: timer, testProjectLocator: testProjectLocator, dataCollector: dataCollector,
-                current: currentGradle, reporter: reporter, executerProvider: Stub(GradleExecuterProvider))
+        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter)
+        runner.testId = 'some-test'
+        runner.testProjectLocator = testProjectLocator
+        runner.current = currentGradle
+        runner.runs = 1
+        return runner
     }
 }

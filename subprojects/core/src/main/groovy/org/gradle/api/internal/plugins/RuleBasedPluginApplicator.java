@@ -18,26 +18,24 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.Plugin;
-import org.gradle.api.plugins.PluginAware;
-import org.gradle.model.internal.core.ModelRuleRegistration;
-import org.gradle.model.internal.inspect.ModelRuleInspector;
+import org.gradle.model.RuleSource;
+import org.gradle.model.internal.core.ExtractedModelRule;
+import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.model.internal.inspect.RuleSourceDependencies;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 
-import java.util.List;
+public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwareInternal> implements PluginApplicator {
 
-public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAware> implements PluginApplicator {
-
-    private final ModelRuleInspector inspector;
     private final T target;
-    private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final PluginApplicator imperativeApplicator;
+    private final ModelRuleExtractor ruleInspector;
+    private final ModelRuleSourceDetector ruleDetector;
 
-    public RuleBasedPluginApplicator(T target, ModelRuleInspector inspector, ModelRuleSourceDetector modelRuleSourceDetector) {
+    public RuleBasedPluginApplicator(T target, ModelRuleExtractor ruleInspector, ModelRuleSourceDetector ruleDetector) {
         this.target = target;
-        this.inspector = inspector;
-        this.modelRuleSourceDetector = modelRuleSourceDetector;
+        this.ruleInspector = ruleInspector;
+        this.ruleDetector = ruleDetector;
         this.imperativeApplicator = new ImperativeOnlyPluginApplicator<T>(target);
     }
 
@@ -46,19 +44,22 @@ public class RuleBasedPluginApplicator<T extends ModelRegistryScope & PluginAwar
     }
 
     public void applyRules(@Nullable String pluginId, Class<?> clazz) {
-        for (Class<?> source : modelRuleSourceDetector.getDeclaredSources(clazz)) {
-            List<ModelRuleRegistration> registrations = inspector.inspect(source, new RuleSourceDependencies() {
-                public void add(Class<?> source) {
-                    target.getPluginManager().apply(source);
+        ModelRegistry modelRegistry = target.getModelRegistry();
+        Iterable<Class<? extends RuleSource>> declaredSources = ruleDetector.getDeclaredSources(clazz);
+        for (Class<? extends RuleSource> ruleSource : declaredSources) {
+            Iterable<ExtractedModelRule> rules = ruleInspector.extract(ruleSource);
+            for (ExtractedModelRule rule : rules) {
+                for (Class<?> dependency : rule.getRuleDependencies()) {
+                    target.getPluginManager().apply(dependency);
                 }
-            });
-            for (ModelRuleRegistration registration : registrations) {
-                // TODO catch “strange” exceptions thrown here and wrap with some context on the rule being registered
-                // If the thrown exception doesn't provide any “model rule” context, it will be more or less impossible for a user
-                // to work out what happened because the stack trace won't reveal any info about which rule was being registered.
-                // However, a “wrap everything” strategy doesn't quite work because the thrown exception may already have enough context
-                // and do a better job of explaining what went wrong than what we can do at this level.
-                registration.applyTo(target.getModelRegistry());
+
+                if (rule.getType().equals(ExtractedModelRule.Type.ACTION)) {
+                    modelRegistry.configure(rule.getActionRole(), rule.getAction());
+                } else if (rule.getType().equals(ExtractedModelRule.Type.CREATOR)) {
+                    modelRegistry.create(rule.getCreator());
+                } else if (!rule.getType().equals(ExtractedModelRule.Type.DEPENDENCIES)) {
+                    throw new IllegalStateException("unhandled extracted model rule type: " + rule.getType());
+                }
             }
         }
     }

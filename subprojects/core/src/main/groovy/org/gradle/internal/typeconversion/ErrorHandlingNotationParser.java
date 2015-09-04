@@ -16,9 +16,8 @@
 
 package org.gradle.internal.typeconversion;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.exceptions.FormattingDiagnosticsVisitor;
 
 class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
     private final String targetTypeDisplayName;
@@ -33,8 +32,9 @@ class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
         this.delegate = delegate;
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        delegate.describe(candidateFormats);
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        delegate.describe(visitor);
     }
 
     public T parseNotation(N notation) {
@@ -50,9 +50,9 @@ class ErrorHandlingNotationParser<N, T> implements NotationParser<N, T> {
             }
         }
 
-        List<String> formats = new ArrayList<String>();
-        describe(formats);
+        FormattingDiagnosticsVisitor visitor = new FormattingDiagnosticsVisitor();
+        describe(visitor);
 
-        throw new UnsupportedNotationException(notation, failure, invalidNotationMessage, formats);
+        throw new UnsupportedNotationException(notation, failure, invalidNotationMessage, visitor.getCandidates());
     }
 }

@@ -18,18 +18,17 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.launcher.daemon.client.DefaultDaemonConnector
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
-import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
 import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
-import spock.util.concurrent.PollingConditions
 
 import java.nio.charset.Charset
 
 @IgnoreIf({ GradleContextualExecuter.isDaemon() })
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
-    PollingConditions pollingConditions = new PollingConditions()
 
     def setup() {
         // Need forking executer
@@ -38,7 +37,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
         executer.requireIsolatedDaemons()
     }
 
-    def "stops single use daemon on build complete"() {
+    def "forks build when JVM args are requested"() {
         requireJvmArg('-Xmx32m')
 
         file('build.gradle') << "println 'hello world'"
@@ -70,7 +69,28 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
-    def "does not fork build if java home from gradle properties matches current process"() {
+    def "forks build with default daemon JVM args when java home from gradle properties does not match current process"() {
+        def javaHome = AvailableJavaHomes.differentJdk.javaHome.canonicalFile
+
+        file('gradle.properties').writeProperties("org.gradle.java.home": javaHome.path)
+
+        file('build.gradle') << """
+println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx1024m')
+assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-XX:+HeapDumpOnOutOfMemoryError')
+"""
+
+        when:
+        succeeds()
+
+        then:
+        wasForked()
+        output.contains("javaHome=${javaHome}")
+        daemons.daemon.stops()
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    def "does not fork build when java home from gradle properties matches current process"() {
         def javaHome = AvailableJavaHomes.differentJdk.javaHome
 
         file('gradle.properties').writeProperties("org.gradle.java.home": javaHome.canonicalPath)
@@ -100,9 +120,10 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 
         and:
         wasForked()
+        daemons.daemon.stops()
     }
 
-    def "does not fork build and configures system properties from gradle properties"() {
+    def "does not fork build when only mutable system properties requested in gradle properties"() {
         when:
         requireJvmArg('-Dsome-prop=some-value')
 
@@ -131,7 +152,7 @@ assert System.getProperty('some-prop') == 'some-value'
         failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. Your build is currently configured to use Java 5.")
     }
 
-    def "single use daemon is not used if immutable system property is set on command line with non different value"() {
+    def "does not fork build when immutable system property is set on command line with same value as current JVM"() {
         def encoding = Charset.defaultCharset().name()
 
         given:
@@ -148,6 +169,32 @@ assert System.getProperty('some-prop') == 'some-value'
 
         and:
         wasNotForked()
+    }
+
+    def "does not print suggestion to use the daemon for a single use daemon"() {
+        given:
+        requireJvmArg('-Xmx32m')
+
+        when:
+        succeeds()
+
+        then:
+        !output.contains(DaemonUsageSuggestionIntegrationTest.DAEMON_USAGE_SUGGESTION_MESSAGE)
+        wasForked()
+        daemons.daemon.stops()
+    }
+
+    def "does not print daemon startup message for a single use daemon"() {
+        given:
+        requireJvmArg('-Xmx32m')
+
+        when:
+        succeeds()
+
+        then:
+        !output.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
+        wasForked()
+        daemons.daemon.stops()
     }
 
     private def requireJvmArg(String jvmArg) {

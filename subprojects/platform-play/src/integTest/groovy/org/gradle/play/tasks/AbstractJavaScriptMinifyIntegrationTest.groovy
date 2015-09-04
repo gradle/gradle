@@ -26,10 +26,14 @@ import org.gradle.util.TextUtil
 @Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class AbstractJavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        settingsFile << """ rootProject.name = 'js-play-app' """
+    }
+
     abstract String getDefaultSourceSet();
 
     JarTestFixture getAssetsJar() {
-        jar("build/playBinary/lib/play-assets.jar")
+        jar("build/playBinary/lib/js-play-app-assets.jar")
     }
 
     JarTestFixture jar(String fileName) {
@@ -140,6 +144,6 @@ cubes = (function() {
     }
 
     def expectedMinifiedJavaScript() {
-        return "(function(){var c,e,f,b;b=function(a){return a*a};c=[1,2,3,4,5];e={root:Math.sqrt,square:b,cube:function(a){return a*b(a)}};\"undefined\"!==typeof elvis&&null!==elvis&&alert(\"I knew it!\");(function(){var a,b,d;d=[];a=0;for(b=c.length;a<b;a++)f=c[a],d.push(e.cube(f));return d})()}).call(this);\n"
+        return "(function(){var c,e,f,b;b=function(a){return a*a};c=[1,2,3,4,5];e={root:Math.sqrt,square:b,cube:function(a){return a*b(a)}};\"undefined\"!==typeof elvis&&null!==elvis&&alert(\"I knew it!\");(function(){var a,b,d;d=[];a=0;for(b=c.length;a<b;a++)f=c[a],d.push(e.cube(f));return d})()}).call(this);"
     }
 }

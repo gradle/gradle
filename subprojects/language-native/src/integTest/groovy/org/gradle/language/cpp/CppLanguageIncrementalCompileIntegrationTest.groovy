@@ -18,7 +18,9 @@ package org.gradle.language.cpp
 import org.gradle.language.AbstractNativeLanguageIncrementalCompileIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
+@LeaksFileHandles
 class CppLanguageIncrementalCompileIntegrationTest extends AbstractNativeLanguageIncrementalCompileIntegrationTest {
      @Override
      IncrementalHelloWorldApp getHelloWorldApp() {

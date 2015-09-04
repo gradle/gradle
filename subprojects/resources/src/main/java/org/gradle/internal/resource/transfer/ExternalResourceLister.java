@@ -17,13 +17,13 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.resource.ResourceException;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
 public interface ExternalResourceLister {
     @Nullable
-    public List<String> list(URI parent) throws IOException;
+    public List<String> list(URI parent) throws ResourceException;
 
 }

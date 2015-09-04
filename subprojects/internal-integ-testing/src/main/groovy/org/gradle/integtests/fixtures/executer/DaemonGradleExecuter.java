@@ -15,7 +15,9 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.api.Transformer;
+import org.gradle.api.JavaVersion;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.launcher.daemon.client.JvmVersionDetector;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 import java.util.ArrayList;
@@ -23,20 +25,22 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections.CollectionUtils.containsAny;
-import static org.gradle.util.CollectionUtils.collect;
-import static org.gradle.util.CollectionUtils.join;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
 
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
+        requireDaemon();
+    }
+
+    @Override
+    protected void validateDaemonVisibility() {
+        // Ignore. Should really ignore only when daemon has not been explicitly enabled or disabled
     }
 
     @Override
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<String>(super.getAllArgs());
-        args.add(0, "--daemon");
-
         if(!isQuiet() && isAllowExtraLogging()) {
             if (!containsAny(args, asList("-i", "--info", "-d", "--debug", "-q", "--quiet"))) {
                 args.add(0, "-i");
@@ -52,28 +56,21 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
     }
 
     @Override
-    protected List<String> getGradleOpts() {
-        if (isNoDefaultJvmArgs()) {
-            return super.getGradleOpts();
-        } else {
-            // Workaround for https://issues.gradle.org/browse/GRADLE-2629
-            // Instead of just adding these as standalone opts, we need to add to
-            // -Dorg.gradle.jvmArgs in order for them to be effectual
-            List<String> jvmArgs = new ArrayList<String>(4);
-            jvmArgs.add("-XX:MaxPermSize=320m");
-            jvmArgs.add("-XX:+HeapDumpOnOutOfMemoryError");
-            jvmArgs.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir().getAbsolutePath());
-
-            String quotedArgs = join(" ", collect(jvmArgs, new Transformer<String, String>() {
-                public String transform(String input) {
-                    return String.format("'%s'", input);
-                }
-            }));
-
-            List<String> gradleOpts = new ArrayList<String>(super.getGradleOpts());
-            gradleOpts.add("-Dorg.gradle.jvmArgs=" +  quotedArgs);
-            return gradleOpts;
+    protected List<String> getImplicitBuildJvmArgs() {
+        if (!isUseDaemon() || !isSharedDaemons()) {
+            return super.getImplicitBuildJvmArgs();
         }
+
+        // Add JVM heap settings only for shared daemons
+        List<String> buildJvmOpts = new ArrayList<String>(super.getImplicitBuildJvmArgs());
+
+        if (new JvmVersionDetector().getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_9) < 0) {
+            buildJvmOpts.add("-XX:MaxPermSize=320m");
+        }
+
+        buildJvmOpts.add("-XX:+HeapDumpOnOutOfMemoryError");
+        buildJvmOpts.add("-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir().getAbsolutePath());
+        return buildJvmOpts;
     }
 
 }

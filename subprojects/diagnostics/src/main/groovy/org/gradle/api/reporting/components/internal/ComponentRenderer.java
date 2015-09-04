@@ -24,8 +24,6 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Comparator;
-
 public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
     private final ReportRenderer<LanguageSourceSet, TextReportBuilder> sourceSetRenderer;
     private final ReportRenderer<BinarySpec, TextReportBuilder> binaryRenderer;
@@ -39,12 +37,8 @@ public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportB
     public void render(ComponentSpec component, TextReportBuilder builder) {
         builder.subheading(StringUtils.capitalize(component.getDisplayName()));
         builder.getOutput().println();
-        builder.collection("Source sets", component.getSource(), sourceSetRenderer, "source sets");
+        builder.collection("Source sets", CollectionUtils.sort(component.getSources().values(), SourceSetRenderer.SORT_ORDER), sourceSetRenderer, "source sets");
         builder.getOutput().println();
-        builder.collection("Binaries", CollectionUtils.sort(component.getBinaries(), new Comparator<BinarySpec>() {
-            public int compare(BinarySpec binary1, BinarySpec binary2) {
-                return binary1.getName().compareTo(binary2.getName());
-            }
-        }), binaryRenderer, "binaries");
+        builder.collection("Binaries", CollectionUtils.sort(component.getBinaries().values(), TypeAwareBinaryRenderer.SORT_ORDER), binaryRenderer, "binaries");
     }
 }

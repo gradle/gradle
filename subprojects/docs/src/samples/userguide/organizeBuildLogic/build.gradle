@@ -3,7 +3,7 @@ configurations {
 }
 
 dependencies {
-    ftpAntTask("org.apache.ant:ant-commons-net:1.9.3") {
+    ftpAntTask("org.apache.ant:ant-commons-net:1.9.4") {
         module("commons-net:commons-net:1.4.1") {
             dependencies "oro:oro:2.0.8:jar"
         }

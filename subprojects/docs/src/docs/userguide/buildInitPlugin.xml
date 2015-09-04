@@ -154,7 +154,7 @@
             <itemizedlist>
                 <listitem>Uses the “<literal>java</literal>” plugin
                 </listitem>
-                <listitem>Uses the “<literal>mavenCentral</literal>” dependency repository
+                <listitem>Uses the “<literal>jcenter</literal>” dependency repository
                 </listitem>
                 <listitem>Uses <ulink url="http://junit.org">JUnit</ulink>
                  for testing</listitem>
@@ -174,7 +174,7 @@
             <itemizedlist>
                 <listitem>Uses the “<literal>scala</literal>” plugin
                 </listitem>
-                <listitem>Uses the “<literal>mavenCentral</literal>” dependency repository
+                <listitem>Uses the “<literal>jcenter</literal>” dependency repository
                 </listitem>
                 <listitem>Uses Scala 2.10</listitem>
                 <listitem>Uses <ulink url="http://www.scalatest.org">ScalaTest</ulink> for testing</listitem>
@@ -194,7 +194,7 @@
             <itemizedlist>
                 <listitem>Uses the “<literal>groovy</literal>” plugin
                 </listitem>
-                <listitem>Uses the “<literal>mavenCentral</literal>” dependency repository
+                <listitem>Uses the “<literal>jcenter</literal>” dependency repository
                 </listitem>
                 <listitem>Uses Groovy 2.x </listitem>
                 <listitem>Uses <ulink url="http://code.google.com/p/spock/">Spock testing framework</ulink> for testing</listitem>

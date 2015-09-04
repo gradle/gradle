@@ -18,12 +18,12 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ExcludeRule
-import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter
+import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 class ExcludeRuleNotationConverterTest extends Specification {
-    def parser = new NotationConverterToNotationParserAdapter<>(new ExcludeRuleNotationConverter());
+    def parser = NotationParserBuilder.toType(ExcludeRule).converter(new ExcludeRuleNotationConverter()).toComposite()
 
     def "with group"() {
         when:

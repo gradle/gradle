@@ -15,12 +15,13 @@
  */
 package org.gradle.test.fixtures.server.http
 
-import ch.qos.logback.classic.Level
-import org.gradle.util.AvailablePortFinder
+import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.jboss.netty.handler.codec.http.HttpRequest
 import org.junit.rules.ExternalResource
-import org.slf4j.LoggerFactory
-import org.littleshoot.proxy.*
+import org.littleshoot.proxy.DefaultHttpProxyServer
+import org.littleshoot.proxy.HttpProxyServer
+import org.littleshoot.proxy.HttpRequestFilter
+import org.littleshoot.proxy.ProxyAuthorizationHandler
 
 /**
  * A Proxy Server used for testing that http proxies are correctly supported.
@@ -30,6 +31,7 @@ import org.littleshoot.proxy.*
 class TestProxyServer extends ExternalResource {
     private HttpProxyServer proxyServer
     private HttpServer httpServer
+    private portFinder = FixedAvailablePortAllocator.getInstance()
 
     int port
     int requestCount
@@ -44,10 +46,7 @@ class TestProxyServer extends ExternalResource {
     }
 
     void start() {
-        // Ignore warnings from this class
-        LoggerFactory.getLogger(HttpRequestHandler).level = Level.ERROR
-
-        port = AvailablePortFinder.createPrivate().nextAvailable
+        port = portFinder.assignPort()
         String remote = "localhost:${httpServer.port}"
         proxyServer = new DefaultHttpProxyServer(port, [:], remote, null, new HttpRequestFilter() {
             void filter(HttpRequest httpRequest) {
@@ -59,6 +58,7 @@ class TestProxyServer extends ExternalResource {
 
     void stop() {
         proxyServer?.stop()
+        portFinder.releasePort(port)
     }
 
     void requireAuthentication(final String expectedUsername, final String expectedPassword) {

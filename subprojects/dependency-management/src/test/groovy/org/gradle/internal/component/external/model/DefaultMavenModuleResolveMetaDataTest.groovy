@@ -26,7 +26,7 @@ class DefaultMavenModuleResolveMetaDataTest extends AbstractModuleComponentResol
 
     @Override
     AbstractModuleComponentResolveMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
-        return new DefaultMavenModuleResolveMetaData(id, moduleDescriptor, componentId, "pom", false)
+        return new DefaultMavenModuleResolveMetaData(componentIdentifier, moduleDescriptor, "pom", false)
     }
 
     def "can make a copy"() {
@@ -38,6 +38,7 @@ class DefaultMavenModuleResolveMetaDataTest extends AbstractModuleComponentResol
         metaData.dependencies = [dependency1, dependency2]
         metaData.status = 'a'
         metaData.statusScheme = ['a', 'b', 'c']
+        metaData.snapshotTimestamp = '123'
 
         when:
         def copy = metaData.copy()
@@ -51,11 +52,12 @@ class DefaultMavenModuleResolveMetaDataTest extends AbstractModuleComponentResol
         copy.statusScheme == ['a', 'b', 'c']
         copy.packaging == "pom"
         !copy.relocated
+        copy.snapshotTimestamp == '123'
     }
 
     def "recognises pom packaging"() {
         when:
-        def metaData = new DefaultMavenModuleResolveMetaData(id, moduleDescriptor, componentId, packaging, false)
+        def metaData = new DefaultMavenModuleResolveMetaData(componentId, moduleDescriptor, packaging, false)
 
         then:
         metaData.packaging == packaging

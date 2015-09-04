@@ -16,15 +16,15 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.tasks.Jar;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
+import org.gradle.platform.base.BinaryTasksCollection;
+import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
-public class DefaultJvmBinaryTasks extends DefaultBinaryTasksCollection implements JvmBinaryTasks {
+public class DefaultJvmBinaryTasks extends BinaryTasksCollectionWrapper implements JvmBinaryTasks {
 
-    public DefaultJvmBinaryTasks(JvmBinarySpec binary) {
-        super(binary);
+    public DefaultJvmBinaryTasks(BinaryTasksCollection delegate) {
+        super(delegate);
     }
 
     public Jar getJar() {

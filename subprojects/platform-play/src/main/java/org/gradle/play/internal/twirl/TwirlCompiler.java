@@ -17,6 +17,7 @@
 package org.gradle.play.internal.twirl;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -31,16 +32,22 @@ import java.util.ArrayList;
  * Twirl compiler uses reflection to load and invoke the actual compiler classes/methods.
  * See spec.versions for individual methods.
  */
-public class TwirlCompiler implements Compiler<VersionedTwirlCompileSpec>, Serializable {
+public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
 
-    public WorkResult execute(VersionedTwirlCompileSpec spec) {
+    private final VersionedTwirlCompilerAdapter adapter;
+
+    public TwirlCompiler(VersionedTwirlCompilerAdapter adapter) {
+        this.adapter = adapter;
+    }
+
+    public WorkResult execute(TwirlCompileSpec spec) {
         ArrayList<File> outputFiles = Lists.newArrayList();
         try {
             ClassLoader cl = getClass().getClassLoader();
-            ScalaMethod compile = spec.getCompileMethod(cl);
-            Iterable<File> sources = spec.getSources();
-            for (File sourceFile : sources) {
-                Object result = compile.invoke(spec.createCompileParameters(cl, sourceFile));
+            ScalaMethod compile = adapter.getCompileMethod(cl);
+            Iterable<RelativeFile> sources = spec.getSources();
+            for (RelativeFile sourceFile : sources) {
+                Object result = compile.invoke(adapter.createCompileParameters(cl, sourceFile.getFile(), sourceFile.getBaseDir(), spec.getDestinationDir(), spec.isJavaProject()));
                 ScalaOptionInvocationWrapper<File> maybeFile = new ScalaOptionInvocationWrapper<File>(result);
                 if (maybeFile.isDefined()) {
                     outputFiles.add(maybeFile.get());
@@ -51,5 +58,13 @@ public class TwirlCompiler implements Compiler<VersionedTwirlCompileSpec>, Seria
         }
 
         return new SimpleWorkResult(!outputFiles.isEmpty());
+    }
+
+    public Object getDependencyNotation() {
+        return adapter.getDependencyNotation();
+    }
+
+    public Iterable<String> getClassLoaderPackages() {
+        return adapter.getClassLoaderPackages();
     }
 }

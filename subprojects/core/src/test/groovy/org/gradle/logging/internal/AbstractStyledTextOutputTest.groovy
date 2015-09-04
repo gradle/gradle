@@ -43,7 +43,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.println()
 
         then:
-        output.rawValue == SystemProperties.lineSeparator
+        output.rawValue == SystemProperties.instance.lineSeparator
     }
 
     def appendsCharacter() {

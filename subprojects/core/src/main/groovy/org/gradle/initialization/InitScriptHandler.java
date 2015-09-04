@@ -18,23 +18,39 @@ package org.gradle.initialization;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.configuration.InitScriptProcessor;
 import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.internal.progress.BuildOperationDetails;
+import org.gradle.internal.progress.BuildOperationExecutor;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Finds and executes all init scripts for a given build.
  */
 public class InitScriptHandler {
     private final InitScriptProcessor processor;
+    private final BuildOperationExecutor buildOperationExecutor;
 
-    public InitScriptHandler(InitScriptProcessor processor) {
+    public InitScriptHandler(InitScriptProcessor processor, BuildOperationExecutor buildOperationExecutor) {
         this.processor = processor;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public void executeScripts(GradleInternal gradle) {
-        for (File script : gradle.getStartParameter().getAllInitScripts()) {
-            processor.process(new UriScriptSource("initialization script", script), gradle);
+    public void executeScripts(final GradleInternal gradle) {
+        final List<File> initScripts = gradle.getStartParameter().getAllInitScripts();
+        if (initScripts.isEmpty()) {
+            return;
         }
+
+        BuildOperationDetails operationDetails = BuildOperationDetails.displayName("Run init scripts").progressDisplayName("init scripts").build();
+        buildOperationExecutor.run(operationDetails, new Runnable() {
+            @Override
+            public void run() {
+                for (File script : initScripts) {
+                    processor.process(new UriScriptSource("initialization script", script), gradle);
+                }
+            }
+        });
     }
 }
 

@@ -24,12 +24,14 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.GUtil;
-import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.TestUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,6 +51,11 @@ public class AbstractFileCollectionTest {
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
     final JUnit4Mockery context = new JUnit4GroovyMockery();
     final TaskDependency dependency = context.mock(TaskDependency.class);
+
+    @Before
+    public void setUp() {
+        NativeServicesTestFixture.initialize();
+    }
 
     @Test
     public void usesDisplayNameAsToString() {

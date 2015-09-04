@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 
 import java.util.Collection;
 
@@ -33,5 +33,5 @@ public interface CandidateModule {
     /**
      * Candidate versions of this module. Many times, it has only single version.
      */
-    Collection<? extends ModuleRevisionResolveState> getVersions();
+    Collection<? extends ComponentResolutionState> getVersions();
 }

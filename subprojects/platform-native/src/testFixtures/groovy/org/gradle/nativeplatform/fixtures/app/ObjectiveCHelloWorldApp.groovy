@@ -57,6 +57,8 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     SourceFile getLibraryHeader() {
         return sourceFile("headers", "hello.h", """
+            #ifndef HELLO_H
+            #define HELLO_H
             #import <Foundation/Foundation.h>
 
             @interface Greeter : NSObject
@@ -64,14 +66,33 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
             @end
 
             int sum(int a, int b);
+
+            #ifdef FRENCH
+            #pragma message("<==== compiling bonjour.h ====>")
+            #else
+            #pragma message("<==== compiling hello.h ====>")
+            #endif
+
+            #endif
         """);
+    }
+
+    @Override
+    def SourceFile getCommonHeader() {
+        sourceFile("headers", "common.h", """
+            #ifndef COMMON_H
+            #define COMMON_H
+            #include "hello.h"
+            #include <stdio.h>
+            #endif
+        """)
     }
 
     @Override
     List<SourceFile> getLibrarySources() {
         return [
                 sourceFile("objc", "hello.m", """
-            #import "hello.h"
+            #include "common.h"
 
             @implementation Greeter
             - (void) sayHello {
@@ -84,7 +105,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
             @end
         """),
                 sourceFile("objc", "sum.m", """
-            #import "hello.h"
+            #include "common.h"
 
             int sum (int a, int b)
             {
@@ -97,7 +118,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     List<SourceFile> getAlternateLibrarySources() {
         return [
                 sourceFile("objc", "hello.m", """
-            #import "hello.h"
+            #include "common.h"
 
             @implementation Greeter
             - (void) sayHello {
@@ -112,9 +133,9 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
             }
         """),
                 sourceFile("objc", "sum.m", """
-            #import "hello.h"
+            #include "common.h"
 
-            int sum (int a, int b)
+            int sum(int a, int b)
             {
                 return a + b;
             }
@@ -139,5 +160,14 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     List<String> getPluginList() {
         ['objective-c']
+    }
+
+    public SourceFile getBrokenFile() {
+        return sourceFile("objc", "broken.m", """'broken""")
+    }
+
+    @Override
+    String getSourceSetType() {
+        return "ObjectiveCSourceSet"
     }
 }

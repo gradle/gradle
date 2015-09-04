@@ -1,4 +1,4 @@
-<img src="http://gradle.org/img/gradle_logo.gif" />
+<img src="https://gradle.org/wp-content/uploads/2015/03/GradleLogoReg.png" alt="Gradle Logo" />
 
 Gradle is a build tool with a focus on build automation and support for multi-language development. If you are building, testing, publishing, and deploying software on any platform, Gradle offers a flexible model that can support the entire development lifecycle from compiling and packaging code to publishing web sites. Gradle has been designed to support build automation across multiple languages and platforms including Java, Scala, Android, C/C++, and Groovy, and is closely integrated with development tools and continuous integration servers including Eclipse, IntelliJ, and Jenkins.
 
@@ -76,7 +76,7 @@ To open the Gradle project in IDEA, simply run the following task from the root:
 
     ./gradlew idea
 
-This will generate appropriate IDEA metadata so that the project can be opened from within IDEA.
+This will generate appropriate IDEA metadata so that the project can be opened from within IDEA. Also, IntelliJ Run Configurations will be generated, which allow you to run/debug Gradle or run pre-commit tests.
 
 Note that due to an IDEA glitch, the first build of Gradle from IDEA will fail. Launching a second build fixes the compilation error.
 
@@ -97,3 +97,4 @@ This command generates Eclipse metadata that allows importing the project into E
 With [Gradle(Enide) Eclipse plugin](http://marketplace.eclipse.org/content/gradle), you can import as general plugin or prepare before with `./gradlew eclipse`. 
 
 Build is run via right-click on `build.gradle` <kbd>Run As -> gradle build Gradle Build</kbd>
+

@@ -48,11 +48,13 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         assertResolvedFiles(resolvedJars)
 
         where:
-        name                  | excludeAttributes | resolvedJars
-        'non-matching module' | [module: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'non-matching name'   | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'matching module'     | [module: 'b']     | ['a-1.0.jar', 'c-1.0.jar']
-        'matching name'       | [name: 'b']       | ['a-1.0.jar', 'c-1.0.jar']
+        name                           | excludeAttributes | resolvedJars
+        'non-matching module'          | [module: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'non-matching artifact'        | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'module on other dependency'   | [module: 'c']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'artifact on other dependency' | [name: 'c']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'matching module'              | [module: 'b']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar'] // Module exclude does not apply to declaring module
+        'matching artifact'            | [name: 'b']       | ['a-1.0.jar', 'c-1.0.jar'] // Artifact exclude does apply to declaring module
     }
 
     /**
@@ -62,6 +64,8 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * a -> b, c
      * b -> d
      * c -> e
+     *
+     * Exclude is applied to dependency a->b
      */
     @Unroll
     def "transitive dependency exclude having single artifact with #name"() {
@@ -81,13 +85,42 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         assertResolvedFiles(resolvedJars)
 
         where:
-        name                   | excludeAttributes | resolvedJars
-        'non-matching module'  | [module: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
-        'non-matching name'    | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
-        'matching all modules' | [module: '*']     | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        'matching module'      | [module: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        'matching all names'   | [name: '*']       | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        'matching name'        | [name: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        name                    | excludeAttributes | resolvedJars
+        'non-matching module'   | [module: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
+        'non-matching artifact' | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
+        'matching all modules'  | [module: '*']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'matching module'       | [module: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'matching artifact'     | [name: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+    }
+    /**
+     * Exclude of transitive dependency involved in a dependency cycle.
+     *
+     * Dependency graph:
+     * a -> b -> c -> d -> c
+     *
+     * 'c' is excluded on dependency a->b
+     */
+    @Unroll
+    def "module involved in dependency cycle with excluded #name"() {
+        given:
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b')
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
+        moduleA.publish()
+        ivyRepo.module('b').dependsOn('c').publish()
+        ivyRepo.module('c').dependsOn('d').publish()
+        ivyRepo.module('d').dependsOn('c').publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(resolvedJars)
+
+        where:
+        name               | excludeAttributes | resolvedJars
+        'same module'      | [module: 'b']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'dependent module' | [module: 'c']     | ['a-1.0.jar', 'b-1.0.jar']
+        'artifact'         | [name: 'c']       | ['a-1.0.jar', 'b-1.0.jar', 'd-1.0.jar']
     }
 
     /**
@@ -117,10 +150,9 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         assertResolvedFiles(resolvedJars)
 
         where:
-        name                 | excludeAttributes | resolvedJars
-        'non-matching name'  | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
-        'matching all names' | [name: '*']       | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        'matching name'      | [name: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
+        name                    | excludeAttributes | resolvedJars
+        'non-matching artifact' | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
+        'matching artifact'     | [name: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
     }
 
     /**
@@ -155,11 +187,10 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         where:
         name                     | excludeAttributes        | resolvedJars
         'non-matching module'    | [module: 'other']        | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
-        'non-matching name'      | [name: 'other']          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
-        'matching all modules'   | [module: '*']            | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'non-matching artifact'  | [name: 'other']          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
+        'matching all modules'   | [module: '*']            | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'matching module'        | [module: 'd']            | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        'matching all names'     | [name: '*']              | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        'matching name'          | [name: 'd']              | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'matching artifact'      | [name: 'd']              | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
         'matching name and type' | [name: 'd', type: 'jar'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0-javadoc.jar', 'd-1.0-sources.jar', 'e-1.0.jar']
     }
 
@@ -172,7 +203,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * c -> d
      */
     @Unroll
-    def "module with #name is not excluded if reachable via alternate path"() {
+    def "module excluding #name is not excluded if reachable via path that does not exclude it"() {
         given:
         ivyRepo.module('d').publish()
         ivyRepo.module('b').dependsOn('d').publish()
@@ -188,12 +219,39 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         assertResolvedFiles(resolvedJars)
 
         where:
-        name                   | excludeAttributes | resolvedJars
-        'non-matching module'  | [module: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'non-matching name'    | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching all modules' | [module: '*']     | ['a-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching module'      | [module: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching name'        | [name: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        name                    | excludeAttributes | resolvedJars
+        'non-matching module'   | [module: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'non-matching artifact' | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'matching all modules'  | [module: '*']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'matching module'       | [module: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'matching artifact'     | [name: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+    }
+
+    /**
+     * Transitive dependency exclude for a module reachable via alternative path using a combination of exclude rules.
+     *
+     * Dependency graph:
+     * a -> b, c
+     * b -> d
+     * c -> d
+     */
+    def "artifact is not excluded if reachable via path that does not exclude it"() {
+        given:
+        ivyRepo.module('d').artifact([type: 'war']).artifact([type: 'ear']) publish()
+        def moduleB = ivyRepo.module('b').dependsOn('d')
+        addExcludeRuleToModuleDependency(moduleB, 'd', [type: 'war'])
+        moduleB.publish()
+        def moduleC = ivyRepo.module('c').dependsOn('d')
+        addExcludeRuleToModuleDependency(moduleC, 'd', [type: 'ear'])
+        moduleC.publish()
+        def moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        moduleA.publish()
+
+        when:
+        succeedsDependencyResolution()
+
+        then:
+        assertResolvedFiles(['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.ear', 'd-1.0.war'])
     }
 
     /**
@@ -222,12 +280,11 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         assertResolvedFiles(resolvedJars)
 
         where:
-        name                   | excludeAttributes | resolvedJars
-        'non-matching module'  | [module: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'non-matching name'    | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching all modules' | [module: '*']     | ['a-1.0.jar']
-        'matching module'      | [module: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'matching name'        | [name: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        name                    | excludeAttributes | resolvedJars
+        'non-matching module'   | [module: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'non-matching artifact' | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'matching module'       | [module: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'matching artifact'     | [name: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
     /**
@@ -263,11 +320,11 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         assertResolvedFiles(resolvedJars)
 
         where:
-        name                  | excludeRulesPath1                                                              | excludeRulesPath2                       | resolvedJars
-        'non-matching module' | [[org: 'org.company', module: 'd'], [org: 'org.gradle.test', module: 'e']]     | [[org: 'org.company', module: 'd']]     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'non-matching name'   | [[org: 'org.company', name: 'd'], [org: 'org.gradle.test', name: 'e']]         | [[org: 'org.company', name: 'd']]       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching module'     | [[org: 'org.gradle.test', module: 'd'], [org: 'org.gradle.test', module: 'e']] | [[org: 'org.gradle.test', module: 'd']] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'matching name'       | [[org: 'org.gradle.test', name: 'd'], [org: 'org.gradle.test', name: 'e']]     | [[org: 'org.gradle.test', name: 'd']]   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        name                    | excludeRulesPath1                                                              | excludeRulesPath2                       | resolvedJars
+        'non-matching module'   | [[org: 'org.company', module: 'd'], [org: 'org.gradle.test', module: 'e']]     | [[org: 'org.company', module: 'd']]     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'non-matching artifact' | [[org: 'org.company', name: 'd'], [org: 'org.gradle.test', name: 'e']]         | [[org: 'org.company', name: 'd']]       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'matching module'       | [[org: 'org.gradle.test', module: 'd'], [org: 'org.gradle.test', module: 'e']] | [[org: 'org.gradle.test', module: 'd']] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'matching artifact'     | [[org: 'org.gradle.test', name: 'd'], [org: 'org.gradle.test', name: 'e']]     | [[org: 'org.gradle.test', name: 'd']]   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
     /**
@@ -321,15 +378,15 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     def "transitive dependency exclude without provided group or module attribute but matching #name does not exclude its transitive module"() {
         given:
         ivyRepo.module('f')
-               .artifact([:])
-               .artifact([type: 'war'])
-               .publish()
+                .artifact([:])
+                .artifact([type: 'war'])
+                .publish()
         ivyRepo.module('d')
-               .artifact([:])
-               .artifact([type: 'war'])
-               .artifact([type: 'ear'])
-               .dependsOn('f')
-               .publish()
+                .artifact([:])
+                .artifact([type: 'war'])
+                .artifact([type: 'ear'])
+                .dependsOn('f')
+                .publish()
         ivyRepo.module('b').dependsOn('d').publish()
         ivyRepo.module('e').publish()
         ivyRepo.module('c').dependsOn('e').publish()

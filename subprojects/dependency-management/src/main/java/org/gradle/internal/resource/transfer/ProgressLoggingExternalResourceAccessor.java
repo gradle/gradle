@@ -16,15 +16,12 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.api.Transformer;
-import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.logging.ProgressLoggerFactory;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
@@ -35,81 +32,45 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         this.delegate = delegate;
     }
 
-    public ExternalResource getResource(URI location) throws IOException {
-        ExternalResource resource = delegate.getResource(location);
+    public ExternalResourceReadResponse openResource(URI location) {
+        ExternalResourceReadResponse resource = delegate.openResource(location);
         if (resource != null) {
-            return new ProgressLoggingExternalResource(resource);
+            return new ProgressLoggingExternalResource(location, resource);
         } else {
             return null;
         }
     }
 
     @Nullable
-    public HashValue getResourceSha1(URI location) {
-        return delegate.getResourceSha1(location);
-    }
-
-    @Nullable
-    public ExternalResourceMetaData getMetaData(URI location) throws IOException {
+    public ExternalResourceMetaData getMetaData(URI location) {
         return delegate.getMetaData(location);
     }
 
-    private class ProgressLoggingExternalResource implements ExternalResource {
-        private ExternalResource resource;
+    private class ProgressLoggingExternalResource implements ExternalResourceReadResponse {
+        private final ExternalResourceReadResponse resource;
+        private final ResourceOperation downloadOperation;
 
-        private ProgressLoggingExternalResource(ExternalResource resource) {
+        private ProgressLoggingExternalResource(URI location, ExternalResourceReadResponse resource) {
             this.resource = resource;
+            downloadOperation = createResourceOperation(location.toString(), ResourceOperation.Type.download, getClass(), resource.getMetaData().getContentLength());
         }
 
-        /**
-         * This redirect allows us to deprecate ExternalResource#writeto and replace usages later.
-         */
-        public void writeTo(File destination) throws IOException {
-            FileOutputStream output = new FileOutputStream(destination);
-            try {
-                writeTo(output);
-            } finally {
-                output.close();
-            }
+        @Override
+        public InputStream openStream() throws IOException {
+            return new ProgressLoggingInputStream(resource.openStream(), downloadOperation);
         }
 
-        public void writeTo(OutputStream outputStream) throws IOException {
-            final ResourceOperation downloadOperation = createResourceOperation(resource.getName(), ResourceOperation.Type.download, getClass(), resource.getContentLength());
-            final ProgressLoggingOutputStream progressLoggingOutputStream = new ProgressLoggingOutputStream(outputStream, downloadOperation);
+        public void close() throws IOException {
             try {
-                resource.writeTo(progressLoggingOutputStream);
+                resource.close();
             } finally {
                 downloadOperation.completed();
             }
         }
 
-        public void withContent(Action<? super InputStream> readAction) throws IOException {
-            resource.withContent(readAction);
-        }
-
-        public <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws IOException {
-            return resource.withContent(readAction);
-        }
-
-        public void close() throws IOException {
-            resource.close();
-        }
-
         @Nullable
         public ExternalResourceMetaData getMetaData() {
             return resource.getMetaData();
-        }
-
-        public URI getURI() {
-            return resource.getURI();
-        }
-
-        public String getName() {
-            return resource.getName();
-        }
-
-        public long getContentLength() {
-            return resource.getContentLength();
         }
 
         public boolean isLocal() {
@@ -118,37 +79,6 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
 
         public String toString(){
             return resource.toString();
-        }
-    }
-
-    private class ProgressLoggingOutputStream extends OutputStream {
-        private OutputStream outputStream;
-        private final ResourceOperation resourceOperation;
-
-        public ProgressLoggingOutputStream(OutputStream outputStream, ResourceOperation resourceOperation) {
-            this.outputStream = outputStream;
-            this.resourceOperation = resourceOperation;
-        }
-
-        @Override
-        public void flush() throws IOException {
-            outputStream.flush();
-        }
-
-        @Override
-        public void close() throws IOException {
-            outputStream.close();
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            outputStream.write(b);
-            resourceOperation.logProcessedBytes(1l);
-        }
-
-        public void write(byte b[], int off, int len) throws IOException {
-            outputStream.write(b, off, len);
-            resourceOperation.logProcessedBytes(len);
         }
     }
 }

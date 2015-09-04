@@ -23,8 +23,11 @@ import org.gradle.reporting.TabbedPageRenderer;
 import org.gradle.reporting.TabsRenderer;
 
 import java.io.IOException;
+import java.net.URL;
 
 abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRenderer<T> {
+    private static final URL STYLE_URL = PageRenderer.class.getResource("style.css");
+
     private T results;
     private final TabsRenderer<T> tabsRenderer = new TabsRenderer<T>();
 
@@ -35,6 +38,11 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
     protected abstract void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) throws IOException;
 
     protected abstract void registerTabs();
+
+    @Override
+    protected URL getStyleUrl() {
+        return STYLE_URL;
+    }
 
     protected void addTab(String title, final Action<SimpleHtmlWriter> contentRenderer) {
         tabsRenderer.add(title, new ReportRenderer<T, SimpleHtmlWriter>() {

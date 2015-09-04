@@ -24,9 +24,25 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface RuleMetadata {
-    String[] inputPaths() default {};
-    int[] inputLineNumbers() default {};
+    /**
+     * Definite input references, should be treated as absolute model paths.
+     */
+    String[] absoluteInputPaths() default {};
+
+    int[] absoluteInputLineNumbers() default {};
+
+    /**
+     * Candidate input references, should be resolved relative to the subject of the rule.
+     */
+    String[] relativeInputPaths() default {};
+
+    int[] relativeInputLineNumbers() default {};
+
     String scriptSourceDescription();
+
     int lineNumber();
+
     int columnNumber();
+
+    String absoluteScriptSourceLocation();
 }

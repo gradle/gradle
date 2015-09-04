@@ -21,12 +21,12 @@ repositories {
 // In this section you declare the dependencies for your production and test code
 dependencies {
     // The production code uses the SLF4J logging API at compile time
-    compile 'org.slf4j:slf4j-api:1.7.7'
+    compile 'org.slf4j:slf4j-api:${slf4jVersion.groovyString}'
 
     // Declare the dependency for your favourite test framework you want to use in your tests.
     // TestNG is also supported by the Gradle Test task. Just change the
     // testCompile dependency to testCompile 'org.testng:testng:6.8.1' and add
     // 'test.useTestNG()' to your build script.
-    testCompile "junit:junit:4.11"
+    testCompile 'junit:junit:${junitVersion.groovyString}'
 }
 */

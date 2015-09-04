@@ -20,11 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.FlushableEncoder;
-import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
-import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.FlushableEncoder;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 import java.io.*;
 import java.util.Collection;

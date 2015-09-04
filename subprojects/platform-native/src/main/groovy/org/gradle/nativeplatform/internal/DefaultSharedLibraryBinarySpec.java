@@ -23,14 +23,15 @@ import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
+import org.gradle.platform.base.BinaryTasksCollection;
+import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
 public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements SharedLibraryBinary, SharedLibraryBinarySpecInternal {
-    private final DefaultTasksCollection tasks = new DefaultTasksCollection(this);
+    private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
@@ -71,9 +72,9 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return tasks;
     }
 
-    private static class DefaultTasksCollection extends DefaultBinaryTasksCollection implements SharedLibraryBinarySpec.TasksCollection {
-        public DefaultTasksCollection(NativeBinarySpecInternal binary) {
-            super(binary);
+    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements SharedLibraryBinarySpec.TasksCollection {
+        public DefaultTasksCollection(BinaryTasksCollection delegate) {
+            super(delegate);
         }
 
         public LinkSharedLibrary getLink() {
@@ -97,7 +98,7 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         }
 
         private boolean hasResources() {
-            for (NativeResourceSet windowsResourceSet : getSource().withType(NativeResourceSet.class)) {
+            for (NativeResourceSet windowsResourceSet : getInputs().withType(NativeResourceSet.class)) {
                 if (!windowsResourceSet.getSource().isEmpty()) {
                     return true;
                 }
@@ -106,7 +107,7 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         }
 
         private boolean hasExportedSymbols() {
-            for (LanguageSourceSet languageSourceSet : getSource()) {
+            for (LanguageSourceSet languageSourceSet : getInputs()) {
                 if (!(languageSourceSet instanceof NativeResourceSet)) {
                     if (!languageSourceSet.getSource().isEmpty()) {
                         return true;

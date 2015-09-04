@@ -19,5 +19,12 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 
 public interface ComponentModuleMetadataProcessor {
+    ComponentModuleMetadataProcessor NO_OP = new ComponentModuleMetadataProcessor() {
+        @Override
+        public ModuleReplacementsData getModuleReplacements() {
+            return ModuleReplacementsData.NO_OP;
+        }
+    };
+
     ModuleReplacementsData getModuleReplacements();
 }

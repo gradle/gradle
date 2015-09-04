@@ -56,7 +56,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 repositories { mavenCentral() }
-dependencies { testCompile "junit:junit:4.11" }
+dependencies { testCompile "junit:junit:4.12" }
 
 test.addTestOutputListener(new VerboseOutputListener(logger: project.logger))
 
@@ -84,10 +84,10 @@ class RemoveMeListener implements TestOutputListener {
         def failure = executer.withTasks('test').runWithFailure()
 
         then:
-        failure.output.contains('test showsOutputWhenPassing(SomeTest) StdOut out passing')
-        failure.output.contains('test showsOutputWhenFailing(SomeTest) StdOut out failing')
-        failure.output.contains('test showsOutputWhenPassing(SomeTest) StdErr err passing')
-        failure.output.contains('test showsOutputWhenFailing(SomeTest) StdErr err failing')
+        failure.output.contains('Test showsOutputWhenPassing(SomeTest) StdOut out passing')
+        failure.output.contains('Test showsOutputWhenFailing(SomeTest) StdOut out failing')
+        failure.output.contains('Test showsOutputWhenPassing(SomeTest) StdErr err passing')
+        failure.output.contains('Test showsOutputWhenFailing(SomeTest) StdErr err failing')
 
         !failure.output.contains("remove me!")
     }
@@ -109,7 +109,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 repositories { mavenCentral() }
-dependencies { testCompile "junit:junit:4.11" }
+dependencies { testCompile "junit:junit:4.12" }
 
 test.onOutput { descriptor, event ->
     logger.lifecycle("first: " + event.message)
@@ -152,7 +152,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 repositories { mavenCentral() }
-dependencies { testCompile "junit:junit:4.11" }
+dependencies { testCompile "junit:junit:4.12" }
 
 test.testLogging {
     showStandardStreams = true

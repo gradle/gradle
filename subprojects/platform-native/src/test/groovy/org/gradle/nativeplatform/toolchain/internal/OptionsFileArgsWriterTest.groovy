@@ -18,9 +18,6 @@ package org.gradle.nativeplatform.toolchain.internal
 
 import spock.lang.Specification
 
-/**
- *
- */
 abstract class OptionsFileArgsWriterTest extends Specification {
 
     abstract OptionsFileArgsWriter getArgsWriter()

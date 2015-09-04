@@ -16,10 +16,16 @@
 
 package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        EnableModelDsl.enable(executer)
+    }
 
     def "can combine legacy java and cpp plugins in a single project"() {
         settingsFile << "rootProject.name = 'test'"
@@ -47,7 +53,7 @@ task checkBinaries << {
     }
 
     def "can combine jvm and native components in the same project"() {
-        buildFile << """
+        buildFile << '''
 plugins {
     id 'native-component'
     id 'jvm-component'
@@ -59,25 +65,30 @@ model {
         nativeLib(NativeLibrarySpec)
         jvmLib(JvmLibrarySpec)
     }
-}
+    tasks {
+        create("validate") {
+            def components = $("components")
+            doLast {
+                assert components.size() == 3
+                assert components.nativeExe instanceof NativeExecutableSpec
+                assert components.nativeLib instanceof NativeLibrarySpec
+                assert components.jvmLib instanceof JvmLibrarySpec
 
-task validate << {
-    assert componentSpecs.size() == 3
-    assert componentSpecs.nativeExe instanceof NativeExecutableSpec
-    assert componentSpecs.nativeLib instanceof NativeLibrarySpec
-    assert componentSpecs.jvmLib instanceof JvmLibrarySpec
-
-    assert binaries.size() == 4
-    assert binaries.jvmLibJar instanceof JarBinarySpec
-    assert binaries.nativeExeExecutable instanceof NativeExecutableBinarySpec
-    assert binaries.nativeLibStaticLibrary instanceof StaticLibraryBinarySpec
-    assert binaries.nativeLibSharedLibrary instanceof SharedLibraryBinarySpec
+                assert project.binaries.size() == 4
+                assert project.binaries.jvmLibJar instanceof JarBinarySpec
+                assert project.binaries.nativeExeExecutable instanceof NativeExecutableBinarySpec
+                assert project.binaries.nativeLibStaticLibrary instanceof StaticLibraryBinarySpec
+                assert project.binaries.nativeLibSharedLibrary instanceof SharedLibraryBinarySpec
+            }
+        }
+    }
 }
-"""
+'''
         expect:
         succeeds "validate"
     }
 
+    @RequiresInstalledToolChain
     def "build mixed components in one project"() {
         given:
         file("src/jvmLib/java/org/gradle/test/Test.java") << """

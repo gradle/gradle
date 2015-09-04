@@ -29,7 +29,7 @@ import java.io.File;
  * Handles locating and processing setting.gradle files.  Also deals with the buildSrc module, since that modules is
  * found after settings is located, but needs to be built before settings is processed.
  */
-public class SettingsHandler {
+public class SettingsHandler implements SettingsLoader {
     private ISettingsFinder settingsFinder;
     private SettingsProcessor settingsProcessor;
     private BuildSourceBuilder buildSourceBuilder;
@@ -41,6 +41,7 @@ public class SettingsHandler {
         this.buildSourceBuilder = buildSourceBuilder;
     }
 
+    @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter);

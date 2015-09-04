@@ -17,12 +17,16 @@
 package org.gradle.performance.results;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.performance.fixture.*;
+import org.gradle.performance.fixture.BaselineVersion;
+import org.gradle.performance.fixture.CrossVersionPerformanceResults;
+import org.gradle.performance.fixture.DataReporter;
+import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.util.GradleVersion;
 
+import java.io.Closeable;
 import java.io.File;
 import java.sql.*;
 import java.text.DateFormat;
@@ -33,7 +37,7 @@ import java.util.*;
 /**
  * A {@link org.gradle.performance.fixture.DataReporter} implementation that stores results in an H2 relational database.
  */
-public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore {
+public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore, Closeable {
     private final File dbFile;
     private final long ignoreV17Before;
     private final H2FileDb db;
@@ -80,7 +84,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     } finally {
                         statement.close();
                     }
-                    statement = connection.prepareStatement("insert into testOperation(testExecution, version, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?)");
+                    statement = connection.prepareStatement("insert into testOperation(testExecution, version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         addOperations(statement, testId, null, results.getCurrent());
                         for (BaselineVersion baselineVersion : results.getBaselineVersions()) {
@@ -101,12 +105,14 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         for (MeasuredOperation operation : operations) {
             statement.setLong(1, testId);
             statement.setString(2, version);
-            statement.setBigDecimal(3, operation.getExecutionTime().toUnits(Duration.MILLI_SECONDS).getValue());
-            statement.setBigDecimal(4, operation.getTotalMemoryUsed().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(5, operation.getTotalHeapUsage().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(6, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(7, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
-            statement.setBigDecimal(8, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(3, operation.getTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            statement.setBigDecimal(4, operation.getConfigurationTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            statement.setBigDecimal(5, operation.getExecutionTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            statement.setBigDecimal(6, operation.getTotalMemoryUsed().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(7, operation.getTotalHeapUsage().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(8, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(9, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
+            statement.setBigDecimal(10, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
             statement.execute();
         }
     }
@@ -129,50 +135,13 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         }
     }
 
-    public List<String> getVersions() {
-        try {
-            return db.withConnection(new ConnectionAction<List<String>>() {
-                public List<String> execute(Connection connection) throws Exception {
-                    Set<String> allVersions = new TreeSet<String>(new Comparator<String>() {
-                        public int compare(String o1, String o2) {
-                            return GradleVersion.version(o1).compareTo(GradleVersion.version(o2));
-                        }
-                    });
-                    PreparedStatement uniqueVersions = connection.prepareStatement("select distinct version from testOperation");
-                    ResultSet versions = uniqueVersions.executeQuery();
-                    while (versions.next()) {
-                        String version = versions.getString(1);
-                        if (version != null) {
-                            allVersions.add(version);
-                        }
-                    }
-                    versions.close();
-                    uniqueVersions.close();
-
-                    ArrayList<String> result = new ArrayList<String>();
-                    result.addAll(allVersions);
-
-                    PreparedStatement uniqueBranches = connection.prepareStatement("select distinct vcsBranch from testExecution");
-                    ResultSet branches = uniqueBranches.executeQuery();
-                    Set<String> allBranches = new TreeSet<String>();
-                    while (branches.next()) {
-                        allBranches.add(branches.getString(1).trim());
-                    }
-                    branches.close();
-                    uniqueBranches.close();
-
-                    result.addAll(allBranches);
-
-                    return result;
-                }
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not load version list from datastore '%s'.", dbFile), e);
-        }
+    @Override
+    public TestExecutionHistory getTestResults(String testName) {
+        return getTestResults(testName, Integer.MAX_VALUE);
     }
 
     @Override
-    public CrossVersionTestExecutionHistory getTestResults(final String testName) {
+    public TestExecutionHistory getTestResults(final String testName, final int mostRecentN) {
         try {
             return db.withConnection(new ConnectionAction<CrossVersionTestExecutionHistory>() {
                 public CrossVersionTestExecutionHistory execute(Connection connection) throws Exception {
@@ -183,9 +152,10 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         }
                     });
                     Set<String> allBranches = new TreeSet<String>();
-                    PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
-                    PreparedStatement operationsForExecution = connection.prepareStatement("select version, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
-                    executionsForName.setString(1, testName);
+                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
+                    PreparedStatement operationsForExecution = connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
+                    executionsForName.setInt(1, mostRecentN);
+                    executionsForName.setString(2, testName);
                     ResultSet testExecutions = executionsForName.executeQuery();
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);
@@ -213,12 +183,14 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                                 continue;
                             }
                             MeasuredOperation operation = new MeasuredOperation();
-                            operation.setExecutionTime(Duration.millis(builds.getBigDecimal(2)));
-                            operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(3)));
-                            operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(4)));
-                            operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(5)));
-                            operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(6)));
-                            operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(7)));
+                            operation.setTotalTime(Duration.millis(builds.getBigDecimal(2)));
+                            operation.setConfigurationTime(Duration.millis(builds.getBigDecimal(3)));
+                            operation.setExecutionTime(Duration.millis(builds.getBigDecimal(4)));
+                            operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(5)));
+                            operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(6)));
+                            operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(7)));
+                            operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(8)));
+                            operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(9)));
 
                             if (version == null) {
                                 performanceResults.getCurrent().add(operation);
@@ -266,8 +238,24 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             statement.execute("alter table testOperation add column if not exists maxHeapUsageBytes decimal");
             statement.execute("alter table testOperation add column if not exists maxUncollectedHeapBytes decimal");
             statement.execute("alter table testOperation add column if not exists maxCommittedHeapBytes decimal");
+            if (columnExists(connection, "TESTOPERATION", "EXECUTIONTIMEMS")) {
+                statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
+                statement.execute("alter table testOperation add column executionTime decimal");
+                statement.execute("update testOperation set executionTime = 0");
+                statement.execute("alter table testOperation alter column executionTime set not null");
+                statement.execute("alter table testOperation add column configurationTime decimal");
+                statement.execute("update testOperation set configurationTime = 0");
+                statement.execute("alter table testOperation alter column configurationTime set not null");
+            }
             statement.close();
             return null;
+        }
+
+        private boolean columnExists(Connection connection, String table, String column) throws SQLException {
+            ResultSet columns = connection.getMetaData().getColumns(null, null, table, column);
+            boolean exists = columns.next();
+            columns.close();
+            return exists;
         }
     }
 }

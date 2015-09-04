@@ -21,7 +21,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
-import org.gradle.listener.ListenerBroadcast;
+import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.logging.ConsoleOutput;
 
 import java.io.OutputStream;
@@ -59,7 +59,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return colourMap;
     }
 
-    public ConsoleOutput getConsoleOutput() { return consoleOutput; }
+    public ConsoleOutput getConsoleOutput() {
+        return consoleOutput;
+    }
 
     public OutputStream getOriginalStdOut() {
         return originalStdOut;

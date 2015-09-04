@@ -16,30 +16,26 @@
 
 package org.gradle.model.dsl.internal
 
-import org.gradle.internal.BiActions
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
-import org.gradle.model.collection.ManagedSet
+import org.gradle.model.ModelSet
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
-import org.gradle.model.internal.inspect.ManagedModelInitializer
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory
-import org.gradle.model.internal.manage.instance.strategy.StrategyBackedModelInstantiator
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
-import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class NonTransformedModelDslBackingTest extends Specification {
 
-    def modelRegistry = new DefaultModelRegistry()
-    def modelDsl = new NonTransformedModelDslBacking(getModelRegistry())
+    def modelRegistry = new ModelRegistryHelper()
+    def schemaStore = DefaultModelSchemaStore.instance
+    def modelDsl = new NonTransformedModelDslBacking(getModelRegistry(), schemaStore)
 
     void register(String pathString, Object element) {
-        modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).simpleDescriptor("register").build())
+        modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).descriptor("register").build())
     }
 
     def "can add rules via dsl"() {
@@ -54,7 +50,7 @@ class NonTransformedModelDslBackingTest extends Specification {
         }
 
         then:
-        modelRegistry.get(ModelPath.path("foo"), ModelType.of(List)) == [1]
+        modelRegistry.realize(ModelPath.path("foo"), ModelType.of(List)) == [1]
     }
 
     @Managed
@@ -66,29 +62,59 @@ class NonTransformedModelDslBackingTest extends Specification {
 
     @Managed
     interface Foo {
-        ManagedSet<Thing> getBar()
+        ModelSet<Thing> getBar()
+    }
+
+    interface Unmanaged {}
+
+    def "can create via DSL"() {
+        when:
+        modelDsl.configure {
+            foo(Foo)
+        }
+
+        then:
+        modelRegistry.get("foo", Foo).bar.empty
+    }
+
+    def "can only create top level"() {
+        when:
+        modelDsl.configure {
+            foo.bar(Foo)
+        }
+
+        then:
+        thrown InvalidModelRuleDeclarationException
+    }
+
+    def "can create and configure via DSL"() {
+        when:
+        modelDsl.configure {
+            foo(Foo) {
+                bar.create {
+                    name = "one"
+                }
+            }
+        }
+
+        then:
+        modelRegistry.get("foo", Foo).bar.first().name == "one"
+    }
+
+    def "cannot create unmanaged"() {
+        when:
+        modelDsl.configure {
+            unmanaged(Unmanaged)
+        }
+
+        then:
+        thrown InvalidModelRuleDeclarationException
     }
 
     def "can use property accessors in DSL to build model object path"() {
-        given:
-        def schemaStore = DefaultModelSchemaStore.instance
-        def factory = new ManagedProxyFactory()
-        modelRegistry.create(ManagedModelInitializer.creator(
-                new SimpleModelRuleDescriptor("blah"),
-                ModelPath.path("foo"),
-                schemaStore.getSchema(ModelType.of(Foo)),
-                schemaStore,
-                new StrategyBackedModelInstantiator(schemaStore, factory, new DirectInstantiator()),
-                factory,
-                [],
-                BiActions.doNothing()
-        ))
-
-
-
         when:
-        modelDsl.configure { foo {} }
         modelDsl.configure {
+            foo(Foo)
             foo.bar {
                 create {
                     it.name = "foo"
@@ -97,7 +123,7 @@ class NonTransformedModelDslBackingTest extends Specification {
         }
 
         then:
-        modelRegistry.get(ModelPath.path("foo"), ModelType.of(Foo)).bar*.name == ["foo"]
+        modelRegistry.realize(ModelPath.path("foo"), ModelType.of(Foo)).bar*.name == ["foo"]
     }
 
     def "does not add rules when not configuring"() {
@@ -113,7 +139,7 @@ class NonTransformedModelDslBackingTest extends Specification {
                 }
             }
         }
-        modelRegistry.get(ModelPath.path("foo"), ModelType.UNTYPED)
+        modelRegistry.realize(ModelPath.path("foo"), ModelType.UNTYPED)
 
         then:
         def e = thrown(ModelRuleExecutionException)
@@ -129,7 +155,7 @@ class NonTransformedModelDslBackingTest extends Specification {
                 }
             }
         }
-        modelRegistry.get(ModelPath.path("bah"), ModelType.UNTYPED)
+        modelRegistry.realize(ModelPath.path("bah"), ModelType.UNTYPED)
 
         then:
         e = thrown(ModelRuleExecutionException)

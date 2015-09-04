@@ -60,8 +60,10 @@ class FindBugsPluginTest extends Specification {
         extension.omitVisitors == null
         extension.includeFilterConfig == null
         extension.excludeFilterConfig == null
+        extension.excludeBugsFilterConfig == null
         extension.includeFilter == null
         extension.excludeFilter == null
+        extension.excludeBugsFilter == null
     }
 
     def "configures FindBugs task for each source set"() {
@@ -94,8 +96,11 @@ class FindBugsPluginTest extends Specification {
             omitVisitors == null
             excludeFilterConfig == null
             includeFilterConfig == null
+            excludeBugsFilterConfig == null
             excludeFilter == null
             includeFilter == null
+            excludeBugsFilter == null
+            extraArgs == null
         }
     }
 
@@ -118,8 +123,11 @@ class FindBugsPluginTest extends Specification {
             omitVisitors == null
             excludeFilterConfig == null
             includeFilterConfig == null
+            excludeBugsFilterConfig == null
             excludeFilter == null
             includeFilter == null
+            excludeBugsFilter == null
+            extraArgs == null
         }
     }
 
@@ -153,6 +161,8 @@ class FindBugsPluginTest extends Specification {
             omitVisitors = ['org.gradle.Interface']
             includeFilter = new File("include.txt")
             excludeFilter = new File("exclude.txt")
+            excludeBugsFilter = new File("baselineBugs.txt")
+            extraArgs = [ '-adjustPriority', 'DM_CONVERT_CASE=raise,DM_CONVERT_CASE=raise']
         }
 
         expect:
@@ -178,11 +188,14 @@ class FindBugsPluginTest extends Specification {
             omitVisitors == ['org.gradle.Interface']
             includeFilterConfig.inputFiles.singleFile == project.file("include.txt")
             excludeFilterConfig.inputFiles.singleFile == project.file("exclude.txt")
+            excludeBugsFilterConfig.inputFiles.singleFile == project.file("baselineBugs.txt")
             includeFilter == project.file("include.txt")
             excludeFilter == project.file("exclude.txt")
+            excludeBugsFilter == project.file("baselineBugs.txt")
+            extraArgs == [ '-adjustPriority', 'DM_CONVERT_CASE=raise,DM_CONVERT_CASE=raise' ]
         }
     }
-    
+
     def "can customize any additional FindBugs tasks via extension"() {
         def task = project.tasks.create("findbugsCustom", FindBugs)
         project.findbugs {
@@ -194,6 +207,8 @@ class FindBugsPluginTest extends Specification {
             omitVisitors = ['org.gradle.Interface']
             includeFilterConfig = project.resources.text.fromFile("include.txt")
             excludeFilterConfig = project.resources.text.fromFile("exclude.txt")
+            excludeBugsFilterConfig = project.resources.text.fromFile("baselineBugs.txt")
+            extraArgs = [ '-adjustPriority', 'DM_CONVERT_CASE=raise,DM_CONVERT_CASE=raise' ]
         }
 
         expect:
@@ -212,8 +227,11 @@ class FindBugsPluginTest extends Specification {
             omitVisitors == ['org.gradle.Interface']
             includeFilterConfig.inputFiles.singleFile == project.file("include.txt")
             excludeFilterConfig.inputFiles.singleFile == project.file("exclude.txt")
+            excludeBugsFilterConfig.inputFiles.singleFile == project.file("baselineBugs.txt")
             includeFilter == project.file("include.txt")
             excludeFilter == project.file("exclude.txt")
+            excludeBugsFilter == project.file("baselineBugs.txt")
+            extraArgs == [ '-adjustPriority', 'DM_CONVERT_CASE=raise,DM_CONVERT_CASE=raise' ]
         }
     }
 
@@ -257,4 +275,13 @@ class FindBugsPluginTest extends Specification {
         project.findbugs.excludeFilterConfig.inputFiles.singleFile == project.file("filter.txt")
     }
 
+    def "can use legacy excludeBugsFilter extension property"() {
+        project.pluginManager.apply(JavaPlugin)
+
+        project.findbugs.excludeBugsFilter = project.file("filter.txt")
+
+        expect:
+        project.findbugs.excludeBugsFilter == project.file("filter.txt")
+        project.findbugs.excludeBugsFilterConfig.inputFiles.singleFile == project.file("filter.txt")
+    }
 }

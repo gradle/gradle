@@ -17,11 +17,12 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
-import org.gradle.launcher.daemon.testing.DaemonContextParser
+import org.gradle.integtests.fixtures.daemon.DaemonContextParser
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
-import org.gradle.launcher.daemon.testing.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import spock.lang.IgnoreIf
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -46,7 +47,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     // set this to change the java home used to launch any gradle, set back to null to use current JVM
     def javaHome = null
-    
+
     // set this to change the desired default encoding for the build request
     def buildEncoding = null
 
@@ -107,10 +108,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         run {
             poll(20) { assert builds[buildNum].standardOutput.contains("waiting for stop file"); }
         }
-    }
-
-    @Override
-    protected void cleanupWhileTestFilesExist() {
     }
 
     void stopDaemons() {
@@ -319,14 +316,14 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         completeBuild(1)
-        
+
         then:
         idle 2
         daemonContext(1) {
             assert daemonOpts.contains("-Dfile.encoding=UTF-8")
         }
     }
-    
+
     def cleanup() {
         try {
             def registry = new DaemonLogsAnalyzer(executer.daemonBaseDir).registry

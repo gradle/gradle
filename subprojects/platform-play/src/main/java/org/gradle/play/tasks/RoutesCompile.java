@@ -17,6 +17,7 @@
 package org.gradle.play.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -36,7 +37,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Task for compiling routes templates
+ * Task for compiling routes templates into Scala code.
+ * <p>
+ * This task is usually created as one of the build tasks when building a Play application with the {@link org.gradle.play.plugins.PlayPlugin} plugin.
+ *
+ * Explicit configuration of this task is not expected and should be performed on the equivalent settings at the {@link org.gradle.play.PlayApplicationSpec} level.
+ * </p>
  */
 @Incubating
 public class RoutesCompile extends SourceTask {
@@ -51,16 +57,11 @@ public class RoutesCompile extends SourceTask {
      */
     private List<String> additionalImports = new ArrayList<String>();
 
-    private boolean javaProject;
     private boolean namespaceReverseRouter;
+    private boolean generateReverseRoutes = true;
     private PlayPlatform platform;
     private BaseForkOptions forkOptions;
-
-    void setCompiler(Compiler<RoutesCompileSpec> compiler) {
-        this.compiler = compiler;
-    }
-
-    private Compiler<RoutesCompileSpec> compiler;
+    private boolean injectedRoutesGenerator;
 
     /**
      * Returns the directory to generate the parser source files into.
@@ -82,49 +83,35 @@ public class RoutesCompile extends SourceTask {
     }
 
     /**
-     * Specifies the additional imports of the Play Routes compiler.
+     * Returns the additional imports of the Play Routes compiler.
+     *
+     * @return The additional imports.
      */
+    @Input
     public List<String> getAdditionalImports() {
         return additionalImports;
     }
 
     /**
-     * Returns the additional imports of the Play Routes compiler.
-     *
-     * @return The additional imports.
+     * Specifies the additional imports of the Play Routes compiler.
      */
     public void setAdditionalImports(List<String> additionalImports) {
         this.additionalImports.addAll(additionalImports);
     }
 
-
     @TaskAction
     void compile() {
-        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getAdditionalImports(), isNamespaceReverseRouter(), getForkOptions(), isJavaProject());
-        if (compiler == null) {
-            compiler = new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(spec), getOutputs());
-        }
-        compiler.execute(spec);
+        RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject(), isNamespaceReverseRouter(), isGenerateReverseRoutes(), getInjectedRoutesGenerator(), getAdditionalImports());
+        new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs()).execute(spec);
     }
 
-    private Compiler<RoutesCompileSpec> getCompiler(RoutesCompileSpec spec) {
-        if (compiler == null) {
-            ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(platform);
-            compiler = select.newCompiler(spec);
-        }
-        return compiler;
+    private Compiler<RoutesCompileSpec> getCompiler() {
+        ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(platform);
+        return select.newCompiler(RoutesCompileSpec.class);
     }
 
     public boolean isJavaProject() {
-        return javaProject;
-    }
-
-    public void setJavaProject(boolean javaProject) {
-        this.javaProject = javaProject;
-    }
-
-    public boolean isNamespaceReverseRouter() {
-        return namespaceReverseRouter;
+        return false;
     }
 
     public void setPlatform(PlayPlatform platform) {
@@ -142,10 +129,67 @@ public class RoutesCompile extends SourceTask {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * The fork options to be applied to the Routes compiler.
+     *
+     * @return The fork options for the Routes compiler.
+     */
     public BaseForkOptions getForkOptions() {
         if (forkOptions == null) {
             forkOptions = new BaseForkOptions();
         }
         return forkOptions;
+    }
+
+    /**
+     * Whether the reverse router should be namespaced.
+     */
+    @Input
+    public boolean isNamespaceReverseRouter() {
+        return namespaceReverseRouter;
+    }
+
+    /**
+     * Sets whether or not the reverse router should be namespaced.
+     */
+    public void setNamespaceReverseRouter(boolean namespaceReverseRouter) {
+        this.namespaceReverseRouter = namespaceReverseRouter;
+    }
+
+    /**
+     * Whether a reverse router should be generated.  Default is true.
+     */
+    @Input
+    public boolean isGenerateReverseRoutes() {
+        return generateReverseRoutes;
+    }
+
+    /**
+     * Sets whether or not a reverse router should be generated.
+     */
+    public void setGenerateReverseRoutes(boolean generateReverseRoutes) {
+        this.generateReverseRoutes = generateReverseRoutes;
+    }
+
+    /**
+     * Is the injected routes generator (<code>play.routes.compiler.InjectedRoutesGenerator</code>) used for
+     * generating routes?  Default is false.
+     *
+     * @return false if StaticRoutesGenerator will be used to generate routes,
+     * true if InjectedRoutesGenerator will be used to generate routes.
+     */
+    @Input
+    public boolean getInjectedRoutesGenerator() {
+        return injectedRoutesGenerator;
+    }
+
+    /**
+     * Configure if the injected routes generator should be used to generate routes.
+     *
+     * @param injectedRoutesGenerator false - use StaticRoutesGenerator
+     * true - use InjectedRoutesGenerator
+     */
+    public void setInjectedRoutesGenerator(boolean injectedRoutesGenerator) {
+        this.injectedRoutesGenerator = injectedRoutesGenerator;
     }
 }

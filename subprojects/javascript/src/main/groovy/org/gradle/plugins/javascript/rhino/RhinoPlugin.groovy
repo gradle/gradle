@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.plugins.javascript.base.JavaScriptBasePlugin
 import org.gradle.plugins.javascript.base.JavaScriptExtension
 
 import static org.gradle.plugins.javascript.rhino.RhinoExtension.*
@@ -29,7 +30,7 @@ import static org.gradle.plugins.javascript.rhino.RhinoExtension.*
 class RhinoPlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.apply(plugin: "javascript-base")
+        project.pluginManager.apply(JavaScriptBasePlugin)
 
         JavaScriptExtension jsExtension = project.extensions.findByType(JavaScriptExtension)
         RhinoExtension rhinoExtension = jsExtension.extensions.create(RhinoExtension.NAME, RhinoExtension)
@@ -60,11 +61,9 @@ class RhinoPlugin implements Plugin<Project> {
     }
 
     void configureDefaultRhinoDependency(Configuration configuration, DependencyHandler dependencyHandler, RhinoExtension extension) {
-        configuration.incoming.beforeResolve {
-            if (configuration.dependencies.empty) {
-                Dependency dependency = dependencyHandler.create("${DEFAULT_RHINO_DEPENDENCY_GROUP}:${DEFAULT_RHINO_DEPENDENCY_MODULE}:${extension.version}")
-                configuration.dependencies.add(dependency)
-            }
+        configuration.defaultDependencies { dependencies ->
+            Dependency dependency = dependencyHandler.create("${DEFAULT_RHINO_DEPENDENCY_GROUP}:${DEFAULT_RHINO_DEPENDENCY_MODULE}:${extension.version}")
+            dependencies.add(dependency)
         }
     }
 

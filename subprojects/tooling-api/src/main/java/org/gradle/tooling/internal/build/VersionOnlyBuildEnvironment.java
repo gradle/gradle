@@ -16,20 +16,22 @@
 
 package org.gradle.tooling.internal.build;
 
-import org.gradle.tooling.model.build.GradleEnvironment;
-
 public class VersionOnlyBuildEnvironment {
+
     private final String gradleVersion;
 
     public VersionOnlyBuildEnvironment(String gradleVersion) {
         this.gradleVersion = gradleVersion;
     }
 
-    public GradleEnvironment getGradle() {
-        return new GradleEnvironment() {
-            public String getGradleVersion() {
-                return gradleVersion;
-            }
-        };
+    public VersionOnlyGradleEnvironment getGradle() {
+        return new VersionOnlyGradleEnvironment();
     }
+
+    private class VersionOnlyGradleEnvironment {
+        public String getGradleVersion() {
+            return gradleVersion;
+        }
+    }
+
 }

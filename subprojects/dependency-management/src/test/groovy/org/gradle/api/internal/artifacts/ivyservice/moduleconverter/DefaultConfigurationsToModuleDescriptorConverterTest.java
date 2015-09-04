@@ -15,11 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultDependencySet;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
-import org.gradle.internal.component.local.model.MutableLocalComponentMetaData;
+import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -27,8 +34,6 @@ import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.Collections;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -38,16 +43,18 @@ public class DefaultConfigurationsToModuleDescriptorConverterTest {
     private DefaultConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter = new DefaultConfigurationsToModuleDescriptorConverter();
 
     private JUnit4Mockery context = new JUnit4Mockery();
+    private ModuleComponentIdentifier componentId = DefaultModuleComponentIdentifier.newId("org", "name", "rev");
+    private ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(componentId);
 
     @Test
     public void testAddConfigurations() {
         Configuration configurationStub1 = createNamesAndExtendedConfigurationStub("conf1");
         Configuration configurationStub2 = createNamesAndExtendedConfigurationStub("conf2", configurationStub1);
-        DefaultModuleDescriptor moduleDescriptor = TestUtil.createModuleDescriptor(Collections.EMPTY_SET);
-        MutableLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleDescriptor, null);
+        DefaultIvyModulePublishMetaData metaData = new DefaultIvyModulePublishMetaData(id, "status");
 
         configurationsToModuleDescriptorConverter.addConfigurations(metaData, WrapUtil.toSet(configurationStub1, configurationStub2));
 
+        ModuleDescriptor moduleDescriptor = metaData.getModuleDescriptor();
         assertIvyConfigurationIsCorrect(moduleDescriptor.getConfiguration(configurationStub1.getName()),
                 expectedIvyConfiguration(configurationStub1));
         assertIvyConfigurationIsCorrect(moduleDescriptor.getConfiguration(configurationStub2.getName()),
@@ -69,7 +76,7 @@ public class DefaultConfigurationsToModuleDescriptorConverterTest {
                 configuration.getName(),
                 configuration.isVisible() ? org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC : org.apache.ivy.core.module.descriptor.Configuration.Visibility.PRIVATE,
                 configuration.getDescription(),
-                Configurations.getNames(configuration.getExtendsFrom(), false).toArray(new String[configuration.getExtendsFrom().size()]),
+                Configurations.getNames(configuration.getExtendsFrom()).toArray(new String[configuration.getExtendsFrom().size()]),
                 configuration.isTransitive(),
                 null);
     }
@@ -88,6 +95,15 @@ public class DefaultConfigurationsToModuleDescriptorConverterTest {
 
             allowing(configurationStub).getExtendsFrom();
             will(returnValue(WrapUtil.toSet(extendsFromConfigurations)));
+
+            allowing(configurationStub).getHierarchy();
+            will(returnValue(WrapUtil.toSet(extendsFromConfigurations)));
+
+            allowing(configurationStub).getAllDependencies();
+            will(returnValue(new DefaultDependencySet("foo", WrapUtil.toDomainObjectSet(Dependency.class))));
+
+            allowing(configurationStub).getAllArtifacts();
+            will(returnValue(new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class))));
         }});
         return configurationStub;
     }

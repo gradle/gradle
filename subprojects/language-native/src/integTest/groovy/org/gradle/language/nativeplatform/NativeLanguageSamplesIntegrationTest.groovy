@@ -20,6 +20,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -28,6 +29,7 @@ import spock.lang.IgnoreIf
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@LeaksFileHandles
 class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider()
     @Rule public final Sample assembler = sample(testDirProvider, 'assembler')
@@ -39,6 +41,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     @Rule public final Sample windowsResources = sample(testDirProvider, 'windows-resources')
     @Rule public final Sample idl = sample(testDirProvider, 'idl')
     @Rule public final Sample cunit = sample(testDirProvider, 'cunit')
+    @Rule public final Sample pch = sample(testDirProvider, 'pre-compiled-headers')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
         return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
@@ -63,10 +66,10 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     def "c"() {
         given:
         sample c
-        
+
         when:
         run "installMainExecutable"
-        
+
         then:
         executedAndNotSkipped ":compileHelloSharedLibraryHelloC", ":linkHelloSharedLibrary", ":helloSharedLibrary",
                               ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
@@ -172,5 +175,21 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
         and:
         installation(idl.dir.file("build/install/mainExecutable")).exec().out == "Hello from generated source!!\n"
+    }
+
+    def "pch"() {
+        given:
+        sample pch
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":generateHelloCppPrefixHeaderFile", ":compileHelloSharedLibraryCppPreCompiledHeader",
+                              ":linkHelloSharedLibrary", ":helloSharedLibrary",
+                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        installation(pch.dir.file("build/install/mainExecutable")).exec().out == "Hello world!\n"
     }
 }

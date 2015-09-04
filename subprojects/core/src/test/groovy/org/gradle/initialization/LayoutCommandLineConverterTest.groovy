@@ -34,7 +34,7 @@ class LayoutCommandLineConverterTest extends Specification {
 
     def "has reasonable defaults"() {
         expect:
-        convert().currentDir == canonicalise(SystemProperties.getCurrentDir())
+        convert().currentDir == canonicalise(SystemProperties.instance.getCurrentDir())
         convert().projectDir == null
         convert().gradleUserHomeDir == canonicalise(BuildLayoutParameters.DEFAULT_GRADLE_USER_HOME)
         convert().searchUpwards

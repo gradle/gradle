@@ -16,15 +16,15 @@
 package org.gradle.initialization;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.internal.exceptions.Contextual;
 import org.gradle.api.internal.ExceptionAnalyser;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.listener.ListenerManager;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.LocationAwareException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,12 +36,9 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
         listenerManager.addListener(this);
     }
 
-    public void beforeScript(Script script) {
-        ScriptSource source = script.getScriptSource();
+    @Override
+    public void scriptClassLoaded(ScriptSource source, Class<? extends Script> scriptClass) {
         scripts.put(source.getFileName(), source);
-    }
-
-    public void afterScript(Script script, Throwable result) {
     }
 
     public Throwable transform(Throwable exception) {
@@ -65,9 +62,9 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
                     Throwable currentException = actualException; currentException != null;
                     currentException = currentException.getCause()) {
                 for (StackTraceElement element : currentException.getStackTrace()) {
-                    if (scripts.containsKey(element.getFileName())) {
+                    if (element.getLineNumber() >= 0 && scripts.containsKey(element.getFileName())) {
                         source = scripts.get(element.getFileName());
-                        lineNumber = element.getLineNumber() >= 0 ? element.getLineNumber() : null;
+                        lineNumber = element.getLineNumber();
                         break;
                     }
                 }

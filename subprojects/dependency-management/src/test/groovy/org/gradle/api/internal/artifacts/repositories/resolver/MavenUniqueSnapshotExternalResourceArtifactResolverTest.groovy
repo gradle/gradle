@@ -21,7 +21,7 @@ import org.gradle.internal.resolve.result.ResourceAwareResolveResult
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetaData
 import org.gradle.internal.component.model.IvyArtifactName
-import org.gradle.internal.resource.LocallyAvailableExternalResource
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import spock.lang.Specification
 
 class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specification {
@@ -53,16 +53,13 @@ class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specificat
         def originalArtifact = new DefaultModuleComponentArtifactMetaData(originalComponentId, originalIvyName)
         def artifact = resolver.timestamp(originalArtifact)
         def result = Mock(ResourceAwareResolveResult)
-        def resource1 = Mock(LocallyAvailableExternalResource)
         def resource2 = Mock(LocallyAvailableExternalResource)
 
         when:
-        1 * delegate.resolveMetaDataArtifact({ it.id == artifact.id }, result) >> resource1
         1 * delegate.resolveArtifact({ it.id == artifact.id }, result) >> resource2
         1 * delegate.artifactExists({ it.id == artifact.id }, result) >> true
 
         then:
-        resolver.resolveMetaDataArtifact(originalArtifact, result) == resource1
         resolver.resolveArtifact(originalArtifact, result) == resource2
         resolver.artifactExists(originalArtifact, result)
     }

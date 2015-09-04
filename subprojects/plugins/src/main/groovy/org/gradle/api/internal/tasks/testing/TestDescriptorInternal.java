@@ -16,8 +16,20 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.tasks.testing.TestDescriptor;
 
 public interface TestDescriptorInternal extends TestDescriptor {
+    @Nullable
+    @Override
+    TestDescriptorInternal getParent();
+
     Object getId();
+
+    /**
+     * Returns the identifier for the build operation (eg test task) that owns this test.
+     * Not null only for a root test suite with no parent test.
+     */
+    @Nullable
+    Object getOwnerBuildOperationId();
 }

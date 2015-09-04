@@ -19,4 +19,9 @@ package org.gradle.play.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class PlayApplicationPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
+    @Override
+    String getMainTask() {
+        // assemble task will fail because the binary is not 100% buildable without a repository
+        return "playBinary"
+    }
 }

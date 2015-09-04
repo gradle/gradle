@@ -21,41 +21,16 @@ import org.gradle.api.internal.GradleInternal;
 import java.util.List;
 
 public class DefaultBuildExecuter implements BuildExecuter {
-    private final List<BuildConfigurationAction> configurationActions;
     private final List<BuildExecutionAction> executionActions;
-    private GradleInternal gradle;
 
-    public DefaultBuildExecuter(Iterable<? extends BuildConfigurationAction> configurationActions, Iterable<? extends BuildExecutionAction> executionActions) {
-        this.configurationActions = Lists.newArrayList(configurationActions);
+    public DefaultBuildExecuter(Iterable<? extends BuildExecutionAction> executionActions) {
         this.executionActions = Lists.newArrayList(executionActions);
     }
-
-    public void select(GradleInternal gradle) {
-        this.gradle = gradle;
-        configure(0);
+    public void execute(GradleInternal gradle) {
+        execute(gradle, 0);
     }
 
-    private void configure(final int index) {
-        if (index >= configurationActions.size()) {
-            return;
-        }
-        configurationActions.get(index).configure(new BuildExecutionContext() {
-            public GradleInternal getGradle() {
-                return gradle;
-            }
-
-            public void proceed() {
-                configure(index + 1);
-            }
-
-        });
-    }
-
-    public void execute() {
-        execute(0);
-    }
-
-    private void execute(final int index) {
+    private void execute(final GradleInternal gradle, final int index) {
         if (index >= executionActions.size()) {
             return;
         }
@@ -65,7 +40,7 @@ public class DefaultBuildExecuter implements BuildExecuter {
             }
 
             public void proceed() {
-                execute(index + 1);
+                execute(gradle, index + 1);
             }
 
         });

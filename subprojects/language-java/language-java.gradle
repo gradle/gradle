@@ -13,5 +13,6 @@ useClassycle(exclude: ["org/gradle/api/tasks/compile/**", "org/gradle/external/j
 
 strictCompile()
 useTestFixtures()
-useTestFixtures(project: ":languageJvm")
+useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')
 useTestFixtures(project: ":platformBase")
+useTestFixtures(project: ":launcher")

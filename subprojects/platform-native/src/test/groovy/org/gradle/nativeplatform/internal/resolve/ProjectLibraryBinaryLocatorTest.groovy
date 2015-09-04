@@ -14,33 +14,39 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.internal.resolve
-
-import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.DefaultDomainObjectSet
-import org.gradle.api.internal.plugins.ExtensionContainerInternal
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.resolve.ProjectModelResolver
+import org.gradle.language.base.internal.resolve.LibraryResolveException
+import org.gradle.model.ModelMap
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.model.internal.type.ModelType
+import org.gradle.model.internal.type.ModelTypes
+import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeLibraryBinary
 import org.gradle.nativeplatform.NativeLibraryRequirement
-import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement
 import org.gradle.platform.base.ComponentSpecContainer
 import spock.lang.Specification
 
 class ProjectLibraryBinaryLocatorTest extends Specification {
-    def project = Mock(ProjectInternal)
-    def projectLocator = Mock(ProjectLocator)
+    def projectModel = Mock(ModelRegistry)
+    def projectLocator = Mock(ProjectModelResolver)
     def requirement = Mock(NativeLibraryRequirement)
     def library = Mock(NativeLibrarySpec)
     def binary = Mock(MockNativeLibraryBinary)
-    def binaries = new DefaultDomainObjectSet(NativeBinarySpec, [binary])
+    def binaries = Mock(ModelMap)
+    def nativeBinaries = Mock(ModelMap)
     def convertedBinaries = new DefaultDomainObjectSet(NativeLibraryBinary, [binary])
     def locator = new ProjectLibraryBinaryLocator(projectLocator)
 
     def setup() {
-        library.nativeBinaries >> binaries
+        library.binaries >> binaries
+        binaries.withType(NativeBinarySpec) >> nativeBinaries
+        nativeBinaries.values() >> [binary]
     }
 
     def "locates binaries for library in same project"() {
@@ -48,7 +54,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("libName", null)
 
         and:
-        projectLocator.locateProject(null) >> project
+        projectLocator.resolveProjectModel(null) >> projectModel
         findLibraryInProject()
 
         then:
@@ -60,7 +66,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("other", "libName", null)
 
         and:
-        projectLocator.locateProject("other") >> project
+        projectLocator.resolveProjectModel("other") >> projectModel
         findLibraryInProject()
 
         then:
@@ -72,7 +78,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("other", "libName", "static")
 
         and:
-        projectLocator.locateProject("other") >> project
+        projectLocator.resolveProjectModel("other") >> projectModel
         findLibraryInProject()
 
         then:
@@ -84,7 +90,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("unknown", "libName", "static")
 
         and:
-        projectLocator.locateProject("unknown") >> { throw new UnknownProjectException("unknown")}
+        projectLocator.resolveProjectModel("unknown") >> { throw new UnknownProjectException("unknown")}
 
         and:
         locator.getBinaries(requirement)
@@ -98,9 +104,9 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("other", "unknown", "static")
 
         and:
-        projectLocator.locateProject("other") >> project
-        def libraries = findLibraryContainer(project)
-        libraries.getByName("unknown") >> { throw new UnknownDomainObjectException("unknown") }
+        projectLocator.resolveProjectModel("other") >> projectModel
+        def libraries = findLibraryContainer(projectModel)
+        libraries.get("unknown") >> { null }
 
         and:
         locator.getBinaries(requirement)
@@ -114,33 +120,28 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("other", "libName", "static")
 
         and:
-        projectLocator.locateProject("other") >> project
-        def extensions = Mock(ExtensionContainerInternal)
-        project.getExtensions() >> extensions
-        extensions.findByName("libraries") >> null
-        project.path >> "project-path"
+        projectLocator.resolveProjectModel("other") >> projectModel
+        projectModel.find(ModelPath.path("components"), ModelTypes.modelMap(NativeLibrarySpec)) >> null
 
         and:
         locator.getBinaries(requirement)
 
         then:
         def e = thrown(LibraryResolveException)
-        e.message == "Project does not have a libraries container: 'project-path'"
+        e.message == "Project does not have a libraries container: 'other'"
     }
 
     private void findLibraryInProject() {
-        def libraries = findLibraryContainer(project)
-        libraries.getByName("libName") >> library
+        def libraries = findLibraryContainer(projectModel)
+        libraries.containsKey("libName") >> true
+        libraries.get("libName") >> library
     }
 
-    private findLibraryContainer(ProjectInternal project) {
-        def extensions = Mock(ExtensionContainerInternal)
+    private findLibraryContainer(ModelRegistry modelRegistry) {
         def components = Mock(ComponentSpecContainer)
-        def libraryContainer = Mock(NamedDomainObjectSet)
-        project.getExtensions() >> extensions
-        extensions.findByType(ComponentSpecContainer) >> components
-        components.withType(NativeLibrarySpec) >> libraryContainer
-        return libraryContainer
+        modelRegistry.find(ModelPath.path("components"), ModelType.of(ComponentSpecContainer)) >> components
+        components.withType(NativeLibrarySpec.class) >> components
+        return components
     }
 
     interface MockNativeLibraryBinary extends NativeBinarySpec, NativeLibraryBinary {}

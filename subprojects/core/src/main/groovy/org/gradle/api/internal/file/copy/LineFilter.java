@@ -24,11 +24,18 @@ import java.io.IOException;
 import java.io.Reader;
 
 public class LineFilter extends Reader {
+    private static enum State {
+        NORMAL,
+        SKIP_LINE,
+        EOF
+    };
+
     private final Closure closure;
     private String transformedLine;
     private int transformedIndex;
     private final BufferedReader bufferedIn;
     private final Reader in;
+    private State state = State.NORMAL;
 
     /**
      * Creates a new filtered reader.
@@ -42,7 +49,7 @@ public class LineFilter extends Reader {
         this.closure = closure;
     }
 
-    private String getTransformedLine() throws IOException {
+    private void readTransformedLine() throws IOException {
         StringBuilder line = new StringBuilder();
         boolean eol = false;
         int ch;
@@ -60,20 +67,26 @@ public class LineFilter extends Reader {
             }
         }
         if (line.length() == 0 && !eol) {
-            return null;
+            state = State.EOF;
+            return;
         }
-
-        StringBuilder result = new StringBuilder();
-        result.append(closure.call(line.toString()).toString());
+        Object result = closure.call(line.toString());
+        if (result == null) {
+            state = State.SKIP_LINE;
+            return;
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append(result.toString());
         if (eol) {
-            result.append(SystemProperties.getLineSeparator());
+            builder.append(SystemProperties.getInstance().getLineSeparator());
         }
-        return result.toString();
+        state = State.NORMAL;
+        transformedLine = builder.toString();
     }
 
     private void ensureData() throws IOException {
-        if (transformedLine == null || transformedIndex >= transformedLine.length()) {
-            transformedLine = getTransformedLine();
+        while (state == State.SKIP_LINE || state == State.NORMAL && (transformedLine == null || transformedIndex >= transformedLine.length())) {
+            readTransformedLine();
             transformedIndex = 0;
         }
     }
@@ -81,7 +94,7 @@ public class LineFilter extends Reader {
     @Override
     public int read() throws IOException {
         ensureData();
-        if (transformedLine == null || transformedLine.length() == 0) {
+        if (state == State.EOF) {
             return -1;
         }
         return transformedLine.charAt(transformedIndex++);

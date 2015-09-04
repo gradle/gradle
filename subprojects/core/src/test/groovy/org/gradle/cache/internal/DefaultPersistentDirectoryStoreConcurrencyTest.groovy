@@ -18,10 +18,10 @@ package org.gradle.cache.internal
 
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.nativeintegration.ProcessEnvironment
-import org.gradle.internal.nativeintegration.services.NativeServices
-import org.gradle.messaging.serialize.NullSafeStringSerializer
+import org.gradle.internal.serialize.NullSafeStringSerializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -33,7 +33,7 @@ class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
     @Rule
     def TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def cacheDir = tmpDir.file("dir")
-    def metaDataProvider = new DefaultProcessMetaDataProvider(NativeServices.getInstance().get(ProcessEnvironment));
+    def metaDataProvider = new DefaultProcessMetaDataProvider(NativeServicesTestFixture.getInstance().get(ProcessEnvironment));
     def lockManager = new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler())
 
 
@@ -54,5 +54,8 @@ class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
 
         then:
         noExceptionThrown()
+
+        cleanup:
+        store.close()
     }
 }

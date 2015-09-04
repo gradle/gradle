@@ -19,16 +19,16 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult;
-import org.gradle.internal.resolve.result.ModuleVersionListing;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-import static org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult.State.Listed;
+import static org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult.State.Listed;
 
 class InMemoryMetaDataCache {
-    private final Map<ModuleVersionSelector, ModuleVersionListing> moduleVersionListing = new HashMap<ModuleVersionSelector, ModuleVersionListing>();
+    private final Map<ModuleVersionSelector, Set<String>> moduleVersionListing = new HashMap<ModuleVersionSelector, Set<String>>();
     private final Map<ModuleComponentIdentifier, CachedModuleVersionResult> metaData = new HashMap<ModuleComponentIdentifier, CachedModuleVersionResult>();
     private InMemoryCacheStats stats;
 
@@ -36,16 +36,16 @@ class InMemoryMetaDataCache {
         this.stats = stats;
     }
 
-    public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleComponentVersionSelectionResolveResult result) {
-        ModuleVersionListing moduleVersionListing1 = moduleVersionListing.get(requested);
-        if (moduleVersionListing1 == null) {
+    public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionListingResolveResult result) {
+        Set<String> versions = moduleVersionListing.get(requested);
+        if (versions == null) {
             return false;
         }
-        result.listed(moduleVersionListing1);
+        result.listed(versions);
         return true;
     }
 
-    public void newModuleVersions(ModuleVersionSelector requested, BuildableModuleComponentVersionSelectionResolveResult result) {
+    public void newModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionListingResolveResult result) {
         if (result.getState() == Listed) {
             moduleVersionListing.put(requested, result.getVersions());
         }

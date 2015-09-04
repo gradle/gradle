@@ -183,6 +183,6 @@ class JUnitXmlResultWriterSpec extends Specification {
     def getXml(TestClassResult result) {
         def text = new ByteArrayOutputStream()
         generator.write(result, text)
-        return text.toString("UTF-8").replace(SystemProperties.lineSeparator, "\n")
+        return text.toString("UTF-8").replace(SystemProperties.instance.lineSeparator, "\n")
     }
 }

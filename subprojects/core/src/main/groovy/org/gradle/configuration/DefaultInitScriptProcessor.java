@@ -20,7 +20,10 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.initialization.InitScript;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.id.LongIdGenerator;
+
+import java.net.URI;
 
 /**
  * Processes (and runs) an init script for a specified build.  Handles defining
@@ -29,6 +32,7 @@ import org.gradle.initialization.InitScript;
 public class DefaultInitScriptProcessor implements InitScriptProcessor {
     private final ScriptPluginFactory configurerFactory;
     private final ScriptHandlerFactory scriptHandlerFactory;
+    private final IdGenerator<Long> idGenerator = new LongIdGenerator();
 
     public DefaultInitScriptProcessor(ScriptPluginFactory configurerFactory, ScriptHandlerFactory scriptHandlerFactory) {
         this.configurerFactory = configurerFactory;
@@ -37,9 +41,11 @@ public class DefaultInitScriptProcessor implements InitScriptProcessor {
 
     public void process(final ScriptSource initScript, GradleInternal gradle) {
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
-        ClassLoaderScope scriptScope = baseScope.createChild();
+        URI uri = initScript.getResource().getURI();
+        String id = uri == null ? idGenerator.generateId().toString() : uri.toString();
+        ClassLoaderScope scriptScope = baseScope.createChild("init-" + id);
         ScriptHandler scriptHandler = scriptHandlerFactory.create(initScript, scriptScope);
-        ScriptPlugin configurer = configurerFactory.create(initScript, scriptHandler, scriptScope, baseScope, "initscript", InitScript.class, false);
+        ScriptPlugin configurer = configurerFactory.create(initScript, scriptHandler, scriptScope, baseScope, true);
         configurer.apply(gradle);
     }
 }

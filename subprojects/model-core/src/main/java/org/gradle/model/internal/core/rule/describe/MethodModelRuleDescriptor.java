@@ -16,10 +16,12 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
+import com.google.common.base.Objects;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.reflect.MethodDescription;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
 import java.io.IOException;
@@ -31,10 +33,14 @@ import java.util.List;
 @ThreadSafe
 public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
-    private final Method method;
+    private final WeaklyTypeReferencingMethod<?, ?> method;
     private String description;
 
-    public MethodModelRuleDescriptor(Method method) {
+    public MethodModelRuleDescriptor(ModelType<?> target, ModelType<?> returnType, Method method) {
+        this(WeaklyTypeReferencingMethod.of(target, returnType, method));
+    }
+
+    public MethodModelRuleDescriptor(WeaklyTypeReferencingMethod<?, ?> method) {
         this.method = method;
     }
 
@@ -48,13 +54,14 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private String getDescription() {
         if (description == null) {
-            description = MethodDescription.name(method.getName())
-                    .owner(method.getDeclaringClass())
-                    .takes(method.getGenericParameterTypes())
-                    .toString();
+            description = getClassName() + "#" + method.getName();
         }
 
         return description;
+    }
+
+    private String getClassName() {
+        return ModelType.of(method.getDeclaringClass()).getSimpleName();
     }
 
     @Override
@@ -65,15 +72,13 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         MethodModelRuleDescriptor that = (MethodModelRuleDescriptor) o;
-
-        return method.equals(that.method);
+        return Objects.equal(method, that.method);
     }
 
     @Override
     public int hashCode() {
-        return method.hashCode();
+        return Objects.hashCode(method);
     }
 
     public static ModelRuleDescriptor of(Class<?> clazz, final String methodName) {
@@ -91,6 +96,11 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
             throw new IllegalStateException("Class " + clazz.getName() + " has more than one method named '" + methodName + "'");
         }
 
-        return new MethodModelRuleDescriptor(methodsOfName.get(0));
+        Method method = methodsOfName.get(0);
+        return of(clazz, method);
+    }
+
+    public static ModelRuleDescriptor of(Class<?> clazz, Method method) {
+        return new MethodModelRuleDescriptor(ModelType.of(clazz), ModelType.returnType(method), method);
     }
 }

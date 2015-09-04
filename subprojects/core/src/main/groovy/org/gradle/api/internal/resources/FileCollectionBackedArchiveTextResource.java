@@ -16,14 +16,15 @@
 package org.gradle.api.internal.resources;
 
 import com.google.common.io.Files;
-
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileTree;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Cast;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -35,15 +36,16 @@ public class FileCollectionBackedArchiveTextResource extends FileCollectionBacke
                                                    final String path, Charset charset) {
         super(tempFileProvider, new LazilyInitializedFileTree() {
             @Override
-            public FileTree createDelegate() {
+            public FileTreeInternal createDelegate() {
                 File archiveFile = fileCollection.getSingleFile();
                 String fileExtension = Files.getFileExtension(archiveFile.getName());
                 FileTree archiveContents = fileExtension.equals("jar") || fileExtension.equals("zip")
-                        ? fileOperations.zipTree(archiveFile) : fileOperations.tarTree(archiveFile);
+                    ? fileOperations.zipTree(archiveFile) : fileOperations.tarTree(archiveFile);
                 PatternSet patternSet = new PatternSet();
                 patternSet.include(path);
-                return archiveContents.matching(patternSet);
+                return Cast.cast(FileTreeInternal.class, archiveContents.matching(patternSet));
             }
+
             public TaskDependency getBuildDependencies() {
                 return fileCollection.getBuildDependencies();
             }

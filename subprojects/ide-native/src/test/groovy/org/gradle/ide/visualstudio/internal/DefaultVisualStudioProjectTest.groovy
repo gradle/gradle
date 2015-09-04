@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.NativeComponentSpec
 import spock.lang.Specification
 
 class DefaultVisualStudioProjectTest extends Specification {
-    private DirectInstantiator instantiator = new DirectInstantiator()
+    private DirectInstantiator instantiator = DirectInstantiator.INSTANCE
     def component = Mock(NativeComponentSpec)
     def fileResolver = Mock(FileResolver)
     def vsProject = new DefaultVisualStudioProject("projectName", component, fileResolver, instantiator)

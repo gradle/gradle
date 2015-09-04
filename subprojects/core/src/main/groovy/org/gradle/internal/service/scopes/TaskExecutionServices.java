@@ -17,6 +17,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
@@ -31,24 +32,42 @@ import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.RandomLongIdGenerator;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.DefaultBuildOperationProcessor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.listener.ListenerManager;
-import org.gradle.messaging.serialize.DefaultSerializerRegistry;
-import org.gradle.messaging.serialize.SerializerRegistry;
+import org.gradle.internal.serialize.DefaultSerializerRegistry;
+import org.gradle.internal.serialize.SerializerRegistry;
 
 public class TaskExecutionServices {
-    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager) {
+
+    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager, Gradle gradle) {
+        // TODO - need a more comprehensible way to only collect inputs for the outer build
+        //      - we are trying to ignore buildSrc here, but also avoid weirdness with use of GradleBuild tasks
+        boolean isOuterBuild = gradle.getParent() == null;
+        TaskInputsListener taskInputsListener = isOuterBuild
+            ? listenerManager.getBroadcaster(TaskInputsListener.class)
+            : TaskInputsListener.NOOP;
+
         return new ExecuteAtMostOnceTaskExecuter(
-                new SkipOnlyIfTaskExecuter(
-                        new SkipTaskWithNoActionsExecuter(
-                                new SkipEmptySourceFilesTaskExecuter(
-                                        new ValidatingTaskExecuter(
-                                                new SkipUpToDateTaskExecuter(repository,
-                                                        new PostExecutionAnalysisTaskExecuter(
-                                                                new ExecuteActionsTaskExecuter(
-                                                                        listenerManager.getBroadcaster(TaskActionListener.class)
-                                                                ))))))));
+            new SkipOnlyIfTaskExecuter(
+                new SkipTaskWithNoActionsExecuter(
+                    new SkipEmptySourceFilesTaskExecuter(
+                        taskInputsListener,
+                        new ValidatingTaskExecuter(
+                            new SkipUpToDateTaskExecuter(repository,
+                                new PostExecutionAnalysisTaskExecuter(
+                                    new ExecuteActionsTaskExecuter(
+                                        listenerManager.getBroadcaster(TaskActionListener.class)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        );
     }
 
     TaskArtifactStateCacheAccess createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, GradleBuildEnvironment environment) {
@@ -75,23 +94,27 @@ public class TaskExecutionServices {
         outputFilesSnapshotter.registerSerializers(serializerRegistry);
 
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess,
-                new CacheBackedFileSnapshotRepository(cacheAccess,
-                        serializerRegistry.build(),
-                        new RandomLongIdGenerator()));
+            new CacheBackedFileSnapshotRepository(cacheAccess,
+                serializerRegistry.build(),
+                new RandomLongIdGenerator()));
 
         return new ShortCircuitTaskArtifactStateRepository(
-                        startParameter,
-                        instantiator,
-                        new DefaultTaskArtifactStateRepository(
-                                taskHistoryRepository,
-                                instantiator,
-                                outputFilesSnapshotter,
-                                fileCollectionSnapshotter
-                        )
+            startParameter,
+            instantiator,
+            new DefaultTaskArtifactStateRepository(
+                taskHistoryRepository,
+                instantiator,
+                outputFilesSnapshotter,
+                fileCollectionSnapshotter
+            )
         );
     }
 
     TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory) {
         return new TaskPlanExecutorFactory(startParameter.getParallelThreadCount(), executorFactory).create();
+    }
+
+    BuildOperationProcessor createBuildOperationProcessor(StartParameter startParameter, ExecutorFactory executorFactory) {
+        return new DefaultBuildOperationProcessor(executorFactory, startParameter.getMaxWorkerCount());
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.listener.ListenerManager;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
 
 public interface LoggingProvider {

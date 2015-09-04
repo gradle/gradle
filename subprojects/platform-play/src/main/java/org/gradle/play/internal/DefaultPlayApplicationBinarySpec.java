@@ -16,34 +16,51 @@
 
 package org.gradle.play.internal;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableModelElement;
-import org.gradle.api.internal.file.UnionFileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
+import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 import org.gradle.play.JvmClasses;
+import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.PublicAssets;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 
 import java.io.File;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements PlayApplicationBinarySpecInternal {
     private final JvmClasses classesDir = new DefaultJvmClasses();
     private final PublicAssets assets = new DefaultPublicAssets();
-    private ScalaLanguageSourceSet generatedScala;
+    private Map<LanguageSourceSet, ScalaLanguageSourceSet> generatedScala = Maps.newHashMap();
+    private Map<LanguageSourceSet, JavaScriptSourceSet> generatedJavaScript = Maps.newHashMap();
     private PlayPlatform platform;
     private PlayToolChainInternal toolChain;
     private File jarFile;
     private File assetsJarFile;
-    private List<FileCollection> classpath = Lists.newArrayList();
+    private FileCollection classpath;
+    private PlayApplicationSpec application;
 
     @Override
     protected String getTypeName() {
         return "Play Application Jar";
+    }
+
+    @Override
+    public PlayApplicationSpec getApplication() {
+        return application;
+    }
+
+    @Override
+    public void setApplication(PlayApplicationSpec application) {
+        this.application = application;
     }
 
     public PlayPlatform getTargetPlatform() {
@@ -86,33 +103,33 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
         return assets;
     }
 
-    public ScalaLanguageSourceSet getGeneratedScala() {
+    @Override
+    public Map<LanguageSourceSet, ScalaLanguageSourceSet> getGeneratedScala() {
         return generatedScala;
     }
 
-    public void setGeneratedScala(ScalaLanguageSourceSet scalaSources) {
-        this.generatedScala = scalaSources;
+    @Override
+    public Map<LanguageSourceSet, JavaScriptSourceSet> getGeneratedJavaScript() {
+        return generatedJavaScript;
     }
 
     @Override
     public FileCollection getClasspath() {
-        return join(getToolChain().select(getTargetPlatform()).getPlayDependencies(), classpath);
+        return classpath;
     }
 
     @Override
-    public void addClasspath(FileCollection classpath) {
-        this.classpath.add(classpath);
+    public void setClasspath(FileCollection classpath) {
+        this.classpath = classpath;
     }
 
-    private FileCollection join(FileCollection platformClasses, List<FileCollection> applicationClasses) {
-        List<FileCollection> all = Lists.newArrayList();
-        all.add(platformClasses);
-        all.addAll(applicationClasses);
-        return new UnionFileCollection(all);
+    @Override
+    public BinaryBuildAbility getBinaryBuildAbility() {
+        return new ToolSearchBuildAbility(getToolChain().select(getTargetPlatform()));
     }
 
     private static class DefaultJvmClasses extends AbstractBuildableModelElement implements JvmClasses {
-        private FileCollection resourceDirs = new UnionFileCollection();
+        private Set<File> resourceDirs = Sets.newLinkedHashSet();
         private File classesDir;
 
         public File getClassesDir() {
@@ -123,24 +140,24 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec implements 
             this.classesDir = classesDir;
         }
 
-        public FileCollection getResourceDirs() {
+        public Set<File> getResourceDirs() {
             return resourceDirs;
         }
 
         public void addResourceDir(File resourceDir) {
-            resourceDirs.add(new SimpleFileCollection(resourceDir));
+            resourceDirs.add(resourceDir);
         }
     }
 
     private static class DefaultPublicAssets extends AbstractBuildableModelElement implements PublicAssets {
-        private FileCollection resourceDirs = new UnionFileCollection();
+        private Set<File> resourceDirs = Sets.newLinkedHashSet();
 
-        public FileCollection getAssetDirs() {
+        public Set<File> getAssetDirs() {
             return resourceDirs;
         }
 
-        public void addAssetDir(File resourceDir) {
-            resourceDirs.add(new SimpleFileCollection(resourceDir));
+        public void addAssetDir(File assetDir) {
+            resourceDirs.add(assetDir);
         }
     }
 }

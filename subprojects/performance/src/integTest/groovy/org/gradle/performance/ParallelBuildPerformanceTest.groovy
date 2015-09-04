@@ -16,23 +16,25 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.BuildSpecification
-
 class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "test"() {
-        given:
-        runner.testId = "parallel builds"
-        runner.buildSpecifications = [
-                BuildSpecification.forProject("multi").displayName("serial").tasksToRun("clean", "build").build(),
-                BuildSpecification.forProject("multi").displayName("parallel").tasksToRun("clean", "build").args("--parallel-threads=2").build()
-        ]
-
         when:
-        def result = runner.run()
+        runner.testId = "parallel builds"
+        runner.testGroup = "parallel builds"
+        runner.buildSpec {
+            projectName("multi").displayName("parallel").invocation {
+                tasksToRun("clean", "build").args("--parallel", "--max-workers=2")
+            }
+        }
+        runner.baseline {
+            projectName("multi").displayName("serial").invocation {
+                tasksToRun("clean", "build")
+            }
+        }
 
         then:
-        result.assertEveryBuildSucceeds()
+        runner.run()
     }
 
 }

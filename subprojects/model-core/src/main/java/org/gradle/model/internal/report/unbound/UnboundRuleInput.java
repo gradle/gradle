@@ -33,6 +33,7 @@ public class UnboundRuleInput {
     private final boolean bound;
     private final String description;
     private final ImmutableList<String> suggestedPaths;
+    private final String scope;
 
     public String getPath() {
         return path;
@@ -54,12 +55,17 @@ public class UnboundRuleInput {
         return description;
     }
 
-    private UnboundRuleInput(String path, String type, boolean bound, ImmutableList<String> suggestedPaths, String description) {
+    public String getScope() {
+        return scope;
+    }
+
+    private UnboundRuleInput(String path, String type, boolean bound, ImmutableList<String> suggestedPaths, String description, String scope) {
         this.path = path;
         this.type = type;
         this.bound = bound;
         this.suggestedPaths = suggestedPaths;
         this.description = description;
+        this.scope = scope;
     }
 
     public static Builder type(String type) {
@@ -67,11 +73,11 @@ public class UnboundRuleInput {
     }
 
     public static Builder type(Class<?> type) {
-        return type(type.getName());
+        return type(ModelType.of(type));
     }
 
     public static Builder type(ModelType<?> type) {
-        return type(type.toString());
+        return type(type.getSimpleName());
     }
 
     @NotThreadSafe
@@ -82,6 +88,7 @@ public class UnboundRuleInput {
         private boolean bound;
         private ImmutableList.Builder<String> suggestedPaths = ImmutableList.builder();
         private String description;
+        private String scope;
 
         private Builder(String type) {
             this.type = type;
@@ -115,8 +122,13 @@ public class UnboundRuleInput {
             return this;
         }
 
+        public Builder scope(String scope) {
+            this.scope = scope;
+            return this;
+        }
+
         public UnboundRuleInput build() {
-            return new UnboundRuleInput(path, type, bound, suggestedPaths.build(), description);
+            return new UnboundRuleInput(path, type, bound, suggestedPaths.build(), description, scope);
         }
     }
 }

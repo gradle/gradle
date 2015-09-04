@@ -94,7 +94,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         copyTo(gradleExecuter);
 
         if (System.getProperty(UNKNOWN_OS_SYS_PROP) != null) {
-            gradleExecuter.withGradleOpts("-Dos.arch=unknown architecture", "-Dos.name=unknown operating system", "-Dos.version=unknown version");
+            gradleExecuter.withBuildJvmOpts("-Dos.arch=unknown architecture", "-Dos.name=unknown operating system", "-Dos.version=unknown version");
         }
     }
 

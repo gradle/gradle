@@ -15,9 +15,8 @@
  */
 package org.gradle.groovy.scripts.internal
 
-import org.codehaus.groovy.classgen.Verifier
 import org.gradle.api.Action
-import org.gradle.internal.resource.Resource
+import org.gradle.api.internal.initialization.ClassLoaderIds
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.CacheValidator
@@ -25,6 +24,7 @@ import org.gradle.cache.PersistentCache
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
+import org.gradle.internal.resource.Resource
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
@@ -38,9 +38,16 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final ScriptSource source = Mock()
     final ClassLoader classLoader = Mock()
     final Transformer transformer = Mock()
+    final CompileOperation<?> operation = Mock()
     final File cacheDir = new File("base-dir")
+    final File classesDir = new File(cacheDir, "classes")
+    final File metadataDir = new File(cacheDir, "metadata")
     final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory))
-    private Verifier verifier = new Verifier()
+    final Action verifier = Stub()
+    final CompiledScript compiledScript = Stub() {
+        loadClass() >> Script
+    }
+    def classLoaderId = ClassLoaderIds.buildScript("foo", "bar")
 
     def setup() {
         Resource resource = Mock()
@@ -48,18 +55,19 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         _ * resource.text >> 'this is the script'
         _ * source.className >> 'ScriptClassName'
         _ * source.fileName >> 'ScriptFileName'
-        _ * transformer.id >> 'TransformerId'
+        _ * operation.id >> 'TransformerId'
+        _ * operation.transformer >> transformer
         _ * cache.baseDir >> cacheDir
         _ * validator.isValid() >> true
     }
 
     def "loads classes from cache directory"() {
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script, verifier)
+        def result = compiler.compile(source, classLoader, classLoaderId, operation, Script, verifier).loadClass()
 
         then:
         result == Script
-        1 * cacheRepository.cache("scripts/ScriptClassName/Script/TransformerId") >> cacheBuilder
+        1 * cacheRepository.cache("scripts/ScriptClassName/TransformerId") >> cacheBuilder
         1 * cacheBuilder.withProperties(!null) >> { args ->
             assert args[0].get('source.filename') == 'ScriptFileName'
             assert args[0].containsKey('source.hash')
@@ -69,44 +77,44 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         1 * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         1 * cacheBuilder.withValidator(!null) >> cacheBuilder
         1 * cacheBuilder.open() >> cache
-        1 * scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> Script
+        1 * scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, Script, classLoaderId) >> compiledScript
         0 * scriptCompilationHandler._
     }
 
     def "passes CacheValidator to cacheBuilder"() {
         setup:
-        cacheRepository.cache("scripts/ScriptClassName/Script/TransformerId") >> cacheBuilder
+        cacheRepository.cache("scripts/ScriptClassName/TransformerId") >> cacheBuilder
         cacheBuilder.withProperties(!null) >> cacheBuilder
         cacheBuilder.withInitializer(!null) >> cacheBuilder
         cacheBuilder.withDisplayName(!null) >> cacheBuilder
         cacheBuilder.open() >> cache
-        scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> Script
+        scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, Script, classLoaderId) >> compiledScript
 
         when:
-        compiler.compile(source, classLoader, transformer, Script, verifier)
+        compiler.compile(source, classLoader, classLoaderId, operation, Script, verifier)
 
         then:
         1 * cacheBuilder.withValidator(validator) >> cacheBuilder
-
-
     }
 
     def "compiles classes to cache directory when cache is invalid"() {
         def initializer
+        def classesDir = classesDir
+        def metadataDir = new File(cacheDir, "metadata")
 
         when:
-        def result = compiler.compile(source, classLoader, transformer, Script, verifier)
+        def result = compiler.compile(source, classLoader, classLoaderId, operation, Script, verifier).loadClass()
 
         then:
         result == Script
-        1 * cacheRepository.cache("scripts/ScriptClassName/Script/TransformerId") >> cacheBuilder
+        1 * cacheRepository.cache("scripts/ScriptClassName/TransformerId") >> cacheBuilder
         1 * cacheBuilder.withProperties(!null) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         1 * cacheBuilder.withValidator(!null) >> cacheBuilder
-        1 * cacheBuilder.withInitializer(!null) >> {args -> initializer = args[0]; return cacheBuilder}
-        1 * cacheBuilder.open() >> {initializer.execute(cache); return cache}
-        1 * scriptCompilationHandler.compileToDir(source, classLoader, new File(cacheDir, "classes"), transformer, Script, verifier)
-        1 * scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> Script
+        1 * cacheBuilder.withInitializer(!null) >> { args -> initializer = args[0]; return cacheBuilder }
+        1 * cacheBuilder.open() >> { initializer.execute(cache); return cache }
+        1 * scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, operation, Script, verifier)
+        1 * scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, metadataDir, operation, Script, classLoaderId) >> compiledScript
         0 * scriptCompilationHandler._
     }
 
@@ -129,7 +137,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         1 * logger.start("Compile script into cache", "Compiling script into cache") >> logger
 
         then:
-        1 * delegate.execute(cache) >> { throw new RuntimeException("Boo!")} //stress it a bit with a failure
+        1 * delegate.execute(cache) >> { throw new RuntimeException("Boo!") } //stress it a bit with a failure
 
         then:
         1 * logger.completed()

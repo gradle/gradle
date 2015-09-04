@@ -16,6 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal;
 
+import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.nativeplatform.internal.AbstractBinaryToolSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 
@@ -31,6 +32,11 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private Map<String, String> macros = new LinkedHashMap<String, String>();
     private File objectFileDir;
     private boolean positionIndependentCode;
+    private BuildOperationLogger oplogger;
+    private File prefixHeaderFile;
+    private File preCompiledHeaderObjectFile;
+    private Map<File, SourceIncludes> sourceFileIncludes;
+    private String preCompiledHeader;
 
     public List<File> getIncludeRoots() {
         return includeRoots;
@@ -110,9 +116,57 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
         this.positionIndependentCode = positionIndependentCode;
     }
 
+    @Override
+    public File getPreCompiledHeaderObjectFile() {
+        return preCompiledHeaderObjectFile;
+    }
+
+    @Override
+    public void setPreCompiledHeaderObjectFile(File preCompiledHeaderObjectFile) {
+        this.preCompiledHeaderObjectFile = preCompiledHeaderObjectFile;
+    }
+
+    @Override
+    public File getPrefixHeaderFile() {
+        return prefixHeaderFile;
+    }
+
+    @Override
+    public void setPrefixHeaderFile(File pchFile) {
+        this.prefixHeaderFile = pchFile;
+    }
+
+    @Override
+    public String getPreCompiledHeader() {
+        return preCompiledHeader;
+    }
+
+    @Override
+    public void setPreCompiledHeader(String preCompiledHeader) {
+        this.preCompiledHeader = preCompiledHeader;
+    }
+
     private void addAll(List<File> list, Iterable<File> iterable) {
         for (File file : iterable) {
             list.add(file);
         }
+    }
+
+    public BuildOperationLogger getOperationLogger() {
+        return oplogger;
+    }
+
+    public void setOperationLogger(BuildOperationLogger oplogger) {
+        this.oplogger = oplogger;
+    }
+
+    @Override
+    public Map<File, SourceIncludes> getSourceFileIncludes() {
+        return sourceFileIncludes;
+    }
+
+    @Override
+    public void setSourceFileIncludes(Map<File, SourceIncludes> map) {
+        this.sourceFileIncludes = map;
     }
 }

@@ -21,10 +21,12 @@ import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TreeVisitor
+import org.gradle.util.UsesNativeServices
 import org.gradle.util.VersionNumber
 import spock.lang.Specification
 import spock.lang.Unroll
 
+@UsesNativeServices
 class GccVersionDeterminerTest extends Specification {
     def execActionFactory = Mock(ExecActionFactory)
     static def gcc4 = """#define __GNUC_MINOR__ 2
@@ -68,13 +70,13 @@ class GccVersionDeterminerTest extends Specification {
     @Unroll
     "can scrape version from output of GCC #version"() {
         expect:
-        def result = output(output)
+        def result = output(gcc)
         result.available
         result.version == VersionNumber.parse(version)
         !result.clang
 
         where:
-        output       | version
+        gcc          | version
         gccMajorOnly | "3.0.0"
         gccNoMinor   | "3.0.4"
         gcc3         | "3.3.4"
@@ -95,7 +97,7 @@ class GccVersionDeterminerTest extends Specification {
         def visitor = Mock(TreeVisitor)
 
         expect:
-        def result = output(output)
+        def result = output(out)
         !result.available
 
         when:
@@ -105,7 +107,7 @@ class GccVersionDeterminerTest extends Specification {
         1 * visitor.node("Could not determine GCC version: g++ produced unexpected output.")
 
         where:
-        output << ["not sure about this", ""]
+        out << ["not sure about this", ""]
     }
 
     def "handles failure to execute g++"() {

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
-import org.gradle.internal.resource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalResourceArtifactResolver {
     private final ExternalResourceArtifactResolver delegate;
@@ -35,10 +35,6 @@ class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalRes
 
     public LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
         return delegate.resolveArtifact(timestamp(artifact), result);
-    }
-
-    public LocallyAvailableExternalResource resolveMetaDataArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result) {
-        return delegate.resolveMetaDataArtifact(timestamp(artifact), result);
     }
 
     protected ModuleComponentArtifactMetaData timestamp(ModuleComponentArtifactMetaData artifact) {

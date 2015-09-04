@@ -21,7 +21,7 @@ ext {
 
 versions.commons_io = 'commons-io:commons-io:1.4'
 
-versions.groovy = "2.3.6"
+versions.groovy = "2.4.4"
 
 versions.bouncycastle = "1.51"
 
@@ -42,14 +42,14 @@ libraries.jcip = "net.jcip:jcip-annotations:1.0@jar"
 libraries.inject = dependencies.module('javax.inject:javax.inject:1')
 
 // Logging
-libraries.slf4j_api = dependencies.module('org.slf4j:slf4j-api:1.7.7')
-libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.7.7') {
+libraries.slf4j_api = dependencies.module('org.slf4j:slf4j-api:1.7.10')
+libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.7.10') {
     dependency libraries.slf4j_api
 }
-libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.7.7') {
+libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.7.10') {
     dependency libraries.slf4j_api
 }
-libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.7.7') {
+libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.7.10') {
     dependency libraries.slf4j_api
 }
 libraries.logback_core = dependencies.module('ch.qos.logback:logback-core:1.0.13')
@@ -76,10 +76,6 @@ libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:ht
     dependency "org.samba.jcifs:jcifs:1.3.17@jar"
 }
 
-libraries.maven_ant_tasks = dependencies.module("org.apache.maven:maven-ant-tasks:2.1.3") {
-    libraries.ant
-}
-
 libraries += [
         dom4j: 'dom4j:dom4j:1.6.1@jar',
         guava: 'com.google.guava:guava-jdk5:17.0@jar',
@@ -88,7 +84,7 @@ libraries += [
         jaxen: 'jaxen:jaxen:1.1@jar',
         jcip: "net.jcip:jcip-annotations:1.0@jar",
         jna: 'net.java.dev.jna:jna:3.2.7@jar',
-        junit: 'junit:junit:4.11@jar',
+        junit: 'junit:junit:4.12@jar',
         xmlunit: 'xmlunit:xmlunit:1.3',
         nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14',
         xbean: 'org.apache.xbean:xbean-reflect:3.4@jar', //required by maven3 classes
@@ -115,16 +111,17 @@ libraries.maven3 = dependencies.module("org.apache.maven:maven-core:3.0.4") {
 
     //core:
     dependency "org.apache.maven:maven-core:3.0.4@jar"
+    dependency "org.apache.maven:maven-compat:3.0.4@jar"
     dependency "org.apache.maven:maven-model-builder:3.0.4@jar"
     dependency "org.apache.maven:maven-model:3.0.4@jar"
 
     //somewhat core:
     dependency "org.apache.maven:maven-artifact:3.0.4@jar"
-    dependency "org.apache.maven:maven-compat:3.0.4@jar"
     dependency "org.apache.maven:maven-repository-metadata:3.0.4@jar"
     dependency "org.apache.maven:maven-plugin-api:3.0.4@jar"
     dependency "org.apache.maven:maven-aether-provider:3.0.4@jar"
 
+    dependency 'org.apache.maven.wagon:wagon-file:2.4@jar'
     dependency 'org.apache.maven.wagon:wagon-http:2.4@jar'
     dependency 'org.apache.maven.wagon:wagon-provider-api:2.4@jar'
     dependency 'org.apache.maven.wagon:wagon-http-shared4:2.4@jar'
@@ -162,6 +159,17 @@ libraries.bouncycastle_provider = "org.bouncycastle:bcprov-jdk15on:${versions.bo
 libraries.bouncycastle_pgp = dependencies.module("org.bouncycastle:bcpg-jdk15on:${versions.bouncycastle}") {
     dependency libraries.bouncycastle_provider
 }
+
+libraries.joda = 'joda-time:joda-time:2.8.2@jar'
+
+libraries.awsS3 = [
+        'com.amazonaws:aws-java-sdk-s3:1.9.19@jar',
+        'com.amazonaws:aws-java-sdk-kms:1.9.19@jar',
+        'com.amazonaws:aws-java-sdk-core:1.9.19@jar',
+        'com.fasterxml.jackson.core:jackson-core:2.3.2@jar',
+        'com.fasterxml.jackson.core:jackson-annotations:2.3.2@jar',
+        'com.fasterxml.jackson.core:jackson-databind:2.3.2@jar'
+] + libraries.commons_httpclient + libraries.joda
 
 allprojects {
     configurations.all {

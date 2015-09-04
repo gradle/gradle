@@ -36,8 +36,6 @@ dependencies {
     compile libraries.commons_collections
     compile libraries.commons_io
     compile libraries.commons_lang
-    compile libraries.logback_core
-    compile libraries.logback_classic
     compile libraries.guava
     compile libraries.jcip
     compile libraries.jul_to_slf4j
@@ -72,6 +70,11 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ":messaging")
+useTestFixtures(project: ":modelCore")
+
+test {
+    forkEvery = 200
+}
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 

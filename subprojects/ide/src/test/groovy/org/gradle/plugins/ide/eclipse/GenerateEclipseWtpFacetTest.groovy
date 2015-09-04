@@ -17,6 +17,8 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet
+import org.gradle.plugins.ide.eclipse.model.Facet
+import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 
 public class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
     private eclipseFacet = createTask(GenerateEclipseWtpFacet)
@@ -29,4 +31,22 @@ public class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
         return eclipseFacet
     }
 
+    def "created facets defaults to type 'installed'"() {
+        when:
+        eclipseFacet.facet.facet(name: 'fancyProject', version: '1.3')
+
+        then:
+        eclipseFacet.facet.facets == [new Facet(FacetType.installed, 'fancyProject', '1.3')]
+    }
+
+    def "can explicitly configure facet type'"() {
+        when:
+        eclipseFacet.facet.facet type: facetType, name: 'fancyProject'
+
+        then:
+        eclipseFacet.facet.facets[0].type == FacetType.valueOf(facetType)
+        where:
+
+        facetType << ["fixed", "installed"]
+    }
 }

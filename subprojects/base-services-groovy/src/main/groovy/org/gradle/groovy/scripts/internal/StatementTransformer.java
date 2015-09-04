@@ -15,16 +15,15 @@
  */
 package org.gradle.groovy.scripts.internal;
 
-
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
-import org.gradle.api.specs.Spec;
 
+/**
+ * A transformer of individual statements.
+ */
 public interface StatementTransformer {
 
     // Return null to remove the statement
     Statement transform(SourceUnit sourceUnit, Statement statement);
-
-    Spec<? super Statement> getSpec();
 
 }

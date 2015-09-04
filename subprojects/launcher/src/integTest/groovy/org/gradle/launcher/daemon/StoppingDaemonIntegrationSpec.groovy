@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer

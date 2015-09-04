@@ -31,7 +31,18 @@ class ClassTypeWrapper implements TypeWrapper {
     }
 
     @Override
-    public String getRepresentation() {
-        return unwrap().getName();
+    public String getRepresentation(boolean full) {
+        if (full) {
+            return unwrap().getName();
+        } else {
+            StringBuffer sb = new StringBuffer();
+            Class<?> clazz = unwrap();
+            sb.append(clazz.getSimpleName());
+            for (Class<?> c = clazz.getEnclosingClass(); c != null; c = c.getEnclosingClass()) {
+                sb.insert(0, '.');
+                sb.insert(0, c.getSimpleName());
+            }
+            return sb.toString();
+        }
     }
 }

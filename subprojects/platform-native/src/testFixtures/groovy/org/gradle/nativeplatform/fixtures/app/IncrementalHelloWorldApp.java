@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.SourceFile;
 
 import java.util.List;
 
-public abstract class IncrementalHelloWorldApp extends HelloWorldApp {
+public abstract class IncrementalHelloWorldApp extends CommonHeaderHelloWorldApp {
     public TestApp getAlternate() {
         return new TestApp() {
             @Override
@@ -48,4 +48,6 @@ public abstract class IncrementalHelloWorldApp extends HelloWorldApp {
 
     public abstract List<SourceFile> getAlternateLibrarySources();
     public abstract String getAlternateLibraryOutput();
+
+    protected abstract SourceFile getBrokenFile();
 }

@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.toolchain
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
-import org.gradle.nativeplatform.platform.internal.NativePlatforms
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.Matchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.VisualCpp)
+@LeaksFileHandles
 class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CHelloWorldApp()
 
@@ -59,7 +62,7 @@ model {
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatforms.defaultPlatformName}'"))
+        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}'"))
         failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: The specified installation directory '${file('does-not-exist')}' does not appear to contain a Visual Studio installation."))
     }
 
@@ -78,7 +81,7 @@ model {
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
-        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatforms.defaultPlatformName}'"))
+        failure.assertThatCause(Matchers.startsWith("No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}'"))
         failure.assertThatCause(Matchers.containsString("- ${toolChain.instanceDisplayName}: The specified installation directory '${file('does-not-exist')}' does not appear to contain a Windows SDK installation."))
     }
 }

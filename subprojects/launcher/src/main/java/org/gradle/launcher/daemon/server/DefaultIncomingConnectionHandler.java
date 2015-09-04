@@ -25,10 +25,11 @@ import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Command;
-import org.gradle.launcher.daemon.protocol.DaemonFailure;
-import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
+import org.gradle.launcher.daemon.protocol.Failure;
+import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
+import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.messaging.remote.internal.Connection;
 
 import java.util.HashSet;
@@ -57,7 +58,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         workers = executorFactory.create("Daemon");
     }
 
-    public void handle(final Connection<Object> connection) {
+    public void handle(final Connection<Message> connection) {
         // Mark the connection has being handled
         onStartHandling(connection);
 
@@ -67,7 +68,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         workers.execute(new ConnectionWorker(connection));
     }
 
-    private void onStartHandling(Connection<Object> connection) {
+    private void onStartHandling(Connection<?> connection) {
         lock.lock();
         try {
             inProgress.add(connection);
@@ -76,7 +77,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         }
     }
 
-    private void onFinishHandling(Connection<Object> connection) {
+    private void onFinishHandling(Connection<?> connection) {
         lock.lock();
         try {
             inProgress.remove(connection);
@@ -105,9 +106,9 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
     }
 
     private class ConnectionWorker implements Runnable {
-        private final Connection<Object> connection;
+        private final Connection<Message> connection;
 
-        public ConnectionWorker(Connection<Object> connection) {
+        public ConnectionWorker(Connection<Message> connection) {
             this.connection = connection;
         }
 
@@ -142,7 +143,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
                 return command;
             } catch (Throwable e) {
                 LOGGER.warn(String.format("Unable to receive command from %s. Dispatching the failure to the daemon client", connection), e);
-                daemonConnection.completed(new DaemonFailure(e));
+                daemonConnection.completed(new Failure(e));
                 return null;
             }
         }
@@ -153,7 +154,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
                 commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl);
             } catch (Throwable e) {
                 LOGGER.warn(String.format("Unable to execute command %s from %s. Dispatching the failure to the daemon client", command, connection), e);
-                daemonConnection.completed(new DaemonFailure(e));
+                daemonConnection.completed(new Failure(e));
             } finally {
                 LOGGER.debug(DaemonMessages.FINISHED_EXECUTING_COMMAND + command);
             }

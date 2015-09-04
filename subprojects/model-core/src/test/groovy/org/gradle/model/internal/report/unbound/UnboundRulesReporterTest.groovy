@@ -22,6 +22,7 @@ import spock.lang.Specification
 class UnboundRulesReporterTest extends Specification {
 
     def output = new StringWriter()
+
     def reporter = new UnboundRulesReporter(new PrintWriter(output), "> ")
 
     def "reports on unbound rules"() {
@@ -29,20 +30,28 @@ class UnboundRulesReporterTest extends Specification {
         reporter.reportOn([
                 UnboundRule.descriptor("r1")
                         .mutableInput(UnboundRuleInput.type(String).path("parent.p1"))
-                        .mutableInput(UnboundRuleInput.type(Integer).bound().path("parent.p2"))
-                        .immutableInput(UnboundRuleInput.type(Number).path("parent.p3").suggestions("parent.p31", "parent.p32"))
+                        .mutableInput(UnboundRuleInput.type(String).scope("some.scope"))
+                        .mutableInput(UnboundRuleInput.type(Integer).bound().path("parent.p3"))
+                        .immutableInput(UnboundRuleInput.type(Number).path("parent.p4").suggestions("parent.p31", "parent.p32"))
                         .immutableInput(UnboundRuleInput.type(Number))
-                        .immutableInput(UnboundRuleInput.type(Number).bound().path("parent.p5")).build()
+                        .immutableInput(UnboundRuleInput.type(Number).bound().path("parent.p6")).build()
         ])
 
         then:
         output.toString() == TextUtil.toPlatformLineSeparators("""> r1
->   Mutable:
->     - parent.p1 (java.lang.String)
->     + parent.p2 (java.lang.Integer)
->   Immutable:
->     - parent.p3 (java.lang.Number) - suggestions: parent.p31, parent.p32
->     - <unspecified> (java.lang.Number)
->     + parent.p5 (java.lang.Number)""")
+>   subject:
+>     - parent.p1 String [*]
+>     - <no path> String [*]
+>         scope: some.scope
+>     - parent.p3 Integer
+>   inputs:
+>     - parent.p4 Number [*]
+>         suggestions: parent.p31, parent.p32
+>     - <no path> Number [*]
+>     - parent.p6 Number
+
+[*] - indicates that a model item could not be found for the path or type.
+""")
     }
 }
+

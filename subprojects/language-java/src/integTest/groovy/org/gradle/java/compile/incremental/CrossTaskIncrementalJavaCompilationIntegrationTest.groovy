@@ -287,26 +287,26 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
     def "the order of classpath items is unchanged"() {
         java api: ["class A {}"], impl: ["class B {}"]
         file("impl/build.gradle") << """
-            dependencies { compile "org.mockito:mockito-core:1.9.5", "junit:junit:4.10" }
+            dependencies { compile "org.mockito:mockito-core:1.9.5", "junit:junit:4.12" }
             compileJava.doFirst {
                 file("classpath.txt").createNewFile(); file("classpath.txt").text = classpath.files*.name.join(', ')
             }
         """
 
         when: run("impl:compileJava") //initial run
-        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.10.jar, hamcrest-core-1.1.jar, objenesis-1.0.jar"
+        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar"
 
         when: //project dependency changes
         java api: ["class A { String change; }"]
         run("impl:compileJava")
 
-        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.10.jar, hamcrest-core-1.1.jar, objenesis-1.0.jar"
+        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar, hamcrest-core-1.3.jar"
 
         when: //transitive dependency is excluded
         file("impl/build.gradle") << "configurations.compile.exclude module: 'hamcrest-core' \n"
         run("impl:compileJava")
 
-        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.10.jar, objenesis-1.0.jar"
+        then: file("impl/classpath.txt").text == "api.jar, mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar"
 
         when: //direct dependency is excluded
         file("impl/build.gradle") << "configurations.compile.exclude module: 'junit' \n"
@@ -346,7 +346,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         java impl: ["class A extends org.junit.Assert {}"]
         file("impl/build.gradle") << """
             configurations.compile.dependencies.clear()
-            dependencies { compile 'junit:junit:4.11' }
+            dependencies { compile 'junit:junit:4.12' }
         """
 
         impl.snapshot { run("impl:compileJava") }
@@ -365,7 +365,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         impl.snapshot { run("impl:compileJava") }
 
         when:
-        file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.11' }"
+        file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.12' }"
         run("impl:compileJava")
 
         then: impl.noneRecompiled()
@@ -374,7 +374,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
     def "changed jar with duplicate class appearing earlier on classpath must trigger compilation"() {
         java impl: ["class A extends org.junit.Assert {}"]
         file("impl/build.gradle") << """
-            dependencies { compile 'junit:junit:4.11' }
+            dependencies { compile 'junit:junit:4.12' }
         """
 
         impl.snapshot { run("impl:compileJava") }
@@ -391,7 +391,7 @@ public class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstract
         file("api/src/main/java/org/junit/Assert.java") << "package org.junit; public class Assert {}"
         java impl: ["class A extends org.junit.Assert {}"]
 
-        file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.11' }"
+        file("impl/build.gradle") << "dependencies { compile 'junit:junit:4.12' }"
 
         impl.snapshot { run("impl:compileJava") }
 

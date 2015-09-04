@@ -17,7 +17,7 @@ public class OkTest {
     @org.junit.Test
     public void ok() throws Exception {
         // check versions of dependencies
-        assertEquals("4.11", new org.junit.runner.JUnitCore().getVersion());
+        assertEquals("4.12", new org.junit.runner.JUnitCore().getVersion());
         assertTrue(org.apache.tools.ant.Main.getAntVersion().contains("1.6.1"));
 
         // check working dir

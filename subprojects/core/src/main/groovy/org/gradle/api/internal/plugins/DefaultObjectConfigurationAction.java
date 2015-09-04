@@ -25,7 +25,6 @@ import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
-import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.GUtil;
 
@@ -95,9 +94,9 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
         UriScriptSource scriptSource = new UriScriptSource("script", scriptUri);
-        ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild();
+        ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri.toString());
         ScriptHandler scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScopeChild);
-        ScriptPlugin configurer = configurerFactory.create(scriptSource, scriptHandler, classLoaderScopeChild, classLoaderScope, "buildscript", DefaultScript.class, false);
+        ScriptPlugin configurer = configurerFactory.create(scriptSource, scriptHandler, classLoaderScopeChild, classLoaderScope, false);
         for (Object target : targets) {
             configurer.apply(target);
         }
@@ -119,8 +118,8 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
 
     private void applyType(Class<?> pluginClass) {
         for (Object target : targets) {
-            if (target instanceof PluginAwareInternal) {
-                ((PluginAwareInternal) target).getPluginManager().apply(pluginClass);
+            if (target instanceof PluginAware) {
+                ((PluginAware) target).getPluginManager().apply(pluginClass);
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
             }

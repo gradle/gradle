@@ -16,70 +16,75 @@
 
 package org.gradle.platform.base.internal.registry;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
-import org.gradle.model.internal.inspect.RuleSourceDependencies;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.binary.BaseBinarySpec;
-import org.gradle.platform.base.internal.DefaultBinaryContainer;
+import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
-public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryType, BinarySpec, BaseBinarySpec> {
-    private final Instantiator instantiator;
+import static org.gradle.internal.Cast.uncheckedCast;
 
-    public BinaryTypeModelRuleExtractor(final Instantiator instantiator) {
-        super("binary", BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, JavaReflectionUtil.factory(new DirectInstantiator(), DefaultBinaryTypeBuilder.class));
-        this.instantiator = instantiator;
+public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryType, BinarySpec, BaseBinarySpec> {
+    public BinaryTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
+        super("binary", BinarySpec.class, BaseBinarySpec.class, BinaryTypeBuilder.class, schemaStore, new TypeBuilderFactory<BinarySpec>() {
+            @Override
+            public TypeBuilderInternal<BinarySpec> create(ModelSchema<? extends BinarySpec> schema) {
+                return new DefaultBinaryTypeBuilder(schema);
+            }
+        });
     }
 
     @Override
-    protected <R> ModelRuleRegistration createRegistration(MethodRuleDefinition<R> ruleDefinition, RuleSourceDependencies dependencies, ModelType<? extends BinarySpec> type, TypeBuilderInternal<BinarySpec> builder) {
+    protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends BinarySpec> type, TypeBuilderInternal<BinarySpec> builder) {
+        ImmutableList<Class<?>> dependencies = ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
         ModelType<? extends BaseBinarySpec> implementation = determineImplementationType(type, builder);
-        dependencies.add(ComponentModelBasePlugin.class);
         if (implementation != null) {
-            ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor(), instantiator);
-            return new ModelMutatorRegistration(ModelActionRole.Defaults, mutator);
+            ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor());
+            return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
         }
-        return null;
+        return new DependencyOnlyExtractedModelRule(dependencies);
     }
 
     public static class DefaultBinaryTypeBuilder extends AbstractTypeBuilder<BinarySpec> implements BinaryTypeBuilder<BinarySpec> {
-        public DefaultBinaryTypeBuilder() {
-            super(BinaryType.class);
+        public DefaultBinaryTypeBuilder(ModelSchema<? extends BinarySpec> schema) {
+            super(BinaryType.class, schema);
         }
     }
 
-    private static class RegistrationAction implements ModelAction<DefaultBinaryContainer> {
+    private static class RegistrationAction implements ModelAction<BinarySpecFactoryRegistry> {
         private final ModelType<? extends BinarySpec> publicType;
         private final ModelType<? extends BaseBinarySpec> implementationType;
         private final ModelRuleDescriptor descriptor;
-        private final Instantiator instantiator;
-        private final ModelReference<DefaultBinaryContainer> subject;
+        private final ModelReference<BinarySpecFactoryRegistry> subject;
         private final List<ModelReference<?>> inputs;
 
-        public RegistrationAction(ModelType<? extends BinarySpec> publicType, ModelType<? extends BaseBinarySpec> implementationType, ModelRuleDescriptor descriptor, Instantiator instantiator) {
+        public RegistrationAction(ModelType<? extends BinarySpec> publicType, ModelType<? extends BaseBinarySpec> implementationType, ModelRuleDescriptor descriptor) {
             this.publicType = publicType;
             this.implementationType = implementationType;
             this.descriptor = descriptor;
-            this.instantiator = instantiator;
-            this.subject = ModelReference.of(DefaultBinaryContainer.class);
-            this.inputs = Collections.emptyList();
+            this.subject = ModelReference.of(BinarySpecFactoryRegistry.class);
+            this.inputs = Arrays.<ModelReference<?>>asList(ModelReference.of(ServiceRegistry.class), ModelReference.of(ITaskFactory.class));
         }
 
         @Override
-        public ModelReference<DefaultBinaryContainer> getSubject() {
+        public ModelReference<BinarySpecFactoryRegistry> getSubject() {
             return subject;
         }
 
@@ -94,14 +99,17 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
         }
 
         @Override
-        public void execute(MutableModelNode modelNode, DefaultBinaryContainer binaries, Inputs inputs) {
-            @SuppressWarnings("unchecked")
-            Class<BinarySpec> publicClass = (Class<BinarySpec>) publicType.getConcreteClass();
-            binaries.registerFactory(publicClass, new NamedDomainObjectFactory<BaseBinarySpec>() {
+        public void execute(MutableModelNode modelNode, BinarySpecFactoryRegistry factories, final List<ModelView<?>> inputs) {
+            final Class<BinarySpec> publicClass = uncheckedCast(publicType.getConcreteClass());
+            ServiceRegistry serviceRegistry = ModelViews.assertType(inputs.get(0), ModelType.of(ServiceRegistry.class)).getInstance();
+            final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            final ModelView<ITaskFactory> taskFactory = ModelViews.assertType(inputs.get(1), ModelType.of(ITaskFactory.class));
+            NamedDomainObjectFactory<BaseBinarySpec> factory = new NamedDomainObjectFactory<BaseBinarySpec>() {
                 public BaseBinarySpec create(String name) {
-                    return BaseBinarySpec.create(implementationType.getConcreteClass(), name, instantiator);
+                    return BaseBinarySpec.create(implementationType.getConcreteClass(), name, instantiator, taskFactory.getInstance());
                 }
-            }, descriptor);
+            };
+            factories.registerFactory(publicClass, factory, descriptor);
         }
     }
 }

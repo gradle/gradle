@@ -29,11 +29,6 @@ public interface ModuleResolutionFilter {
     boolean acceptModule(ModuleIdentifier module);
 
     /**
-     * Should this artifact be included in the resolution result?
-     */
-    boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact);
-
-    /**
      * Determines if this filter accepts the same set of modules as the other.
      *
      * @return true if the filters accept the same set of modules. Returns false if they may not, or if it is unknown.
@@ -41,14 +36,26 @@ public interface ModuleResolutionFilter {
     boolean acceptsSameModulesAs(ModuleResolutionFilter other);
 
     /**
-     * Returns a filter that accepts the union of those module versions that are accepted by this filter and the other.
+     * Should this artifact be included in the resolution result?
+     */
+    boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact);
+
+    /**
+     * Does this filter accept all artifacts?
+     *
+     * @return true if this filter returns <code>true</code> for {@link #acceptArtifact} for any provided artifact.
+     */
+    boolean acceptsAllArtifacts();
+
+    /**
+     * Returns a filter that accepts the union of those module versions and artifacts that are accepted by this filter and the other.
      * The union accepts if either of the inputs filters accepts.
      */
     ModuleResolutionFilter union(ModuleResolutionFilter other);
 
     /**
-     * Returns a filter that accepts the union of those module versions that are accepted by this filter and the other.
-     * The intersection accepts if all of the inputs filters accept.
+     * Returns a filter that accepts the union of those module versions and artifacts that are accepted by this filter and the other.
+     * The intersection accepts if both of the inputs filters accept.
      */
     ModuleResolutionFilter intersect(ModuleResolutionFilter other);
 }

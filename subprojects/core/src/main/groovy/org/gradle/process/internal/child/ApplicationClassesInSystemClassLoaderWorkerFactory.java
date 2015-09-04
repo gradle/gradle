@@ -16,23 +16,20 @@
 
 package org.gradle.process.internal.child;
 
-import com.google.common.io.ByteStreams;
-import com.google.common.io.InputSupplier;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.remote.Address;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.GUtil;
 
 import java.io.*;
 import java.net.URL;
+import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.Set;
 
 /**
  * A factory for a worker process which loads the application classes using the JVM's system ClassLoader.
@@ -43,7 +40,7 @@ import java.util.concurrent.Callable;
  *                                 |
  *                +----------------+--------------+
  *                |                               |
- *            jvm system                      worker bootstrap
+ *            jvm system                     infrastructure
  *  (GradleWorkerMain, application) (SystemApplicationClassLoaderWorker, logging)
  *                |                   (ImplementationClassLoaderWorker)
  *                |                               |
@@ -57,9 +54,6 @@ import java.util.concurrent.Callable;
  * </pre>
  */
 public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
-
-    private final static Logger LOGGER = Logging.getLogger(ApplicationClassesInSystemClassLoaderWorkerFactory.class);
-
     private final Object workerId;
     private final String displayName;
     private final WorkerProcessBuilder processBuilder;
@@ -82,39 +76,58 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         execSpec.setMain("jarjar." + GradleWorkerMain.class.getName());
         execSpec.classpath(classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles());
         Object requestedSecurityManager = execSpec.getSystemProperties().get("java.security.manager");
-        if (requestedSecurityManager != null) {
-            execSpec.systemProperty("org.gradle.security.manager", requestedSecurityManager);
-        }
         execSpec.systemProperty("java.security.manager", "jarjar." + BootstrapSecurityManager.class.getName());
+        Collection<URL> workerClassPath = classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs();
+        ActionExecutionWorker worker = create();
+        Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
+        LogLevel logLevel = processBuilder.getLogLevel();
+        Set<String> sharedPackages = processBuilder.getSharedPackages();
+
+        // Serialize configuration for the worker process to it stdin
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         try {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             DataOutputStream outstr = new DataOutputStream(new EncodedStream.EncodedOutput(bytes));
-            LOGGER.debug("Writing an application classpath to child process' standard input.");
-            outstr.writeInt(processBuilder.getApplicationClasspath().size());
-            for (File file : processBuilder.getApplicationClasspath()) {
+            // Serialize the application classpath, this is consumed by BootstrapSecurityManager
+            outstr.writeInt(applicationClasspath.size());
+            for (File file : applicationClasspath) {
                 outstr.writeUTF(file.getAbsolutePath());
             }
-            outstr.close();
-            final InputStream originalStdin = execSpec.getStandardInput();
-            InputStream input = ByteStreams.join(ByteStreams.newInputStreamSupplier(bytes.toByteArray()), new InputSupplier<InputStream>() {
-                public InputStream getInput() throws IOException {
-                    return originalStdin;
-                }
-            }).getInput();
-            execSpec.setStandardInput(input);
+            outstr.writeUTF(requestedSecurityManager == null ? "" : requestedSecurityManager.toString());
+
+            // Serialize the infrastructure classpath, this is consumed by GradleWorkerMain
+            outstr.writeInt(workerClassPath.size());
+            for (URL entry : workerClassPath) {
+                outstr.writeUTF(entry.toString());
+            }
+
+            // Serialize the worker configuration, this is consumed by GradleWorkerMain
+            outstr.writeInt(logLevel.ordinal());
+            outstr.writeInt(sharedPackages.size());
+            for (String str : sharedPackages) {
+                outstr.writeUTF(str);
+            }
+
+            // Serialize the worker implementation classpath, this is consumed by GradleWorkerMain
+            outstr.writeInt(implementationClassPath.size());
+            for (URL entry : implementationClassPath) {
+                outstr.writeUTF(entry.toString());
+            }
+
+            // Serialize the worker, this is consumed by GradleWorkerMain
+            byte[] serializedWorker = GUtil.serialize(worker);
+            outstr.writeInt(serializedWorker.length);
+            outstr.write(serializedWorker);
+
+            outstr.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+        execSpec.setStandardInput(new ByteArrayInputStream(bytes.toByteArray()));
     }
 
-    public Callable<?> create() {
-        // Serialize the bootstrap worker, so it can be transported through the system ClassLoader
-        ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress);
-        ImplementationClassLoaderWorker worker = new ImplementationClassLoaderWorker(processBuilder.getLogLevel(), processBuilder.getSharedPackages(),
-                implementationClassPath, injectedWorker);
-        byte[] serializedWorker = GUtil.serialize(worker);
-
-        return new BootstrapClassLoaderWorker(classPathRegistry.getClassPath("WORKER_PROCESS").getAsURLs(), serializedWorker);
+    private ActionExecutionWorker create() {
+        return new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress, processBuilder.getGradleUserHomeDir());
     }
 
 }

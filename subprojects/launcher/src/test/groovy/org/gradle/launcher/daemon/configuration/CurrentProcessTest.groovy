@@ -18,36 +18,40 @@ package org.gradle.launcher.daemon.configuration
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.initialization.BuildLayoutParameters
+import org.gradle.internal.jvm.JavaInfo
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import java.nio.charset.Charset
 
+@UsesNativeServices
 public class CurrentProcessTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule
     final SetSystemProperties systemPropertiesSet = new SetSystemProperties()
+
     private FileResolver fileResolver = Mock()
-    private def currentJavaHome = tmpDir.file('java_home')
+    private def currentJvm = Stub(JavaInfo)
     private JvmOptions currentJvmOptions = new JvmOptions(fileResolver)
 
     def "can only run build with identical java home"() {
         when:
-        CurrentProcess currentProcess = new CurrentProcess(currentJavaHome, currentJvmOptions)
+        CurrentProcess currentProcess = new CurrentProcess(currentJvm, currentJvmOptions)
 
         then:
-        currentProcess.configureForBuild(buildParameters(currentJavaHome))
-        !currentProcess.configureForBuild(buildParameters(tmpDir.file('other')))
+        currentProcess.configureForBuild(buildParameters(currentJvm))
+        !currentProcess.configureForBuild(buildParameters(Stub(JavaInfo)))
     }
 
     def "can only run build when no immutable jvm arguments specified"() {
         when:
         currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
-        CurrentProcess currentProcess = new CurrentProcess(currentJavaHome, currentJvmOptions)
+        CurrentProcess currentProcess = new CurrentProcess(currentJvm, currentJvmOptions)
 
 
         then:
@@ -68,7 +72,7 @@ public class CurrentProcessTest extends Specification {
 
     def "sets all mutable system properties before running build"() {
         when:
-        CurrentProcess currentProcess = new CurrentProcess(tmpDir.file('java_home'), currentJvmOptions)
+        CurrentProcess currentProcess = new CurrentProcess(currentJvm, currentJvmOptions)
         def parameters = buildParameters(["-Dfoo=bar", "-Dbaz"])
 
         then:
@@ -85,19 +89,19 @@ public class CurrentProcessTest extends Specification {
         //e.g. those defaults should only be used for launching a new process
         //TODO SF this is a bit messy, let's try to clean this up
         when:
-        CurrentProcess currentProcess = new CurrentProcess(currentJavaHome, currentJvmOptions)
+        CurrentProcess currentProcess = new CurrentProcess(currentJvm, currentJvmOptions)
 
         then:
         currentProcess.configureForBuild(buildParameters(["-Xmx1024m"]))
     }
 
     private DaemonParameters buildParameters(Iterable<String> jvmArgs) {
-        return buildParameters(currentJavaHome, jvmArgs)
+        return buildParameters(currentJvm, jvmArgs)
     }
 
-    private static DaemonParameters buildParameters(File javaHome, Iterable<String> jvmArgs = []) {
+    private static DaemonParameters buildParameters(JavaInfo jvm, Iterable<String> jvmArgs = []) {
         def parameters = new DaemonParameters(new BuildLayoutParameters())
-        parameters.setJavaHome(javaHome)
+        parameters.setJvm(jvm)
         parameters.setJvmArgs(jvmArgs)
         return parameters
     }

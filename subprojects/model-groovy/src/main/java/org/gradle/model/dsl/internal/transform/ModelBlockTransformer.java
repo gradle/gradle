@@ -33,21 +33,16 @@ import java.util.List;
 @NotThreadSafe
 public class ModelBlockTransformer extends AbstractScriptTransformer {
 
-    private static boolean isEnabled() {
+    public static boolean isEnabled() {
         return Boolean.getBoolean("org.gradle.model.dsl");
     }
-
 
     @Override
     protected int getPhase() {
         return Phases.CANONICALIZATION;
     }
 
-    public String getId() {
-        return MODEL;
-    }
-
-    private static final String MODEL = "model";
+    public static final String MODEL = "model";
     private static final List<String> SCRIPT_BLOCK_NAMES = Collections.singletonList(MODEL);
 
     public static final String NON_LITERAL_CLOSURE_TO_TOP_LEVEL_MODEL_MESSAGE = "The top level model() method can only be called with a literal closure argument";

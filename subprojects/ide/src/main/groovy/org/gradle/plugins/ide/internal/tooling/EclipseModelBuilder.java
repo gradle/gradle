@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -46,7 +45,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
 
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject")
-                || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
+            || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
     }
 
     public DefaultEclipseProject buildAll(String modelName, Project project) {
@@ -66,7 +65,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     private void applyEclipsePlugin(Project root) {
         Set<Project> allProjects = root.getAllprojects();
         for (Project p : allProjects) {
-            p.apply(ImmutableMap.of("type", EclipsePlugin.class));
+            p.getPluginManager().apply(EclipsePlugin.class);
         }
         root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
     }
@@ -97,14 +96,15 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
                 final File file = library.getLibrary().getFile();
                 final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
                 final File javadoc = library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
-                externalDependencies.add(new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion()));
+                externalDependencies.add(new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion(), library.isExported()));
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
-                projectDependencies.add(new DefaultEclipseProjectDependency(path, projectMapping.get(projectDependency.getGradlePath())));
+                projectDependencies.add(new DefaultEclipseProjectDependency(path, projectMapping.get(projectDependency.getGradlePath()), projectDependency.isExported()));
             } else if (entry instanceof SourceFolder) {
-                String path = ((SourceFolder) entry).getPath();
-                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, project.file(path)));
+                final SourceFolder sourceFolder = (SourceFolder) entry;
+                String path = sourceFolder.getPath();
+                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir()));
             }
         }
 
@@ -141,7 +141,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         String name = internalProject.getName();
         String description = GUtil.elvis(internalProject.getComment(), null);
         DefaultEclipseProject eclipseProject =
-                new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children)
+            new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children)
                 .setGradleProject(rootGradleProject.findByPath(project.getPath()));
 
         for (DefaultEclipseProject child : children) {

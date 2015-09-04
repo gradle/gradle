@@ -32,6 +32,8 @@ class MetadataArtifactResolveTestFixture {
     private Class<? extends ComponentResult> expectedComponentResult
     private Throwable expectedException
     private Set<File> expectedMetadataFiles
+    private Class<? extends Throwable> expectedArtifactFailure
+    private String expectedArtifactFailureMessage
 
     MetadataArtifactResolveTestFixture(TestFile buildFile, String config = "compile") {
         this.buildFile = buildFile
@@ -94,6 +96,16 @@ if (project.hasProperty('nocache')) {
         this
     }
 
+    MetadataArtifactResolveTestFixture expectNoMetadataFiles() {
+        expectMetadataFiles()
+    }
+
+    MetadataArtifactResolveTestFixture expectUnresolvedArtifactResult(Class<? extends Throwable> failure, String message) {
+        expectedArtifactFailure = failure
+        expectedArtifactFailureMessage = message
+        this
+    }
+
     void createVerifyTaskModuleComponentIdentifier() {
         buildFile << """
 task verify {
@@ -123,6 +135,8 @@ task verify {
             def resolvedArtifacts = component.getArtifacts($requestedArtifact).findAll { it instanceof ResolvedArtifactResult }
             assert expectedMetadataFileNames.size() == resolvedArtifacts.size()
 
+            ${createUnresolvedArtifactResultVerificationCode()}
+
             if(expectedMetadataFileNames.size() > 0) {
                 def resolvedArtifactFileNames = resolvedArtifacts*.file.name as Set
                 assert resolvedArtifactFileNames == expectedMetadataFileNames
@@ -131,6 +145,17 @@ task verify {
     }
 }
 """
+    }
+
+    private String createUnresolvedArtifactResultVerificationCode() {
+        if (expectedArtifactFailure != null) {
+            return """
+                def unResolvedArtifacts = component.getArtifacts($requestedArtifact).findAll { it instanceof UnresolvedArtifactResult }
+                assert unResolvedArtifacts.size() == 1
+                assert unResolvedArtifacts[0].failure instanceof ${expectedArtifactFailure.name}
+                assert unResolvedArtifacts[0].failure.message.startsWith("${expectedArtifactFailureMessage}")
+            """
+        }
     }
 
     private String createComponentResultVerificationCode() {
@@ -158,10 +183,37 @@ task verify {
         def rootId = configurations.${config}.incoming.resolutionResult.root.id
         assert rootId instanceof ProjectComponentIdentifier
 
-        dependencies.createArtifactResolutionQuery()
+        def result = dependencies.createArtifactResolutionQuery()
             .forComponents(rootId)
             .withArtifacts($requestedComponent, $requestedArtifact)
             .execute()
+
+        assert result.components.size() == 1
+
+        // Check generic component result
+        def componentResult = result.components.iterator().next()
+        assert componentResult.id.displayName == 'project :'
+        assert componentResult instanceof $expectedComponentResult.name
+"""
+
+        if(expectedComponentResult == UnresolvedComponentResult) {
+            buildFile << createUnresolvedComponentResultVerificationCode()
+        }
+
+        buildFile << """
+        def expectedMetadataFileNames = ${expectedMetadataFiles.collect { "'" + it.name + "'" }} as Set
+
+        for(component in result.resolvedComponents) {
+            def resolvedArtifacts = component.getArtifacts($requestedArtifact).findAll { it instanceof ResolvedArtifactResult }
+            assert expectedMetadataFileNames.size() == resolvedArtifacts.size()
+
+            ${createUnresolvedArtifactResultVerificationCode()}
+
+            if(expectedMetadataFileNames.size() > 0) {
+                def resolvedArtifactFileNames = resolvedArtifacts*.file.name as Set
+                assert resolvedArtifactFileNames == expectedMetadataFileNames
+            }
+        }
     }
 }
 """

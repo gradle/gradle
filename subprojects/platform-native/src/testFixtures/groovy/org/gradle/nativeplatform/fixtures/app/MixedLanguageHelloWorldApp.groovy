@@ -39,9 +39,9 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
                         architecture "i386"
                     }
                 }
-            }
-            componentSpecs.all {
-                it.targetPlatform "x86"
+                components {
+                    all { it.targetPlatform "x86" }
+                }
             }
 """
     }

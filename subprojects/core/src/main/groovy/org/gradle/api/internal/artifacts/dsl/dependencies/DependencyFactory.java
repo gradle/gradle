@@ -25,9 +25,9 @@ import java.util.Map;
 public interface DependencyFactory {
     //for gradle distribution specific dependencies
     enum ClassPathNotation {
-        GRADLE_API, LOCAL_GROOVY
+        GRADLE_API, GRADLE_TEST_KIT, LOCAL_GROOVY
     }
-    
+
     Dependency createDependency(Object dependencyNotation);
     ClientModule createModule(Object dependencyNotation, Closure configureClosure);
     ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map);

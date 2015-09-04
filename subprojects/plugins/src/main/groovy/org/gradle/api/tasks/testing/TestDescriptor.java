@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -36,6 +37,7 @@ public interface TestDescriptor {
      *
      * @return The class name. May return null.
      */
+    @Nullable
     String getClassName();
 
     /**
@@ -50,5 +52,6 @@ public interface TestDescriptor {
      *
      * @return The parent of this test. Null if this test has no parent.
      */
+    @Nullable
     TestDescriptor getParent();
 }

@@ -17,7 +17,10 @@ package org.gradle.foundation;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.internal.project.DefaultProjectTaskLister;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
 import org.gradle.gradleplugin.foundation.DOM4JSerializer;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
@@ -25,6 +28,8 @@ import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Assert;
@@ -47,9 +52,13 @@ public class TestUtility {
      *
      * Note: depth is 0 for a root project. 1 for a root project's subproject, etc.
      */
-    public static Project createMockProject(JUnit4Mockery context, final String name, final String buildFilePath, final int depth, Project[] subProjectArray, Task[] tasks, String[] defaultTasks,
-                                            Project... dependsOnProjects) {
-        final Project project = context.mock(Project.class, "[project]_" + name + '_' + uniqueNameCounter++);
+    public static Project createMockProject(JUnit4Mockery context, final String name, final String buildFilePath, final int depth, Project[] subProjectArray, Task[] tasks, String[] defaultTasks) {
+        final ProjectInternal project = context.mock(ProjectInternal.class, "[project]_" + name + '_' + uniqueNameCounter++);
+        final ServiceRegistry services = ServiceRegistryBuilder.builder().provider(new Object() {
+            ProjectTaskLister createTaskLister() {
+                return new DefaultProjectTaskLister();
+            }
+        }).build();
 
         context.checking(new Expectations() {{
             allowing(project).getName();
@@ -60,6 +69,8 @@ public class TestUtility {
             will(returnValue(new File(buildFilePath)));
             allowing(project).getDepth();
             will(returnValue(depth));
+            allowing(project).getServices();
+            will(returnValue(services));
         }});
 
         attachSubProjects(context, project, subProjectArray);
@@ -120,11 +131,12 @@ public class TestUtility {
      */
     public static void attachTasks(JUnit4Mockery context, final Project parentProject, Task... taskArray) {
         //first, make our project return our task container
-        final TaskContainer taskContainer = context.mock(TaskContainer.class, "[taskcontainer]_" + parentProject.getName() + '_' + uniqueNameCounter++);
+        final TaskContainerInternal taskContainer = context.mock(TaskContainerInternal.class, "[taskcontainer]_" + parentProject.getName() + '_' + uniqueNameCounter++);
 
         context.checking(new Expectations() {{
             allowing(parentProject).getTasks();
             will(returnValue(taskContainer));
+            allowing(taskContainer).realize();
         }});
 
         final Set<Task> set

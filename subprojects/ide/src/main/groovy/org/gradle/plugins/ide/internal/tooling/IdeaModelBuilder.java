@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
@@ -51,7 +50,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     private void applyIdeaPlugin(Project root) {
         Set<Project> allProjects = root.getAllprojects();
         for (Project p : allProjects) {
-            p.apply(ImmutableMap.of("type", IdeaPlugin.class));
+            p.getPluginManager().apply(IdeaPlugin.class);
         }
         root.getPlugins().getPlugin(IdeaPlugin.class).makeSureModuleNamesAreUnique();
     }

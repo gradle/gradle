@@ -15,13 +15,16 @@
  */
 package org.gradle.api.plugins.sonar
 
-import org.sonar.batch.bootstrapper.Bootstrapper
 import org.gradle.api.internal.ConventionTask
-import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.classloader.ClasspathUtil
-
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.plugins.sonar.model.SonarRootModel
+import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.classloader.ClassLoaderFactory
+import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.util.GFileUtils
+import org.sonar.batch.bootstrapper.Bootstrapper
+
+import javax.inject.Inject
 
 /**
  * Analyzes a project hierarchy and writes the results to the
@@ -33,15 +36,32 @@ class SonarAnalyze extends ConventionTask {
      */
     SonarRootModel rootModel
 
+    @Inject
+    protected ModuleRegistry getModuleRegistry() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ClassLoaderFactory getClassLoaderFactory() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     void analyze() {
         GFileUtils.mkdirs(rootModel.bootstrapDir)
         def bootstrapper = new Bootstrapper("Gradle", rootModel.server.url, rootModel.bootstrapDir)
 
-        def classLoader = bootstrapper.createClassLoader(
-                [findGradleSonarJar()] as URL[], SonarAnalyze.classLoader,
-                        "groovy", "org.codehaus.groovy", "org.slf4j", "org.apache.log4j", "org.apache.commons.logging",
-                                "org.gradle.api.plugins.sonar.model", "ch.qos.logback")
+        def pluginClassLoaderAllowedPackages = ["groovy", "org.codehaus.groovy", "org.apache.log4j", "org.apache.commons.logging", "org.gradle.api.plugins.sonar.model"]
+
+        def filteringPluginClassLoader = classLoaderFactory.createFilteringClassLoader(SonarAnalyze.classLoader)
+        pluginClassLoaderAllowedPackages.each { filteringPluginClassLoader.allowPackage(it) }
+        filteringPluginClassLoader.allowResource("logback.xml")
+        def pluginAndLoggingClassLoader = new MutableURLClassLoader(filteringPluginClassLoader, getLogbackAndSlf4jUrls())
+
+        def bootstrapperParentClassLoaderAllowedPackages = pluginClassLoaderAllowedPackages + ["org.slf4j", "ch.qos.logback"]
+        def classLoader = bootstrapper.createClassLoader(getGradleSonarUrls() as URL[], pluginAndLoggingClassLoader, bootstrapperParentClassLoaderAllowedPackages as String[])
 
         def analyzerClass = classLoader.loadClass("org.gradle.api.plugins.sonar.internal.SonarCodeAnalyzer")
         def analyzer = analyzerClass.newInstance()
@@ -49,9 +69,12 @@ class SonarAnalyze extends ConventionTask {
         analyzer.execute()
     }
 
-    protected URL findGradleSonarJar() {
-        def url = ClasspathUtil.getClasspath(SonarAnalyze.classLoader).find { it.path.contains("gradle-sonar") }
-        assert url != null, "failed to detect file system location of gradle-sonar Jar"
-        url
+    protected List<URL> getGradleSonarUrls() {
+        moduleRegistry.getModule("gradle-sonar").implementationClasspath.asURLs
+    }
+
+    protected List<URL> getLogbackAndSlf4jUrls() {
+        def moduleNames = ["logback-classic", "logback-core", "slf4j-api"]
+        moduleNames.collectMany { moduleRegistry.getExternalModule(it).classpath.asURLs }
     }
 }

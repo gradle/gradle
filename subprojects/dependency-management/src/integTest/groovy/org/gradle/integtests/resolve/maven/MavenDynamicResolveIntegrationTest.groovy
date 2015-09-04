@@ -128,8 +128,6 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
 
-
-
     def "falls back to directory listing when maven-metadata.xml is missing"() {
         given:
         mavenHttpRepo.module('org.test', 'projectA', '1.0').publish()
@@ -233,7 +231,126 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.5.jar')
     }
 
-    def "does not cache broken module information"() {
+    def "dynamic version reports and recovers from broken module"() {
+        given:
+        def repo = mavenHttpRepo("repo1")
+        def projectA = repo.module('group', 'projectA', '1.1').publish()
+
+        buildFile << """
+        repositories {
+            maven { url '${repo.uri}' }
+        }
+        configurations { compile }
+        dependencies {
+            compile 'group:projectA:1.+'
+        }
+
+        task retrieve(type: Sync) {
+            into 'libs'
+            from configurations.compile
+        }
+        """
+
+        when:
+        repo.getModuleMetaData("group", "projectA").expectGet()
+        projectA.pom.expectGetBroken()
+
+        and:
+        fails 'retrieve'
+
+        then:
+        failure.assertHasCause("Could not resolve group:projectA:1.+.")
+        failure.assertHasCause("Could not GET '${projectA.pom.uri}'. Received status code 500 from server: broken")
+
+        when:
+        server.resetExpectations()
+        projectA.pom.expectGet()
+        projectA.artifact.expectGetBroken()
+
+        and:
+        fails 'retrieve'
+
+        then:
+        failure.assertHasCause("Could not download projectA.jar (group:projectA:1.1)")
+        failure.assertHasCause("Could not GET '${projectA.artifact.uri}'. Received status code 500 from server: broken")
+
+        when:
+        server.resetExpectations()
+        projectA.artifact.expectGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.1.jar')
+    }
+
+    def "dynamic version reports and recovers from missing module"() {
+        given:
+        def repo = mavenHttpRepo("repo1")
+        def projectA = repo.module('group', 'projectA', '1.1').publish()
+
+        buildFile << """
+        repositories {
+            maven { url '${repo.uri}' }
+        }
+        configurations { compile }
+        dependencies {
+            compile 'group:projectA:1.+'
+        }
+
+        task retrieve(type: Sync) {
+            into 'libs'
+            from configurations.compile
+        }
+        """
+
+        when:
+        repo.getModuleMetaData("group", "projectA").expectGet()
+        projectA.pom.expectGetMissing()
+        projectA.artifact.expectHeadMissing()
+
+        and:
+        fails 'retrieve'
+
+        then:
+        // TODO - this error message isn't right: it found a version, it just happened to be missing. should really choose another version
+        failure.assertHasCause("""Could not find any matches for group:projectA:1.+ as no versions of group:projectA are available.
+Searched in the following locations:
+    ${repo.getModuleMetaData("group", "projectA").uri}
+    ${projectA.pom.uri}
+    ${projectA.artifact.uri}
+Required by:
+""")
+
+        when:
+        server.resetExpectations()
+        projectA.pom.expectGet()
+        projectA.artifact.expectGetMissing()
+
+        and:
+        fails 'retrieve'
+
+        then:
+        failure.assertHasCause("""Could not find projectA.jar (group:projectA:1.1).
+Searched in the following locations:
+    ${projectA.artifact.uri}""")
+
+        when:
+        server.resetExpectations()
+        repo.getModuleMetaData("group", "projectA").expectGet()
+        projectA.pom.expectHead()
+        projectA.artifact.expectGet()
+
+        and:
+        args("--refresh-dependencies")
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.1.jar')
+    }
+
+    def "dynamic version ignores broken module in one repository when available in another repository"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
@@ -272,7 +389,6 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        repo2.getModuleMetaData("group", "projectA").expectGet()
         projectA2.pom.expectGet()
         projectA2.artifact.expectGet()
 

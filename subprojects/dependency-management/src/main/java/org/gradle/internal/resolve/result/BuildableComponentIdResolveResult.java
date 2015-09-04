@@ -17,7 +17,6 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
@@ -31,6 +30,4 @@ public interface BuildableComponentIdResolveResult extends ComponentIdResolveRes
     void setSelectionReason(ComponentSelectionReason reason);
 
     void failed(ModuleVersionResolveException failure);
-
-    void notFound(ModuleVersionSelector requested);
 }

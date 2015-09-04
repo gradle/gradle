@@ -29,15 +29,11 @@ import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
-import org.gradle.process.internal.child.EncodedStream;
 import org.gradle.process.internal.child.WorkerFactory;
-import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
+import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -49,15 +45,17 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
     private final ClassPathRegistry classPathRegistry;
     private final FileResolver resolver;
     private final IdGenerator<?> idGenerator;
+    private final File gradleUserHomeDir;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server,
                                        ClassPathRegistry classPathRegistry, FileResolver resolver,
-                                       IdGenerator<?> idGenerator) {
+                                       IdGenerator<?> idGenerator, File gradleUserHomeDir) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.classPathRegistry = classPathRegistry;
         this.resolver = resolver;
         this.idGenerator = idGenerator;
+        this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
     public WorkerProcessBuilder create() {
@@ -68,6 +66,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
         public DefaultWorkerProcessBuilder() {
             super(resolver);
             setLogLevel(workerLogLevel);
+            setGradleUserHomeDir(gradleUserHomeDir);
         }
 
         @Override
@@ -104,7 +103,6 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             LOGGER.debug("Using implementation classpath {}", implementationClassPath);
 
             JavaExecHandleBuilder javaCommand = getJavaCommand();
-            attachStdInContent(workerFactory, javaCommand);
             workerFactory.prepareJavaCommand(javaCommand);
             javaCommand.setDisplayName(displayName);
             javaCommand.args("'" + displayName + "'");
@@ -113,14 +111,6 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             workerProcess.setExecHandle(execHandle);
 
             return workerProcess;
-        }
-
-        private void attachStdInContent(WorkerFactory workerFactory, JavaExecHandleBuilder javaCommand) {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            OutputStream encoded = new EncodedStream.EncodedOutput(bytes);
-            GUtil.serialize(workerFactory.create(), encoded);
-            ByteArrayInputStream stdinContent = new ByteArrayInputStream(bytes.toByteArray());
-            javaCommand.setStandardInput(stdinContent);
         }
     }
 }

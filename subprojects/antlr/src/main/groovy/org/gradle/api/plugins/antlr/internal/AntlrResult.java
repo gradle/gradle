@@ -21,12 +21,21 @@ import java.io.Serializable;
 public class AntlrResult implements Serializable {
 
     private final int errorCount;
+    private final Exception exception;
 
     public AntlrResult(int errorCount) {
+        this(errorCount, null);
+    }
+    public AntlrResult(int errorCount, Exception exception) {
         this.errorCount = errorCount;
+        this.exception = exception;
     }
 
     public int getErrorCount() {
         return errorCount;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }

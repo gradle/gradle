@@ -18,9 +18,9 @@ package org.gradle.api.internal.file.copy
 import org.gradle.api.Action
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.reflect.DirectInstantiator
@@ -46,7 +46,7 @@ public class DefaultCopySpecResolutionTest {
     private TestFile baseFile = testDir.testDirectory
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final FileResolver fileResolver = context.mock(FileResolver);
-    private final Instantiator instantiator = new DirectInstantiator()
+    private final Instantiator instantiator = DirectInstantiator.INSTANCE
     private final DefaultCopySpec parentSpec = new DefaultCopySpec(fileResolver, instantiator)
 
     @Test
@@ -141,11 +141,11 @@ public class DefaultCopySpecResolutionTest {
         child.from 'b'
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
 
-        def filteredTree = context.mock(FileTree, 'filtered')
+        def filteredTree = context.mock(FileTreeInternal, 'filtered')
 
         context.checking {
             one(fileResolver).resolveFilesAsTree(['a', 'b'] as Set)
-            def tree = context.mock(FileTree, 'source')
+            def tree = context.mock(FileTreeInternal, 'source')
             will(returnValue(tree))
             one(tree).matching(withParam(equalTo(parentSpec.patternSet)))
             will(returnValue(filteredTree))

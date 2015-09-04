@@ -33,9 +33,11 @@ import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import spock.lang.Shared
 import spock.lang.Specification
 
+@UsesNativeServices
 public class DefaultMavenPublicationTest extends Specification {
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def module = Mock(MavenProjectIdentity)
@@ -319,7 +321,7 @@ public class DefaultMavenPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = new DefaultMavenPublication("pub-name", module, notationParser, new DirectInstantiator(), projectDependencyResolver)
+        def publication = new DefaultMavenPublication("pub-name", module, notationParser, DirectInstantiator.INSTANCE, projectDependencyResolver)
         publication.setPomFile(new SimpleFileCollection(pomFile))
         return publication;
     }

@@ -143,7 +143,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     protected String getIvyFilePath() {
-        getArtifactFilePath(name: "ivy", type: "ivy", ext: "xml")
+        getArtifactFilePath([name: "ivy", type: "ivy", ext: "xml"], ivyPattern)
     }
 
     TestFile getIvyFile() {
@@ -162,10 +162,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return moduleDir.file(getArtifactFilePath(options))
     }
 
-    protected String getArtifactFilePath(Map<String, ?> options) {
+    protected String getArtifactFilePath(Map<String, ?> options, String pattern = artifactPattern) {
         def artifact = toArtifact(options)
         def tokens = [organisation: organisation, module: module, revision: revision, artifact: artifact.name, type: artifact.type, ext: artifact.ext, classifier: artifact.classifier]
-        M2CompatibleIvyPatternHelper.substitute(artifactPattern, m2Compatible, tokens)
+        M2CompatibleIvyPatternHelper.substitute(pattern, m2Compatible, tokens)
     }
 
     /**

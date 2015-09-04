@@ -22,6 +22,7 @@ import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssoc
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntry;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntryComparison;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.FileToArchiveEntrySetTransformer;
+import org.gradle.internal.Pair;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -76,7 +77,7 @@ public class GeneratedArchiveBuildOutcomeComparator implements BuildOutcomeCompa
             entryComparisons.add(new ArchiveEntryComparison(sourceOnly, null));
         }
 
-        for (CollectionUtils.SetDiff.Pair<ArchiveEntry> pair : diff.common) {
+        for (Pair<ArchiveEntry, ArchiveEntry> pair : diff.common) {
             entryComparisons.add(new ArchiveEntryComparison(pair.left, pair.right));
         }
 

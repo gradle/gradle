@@ -19,12 +19,11 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
-
-import java.util.Collection;
 
 public class ExcludeRuleNotationConverter extends MapNotationConverter<ExcludeRule> {
 
@@ -36,8 +35,8 @@ public class ExcludeRuleNotationConverter extends MapNotationConverter<ExcludeRu
     }
 
     @Override
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Maps with 'group' and/or 'module', e.g. [group: 'com.google.collections', module: 'google-collections'].");
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("Maps with 'group' and/or 'module'").example("[group: 'com.google.collections', module: 'google-collections']");
     }
 
     protected ExcludeRule parseMap(@MapKey(ExcludeRule.GROUP_KEY) @Optional String group,

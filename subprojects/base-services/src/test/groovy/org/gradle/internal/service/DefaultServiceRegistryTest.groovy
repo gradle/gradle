@@ -221,6 +221,7 @@ class DefaultServiceRegistryTest extends Specification {
             Callable<String> createStringCallable() {
                 return { "hello" }
             }
+
             Factory<String> createStringFactory() {
                 return { "world" } as Factory
             }
@@ -594,7 +595,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def failsWhenCannotCreateServiceInstanceFromImplementationClass() {
         given:
-        registry.register({ registration -> registration.add(ClassWithBrokenConstructor)} as Action)
+        registry.register({ registration -> registration.add(ClassWithBrokenConstructor) } as Action)
 
         when:
         registry.get(ClassWithBrokenConstructor)
@@ -606,7 +607,7 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def canGetAllServicesOfAGivenType() {
-        registry.addProvider(new Object(){
+        registry.addProvider(new Object() {
             String createOtherString() {
                 return "hi"
             }
@@ -619,13 +620,15 @@ class DefaultServiceRegistryTest extends Specification {
 
     def canGetAllServicesOfARawType() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new Object(){
+        registry.addProvider(new Object() {
             String createString() {
                 return "hi"
             }
+
             Factory<String> createFactory() {
                 return {} as Factory
             }
+
             Callable<String> createCallable() {
                 return {}
             }
@@ -810,7 +813,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def closeInvokesCloseMethodOnEachServiceCreatedFromImplementationClass() {
         given:
-        registry.register({ registration -> registration.add(ClosableService)} as Action)
+        registry.register({ registration -> registration.add(ClosableService) } as Action)
         def service = registry.get(ClosableService)
 
         when:
@@ -849,6 +852,7 @@ class DefaultServiceRegistryTest extends Specification {
             TestStopService createService2(ClosableService b) {
                 return service2
             }
+
             ClosableService createService3() {
                 return service3
             }
@@ -886,9 +890,11 @@ class DefaultServiceRegistryTest extends Specification {
             TestStopService createService2(ClosableService b) {
                 return service2
             }
+
             TestCloseService createService1(TestStopService a) {
                 return service1
             }
+
             ClosableService createService3() {
                 return service3
             }
@@ -979,6 +985,60 @@ class DefaultServiceRegistryTest extends Specification {
         e.message == "Cannot locate factory for objects of type BigDecimal, as TestRegistry has been closed."
     }
 
+    def "cannot add provider after getting a service via class"() {
+        when:
+        registry.get(Integer)
+        registry.addProvider(new TestProvider())
+
+        then:
+        thrown IllegalStateException
+    }
+
+    def "cannot add provider after getting a service via type"() {
+        when:
+        registry.get(Integer as Type)
+        registry.addProvider(new TestProvider())
+
+        then:
+        thrown IllegalStateException
+    }
+
+    def "cannot add provider after getting all services"() {
+        when:
+        registry.getAll(Integer)
+        registry.addProvider(new TestProvider())
+
+        then:
+        thrown IllegalStateException
+    }
+
+    def "cannot add instance after getting a service via class"() {
+        when:
+        registry.get(Integer)
+        registry.add(String, "foo")
+
+        then:
+        thrown IllegalStateException
+    }
+
+    def "cannot add instance after getting a service via type"() {
+        when:
+        registry.get(Integer as Type)
+        registry.add(String, "foo")
+
+        then:
+        thrown IllegalStateException
+    }
+
+    def "cannot add instance after getting all services"() {
+        when:
+        registry.getAll(Integer)
+        registry.add(String, "foo")
+
+        then:
+        thrown IllegalStateException
+    }
+
     private Factory<Number> numberFactory
     private Factory<String> stringFactory
     private Factory<? super BigDecimal> superBigDecimalFactory
@@ -1007,6 +1067,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     private static class TestFactory implements Factory<BigDecimal> {
         int value;
+
         public BigDecimal create() {
             return BigDecimal.valueOf(value++)
         }

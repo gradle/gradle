@@ -16,7 +16,6 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
@@ -30,6 +29,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GccCompatible
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
@@ -42,6 +42,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     String libraryCompileTask
     TestFile sourceFile
     TestFile headerFile
+    TestFile commonHeaderFile
     List<TestFile> librarySourceFiles = []
 
     boolean isCanBuildForMultiplePlatforms() {
@@ -85,12 +86,12 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         settingsFile << "rootProject.name = 'test'"
         sourceFile = app.mainSource.writeToDir(file("src/main"))
         headerFile = app.libraryHeader.writeToDir(file("src/hello"))
+        commonHeaderFile = app.commonHeader.writeToDir(file("src/hello"))
         app.librarySources.each {
             librarySourceFiles << it.writeToDir(file("src/hello"))
         }
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "does not re-execute build with no change"() {
         given:
         run "installMainExecutable"
@@ -102,7 +103,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         nonSkippedTasks.empty
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel || !TestPrecondition.CAN_INSTALL_EXECUTABLE.fulfilled})
+    @IgnoreIf({!TestPrecondition.CAN_INSTALL_EXECUTABLE.fulfilled})
     def "rebuilds executable with source file change"() {
         given:
         run "installMainExecutable"
@@ -245,8 +246,8 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     // compiling Objective-C and Objective-Cpp with clang generates
-    // random different object files (related to ASLR settings) 
-    // We saw this behaviour only on linux so far. 
+    // random different object files (related to ASLR settings)
+    // We saw this behaviour only on linux so far.
     boolean objectiveCWithAslr() {
         return (sourceType == "Objc" || sourceType == "Objcpp") &&
                 OperatingSystem.current().isLinux() &&
@@ -345,7 +346,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
     def "relinks binary but does not recompile when linker option changed"() {
         given:
-        run "installMainExecutable"
+        run "mainExecutable"
 
         when:
         def executable = executable("build/binaries/mainExecutable/main")
@@ -366,7 +367,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
 """
 
-        run "installMainExecutable"
+        run "mainExecutable"
 
         then:
         skipped libraryCompileTask
@@ -375,11 +376,13 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         skipped mainCompileTask
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
-        executedAndNotSkipped ":installMainExecutable"
 
         and:
         executable.assertExists()
-        executable.assertHasChangedSince(snapshot)
+
+        if (toolChain.id != "mingw") { // Identical binary is produced on mingw
+            executable.assertHasChangedSince(snapshot)
+        }
     }
 
     def "cleans up stale object files when executable source file renamed"() {
@@ -501,6 +504,25 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         and:
         executable.assertDebugFileDoesNotExist()
+    }
+
+    @Issue("GRADLE-3248")
+    def "incremental compilation isn't considered up-to-date when compilation fails"() {
+        expect:
+        succeeds mainCompileTask
+
+        when:
+        app.brokenFile.writeToDir(file("src/main"))
+
+        then:
+        fails mainCompileTask
+
+        when:
+        // nothing changes
+
+        expect:
+        // build should still fail
+        fails mainCompileTask
     }
 
     @Ignore("Test demonstrates missing functionality in incremental build with C++")

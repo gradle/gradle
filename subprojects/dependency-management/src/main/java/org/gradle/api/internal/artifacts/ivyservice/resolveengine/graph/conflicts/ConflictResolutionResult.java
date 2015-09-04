@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 
 public interface ConflictResolutionResult {
 
@@ -28,5 +28,5 @@ public interface ConflictResolutionResult {
     /**
      * The actual selected version.
      */
-    <T extends ModuleRevisionResolveState> T getSelected();
+    <T extends ComponentResolutionState> T getSelected();
 }

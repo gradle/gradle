@@ -23,7 +23,7 @@ class DefaultJavaPlatformTest extends Specification {
 
     def "is for current java version if not set"() {
         when:
-        def platform = new DefaultJavaPlatform("test")
+        def platform = DefaultJavaPlatform.current()
 
         then:
         platform.targetCompatibility == JavaVersion.current()
@@ -41,7 +41,7 @@ class DefaultJavaPlatformTest extends Specification {
 
     def "has reasonable string representation"() {
         when:
-        def platform = new DefaultJavaPlatform(JavaVersion.current())
+        def platform = DefaultJavaPlatform.current()
 
         then:
         platform.name == "java${JavaVersion.current().majorVersion}"

@@ -17,9 +17,9 @@ package org.gradle.api.internal
 
 import org.gradle.api.internal.classpath.Module
 import org.gradle.api.internal.classpath.ModuleRegistry
-import spock.lang.Specification
 import org.gradle.api.internal.classpath.PluginModuleRegistry
 import org.gradle.internal.classpath.DefaultClassPath
+import spock.lang.Specification
 
 class DependencyClassPathProviderTest extends Specification {
     final ModuleRegistry moduleRegistry = Mock()
@@ -39,6 +39,18 @@ class DependencyClassPathProviderTest extends Specification {
         1 * moduleRegistry.getModule("gradle-plugin-use") >> module("gradle-plugin-use")
         1 * moduleRegistry.getModule("gradle-tooling-api") >> module("gradle-tooling-api")
         1 * pluginModuleRegistry.getPluginModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
+    }
+
+    def "uses modules to determine Gradle test-kit classpath"() {
+        when:
+        def classpath = provider.findClassPath("GRADLE_TEST_KIT")
+
+        then:
+        classpath.asFiles.collect{it.name} == ["gradle-test-kit-runtime"]
+
+        and:
+        1 * moduleRegistry.getModule("gradle-test-kit") >> module("gradle-test-kit")
+        0 * pluginModuleRegistry.getPluginModules()
     }
 
     def module(String name, Module ... requiredModules) {

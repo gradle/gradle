@@ -28,9 +28,6 @@ class EnumsInManagedModelIntegrationTest extends AbstractIntegrationSpec {
     def "can use enums in managed model elements"() {
         when:
         buildScript '''
-            import org.gradle.model.*
-            import org.gradle.model.collection.*
-
             enum Gender {
                 FEMALE, MALE, OTHER
             }
@@ -44,8 +41,7 @@ class EnumsInManagedModelIntegrationTest extends AbstractIntegrationSpec {
               void setGender(Gender gender)
             }
 
-            @RuleSource
-            class Rules {
+            class Rules extends RuleSource {
               @Model
               void p1(Person p1) {}
             }

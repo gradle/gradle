@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleRevisionResolveState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -27,7 +27,7 @@ class CompositeConflictResolver implements ModuleConflictResolver {
 
     private final List<ModuleConflictResolver> resolvers = new LinkedList<ModuleConflictResolver>();
 
-    public <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates) {
+    public <T extends ComponentResolutionState> T select(Collection<? extends T> candidates) {
         for (ModuleConflictResolver r : resolvers) {
             T selection = r.select(candidates);
             if (selection != null) {

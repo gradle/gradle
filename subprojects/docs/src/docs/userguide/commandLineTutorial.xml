@@ -248,7 +248,6 @@
             execution.
         </para>
     </section>
-
     <section>
         <title>Summary</title>
         <para>In this chapter, you have seen some of the things you can do with Gradle from the command-line. You can

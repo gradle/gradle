@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin
 import spock.lang.Specification
 
 class CreateDefaultFlavorsTest extends Specification {
-    def flavorContainer = new DefaultFlavorContainer(new DirectInstantiator())
+    def flavorContainer = new DefaultFlavorContainer(DirectInstantiator.INSTANCE)
     def rule = new NativeComponentModelPlugin.Rules()
 
     def "has a single default flavor when not configured"() {

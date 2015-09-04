@@ -24,17 +24,25 @@ public class DefaultPluginRequest implements PluginRequest {
     private final PluginId id;
     private final String version;
     private final int lineNumber;
-    private final ScriptSource scriptSource;
+    private final String scriptDisplayName;
 
     public DefaultPluginRequest(String id, String version, int lineNumber, ScriptSource scriptSource) {
         this(PluginId.of(id), version, lineNumber, scriptSource);
     }
 
     public DefaultPluginRequest(PluginId id, String version, int lineNumber, ScriptSource scriptSource) {
+        this(id, version, lineNumber, scriptSource.getDisplayName());
+    }
+
+    public DefaultPluginRequest(String id, String version, int lineNumber, String scriptDisplayName) {
+        this(PluginId.of(id), version, lineNumber, scriptDisplayName);
+    }
+
+    public DefaultPluginRequest(PluginId id, String version, int lineNumber, String scriptDisplayName) {
         this.id = id;
         this.version = version;
         this.lineNumber = lineNumber;
-        this.scriptSource = scriptSource;
+        this.scriptDisplayName = scriptDisplayName;
     }
 
     public PluginId getId() {
@@ -49,8 +57,8 @@ public class DefaultPluginRequest implements PluginRequest {
         return lineNumber;
     }
 
-    public ScriptSource getScriptSource() {
-        return scriptSource;
+    public String getScriptDisplayName() {
+        return scriptDisplayName;
     }
 
     @Override

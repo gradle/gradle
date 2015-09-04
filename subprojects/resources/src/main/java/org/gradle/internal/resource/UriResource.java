@@ -53,12 +53,17 @@ public class UriResource implements Resource {
     }
 
     public String getDisplayName() {
-        return String.format("%s '%s'", description, sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri);
+        StringBuilder builder = new StringBuilder();
+        builder.append(description);
+        builder.append(" '");
+        builder.append(sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri);
+        builder.append("'");
+        return builder.toString();
     }
 
     public String getText() {
         if (sourceFile != null && sourceFile.isDirectory()) {
-            throw new ResourceException(String.format("Could not read %s as it is a directory.", getDisplayName()));
+            throw new ResourceException(sourceUri, String.format("Could not read %s as it is a directory.", getDisplayName()));
         }
         try {
             Reader reader = getInputStream(sourceUri);
@@ -68,9 +73,9 @@ public class UriResource implements Resource {
                 reader.close();
             }
         } catch (FileNotFoundException e) {
-            throw new ResourceNotFoundException(String.format("Could not read %s as it does not exist.", getDisplayName()));
+            throw new ResourceNotFoundException(sourceUri, String.format("Could not read %s as it does not exist.", getDisplayName()));
         } catch (Exception e) {
-            throw new ResourceException(String.format("Could not read %s.", getDisplayName()), e);
+            throw ResourceException.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
         }
     }
 
@@ -85,7 +90,7 @@ public class UriResource implements Resource {
         } catch (FileNotFoundException e) {
             return false;
         } catch (Exception e) {
-            throw new ResourceException(String.format("Could not determine if %s exists.", getDisplayName()), e);
+            throw ResourceException.failure(sourceUri, String.format("Could not determine if %s exists.", getDisplayName()), e);
         }
     }
 
@@ -184,7 +189,7 @@ public class UriResource implements Resource {
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
         String javaVendor = System.getProperty("java.vendor");
-        String javaVersion = SystemProperties.getJavaVersion();
+        String javaVersion = SystemProperties.getInstance().getJavaVersion();
         String javaVendorVersion = System.getProperty("java.vm.version");
         return String.format("Gradle/%s (%s;%s;%s) (%s;%s;%s)",
                 GradleVersion.current().getVersion(),

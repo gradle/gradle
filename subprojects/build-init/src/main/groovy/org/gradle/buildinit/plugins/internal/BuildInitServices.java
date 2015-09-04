@@ -29,7 +29,13 @@ public class BuildInitServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
+    }
+
+    public void registerGradleServices(ServiceRegistration registration) {
     }
 
     public void registerProjectServices(ServiceRegistration registration) {

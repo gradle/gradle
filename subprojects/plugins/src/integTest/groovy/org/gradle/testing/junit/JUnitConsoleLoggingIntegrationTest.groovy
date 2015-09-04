@@ -19,25 +19,21 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.util.TextUtil
 import org.junit.Rule
-import org.junit.Test
 
 import static org.hamcrest.Matchers.equalTo
 
 // cannot make assumptions about order in which test methods of JUnit4Test get executed
 class JUnitConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
-    ExecutionResult result
 
     def setup() {
-        executer.noExtraLogging().withStackTraceChecksDisabled().withTasks("test")
+        executer.noExtraLogging().withStackTraceChecksDisabled()
     }
 
     def "defaultLifecycleLogging"() {
         when:
-        result = executer.runWithFailure()
+        fails("test")
 
         then:
         outputContains("""
@@ -48,7 +44,8 @@ org.gradle.JUnit4Test > badTest FAILED
 
     def "customQuietLogging"() {
         when:
-        result = executer.withArguments("-q").runWithFailure()
+        args("-q")
+        fails("test")
 
         then:
         outputContains("""
@@ -65,7 +62,8 @@ badTest FAILED
 
     def "standardOutputLogging"() {
         when:
-        result = executer.withArguments("-q").runWithFailure()
+        args("-q")
+        fails("test")
 
         then:
         outputContains("""
@@ -80,7 +78,7 @@ org.gradle.JUnit4StandardOutputTest > printTest STANDARD_OUT
         file("build.gradle") << """
             apply plugin: 'java'
                 repositories { mavenCentral() }
-                dependencies { testCompile 'junit:junit:4.11' }
+                dependencies { testCompile 'junit:junit:4.12' }
         """
 
         file("src/test/java/EncodingTest.java") << """
@@ -100,7 +98,7 @@ public class EncodingTest {
 }
 """
         when:
-        executer.withTasks("test").runWithFailure()
+        fails("test")
 
         then:
         new DefaultTestExecutionResult(testDirectory)
@@ -114,8 +112,4 @@ xml entity: &amp;
                 .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
     }
 
-
-    private void outputContains(String text) {
-        assert result.output.contains(TextUtil.toPlatformLineSeparators(text.trim()))
-    }
 }

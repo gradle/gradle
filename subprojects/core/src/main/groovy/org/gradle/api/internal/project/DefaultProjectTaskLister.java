@@ -26,7 +26,7 @@ public class DefaultProjectTaskLister implements ProjectTaskLister {
     public Collection<Task> listProjectTasks(Project project) {
         ProjectInternal projectInternal = (ProjectInternal) project;
         TaskContainerInternal tasks = projectInternal.getTasks();
-        tasks.actualize();
+        tasks.realize();
         return tasks;
     }
 }

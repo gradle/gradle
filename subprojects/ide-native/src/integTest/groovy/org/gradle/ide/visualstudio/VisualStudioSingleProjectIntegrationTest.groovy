@@ -810,6 +810,49 @@ model {
         }
     }
 
+    def "visual studio solution for executable that depends on library using precompiled header"() {
+        when:
+        app = new CppHelloWorldApp()
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
+        buildFile << """
+            model {
+                components {
+                    hello(NativeLibrarySpec) {
+                        sources {
+                            cpp.preCompiledHeader "pch.h"
+                        }
+                    }
+                    main(NativeExecutableSpec) {
+                        sources {
+                            cpp.lib library: 'hello'
+                        }
+                    }
+                }
+            }
+        """
+        and:
+        run "mainVisualStudio"
+
+        then:
+        final exeProject = projectFile("mainExe.vcxproj")
+        exeProject.assertHasComponentSources(app.executable, "src/main")
+        exeProject.projectConfigurations.keySet() == projectConfigurations
+        exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers")
+
+        and:
+        final dllProject = projectFile("helloDll.vcxproj")
+        dllProject.assertHasComponentSources(app.library, "src/hello")
+        dllProject.projectConfigurations.keySet() == projectConfigurations
+        dllProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers")
+
+        and:
+        final mainSolution = solutionFile("mainExe.sln")
+        mainSolution.assertHasProjects("mainExe", "helloDll")
+        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(dllProject, projectConfigurations)
+    }
+
     def "visual studio solution for component graph with library dependency cycle"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()

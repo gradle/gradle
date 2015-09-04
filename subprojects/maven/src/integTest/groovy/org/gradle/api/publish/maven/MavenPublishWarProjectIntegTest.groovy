@@ -15,6 +15,8 @@
  */
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+
 class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
     public void "publishes war and meta-data for web component with external dependencies"() {
         def webModule = mavenRepo.module("org.gradle.test", "project1", "1.9")
@@ -37,7 +39,7 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
             dependencies {
                 compile "commons-collections:commons-collections:3.2.1"
                 runtime "commons-io:commons-io:1.4"
-                testRuntime "junit:junit:4.11"
+                testRuntime "junit:junit:4.12"
             }
 
             publishing {

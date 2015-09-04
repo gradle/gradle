@@ -19,15 +19,13 @@ package org.gradle.internal.resource.transport.http;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.util.EntityUtils;
 import org.gradle.api.Nullable;
-import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
-import org.gradle.internal.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -38,14 +36,14 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceAccessor.class);
     private final HttpClientHelper http;
 
-    private final List<ExternalResource> openResources = new ArrayList<ExternalResource>();
+    private final List<HttpResponseResource> openResources = new ArrayList<HttpResponseResource>();
 
     public HttpResourceAccessor(HttpClientHelper http) {
         this.http = http;
     }
 
     @Nullable
-    public HttpResponseResource getResource(final URI uri) throws IOException {
+    public HttpResponseResource openResource(final URI uri) {
         abortOpenResources();
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
@@ -63,7 +61,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
      * Same as #getResource except that it always gives access to the response body,
      * irrespective of the returned HTTP status code. Never returns {@code null}.
      */
-    public HttpResponseResource getRawResource(final URI uri) throws IOException {
+    public HttpResponseResource getRawResource(final URI uri) {
         abortOpenResources();
         String location = uri.toString();
         LOGGER.debug("Constructing external resource: {}", location);
@@ -94,7 +92,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
     }
 
     private void abortOpenResources() {
-        for (ExternalResource openResource : openResources) {
+        for (Closeable openResource : openResources) {
             LOGGER.warn("Forcing close on abandoned resource: " + openResource);
             try {
                 openResource.close();
@@ -103,28 +101,6 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
             }
         }
         openResources.clear();
-    }
-
-    public HashValue getResourceSha1(URI location) {
-        String checksumUrl = location + ".sha1";
-        return downloadSha1(checksumUrl);
-    }
-
-    private HashValue downloadSha1(String checksumUrl) {
-        try {
-            HttpResponse httpResponse = http.performRawGet(checksumUrl);
-            if (http.wasSuccessful(httpResponse)) {
-                String checksumValue = EntityUtils.toString(httpResponse.getEntity());
-                return HashValue.parse(checksumValue);
-            }
-            if (!http.wasMissing(httpResponse)) {
-                LOGGER.info("Request for checksum at {} failed: {}", checksumUrl, httpResponse.getStatusLine());
-            }
-            return null;
-        } catch (Exception e) {
-            LOGGER.warn("Checksum missing at {} due to: {}", checksumUrl, e.getMessage());
-            return null;
-        }
     }
 
     private HttpResponseResource wrapResponse(URI uri, HttpResponse response) {

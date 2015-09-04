@@ -16,68 +16,91 @@
 
 package org.gradle.model.internal.registry;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.ModelBinding;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
-/**
- * The progressive binding of the subject/inputs of the references of a model rule.
- *
- * This type is mutable.
- */
 @NotThreadSafe
-public class RuleBinder<T> {
-
-    private final ModelReference<T> subjectReference;
-    private final List<? extends ModelReference<?>> inputReferences;
+abstract class RuleBinder {
 
     private final ModelRuleDescriptor descriptor;
-
-    private Action<? super RuleBinder<T>> onBind;
+    private final BindingPredicate subjectReference;
+    private final List<BindingPredicate> inputReferences;
+    private final Collection<RuleBinder> binders;
 
     private int inputsBound;
+    private List<ModelBinding> inputBindings;
+    private Action<ModelBinding> inputBindAction;
 
-    private ModelBinding<T> subjectBinding;
-    private List<ModelBinding<?>> inputBindings;
-
-    public RuleBinder(@Nullable ModelReference<T> subjectReference, List<? extends ModelReference<?>> inputReferences, ModelRuleDescriptor descriptor, Action<? super RuleBinder<T>> onBind) {
+    public RuleBinder(BindingPredicate subjectReference, List<BindingPredicate> inputReferences, ModelRuleDescriptor descriptor, Collection<RuleBinder> binders) {
         this.subjectReference = subjectReference;
         this.inputReferences = inputReferences;
         this.descriptor = descriptor;
-        this.onBind = onBind;
-
-        this.inputBindings = inputReferences.isEmpty() ? Collections.<ModelBinding<?>>emptyList() : Arrays.asList(new ModelBinding<?>[inputReferences.size()]); // fix size
-
-        maybeFire();
+        this.binders = binders;
+        inputBindAction = new Action<ModelBinding>() {
+            @Override
+            public void execute(ModelBinding modelBinding) {
+                ModelNodeInternal node = modelBinding.getNode();
+                BindingPredicate reference = modelBinding.getPredicate();
+                if (reference.getState() != null && node.getState().compareTo(reference.getState()) > 0) {
+                    throw new IllegalStateException(String.format("Cannot add rule %s with input model element '%s' at state %s as this element is already at state %s.",
+                        modelBinding.referrer,
+                        node.getPath(),
+                        reference.getState(),
+                        node.getState()
+                    ));
+                }
+                ++inputsBound;
+                maybeFire();
+            }
+        };
+        this.inputBindings = inputBindings(inputReferences);
+        if (!isBound()) {
+            binders.add(this);
+        }
     }
 
-    @Nullable
-    public ModelReference<T> getSubjectReference() {
+    private List<ModelBinding> inputBindings(List<BindingPredicate> inputReferences) {
+        if (inputReferences.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<ModelBinding> bindings = new ArrayList<ModelBinding>(inputReferences.size());
+        for (BindingPredicate inputReference : inputReferences) {
+            bindings.add(binding(inputReference, false, inputBindAction));
+        }
+        return bindings;
+    }
+
+    protected ModelBinding binding(BindingPredicate reference, boolean writable, Action<ModelBinding> bindAction) {
+        if (reference.getPath() != null) {
+            return new PathBinderCreationListener(descriptor, reference, writable, bindAction);
+        }
+        return new OneOfTypeBinderCreationListener(descriptor, reference, writable, bindAction);
+    }
+
+    /**
+     * Returns the reference to the <em>output</em> of the rule. The state returned from {@link BindingPredicate#getState()} should reflect
+     * the target state, not the input state. Implicitly, a rule accepts as input the subject in the state that is the predecessor of the target state.
+     */
+    public BindingPredicate getSubjectReference() {
         return subjectReference;
     }
 
-    public List<? extends ModelReference<?>> getInputReferences() {
-        return inputReferences;
+    /**
+     * A rule may have a subject binding, but may not require it. All rules, however, have a subject and hence a subject reference.
+     */
+    @Nullable
+    public ModelBinding getSubjectBinding() {
+        return null;
     }
 
-    public ModelBinding<T> getSubjectBinding() {
-        return subjectBinding;
-    }
-
-    public List<ModelBinding<?>> getInputBindings() {
+    public List<ModelBinding> getInputBindings() {
         return inputBindings;
     }
 
@@ -85,67 +108,13 @@ public class RuleBinder<T> {
         return descriptor;
     }
 
-    public boolean bindSubject(ModelPath path) {
-        assert this.subjectBinding == null;
-        this.subjectBinding = bind(subjectReference, path);
-        return maybeFire();
-    }
-
-    public boolean bindInput(int i, ModelPath path) {
-        assert this.inputBindings.get(i) == null;
-        this.inputBindings.set(i, bind(inputReferences.get(i), path));
-        inputsBound += 1;
-        return maybeFire();
-    }
-
-    private boolean maybeFire() {
+    protected void maybeFire() {
         if (isBound()) {
-            fire();
-            return true;
-        } else {
-            return false;
+            binders.remove(this);
         }
     }
 
     public boolean isBound() {
-        return (subjectReference == null || subjectBinding != null) && inputsBound == inputReferences.size();
+        return inputsBound == inputReferences.size();
     }
-
-    private void fire() {
-        onBind.execute(this);
-        onBind = null; // let go for gc
-    }
-
-    private static <I> ModelBinding<I> bind(ModelReference<I> reference, ModelPath path) {
-        return ModelBinding.of(reference, path);
-    }
-
-    public Iterable<ModelPath> getUnboundPaths() {
-        Set<ModelPath> subjectUnboundPath = Collections.emptySet();
-        if (subjectReference != null && subjectReference.getPath() != null && subjectBinding == null) {
-            subjectUnboundPath = Collections.singleton(subjectReference.getPath());
-        }
-
-        return Iterables.concat(
-                subjectUnboundPath,
-                FluentIterable
-                        .from(getInputReferences())
-                        .filter(new Predicate<ModelReference<?>>() {
-                            public boolean apply(final ModelReference<?> reference) {
-                                return reference.getPath() != null && !Iterables.any(getInputBindings(), new Predicate<ModelBinding<?>>() {
-                                    public boolean apply(@Nullable ModelBinding<?> binding) {
-                                        return binding != null && binding.getReference() == reference;
-                                    }
-                                });
-                            }
-                        })
-                        .transform(new Function<ModelReference<?>, ModelPath>() {
-                            public ModelPath apply(ModelReference<?> input) {
-                                return input.getPath();
-                            }
-                        })
-
-        );
-    }
-
 }

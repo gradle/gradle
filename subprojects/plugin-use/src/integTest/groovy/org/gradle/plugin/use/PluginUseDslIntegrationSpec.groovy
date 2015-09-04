@@ -21,7 +21,7 @@ import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 import static org.gradle.plugin.internal.PluginId.*
-import static org.gradle.plugin.use.internal.PluginUseScriptBlockTransformer.*
+import static org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataExtractor.*
 import static org.hamcrest.Matchers.containsString
 
 class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
@@ -68,7 +68,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     void includesLinkToUserguide() {
-        assert failure.assertThatCause(containsString("http://gradle.org/docs/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
+        assert failure.assertThatCause(containsString("https://docs.gradle.org/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugins_block"))
     }
 
     def "build logic cannot precede plugins block"() {
@@ -235,5 +235,4 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
                 "id('noop').version('bar')\nid('java')",
         ]
     }
-
 }

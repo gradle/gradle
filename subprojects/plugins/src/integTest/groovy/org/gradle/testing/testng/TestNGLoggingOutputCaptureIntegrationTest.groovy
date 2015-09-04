@@ -90,22 +90,22 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
         when: run "test"
 
         then:
-        result.output.contains(TextUtil.toPlatformLineSeparators("""process 'Gradle Test Executor 1' -> static out
-process 'Gradle Test Executor 1' -> static err
-process 'Gradle Test Executor 1' -> constructor out
-process 'Gradle Test Executor 1' -> constructor err
-test 'The Foo Test' -> beforeTest out
-test 'The Foo Test' -> beforeTest err
-test 'The Foo Test' -> beforeClass out
-test 'The Foo Test' -> beforeClass err
-test method m1(FooTest) -> m1: \u03b1</html>
-test method m1(FooTest) -> m1 err
-test method m2(FooTest) -> m2 out
-test method m2(FooTest) -> m2 err
-test 'The Foo Test' -> afterClass out
-test 'The Foo Test' -> afterClass err
-test 'The Foo Test' -> afterTest out
-test 'The Foo Test' -> afterTest err
+        result.output.contains(TextUtil.toPlatformLineSeparators("""Gradle Test Executor 1 -> static out
+Gradle Test Executor 1 -> static err
+Gradle Test Executor 1 -> constructor out
+Gradle Test Executor 1 -> constructor err
+Test suite 'The Foo Test' -> beforeTest out
+Test suite 'The Foo Test' -> beforeTest err
+Test suite 'The Foo Test' -> beforeClass out
+Test suite 'The Foo Test' -> beforeClass err
+Test method m1(FooTest) -> m1: \u03b1</html>
+Test method m1(FooTest) -> m1 err
+Test method m2(FooTest) -> m2 out
+Test method m2(FooTest) -> m2 err
+Test suite 'The Foo Test' -> afterClass out
+Test suite 'The Foo Test' -> afterClass err
+Test suite 'The Foo Test' -> afterTest out
+Test suite 'The Foo Test' -> afterTest err
 """))
 
         /**
@@ -132,22 +132,22 @@ test 'The Foo Test' -> afterTest err
         when: run "test"
 
         then:
-        result.output.contains(TextUtil.toPlatformLineSeparators("""process 'Gradle Test Executor 1' -> static out
-process 'Gradle Test Executor 1' -> static err
-process 'Gradle Test Executor 1' -> constructor out
-process 'Gradle Test Executor 1' -> constructor err
-test 'Gradle test' -> beforeTest out
-test 'Gradle test' -> beforeTest err
-test 'Gradle test' -> beforeClass out
-test 'Gradle test' -> beforeClass err
-test method m1(FooTest) -> m1: \u03b1</html>
-test method m1(FooTest) -> m1 err
-test method m2(FooTest) -> m2 out
-test method m2(FooTest) -> m2 err
-test 'Gradle test' -> afterClass out
-test 'Gradle test' -> afterClass err
-test 'Gradle test' -> afterTest out
-test 'Gradle test' -> afterTest err
+        result.output.contains(TextUtil.toPlatformLineSeparators("""Gradle Test Executor 1 -> static out
+Gradle Test Executor 1 -> static err
+Gradle Test Executor 1 -> constructor out
+Gradle Test Executor 1 -> constructor err
+Test suite 'Gradle test' -> beforeTest out
+Test suite 'Gradle test' -> beforeTest err
+Test suite 'Gradle test' -> beforeClass out
+Test suite 'Gradle test' -> beforeClass err
+Test method m1(FooTest) -> m1: \u03b1</html>
+Test method m1(FooTest) -> m1 err
+Test method m2(FooTest) -> m2 out
+Test method m2(FooTest) -> m2 err
+Test suite 'Gradle test' -> afterClass out
+Test suite 'Gradle test' -> afterClass err
+Test suite 'Gradle test' -> afterTest out
+Test suite 'Gradle test' -> afterTest err
 """))
 
         def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)

@@ -26,7 +26,7 @@ class TestFilteringCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.11' }
+            dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true
         """
 

@@ -74,11 +74,10 @@
         <extends targetClass="org.gradle.api.tasks.testing.Test" id="jacoco" extensionClass="org.gradle.testing.jacoco.plugins.JacocoTaskExtension"/>
     </plugin>
     <plugin id="LanguageBasePlugin" description="Language Base Plugin">
-        <extends targetClass="org.gradle.api.Project" id="projectComponents" extensionClass="org.gradle.platform.base.ComponentSpecContainer"/>
         <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.platform.base.BinaryContainer"/>
         <extends targetClass="org.gradle.api.Project" id="sources" extensionClass="org.gradle.language.base.ProjectSourceSet"/>
     </plugin>
-    <plugin id="native-component" description="Native Component Model Plugin"></plugin>
+    <plugin id="native-component" description="Native Software Model Plugin"></plugin>
     <plugin id="cpp" description="C++ Plugin">
         <extends targetClass="org.gradle.nativeplatform.NativeBinary" id="cppCompiler" extensionClass="org.gradle.language.PreprocessingTool"/>
     </plugin>
@@ -103,5 +102,10 @@
     <plugin id="sonar-runner" description="Sonar Runner Plugin">
         <extends targetClass="org.gradle.api.Project" id="sonarRunner" extensionClass="org.gradle.sonar.runner.SonarRunnerExtension"/>
         <extends targetClass="org.gradle.api.Project" id="sonarRunner" extensionClass="org.gradle.sonar.runner.SonarRunnerRootExtension"/>
+    </plugin>
+
+    <plugin id="play" description="Play Plugin">
+    </plugin>
+    <plugin id="play-coffeescript" description="Play Coffeescript Plugin">
     </plugin>
 </plugins>

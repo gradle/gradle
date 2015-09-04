@@ -17,60 +17,41 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.hash.HashValue;
 
-import java.io.IOException;
 import java.net.URI;
 
 public interface ExternalResourceAccessor {
 
     /**
-     * Obtain the resource at the given location.
+     * Read the resource at the given location.
      *
      * If the resource does not exist, this method should return null.
      *
      * If the resource may exist but can't be accessed due to some configuration issue, the implementation
-     * may either return null or throw an {@link IOException} to indicate a fatal condition.
+     * must throw an {@link ResourceException} to indicate a fatal condition.
      *
      * @param location The address of the resource to obtain
-     * @return The resource if it exists, otherwise null
-     * @throws IOException If the resource may exist, but not could be obtained for some reason
+     * @return The resource if it exists, otherwise null. Caller is responsible for closing the result.
+     * @throws ResourceException If the resource may exist, but not could be obtained for some reason.
      */
     @Nullable
-    ExternalResource getResource(URI location) throws IOException;
-
-    /**
-     * Obtain the SHA-1 checksum for the resource at the given location.
-     *
-     * Implementation is optional. If it is not feasible to obtain this without reading the
-     * entire resource, implementations should return null.
-     *
-     * @param location The address of the resource to obtain the sha-1 of
-     * @return The sha-1 if it can be cheaply obtained, otherwise null.
-     */
-    @Nullable
-    HashValue getResourceSha1(URI location);
+    ExternalResourceReadResponse openResource(URI location) throws ResourceException;
 
     /**
      * Obtains only the metadata about the resource.
      *
      * If it is determined that the resource does not exist, this method should return null.
      *
-     * If it is not possible to determine whether the resource exists or not, this method should
-     * return a metadata instance with null/non value values (e.g. -1 for content length) to indicate
-     * that the resource may indeed exist, but the metadata for it cannot be obtained.
-     *
      * If the resource may exist but can't be accessed due to some configuration issue, the implementation
-     * may either return an empty metadata object or throw an {@link IOException} to indicate a fatal condition.
+     * must throw an {@link ResourceException} to indicate a fatal condition.
      *
      * @param location The location of the resource to obtain the metadata for
-     * @return The available metadata if possible, an “empty” metadata object if the
-     *         metadata can't be reliably be obtained, null if the resource doesn't exist
-     * @throws IOException If the resource may exist, but not could be obtained for some reason
+     * @return The available metadata, null if the resource doesn't exist
+     * @throws ResourceException If the resource may exist, but not could be obtained for some reason
      */
     @Nullable
-    ExternalResourceMetaData getMetaData(URI location) throws IOException;
+    ExternalResourceMetaData getMetaData(URI location) throws ResourceException;
     
 }

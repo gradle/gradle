@@ -16,12 +16,26 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Optional;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 @ThreadSafe
 public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
+
+    public static <M> ModelProjection of(ModelType<M> type) {
+        return new UnmanagedModelProjection<M>(type);
+    }
+
+    public static <M> ModelProjection of(Class<M> type) {
+        return of(ModelType.of(type));
+    }
+
+    public UnmanagedModelProjection(ModelType<M> type) {
+        super(type, true, true);
+    }
 
     public UnmanagedModelProjection(ModelType<M> type, boolean canBeViewedAsReadOnly, boolean canBeViewedAsWritable) {
         super(type, canBeViewedAsReadOnly, canBeViewedAsWritable);
@@ -30,7 +44,16 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
     @Override
     protected ModelView<M> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
         M instance = modelNode.getPrivateData(getType());
-        return InstanceModelView.of(getType(), instance);
+        return InstanceModelView.of(modelNode.getPath(), getType(), instance);
     }
 
+    @Override
+    public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+        ModelView<?> modelView = this.asReadOnly(ModelType.untyped(), modelNodeInternal, null);
+        Object instance = modelView.getInstance();
+        if (null != instance && !JavaReflectionUtil.hasDefaultToString(instance)) {
+            return Optional.fromNullable(instance.toString());
+        }
+        return Optional.absent();
+    }
 }

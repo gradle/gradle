@@ -71,6 +71,11 @@
                 <listitem><para>When configured, Gradle will run in incubating parallel mode.</para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term><literal>org.gradle.workers.max</literal></term>
+                <listitem><para>When configured, Gradle will use a maximum of the given number of workers.  See <literal>--max-workers</literal> for details.</para>
+                </listitem>
+            </varlistentry>
         </para>
         <section>
             <title>Forked Java processes</title>
@@ -86,7 +91,70 @@
             we highly recommend that you use the Gradle Daemon. See <xref linkend="gradle_daemon"/> for more details.</para>
         </section>
     </section>
-
+    <section id='sec:gradle_properties_and_system_properties'>
+        <title>Gradle properties and system properties</title>
+        <para>Gradle offers a variety of ways to add properties to your build. With the <option>-D</option> command line
+            option you can pass a system property to the JVM which runs Gradle. The <option>-D</option> option of the
+            <command>gradle</command> command has the same effect as the <option>-D</option> option of the
+            <command>java</command> command.
+        </para>
+        <para>You can also add properties to your project objects using properties files. You can place a
+            <filename>gradle.properties</filename> file in the Gradle user home directory (defined by the
+            “<literal>GRADLE_USER_HOME</literal>” environment variable, which if not set defaults to
+            <filename><replaceable>USER_HOME</replaceable>/.gradle</filename>) or in your project directory. For
+            multi-project builds you can place <filename>gradle.properties</filename> files in any subproject directory.
+            The properties set in a <filename>gradle.properties</filename> file can be accessed via the project object. The
+            properties file in the user's home directory has precedence over property files in the project directories.
+        </para>
+        <para>You can also add properties directly to your project object via the <option>-P</option> command line option.
+        </para>
+        <para>Gradle can also set project properties when it sees specially-named system properties or
+            environment variables. This feature is very useful when you don't have admin rights to a continuous integration
+            server and you need to set property values that should not be easily visible, typically for security reasons.
+            In that situation, you can't use the <option>-P</option> option, and you can't change the system-level
+            configuration files.  The correct strategy is to change the configuration of your continuous integration
+            build job, adding an environment variable setting that matches an expected pattern.  This won't be visible
+            to normal users on the system.
+            <footnote>
+                <para>
+                    <emphasis>Jenkins</emphasis>, <emphasis>Teamcity</emphasis>, or <emphasis>Bamboo</emphasis> are some CI servers which offer this functionality.
+                </para>
+            </footnote>
+        </para>
+        <para>
+            If the environment variable name looks like
+            <literal>ORG_GRADLE_PROJECT_<replaceable>prop</replaceable>=somevalue</literal>,
+            then Gradle will set a <literal>prop</literal> property on your project object, with the value
+            of <literal>somevalue</literal>. Gradle also supports this for
+            system properties, but with a different naming pattern, which looks like
+            <literal>org.gradle.project.<replaceable>prop</replaceable></literal>.
+        </para>
+        <para>You can also set system properties in the <filename>gradle.properties</filename> file. If a property
+            name in such a file has the prefix “<literal>systemProp.</literal>”, like “<literal>systemProp.propName</literal>”,
+            then the property and its value will be set as a system property, without the prefix. In a multi project
+            build, “<literal>systemProp.</literal>” properties set in any project except the root will be ignored.
+            That is, only the root project's <filename>gradle.properties</filename> file will be checked for
+            properties that begin with the “<literal>systemProp.</literal>” prefix.
+        </para>
+        <sample id="properties" dir="userguide/tutorial/properties" title="Setting properties with a gradle.properties file">
+            <sourcefile file="gradle.properties"/>
+            <sourcefile file="build.gradle"/>
+            <output args="-q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps"/>
+        </sample>
+        <section id='sub:checking_for_project_properties'>
+            <title>Checking for project properties</title>
+            <para>You can access a project property in your build script simply by using its name as you would use a
+                variable. If this property does not exist, an exception will be thrown and the build will fail. If your
+                build script relies on optional properties the user might set, perhaps in a <literal>gradle.properties</literal> file,
+                you need to check for existence before you access them. You can do this by using the method
+                <literal>hasProperty('propertyName')</literal>
+                which returns
+                <literal>true</literal>
+                or <literal>false</literal>.
+            </para>
+        </section>
+    </section>
+    
     <section id='sec:accessing_the_web_via_a_proxy'>
         <title>Accessing the web via a proxy</title>
         <para>Configuring an HTTP proxy (for downloading dependencies, for example) is done via standard JVM system

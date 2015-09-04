@@ -18,23 +18,22 @@ package org.gradle.api.internal.initialization
 
 import spock.lang.Specification
 
-import static org.gradle.api.internal.initialization.ClassLoaderIds.*
+import static org.gradle.api.internal.initialization.ClassLoaderIds.buildScript
+import static org.gradle.api.internal.initialization.ClassLoaderIds.testTaskClasspath
 import static org.gradle.util.Matchers.strictlyEquals
 
 class ClassLoaderIdsTest extends Specification {
 
     def "equality"() {
         expect:
-        strictlyEquals(first, same)
-        first != different
-        first != different2
-        first.hashCode() != different.hashCode()
-        first.hashCode() != different2.hashCode()
+        strictlyEquals(buildScript("x", "x"), buildScript("x", "x"))
+        buildScript("x", "x") != buildScript("x", "y")
+        buildScript("x", "x") != buildScript("y", "y")
 
-        where:
-        first                   |same                   |different              |different2
-        buildScript("x")        |buildScript("x")       |buildScript("y")       |testTaskClasspath("x")
-        testTaskClasspath("x")  |testTaskClasspath("x") |testTaskClasspath("y") |scopeNode("x")
-        scopeNode("x")          |scopeNode("x")         |scopeNode("y")         |buildScript("x")
+        testTaskClasspath("x") != buildScript("y", "y")
+        buildScript("y", "y") != testTaskClasspath("x")
+
+        strictlyEquals(testTaskClasspath("x"), testTaskClasspath("x"))
+        testTaskClasspath("x") != testTaskClasspath("y")
     }
 }

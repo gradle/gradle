@@ -19,9 +19,8 @@ package org.gradle.api.tasks.diagnostics.internal.dsl;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.*;
-
-import java.util.Collection;
 
 public class DependencyResultSpecNotationConverter implements NotationConverter<String, Spec<DependencyResult>> {
     public void convert(String notation, NotationConvertResult<? super Spec<DependencyResult>> result) throws TypeConversionException {
@@ -31,8 +30,9 @@ public class DependencyResultSpecNotationConverter implements NotationConverter<
         }
     }
 
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Non-empty String or CharSequence value, e.g. 'some-lib' or 'org.libs:some-lib'.");
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("Non-empty String or CharSequence value").example("'some-lib' or 'org.libs:some-lib'");
     }
 
     public static NotationParser<Object, Spec<DependencyResult>> parser() {

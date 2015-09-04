@@ -34,20 +34,21 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecResult
-import org.gradle.process.internal.DefaultExecAction
 import org.gradle.process.internal.ExecException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 public class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock()
     private final TaskResolver taskResolver = Mock()
     private final TemporaryFileProvider temporaryFileProvider = Mock()
-    private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
+    private final Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     private final FileLookup fileLookup = Mock()
     private DefaultFileOperations fileOperations = instance()
 
@@ -130,7 +131,7 @@ public class DefaultFileOperationsTest extends Specification {
 
     def createsTarFileTree() {
         TestFile file = tmpDir.file('path')
-        resolver.resolveResource('path') >> new FileResource(file)
+        resolver.resolve('path') >> file
 
         when:
         def tarTree = fileOperations.tarTree('path')
@@ -141,7 +142,7 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def copiesFiles() {
-        FileTree fileTree = Mock(FileTree)
+        def fileTree = Mock(FileTreeInternal)
         resolver.resolveFilesAsTree(_) >> fileTree
         // todo we should make this work so that we can be more specific
 //        resolver.resolveFilesAsTree(['file'] as Object[]) >> fileTree
@@ -194,7 +195,7 @@ public class DefaultFileOperationsTest extends Specification {
 
     def createsCopySpec() {
         when:
-        def spec = fileOperations.copySpec { include 'pattern'}
+        def spec = fileOperations.copySpec { include 'pattern' }
 
         then:
         spec instanceof DefaultCopySpec
@@ -307,11 +308,6 @@ public class DefaultFileOperationsTest extends Specification {
 
         then:
         result.exitValue != 0
-    }
-
-    def createsExecAction() {
-        expect:
-        fileOperations.newExecAction() instanceof DefaultExecAction
     }
 
     def resolver() {

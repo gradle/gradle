@@ -37,7 +37,7 @@ class IvyHttpRepository implements RemoteIvyRepository, HttpRepository {
     }
 
     URI getUri() {
-        return new URI("http://localhost:${server.port}${contextPath}")
+        return new URI("${server.uri}${contextPath}")
     }
 
     String getIvyPattern() {
@@ -49,11 +49,7 @@ class IvyHttpRepository implements RemoteIvyRepository, HttpRepository {
     }
 
     HttpDirectoryResource directoryList(String organisation, String module) {
-        return new HttpDirectoryResource(server, "$contextPath/$organisation/$module/", backingRepository.module(organisation, module, "1.0").moduleDir.parentFile)
-    }
-
-    void expectDirectoryList(String organisation, String module) {
-        directoryList(organisation, module).expectGet()
+        return new HttpDirectoryResource(server, "$contextPath/$organisation/$module/", backingRepository.moduleDir(organisation, module))
     }
 
     IvyHttpModule module(String organisation, String module, Object revision = "1.0") {

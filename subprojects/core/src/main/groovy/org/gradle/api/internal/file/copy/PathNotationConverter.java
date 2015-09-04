@@ -18,21 +18,22 @@ package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.*;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.concurrent.Callable;
 
 public class PathNotationConverter implements NotationConverter<Object, String> {
 
-    public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("String or CharSequence instances e.g. 'some/path'");
-        candidateFormats.add("Boolean values e.g. true, Boolean.TRUE");
-        candidateFormats.add("Number values e.g. 42, 3.14");
-        candidateFormats.add("A File instance");
-        candidateFormats.add("A Closure that returns any supported value.");
-        candidateFormats.add("A Callable that returns any supported value.");
+    @Override
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("String or CharSequence instances").example("'some/path'");
+        visitor.candidate("Boolean values").example("true").example("Boolean.TRUE");
+        visitor.candidate("Number values").example("42").example("3.14");
+        visitor.candidate("A File instance");
+        visitor.candidate("A Closure that returns any supported value.");
+        visitor.candidate("A Callable that returns any supported value.");
     }
 
     public static NotationParser<Object, String> parser() {

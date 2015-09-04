@@ -46,7 +46,12 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String PARALLEL = "parallel";
     private static final String PARALLEL_THREADS = "parallel-threads";
 
+    private static final String MAX_WORKERS = "max-workers";
+
     private static final String CONFIGURE_ON_DEMAND = "configure-on-demand";
+
+    private static final String CONTINUOUS = "continuous";
+    private static final String CONTINUOUS_SHORT_FLAG = "t";
 
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
@@ -78,8 +83,12 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(OFFLINE).hasDescription("The build should operate without accessing network resources.");
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
         parser.option(PARALLEL).hasDescription("Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.").incubating();
-        parser.option(PARALLEL_THREADS).hasArgument().hasDescription("Build projects in parallel, using the specified number of executor threads.").incubating();
+        parser.option(PARALLEL_THREADS).hasArgument().hasDescription("Build projects in parallel, using the specified number of executor threads.").
+                deprecated("Please use --parallel, optionally in conjunction with --max-workers.").incubating();
+        parser.option(MAX_WORKERS).hasArgument().hasDescription("Configure the number of concurrent workers Gradle is allowed to use.").incubating();
         parser.option(CONFIGURE_ON_DEMAND).hasDescription("Only relevant projects are configured in this build run. This means faster build for large multi-project builds.").incubating();
+        parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
+        parser.allowOneOf(MAX_WORKERS, PARALLEL_THREADS);
     }
 
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
@@ -158,8 +167,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setRefreshDependencies(true);
         }
 
-        if (options.hasOption(PARALLEL)) {
-            startParameter.setParallelThreadCount(-1);
+        if (options.hasOption(PARALLEL) || options.hadOptionRemoved(PARALLEL_THREADS)) {
+            startParameter.setParallelProjectExecutionEnabled(true);
         }
 
         if (options.hasOption(PARALLEL_THREADS)) {
@@ -171,11 +180,32 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             }
         }
 
+        if (options.hasOption(MAX_WORKERS)) {
+            String value = options.option(MAX_WORKERS).getValue();
+            try {
+                int workerCount = Integer.parseInt(value);
+                if (workerCount < 1) {
+                    invalidMaxWorkersSwitchValue(value);
+                }
+                startParameter.setMaxWorkerCount(workerCount);
+            } catch (NumberFormatException e) {
+                invalidMaxWorkersSwitchValue(value);
+            }
+        }
+
         if (options.hasOption(CONFIGURE_ON_DEMAND)) {
             startParameter.setConfigureOnDemand(true);
         }
 
+        if (options.hasOption(CONTINUOUS)) {
+            startParameter.setContinuous(true);
+        }
+
         return startParameter;
+    }
+
+    private StartParameter invalidMaxWorkersSwitchValue(String value) {
+        throw new CommandLineArgumentException(String.format("Argument value '%s' given for --%s option is invalid (must be a positive, non-zero, integer)", value, MAX_WORKERS));
     }
 
     void convertCommandLineSystemProperties(Map<String, String> systemProperties, StartParameter startParameter, Transformer<File, String> resolver) {

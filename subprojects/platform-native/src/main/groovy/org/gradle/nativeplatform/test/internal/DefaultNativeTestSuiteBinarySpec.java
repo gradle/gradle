@@ -22,15 +22,22 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
+import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
+import org.gradle.platform.base.BinaryTasksCollection;
+import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
 import java.io.File;
 
-public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec implements NativeTestSuiteBinarySpecInternal {
-    private final DefaultTasksCollection tasks = new DefaultTasksCollection(this);
-    private NativeBinarySpec testedBinary;
+public abstract class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec implements NativeTestSuiteBinarySpecInternal {
+    private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
+    private NativeBinarySpecInternal testedBinary;
     private File executableFile;
+
+    @Override
+    public NativeTestSuiteSpec getComponent() {
+        return (NativeTestSuiteSpec) super.getComponent();
+    }
 
     public NativeBinarySpec getTestedBinary() {
         return testedBinary;
@@ -66,9 +73,9 @@ public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec i
         return tasks;
     }
 
-    private static class DefaultTasksCollection extends DefaultBinaryTasksCollection implements NativeTestSuiteBinarySpec.TasksCollection {
-        public DefaultTasksCollection(NativeBinarySpecInternal binary) {
-            super(binary);
+    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements NativeTestSuiteBinarySpec.TasksCollection {
+        public DefaultTasksCollection(BinaryTasksCollection delegate) {
+            super(delegate);
         }
 
         public LinkExecutable getLink() {

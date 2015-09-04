@@ -47,6 +47,7 @@ task showMissing << { println configurations.missing.files }
 Searched in the following locations:
     ${module.ivy.uri}
     ${module.jar.uri}
+Required by:
 """)
 
         when:
@@ -61,6 +62,7 @@ Searched in the following locations:
 Searched in the following locations:
     ${module.ivy.uri}
     ${module.jar.uri}
+Required by:
 """)
 
         when:
@@ -104,11 +106,13 @@ task showMissing << { println configurations.missing.files }
 Searched in the following locations:
     ${moduleA.ivy.uri}
     ${moduleA.jar.uri}
+Required by:
 """)
                 .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
     ${moduleB.ivy.uri}
     ${moduleB.jar.uri}
+Required by:
 """)
 
         when:
@@ -151,6 +155,7 @@ task showMissing << { println configurations.missing.files }
 Searched in the following locations:
     ${module.ivy.uri}
     ${artifact.uri}
+Required by:
 """)
 
         when:
@@ -197,6 +202,7 @@ Searched in the following locations:
     ${moduleInRepo1.jar.uri}
     ${moduleInRepo2.ivy.uri}
     ${moduleInRepo2.jar.uri}
+Required by:
 """)
 
         when:

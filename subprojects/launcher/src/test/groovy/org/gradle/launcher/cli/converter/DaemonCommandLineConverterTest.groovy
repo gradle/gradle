@@ -19,16 +19,28 @@ package org.gradle.launcher.cli.converter
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
+import spock.lang.Unroll
 
+import static org.gradle.launcher.daemon.configuration.DaemonUsage.*
+
+@UsesNativeServices
 class DaemonCommandLineConverterTest extends Specification {
+    @Unroll
+    def "converts daemon options - #options"() {
+        when:
+        def converted = convert(options)
 
-    def "converts daemon options"() {
-        expect:
-        !convert([]).enabled
-        !convert(['--no-daemon']).enabled
-        convert(['--daemon']).enabled
-        convert(['--no-daemon', '--daemon']).enabled
+        then:
+        converted.daemonUsage == usage
+
+        where:
+        options                     | usage
+        []                          | IMPLICITLY_DISABLED
+        ['--no-daemon']             | EXPLICITLY_DISABLED
+        ['--daemon']                | EXPLICITLY_ENABLED
+        ['--no-daemon', '--daemon'] | EXPLICITLY_ENABLED
     }
 
     private DaemonParameters convert(Iterable args) {

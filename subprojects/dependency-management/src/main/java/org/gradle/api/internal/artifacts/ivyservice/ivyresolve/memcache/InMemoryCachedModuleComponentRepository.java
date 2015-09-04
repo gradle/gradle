@@ -17,15 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
-import org.gradle.internal.resolve.result.BuildableModuleComponentVersionSelectionResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
-// TODO:DAZ Should share local and remote caches, and use make in-memory caching a decorator over filesystem caching
 class InMemoryCachedModuleComponentRepository extends BaseModuleComponentRepository {
     final InMemoryCacheStats stats;
     private final ModuleComponentRepositoryAccess localAccess;
@@ -58,16 +58,21 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
             this.metaDataCache = metaDataCache;
         }
 
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleComponentVersionSelectionResolveResult result) {
+        @Override
+        public String toString() {
+            return "in-memory cache > " + getDelegate().toString();
+        }
+
+        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
             if(!metaDataCache.supplyModuleVersions(dependency.getRequested(), result)) {
                 super.listModuleVersions(dependency, result);
                 metaDataCache.newModuleVersions(dependency.getRequested(), result);
             }
         }
 
-        public void resolveComponentMetaData(DependencyMetaData dependency, ModuleComponentIdentifier moduleComponentIdentifier, BuildableModuleComponentMetaDataResolveResult result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             if(!metaDataCache.supplyMetaData(moduleComponentIdentifier, result)) {
-                super.resolveComponentMetaData(dependency, moduleComponentIdentifier, result);
+                super.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
                 metaDataCache.newDependencyResult(moduleComponentIdentifier, result);
             }
         }

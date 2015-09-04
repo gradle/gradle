@@ -16,13 +16,12 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
-import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
 import org.hamcrest.Matchers
 import org.junit.Rule
@@ -31,7 +30,7 @@ import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
-public class IvyPublishHttpIntegTest extends AbstractIntegrationSpec {
+public class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     private static final String BAD_CREDENTIALS = '''
 credentials {
     username 'testuser'
@@ -326,6 +325,7 @@ credentials {
         run 'publish'
 
         then:
+        module.assertIvyAndJarFilePublished()
         module.ivyFile.assertIsFile()
         module.jarFile.assertIsCopyOf(new TestFile(toolsJar))
     }
@@ -357,7 +357,7 @@ credentials {
         """
 
         and:
-        module.jar.expectPut(HttpStatus.ORDINAL_500_Internal_Server_Error)
+        module.jar.expectPutBroken()
 
         when:
         fails ':publish'

@@ -16,6 +16,7 @@
 
 package org.gradle.logging.internal.progress
 
+import org.gradle.internal.progress.OperationIdentifier
 import spock.lang.Specification
 
 class ProgressOperationsTest extends Specification {
@@ -24,7 +25,7 @@ class ProgressOperationsTest extends Specification {
 
     def "starts operation"() {
         when:
-        def op = ops.start("compile", null, 1, null)
+        def op = ops.start("compile", null, new OperationIdentifier(1), null)
 
         then:
         op.parent == null
@@ -33,8 +34,8 @@ class ProgressOperationsTest extends Specification {
 
     def "starts operations"() {
         when:
-        def op1 = ops.start("compile", null, 1, null)
-        def op2 = ops.start("resolve", null, 2, 1)
+        def op1 = ops.start("compile", null, new OperationIdentifier(1), null)
+        def op2 = ops.start("resolve", null, new OperationIdentifier(2), new OperationIdentifier(1))
 
         then:
         op1.message == "compile"
@@ -45,17 +46,17 @@ class ProgressOperationsTest extends Specification {
 
     def "operation can be started multiple times"() {
         expect:
-        ops.start("compile", null, 1, null).message == "compile"
-        ops.progress("compiling...", 1).message == "compiling..."
-        ops.start("resolve", null, 1, null).message == "resolve"
-        ops.progress("resolving...", 1).message == "resolving..."
-        ops.complete(1).message == "resolving..."
+        ops.start("compile", null, new OperationIdentifier(1), null).message == "compile"
+        ops.progress("compiling...", new OperationIdentifier(1)).message == "compiling..."
+        ops.start("resolve", null, new OperationIdentifier(1), null).message == "resolve"
+        ops.progress("resolving...", new OperationIdentifier(1)).message == "resolving..."
+        ops.complete(new OperationIdentifier(1)).message == "resolving..."
     }
 
     def "starts operations from different hierarchies"() {
         when:
-        def op1 = ops.start("compile", null, 1, null)
-        def op2 = ops.start("resolve", null, 2, null)
+        def op1 = ops.start("compile", null, new OperationIdentifier(1), null)
+        def op2 = ops.start("resolve", null, new OperationIdentifier(2), null)
 
         then:
         op1.message == "compile"
@@ -66,14 +67,14 @@ class ProgressOperationsTest extends Specification {
 
     def "the operation uses status first"() {
         expect:
-        ops.start("foo", "compiling now", 1, null).message == "compiling now"
+        ops.start("foo", "compiling now", new OperationIdentifier(1), null).message == "compiling now"
     }
 
     def "tracks progress"() {
         when:
-        ops.start("Building", "", 1, null)
-        def op2 = ops.start("Resolving", "", 2, 1)
-        def op3 = ops.progress("Download", 2)
+        ops.start("Building", "", new OperationIdentifier(1), null)
+        def op2 = ops.start("Resolving", "", new OperationIdentifier(2), new OperationIdentifier(1))
+        def op3 = ops.progress("Download", new OperationIdentifier(2))
 
         then:
         op2 == op3
@@ -83,7 +84,7 @@ class ProgressOperationsTest extends Specification {
 
     def "progress cannot be reported for unknown operation"() {
         when:
-        ops.progress("Download", 2)
+        ops.progress("Download", new OperationIdentifier(1))
 
         then:
         thrown(IllegalStateException)
@@ -91,16 +92,16 @@ class ProgressOperationsTest extends Specification {
 
     def "completed events are no longer tracked"() {
         when:
-        ops.start("Building", "", 1, null)
-        ops.start("Resolving", "", 2, 1)
-        def op3 = ops.progress("Download", 2)
-        def op4 = ops.complete(2)
+        ops.start("Building", "", new OperationIdentifier(1), null)
+        ops.start("Resolving", "", new OperationIdentifier(2), new OperationIdentifier(1))
+        def op3 = ops.progress("Download", new OperationIdentifier(2))
+        def op4 = ops.complete(new OperationIdentifier(2))
 
         then:
         op3 == op4
 
         when:
-        ops.progress("foo", 2)
+        ops.progress("foo", new OperationIdentifier(2))
 
         then:
         thrown(IllegalStateException)
@@ -108,7 +109,7 @@ class ProgressOperationsTest extends Specification {
 
     def "missing parents are tolerated"() {
         when:
-        def op = ops.start("Building", "", 1, 112)
+        def op = ops.start("Building", "", new OperationIdentifier(1), new OperationIdentifier(122))
 
         then:
         op.parent == null

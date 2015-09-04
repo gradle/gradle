@@ -21,7 +21,12 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.Cast;
+import org.gradle.internal.operations.logging.BuildOperationLogger;
+import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.incremental.IncrementalCompilerBuilder;
+import org.gradle.nativeplatform.internal.BuildOperationLoggingCompilerDecorator;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
@@ -65,9 +70,14 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    public BuildOperationLoggerFactory getOperationLoggerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void compile(IncrementalTaskInputs inputs) {
-
+        BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         NativeCompileSpec spec = createCompileSpec();
         spec.setTargetPlatform(targetPlatform);
         spec.setTempDir(getTemporaryDir());
@@ -78,11 +88,23 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.args(getCompilerArgs());
         spec.setPositionIndependentCode(isPositionIndependentCode());
         spec.setIncrementalCompile(inputs.isIncremental());
+        spec.setOperationLogger(operationLogger);
+
+        configureSpec(spec);
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
-        WorkResult result = getIncrementalCompilerBuilder().createIncrementalCompiler(this, platformToolProvider.newCompiler(spec), toolChain).execute(spec);
+        setDidWork(doCompile(spec, platformToolProvider).getDidWork());
+    }
 
-        setDidWork(result.getDidWork());
+    protected void configureSpec(NativeCompileSpec spec) {
+    }
+
+    private <T extends NativeCompileSpec> WorkResult doCompile(T spec, PlatformToolProvider platformToolProvider) {
+        Class<T> specType = Cast.uncheckedCast(spec.getClass());
+        Compiler<T> baseCompiler = platformToolProvider.newCompiler(specType);
+        Compiler<T> incrementalCompiler = getIncrementalCompilerBuilder().createIncrementalCompiler(this, baseCompiler, toolChain);
+        Compiler<T> loggingCompiler = BuildOperationLoggingCompilerDecorator.wrap(incrementalCompiler);
+        return loggingCompiler.execute(spec);
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
@@ -186,5 +208,4 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     public void setCompilerArgs(List<String> compilerArgs) {
         this.compilerArgs = compilerArgs;
     }
-
 }

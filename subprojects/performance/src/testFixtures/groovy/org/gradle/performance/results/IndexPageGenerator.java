@@ -16,9 +16,11 @@
 
 package org.gradle.performance.results;
 
-import com.googlecode.jatl.Html;
+import org.gradle.api.Transformer;
 import org.gradle.performance.fixture.MeasuredOperationList;
-import org.gradle.performance.fixture.PerformanceResults;
+import org.gradle.performance.measure.DataAmount;
+import org.gradle.performance.measure.DataSeries;
+import org.gradle.performance.measure.Duration;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -28,7 +30,7 @@ import java.util.List;
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     @Override
     public void render(final ResultsStore store, Writer writer) throws IOException {
-        new Html(writer) {{
+        new MetricsHtml(writer) {{
             html();
                 head();
                     headSection(this);
@@ -41,7 +43,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     div().id("controls").end();
                     table().classAttr("history");
                     for (String testName : testNames) {
-                        TestExecutionHistory testHistory = store.getTestResults(testName);
+                        TestExecutionHistory testHistory = store.getTestResults(testName, 5);
                         tr();
                             th().colspan("6").classAttr("test-execution");
                                 text(testName);
@@ -49,50 +51,43 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         end();
                         tr().classAttr("control-groups");
                             th().colspan("3").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average execution time").end();
-                            th().colspan(String.valueOf(testHistory.getPerExecutionOperationsCount())).text("Average heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average execution time").end();
+                            th().colspan(String.valueOf(testHistory.getExperimentCount())).text("Average heap usage").end();
                         end();
                         tr();
                             th().text("Date").end();
                             th().text("Test version").end();
                             th().text("Branch").end();
-                            for (String label : testHistory.getOperationLabels()) {
+                            for (String label : testHistory.getExperimentLabels()) {
                                 th().classAttr("numeric").text(label).end();
                             }
-                            for (String label : testHistory.getOperationLabels()) {
+                            for (String label : testHistory.getExperimentLabels()) {
                                 th().classAttr("numeric").text(label).end();
                             }
                         end();
                         List<PerformanceResults> results = testHistory.getPerformanceResults();
-                        for (int i = 0; i < results.size() && i < 5; i++) {
-                            PerformanceResults performanceResults = results.get(i);
+                        for (PerformanceResults performanceResults : results) {
                             tr();
                                 td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();
                                 td().text(performanceResults.getVersionUnderTest()).end();
                                 td().text(performanceResults.getVcsBranch()).end();
-                                for (MeasuredOperationList measuredExecution : performanceResults.getExecutionOperations()) {
-                                    td().classAttr("numeric");
-                                    if (measuredExecution.isEmpty()) {
-                                        text("");
-                                    } else {
-                                        text(measuredExecution.getExecutionTime().getAverage().format());
+                                renderSamplesForExperiment(performanceResults.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                                    @Override
+                                    public DataSeries<Duration> transform(MeasuredOperationList measuredOperations) {
+                                        return measuredOperations.getTotalTime();
                                     }
-                                    end();
-                                }
-                            for (MeasuredOperationList measuredExecution : performanceResults.getExecutionOperations()) {
-                                    td().classAttr("numeric");
-                                    if (measuredExecution.isEmpty()) {
-                                        text("");
-                                    } else {
-                                        text(measuredExecution.getTotalMemoryUsed().getAverage().format());
+                                });
+                                renderSamplesForExperiment(performanceResults.getExperiments(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                                    @Override
+                                    public DataSeries<DataAmount> transform(MeasuredOperationList measuredOperations) {
+                                        return measuredOperations.getTotalMemoryUsed();
                                     }
-                                    end();
-                                }
+                                });
                             end();
                         }
                         tr();
                             td().colspan("6");
-                                String url = testHistory.getId() + ".html";
+                                String url = "tests/" + testHistory.getId() + ".html";
                                 a().href(url).text("details...").end();
                             end();
                         end();

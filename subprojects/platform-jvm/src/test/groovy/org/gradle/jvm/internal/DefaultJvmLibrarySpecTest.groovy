@@ -15,29 +15,20 @@
  */
 
 package org.gradle.jvm.internal
+
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.platform.base.ComponentSpecIdentifier
-import org.gradle.platform.base.component.BaseComponentSpec
+import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.platform.base.component.BaseComponentFixtures
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
 class DefaultJvmLibrarySpecTest extends Specification {
-    def libraryId = Mock(ComponentSpecIdentifier)
-    FunctionalSourceSet mainSourceSet
-
-    def setup(){
-        mainSourceSet = new DefaultFunctionalSourceSet("testFss", new DirectInstantiator(), Stub(ProjectSourceSet));
-    }
+    def libraryId = new DefaultComponentSpecIdentifier(":project-path", "jvm-lib")
 
     def "library has name and path"() {
-        def library = createJvmLibrarySpec()
-
         when:
-        _ * libraryId.name >> "jvm-lib"
-        _ * libraryId.projectPath >> ":project-path"
+        def library = createJvmLibrarySpec()
 
         then:
         library.name == "jvm-lib"
@@ -45,27 +36,7 @@ class DefaultJvmLibrarySpecTest extends Specification {
         library.displayName == "JVM library 'jvm-lib'"
     }
 
-    def "contains sources of associated main sourceSet"() {
-        when:
-        def lss1 = languageSourceSet("lss1")
-        mainSourceSet.add(lss1)
-
-        and:
-        def library = createJvmLibrarySpec()
-        def lss2 = languageSourceSet("lss2")
-        mainSourceSet.add(lss2)
-
-        then:
-        library.getSource() as List == [lss1, lss2]
-    }
-
     private DefaultJvmLibrarySpec createJvmLibrarySpec() {
-        BaseComponentSpec.create(DefaultJvmLibrarySpec, libraryId, mainSourceSet, new DirectInstantiator())
-    }
-
-    def languageSourceSet(String name) {
-        Stub(LanguageSourceSet) {
-            getName() >> name
-        }
+        BaseComponentFixtures.create(DefaultJvmLibrarySpec, new ModelRegistryHelper(), libraryId, Stub(ProjectSourceSet), DirectInstantiator.INSTANCE)
     }
 }

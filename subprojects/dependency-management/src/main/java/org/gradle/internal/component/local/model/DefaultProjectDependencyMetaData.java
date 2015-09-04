@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,19 @@
 package org.gradle.internal.component.local.model;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.internal.component.model.DefaultDependencyMetaData;
 
-public class DefaultProjectDependencyMetaData extends DefaultDslOriginDependencyMetaData implements ProjectDependencyMetaData {
-    public DefaultProjectDependencyMetaData(DependencyDescriptor dependencyDescriptor, ProjectDependency source) {
-        super(dependencyDescriptor, source);
+public class DefaultProjectDependencyMetaData extends DefaultDependencyMetaData {
+    private final String projectPath;
+
+    public DefaultProjectDependencyMetaData(DependencyDescriptor dependencyDescriptor, String projectPath) {
+        super(dependencyDescriptor);
+        this.projectPath = projectPath;
     }
 
     @Override
     public ProjectComponentSelector getSelector() {
-        return new DefaultProjectComponentSelector(((ProjectDependency)getSource()).getDependencyProject().getPath());
+        return new DefaultProjectComponentSelector(projectPath);
     }
 }

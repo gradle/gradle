@@ -74,6 +74,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         }
 
         getStore().add(report);
+        index();
         return report;
     }
 }

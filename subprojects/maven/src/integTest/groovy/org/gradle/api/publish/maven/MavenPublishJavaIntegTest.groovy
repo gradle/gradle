@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+
 class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
@@ -99,7 +101,7 @@ $append
             dependencies {
                 compile "commons-collections:commons-collections:3.2.1"
                 runtime "commons-io:commons-io:1.4"
-                testCompile "junit:junit:4.11"
+                testCompile "junit:junit:4.12"
             }
 """
 

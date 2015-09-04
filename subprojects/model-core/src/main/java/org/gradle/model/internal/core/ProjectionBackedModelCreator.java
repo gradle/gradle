@@ -24,22 +24,28 @@ import java.util.List;
 
 @ThreadSafe
 public class ProjectionBackedModelCreator implements ModelCreator {
-    private final ModelProjection projection;
-    private final ModelRuleDescriptor descriptor;
-    private final List<? extends ModelReference<?>> inputs;
-    private final BiAction<? super MutableModelNode, ? super Inputs> initializer;
     private final ModelPath path;
+    private final ModelRuleDescriptor descriptor;
+    private final boolean ephemeral;
+    private final boolean hidden;
+    private final ModelProjection projection;
+    private final List<? extends ModelReference<?>> inputs;
+    private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer;
 
     public ProjectionBackedModelCreator(
-            ModelPath path,
-            ModelRuleDescriptor descriptor,
-            List<? extends ModelReference<?>> inputs,
-            ModelProjection projection,
-            BiAction<? super MutableModelNode, ? super Inputs> initializer
+        ModelPath path,
+        ModelRuleDescriptor descriptor,
+        boolean ephemeral,
+        boolean hidden,
+        List<? extends ModelReference<?>> inputs,
+        ModelProjection projection,
+        BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer
     ) {
-        this.projection = projection;
         this.path = path;
         this.descriptor = descriptor;
+        this.ephemeral = ephemeral;
+        this.hidden = hidden;
+        this.projection = projection;
         this.inputs = inputs;
         this.initializer = initializer;
     }
@@ -56,8 +62,14 @@ public class ProjectionBackedModelCreator implements ModelCreator {
         return projection;
     }
 
-    public void create(MutableModelNode node, Inputs inputs) {
+    public void create(MutableModelNode node, List<ModelView<?>> inputs) {
+        node.setHidden(hidden);
         initializer.execute(node, inputs);
+    }
+
+    @Override
+    public boolean isEphemeral() {
+        return ephemeral;
     }
 
     public List<? extends ModelReference<?>> getInputs() {

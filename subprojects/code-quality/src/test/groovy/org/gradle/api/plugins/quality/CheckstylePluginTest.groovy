@@ -38,17 +38,17 @@ class CheckstylePluginTest extends Specification {
         expect:
         project.plugins.hasPlugin(ReportingBasePlugin)
     }
-    
+
     def "configures checkstyle configuration"() {
-        def config = project.configurations.findByName("checkstyle")    
-        
+        def config = project.configurations.findByName("checkstyle")
+
         expect:
         config != null
         !config.visible
         config.transitive
         config.description == 'The Checkstyle libraries to be used for this project.'
     }
-    
+
     def "configures checkstyle extension"() {
         expect:
         CheckstyleExtension extension = project.extensions.checkstyle
@@ -88,7 +88,7 @@ class CheckstylePluginTest extends Specification {
             assert showViolations
         }
     }
-    
+
     def "configures any additional checkstyle tasks"() {
         def task = project.tasks.create("checkstyleCustom", Checkstyle)
 
@@ -110,11 +110,11 @@ class CheckstylePluginTest extends Specification {
             test
             other
         }
-        
+
         expect:
         that(project.tasks['check'], dependsOn(hasItems("checkstyleMain", "checkstyleTest", "checkstyleOther")))
     }
-    
+
     def "can customize settings via extension"() {
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {
@@ -122,7 +122,7 @@ class CheckstylePluginTest extends Specification {
             test
             other
         }
-        
+
         project.checkstyle {
             sourceSets = [project.sourceSets.main]
             config = project.resources.text.fromFile("checkstyle-config")
@@ -131,7 +131,7 @@ class CheckstylePluginTest extends Specification {
             ignoreFailures = true
             showViolations = true
         }
-        
+
         expect:
         hasCustomizedSettings("checkstyleMain", project.sourceSets.main)
         hasCustomizedSettings("checkstyleTest", project.sourceSets.test)

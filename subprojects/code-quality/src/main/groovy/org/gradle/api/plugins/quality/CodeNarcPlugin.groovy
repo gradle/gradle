@@ -20,6 +20,7 @@ import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 
 class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
+    public static final String DEFAULT_CODENARC_VERSION = "0.23"
     private CodeNarcExtension extension
 
     @Override
@@ -41,7 +42,7 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     protected CodeQualityExtension createExtension() {
         extension = project.extensions.create("codenarc", CodeNarcExtension, project)
         extension.with {
-            toolVersion = "0.21"
+            toolVersion = DEFAULT_CODENARC_VERSION
             config = project.resources.text.fromFile(project.rootProject.file("config/codenarc/codenarc.xml"))
             maxPriority1Violations = 0
             maxPriority2Violations = 0
@@ -54,10 +55,8 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     @Override
     protected void configureTaskDefaults(CodeNarc task, String baseName) {
         def codenarcConfiguration = project.configurations['codenarc']
-        codenarcConfiguration.incoming.beforeResolve {
-            if (codenarcConfiguration.dependencies.empty) {
-                codenarcConfiguration.dependencies.add(project.dependencies.create("org.codenarc:CodeNarc:$extension.toolVersion"))
-            }
+        codenarcConfiguration.defaultDependencies { dependencies ->
+            dependencies.add(this.project.dependencies.create("org.codenarc:CodeNarc:${this.extension.toolVersion}"))
         }
         task.conventionMapping.with {
             codenarcClasspath = { codenarcConfiguration }

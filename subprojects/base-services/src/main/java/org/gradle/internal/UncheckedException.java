@@ -16,6 +16,9 @@
 
 package org.gradle.internal;
 
+import org.gradle.api.UncheckedIOException;
+
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -35,6 +38,9 @@ public final class UncheckedException extends RuntimeException {
         }
         if (t instanceof Error) {
             throw (Error) t;
+        }
+        if (t instanceof IOException) {
+            throw new UncheckedIOException(t);
         }
         throw new UncheckedException(t);
     }

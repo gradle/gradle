@@ -74,4 +74,5 @@ class ArgWriterTest extends Specification {
         then:
         writer.toString() == toPlatformLineSeparators('a\\b "a "\\" bc"\n')
     }
+
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.initialization.layout;
 
+import org.gradle.internal.resource.ResourceNotFoundException;
+
 import java.io.File;
 
 public class BuildLayoutFactory {
@@ -32,8 +34,12 @@ public class BuildLayoutFactory {
         if (configuration.isUseEmptySettings()) {
             return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), null);
         }
-        if (configuration.getSettingsFile() != null) {
-            return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), configuration.getSettingsFile());
+        File explicitSettingsFile = configuration.getSettingsFile();
+        if (explicitSettingsFile != null) {
+            if (!explicitSettingsFile.isFile()) {
+                throw new ResourceNotFoundException(explicitSettingsFile.toURI(), String.format("Could not read settings file '%s' as it does not exist.", explicitSettingsFile.getAbsolutePath()));
+            }
+            return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), explicitSettingsFile);
         }
 
         File currentDir = configuration.getCurrentDir();
@@ -56,11 +62,7 @@ public class BuildLayoutFactory {
                 return layout(candidate, settingsFile.getParentFile(), settingsFile);
             }
         }
-        return layout(currentDir, currentDir);
-    }
-
-    private BuildLayout layout(File rootDir, File settingsDir) {
-        return new BuildLayout(rootDir, settingsDir, null);
+        return layout(currentDir, currentDir, settingsFile);
     }
 
     private BuildLayout layout(File rootDir, File settingsDir, File settingsFile) {

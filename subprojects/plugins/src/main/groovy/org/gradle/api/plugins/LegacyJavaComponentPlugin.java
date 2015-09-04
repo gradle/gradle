@@ -20,6 +20,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
 import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -37,7 +38,6 @@ import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -53,20 +53,22 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final JavaToolChain toolChain;
+    private final ITaskFactory taskFactory;
 
     @Inject
-    public LegacyJavaComponentPlugin(Instantiator instantiator, JavaToolChain toolChain) {
+    public LegacyJavaComponentPlugin(Instantiator instantiator, JavaToolChain toolChain, ITaskFactory taskFactory) {
         this.instantiator = instantiator;
         this.toolChain = toolChain;
+        this.taskFactory = taskFactory;
     }
 
     public void apply(final Project target) {
+        target.getPluginManager().apply(LanguageBasePlugin.class);
 
-        target.apply(Collections.singletonMap("plugin", LanguageBasePlugin.class));
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
         binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
             public ClassDirectoryBinarySpec create(String name) {
-                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain, new DefaultJavaPlatform(JavaVersion.current()));
+                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
             }
         });
 
@@ -92,7 +94,7 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
 
     private void createCompileJavaTaskForBinary(final ClassDirectoryBinarySpecInternal binary, final Project target) {
         final BinaryNamingScheme namingScheme = binary.getNamingScheme();
-        binary.getSource().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
+        binary.getInputs().withType(JavaSourceSet.class).all(new Action<JavaSourceSet>() {
             public void execute(JavaSourceSet javaSourceSet) {
                 JavaCompile compileTask = target.getTasks().create(namingScheme.getTaskName("compile", "java"), JavaCompile.class);
                 configureCompileTask(compileTask, javaSourceSet, binary);
@@ -104,7 +106,7 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
 
     private void createProcessResourcesTaskForBinary(final ClassDirectoryBinarySpecInternal binary, final Project target) {
         final BinaryNamingScheme namingScheme = binary.getNamingScheme();
-        binary.getSource().withType(JvmResourceSet.class).all(new Action<JvmResourceSet>() {
+        binary.getInputs().withType(JvmResourceSet.class).all(new Action<JvmResourceSet>() {
             public void execute(JvmResourceSet resourceSet) {
                 Copy resourcesTask = target.getTasks().create(namingScheme.getTaskName("process", "resources"), ProcessResources.class);
                 resourcesTask.setDescription(String.format("Processes %s.", resourceSet));

@@ -17,5 +17,9 @@
 package org.gradle.process.internal;
 
 public interface ExecActionFactory {
+
+    // Instances returned should not be expected to be decorated.
+    // Use ProcessOperations to create DSL facing actions
     ExecAction newExecAction();
+
 }

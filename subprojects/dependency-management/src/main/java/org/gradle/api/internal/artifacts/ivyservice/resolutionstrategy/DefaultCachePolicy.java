@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.cache.*;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
 
@@ -32,12 +33,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
+
 public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
     private static final int SECONDS_IN_DAY = 24 * 60 * 60;
 
     final List<Action<? super DependencyResolutionControl>> dependencyCacheRules;
     final List<Action<? super ModuleResolutionControl>> moduleCacheRules;
     final List<Action<? super ArtifactResolutionControl>> artifactCacheRules;
+    private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     public DefaultCachePolicy() {
         this.dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>();
@@ -55,15 +59,25 @@ public class DefaultCachePolicy implements CachePolicy, ResolutionRules {
         this.artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>(policy.artifactCacheRules);
     }
 
+    /**
+     * Sets the validator to invoke prior to each mutation.
+     */
+    public void setMutationValidator(MutationValidator validator) {
+        this.mutationValidator = validator;
+    }
+
     public void eachDependency(Action<? super DependencyResolutionControl> rule) {
+        mutationValidator.validateMutation(STRATEGY);
         dependencyCacheRules.add(0, rule);
     }
 
     public void eachModule(Action<? super ModuleResolutionControl> rule) {
+        mutationValidator.validateMutation(STRATEGY);
         moduleCacheRules.add(0, rule);
     }
 
     public void eachArtifact(Action<? super ArtifactResolutionControl> rule) {
+        mutationValidator.validateMutation(STRATEGY);
         artifactCacheRules.add(0, rule);
     }
 

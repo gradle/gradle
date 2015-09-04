@@ -7,184 +7,120 @@ Specific sub streams have been broken out into other concurrent specs.
 
 # Stories
 
+## Node ancestry is self closed before node is used as an input
 
-## ~~Build author configures task created by configuration rule supplied by plugin~~
+We do not currently enforce that all ancestors of an input are realised, which means that there may still be pending mutations for the child (as a mutation of the parent).
 
-1. Build author has prior knowledge of task name (i.e. story does not cover any documentation or tooling to allow discovery of task name)
-1. Configuration does not take any external inputs (i.e. all necessary configuration is the application of constants)
-1. Task is not required by to be accessed outside model rule (e.g. does not needed to be added as dependency of “legacy” task)
-1. Task is not created during “legacy” configuration phase
+### Test Coverage
 
-The majority of what is required for this story is already implemented.
-One thing that will be required is improved diagnostics to help the user debug a mistyped task name (see test coverage).
+- Rule using child of managed node as input node has all mutations applied, that were expressed as mutations of the parent node
+- Rule using child of managed node can depend on a sibling, that has all mutations applied, that were expressed as mutations of the parent node
+- Cycle is reported when a rule tries to depend on a child of the subject as an input
 
-Also, must verify that runtime failures include enough information for the user to find the faulty code.
-For this story, it is not necessary for the failure message to fully indicate why the particular rule is being executed.
+## Cycle involving multiple rules of same lifecycle phase does not cause rules to be executed twice
 
-### Test cases
+Given the following:
 
-- ~~User successfully configures task~~
-  - ~~Can add dependency on other task using task name~~
-  - ~~Can change configuration property of specific task type (e.g. something not defined by `Task`)~~
-- ~~User receives useful error message when specified task (i.e using name) is not found~~
-  - ~~Error message includes names of X tasks with names closest to given name~~
-- ~~User receives useful error message when configuration fails (incl. identification of the rule that failed in the diagnostics)~~
+```
+class Rules extends RuleSource {
+    @Model List<String> m1() { [] }
+    @Model List<String> m2() { [] }
+    @Model List<String> m3() { [] }
 
-## ~~Model DSL rule uses an implicitly typed model element as input via name~~
-
-This story adds the capability for rules declared in scripts to take inputs.
-
-    // note: DSL doesn't support registration at this time, so elements below have been registered by plugin
-    
-    model {
-        theThing { // registered by plugin
-          value = "foo"
+    @Mutate void m2ToM1(@Path("m1") m1, @Path("m2") m2) {
+        if (!m1.empty) {
+            throw new IllegalStateException("m2ToM1 has executed twice")
         }
-        otherThing {
-            value = $("theThing").value + "-bar"
-            assert value == "foo-bar"
-        }
-        otherOtherThing {
-            value = $("otherThing").value
-            assert value == "foo-bar"
-        }
-        
-        // Can address nested registered elements, but not arbitrary properties of registered elements
-        tasks.theTask {
-          dependsOn $("tasks.otherTask")
-        }
+        m1 << "executed"
     }
 
-### Implementation plan
+    // in cycle…
+    @Mutate void m3ToM1(@Path("m1") m1, @Path("m3") m3) {}
+    @Mutate void m1ToM3(@Path("m3") m3, @Path("m1") m1) {}
 
-- Add a compile time transform to “lift” up `$(String)` method invocations in a manner that can be extracted from the closure object
-- When registering model closure actions, inspect this information in order to register rules with necessary inputs
-- Add notion of 'default' read only type to model registrations (which is what is returned here, given that there is no type information)
-- Transform closure implementation in some way to make model element available as result of $() method call (possibly transform in $() implementation, or rewrite statement)
+    @Mutate void addTask(ModelMap<Task> tasks, @Path("m1") m1) {}
+}
+```
 
-### Test cases
+The build will fail because the `m2ToM1` is indeed executed twice.
+What should happen is that a cycle should be reported between `m3ToM1` and `m1ToM3`.
 
-- ~~Compile time failure~~
-  - ~~Non string literal given to $() method~~
-  - ~~No arguments given to $()~~
-  - ~~More than one argument given~~
-  - ~~`null` given as string argument~~
-  - ~~`""` (empty string) given as argument~~
-  - ~~Invalid model path given as argument (see validation in `ModelPath`)~~
-- ~~Input binding failure~~
-  - ~~Unbound input (i.e. incorrect path) produces error message with line number of input declaration, and suggestions on alternatives (e.g. assume user mistyped name)~~
-- ~~Non “transformed” closure given as rule (i.e. `model { def c = {}; someThing(c) }`) produces error~~
-- ~~Non “transformed” closure given as model block (i.e. `def c = {}; model(c)`) produces error~~
-- ~~Success~~
-  - ~~Existing inputs can be used~~
-  - ~~Inputs are finalized when used~~
-  - ~~Can use the same input more than once (e.g. `def a = $("foo"); def b = $("foo")`)~~
-  - ~~`$(String)` can be used anywhere in code body (e.g. `if` body)~~
-  - ~~Rule defined in script plugin can access inputs with correct context (i.e. inputs are linked to correct project scope)~~
-- ~~Nested `model {}` usage~~
-  - ~~Can use model rules in nested context that don't require inputs~~
-  - ~~Attempted use of inputs in model rule in nested context yields “unsupported” error message~~
-- ~~Individual block has some scope/access as regular closure declared in top level of build script~~
-
-## ~~Configuration performed to “bridged” model element made in afterEvaluate() is visible to creation rule~~
-
-This story adds coverage to ensure that model rules are fired **AFTER** afterEvaluate().
+The implementation should be done in such a way
 
 ### Test Coverage
 
-1. ~~Project extension configured during afterEvaluate() registered as model element has configuration made during afterEvaluate()~~
-1. ~~Task created in afterEvaluate() should be visible for a rule taking TaskContainer as an _input_~~
+- As above, build fails by reporting cycle between `m3ToM1` and `m1ToM3`.
+- As above but including earlier lifecycle rules (e.g. `@Defaults`) as well, verifying they do not execute twice
 
-## ~~Build user applies rule source class in similar manner to applying a plugin~~
+## Methods of rule source classes must be private, or be declared as rules
 
-This story makes it more convenient to write a plugin that is exclusively based on model rules, while keeping the implementation details of such a plugin transparent to the user.
+This story improves the usability of rule source classes by making it less easy to forget to annotate a rule method.
 
-Support for applying a `@RuleSource` annotated classes that don't implement `Plugin` will be added to `PluginAware.apply(Closure)` and `PluginAware.apply(Map)`:
+1. All public and package scope methods of a `RuleSource` must be rules, and be annotated accordingly
+2. `private` and `protected` methods cannot be rule methods
+3. `RuleSource` class must have at least one rule
 
-- rule source plugins can be applied using an id
-- rule source plugins (and `Plugin` implementing classes) can be applied by type using a new `type` method/key, i.e. `apply type: MyRuleSource`
-
-The `@RuleSource` annotation can still be used on a nested class in a `Plugin` implementation.
-
-A new API for querying applied plugins that supports both `Plugin` implementing classes and rule source classes will be introduced:
-
-    interface AppliedPlugins {
-        @Nullable
-        Class<?> findPlugin(String id);
-        boolean contains(String id);
-        void withPlugin(String id, Action<? super Class<?>> action);
-    }
-    
-    interface PluginAware {
-        AppliedPlugins getAppliedPlugins();
-    }
+In both cases, exceptions should be thrown similarly to other `RuleSource` constraint violations.
 
 ### Test Coverage
 
-- ~~Rule source plugin can be applied to Project via `apply()` using an id or type~~
-- ~~`Plugin` implementing classes can be applied to Project via `apply(type: ... )`~~
-- ~~Rule source plugin can be applied to Project via `plugins {}`~~
-- ~~Rule source plugin can be applied in ProjectBuilder based unit test~~
-- ~~Rule source plugin cannot be applied to `PluginAware` that is not model rule compatible (e.g. Gradle)~~
-- ~~Reasonable error message is provided when the `RulePlugin` implementation violates the rules for rule sources~~
-- ~~`Plugin` impl can include nested rule source class~~
-- ~~A useful error message is presented to the user if they try to apply a rule source plugin as a regular plugin, i. e. `apply plugin: RuleSourcePlugin` or `apply { plugin RuleSourcePlugin }`~~
-- ~~Can use `AppliedPlugins` and ids to check if both `Plugin` implementing classes and rule source classes are applied to a project~~
-- ~~A useful error message is presented when using `PluginContainer.withId()` or `PluginContainer.withType()` to check if a rule source plugin is applied~~   
+1. with no methods is invalid
+1. with no rule methods (i.e. has private/protected) is invalid
+1. private/protected instance/static method with rule annotation fails
+1. public/package instance/static method without rule annotation fails
 
-## Rules are extracted from plugins once and cached globally
+## Model is partially reused across daemon builds, ignoring potential configuration changes
 
-Currently, when applying rule based plugins we go reflecting on the plugin and immediately applying rules that we find.
-This means that in a 1000 project multi project build where every project uses the Java plugin we do the reflection 1000 times unnecessarily.
-Instead, we should separate the reflection/rule extraction and application (i.e. pushing the rules into the model registry) so that we can cache the reflection.
+> This story was started, and then “cancelled” due to initial performance testing demonstrating that model reuse isn't as necessary as initially thought.
+> The rule based model is “faster” than the imperative model even without reuse, reducing the need for reuse.
+> Reuse will still be necessary later in some form to open up the possibility of “expensive configuration”.
 
-This involves changing `ModelRuleInspector#inspect` to return a data structure that represents the discovered rules, instead of taking a `ModelRegistry`.
-The returned data structure can then contain rules in an applicable fashion that can be reused.
-A (threadsafe) caching layer can be wrapped over this so that we only inspect a plugin class once.
-Care needs to be taken with the caching to facilitate classes being garbage collected.
+This story adds initial support for persisting aspects of the build configuration in memory and reusing across builds.
+As this is a large chunk of work, this story covers initial work and does not take the feature to production readiness.
+The initial implementation assumes that configuration does not change across builds, either by a change in build logic or by external state.
+It will be wrapped in a feature toggle.
 
-Invalid plugins do not need to be cached (i.e. it can be assumed that an invalid plugin is a fatal event).
+Task instances attached to the model cannot be reused, as they retain references to the `Project` object and other build instance state.
+When “reusing the model”, tasks must be rebuilt.
+Tasks are examples of _ephemeral_ model elements.
+By extension any model element that depends on an ephemeral model element is also implicitly ephemeral.
+Later refinements may make it possible to detect that the dependents of ephemeral elements are not actually ephemeral because they do not transfer ephemeral state.
 
-The `ModelRuleInspector` should be available as a globally scoped service.
+Steps/stages:
 
-See tests for `ModelRuleSourceDetector` and `ModelSchemaStore` for testing reclaimability of classes.
+1. Add ability to reconstitute/restore a model registry (and backing graph) from another registry (just assumes state at this stage)
+1. Add ability to declare model elements as ephemeral
+1. When restoring a registry, realised ephemeral elements are discarded (i.e. reverted to `known` state)
+1. All dependants of ephemeral elements (elements whose creators/mutators take ephemeral elements as inputs) are discarded
+1. Mark `tasks` model element as ephemeral
+1. Add global scope service that retains/provides model registries across builds in some format (store registries by project path)
+1. When feature toggle is active, save/restore registries in between builds
+1. If a build fails, completely purge the registry store, forcing rebuild on next build
 
+Constraints/assumptions:
 
-### Test Coverage
+1. Daemon builds one logical project for its life (i.e. registry store doesn't consider changes)
+1. Build logic does not change for the life of the daemon (incl. used plugins are not “changing”)
+1. Any failure may leave the registry in a non reusable state, and therefore must be purged
 
-- Rule based plugin can be applied to multiple projects with identical results, and rules are extracted only once
-- Cache must not prevent classes from being garbage collected
-- Rules extracted from core plugins are reused across builds when using the daemon
-- Rules extracted from user plugins are reused across builds when using the daemon and classloader caching
-
-## Rule source plugins are instantiated eagerly and once per JVM
-
-Rules in rule source plugins can be instance scoped.
-This requires an instance for dispatch to the method rule.
-Currently, a new instance is created for each rule invocation.
-This creates extra objects, and also defers instantiation problems with rule source plugins (e.g. default constructor throws an exception).
-
-We should create one instance for the life of the JVM, and instantiate when extracting rules from the plugin as part of the class level validations.
-
-Note: It _might_ make sense to converge all the class based caches we have around rule infrastructure at this stage.
+The feature will depend on the classloader caching feature.
 
 ### Test Coverage
 
-- Rule source plugin throwing exception in default constructor fails plugin _application_
-- Rule source plugin is instantiated once (impl idea: default constructor could update some static level counter)
-- Rule source class is not prevented from being garbage collected
-
-## Mutation rules are always executed in a reliable order
-
-This story strengthens the ordering semantics of mutation rules.
-
-Currently, mutation rules are executed in the order in which they fully bind.
-This can cause a change in the inputs to a rule to change when the rule is run in surprising ways.
-We should always guarantee that rules are executed in discovery order, not binding order.
-
-Rules are discovered through the application of plugins, and execution of build scripts.
-We can use the order of plugin application, and rules in build scripts.
-Within a plugin, rules can be ordered in some deterministic way (e.g. sort rules by signature).
+1. Ephemeral model element is rebuilt when requested from a restored model registry
+1. Dependants of ephemeral model element are rebuilt …
+    1. Model element where creator depends on an ephemeral
+    1. Model element where “mutator” of all types depends on an ephemeral
+1. Descendants of ephemeral model element are rebuilt …
+    1. Model element where creator depends on descendant of an ephemeral
+    1. Model element where “mutator” of all types depends on a descendant of an ephemeral
+1. Model registry is not reused when feature toggle is not active (sanity check)
+1. Correct project specific registries are assigned to each project in multi project build
+1. Model is completely rebuilt following a build failure
+1. Build using Java component plugin can be reused
+1. Tasks are rebuilt each time when reusing model registry
+1. Error when model reuse enabled but not classloader caching
+1. Reuse of a model registry can realise previously unrealised model elements (i.e. required tasks can change between builds, requiring different model element dependencies)
 
 # Open Questions
 
@@ -199,18 +135,22 @@ Unordered and not all appropriately story sized.
 
 ## Diagnostics
 
+- Error message for rule execution/validation failure should include information about 'identity' of the rule, eg the same method attached to different projects.
+- Error message for rule execution/validation failure should include information about 'why' the rule was executed, eg during build script execution, as input to some rule.
+- Progress logging should show something about rule execution, eg when closing the task container for a project.
 - When a task cannot be located, search for methods that accept `CollectionBuilder<Task>` as subject but are not annotated with `@Mutate`.
 - Error message when applying a plugin with a task definition rule during task execution should include more context about the failed rule.
-  This essentially means more context in the 'thing has been closed' error message.
-- Some kind of explorable/browsable representation of the model elements for a build
 - Profile report contains information about execution time of model rules
-- Rule source types are instantiated early to fail fast (i.e. constructor may throw exception)
 - Cyclic dependencies between configuration rules are reported
 - Build user is alerted when a required model rule from a plugin does not bind (i.e. plugin was expecting user to create some element)
 - Build user is alerted when a build script model rule does not bind (i.e. some kind of configuration error)
 - Bind by path failures understand model space structure and indicate the failed path “link” (e.g. failure to bind `tasks.foo` informs that `tasks` exists and what it is)
 - Collapse rule descriptors to “plugin” granularity where appropriate in error message (i.e. plugin users typically don't need information about plugin internals, but need to know which plugin failed).
 - Error message when no collection builder of requested type should provide more help about what is available
+- Force binding induced cycles for rules that use descendants of subject as inputs which won't bind result in a stack overflow
+- When validation of rule reference binding should occur (?)
+- Error message when DSl rule or compiled rule fail should report the purpose (eg could not configure task thing) rather than
+  the mechanics (eg SomeClass.method() threw an exception).
 
 ## Cleanup
 
@@ -240,6 +180,8 @@ These should be rationalised and ideally replaced with model rules.
 - Make `buildDir` available in model space
 - Remove `ExtensionContainer` from model space
 - Semantics of model element removal are not well defined
+- `tasks.withType(Test).named("compileJava", SomeRules)` - withType() aspect is ignored and does not influence bindings
+- Cross project task lookup causes target project task container rules to be fired (and task container to be self closed), whether they are required or not (i.e. requested task may be completely legacy)
 
 ## Testing
 
@@ -249,10 +191,14 @@ These should be rationalised and ideally replaced with model rules.
 
 ## Performance
 
-- Defer creating task instances until absolutely necessary
 - Cache/reuse model elements, avoiding need to run configuration on every build
-- Extract rules from scripts once per build (and possibly cache) instead of each time it is applied
-- Managed types should contain DSL friendly overloads, but not extensibility mechanisms (i.e. don't mixin convention mapping etc.)
+- Should replace use of weak reference based class caches to strong reference and forcefully evict when we dump classloaders (much simpler code and fewer objects)
+    - should also work with `ClassLoaderScope`, so that a state cache can be associated with a scope.
+    - use for plugin id -> class mappings, plugin class inspection, task annotation inspection.
+    - need to be able to take arbitrary class and map to a scope or state cache for that type.
+- `DefaultProjectLocator` and `DefaultProjectAccessListener` (used by project dependencies) force realisation of complete task container
+- DefaultModelRegistry stores RuleBinder implementations twice
+- Rule references are bound eagerly (should be deferred until the rule is needed)
 
 ## DSL
 
@@ -260,6 +206,14 @@ These should be rationalised and ideally replaced with model rules.
 - Specify type of rule subject
 - Plugin author specifies model type to use in DSL when type is unspecified
 - Mechanism for declaring new top level (adhoc?) model elements in build script
+
+## Reuse
+
+- Fine grained reuse on build logic changes (e.g. connect rules to source that changed, and invalidate)
+- Mechanism for force purging the “cached” model (?)
+- Sugar for common types of external (volatile) inputs
+- Short circuit invalidation propagation downstream by stopping transitive invalidation when rebuilt element matches “previous” state
+- Model is reused when changing between different logical projects
 
 ## Productization
 

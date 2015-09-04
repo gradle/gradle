@@ -21,7 +21,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
 
     @Override
     String getDefaultSourceSet() {
-        return "CoffeeScriptAssets"
+        return "CoffeeScript"
     }
 
     def setup() {
@@ -29,7 +29,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         file(customCoffeeScriptImplFileName) << getClass().getResource("/coffee-script.min.js").text
 
         withCoffeeScriptSource('app/assets/test.coffee')
-        withCoffeeScriptSource('src/play/extra/test2.coffee')
+        withCoffeeScriptSource('src/play/extraCoffeeScript/test2.coffee')
         buildFile << """
             plugins {
                 id 'play'
@@ -38,6 +38,10 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
 
             repositories{
                 jcenter()
+                maven {
+                    name = "gradle-js"
+                    url = "https://repo.gradle.org/gradle/javascript-public"
+                }
             }
         """
     }
@@ -48,7 +52,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
                 components {
                     play {
                         sources {
-                            extra(CoffeeScriptSourceSet)
+                            extraCoffeeScript(CoffeeScriptSourceSet)
                         }
                         binaries.all {
                             tasks.withType(PlayCoffeeScriptCompile) {
@@ -61,15 +65,11 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         """
 
         when:
-        succeeds "createPlayBinaryAssetsJar"
+        succeeds "compilePlayBinaryCoffeeScript", "compilePlayBinaryExtraCoffeeScript"
 
         then:
         matchesExpectedRaw('test.js')
-        matchesExpectedRaw('Extra', 'test2.js')
-        matchesExpectedRaw(copied('test.js'))
-        matchesExpectedRaw(copied('Extra', 'test2.js'))
-        matchesExpected('test.min.js')
-        matchesExpected('Extra', 'test2.min.js')
+        matchesExpectedRaw('ExtraCoffeeScript', 'test2.js')
     }
 
     def "can compile coffeescript with a custom implementation from configuration"() {
@@ -86,7 +86,7 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
                 components {
                     play {
                         sources {
-                            extra(CoffeeScriptSourceSet)
+                            extraCoffeeScript(CoffeeScriptSourceSet)
                         }
                         binaries.all {
                             tasks.withType(PlayCoffeeScriptCompile) {
@@ -99,14 +99,10 @@ class CustomCoffeeScriptImplementationIntegrationTest extends AbstractCoffeeScri
         """
 
         when:
-        succeeds "createPlayBinaryAssetsJar"
+        succeeds "compilePlayBinaryCoffeeScript", "compilePlayBinaryExtraCoffeeScript"
 
         then:
         matchesExpectedRaw('test.js')
-        matchesExpectedRaw('Extra', 'test2.js')
-        matchesExpectedRaw(copied('test.js'))
-        matchesExpectedRaw(copied('Extra', 'test2.js'))
-        matchesExpected('test.min.js')
-        matchesExpected('Extra', 'test2.min.js')
+        matchesExpectedRaw('ExtraCoffeeScript', 'test2.js')
     }
 }

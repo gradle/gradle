@@ -25,10 +25,12 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenc
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
+@UsesNativeServices
 class DefaultJarSnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()

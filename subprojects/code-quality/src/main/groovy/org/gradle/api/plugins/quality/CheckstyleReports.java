@@ -20,7 +20,7 @@ import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
 
 /**
- * The reporting configuration for the {@link Checkstyle} test.
+ * The reporting configuration for the {@link Checkstyle} task.
  */
 public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
 

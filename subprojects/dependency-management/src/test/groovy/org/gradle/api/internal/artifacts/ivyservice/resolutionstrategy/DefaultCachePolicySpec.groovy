@@ -23,12 +23,14 @@ import org.gradle.api.artifacts.cache.DependencyResolutionControl
 import org.gradle.api.artifacts.cache.ModuleResolutionControl
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.configurations.MutationValidator
+import org.gradle.internal.Actions
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
-import static org.gradle.util.Assertions.assertThat
+import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
 
 public class DefaultCachePolicySpec extends Specification {
     private static final int SECOND = 1000;
@@ -202,11 +204,56 @@ public class DefaultCachePolicySpec extends Specification {
         def copy = cachePolicy.copy()
 
         !copy.is(cachePolicy)
-        assertThat(copy).doesNotShareStateWith(cachePolicy)
+        !copy.dependencyCacheRules.is(cachePolicy.dependencyCacheRules)
+        !copy.moduleCacheRules.is(cachePolicy.moduleCacheRules)
+        !copy.artifactCacheRules.is(cachePolicy.artifactCacheRules)
 
         copy.dependencyCacheRules == cachePolicy.dependencyCacheRules
         copy.moduleCacheRules == cachePolicy.moduleCacheRules
         copy.artifactCacheRules == cachePolicy.artifactCacheRules
+    }
+
+    def "mutation is checked"() {
+        def validator = Mock(MutationValidator)
+        given:
+        cachePolicy.setMutationValidator(validator)
+
+        when: cachePolicy.cacheChangingModulesFor(0, TimeUnit.HOURS)
+        then: (1.._) * validator.validateMutation(STRATEGY)
+
+        when: cachePolicy.cacheDynamicVersionsFor(0, TimeUnit.HOURS)
+        then: 1 * validator.validateMutation(STRATEGY)
+
+        when: cachePolicy.eachArtifact(Actions.doNothing())
+        then: 1 * validator.validateMutation(STRATEGY)
+
+        when: cachePolicy.eachDependency(Actions.doNothing())
+        then: 1 * validator.validateMutation(STRATEGY)
+
+        when: cachePolicy.eachModule(Actions.doNothing())
+        then: 1 * validator.validateMutation(STRATEGY)
+    }
+
+    def "mutation is not checked for copy"() {
+        def validator = Mock(MutationValidator)
+        given:
+        cachePolicy.setMutationValidator(validator)
+        def copy = cachePolicy.copy()
+
+        when: copy.cacheChangingModulesFor(0, TimeUnit.HOURS)
+        then: 0 * validator.validateMutation(_)
+
+        when: copy.cacheDynamicVersionsFor(0, TimeUnit.HOURS)
+        then: 0 * validator.validateMutation(_)
+
+        when: copy.eachArtifact(Actions.doNothing())
+        then: 0 * validator.validateMutation(_)
+
+        when: copy.eachDependency(Actions.doNothing())
+        then: 0 * validator.validateMutation(_)
+
+        when: copy.eachModule(Actions.doNothing())
+        then: 0 * validator.validateMutation(_)
     }
 
     private def hasDynamicVersionTimeout(int timeout) {

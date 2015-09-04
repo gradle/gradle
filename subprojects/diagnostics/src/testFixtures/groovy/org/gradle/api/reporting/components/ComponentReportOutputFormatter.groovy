@@ -15,32 +15,16 @@
  */
 
 package org.gradle.api.reporting.components
+
 import org.gradle.api.Transformer
 import org.gradle.internal.SystemProperties
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
-import org.gradle.nativeplatform.platform.internal.NativePlatforms
 
 class ComponentReportOutputFormatter implements Transformer<String, String> {
-    final AvailableToolChains.InstalledToolChain toolChain
-
-    ComponentReportOutputFormatter() {
-        this.toolChain = AvailableToolChains.getDefaultToolChain()
-    }
-
-    ComponentReportOutputFormatter(AvailableToolChains.InstalledToolChain toolChain) {
-        this.toolChain = toolChain
-    }
 
     @Override
     String transform(String original) {
          return original
-                .replace("Tool chain 'clang' (Clang)", toolChain.instanceDisplayName)
-                .replace("platform: current", "platform: " + NativePlatforms.defaultPlatformName)
-                .replace("\n", SystemProperties.lineSeparator)
-                .replaceAll('(?m)(build/binaries/.+/)lib(\\w+).dylib$') { it[1] + OperatingSystem.current().getSharedLibraryName(it[2]) }
-                .replaceAll('(?m)(build/binaries/.+/)lib(\\w+).a$') { it[1] + OperatingSystem.current().getStaticLibraryName(it[2]) }
-                .replaceAll('(?m)(build/binaries/.+/)(\\w+)$') { it[1] + OperatingSystem.current().getExecutableName(it[2]) }
+                .replace("\n", SystemProperties.instance.lineSeparator)
                 .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
     }
 }

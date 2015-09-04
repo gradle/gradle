@@ -20,6 +20,7 @@ import org.gradle.integtests.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.IvyHttpModule
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -30,6 +31,39 @@ class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDepende
 
         resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
+    }
+
+    @Issue("GRADLE-3264")
+    def "resolves latest.milestone from when same dependency has a range constraint transitively"() {
+        given:
+        useRepository ivyHttpRepo
+
+        buildFile << """
+configurations { compile }
+
+dependencies {
+    compile group: "group", name: "projectA", version: "1.+"
+}
+"""
+        when:
+        def projectA1 = ivyHttpRepo.module("group", "projectA", "1.0.0").
+                dependsOn("group", "projectB", "[1.0,1.2)").
+                dependsOn("group", "projectC", "1.0.0").
+                publish()
+        def projectB11 = ivyHttpRepo.module("group", "projectB", "1.1").withStatus("milestone").publish()
+        def projectB12 = ivyHttpRepo.module("group", "projectB", "1.2").withStatus("milestone").publish()
+
+        def projectC1 = ivyHttpRepo.module("group", "projectC", "1.0.0").dependsOn("group", "projectB", "latest.milestone").publish()
+
+        and:
+        expectGetDynamicRevision(projectA1)
+        expectGetDynamicRevision(projectB12)
+        projectB11.ivy.expectGet()
+        projectC1.ivy.expectGet()
+        projectC1.jar.expectGet()
+
+        then:
+        assert succeeds('checkDeps')
     }
 
     def "uses latest version from version range and latest status"() {
@@ -194,6 +228,56 @@ dependencies {
 
         then:
         checkResolve "group:projectA:latest.milestone": "group:projectA:2.1"
+    }
+
+    def "reuses cached meta-data when resolving latest.status"() {
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
+
+        given:
+        useRepository repo1, repo2
+        buildFile << """
+configurations {
+    staticVersions {
+        // Force load the metadata
+        resolutionStrategy.componentSelection.all { ComponentSelection s, ComponentMetadata d -> if (d.status != 'release') { s.reject('nope') } }
+    }
+    compile
+}
+dependencies {
+    staticVersions group: "group", name: "projectA", version: "1.1"
+    compile group: "group", name: "projectA", version: "latest.milestone"
+}
+task cache << { configurations.staticVersions.files }
+"""
+
+        and:
+        def repo1ProjectA1 = repo1.module("group", "projectA", "1.1").withStatus("milestone").publish()
+        def repo2ProjectA1 = repo2.module("group", "projectA", "1.1").withStatus("release").publishWithChangedContent()
+        def repo2ProjectA2 = repo2.module("group", "projectA", "1.2").publish()
+        repo1ProjectA1.ivy.expectGet()
+        repo2ProjectA1.ivy.expectHead()
+        repo2ProjectA1.ivy.sha1.expectGet()
+        repo2ProjectA1.ivy.expectGet()
+        repo2ProjectA1.jar.expectGet()
+        succeeds "cache"
+
+        when:
+        repo1.directoryList("group", "projectA").expectGet()
+        repo2.directoryList("group", "projectA").expectGet()
+        repo2ProjectA2.ivy.expectGet()
+        repo1ProjectA1.jar.expectHead()
+        repo1ProjectA1.jar.sha1.expectGet()
+        repo1ProjectA1.jar.expectGet()
+
+        then:
+        checkResolve "group:projectA:latest.milestone": "group:projectA:1.1"
+
+        when:
+        server.resetExpectations()
+
+        then:
+        checkResolve "group:projectA:latest.milestone": "group:projectA:1.1"
     }
 
     def "can use latest version from different remote repositories"() {
@@ -392,6 +476,80 @@ dependencies {
         }
     }
 
+    def "reuses cached version lists unless no matches"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+dependencies {
+    compile group: "org.test", name: "projectA", version: "1.+"
+}
+"""
+
+        when:
+        ivyHttpRepo.module("org.test", "projectA", "1.1").publish()
+        def projectA21 = ivyHttpRepo.module("org.test", "projectA", "2.1").publish()
+        def projectA12 = ivyHttpRepo.module("org.test", "projectA", "1.2").publish()
+
+        and:
+        ivyHttpRepo.directoryList("org.test", "projectA").expectGet()
+        projectA12.ivy.expectGet()
+        projectA12.jar.expectGet()
+
+        then:
+        succeeds "checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge "org.test:projectA:1.+", "org.test:projectA:1.2"
+            }
+        }
+
+        when:
+        server.resetExpectations()
+        projectA21.ivy.expectGet()
+        projectA21.jar.expectGet()
+
+        and:
+        buildFile << """
+dependencies {
+    compile group: "org.test", name: "projectA", version: "2.+"
+}
+"""
+
+        then:
+        succeeds "checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:projectA:1.+", "org.test:projectA:2.1").byConflictResolution()
+                edge("org.test:projectA:2.+", "org.test:projectA:2.1").byConflictResolution()
+            }
+        }
+
+        when:
+        def projectA30 = ivyHttpRepo.module("org.test", "projectA", "3.0").publish()
+        server.resetExpectations()
+        ivyHttpRepo.directoryList("org.test", "projectA").expectGet()
+        projectA30.ivy.expectGet()
+        projectA30.jar.expectGet()
+
+        and:
+        buildFile << """
+dependencies {
+    compile group: "org.test", name: "projectA", version: "3.+"
+}
+"""
+
+        then:
+        succeeds "checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.test:projectA:1.+", "org.test:projectA:3.0").byConflictResolution()
+                edge("org.test:projectA:2.+", "org.test:projectA:3.0").byConflictResolution()
+                edge("org.test:projectA:3.+", "org.test:projectA:3.0").byConflictResolution()
+            }
+        }
+    }
+
     def "caches resolved revisions until cache expiry"() {
         given:
         useRepository ivyHttpRepo
@@ -514,7 +672,7 @@ if (project.hasProperty('noDynamicRevisionCache')) {
         }
     }
 
-    public void "resolves dynamic version with 2 repositories where first repo results in 404 for directory listing"() {
+    def "resolves dynamic version with 2 repositories where first repo results in 404 for directory listing"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -715,6 +873,8 @@ configurations.all {
     }
 
     def "reports and recovers from no matching version for dynamic version"() {
+        def repo2 = ivyHttpRepo("repo-2")
+
         given:
         useRepository ivyHttpRepo
         buildFile << """
@@ -724,27 +884,67 @@ dependencies {
 }
 """
 
-        when: "no version > 2"
+        when:
         ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        def directoryList = ivyHttpRepo.directoryList("group", "projectA")
-        directoryList.expectGet()
+        ivyHttpRepo.module("group", "projectA", "1.2").publish()
+        ivyHttpRepo.module("group", "projectA", "3.0").publish()
+        def dirListRepo1 = ivyHttpRepo.directoryList("group", "projectA")
+        dirListRepo1.expectGet()
 
         then:
         fails "checkDeps"
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+Versions that do not match:
+    3.0
+    1.2
+    1.1
 Searched in the following locations:
-    ${directoryList.uri}
+    ${dirListRepo1.uri}
+Required by:
 """)
 
-        when: "no version > 2"
+        when:
+        useRepository repo2
+        repo2.module("group", "projectA", "3.0").publish()
+        repo2.module("group", "projectA", "4.4").publish()
+        def dirListRepo2 = repo2.directoryList("group", "projectA")
+
+        and:
         server.resetExpectations()
-        directoryList.expectGet()
+        dirListRepo1.expectGet()
+        dirListRepo2.expectGet()
 
         then:
         fails "checkDeps"
         failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+Versions that do not match:
+    3.0
+    1.2
+    1.1
+    4.4
 Searched in the following locations:
-    ${directoryList.uri}
+    ${dirListRepo1.uri}
+    ${dirListRepo2.uri}
+Required by:
+""")
+
+        when:
+        server.resetExpectations()
+        dirListRepo1.expectGet()
+        dirListRepo2.expectGet()
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+Versions that do not match:
+    3.0
+    1.2
+    1.1
+    4.4
+Searched in the following locations:
+    ${dirListRepo1.uri}
+    ${dirListRepo2.uri}
+Required by:
 """)
 
         when:
@@ -752,7 +952,10 @@ Searched in the following locations:
 
         and:
         server.resetExpectations()
-        expectGetDynamicRevision(projectA2)
+        dirListRepo1.allowGet()
+        dirListRepo2.allowGet()
+        projectA2.ivy.expectGet()
+        projectA2.jar.expectGet()
 
         then:
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
@@ -774,9 +977,10 @@ dependencies {
 
         then:
         fails "checkDeps"
-        failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+        failure.assertHasCause("""Could not find any matches for group:projectA:2.+ as no versions of group:projectA are available.
 Searched in the following locations:
     ${directoryList.uri}
+Required by:
 """)
 
         when: "no versions"
@@ -785,9 +989,10 @@ Searched in the following locations:
 
         then:
         fails "checkDeps"
-        failure.assertHasCause("""Could not find any version that matches group:projectA:2.+.
+        failure.assertHasCause("""Could not find any matches for group:projectA:2.+ as no versions of group:projectA are available.
 Searched in the following locations:
     ${directoryList.uri}
+Required by:
 """)
 
         when:
@@ -852,6 +1057,81 @@ dependencies {
 
         then:
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
+    }
+
+    def "reports and recovers from missing module for dynamic version that requires meta-data"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+dependencies {
+    compile group: "group", name: "projectA", version: "latest.release"
+}
+"""
+
+        when:
+        def directoryList = ivyHttpRepo.directoryList("group", "projectA")
+        def projectA = ivyHttpRepo.module("group", "projectA", "1.2").withStatus("release").publish()
+        directoryList.expectGet()
+        projectA.ivy.expectGetMissing()
+        projectA.jar.expectHeadMissing()
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause("""Could not find any matches for group:projectA:latest.release as no versions of group:projectA are available.
+Searched in the following locations:
+    ${directoryList.uri}
+    ${projectA.ivy.uri}
+    ${projectA.jar.uri}
+Required by:
+""")
+
+        when:
+        server.resetExpectations()
+        projectA.ivy.expectGet()
+        projectA.jar.expectGet()
+
+        then:
+        checkResolve "group:projectA:latest.release": "group:projectA:1.2"
+    }
+
+    def "reports and recovers from broken module for dynamic version that requires meta-data"() {
+        given:
+        useRepository ivyHttpRepo
+        buildFile << """
+configurations { compile }
+dependencies {
+    compile group: "group", name: "projectA", version: "latest.release"
+}
+"""
+
+        when:
+        def directoryList = ivyHttpRepo.directoryList("group", "projectA")
+        def projectA = ivyHttpRepo.module("group", "projectA", "1.2").withStatus("release").publish()
+        directoryList.expectGet()
+        projectA.ivy.expectGetBroken()
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause("Could not resolve group:projectA:latest.release")
+        failure.assertHasCause("Could not GET '${projectA.ivy.uri}'. Received status code 500 from server: broken")
+
+        when:
+        server.resetExpectations()
+        projectA.ivy.expectGet()
+        projectA.jar.expectGetBroken()
+
+        then:
+        fails "checkDeps"
+        failure.assertHasCause("Could not download projectA.jar (group:projectA:1.2)")
+        failure.assertHasCause("Could not GET '${projectA.jar.uri}'. Received status code 500 from server: broken")
+
+        when:
+        server.resetExpectations()
+        projectA.jar.expectGet()
+
+        then:
+        checkResolve "group:projectA:latest.release": "group:projectA:1.2"
     }
 
     @Unroll

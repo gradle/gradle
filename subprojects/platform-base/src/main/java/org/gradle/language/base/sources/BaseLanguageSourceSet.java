@@ -31,7 +31,7 @@ import org.gradle.platform.base.ModelInstantiationException;
 /**
  * Base class for custom language sourceset implementations. A custom implementation of {@link org.gradle.language.base.LanguageSourceSet} must extend this type.
  */
-public class BaseLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
+public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElement implements LanguageSourceSetInternal {
     private String name;
     private String fullName;
     private String parentName;
@@ -40,7 +40,7 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
     private boolean generated;
     private Task generatorTask;
 
-    // TODO:DAZ This is only here as a convenience for subclasses to create additional SourceDirectorySets
+    // This is here as a convenience for subclasses to create additional SourceDirectorySets
     protected FileResolver fileResolver;
 
     public String getName() {
@@ -49,6 +49,10 @@ public class BaseLanguageSourceSet extends AbstractBuildableModelElement impleme
 
     public String getFullName() {
         return fullName;
+    }
+
+    public String getParentName() {
+        return parentName;
     }
 
     @Override

@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class DefaultCoffeeScriptSourceSetTest extends Specification {
     def "has useful String representation"() {
-        def sourceSet = BaseLanguageSourceSet.create(DefaultCoffeeScriptSourceSet, "coffeeX", "playX", Stub(FileResolver), new DirectInstantiator())
+        def sourceSet = BaseLanguageSourceSet.create(DefaultCoffeeScriptSourceSet, "coffeeX", "playX", Stub(FileResolver), DirectInstantiator.INSTANCE)
 
         expect:
         sourceSet.displayName == "CoffeeScript source 'playX:coffeeX'"

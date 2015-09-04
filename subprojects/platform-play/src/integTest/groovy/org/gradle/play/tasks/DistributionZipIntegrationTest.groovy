@@ -21,17 +21,22 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 
 class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
+        settingsFile << """ rootProject.name = 'dist-play-app' """
         buildFile << """
             plugins {
                 id 'play'
-                id 'play-distribution'
             }
 
             repositories {
                 jcenter()
-                maven{
-                    name = "typesafe-maven-release"
-                    url = "https://repo.typesafe.com/typesafe/maven-releases"
+                maven {
+                    name "typesafe-maven-release"
+                    url "https://repo.typesafe.com/typesafe/maven-releases"
+                }
+                ivy {
+                    name "typesafe-ivy-release"
+                    url "https://repo.typesafe.com/typesafe/ivy-releases"
+                    layout "ivy"
                 }
             }
         """
@@ -58,61 +63,21 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
         zip("build/distributions/playBinary.zip").containsDescendants("playBinary/additionalFile.txt")
     }
 
-    def "adds project version to archive name and base directory" () {
-        buildFile << """
-            version = "1.0"
-        """
-
-        when:
-        succeeds "dist"
-
-        then:
-        zip("build/distributions/playBinary-1.0.zip").containsDescendants("playBinary-1.0/lib/play.jar")
-    }
-
-    def "can add an additional arbitrary distribution" () {
+    def "cannot add arbitrary distribution" () {
         buildFile << """
             model {
                 distributions {
-                    myDist {
-                        baseName = "mySpecialDist"
-                        contents {
-                            from binaries.playBinary.tasks.withType(org.gradle.jvm.tasks.Jar)
-                            into("txt") {
-                                from "additionalFile.txt"
-                            }
-                        }
-                    }
+                    myDist { }
                 }
             }
         """
-        file("additionalFile.txt").createFile()
 
         when:
-        succeeds "dist"
+        fails "dist"
 
         then:
-        executedAndNotSkipped(
-                ":createPlayBinaryJar",
-                ":createPlayBinaryAssetsJar",
-                ":createMyDistDist")
-
-        and:
-        zip("build/distributions/mySpecialDist.zip").containsDescendants(
-                "mySpecialDist/play.jar",
-                "mySpecialDist/play-assets.jar",
-                "mySpecialDist/txt/additionalFile.txt")
-
-        when:
-        succeeds "stage"
-
-        then:
-        [ "play.jar",
-          "play-assets.jar",
-          "txt/additionalFile.txt"
-        ].each { fileName ->
-            file("build/stage/myDist/${fileName}").exists()
-        }
+        failureDescriptionContains("A problem occurred configuring root project 'dist-play-app'")
+        failureHasCause("Cannot create a Distribution named 'myDist' because this container does not support creating elements by name alone.")
     }
 
     ZipTestFixture zip(String path) {

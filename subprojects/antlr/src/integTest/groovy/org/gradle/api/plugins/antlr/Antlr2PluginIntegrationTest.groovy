@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.antlr
 
+import org.gradle.util.TextUtil
+
 class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     String antlrDependency = "antlr:antlr:2.7.7"
@@ -26,18 +28,15 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         expect:
         succeeds("generateGrammarSource")
         assertAntlrVersion(2)
-        file("build/generated-src/antlr/main/TestGrammar.java").exists()
-        file("build/generated-src/antlr/main/TestGrammar.smap").exists()
-        file("build/generated-src/antlr/main/TestGrammarTokenTypes.java").exists()
-        file("build/generated-src/antlr/main/TestGrammarTokenTypes.txt").exists()
+        assertGrammarSourceGenerated("org/acme/TestGrammar")
+        assertGrammarSourceGenerated("org/acme/AnotherGrammar")
+        assertGrammarSourceGenerated("UnpackagedGrammar")
         succeeds("build")
     }
 
     def "analyze bad grammar"() {
         when:
         badGrammar()
-        and:
-        executer.withStackTraceChecksDisabled()
         then:
         fails("generateGrammarSource")
         output.contains("TestGrammar.g:7:24: unexpected token: extra")
@@ -45,7 +44,12 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         output.contains("TestGrammar.g:7:24: rule classDef trapped:")
         output.contains("TestGrammar.g:7:24: unexpected token: extra")
         assertAntlrVersion(2)
-
+        errorOutput.contains(TextUtil.toPlatformLineSeparators("""
+* What went wrong:
+Execution failed for task ':generateGrammarSource'.
+> There was 1 error during grammar generation
+   > ANTLR Panic: Exiting due to errors.
+"""))
     }
 
     def "uses antlr v2 if no explicit dependency is set"() {
@@ -63,17 +67,23 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         expect:
         succeeds("generateGrammarSource")
         assertAntlrVersion(2)
-        file("build/generated-src/antlr/main/TestGrammar.java").exists()
-        file("build/generated-src/antlr/main/TestGrammar.smap").exists()
-        file("build/generated-src/antlr/main/TestGrammarTokenTypes.java").exists()
-        file("build/generated-src/antlr/main/TestGrammarTokenTypes.txt").exists()
+        assertGrammarSourceGenerated("org/acme/TestGrammar")
+        assertGrammarSourceGenerated("org/acme/AnotherGrammar")
+        assertGrammarSourceGenerated("UnpackagedGrammar")
+
         succeeds("build")
     }
 
     private goodGrammar() {
-        file("src/main/antlr/TestGrammar.g") << """class TestGrammar extends Parser;
+        file("src/main/antlr/TestGrammar.g") << """
+            header {
+                package org.acme;
+            }
+
+            class TestGrammar extends Parser;
+
             options {
-                buildAST = true; 
+                buildAST = true;
             }
 
             expr:   mexpr (PLUS^ mexpr)* SEMI!
@@ -85,6 +95,42 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
             atom:   INT
                 ;"""
+
+        file("src/main/antlr/AnotherGrammar.g") << """
+            header {
+                package org.acme;
+            }
+            class AnotherGrammar extends Parser;
+            options {
+                buildAST = true;
+                importVocab = TestGrammar;
+            }
+
+            expr:   mexpr (PLUS^ mexpr)* SEMI!
+                ;
+
+            mexpr
+                :   atom (STAR^ atom)*
+                ;
+
+            atom:   INT
+                ;"""
+
+        file("src/main/antlr/UnpackagedGrammar.g") << """class UnpackagedGrammar extends Parser;
+            options {
+                buildAST = true;
+            }
+
+            expr:   mexpr (PLUS^ mexpr)* SEMI!
+                ;
+
+            mexpr
+                :   atom (STAR^ atom)*
+                ;
+
+            atom:   INT
+                ;"""
+
     }
 
     private goodProgram() {
@@ -92,6 +138,7 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
             import antlr.Token;
             import antlr.TokenStream;
             import antlr.TokenStreamException;
+            import org.acme.TestGrammar;
 
             public class Test {
                 public static void main(String[] args) {
@@ -122,5 +169,12 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
             atom:   INT
                 ;"""
+    }
+
+    private void assertGrammarSourceGenerated(String grammarName) {
+        assert file("build/generated-src/antlr/main/${grammarName}.java").exists()
+        assert file("build/generated-src/antlr/main/${grammarName}.smap").exists()
+        assert file("build/generated-src/antlr/main/${grammarName}TokenTypes.java").exists()
+        assert file("build/generated-src/antlr/main/${grammarName}TokenTypes.txt").exists()
     }
 }

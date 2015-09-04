@@ -17,33 +17,35 @@
 package org.gradle.model.internal.inspect
 
 import org.gradle.model.RuleSource
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
-import spock.util.concurrent.PollingConditions
 
 class ModelRuleSourceDetectorTest extends Specification {
 
     private ModelRuleSourceDetector detector = new ModelRuleSourceDetector()
 
     static class HasOneSource {
-        @RuleSource
-        static class Source {}
+        static class Source extends RuleSource {}
 
         static class NotSource {}
     }
 
     static class HasTwoSources {
-        @RuleSource
-        static class SourceOne {}
+        static class SourceOne extends RuleSource {}
 
-        @RuleSource
-        static class SourceTwo {}
+        static class SourceTwo extends RuleSource {}
 
         static class NotSource {}
     }
 
-    @RuleSource
-    static class IsASource {
+    static class IsASource extends RuleSource {
+    }
+
+    static class SourcesNotDeclaredAlphabetically {
+        static class B extends RuleSource {}
+
+        static class A extends RuleSource {}
     }
 
     @Unroll
@@ -62,7 +64,7 @@ class ModelRuleSourceDetectorTest extends Specification {
     @Unroll
     def "has model sources - #clazz"() {
         expect:
-        detector.hasModelSources(clazz) == expected
+        detector.hasRules(clazz) == expected
 
         where:
         clazz        | expected
@@ -84,7 +86,7 @@ class ModelRuleSourceDetectorTest extends Specification {
         cl.clearCache()
 
         then:
-        new PollingConditions(timeout: 10).eventually {
+        ConcurrentTestUtil.poll(10) {
             System.gc()
             detector.cache.cleanUp()
             detector.cache.size() == 0
@@ -93,9 +95,14 @@ class ModelRuleSourceDetectorTest extends Specification {
         where:
         impl << [
                 "class SomeThing {}",
-                "@${RuleSource.name} class SomeThing {}",
-                "class SomeThing { @${RuleSource.name} static class Inner { } }",
+                "class SomeThing extends ${RuleSource.name} {}",
+                "class SomeThing { static class Inner extends ${RuleSource.name} { } }",
         ]
+    }
+
+    def "detected sources are returned ordered by class name"() {
+        expect:
+        detector.getDeclaredSources(SourcesNotDeclaredAlphabetically).toList() == [SourcesNotDeclaredAlphabetically.A, SourcesNotDeclaredAlphabetically.B]
     }
 
     private void addClass(GroovyClassLoader cl, String impl) {

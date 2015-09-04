@@ -26,7 +26,7 @@ dependencies {
     }
     runtime ":runtime:1.0"
     providedRuntime ":providedRuntime:1.0@jar"
-    testCompile "junit:junit:4.11"
+    testCompile "junit:junit:4.12"
     moreLibs ":otherLib:1.0"
 }
 

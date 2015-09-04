@@ -18,7 +18,7 @@ package org.gradle.internal.resource.cached
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
-import org.gradle.messaging.serialize.Serializer
+import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import org.gradle.util.BuildCommencedTimeProvider
@@ -60,7 +60,7 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         def artifactFile = tmp.createFile("artifact") << "content"
         
         when:
-        index.store(key, artifactFile, new DefaultExternalResourceMetaData(new URI("abc"), lastModified, 100, null, null))
+        index.store(key, artifactFile, new DefaultExternalResourceMetaData(new URI("abc"), lastModified, 100, null, null, null))
         
         then:
         def cached = index.lookup(key)

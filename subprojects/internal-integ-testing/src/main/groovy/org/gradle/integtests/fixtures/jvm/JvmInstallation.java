@@ -21,6 +21,9 @@ import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
+/**
+ * Should be synced with {@link org.gradle.internal.jvm.Jvm}.
+ */
 public class JvmInstallation {
     public enum Arch { i386, x86_64, Unknown }
 

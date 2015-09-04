@@ -21,9 +21,11 @@ import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.fixtures.BadJavaComponent
 import org.gradle.language.fixtures.TestJavaComponent
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+@LeaksFileHandles
 class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     TestJvmComponent app = new TestJavaComponent()
 
@@ -129,7 +131,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "builds all buildable and skips non-buildable platforms when assembling"() {
-        def current = new DefaultJavaPlatform(JavaVersion.current())
+        def current = DefaultJavaPlatform.current()
         when:
         app.sources*.writeToDir(file("src/myLib/java"))
 
@@ -168,7 +170,6 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     }
 """
         then:
-        // TODO:DAZ Would like to use 'assemble' here, but it currently ignores non-buildable binaries
         fails "myLibJar"
 
         and:

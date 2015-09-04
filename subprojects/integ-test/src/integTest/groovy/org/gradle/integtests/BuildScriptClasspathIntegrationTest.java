@@ -18,11 +18,13 @@ package org.gradle.integtests;
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
+import org.gradle.test.fixtures.file.LeaksFileHandles;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.fail;
 
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void providesADefaultBuildForBuildSrcProject() {
@@ -32,6 +34,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
+    @LeaksFileHandles("second build opens repo/test-1.3.jar and doesn't release")
     public void canExtendTheDefaultBuildForBuildSrcProject() {
         ArtifactBuilder builder = artifactBuilder();
         builder.sourceFile("org/gradle/test/DepClass.java").writelns(
@@ -82,6 +85,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
+    @LeaksFileHandles("second build opens repo/test-1.3.jar and doesn't release")
     public void canDeclareClasspathInBuildScript() {
         ArtifactBuilder builder = artifactBuilder();
         builder.sourceFile("org/gradle/test/ImportedClass.java").writelns(
@@ -172,6 +176,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
+    @LeaksFileHandles("second build opens repo/test-1.3.jar and doesn't release")
     public void inheritsClassPathOfParentProject() {
         ArtifactBuilder builder = artifactBuilder();
         builder.sourceFile("org/gradle/test/BuildClass.java").writelns(
@@ -207,7 +212,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     public void canInjectClassPathIntoSubProjects() {
         fail("implement me");
     }
-    
+
     @Test @Ignore
     public void canReuseClassPathRepositories() {
         fail("implement me");

@@ -22,6 +22,8 @@ import java.io.File;
 public class BuildLayout extends SettingsLocation {
     private final File rootDirectory;
 
+    // Note: `null` for `settingsFile` means explicitly no settings
+    //       A non null value can be a non existent file, which is semantically equivalent to an empty file
     public BuildLayout(File rootDirectory, File settingsDir, File settingsFile) {
         super(settingsDir, settingsFile);
         this.rootDirectory = rootDirectory;

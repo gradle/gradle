@@ -20,12 +20,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 /**
- * When there are no more lines to read from the source reader, this implementation waits util new content is available.
+ * When there are no more lines to read from the source reader, this implementation waits until a full new line of content is available.
  * We need this kind of thing because when gc log is used by a forked process (e.g. the daemon) there is a delay
  * between a) forked process has finished and b) the gc log information has the final heap information.
+ * The gc log can be written out in chunks (especially if a big GC is happening) which means that we have to wait
+ * for a full line to be available instead of just any content before returning from readLine().
  */
 public class WaitingReader {
 
+    private static final int FIFTY_KB = 51200;
+    private static final int EOF = -1;
+    private static final char NEW_LINE = '\n';
     private final BufferedReader reader;
     private final int timeoutMs;
     private final int clockTick;
@@ -45,16 +50,24 @@ public class WaitingReader {
 
     String readLine() throws IOException {
         long upTo = System.currentTimeMillis() + timeoutMs;
-        String line = reader.readLine();
-        while(line == null && System.currentTimeMillis() < upTo) {
-            try {
-                Thread.sleep(clockTick);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+        reader.mark(FIFTY_KB);
+        int character = EOF;
+        while(character != NEW_LINE) {
+            character = reader.read();
+            if (character == EOF) {
+                if (System.currentTimeMillis() >= upTo) {
+                    break;
+                }
+                try {
+                    Thread.sleep(clockTick);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                retriedCount++;
             }
-            retriedCount++;
-            line = reader.readLine();
         }
+        reader.reset();
+        String line = reader.readLine();
         return line;
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 import org.gradle.api.internal.cache.MinimalPersistentCache;
 import org.gradle.cache.CacheRepository;
 
-import static org.gradle.messaging.serialize.BaseSerializerFactory.BYTE_ARRAY_SERIALIZER;
+import static org.gradle.internal.serialize.BaseSerializerFactory.BYTE_ARRAY_SERIALIZER;
 
 /**
  * Cross-process, global cache of class bytecode/dependency analysis. Required to make incremental java compilation fast.

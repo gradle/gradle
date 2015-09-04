@@ -21,12 +21,15 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependencyMatchers
-import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.model.ModelMap
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.NativeBinary
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
+import org.gradle.platform.base.ComponentSpec
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -42,6 +45,10 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
 
     abstract String getPluginName();
 
+    ModelMap<ComponentSpec> realizeComponents() {
+        project.modelRegistry.realize(ModelPath.path("components"), ModelTypes.modelMap(ComponentSpec))
+    }
+
     def "creates source set with conventional locations for components"() {
         when:
         dsl {
@@ -56,26 +63,26 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         }
 
         then:
-        def components = project.componentSpecs
+        def components = realizeComponents()
         components.size() == 2
-        components*.name == ["exe", "lib"]
+        components.values()*.name == ["exe", "lib"]
 
         and:
         def exe = components.exe
-        exe.sources instanceof FunctionalSourceSet
+        exe.sources instanceof ModelMap
         sourceSetClass.isInstance(exe.sources."$pluginName")
         exe.sources."$pluginName".source.srcDirs == [project.file("src/exe/$pluginName")] as Set
         exe.sources."$pluginName".exportedHeaders.srcDirs == [project.file("src/exe/headers")] as Set
 
         and:
         def lib = components.lib
-        lib.sources instanceof FunctionalSourceSet
+        lib.sources instanceof ModelMap
         sourceSetClass.isInstance(lib.sources."$pluginName")
         lib.sources."$pluginName".source.srcDirs == [project.file("src/lib/$pluginName")] as Set
         lib.sources."$pluginName".exportedHeaders.srcDirs == [project.file("src/lib/headers")] as Set
 
         and:
-        project.sources as Set == lib.sources + exe.sources
+        project.sources as Set == (lib.sources as Set) + (exe.sources as Set)
     }
 
     def "can configure source set locations"() {
@@ -113,14 +120,16 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
             }
         }
 
+
         expect:
-        def exe = project.componentSpecs.exe
+        def components = realizeComponents()
+        def exe = components.exe
         with(exe.sources."$pluginName") {
             source.srcDirs*.name == ["d1", "d2"]
             exportedHeaders.srcDirs*.name == ["h1", "h2"]
         }
 
-        def lib = project.componentSpecs.lib
+        def lib = components.lib
         with(lib.sources."$pluginName") {
             source.srcDirs*.name == ["d3"]
             exportedHeaders.srcDirs*.name == ["h3"]
@@ -174,6 +183,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
     def dsl(@DelegatesTo(Project) Closure closure) {
         closure.delegate = project
         closure()
-        project.evaluate()
+        project.tasks.realize()
+        project.bindAllModelRules()
     }
 }

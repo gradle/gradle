@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.TestAppender
+import org.gradle.logging.TestOutputEventListener
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.junit.Rule
@@ -27,8 +27,8 @@ import spock.lang.Specification
 class NonCancellableConsumerConnectionAdapterTest extends Specification {
     final target = Mock(ConsumerConnection)
     final connection = new NonCancellableConsumerConnectionAdapter(target)
-    final appender = new TestAppender()
-    @Rule ConfigureLogging logging = new ConfigureLogging(appender)
+    final outputEventListener = new TestOutputEventListener()
+    @Rule ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def "delegates to connection to run build action"() {
         def action = Mock(BuildAction)
@@ -53,7 +53,7 @@ class NonCancellableConsumerConnectionAdapterTest extends Specification {
 
         given:
         _ * target.run(action, parameters) >> {
-            cancellation.doCancel()
+            cancellation.cancel()
             'result'
         }
 
@@ -65,7 +65,7 @@ class NonCancellableConsumerConnectionAdapterTest extends Specification {
 
         and:
         cancellation.cancellationRequested
-        appender.toString().contains('Note: Version of Gradle provider does not support cancellation.')
+        outputEventListener.toString().contains('Note: Version of Gradle provider does not support cancellation.')
     }
 
     def "no logging when cancelled after action"() {
@@ -77,7 +77,7 @@ class NonCancellableConsumerConnectionAdapterTest extends Specification {
 
         when:
         def result = connection.run(action, parameters)
-        cancellation.doCancel()
+        cancellation.cancel()
 
         then:
         result == 'result'
@@ -85,6 +85,6 @@ class NonCancellableConsumerConnectionAdapterTest extends Specification {
         and:
         1 * target.run(action, parameters) >> 'result'
         cancellation.cancellationRequested
-        appender.toString().empty
+        outputEventListener.toString().empty
     }
 }

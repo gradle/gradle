@@ -34,6 +34,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     private final Instantiator instantiator;
     private final Namer<? super T> namer;
+    private final Index<T> index;
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
     private final Convention convention;
@@ -48,19 +49,28 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         this.convention = new DefaultConvention(instantiator);
         this.dynamicObject = new ExtensibleDynamicObject(this, new ContainerDynamicObject(elementsDynamicObject), convention);
         this.namer = namer;
+        this.index = new UnfilteredIndex<T>();
+        index();
     }
 
-    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister, Instantiator instantiator, Namer<? super T> namer) {
+    protected void index() {
+        for (T t : getStore()) {
+            index.put(namer.determineName(t), t);
+        }
+    }
+
+    protected DefaultNamedDomainObjectCollection(Class<? extends T> type, Collection<T> store, CollectionEventRegister<T> eventRegister, Index<T> index, Instantiator instantiator, Namer<? super T> namer) {
         super(type, store, eventRegister);
         this.instantiator = instantiator;
         this.convention = new DefaultConvention(instantiator);
         this.dynamicObject = new ExtensibleDynamicObject(this, new ContainerDynamicObject(elementsDynamicObject), convention);
         this.namer = namer;
+        this.index = index;
     }
 
     // should be protected, but use of the class generator forces it to be public
     public DefaultNamedDomainObjectCollection(DefaultNamedDomainObjectCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
-        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), instantiator, namer);
+        this(filter.getType(), collection.filteredStore(filter), collection.filteredEvents(filter), collection.filteredIndex(filter), instantiator, namer);
     }
 
     /**
@@ -75,9 +85,26 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
+    @Override
+    protected void didAdd(T toAdd) {
+        index.put(namer.determineName(toAdd), toAdd);
+    }
+
+    @Override
+    public void clear() {
+        super.clear();
+        index.clear();
+    }
+
+
+    @Override
+    protected void didRemove(T t) {
+        index.remove(namer.determineName(t));
+    }
+
+
     /**
-     * <p>Subclass hook for implementations wanting to throw an exception when an attempt is made to add
-     * an item with the same name as an existing item.</p>
+     * <p>Subclass hook for implementations wanting to throw an exception when an attempt is made to add an item with the same name as an existing item.</p>
      *
      * <p>This implementation does not thrown an exception, meaning that {@code add(T)} will simply return {@code false}.
      *
@@ -104,11 +131,15 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public Namer<T> getNamer() {
-        return (Namer)this.namer;
+        return (Namer) this.namer;
     }
 
     protected Instantiator getInstantiator() {
         return instantiator;
+    }
+
+    protected <S extends T> Index<S> filteredIndex(CollectionFilter<S> filter) {
+        return index.filter(filter);
     }
 
     /**
@@ -123,19 +154,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public SortedMap<String, T> getAsMap() {
-        SortedMap<String, T> map = new TreeMap<String, T>();
-        for (T o : getStore()) {
-            map.put(namer.determineName(o), o);
-        }
-        return map;
+        return index.asMap();
     }
 
     public SortedSet<String> getNames() {
-        SortedSet<String> set = new TreeSet<String>();
-        for (T o : getStore()) {
-            set.add(namer.determineName(o));
-        }
-        return set;
+        return index.asMap().navigableKeySet();
     }
 
     public <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type) {
@@ -164,12 +187,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     protected T findByNameWithoutRules(String name) {
-        for (T o : getStore()) {
-            if (name.equals(namer.determineName(o))) {
-                return o;
-            }
-        }
-        return null;
+        return index.get(name);
     }
 
     protected T removeByName(String name) {
@@ -205,8 +223,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     /**
-     * Returns a {@link DynamicObject} which can be used to access the domain objects as dynamic properties and
-     * methods.
+     * Returns a {@link DynamicObject} which can be used to access the domain objects as dynamic properties and methods.
      *
      * @return The dynamic object
      */
@@ -331,4 +348,105 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             return (arguments.length == 1 && arguments[0] instanceof Closure) && hasProperty(name);
         }
     }
+
+    protected static interface Index<T> {
+        void put(String name, T value);
+
+        T get(String name);
+
+        void remove(String name);
+
+        void clear();
+
+        NavigableMap<String, T> asMap();
+
+        <S extends T> Index<S> filter(CollectionFilter<S> filter);
+    }
+
+    protected static class UnfilteredIndex<T> implements Index<T> {
+
+        private final NavigableMap<String, T> map = new TreeMap<String, T>();
+
+        @Override
+        public NavigableMap<String, T> asMap() {
+            return map;
+        }
+
+        @Override
+        public void put(String name, T value) {
+            map.put(name, value);
+        }
+
+        @Override
+        public T get(String name) {
+            return map.get(name);
+        }
+
+        @Override
+        public void remove(String name) {
+            map.remove(name);
+        }
+
+        @Override
+        public void clear() {
+            map.clear();
+        }
+
+        @Override
+        public <S extends T> Index<S> filter(CollectionFilter<S> filter) {
+            return new FilteredIndex<S>(this, filter);
+        }
+    }
+
+    private static class FilteredIndex<T> implements Index<T> {
+
+        private final Index<? super T> delegate;
+        private final CollectionFilter<T> filter;
+
+        public FilteredIndex(Index<? super T> delegate, CollectionFilter<T> filter) {
+            this.delegate = delegate;
+            this.filter = filter;
+        }
+
+        @Override
+        public void put(String name, T value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public T get(String name) {
+            return filter.filter(delegate.get(name));
+        }
+
+        @Override
+        public void remove(String name) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public NavigableMap<String, T> asMap() {
+            NavigableMap<String, ? super T> delegateMap = delegate.asMap();
+
+            NavigableMap<String, T> filtered = new TreeMap<String, T>();
+            for (Map.Entry<String, ? super T> entry : delegateMap.entrySet()) {
+                T obj = filter.filter(entry.getValue());
+                if (obj != null) {
+                    filtered.put(entry.getKey(), obj);
+                }
+            }
+
+            return filtered;
+        }
+
+        @Override
+        public <S extends T> Index<S> filter(CollectionFilter<S> filter) {
+            return new FilteredIndex<S>(delegate, this.filter.and(filter));
+        }
+    }
+
 }

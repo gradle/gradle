@@ -36,6 +36,9 @@ webapp:dependencyInsight - Displays the insight into a specific dependency in pr
 help - Displays a help message.
 api:help - Displays a help message.
 webapp:help - Displays a help message.
+model - Displays the configuration model of root project 'projectReports'. [incubating]
+api:model - Displays the configuration model of project ':api'. [incubating]
+webapp:model - Displays the configuration model of project ':webapp'. [incubating]
 projects - Displays the sub-projects of root project 'projectReports'.
 api:projects - Displays the sub-projects of project ':api'.
 webapp:projects - Displays the sub-projects of project ':webapp'.

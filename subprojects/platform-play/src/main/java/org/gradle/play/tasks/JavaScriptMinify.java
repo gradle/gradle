@@ -16,28 +16,29 @@
 
 package org.gradle.play.tasks;
 
-import com.beust.jcommander.internal.Lists;
-import org.apache.commons.lang.StringUtils;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
-import org.gradle.plugins.javascript.base.SourceTransformationException;
-import org.gradle.process.internal.DefaultJavaExecAction;
-import org.gradle.process.internal.ExecException;
-import org.gradle.process.internal.JavaExecAction;
+import org.gradle.platform.base.internal.toolchain.ToolProvider;
+import org.gradle.play.internal.javascript.DefaultJavaScriptCompileSpec;
+import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
+import org.gradle.play.internal.toolchain.PlayToolChainInternal;
+import org.gradle.play.platform.PlayPlatform;
+import org.gradle.play.toolchain.PlayToolChain;
+import org.gradle.language.base.internal.compile.Compiler;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -49,16 +50,10 @@ import java.util.List;
 @Incubating
 public class JavaScriptMinify extends SourceTask {
     private File destinationDir;
-    private Object closureCompilerClasspath;
-
-    private static final String DEFAULT_GOOGLE_CLOSURE_VERSION = "v20141215";
-
-    static String getDefaultGoogleClosureNotation() {
-        return String.format("com.google.javascript:closure-compiler:%s", DEFAULT_GOOGLE_CLOSURE_VERSION);
-    }
+    private PlayPlatform playPlatform;
+    private BaseForkOptions forkOptions;
 
     public JavaScriptMinify() {
-        setClosureCompilerNotation(getDefaultGoogleClosureNotation());
         this.include("**/*.js");
     }
 
@@ -67,31 +62,60 @@ public class JavaScriptMinify extends SourceTask {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Returns the tool chain that will be used to compile the JavaScript source.
+     *
+     * @return The tool chain.
+     */
+    @Incubating
+    @Inject
+    public PlayToolChain getToolChain() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns the output directory that processed JavaScript is written to.
+     *
+     * @return The output directory.
+     */
     @OutputDirectory
     public File getDestinationDir() {
         return destinationDir;
     }
 
+    /**
+     * Sets the output directory where processed JavaScript should be written.
+     *
+     * @param destinationDir The output directory.
+     */
     public void setDestinationDir(File destinationDir) {
         this.destinationDir = destinationDir;
     }
 
-    @InputFiles
-    public Object getClosureCompilerClasspath() {
-        return getProject().files(closureCompilerClasspath);
+    /**
+     * Sets the target Play platform.
+     *
+     * @param playPlatform The target Play platform.
+     */
+    public void setPlayPlatform(PlayPlatform playPlatform) {
+        this.playPlatform = playPlatform;
     }
 
-    public void setClosureCompilerClasspath(Object closureCompilerClasspath) {
-        this.closureCompilerClasspath = closureCompilerClasspath;
+    private Compiler<JavaScriptCompileSpec> getCompiler() {
+        ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(playPlatform);
+        return select.newCompiler(JavaScriptCompileSpec.class);
     }
 
-    public void setClosureCompilerNotation(String notation) {
-        setClosureCompilerClasspath(getDetachedConfiguration(notation));
-    }
-
-    private Configuration getDetachedConfiguration(String notation) {
-        Dependency dependency = getProject().getDependencies().create(notation);
-        return getProject().getConfigurations().detachedConfiguration(dependency);
+    /**
+     * The fork options to be applied to the JavaScript compiler.
+     *
+     * @return The fork options for the JavaScript compiler.
+     */
+    public BaseForkOptions getForkOptions() {
+        if (forkOptions == null) {
+            forkOptions = new BaseForkOptions();
+        }
+        return forkOptions;
     }
 
     @TaskAction
@@ -99,24 +123,19 @@ public class JavaScriptMinify extends SourceTask {
         StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
         cleaner.setDestinationDir(getDestinationDir());
         cleaner.execute();
-        MinifyFileVisitor visitor = new MinifyFileVisitor(getClosureCompilerClasspath());
+
+        MinifyFileVisitor visitor = new MinifyFileVisitor();
         getSource().visit(visitor);
-        if (visitor.hasFailures) {
-            throw new SourceTransformationException(String.format("Minification failed for the following files:\n\t%s", StringUtils.join(visitor.failedFiles, "\n\t")), null);
-        }
+
+        JavaScriptCompileSpec spec = new DefaultJavaScriptCompileSpec(visitor.relativeFiles, getDestinationDir(), getForkOptions());
+        getCompiler().execute(spec);
     }
 
     /**
-     * Minifies each file in the source set
+     * Copies each file in the source set to the output directory and gathers relative files for compilation
      */
     class MinifyFileVisitor implements FileVisitor {
-        Object classpath;
-        Boolean hasFailures = false;
-        List<String> failedFiles = Lists.newArrayList();
-
-        public MinifyFileVisitor(Object classpath) {
-            this.classpath = classpath;
-        }
+        List<RelativeFile> relativeFiles = Lists.newArrayList();
 
         @Override
         public void visitDir(FileVisitDetails dirDetails) {
@@ -126,7 +145,6 @@ public class JavaScriptMinify extends SourceTask {
         @Override
         public void visitFile(final FileVisitDetails fileDetails) {
             final File outputFileDir = new File(destinationDir, fileDetails.getRelativePath().getParent().getPathString());
-            File outputFile = new File(outputFileDir, getMinifiedFileName(fileDetails.getName()));
 
             // Copy the raw form
             FileOperations fileOperations = (ProjectInternal) getProject();
@@ -137,24 +155,8 @@ public class JavaScriptMinify extends SourceTask {
                 }
             });
 
-            // Compile the minified form
-            JavaExecAction action = new DefaultJavaExecAction(getFileResolver());
-            action.setMain("com.google.javascript.jscomp.CommandLineRunner");
-            action.args("--js", fileDetails.getFile().getPath(), "--js_output_file", outputFile.getPath());
-            action.classpath(classpath);
-            try {
-                action.execute();
-            } catch(ExecException e) {
-                hasFailures = true;
-                failedFiles.add(fileDetails.getRelativePath().getPathString());
-            }
-        }
-
-        private String getMinifiedFileName(String fileName) {
-            int extIndex = fileName.lastIndexOf('.');
-            String prefix = fileName.substring(0, extIndex);
-            String extension = fileName.substring(extIndex);
-            return String.format("%s.min%s", prefix, extension);
+            // Capture the relative file
+            relativeFiles.add(new RelativeFile(fileDetails.getFile(), fileDetails.getRelativePath()));
         }
     }
 }

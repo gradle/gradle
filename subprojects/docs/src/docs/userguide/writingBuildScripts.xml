@@ -175,6 +175,25 @@
             <para>For further details on extra properties and their API, see the <apilink class="org.gradle.api.plugins.ExtraPropertiesExtension"/> class in the API documentation.</para>
         </section>
     </section>
+    <section id='sec:configuring_arbitrary_objects'>
+        <title>Configuring arbitrary objects</title>
+        <para>You can configure arbitrary objects in the following very readable way.
+        </para>
+        <sample id="configureObject" dir="userguide/tutorial/configureObject" title="Configuring arbitrary objects">
+            <sourcefile file="build.gradle"/>
+            <output args="-q configure"/>
+        </sample>
+    </section>
+    <section>
+        <title>Configuring arbitrary objects using an external script</title>
+        <para>You can also configure arbitrary objects using an external script.
+        </para>
+        <sample id="configureObjectUsingScript" dir="userguide/tutorial/configureObjectUsingScript" title="Configuring arbitrary objects using a script">
+            <sourcefile file="build.gradle"/>
+            <sourcefile file="other.gradle"/>
+            <output args="-q configure"/>
+        </sample>
+    </section>
     <section>
         <title>Some Groovy basics</title>
         <para>Groovy provides plenty of features for creating DSLs, and the Gradle build language takes advantage of these.

@@ -47,12 +47,8 @@ public class JvmResourcesPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
-    /**
-     * Model rules.
-     */
     @SuppressWarnings("UnusedDeclaration")
-    @RuleSource
-    static class Rules {
+    static class Rules extends RuleSource {
         @LanguageType
         void registerLanguage(LanguageTypeBuilder<JvmResourceSet> builder) {
             builder.setLanguageName("resources");
@@ -88,7 +84,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                     return ProcessResources.class;
                 }
 
-                public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet) {
+                public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     ProcessResources resourcesTask = (ProcessResources) task;
                     JvmResourceSet resourceSet = (JvmResourceSet) sourceSet;
                     JvmBinarySpec jvmBinary = (JvmBinarySpec) binary;

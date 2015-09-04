@@ -191,7 +191,7 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     private File browseForDirectory(File initialFile) {
 
         if (initialFile == null) {
-            initialFile = SystemProperties.getCurrentDir();
+            initialFile = SystemProperties.getInstance().getCurrentDir();
         }
 
         JFileChooser chooser = new JFileChooser(initialFile);
@@ -490,7 +490,7 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
      * Call this to browse for a custom gradle executor.
      */
     private void browseForCustomGradleExecutor() {
-        File startingDirectory = new File(SystemProperties.getUserHome());
+        File startingDirectory = new File(SystemProperties.getInstance().getUserHome());
         File currentFile = gradlePluginLord.getCustomGradleExecutor();
         if (currentFile != null) {
             startingDirectory = currentFile.getAbsoluteFile();

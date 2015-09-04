@@ -13,7 +13,7 @@ repositories {
 dependencies {
     compile "org.gradle:gradle-tooling-api:${toolingApiVersion}"
     // Need an SLF4J implementation at runtime
-    runtime 'org.slf4j:slf4j-simple:1.7.7'
+    runtime 'org.slf4j:slf4j-simple:1.7.10'
 }
 
 mainClassName = 'org.gradle.sample.Main'

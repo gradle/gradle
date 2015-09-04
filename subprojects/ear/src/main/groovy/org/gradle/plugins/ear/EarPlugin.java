@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ear;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -59,7 +58,7 @@ public class EarPlugin implements Plugin<Project> {
     }
 
     public void apply(final Project project) {
-        project.apply(ImmutableMap.of("type", BasePlugin.class));
+        project.getPluginManager().apply(BasePlugin.class);
 
         final EarPluginConvention earPluginConvention = instantiator.newInstance(EarPluginConvention.class, fileResolver, instantiator);
         project.getConvention().getPlugins().put("ear", earPluginConvention);
@@ -159,10 +158,14 @@ public class EarPlugin implements Plugin<Project> {
         project.getTasks().withType(Ear.class, new Action<Ear>() {
             public void execute(Ear task) {
                 task.getConventionMapping().map("libDirName", new Callable<String>() {
-                    public String call() throws Exception { return earConvention.getLibDirName(); }
+                    public String call() throws Exception {
+                        return earConvention.getLibDirName();
+                    }
                 });
                 task.getConventionMapping().map("deploymentDescriptor", new Callable<DeploymentDescriptor>() {
-                    public DeploymentDescriptor call() throws Exception { return earConvention.getDeploymentDescriptor(); }
+                    public DeploymentDescriptor call() throws Exception {
+                        return earConvention.getDeploymentDescriptor();
+                    }
                 });
             }
         });

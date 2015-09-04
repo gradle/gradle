@@ -15,6 +15,8 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
+import org.gradle.language.nativeplatform.internal.Include;
+import org.gradle.language.nativeplatform.internal.SourceIncludes;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -35,7 +37,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         searchForDependencies(dependencies, prependSourceDir(sourceFile, includePaths), includes.getQuotedIncludes());
         searchForDependencies(dependencies, includePaths, includes.getSystemIncludes());
         if (!includes.getMacroIncludes().isEmpty()) {
-            dependencies.add(new ResolvedInclude(includes.getMacroIncludes().get(0), null));
+            dependencies.add(new ResolvedInclude(includes.getMacroIncludes().get(0).getValue(), null));
         }
 
         return dependencies;
@@ -48,9 +50,9 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return quotedSearchPath;
     }
 
-    private void searchForDependencies(Set<ResolvedInclude> dependencies, List<File> searchPath, List<String> includes) {
-        for (String include : includes) {
-            searchForDependency(dependencies, searchPath, include);
+    private void searchForDependencies(Set<ResolvedInclude> dependencies, List<File> searchPath, List<Include> includes) {
+        for (Include include : includes) {
+            searchForDependency(dependencies, searchPath, include.getValue());
         }
     }
 

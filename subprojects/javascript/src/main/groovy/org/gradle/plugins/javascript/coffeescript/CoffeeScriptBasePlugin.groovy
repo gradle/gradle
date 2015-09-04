@@ -24,17 +24,18 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ResolvableDependencies
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.plugins.javascript.base.JavaScriptExtension
 import org.gradle.plugins.javascript.rhino.RhinoExtension
+import org.gradle.plugins.javascript.rhino.RhinoPlugin
 
 import static org.gradle.plugins.javascript.coffeescript.CoffeeScriptExtension.*
 
 class CoffeeScriptBasePlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.apply(plugin: "rhino")
+        project.pluginManager.apply(RhinoPlugin)
 
         JavaScriptExtension jsExtension = project.extensions.getByType(JavaScriptExtension)
         CoffeeScriptExtension csExtension = jsExtension.extensions.create(CoffeeScriptExtension.NAME, CoffeeScriptExtension)
@@ -55,13 +56,12 @@ class CoffeeScriptBasePlugin implements Plugin<Project> {
 
     private Configuration addJsConfiguration(ConfigurationContainer configurations, DependencyHandler dependencies, CoffeeScriptExtension extension) {
         Configuration configuration = configurations.create(CoffeeScriptExtension.JS_CONFIGURATION_NAME)
-        configuration.incoming.beforeResolve(new Action<ResolvableDependencies>() {
-            void execute(ResolvableDependencies resolvableDependencies) {
-                if (configuration.dependencies.empty) {
-                    String notation = "${DEFAULT_JS_DEPENDENCY_GROUP}:${DEFAULT_JS_DEPENDENCY_MODULE}:${extension.version}@js"
-                    Dependency dependency = dependencies.create(notation)
-                    configuration.dependencies.add(dependency)
-                }
+        configuration.defaultDependencies(new Action<DependencySet>() {
+            @Override
+            void execute(DependencySet configDependencies) {
+                String notation = "${DEFAULT_JS_DEPENDENCY_GROUP}:${DEFAULT_JS_DEPENDENCY_MODULE}:${extension.version}@js"
+                Dependency dependency = dependencies.create(notation)
+                configDependencies.add(dependency)
             }
         })
         configuration

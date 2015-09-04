@@ -18,15 +18,14 @@ package org.gradle.play;
 
 import org.gradle.api.BuildableModelElement;
 import org.gradle.api.Incubating;
-import org.gradle.api.file.FileCollection;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * A set of classes and resources that operate together.
  */
 @Incubating
-// TODO:DAZ Move this to platform-jvm
 public interface JvmClasses extends BuildableModelElement {
     /**
      * The classes directory for this binary.
@@ -41,7 +40,7 @@ public interface JvmClasses extends BuildableModelElement {
     /**
      * A set of resource directories for this binary.
      */
-    FileCollection getResourceDirs();
+    Set<File> getResourceDirs();
 
     /**
      * Add a resource directory to this binary.

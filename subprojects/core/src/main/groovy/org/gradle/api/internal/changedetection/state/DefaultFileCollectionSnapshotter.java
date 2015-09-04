@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.messaging.serialize.SerializerRegistry;
+import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.NoOpChangeListener;
 

@@ -19,13 +19,14 @@ package org.gradle.api.reporting.components.internal;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 public class DiagnosticsServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
-            TypeAwareBinaryRenderer createBinaryRenderer(ServiceRegistry services) {
+            TypeAwareBinaryRenderer createBinaryRenderer(ServiceRegistry services, ModelSchemaStore schemaStore) {
                 TypeAwareBinaryRenderer renderer = new TypeAwareBinaryRenderer();
-                renderer.register(new BinaryRenderer());
+                renderer.register(new BinaryRenderer(schemaStore));
                 for (AbstractBinaryRenderer binaryRenderer : services.getAll(AbstractBinaryRenderer.class)) {
                     renderer.register(binaryRenderer);
                 }
@@ -34,7 +35,13 @@ public class DiagnosticsServices implements PluginServiceRegistry {
         });
     }
 
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+    }
+
     public void registerBuildServices(ServiceRegistration registration) {
+    }
+
+    public void registerGradleServices(ServiceRegistration registration) {
     }
 
     public void registerProjectServices(ServiceRegistration registration) {

@@ -17,15 +17,10 @@
 package org.gradle.internal.resource.transport;
 
 
-import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.local.LocalResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
-import org.gradle.internal.resource.transfer.ExternalResourceLister;
-import org.gradle.internal.resource.transfer.ExternalResourceUploader;
+import org.gradle.internal.resource.transfer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,79 +34,51 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
     private final ExternalResourceAccessor accessor;
     private final ExternalResourceUploader uploader;
     private final ExternalResourceLister lister;
+    private final ExternalResourceAccessor loggingAccessor;
+    private final ExternalResourceUploader loggingUploader;
 
-    public DefaultExternalResourceRepository(String name, ExternalResourceAccessor accessor, ExternalResourceUploader uploader,
-                                             ExternalResourceLister lister) {
+    public DefaultExternalResourceRepository(String name,
+                                             ExternalResourceAccessor accessor,
+                                             ExternalResourceUploader uploader,
+                                             ExternalResourceLister lister,
+                                             ExternalResourceAccessor loggingAccessor,
+                                             ExternalResourceUploader loggingUploader) {
         this.name = name;
         this.accessor = accessor;
         this.uploader = uploader;
         this.lister = lister;
+        this.loggingAccessor = loggingAccessor;
+        this.loggingUploader = loggingUploader;
     }
 
-    public ExternalResource getResource(URI source) throws IOException {
-        return accessor.getResource(source);
+    @Override
+    public ExternalResourceRepository withProgressLogging() {
+        if (loggingAccessor == accessor && loggingUploader == uploader) {
+            return this;
+        }
+        return new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, lister, loggingAccessor, loggingUploader);
     }
 
-    public ExternalResourceMetaData getResourceMetaData(URI source) throws IOException {
+    public ExternalResource getResource(URI source) {
+        ExternalResourceReadResponse response = accessor.openResource(source);
+        return response == null ? null : new DefaultExternalResource(source, response);
+    }
+
+    public ExternalResourceMetaData getResourceMetaData(URI source) {
         return accessor.getMetaData(source);
     }
 
-    public void put(File source, URI destination) throws IOException {
-        doPut(source, destination);
-        putChecksum("SHA1", 40, source, destination);
-    }
-
-    private void putChecksum(String algorithm, int checksumlength, File source, URI destination) throws IOException {
-        byte[] checksumFile = createChecksumFile(source, algorithm, checksumlength);
-        URI checksumDestination = URI.create(destination + "." + algorithm.toLowerCase());
-        doPut(checksumFile, checksumDestination);
-    }
-
-    private byte[] createChecksumFile(File src, String algorithm, int checksumlength) {
-        HashValue hash = HashUtil.createHash(src, algorithm);
-        String formattedHashString = formatHashString(hash.asHexString(), checksumlength);
-        try {
-            return formattedHashString.getBytes("US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private String formatHashString(String hashKey, int length) {
-        while (hashKey.length() < length) {
-            hashKey = "0" + hashKey;
-        }
-        return hashKey;
-    }
-
-    private void doPut(final File source, URI destination) throws IOException {
+    public void put(LocalResource source, URI destination) throws IOException {
         LOGGER.debug("Attempting to put resource {}.", destination);
-        assert source.isFile();
-        uploader.upload(new Factory<InputStream>() {
-            public InputStream create() {
-                try {
-                    return new FileInputStream(source);
-                } catch (FileNotFoundException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-        }, source.length(), destination);
+        uploader.upload(source, destination);
     }
 
-    private void doPut(final byte[] source, URI destination) throws IOException {
-        LOGGER.debug("Attempting to put resource {}.", destination);
-        uploader.upload(new Factory<InputStream>() {
-            public InputStream create() {
-                return new ByteArrayInputStream(source);
-            }
-        }, (long)source.length, destination);
-    }
-
-    public List<String> list(URI parent) throws IOException {
+    public List<String> list(URI parent) {
         return lister.list(parent);
     }
 
     public String toString() {
         return name;
     }
+
 }

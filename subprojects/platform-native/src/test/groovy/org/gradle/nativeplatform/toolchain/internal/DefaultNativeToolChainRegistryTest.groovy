@@ -85,7 +85,7 @@ class DefaultNativeToolChainRegistryTest extends Specification {
         def result = tc.select(platform)
 
         when:
-        result.newCompiler(Stub(CCompileSpec))
+        result.newCompiler(CCompileSpec.class)
 
         then:
         GradleException e = thrown()

@@ -16,23 +16,27 @@
 
 package org.gradle.nativeplatform.internal;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
+import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
+import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
+import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.io.File;
+import java.util.*;
 
 public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements NativeBinarySpecInternal {
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
@@ -46,6 +50,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     private NativePlatform targetPlatform;
     private BuildType buildType;
     private NativeDependencyResolver resolver;
+    private Map<File, PreCompiledHeader> prefixFileToPCH = Maps.newHashMap();
 
     public String getDisplayName() {
         return namingScheme.getDescription();
@@ -55,9 +60,8 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
         return component;
     }
 
-    public void setComponent(NativeComponentSpec component) {
-        this.component = component;
-        setBinarySources(((ComponentSpecInternal) component).getSources().copy(getName()));
+    public void setComponent(ComponentSpec component) {
+        this.component = (NativeComponentSpec) component;
     }
 
     public Flavor getFlavor() {
@@ -109,7 +113,7 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     }
 
     public Collection<NativeDependencySet> getLibs() {
-        return resolve(getSource().withType(DependentSourceSet.class)).getAllResults();
+        return resolve(getInputs().withType(DependentSourceSet.class)).getAllResults();
     }
 
     public Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet) {
@@ -121,10 +125,14 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     }
 
     public Collection<NativeLibraryBinary> getDependentBinaries() {
-        return resolve(getSource().withType(DependentSourceSet.class)).getAllLibraryBinaries();
+        return resolve(getInputs().withType(DependentSourceSet.class)).getAllLibraryBinaries();
     }
 
-    private NativeBinaryResolveResult resolve(Collection<? extends DependentSourceSet> sourceSets) {
+    public Map<File, PreCompiledHeader> getPrefixFileToPCH() {
+        return prefixFileToPCH;
+    }
+
+    private NativeBinaryResolveResult resolve(Iterable<? extends DependentSourceSet> sourceSets) {
         Set<? super Object> allLibs = new LinkedHashSet<Object>(libs);
         for (DependentSourceSet dependentSourceSet : sourceSets) {
             allLibs.addAll(dependentSourceSet.getLibs());
@@ -144,6 +152,13 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
 
     public void setResolver(NativeDependencyResolver resolver) {
         this.resolver = resolver;
+    }
+
+    @Override
+    protected BinaryBuildAbility getBinaryBuildAbility() {
+        NativeToolChainInternal toolChainInternal = (NativeToolChainInternal) getToolChain();
+        NativePlatformInternal platformInternal = (NativePlatformInternal) getTargetPlatform();
+        return new ToolSearchBuildAbility(toolChainInternal.select(platformInternal));
     }
 
     public void binaryInputs(FileCollection files) {

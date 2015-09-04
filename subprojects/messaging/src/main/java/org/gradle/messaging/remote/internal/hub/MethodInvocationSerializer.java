@@ -17,11 +17,11 @@
 package org.gradle.messaging.remote.internal.hub;
 
 import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.ObjectReader;
-import org.gradle.messaging.serialize.ObjectWriter;
-import org.gradle.messaging.serialize.kryo.StatefulSerializer;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.ObjectReader;
+import org.gradle.internal.serialize.ObjectWriter;
+import org.gradle.internal.serialize.StatefulSerializer;
 
 import java.io.IOException;
 import java.lang.reflect.Method;

@@ -22,12 +22,14 @@ import spock.lang.Issue;
 public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2702")
-    def "should not resolve configurations when there are no tests"() {
+    def "should not resolve configuration results when there are no tests"() {
         buildFile << """
             apply plugin: 'java'
 
-            configure([configurations.testRuntime, configurations.testCompile]) {
-                incoming.beforeResolve { assert false : "should not be resolved" }
+            configure([configurations.testRuntime, configurations.testCompile]) { configuration ->
+                incoming.afterResolve {
+                    assert configuration.resolvedState == org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.TASK_DEPENDENCIES_RESOLVED : "should not be resolved"
+                }
             }
         """
 

@@ -22,12 +22,12 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.XmlConfigFile
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.language.rc.WindowsResourceSet
-import org.gradle.nativeplatform.NativeBinary
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeComponentSpec
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.util.CollectionUtils
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
@@ -39,7 +39,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
     private final NativeComponentSpec component
     private final List<File> additionalFiles = []
     final Set<LanguageSourceSet> sources = new LinkedHashSet<LanguageSourceSet>()
-    private final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
+    private final Map<NativeBinarySpec, VisualStudioProjectConfiguration> configurations = [:]
 
     DefaultVisualStudioProject(String name, NativeComponentSpec component, FileResolver fileResolver, Instantiator instantiator) {
         this.name = name
@@ -117,7 +117,8 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
 
     void addConfiguration(NativeBinarySpec nativeBinary, VisualStudioProjectConfiguration configuration) {
         configurations[nativeBinary] = configuration
-        source nativeBinary.source
+        def specInternal = nativeBinary as NativeBinarySpecInternal
+        source specInternal.inputs
     }
 
     VisualStudioProjectConfiguration getConfiguration(NativeBinarySpec nativeBinary) {

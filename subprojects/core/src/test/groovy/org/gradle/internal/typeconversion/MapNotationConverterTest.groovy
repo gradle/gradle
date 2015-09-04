@@ -15,12 +15,12 @@
  */
 package org.gradle.internal.typeconversion
 
-import spock.lang.Specification
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.Optional
+import spock.lang.Specification
 
 class MapNotationConverterTest extends Specification {
-    final NotationParser parser = new NotationConverterToNotationParserAdapter<>(new DummyConverter())
+    final NotationParser parser = NotationParserBuilder.toType(TargetObject).converter(new DummyConverter()).toComposite()
     
     def "parses map with required keys"() {
         expect:

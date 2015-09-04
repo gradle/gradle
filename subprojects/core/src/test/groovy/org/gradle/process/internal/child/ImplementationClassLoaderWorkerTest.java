@@ -18,9 +18,10 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.internal.classloader.MutableURLClassLoader;
+import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.util.GUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -66,7 +67,7 @@ public class ImplementationClassLoaderWorkerTest {
     private class TestImplementationClassLoaderWorker extends ImplementationClassLoaderWorker {
         private TestImplementationClassLoaderWorker(LogLevel logLevel, Collection<String> sharedPackages,
                                                     Collection<URL> implementationClassPath, Action<WorkerContext> workerAction) {
-            super(logLevel, sharedPackages, implementationClassPath, workerAction);
+            super(logLevel, sharedPackages, implementationClassPath, GUtil.serialize(workerAction));
         }
 
         @Override

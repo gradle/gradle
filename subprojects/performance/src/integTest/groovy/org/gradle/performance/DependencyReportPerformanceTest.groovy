@@ -28,7 +28,7 @@ class DependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTes
         runner.testProject = testProject
         runner.tasksToRun = ['dependencyReport']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '1.8', 'last']
+        runner.targetVersions = ['1.0', '1.8', '2.0', '2.2.1', 'last']
 
         when:
         def result = runner.run()

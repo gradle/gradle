@@ -15,9 +15,9 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
-
-import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
+import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -26,7 +26,7 @@ class ModuleForcingResolveRuleSpec extends Specification {
 
     def "forces modules"() {
         given:
-        def details = Mock(DependencyResolveDetailsInternal)
+        def details = Mock(DependencySubstitutionInternal)
 
         when:
         new ModuleForcingResolveRule([
@@ -38,8 +38,9 @@ class ModuleForcingResolveRuleSpec extends Specification {
         ]).execute(details)
 
         then:
-        _ * details.getRequested() >> requested
-        1 * details.useVersion(forcedVersion, VersionSelectionReasons.FORCED)
+        _ * details.requested >> DefaultModuleComponentSelector.newSelector(requested)
+        _ * details.getOldRequested() >> requested
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(requested.group, requested.name, forcedVersion), VersionSelectionReasons.FORCED)
         0 * details._
 
         where:
@@ -52,7 +53,7 @@ class ModuleForcingResolveRuleSpec extends Specification {
 
     def "does not force modules if they dont match"() {
         given:
-        def details = Mock(DependencyResolveDetailsInternal)
+        def details = Mock(DependencySubstitutionInternal)
 
         when:
         new ModuleForcingResolveRule([
@@ -63,7 +64,7 @@ class ModuleForcingResolveRuleSpec extends Specification {
         ]).execute(details)
 
         then:
-        _ * details.getRequested() >> requested
+        _ * details.getOldRequested() >> requested
         0 * details._
 
         where:
@@ -78,7 +79,7 @@ class ModuleForcingResolveRuleSpec extends Specification {
     }
 
     def "does not force anything when input empty"() {
-        def details = Mock(DependencyResolveDetailsInternal)
+        def details = Mock(DependencySubstitutionInternal)
 
         when:
         new ModuleForcingResolveRule([]).execute(details)

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.ivy
 
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
@@ -53,6 +54,12 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
             modules[it].ivy.expectGet()
         }
         modules[chosen].artifact.expectGet()
+
+        then:
+        succeeds 'resolveConf'
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds 'resolveConf'
@@ -107,14 +114,17 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         when:
         server.resetExpectations()
         ivyHttpRepo.directoryList("org.utils", "api").expectGet()
-        downloadedMetadata.each {
-            modules[it].ivy.expectHead()
-        }
 
         then:
         fails 'resolveConf'
-        failureDescriptionStartsWith("Execution failed for task ':resolveConf'.")
-        failureHasCause("Could not resolve all dependencies for configuration ':conf'.")
+        failureHasCause("Could not find any version that matches org.utils:api:${selector}.")
+
+        when:
+        server.resetExpectations()
+        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+
+        then:
+        fails 'resolveConf'
         failureHasCause("Could not find any version that matches org.utils:api:${selector}.")
 
         where:
@@ -129,8 +139,75 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         "latest.milestone"   | "select 1.1"               | '["2.0"]'                             | ['2.1', '2.0']
     }
 
+    def "reports all candidates rejected by rule" () {
+        buildFile << """
+            $httpBaseBuildFile
+
+            dependencies {
+                conf "org.utils:api:1.+"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all ${rules["reject all with metadata"]}
+                    }
+                }
+            }
+"""
+
+        when:
+        def dirList = ivyHttpRepo.directoryList("org.utils", "api")
+        dirList.expectGet()
+        modules["1.2"].ivy.expectGet()
+        modules["1.1"].ivy.expectGet()
+        modules["1.0"].ivy.expectGet()
+
+        then:
+        fails 'resolveConf'
+
+        and:
+        failureHasCause("""Could not find any version that matches org.utils:api:1.+.
+Versions that do not match:
+    2.1
+    2.0
+Versions rejected by component selection rules:
+    1.2
+    1.1
+    1.0
+Searched in the following locations:
+    ${dirList.uri}
+    ${modules["1.2"].ivy.uri}
+    ${modules["1.1"].ivy.uri}
+    ${modules["1.0"].ivy.uri}
+Required by:
+""")
+
+        when:
+        server.resetExpectations()
+        dirList.expectGet()
+
+        then:
+        fails 'resolveConf'
+
+        and:
+        // TODO - this failure and the previous failure should report the same urls (whatever that happens to be)
+        failureHasCause("""Could not find any version that matches org.utils:api:1.+.
+Versions that do not match:
+    2.1
+    2.0
+Versions rejected by component selection rules:
+    1.2
+    1.1
+    1.0
+Searched in the following locations:
+    ${dirList.uri}
+Required by:
+""")
+    }
+
     @Unroll
-    def "uses '#rule' rule to reject all candidates for static version #selector" () {
+    def "uses '#rule' rule to reject candidate for static version #selector" () {
         buildFile << """
             $httpBaseBuildFile
 
@@ -166,8 +243,13 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
 
         then:
         fails 'resolveConf'
-        failureDescriptionStartsWith("Execution failed for task ':resolveConf'.")
-        failureHasCause("Could not resolve all dependencies for configuration ':conf'.")
+        failureHasCause("Could not find org.utils:api:${selector}.")
+
+        when:
+        server.resetExpectations()
+
+        then:
+        fails 'resolveConf'
         failureHasCause("Could not find org.utils:api:${selector}.")
 
         where:
@@ -281,5 +363,66 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         "1.+"                | "select 1.1"    | "1.1"  | '["1.2", "1.1"]'                      | ['1.1']
         "latest.milestone"   | "select status" | "2.0"  | '["2.0"]'                             | ['2.1', '2.0']
         "1.1"                | "select branch" | "1.1"  | '["1.1"]'                             | ['1.1']
+    }
+
+    @Issue("GRADLE-3236")
+    def "can select a different component for the same selector in different configurations" () {
+        buildFile << """
+            $httpBaseBuildFile
+
+            configurations {
+                modules
+                modulesA {
+                    extendsFrom modules
+                    resolutionStrategy {
+                        componentSelection {
+                            all { ComponentSelection selection, IvyModuleDescriptor ivy ->
+                                println "A is evaluating \$selection.candidate"
+                                if (selection.candidate.version != "1.1") { selection.reject("Rejected by A") }
+                            }
+                        }
+                    }
+                }
+                modulesB {
+                    extendsFrom modules
+                    resolutionStrategy {
+                        componentSelection {
+                            all { ComponentSelection selection, IvyModuleDescriptor ivy ->
+                                println "B is evaluating \$selection.candidate"
+                                if (selection.candidate.version != "1.0") { selection.reject("Rejected by B") }
+                            }
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                modules "org.utils:api:1.+"
+            }
+
+            task verify {
+                doLast {
+                    assert configurations.modulesA.files.collect { it.name } == [ 'api-1.1.jar']
+                    assert configurations.modulesB.files.collect { it.name } == [ 'api-1.0.jar']
+                }
+            }
+        """
+
+        when:
+        ivyHttpRepo.directoryList("org.utils", "api").expectGet()
+        modules['1.2'].ivy.expectGet()
+        modules['1.1'].ivy.expectGet()
+        modules['1.0'].ivy.expectGet()
+        modules['1.1'].artifact.expectGet()
+        modules['1.0'].artifact.expectGet()
+
+        then:
+        succeeds "verify"
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds "verify"
     }
 }

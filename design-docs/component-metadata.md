@@ -30,19 +30,7 @@ Also pom import, ivy extends and so on.
 
 ## Dependency reports should indicate reasons for candidate selection (e.g. why other candidates were rejected).
 
-## Add DSL to allow resolution strategy to be applied to all resolution
-
-A mock up:
-
-    dependencies {
-        eachResolution { details ->
-            // Can tweak the inputs to the resolution, eg the strategy, repositories, etc
-        }
-    }
-
-## Change dependency substitution rules to use same pattern as other rules
-
-- `DependencyResolveDetails` uses `ModuleVersionSelector` whereas the result uses `ModuleComponentSelector`.
+## Declarative substitution of group, module and version
 
 ## Feature open issues:
 

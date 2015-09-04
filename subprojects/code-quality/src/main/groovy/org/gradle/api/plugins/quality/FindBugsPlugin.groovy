@@ -34,6 +34,7 @@ import org.gradle.api.tasks.SourceSet
  * @see FindBugsExtension
  */
 class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
+    public static final String DEFAULT_FINDBUGS_VERSION = "3.0.1"
     private FindBugsExtension extension
 
     @Override
@@ -62,7 +63,7 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.extensions.create("findbugs", FindBugsExtension, project)
-        extension.toolVersion = "3.0.0"
+        extension.toolVersion = DEFAULT_FINDBUGS_VERSION
         return extension
     }
 
@@ -72,10 +73,8 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
             pluginClasspath = project.configurations['findbugsPlugins']
         }
         def config = project.configurations['findbugs']
-        config.incoming.beforeResolve {
-            if (config.dependencies.empty) {
-                config.dependencies.add(project.dependencies.create("com.google.code.findbugs:findbugs:$extension.toolVersion"))
-            }
+        config.defaultDependencies { dependencies ->
+            dependencies.add(this.project.dependencies.create("com.google.code.findbugs:findbugs:${this.extension.toolVersion}"))
         }
         task.conventionMapping.with {
             findbugsClasspath = { config }
@@ -84,9 +83,12 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
             reportLevel = { extension.reportLevel }
             visitors = { extension.visitors }
             omitVisitors = { extension.omitVisitors }
+
             excludeFilterConfig = { extension.excludeFilterConfig }
             includeFilterConfig = { extension.includeFilterConfig }
- 
+            excludeBugsFilterConfig = { extension.excludeBugsFilterConfig }
+
+            extraArgs = { extension.extraArgs }
         }
         task.reports.all { Report report ->
             report.conventionMapping.with {

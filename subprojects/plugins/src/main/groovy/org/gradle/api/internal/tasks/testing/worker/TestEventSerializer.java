@@ -20,14 +20,11 @@ import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.CompositeIdGenerator;
-import org.gradle.messaging.remote.internal.Message;
-import org.gradle.messaging.serialize.*;
-import org.gradle.messaging.serialize.kryo.StatefulSerializer;
+import org.gradle.internal.serialize.*;
 
-public class TestEventSerializer implements StatefulSerializer<Object[]> {
-    private final Serializer<Object> paramSerializer;
-
-    public TestEventSerializer() {
+public class TestEventSerializer {
+    public static Serializer<Object[]> create() {
+        BaseSerializerFactory factory = new BaseSerializerFactory();
         DefaultSerializerRegistry<Object> registry = new DefaultSerializerRegistry<Object>();
         registry.register(DefaultTestClassRunInfo.class, new DefaultTestClassRunInfoSerializer());
         registry.register(CompositeIdGenerator.CompositeId.class, new IdSerializer());
@@ -39,32 +36,8 @@ public class TestEventSerializer implements StatefulSerializer<Object[]> {
         registry.register(TestStartEvent.class, new TestStartEventSerializer());
         registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer());
         registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer());
-        registry.register(Throwable.class, new ThrowableSerializer());
-        paramSerializer = registry.build();
-    }
-
-    public ObjectReader<Object[]> newReader(final Decoder decoder) {
-        return new ObjectReader<Object[]>() {
-            public Object[] read() throws Exception {
-                int count = decoder.readSmallInt();
-                Object[] params = new Object[count];
-                for (int i = 0; i < params.length; i++) {
-                    params[i] = paramSerializer.read(decoder);
-                }
-                return params;
-            }
-        };
-    }
-
-    public ObjectWriter<Object[]> newWriter(final Encoder encoder) {
-        return new ObjectWriter<Object[]>() {
-            public void write(Object[] value) throws Exception {
-                encoder.writeSmallInt(value.length);
-                for (int i = 0; i < value.length; i++) {
-                    paramSerializer.write(encoder, value[i]);
-                }
-            }
-        };
+        registry.register(Throwable.class, factory.getSerializerFor(Throwable.class));
+        return new ObjectArraySerializer(registry.build());
     }
 
     private static class NullableSerializer<T> implements Serializer<T> {
@@ -86,16 +59,6 @@ public class TestEventSerializer implements StatefulSerializer<Object[]> {
             if (value != null) {
                 serializer.write(encoder, value);
             }
-        }
-    }
-
-    private static class ThrowableSerializer implements Serializer<Throwable> {
-        public Throwable read(Decoder decoder) throws Exception {
-            return (Throwable) Message.receive(decoder.getInputStream(), getClass().getClassLoader());
-        }
-
-        public void write(Encoder encoder, Throwable value) throws Exception {
-            Message.send(value, encoder.getOutputStream());
         }
     }
 

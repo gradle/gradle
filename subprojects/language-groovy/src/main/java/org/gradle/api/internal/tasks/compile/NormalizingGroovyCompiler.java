@@ -85,7 +85,9 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
     }
 
     private void logSourceFiles(GroovyJavaJointCompileSpec spec) {
-        if (!spec.getGroovyCompileOptions().isListFiles()) { return; }
+        if (!spec.getGroovyCompileOptions().isListFiles()) {
+            return;
+        }
 
         StringBuilder builder = new StringBuilder();
         builder.append("Source files to be compiled:");
@@ -98,7 +100,9 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
     }
 
     private void logCompilerArguments(GroovyJavaJointCompileSpec spec) {
-        if (!LOGGER.isDebugEnabled()) { return; }
+        if (!LOGGER.isDebugEnabled()) {
+            return;
+        }
 
         List<String> compilerArgs = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeSourceFiles(true).build();
         String joinedArgs = Joiner.on(' ').join(compilerArgs);

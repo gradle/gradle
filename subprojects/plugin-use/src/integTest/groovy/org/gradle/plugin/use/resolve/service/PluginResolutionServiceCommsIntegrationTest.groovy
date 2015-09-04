@@ -15,10 +15,10 @@
  */
 
 package org.gradle.plugin.use.resolve.service
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.plugin.use.resolve.service.internal.ErrorResponse
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.GradleVersion
@@ -26,11 +26,11 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.Matchers.containsText
-
+import static org.gradle.util.Matchers.matchesRegexp
 /**
  * Tests the communication aspects of working with the plugin resolution service.
  */
+@LeaksFileHandles
 public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegrationSpec {
     public static final String PLUGIN_ID = "org.my.myplugin"
     public static final String PLUGIN_VERSION = "1.0"
@@ -319,8 +319,9 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         expect:
         fails("verify")
         errorResolvingPlugin()
-        failure.assertThatCause(containsText("Could not GET 'http://localhost:\\d+/.+?/plugin/use/org.my.myplugin/1\\.0'"))
-        failure.assertThatCause(containsText("Connection to http://localhost:\\d+ refused"))
+
+        failure.assertThatCause(matchesRegexp(".*?Could not GET 'http://localhost:\\d+/.+?/plugin/use/org.my.myplugin/1.0'.*?"))
+        failure.assertThatCause(matchesRegexp(".*?Connection( to http://localhost:\\d+)? refused"))
     }
 
     def "non contactable dependency repository produces error"() {
@@ -341,7 +342,7 @@ public class PluginResolutionServiceCommsIntegrationTest extends AbstractIntegra
         fails("verify")
         errorResolvingPlugin()
         failure.assertHasCause("Failed to resolve all plugin dependencies from $address")
-        failure.assertThatCause(containsText("Connection to $address refused"))
+        failure.assertThatCause(matchesRegexp(".*?Connection( to $address)? refused"))
     }
 
     private void publishPlugin(String pluginId, String group, String artifact, String version) {

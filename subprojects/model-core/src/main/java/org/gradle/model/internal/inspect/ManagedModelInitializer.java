@@ -16,91 +16,88 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.internal.BiAction;
+import org.gradle.api.Named;
+import org.gradle.internal.BiActions;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.instance.ModelInstantiator;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.projection.ManagedModelProjection;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
 import java.util.List;
 
-public class ManagedModelInitializer<T> implements BiAction<MutableModelNode, Inputs> {
-    private static final BiAction<MutableModelNode, Inputs> NO_OP = new BiAction<MutableModelNode, Inputs>() {
-        @Override
-        public void execute(MutableModelNode mutableModelNode, Inputs inputs) {
-        }
-    };
+public class ManagedModelInitializer<T> implements NodeInitializer {
 
-    private final ModelSchema<T> modelSchema;
-    private final BiAction<? super MutableModelNode, ? super Inputs> initializer;
-    private final ManagedProxyFactory proxyFactory;
-    private final ModelSchemaStore schemaStore;
-    private final ModelInstantiator modelInstantiator;
-    private final ModelRuleDescriptor descriptor;
+    protected final ModelManagedImplStructSchema<T> modelSchema;
+    protected final ModelSchemaStore schemaStore;
 
-    public static <T> ModelCreator creator(ModelRuleDescriptor descriptor, ModelPath path, ModelSchema<T> schema, ModelSchemaStore schemaStore, ModelInstantiator modelInstantiator, ManagedProxyFactory proxyFactory, List<? extends ModelReference<?>> inputs, BiAction<? super MutableModelNode, ? super Inputs> initializer) {
-        return ModelCreators.of(ModelReference.of(path, schema.getType()), new ManagedModelInitializer<T>(descriptor, schema, modelInstantiator, schemaStore, proxyFactory, initializer))
-                .descriptor(descriptor)
-                .withProjection(new ManagedModelProjection<T>(schema.getType(), schemaStore, proxyFactory))
-                .inputs(inputs)
-                .build();
-    }
-
-    public ManagedModelInitializer(ModelRuleDescriptor descriptor, ModelSchema<T> modelSchema, ModelInstantiator modelInstantiator, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory, BiAction<? super MutableModelNode, ? super Inputs> initializer) {
-        this.descriptor = descriptor;
-        this.modelInstantiator = modelInstantiator;
-        this.schemaStore = schemaStore;
+    public ManagedModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore) {
         this.modelSchema = modelSchema;
-        this.initializer = initializer;
-        this.proxyFactory = proxyFactory;
+        this.schemaStore = schemaStore;
     }
 
-    public void execute(MutableModelNode modelNode, Inputs inputs) {
-        for (ModelProperty<?> property : modelSchema.getProperties().values()) {
+    @Override
+    public List<? extends ModelReference<?>> getInputs() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+        for (ModelProperty<?> property : modelSchema.getProperties()) {
             addPropertyLink(modelNode, property);
         }
+        if (Named.class.isAssignableFrom(modelSchema.getType().getRawClass())) {
+            // Only initialize "name" child node if the schema has such a managed property.
+            // This is not the case for a managed subtype of an unmanaged type that implements Named.
+            ModelProperty<?> nameProperty = modelSchema.getProperty("name");
+            if (nameProperty != null && nameProperty.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
+                MutableModelNode nameLink = modelNode.getLink("name");
+                if (nameLink == null) {
+                    throw new IllegalStateException("expected name node for " + modelNode.getPath());
+                }
+                nameLink.setPrivateData(ModelType.of(String.class), modelNode.getPath().getName());
+            }
+        }
+    }
 
-        initializer.execute(modelNode, inputs);
+    @Override
+    public List<? extends ModelProjection> getProjections() {
+        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, ManagedProxyFactory.INSTANCE));
     }
 
     private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property) {
-        // TODO reuse pooled projections
+        // No need to create nodes for unmanaged properties
+        if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
+            return;
+        }
+
         ModelType<P> propertyType = property.getType();
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
 
-        MutableModelNode childNode;
-
-        if (propertySchema.getKind() == ModelSchema.Kind.STRUCT) {
-            ModelProjection projection = new ManagedModelProjection<P>(propertyType, schemaStore, proxyFactory);
-            ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), NO_OP)
+        final ModelRuleDescriptor descriptor = modelNode.getDescriptor();
+        if (propertySchema instanceof ManagedImplModelSchema) {
+            if (!property.isWritable()) {
+                ManagedImplModelSchema<P> managedPropertySchema = (ManagedImplModelSchema<P>) propertySchema;
+                ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), managedPropertySchema.getNodeInitializer())
+                    .descriptor(descriptor)
+                    .build();
+                modelNode.addLink(creator);
+            } else {
+                ModelManagedImplStructSchema<P> structSchema = (ModelManagedImplStructSchema<P>) propertySchema;
+                ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, ManagedProxyFactory.INSTANCE);
+                ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
                     .withProjection(projection)
                     .descriptor(descriptor).build();
-            childNode = modelNode.addLink(creator);
-            // TODO - defer creation
-            childNode.ensureCreated();
-
-            if (!property.isWritable()) {
-                for (ModelProperty<?> modelProperty : propertySchema.getProperties().values()) {
-                    addPropertyLink(childNode, modelProperty);
-                }
+                modelNode.addReference(creator);
             }
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
-            ModelCreator creator = ModelCreators.of(ModelReference.of(modelNode.getPath().child(property.getName()), propertyType), NO_OP)
-                    .withProjection(projection)
-                    .descriptor(descriptor).build();
-            childNode = modelNode.addLink(creator);
-            // TODO - defer creation
-            childNode.ensureCreated();
-
-            if (propertySchema.getKind() == ModelSchema.Kind.COLLECTION) {
-                P instance = modelInstantiator.newInstance(propertySchema);
-                childNode.setPrivateData(propertyType, instance);
-            }
+            ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
+                .withProjection(projection)
+                .descriptor(descriptor).build();
+            modelNode.addLink(creator);
         }
     }
 }

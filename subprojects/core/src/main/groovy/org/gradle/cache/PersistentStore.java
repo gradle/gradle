@@ -16,12 +16,10 @@
 
 package org.gradle.cache;
 
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.Serializer;
 
 /**
  * Represents some persistent store.
- *
- * <p>Use can use</p>
  *
  * <p>You can use {@link #useCache(String, org.gradle.internal.Factory)} to perform some action on the store while holding an exclusive
  * lock on the store.</p>

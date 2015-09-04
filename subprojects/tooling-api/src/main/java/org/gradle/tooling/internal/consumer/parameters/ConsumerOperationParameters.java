@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.tooling.internal.consumer.parameters;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.tooling.CancellationToken;
-import org.gradle.tooling.ProgressListener;
+import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
@@ -32,7 +31,8 @@ import org.gradle.tooling.model.Task;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,7 +45,11 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     }
 
     public static class Builder {
-        private final ProgressListenerAdapter progressListener = new ProgressListenerAdapter();
+        private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners = new ArrayList<org.gradle.tooling.ProgressListener>();
+        private final List<ProgressListener> testProgressListeners = new ArrayList<ProgressListener>();
+        private final List<ProgressListener> taskProgressListeners = new ArrayList<ProgressListener>();
+        private final List<ProgressListener> buildOperationProgressListeners = new ArrayList<ProgressListener>();
+        private String entryPoint;
         private CancellationToken cancellationToken;
         private ConnectionParameters parameters;
         private OutputStream stdout;
@@ -57,12 +61,14 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<String> arguments;
         private List<String> tasks;
         private List<InternalLaunchable> launchables;
+        private List<URI> classpath;
 
         private Builder() {
         }
 
-        public void setCancellationToken(CancellationToken cancellationToken) {
-            this.cancellationToken = cancellationToken;
+        public Builder setEntryPoint(String entryPoint) {
+            this.entryPoint = entryPoint;
+            return this;
         }
 
         public Builder setParameters(ConnectionParameters parameters) {
@@ -96,13 +102,13 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
-        public Builder setJvmArguments(String... jvmArguments) {
-            this.jvmArguments = rationalizeInput(jvmArguments);
+        public Builder setJvmArguments(List<String> jvmArguments) {
+            this.jvmArguments = jvmArguments;
             return this;
         }
 
-        public Builder setArguments(String [] arguments) {
-            this.arguments = rationalizeInput(arguments);
+        public Builder setArguments(List<String> arguments) {
+            this.arguments = arguments;
             return this;
         }
 
@@ -127,7 +133,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
                     taskPaths.add(((Task) launchable).getPath());
                 } else {
                     throw new GradleException("Only Task or TaskSelector instances are supported: "
-                            + (launchable != null ? launchable.getClass() : "null"));
+                        + (launchable != null ? launchable.getClass() : "null"));
                 }
             }
             this.launchables = launchablesParams;
@@ -135,17 +141,50 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
-        public void addProgressListener(ProgressListener listener) {
-            progressListener.add(listener);
+        public Builder setClasspath(List<URI> classpath) {
+            this.classpath = classpath;
+            return this;
+        }
+
+        public void addProgressListener(org.gradle.tooling.ProgressListener listener) {
+            legacyProgressListeners.add(listener);
+        }
+
+        public void addTestProgressListener(ProgressListener listener) {
+            testProgressListeners.add(listener);
+        }
+
+        public void addTaskProgressListener(ProgressListener listener) {
+            taskProgressListeners.add(listener);
+        }
+
+        public void addBuildOperationProgressListeners(ProgressListener listener) {
+            buildOperationProgressListeners.add(listener);
+        }
+
+        public void setCancellationToken(CancellationToken cancellationToken) {
+            this.cancellationToken = cancellationToken;
         }
 
         public ConsumerOperationParameters build() {
-            return new ConsumerOperationParameters(parameters, stdout, stderr, colorOutput, stdin,
-                    javaHome, jvmArguments, arguments, tasks, launchables, progressListener, cancellationToken);
+            if (entryPoint == null) {
+                throw new IllegalStateException("No entry point specified.");
+            }
+
+            // create the listener adapters right when the ConsumerOperationParameters are instantiated but no earlier,
+            // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
+            // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
+            ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.legacyProgressListeners);
+            FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter = new FailsafeBuildProgressListenerAdapter(
+                    new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
+            return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, classpath,
+                    progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
         }
     }
 
+    private final String entryPointName;
     private final ProgressListenerAdapter progressListener;
+    private final FailsafeBuildProgressListenerAdapter buildProgressListener;
     private final CancellationToken cancellationToken;
     private final ConnectionParameters parameters;
     private final long startTime = System.currentTimeMillis();
@@ -160,10 +199,12 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<String> arguments;
     private final List<String> tasks;
     private final List<InternalLaunchable> launchables;
+    private final List<URI> classpath;
 
-    private ConsumerOperationParameters(ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
-                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks,
-                                        List<InternalLaunchable> launchables, ProgressListenerAdapter listener, CancellationToken cancellationToken) {
+    private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
+                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, List<URI> classpath,
+                                        ProgressListenerAdapter progressListener, FailsafeBuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken) {
+        this.entryPointName = entryPointName;
         this.parameters = parameters;
         this.stdout = stdout;
         this.stderr = stderr;
@@ -174,12 +215,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.arguments = arguments;
         this.tasks = tasks;
         this.launchables = launchables;
-        this.progressListener = listener;
+        this.classpath = classpath;
+        this.progressListener = progressListener;
+        this.buildProgressListener = buildProgressListener;
         this.cancellationToken = cancellationToken;
-    }
-
-    private static List<String> rationalizeInput(String[] arguments) {
-        return arguments != null && arguments.length > 0 ? Arrays.asList(arguments) : null;
     }
 
     private static void validateJavaHome(File javaHome) {
@@ -191,8 +230,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         }
     }
 
-    public BuildCancellationToken getCancellationToken() {
-        return ((CancellationTokenInternal) cancellationToken).getToken();
+    public String getEntryPointName() {
+        return entryPointName;
     }
 
     public long getStartTime() {
@@ -243,10 +282,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return colorOutput;
     }
 
-    public ProgressListenerVersion1 getProgressListener() {
-        return progressListener;
-    }
-
     public InputStream getStandardInput() {
         return stdin;
     }
@@ -269,5 +304,21 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     public List<InternalLaunchable> getLaunchables() {
         return launchables;
+    }
+
+    public List<URI> getClasspath() {
+        return classpath;
+    }
+
+    public ProgressListenerVersion1 getProgressListener() {
+        return progressListener;
+    }
+
+    public FailsafeBuildProgressListenerAdapter getBuildProgressListener() {
+        return buildProgressListener;
+    }
+
+    public BuildCancellationToken getCancellationToken() {
+        return ((CancellationTokenInternal) cancellationToken).getToken();
     }
 }

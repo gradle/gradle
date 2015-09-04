@@ -18,6 +18,8 @@ package org.gradle.internal;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static com.google.common.collect.ImmutableSet.of;
 
@@ -60,36 +62,76 @@ public class SystemProperties {
             "java.runtime.version"
     );
 
+    private static final SystemProperties INSTANCE = new SystemProperties();
+    private final Lock lock = new ReentrantLock();
+
+    public static SystemProperties getInstance() {
+        return INSTANCE;
+    }
+
     @SuppressWarnings("unchecked")
-    public static Map<String, String> asMap() {
+    public Map<String, String> asMap() {
         return (Map) System.getProperties();
     }
 
-    public static String getLineSeparator() {
+    public String getLineSeparator() {
         return System.getProperty("line.separator");
     }
 
-    public static String getJavaIoTmpDir() {
+    public String getJavaIoTmpDir() {
         return System.getProperty("java.io.tmpdir");
     }
 
-    public static String getUserHome() {
+    public String getUserHome() {
         return System.getProperty("user.home");
     }
 
-    public static String getJavaVersion() {
+    public String getUserName() {
+        return System.getProperty("user.name");
+    }
+
+    public String getJavaVersion() {
         return System.getProperty("java.version");
     }
 
-    public static File getCurrentDir() {
+    public File getCurrentDir() {
         return new File(System.getProperty("user.dir"));
+    }
+
+    public File getJavaHomeDir() {
+        return new File(System.getProperty("java.home"));
+    }
+
+    public void setJavaHomeDir(File javaHomeDir) {
+        System.setProperty("java.home", javaHomeDir.getAbsolutePath());
+    }
+
+    /**
+     * Creates instance for Factory implementation with the provided Java home directory. Setting the "java.home" system property is thread-safe
+     * and is set back to the original value of "java.home" after the operation.
+     *
+     * @param javaHomeDir Java home directory
+     * @param factory Factory
+     * @return Instance created by Factory implementation
+     */
+    public <T> T withJavaHome(File javaHomeDir, Factory<T> factory) {
+        lock.lock();
+        File originalJavaHomeDir = getJavaHomeDir();
+        setJavaHomeDir(javaHomeDir);
+
+        try {
+            return factory.create();
+        } finally {
+            setJavaHomeDir(originalJavaHomeDir);
+            lock.unlock();
+        }
     }
 
     /**
      * Returns the keys that are guaranteed to be contained in System.getProperties() by default,
      * as specified in the Javadoc for that method.
      */
-    public static Set<String> getStandardProperties() {
+    public Set<String> getStandardProperties() {
         return STANDARD_PROPERTIES;
     }
 
@@ -100,7 +142,7 @@ public class SystemProperties {
      * @return the set of keys of {@code System.getProperties()} which should not be adjusted
      *   by client code. This method never returns {@code null}.
      */
-    public static Set<String> getNonStandardImportantProperties() {
+    public Set<String> getNonStandardImportantProperties() {
         return IMPORTANT_NON_STANDARD_PROPERTIES;
     }
 }

@@ -22,14 +22,18 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.configuration.GradleProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
+import static org.gradle.launcher.daemon.configuration.DaemonUsage.*
 import static org.gradle.launcher.daemon.configuration.GradleProperties.*
 
+@UsesNativeServices
 class PropertiesToDaemonParametersConverterTest extends Specification {
-
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
     def converter = new PropertiesToDaemonParametersConverter()
     def params = new DaemonParameters(new BuildLayoutParameters())
@@ -56,26 +60,26 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     def "configures from gradle properties"() {
         when:
         converter.convert([
-                (JVM_ARGS_PROPERTY): '-Xmx256m',
-                (JAVA_HOME_PROPERTY): Jvm.current().javaHome.absolutePath,
-                (DAEMON_ENABLED_PROPERTY): "true",
+                (JVM_ARGS_PROPERTY)       : '-Xmx256m',
+                (JAVA_HOME_PROPERTY)      : Jvm.current().javaHome.absolutePath,
+                (DAEMON_ENABLED_PROPERTY) : "true",
                 (DAEMON_BASE_DIR_PROPERTY): new File("baseDir").absolutePath,
-                (IDLE_TIMEOUT_PROPERTY): "115",
-                (DEBUG_MODE_PROPERTY): "true",
+                (IDLE_TIMEOUT_PROPERTY)   : "115",
+                (DEBUG_MODE_PROPERTY)     : "true",
         ], params)
 
         then:
         params.effectiveJvmArgs.contains("-Xmx256m")
         params.debug
-        params.effectiveJavaHome == Jvm.current().javaHome
-        params.enabled
+        params.effectiveJvm == Jvm.current()
+        params.daemonUsage == EXPLICITLY_ENABLED
         params.baseDir == new File("baseDir").absoluteFile
         params.idleTimeout == 115
     }
 
     def "shows nice message for dummy java home"() {
         when:
-        converter.convert([(JAVA_HOME_PROPERTY) : "/invalid/path"], params)
+        converter.convert([(JAVA_HOME_PROPERTY): "/invalid/path"], params)
 
         then:
         def ex = thrown(GradleException)
@@ -86,7 +90,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     def "shows nice message for invalid java home"() {
         def dummyDir = temp.createDir("foobar")
         when:
-        converter.convert([(GradleProperties.JAVA_HOME_PROPERTY) : dummyDir.absolutePath], params)
+        converter.convert([(GradleProperties.JAVA_HOME_PROPERTY): dummyDir.absolutePath], params)
 
         then:
         def ex = thrown(GradleException)
@@ -102,5 +106,27 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         def ex = thrown(GradleException)
         ex.message.contains 'org.gradle.daemon.idletimeout'
         ex.message.contains 'asdf'
+    }
+
+    def "does not explicitly set daemon usage if daemon system property is not specified"() {
+        when:
+        converter.convert([:], params)
+
+        then:
+        params.daemonUsage == IMPLICITLY_DISABLED
+    }
+
+    @Unroll
+    def "explicitly sets daemon usage if daemon system property is specified"() {
+        when:
+        converter.convert((GradleProperties.DAEMON_ENABLED_PROPERTY): enabled.toString(), params)
+
+        then:
+        params.daemonUsage == usage
+
+        where:
+        enabled | usage
+        true    | EXPLICITLY_ENABLED
+        false   | EXPLICITLY_DISABLED
     }
 }

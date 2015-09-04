@@ -19,27 +19,35 @@ package org.gradle.play.internal.routes;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
 
 public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
     private final Iterable<File> sourceFiles;
     private final File outputDirectory;
-    private final List<String> additionalImports;
-    private final boolean namespaceReverseRouter;
     private final BaseForkOptions forkOptions;
     private final boolean javaProject;
+    private final boolean namespaceReverseRouter;
+    private final boolean generateReverseRoutes;
+    private final boolean injectedRoutesGenerator;
+    private final Collection<String> additionalImports;
 
-    public DefaultRoutesCompileSpec(Iterable<File> sourceFiles, File outputDirectory, List<String> additionalImports, boolean namespaceReverseRouter, BaseForkOptions forkOptions, boolean javaProject) {
+    public DefaultRoutesCompileSpec(Iterable<File> sourceFiles, File outputDirectory, BaseForkOptions forkOptions, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean injectedRoutesGenerator, Collection<String> additionalImports) {
         this.sourceFiles = sourceFiles;
         this.outputDirectory = outputDirectory;
-        this.additionalImports = additionalImports;
-        this.namespaceReverseRouter = namespaceReverseRouter;
         this.forkOptions = forkOptions;
         this.javaProject = javaProject;
+        this.namespaceReverseRouter = namespaceReverseRouter;
+        this.generateReverseRoutes = generateReverseRoutes;
+        this.injectedRoutesGenerator = injectedRoutesGenerator;
+        this.additionalImports = additionalImports;
     }
 
     public Iterable<File> getSources() {
         return sourceFiles;
+    }
+
+    public File getDestinationDir() {
+        return outputDirectory;
     }
 
     public BaseForkOptions getForkOptions() {
@@ -50,15 +58,21 @@ public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
         return javaProject;
     }
 
-    public File getDestinationDir() {
-        return outputDirectory;
-    }
-
-    public List<String> getAdditionalImports() {
-        return additionalImports;
-    }
-
     public boolean isNamespaceReverseRouter() {
         return namespaceReverseRouter;
+    }
+
+    public boolean isGenerateReverseRoutes() {
+        return generateReverseRoutes;
+    }
+
+    @Override
+    public boolean isInjectedRoutesGenerator() {
+        return injectedRoutesGenerator;
+    }
+
+    @Override
+    public Collection<String> getAdditionalImports() {
+        return additionalImports;
     }
 }

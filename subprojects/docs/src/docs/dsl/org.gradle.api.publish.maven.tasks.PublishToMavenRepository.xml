@@ -7,7 +7,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr><td>publication</td></tr>
             <tr><td>repository</td></tr>
         </table>
     </section>

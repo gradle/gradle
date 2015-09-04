@@ -1,5 +1,3 @@
-apply plugin: 'osgi'
-
 import org.gradle.build.*
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
@@ -14,19 +12,27 @@ dependencies {
     testCompile libraries.groovy
 
     // lots of integTest errors otherwise
+    integTestCompile project(':internalIntegTesting')
     integTestRuntime project(':ide')
     integTestRuntime project(':buildInit')
     integTestRuntime project(':buildComparison')
     integTestRuntime project(":ivy")
     integTestRuntime project(":maven")
+
+    integTestRuntime project(":toolingApiBuilders")
 }
 
 useTestFixtures()
-useTestFixtures(project: ':launcher', sourceSet: "integTest")
 
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+}
 
+integTest {
+    jvmArgs "-XX:MaxPermSize=500m"
+}
+
+forkingIntegTest {
     if (isCiServer) {
         maxParallelForks = Math.min(2, rootProject.maxParallelForks)
     }
@@ -58,32 +64,15 @@ task jarjarJar(type: JarJarJar) {
     keep('org.gradle.tooling.**')
 }
 
-// revert manifest back after applying 'osgi' plugin
-ext.gradleManifest = manifest {
-    attributes("Implementation-Title": "Gradle",
-            "Implementation-Version": version)
-}
-jar {
-    manifest = project.manifest {
-        from gradleManifest
-    }
-}
-
-task publishJar(type: Jar) {
+task publishJar(type: Zip) {
     appendix = "bundle"
+    destinationDir = jar.destinationDir
+    extension = 'jar'
     dependsOn jar, jarjarJar
-    from(zipTree(jarjarJar.getArchivePath()), { exclude 'META-INF/MANIFEST.MF'})
-    manifest = osgiManifest {
-        classesDir = sourceSets.main.output.classesDir
-        classpath = sourceSets.main.runtimeClasspath
-        instruction 'Import-Package', 'org.slf4j'
-        instruction 'Export-Package', '!org.gradle.tooling.internal.*,!org.gradle.tooling.model.internal.*,org.gradle.tooling.*'
-        instruction 'Implementation-Title', 'Gradle'
-        instruction 'Implementation-Version', version
-    }
+    from zipTree(jarjarJar.getArchivePath())
 }
 
-sourceJar{
+sourceJar {
     configurations.compile.allDependencies.withType(ProjectDependency).each {
         from it.dependencyProject.sourceSets.main.groovy.srcDirs
         from it.dependencyProject.sourceSets.main.java.srcDirs

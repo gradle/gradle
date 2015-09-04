@@ -46,11 +46,19 @@ public class MavenUniqueSnapshotComponentIdentifier extends DefaultModuleCompone
 
     @Override
     public String getDisplayName() {
-        return String.format("%s:%s", super.getDisplayName(), timestamp);
+        return String.format("%s:%s:%s:%s", getGroup(), getModule(), getSnapshotVersion(), timestamp);
     }
 
     public String getTimestamp() {
         return timestamp;
+    }
+
+    public String getSnapshotVersion() {
+        return getVersion().replace(timestamp, "SNAPSHOT");
+    }
+
+    public ModuleComponentIdentifier getSnapshotComponent() {
+        return DefaultModuleComponentIdentifier.newId(getGroup(), getModule(), getSnapshotVersion());
     }
 
     public String getTimestampedVersion() {

@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter
 import org.gradle.internal.component.model.DependencyMetaData
-import org.gradle.internal.component.local.model.MutableLocalComponentMetaData
+import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toDomainObjectSet
@@ -34,7 +34,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
     def converter = new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter)
 
     def descriptor = Mock(DefaultModuleDescriptor)
-    def metaData = Mock(MutableLocalComponentMetaData)
+    def metaData = Mock(BuildableLocalComponentMetaData)
     def configuration = Mock(Configuration)
     def dependencySet = Mock(DependencySet.class);
 
@@ -61,7 +61,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.withType(ModuleDependency) >> toDomainObjectSet(ModuleDependency, dependency)
         1 * configuration.name >> "config"
-        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", descriptor, dependency) >> dependencyDescriptor
+        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", dependency) >> dependencyDescriptor
         1 * metaData.addDependency(dependencyDescriptor)
         1 * configuration.excludeRules >> ([] as Set)
         0 * _

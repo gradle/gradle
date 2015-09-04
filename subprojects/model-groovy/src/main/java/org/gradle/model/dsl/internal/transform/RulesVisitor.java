@@ -18,19 +18,18 @@ package org.gradle.model.dsl.internal.transform;
 
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
-import org.codehaus.groovy.ast.AnnotationNode;
-import org.codehaus.groovy.ast.ClassHelper;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.MethodNode;
+import org.codehaus.groovy.ast.*;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
+import org.codehaus.groovy.ast.stmt.EmptyStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.Nullable;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
-import org.gradle.groovy.scripts.internal.ScriptSourceDescriptionTransformer;
+import org.gradle.groovy.scripts.internal.ScriptSourceTransformer;
+import org.gradle.internal.Pair;
 import org.gradle.model.internal.core.ModelPath;
 
 import java.util.List;
@@ -41,10 +40,9 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
     private static final String AST_NODE_METADATA_KEY = RulesVisitor.class.getName();
     private static final ClassNode ANNOTATION_CLASS_NODE = new ClassNode(RulesBlock.class);
 
-
     // TODO - have to do much better here
     public static final String INVALID_STATEMENT = "illegal rule";
-    public static final String ARGUMENT_HAS_TO_BE_CLOSURE_LITERAL_MESSAGE = "Rules can only be specified using a closure literal";
+    public static final String INVALID_RULE_SIGNATURE = "Rule must follow the pattern '«name»(«type») {}' for a creator, and '«name» {}' for an action";
 
     private final SourceUnit sourceUnit;
     private final RuleVisitor ruleVisitor;
@@ -81,16 +79,48 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
     @Override
     public void visitMethodCallExpression(MethodCallExpression call) {
         ClosureExpression closureExpression = AstUtils.getSingleClosureArg(call);
-        if (closureExpression == null) {
-            restrict(call, ARGUMENT_HAS_TO_BE_CLOSURE_LITERAL_MESSAGE);
+        if (closureExpression != null) {
+            rewriteAction(call, extractModelPathFromMethodTarget(call), closureExpression);
             return;
         }
 
-        String modelPath = extractModelPathFromMethodTarget(call);
-        if (modelPath == null) {
+        Pair<ClassExpression, ClosureExpression> args = AstUtils.getClassAndClosureArgs(call);
+        if (args != null) {
+            rewriteCreator(call, extractModelPathFromMethodTarget(call), args.getRight(), args.getLeft());
             return;
         }
 
+        ClassExpression classArg = AstUtils.getClassArg(call);
+        if (classArg != null) {
+            List<Statement> statements = Lists.newLinkedList();
+            statements.add(new EmptyStatement());
+            BlockStatement block = new BlockStatement(statements, new VariableScope());
+            closureExpression = new ClosureExpression(Parameter.EMPTY_ARRAY, block);
+            closureExpression.setVariableScope(block.getVariableScope());
+            rewriteCreator(call, extractModelPathFromMethodTarget(call), closureExpression, classArg);
+            return;
+        }
+
+        restrict(call, INVALID_RULE_SIGNATURE);
+    }
+
+    public void rewriteCreator(MethodCallExpression call, String modelPath, ClosureExpression closureExpression, ClassExpression typeExpression) {
+        ConstantExpression modelPathArgument = new ConstantExpression(modelPath);
+        ArgumentListExpression replacedArgumentList = new ArgumentListExpression(modelPathArgument, typeExpression, closureExpression);
+        call.setMethod(new ConstantExpression("create"));
+        call.setArguments(replacedArgumentList);
+
+        // Call directly on the delegate to avoid some dynamic dispatch
+        call.setImplicitThis(true);
+        call.setObjectExpression(new MethodCallExpression(VariableExpression.THIS_EXPRESSION, "getDelegate", ArgumentListExpression.EMPTY_ARGUMENTS));
+
+        SourceLocation sourceLocation = new SourceLocation(getScriptSourceLocation(), getScriptSourceDescription(), call.getLineNumber(), call.getColumnNumber());
+        closureExpression.getCode().setNodeMetaData(RuleVisitor.AST_NODE_METADATA_LOCATION_KEY, sourceLocation);
+
+        closureExpression.visit(ruleVisitor);
+    }
+
+    public void rewriteAction(MethodCallExpression call, String modelPath, ClosureExpression closureExpression) {
         // Rewrite the method call to match ModelDsl#configure(String, Closure), which is what the delegate will be
         ConstantExpression modelPathArgument = new ConstantExpression(modelPath);
         ArgumentListExpression replacedArgumentList = new ArgumentListExpression(modelPathArgument, closureExpression);
@@ -101,14 +131,18 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         call.setImplicitThis(true);
         call.setObjectExpression(new MethodCallExpression(VariableExpression.THIS_EXPRESSION, "getDelegate", ArgumentListExpression.EMPTY_ARGUMENTS));
 
-        SourceLocation sourceLocation = new SourceLocation(getScriptSourceDescription(), call.getLineNumber(), call.getColumnNumber());
+        SourceLocation sourceLocation = new SourceLocation(getScriptSourceLocation(), getScriptSourceDescription(), call.getLineNumber(), call.getColumnNumber());
         closureExpression.getCode().setNodeMetaData(RuleVisitor.AST_NODE_METADATA_LOCATION_KEY, sourceLocation);
 
         closureExpression.visit(ruleVisitor);
     }
 
     private String getScriptSourceDescription() {
-        return sourceUnit.getAST().getNodeMetaData(ScriptSourceDescriptionTransformer.AST_NODE_METADATA_KEY);
+        return sourceUnit.getAST().getNodeMetaData(ScriptSourceTransformer.AST_NODE_DESCRIPTION_METADATA_KEY);
+    }
+
+    private String getScriptSourceLocation() {
+        return sourceUnit.getAST().getNodeMetaData(ScriptSourceTransformer.AST_NODE_LOCATION_METADATA_KEY);
     }
 
     @Nullable // if the target was invalid

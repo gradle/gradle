@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
+import org.gradle.api.internal.hash.DefaultHasher
+import org.gradle.cache.internal.NonThreadsafeInMemoryStore
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -25,7 +28,7 @@ import spock.lang.Subject
 class HashClassPathSnapshotterTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    @Subject snapshotter = new HashClassPathSnapshotter()
+    @Subject snapshotter = new HashClassPathSnapshotter(new CachingFileSnapshotter(new DefaultHasher(), new NonThreadsafeInMemoryStore()))
 
     def "classpaths are different if file hashes are different"() {
         def file = temp.file("a.txt")

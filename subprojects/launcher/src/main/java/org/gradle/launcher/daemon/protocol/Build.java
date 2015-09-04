@@ -15,20 +15,31 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.initialization.BuildAction;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.launcher.exec.BuildActionParameters;
 
 public class Build extends Command {
-    private final BuildAction<?> action;
+    private final BuildAction action;
+    private final BuildClientMetaData buildClientMetaData;
+    private final long startTime;
     private final BuildActionParameters parameters;
 
-    public Build(Object identifier, BuildAction<?> action, BuildActionParameters parameters) {
+    public Build(Object identifier, BuildAction action, BuildClientMetaData buildClientMetaData, long startTime, BuildActionParameters parameters) {
         super(identifier);
         this.action = action;
+        this.buildClientMetaData = buildClientMetaData;
+        this.startTime = startTime;
         this.parameters = parameters;
     }
 
-    public BuildAction<?> getAction() {
+    public BuildRequestMetaData getBuildRequestMetaData() {
+        return new DefaultBuildRequestMetaData(buildClientMetaData, startTime);
+    }
+
+    public BuildAction getAction() {
         return action;
     }
 

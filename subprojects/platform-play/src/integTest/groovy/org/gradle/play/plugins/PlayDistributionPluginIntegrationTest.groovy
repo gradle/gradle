@@ -27,17 +27,22 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
+        settingsFile << """ rootProject.name = 'dist-play-app' """
         buildFile << """
             plugins {
-                id 'play-application'
-                id 'play-distribution'
+                id 'play'
             }
 
             repositories {
                 jcenter()
-                maven{
-                    name = "typesafe-maven-release"
-                    url = "https://repo.typesafe.com/typesafe/maven-releases"
+                maven {
+                    name "typesafe-maven-release"
+                    url "https://repo.typesafe.com/typesafe/maven-releases"
+                }
+                ivy {
+                    name "typesafe-ivy-release"
+                    url "https://repo.typesafe.com/typesafe/ivy-releases"
+                    layout "ivy"
                 }
             }
         """
@@ -45,69 +50,68 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "builds empty distribution when no sources present" () {
         buildFile << """
-            configurations { playDeps }
-            dependencies { playDeps "com.typesafe.play:play_2.11:2.3.7" }
-
             model {
                 tasks.createPlayBinaryStartScripts {
                     doLast {
-                        assert classpath.files.containsAll(configurations.playDeps.files)
+                        assert classpath.contains(file(createPlayBinaryDistributionJar.archivePath))
                     }
                 }
                 tasks.createPlayBinaryDist {
                     doLast {
-                        assert zipTree(archivePath).collect { it.name }.containsAll(configurations.playDeps.collect { it.name })
+                        def zipFileNames = zipTree(archivePath).collect { it.name }
+                        configurations.playRun.collect { it.name }.each { assert zipFileNames.contains(it) }
                     }
                 }
             }
         """
 
         when:
-        succeeds "dist"
+        succeeds "stage"
 
         then:
         executedAndNotSkipped(
                 ":createPlayBinaryJar",
+                ":createPlayBinaryDistributionJar",
                 ":createPlayBinaryAssetsJar",
                 ":createPlayBinaryStartScripts",
-                ":createPlayBinaryDist")
+                ":stagePlayBinaryDist")
         skipped(
-                ":routesCompilePlayBinary",
-                ":twirlCompilePlayBinary",
-                ":scalaCompilePlayBinary")
+                ":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates",
+                ":compilePlayBinaryScala")
 
         and:
-        zip("build/distributions/playBinary.zip").containsDescendants(
-                "playBinary/lib/play.jar",
-                "playBinary/lib/play-assets.jar",
-                "playBinary/bin/playBinary",
-                "playBinary/bin/playBinary.bat"
+        file("build/stage/playBinary").assertContainsDescendants(
+                "lib/dist-play-app.jar",
+                "lib/dist-play-app-assets.jar",
+                "bin/playBinary",
+                "bin/playBinary.bat"
         )
-
-        when:
-        succeeds "stage"
-
-        then:
-        executedAndNotSkipped(":stagePlayBinaryDist")
-        skipped(
-                ":createPlayBinaryJar",
-                ":createPlayBinaryAssetsJar",
-                ":createPlayBinaryStartScripts",
-                ":routesCompilePlayBinary",
-                ":twirlCompilePlayBinary",
-                ":scalaCompilePlayBinary")
-
-        and:
-        [ "playBinary/lib/play.jar",
-          "playBinary/lib/play-assets.jar",
-          "playBinary/bin/playBinary",
-          "playBinary/bin/playBinary.bat"
-        ].each { fileName ->
-            assert file("build/stage/${fileName}").exists()
-        }
         if (OperatingSystem.current().linux || OperatingSystem.current().macOsX) {
             assert file("build/stage/playBinary/bin/playBinary").mode == 0755
         }
+
+        when:
+        succeeds "dist"
+
+        then:
+        executedAndNotSkipped(":createPlayBinaryDist")
+        skipped(
+                ":compilePlayBinaryRoutes",
+                ":compilePlayBinaryTwirlTemplates",
+                ":compilePlayBinaryScala",
+                ":createPlayBinaryJar",
+                ":createPlayBinaryDistributionJar",
+                ":createPlayBinaryAssetsJar",
+                ":createPlayBinaryStartScripts")
+
+        and:
+        zip("build/distributions/playBinary.zip").containsDescendants(
+                "playBinary/lib/dist-play-app.jar",
+                "playBinary/lib/dist-play-app-assets.jar",
+                "playBinary/bin/playBinary",
+                "playBinary/bin/playBinary.bat"
+        )
     }
 
     ZipTestFixture zip(String path) {

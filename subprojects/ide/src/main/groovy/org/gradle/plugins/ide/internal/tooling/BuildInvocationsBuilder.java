@@ -16,34 +16,44 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.api.internal.tasks.PublicTaskSpecification;
 import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
-import org.gradle.tooling.internal.impl.DefaultBuildInvocations;
-import org.gradle.tooling.internal.impl.LaunchableGradleTask;
-import org.gradle.tooling.internal.impl.LaunchableGradleTaskSelector;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultBuildInvocations;
+import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
+import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTaskSelector;
 import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
+
+import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
 
 public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder {
-    @SuppressWarnings("RedundantStringConstructorCall")
-    private static final String NULL_STRING = new String(); // ensure unique instance to use it as a null-string placeholder
 
     private final ProjectTaskLister taskLister;
+    private final TaskNameComparator taskNameComparator;
 
     public BuildInvocationsBuilder(ProjectTaskLister taskLister) {
         this.taskLister = taskLister;
+        this.taskNameComparator = new TaskNameComparator();
     }
 
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.gradle.BuildInvocations");
+    }
+
+    public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
+        return buildAll(modelName, implicitProject ? project.getRootProject() : project);
     }
 
     @SuppressWarnings("StringEquality")
@@ -54,18 +64,16 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
 
         // construct task selectors
         List<LaunchableGradleTaskSelector> selectors = Lists.newArrayList();
-        TreeBasedTable<String, String, String> aggregatedTasksWithDescription = TreeBasedTable.create(Ordering.usingToString(), new TaskNameComparator());
+        Map<String, LaunchableGradleTaskSelector> selectorsByName = Maps.newTreeMap(Ordering.natural());
         Set<String> visibleTasks = Sets.newLinkedHashSet();
-        findTasks(project, aggregatedTasksWithDescription, visibleTasks);
-        for (String selectorName : aggregatedTasksWithDescription.rowKeySet()) {
-            SortedMap<String, String> descriptionsFromAllPaths = aggregatedTasksWithDescription.row(selectorName);
-            String description = descriptionsFromAllPaths.get(descriptionsFromAllPaths.firstKey());
-            selectors.add(new LaunchableGradleTaskSelector().
+        findTasks(project, selectorsByName, visibleTasks);
+        for (String selectorName : selectorsByName.keySet()) {
+            LaunchableGradleTaskSelector selector = selectorsByName.get(selectorName);
+            selectors.add(selector.
                     setName(selectorName).
                     setTaskName(selectorName).
                     setProjectPath(project.getPath()).
                     setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
-                    setDescription(description != NULL_STRING ? description : null).
                     setPublic(visibleTasks.contains(selectorName)));
         }
 
@@ -76,41 +84,44 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         return new DefaultBuildInvocations().setSelectors(selectors).setTasks(projectTasks);
     }
 
-    public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
-        return buildAll(modelName, implicitProject ? project.getRootProject() : project);
-    }
-
     // build tasks without project reference
     private List<LaunchableGradleTask> tasks(Project project) {
         List<LaunchableGradleTask> tasks = Lists.newArrayList();
         for (Task task : taskLister.listProjectTasks(project)) {
-            tasks.add(new LaunchableGradleTask()
-                    .setPath(task.getPath())
-                    .setName(task.getName())
-                    .setDisplayName(task.toString())
-                    .setDescription(task.getDescription())
-                    .setPublic(task.getGroup() != null));
+            tasks.add(buildFromTask(new LaunchableGradleTask(), task));
         }
         return tasks;
     }
 
-    private void findTasks(Project project, Table<String, String, String> tasksWithDescription, Collection<String> visibleTasks) {
+    private void findTasks(Project project, Map<String, LaunchableGradleTaskSelector> taskSelectors, Collection<String> visibleTasks) {
         for (Project child : project.getChildProjects().values()) {
-            findTasks(child, tasksWithDescription, visibleTasks);
+            findTasks(child, taskSelectors, visibleTasks);
         }
 
         for (Task task : taskLister.listProjectTasks(project)) {
-            // store the description first by task name and then by path
-            // this allows to later fish out the description of the task whose name matches the selector name and
-            // whose path is the smallest for the given task name (the first entry of the table column)
-            // store null description as empty string to avoid that Guava chokes
-            tasksWithDescription.put(task.getName(), task.getPath(), task.getDescription() != null ? task.getDescription() : NULL_STRING);
+            // in the map, store a minimally populated LaunchableGradleTaskSelector that contains just the description and the path
+            // replace the LaunchableGradleTaskSelector stored in the map iff we come across a task with the same name whose path has a smaller ordering
+            // this way, for each task selector, its description will be the one from the selected task with the 'smallest' path
+            if (!taskSelectors.containsKey(task.getName())) {
+                LaunchableGradleTaskSelector taskSelector = new LaunchableGradleTaskSelector().
+                        setDescription(task.getDescription()).setProjectPath(task.getPath());
+                taskSelectors.put(task.getName(), taskSelector);
+            } else {
+                LaunchableGradleTaskSelector taskSelector = taskSelectors.get(task.getName());
+                if (hasPathWithLowerOrdering(task, taskSelector)) {
+                    taskSelector.setDescription(task.getDescription()).setProjectPath(task.getPath());
+                }
+            }
 
             // visible tasks are specified as those that have a non-empty group
-            if (task.getGroup() != null) {
+            if (PublicTaskSpecification.INSTANCE.isSatisfiedBy(task)) {
                 visibleTasks.add(task.getName());
             }
         }
+    }
+
+    private boolean hasPathWithLowerOrdering(Task task, LaunchableGradleTaskSelector referenceTaskSelector) {
+        return taskNameComparator.compare(task.getPath(), referenceTaskSelector.getProjectPath()) < 0;
     }
 
 }

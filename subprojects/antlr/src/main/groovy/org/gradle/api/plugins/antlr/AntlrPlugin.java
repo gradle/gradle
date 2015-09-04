@@ -21,7 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
@@ -57,12 +56,10 @@ public class AntlrPlugin implements Plugin<Project> {
                 .setVisible(false)
                 .setDescription("The Antlr libraries to be used for this project.");
 
-        antlrConfiguration.getIncoming().beforeResolve(new Action<ResolvableDependencies>() {
-            public void execute(ResolvableDependencies resolvableDependencies) {
-                DependencySet dependencies = antlrConfiguration.getDependencies();
-                if (dependencies.isEmpty()) {
-                    dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar"));
-                }
+        antlrConfiguration.defaultDependencies(new Action<DependencySet>() {
+            @Override
+            public void execute(DependencySet dependencies) {
+                dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar"));
             }
         });
 

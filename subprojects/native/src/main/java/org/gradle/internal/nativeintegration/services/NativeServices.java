@@ -26,11 +26,13 @@ import org.gradle.internal.nativeintegration.console.NativePlatformConsoleDetect
 import org.gradle.internal.nativeintegration.console.NoOpConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
 import org.gradle.internal.nativeintegration.filesystem.services.FileSystemServices;
+import org.gradle.internal.nativeintegration.filesystem.services.UnavailablePosixFiles;
 import org.gradle.internal.nativeintegration.jna.JnaBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,17 +44,30 @@ import java.lang.reflect.Proxy;
 /**
  * Provides various native platform integration services.
  */
-public class NativeServices extends DefaultServiceRegistry {
+public class NativeServices extends DefaultServiceRegistry implements ServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static boolean useNativePlatform = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
     private static final NativeServices INSTANCE = new NativeServices();
+    private static boolean initialized;
+
+    public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
 
     /**
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized. Will be implicitly initialized on first usage
      * of a native service. Also initializes the Native-Platform library using the given user home directory.
      */
     public static void initialize(File userHomeDir) {
-        File nativeDir = new File(userHomeDir, "native");
+        initialize(userHomeDir, true);
+    }
+
+    public static synchronized void initialize(File userHomeDir, boolean initializeJNA) {
+        String overrideProperty = System.getProperty(NATIVE_DIR_OVERRIDE);
+        File nativeDir;
+        if (overrideProperty == null) {
+            nativeDir = new File(userHomeDir, "native");
+        } else {
+            nativeDir = new File(overrideProperty);
+        }
         if (useNativePlatform) {
             try {
                 net.rubygrapefruit.platform.Native.init(nativeDir);
@@ -64,13 +79,19 @@ public class NativeServices extends DefaultServiceRegistry {
                 useNativePlatform = false;
             }
         }
-        if (OperatingSystem.current().isWindows()) {
+        if (OperatingSystem.current().isWindows() && initializeJNA) {
             // JNA is still being used by jansi
             new JnaBootPathConfigurer().configure(nativeDir);
         }
+        initialized = true;
     }
 
-    public static NativeServices getInstance() {
+    public static synchronized NativeServices getInstance() {
+        if (!initialized) {
+            // If this occurs while running gradle or running integration tests, it is indicative of a problem.
+            // If this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.
+            throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
+        }
         return INSTANCE;
     }
 
@@ -156,6 +177,17 @@ public class NativeServices extends DefaultServiceRegistry {
         return new DefaultProcessLauncher();
     }
 
+    protected PosixFiles createPosixFiles() {
+        if (useNativePlatform) {
+            try {
+                return net.rubygrapefruit.platform.Native.get(PosixFiles.class);
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform posix files is not available.  Continuing with fallback.");
+            }
+        }
+        return notAvailable(UnavailablePosixFiles.class);
+    }
+
     private <T> T notAvailable(Class<T> type) {
         return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, new BrokenService(type.getSimpleName()));
     }
@@ -164,7 +196,7 @@ public class NativeServices extends DefaultServiceRegistry {
         StringBuilder builder = new StringBuilder();
         builder.append(throwable.toString());
         for (Throwable current = throwable.getCause(); current != null; current = current.getCause()) {
-            builder.append(SystemProperties.getLineSeparator());
+            builder.append(SystemProperties.getInstance().getLineSeparator());
             builder.append("caused by: ");
             builder.append(current.toString());
         }
@@ -179,7 +211,7 @@ public class NativeServices extends DefaultServiceRegistry {
         }
 
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            return new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
+            throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
         }
     }
 }

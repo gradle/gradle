@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.initialization.BuildLayoutParameters
-import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.launcher.daemon.configuration.DaemonParameters
@@ -25,16 +24,20 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
 import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class DaemonClientServicesTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     final DaemonParameters parameters = new DaemonParameters(new BuildLayoutParameters()).setBaseDir(tmp.testDirectory)
     final parentServices = ServiceRegistryBuilder.builder()
             .parent(LoggingServiceRegistry.newEmbeddableLogging())
-            .parent(NativeServices.instance)
+            .parent(NativeServicesTestFixture.instance)
             .provider(new GlobalScopeServices(false))
+            .provider(new DaemonClientGlobalServices())
             .build()
     final services = new DaemonClientServices(parentServices, parameters, System.in)
 

@@ -40,6 +40,8 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     SourceFile getLibraryHeader() {
         return sourceFile("headers", "hello.h", """
+            #ifndef HELLO_H
+            #define HELLO_H
             #ifdef _WIN32
             #define DLL_FUNC __declspec(dllexport)
             #else
@@ -48,14 +50,33 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
 
             void DLL_FUNC sayHello();
             int DLL_FUNC sum(int a, int b);
+
+            #ifdef FRENCH
+            #pragma message("<==== compiling bonjour.h ====>")
+            #else
+            #pragma message("<==== compiling hello.h ====>")
+            #endif
+
+            #endif
         """);
+    }
+
+    @Override
+    def SourceFile getCommonHeader() {
+        sourceFile("headers", "common.h", """
+            #ifndef COMMON_H
+            #define COMMON_H
+            #include "hello.h"
+            #include <iostream>
+            #endif
+        """)
     }
 
     List<SourceFile> librarySources = [
             sourceFile("objcpp", "hello.mm", """
             #define __STDC_LIMIT_MACROS
+            #include "common.h"
             #include <stdint.h>
-            #include "hello.h"
             #import <Foundation/Foundation.h>
 
             #include <iostream>
@@ -78,7 +99,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
             }
         """),
             sourceFile("objcpp", "sum.mm", """
-            #include "hello.h"
+            #include "common.h"
             int DLL_FUNC sum(int a, int b) {
                 return a + b;
             }
@@ -111,16 +132,16 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
         return [
             sourceFile("objcpp", "hello.mm", """
             #define __STDC_LIMIT_MACROS
+            #include "common.h"
             #include <stdint.h>
             #include <iostream>
-            #include "hello.h"
 
             void DLL_FUNC sayHello() {
                 std::cout << "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}" << std::endl;
             }
         """),
         sourceFile("objcpp", "sum.mm", """
-            #include "hello.h"
+            #include "common.h"
             int DLL_FUNC sum(int a, int b) {
                 return a + b;
             }
@@ -145,5 +166,14 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     List<String> getPluginList() {
         ['objective-cpp']
+    }
+
+    public SourceFile getBrokenFile() {
+        return sourceFile("objcpp", "broken.mm", """'broken""")
+    }
+
+    @Override
+    String getSourceSetType() {
+        return "ObjectiveCppSourceSet"
     }
 }

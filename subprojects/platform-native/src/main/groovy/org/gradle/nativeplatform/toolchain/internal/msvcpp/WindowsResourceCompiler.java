@@ -15,83 +15,37 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
+import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
-import org.gradle.nativeplatform.toolchain.internal.*;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
-public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileSpec> {
+class WindowsResourceCompiler extends VisualCppNativeCompiler<WindowsResourceCompileSpec> {
 
-    private final CommandLineTool commandLineTool;
-    private final Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer;
-    private final CommandLineToolInvocation baseInvocation;
-
-    WindowsResourceCompiler(CommandLineTool commandLineTool, CommandLineToolInvocation invocation, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer) {
-        this.commandLineTool = commandLineTool;
-        this.specTransformer = specTransformer;
-        this.baseInvocation = invocation;
+    WindowsResourceCompiler(BuildOperationProcessor buildOperationProcessor, CommandLineToolInvocationWorker commandLineTool, CommandLineToolContext invocationContext, Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer, String objectFileExtension, boolean useCommandFile) {
+        super(buildOperationProcessor, commandLineTool, invocationContext, new RcCompilerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile);
     }
 
-    public WorkResult execute(WindowsResourceCompileSpec spec) {
-        boolean windowsPathLimitation = OperatingSystem.current().isWindows();
-        MutableCommandLineToolInvocation invocation = baseInvocation.copy();
-        spec = specTransformer.transform(spec);
-        for (File sourceFile : spec.getSourceFiles()) {
-            RcCompilerArgsTransformer argsTransformer = new RcCompilerArgsTransformer(sourceFile, windowsPathLimitation);
-            invocation.setArgs(argsTransformer.transform(spec));
-            invocation.setWorkDirectory(spec.getObjectFileDir());
-            commandLineTool.execute(invocation);
+    @Override
+    protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
+        if (pchArgs != null && !pchArgs.isEmpty()) {
+            throw new UnsupportedOperationException("Precompiled header arguments cannot be specified for a Windows Resource compiler.");
         }
-        return new SimpleWorkResult(!spec.getSourceFiles().isEmpty());
+        // RC has position sensitive arguments, the output args need to appear before the source file
+        return Iterables.concat(genericArgs, outputArgs, sourceArgs);
     }
 
-    private static class RcCompilerArgsTransformer implements ArgsTransformer<WindowsResourceCompileSpec> {
-        private final File inputFile;
-        private boolean windowsPathLengthLimitation;
-
-        public RcCompilerArgsTransformer(File inputFile, boolean windowsPathLengthLimitation) {
-            this.inputFile = inputFile;
-            this.windowsPathLengthLimitation = windowsPathLengthLimitation;
-        }
-
-        public List<String> transform(WindowsResourceCompileSpec spec) {
-            List<String> args = new ArrayList<String>();
+    private static class RcCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<WindowsResourceCompileSpec> {
+        protected void addToolSpecificArgs(WindowsResourceCompileSpec spec, List<String> args) {
+            args.add(getLanguageOption());
             args.add("/nologo");
-            args.add("/fo");
-            args.add(getOutputFile(spec).getAbsolutePath());
-            for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
-                args.add("/D" + macroArg);
-            }
-            args.addAll(spec.getAllArgs());
-            for (File file : spec.getIncludeRoots()) {
-                args.add("/I" + file.getAbsolutePath());
-            }
-            args.add(inputFile.getAbsolutePath());
-
-            return args;
         }
-
-        private File getOutputFile(WindowsResourceCompileSpec spec) {
-
-            File outputFile = new CompilerOutputFileNamingScheme()
-                    .withObjectFileNameSuffix(".res")
-                    .withOutputBaseFolder(spec.getObjectFileDir())
-                    .map(inputFile);
-
-            File outputDirectory = outputFile.getParentFile();
-            if (!outputDirectory.exists()) {
-                outputDirectory.mkdirs();
-            }
-            return windowsPathLengthLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
+        protected String getLanguageOption() {
+            return "/r";
         }
     }
 }

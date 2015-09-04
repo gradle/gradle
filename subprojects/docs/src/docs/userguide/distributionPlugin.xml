@@ -40,7 +40,7 @@
         </para>
         <para>
             You can run “<userinput>gradle distZip</userinput>” to package the main distribution as a ZIP, or “<userinput>gradle distTar</userinput>” to create
-            a TAR file.
+            a TAR file. To build both types of archives just run <userinput>gradle assembleDist</userinput>.
             The files will be created at “<literal><replaceable>$buildDir</replaceable>/distributions/<replaceable>$project.name</replaceable>-<replaceable>$project.version</replaceable>.<replaceable>«ext»</replaceable></literal>”.
         </para>
         <para>
@@ -87,6 +87,20 @@
                 </td>
                 <td>
                     Creates a TAR archive of the distribution contents
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>assembleDist</literal>
+                </td>
+                <td>
+                    <literal>distTar</literal>, <literal>distZip</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.Task"/>
+                </td>
+                <td>
+                    Creates ZIP and TAR archives with the distribution contents
                 </td>
             </tr>
             <tr>
@@ -145,6 +159,20 @@
             </tr>
             <tr>
                 <td>
+                    <literal>assemble<replaceable>${distribution.name.capitalize()}</replaceable>Dist</literal>
+                </td>
+                <td>
+                    <literal><replaceable>${distribution.name}</replaceable>DistTar</literal>, <literal><replaceable>${distribution.name}</replaceable>DistZip</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.Task"/>
+                </td>
+                <td>
+                    Assembles all distribution archives
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <literal>install<replaceable>${distribution.name.capitalize()}</replaceable>Dist</literal>
                 </td>
                 <td>
@@ -166,6 +194,7 @@
             <itemizedlist>
                 <listitem>customDistZip</listitem>
                 <listitem>customDistTar</listitem>
+                <listitem>assembleCustomDist</listitem>
                 <listitem>installCustomDist</listitem>
             </itemizedlist>
         </para>
@@ -188,10 +217,21 @@
         </sample>
         <para>
             In the example above, the content of the “<literal>src/readme</literal>” directory will be included in the distribution
-            (along with the files in the “<literal>src/dist/main</literal>” directory which are added by default).
+            (along with the files in the “<literal>src/main/dist</literal>” directory which are added by default).
         </para>
         <para>
             The “<literal>baseName</literal>” property has also been changed. This will cause the distribution archives to be created with a different name.
         </para>
+    </section>
+    <section>
+        <title>Publishing distributions</title>
+        <para>
+            The distribution plugin adds the distribution archives as candidate for default publishing artifacts.
+            With the <literal>maven</literal> plugin applied the distribution zip file will be published when running uploadArchives
+            if no other default artifact is configured
+        </para>
+        <sample id="publishDistribution" dir="userguide/distribution" title="publish main distribution">
+            <sourcefile file="build.gradle" snippet="publish-distribution"/>
+        </sample>
     </section>
 </chapter>

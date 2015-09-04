@@ -47,8 +47,7 @@ public class AntlrWorkerServer implements Action<WorkerProcessContext>, Serializ
             AntlrExecuter antlrExecuter = new AntlrExecuter();
             return antlrExecuter.runAntlr(spec);
         } catch (Exception e) {
-            LOGGER.warn("Exception occurred while running ANTLR.", e);
-            return new AntlrResult(1);
+            return new AntlrResult(1, e);
         }
     }
 }

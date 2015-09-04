@@ -17,10 +17,10 @@ package org.gradle.api.internal.notations
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.SelfResolvingDependency
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.reflect.Instantiator
@@ -36,7 +36,7 @@ public class DependencyClassPathNotationConverterTest extends Specification {
     def "parses classpath literals"() {
         given:
         def dependency = Mock(SelfResolvingDependency.class)
-        def fileCollection = Mock(FileCollection.class)
+        def fileCollection = Mock(FileCollectionInternal)
         def classpath = Mock(ClassPath.class)
         def files = [new File('foo')]
 
@@ -51,6 +51,13 @@ public class DependencyClassPathNotationConverterTest extends Specification {
 
         then:
         out.is dependency
+
+        when: // same instance is reused
+        def out2 = parse(DependencyFactory.ClassPathNotation.GRADLE_API)
+
+        then:
+        0 * instantiator._
+        out2.is out
     }
 
     def parse(def value) {

@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.openapi.external.foundation.ProjectVersion1
 import org.gradle.openapi.wrappers.foundation.GradleInterfaceWrapperVersion1
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -39,6 +40,7 @@ class MultiprojectProjectAndTaskListIntegrationTest extends AbstractIntegrationT
 
     @Before
     void setUp() {
+        NativeServicesTestFixture.initialize()
         gradlePluginLord.setCurrentDirectory(sample.dir);
         gradlePluginLord.setGradleHomeDirectory(distribution.gradleHomeDir);
         gradlePluginLord.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(executer.gradleUserHomeDir))

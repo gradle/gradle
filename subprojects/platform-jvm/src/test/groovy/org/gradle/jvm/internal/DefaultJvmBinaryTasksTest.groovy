@@ -15,15 +15,19 @@
  */
 
 package org.gradle.jvm.internal
+
 import org.gradle.api.GradleException
 import org.gradle.api.Task
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.jvm.JvmBinarySpec
 import org.gradle.jvm.tasks.Jar
+import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import spock.lang.Specification
 
 class DefaultJvmBinaryTasksTest extends Specification {
     def binary = Mock(JvmBinarySpec)
-    def tasks = new DefaultJvmBinaryTasks(binary)
+    def taskFactory = Mock(ITaskFactory)
+    def tasks = new DefaultJvmBinaryTasks(new DefaultBinaryTasksCollection(binary, taskFactory))
 
     def "provides access to build task"() {
         def buildTask = Mock(Task)

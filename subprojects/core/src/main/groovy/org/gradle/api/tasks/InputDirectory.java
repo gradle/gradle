@@ -18,10 +18,13 @@ package org.gradle.api.tasks;
 import java.lang.annotation.*;
 
 /**
- * <p>Marks a property as specifying an input directory for a task.</p> <p>This annotation should be attached to the
- * getter method or the field for the property.</p>
+ * <p>Marks a property as specifying an input directory for a task.</p>
  *
  * <p>This annotation should be attached to the getter method or the field for the property.</p>
+ *
+ * <p>This will cause the task to be considered out-of-date when the directory location or contents
+ * have changed. To make the task dependent on the directory location but not the
+ * contents, use an {@link org.gradle.api.tasks.Input} annotation instead.</p>
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

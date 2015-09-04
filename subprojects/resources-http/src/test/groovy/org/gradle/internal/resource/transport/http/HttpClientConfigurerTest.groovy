@@ -18,19 +18,23 @@ package org.gradle.internal.resource.transport.http
 import org.apache.http.auth.AuthScope
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.params.HttpProtocolParams
-import org.gradle.internal.resource.PasswordCredentials
+import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.internal.authentication.AllSchemesAuthentication
 import org.gradle.internal.resource.UriResource
 import spock.lang.Specification
 
 public class HttpClientConfigurerTest extends Specification {
     DefaultHttpClient httpClient = new DefaultHttpClient()
     PasswordCredentials credentials = Mock()
+    AllSchemesAuthentication authentication = Mock() {
+        getCredentials() >> credentials
+    }
     HttpSettings httpSettings = Mock()
     HttpProxySettings proxySettings = Mock()
     HttpClientConfigurer configurer = new HttpClientConfigurer(httpSettings)
 
     def "configures http client with no credentials or proxy"() {
-        httpSettings.credentials >> credentials
+        httpSettings.authenticationSettings >> []
         httpSettings.proxySettings >> proxySettings
 
         when:
@@ -41,7 +45,7 @@ public class HttpClientConfigurerTest extends Specification {
     }
 
     def "configures http client with proxy credentials"() {
-        httpSettings.credentials >> credentials
+        httpSettings.authenticationSettings >> []
         httpSettings.proxySettings >> proxySettings
         proxySettings.proxy >> new HttpProxySettings.HttpProxy("host", 1111, "domain/proxyUser", "proxyPass")
 
@@ -63,7 +67,7 @@ public class HttpClientConfigurerTest extends Specification {
     }
 
     def "configures http client with credentials"() {
-        httpSettings.credentials >> credentials
+        httpSettings.authenticationSettings >> [authentication]
         credentials.username >> "domain/user"
         credentials.password >> "pass"
         httpSettings.proxySettings >> proxySettings
@@ -89,7 +93,7 @@ public class HttpClientConfigurerTest extends Specification {
     }
 
     def "configures http client with user agent"() {
-        httpSettings.credentials >> credentials
+        httpSettings.authenticationSettings >> []
         httpSettings.proxySettings >> proxySettings
 
         when:

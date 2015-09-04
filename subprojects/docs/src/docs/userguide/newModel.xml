@@ -1,0 +1,508 @@
+<!--
+  ~ Copyright 2015 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id='new_model'>
+    <title>Rule based model configuration</title>
+    <note>
+        <para>
+            Support for rule based configuration is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+        </para>
+    </note>
+    <para>
+        This chapter describes and documents what is essentially the foundation for Gradle 3.0 and the next generation of Gradle builds.
+        It is being incrementally developed during the Gradle 2.x stream. Gradle's support for building <link linkend="nativeBinaries">native applications</link> and
+        <link linkend="play_plugin">Play Framework applications</link> already uses this configuration model.
+        Gradle also includes some initial support for building <link linkend="new_java_plugin">Java libraries</link> using this configuration model.
+    </para>
+    <para>
+        All of the mechanisms, DSL, API, and techniques discussed here are <emphasis>incubating</emphasis> and are not considered stable and subject to change - see <xref linkend="feature_lifecycle"/>).
+        Exposing new features early, during incubation, allows early testing and the incorporation of real world feedback ultimately resulting in a better Gradle.
+    </para>
+    <para>
+        The following build script is an example of a rule based build.
+    </para>
+    <sample id='basicRuleSourcePlugin-all' dir='modelRules/basicRuleSourcePlugin' includeLocation="true" title='an example of a simple rule based build'>
+        <sourcefile file='build.gradle' snippet="managed-type-plugin-and-dsl"/>
+        <output args='hello'/>
+    </sample>
+    <para>
+        The rest of this chapter is dedicated to explaining what is going on in this build script, and why Gradle is moving in this direction.
+    </para>
+    <section>
+        <title>Background</title>
+        <para>
+            Gradle embraces domain modelling as a core tenet.
+            Focusing on the domain model as opposed to the execution model (like prior generation build tools such as Apache Ant) has many advantages.
+            A strong domain model communicates the intent (i.e. the what) over the mechanics (i.e. the how).
+            This allows humans to understand builds at a level that is meaningful to them.
+        </para>
+        <para>
+            As well as helping humans, a strong domain model also helps the dutiful machines.
+            Plugins can more effectively collaborate around a strong domain model (e.g. plugins can say something about Java applications, such as providing conventions).
+            Very importantly, by having a model of the <emphasis>what</emphasis> instead of the <emphasis>how</emphasis> Gradle can make intelligent choices on just how to do the how.
+        </para>
+        <para>
+            The move towards “Rule based model configuration” can be summarised as improving Gradle's ability to model richer domains in a more effective way.
+            It also makes expressing the kinds of models present in today's Gradle more robust and simpler.
+        </para>
+    </section>
+    <section>
+        <title>Motivations for change</title>
+        <para>
+            Domain modelling in Gradle is not new.
+            The Java plugin's <apilink class="org.gradle.api.tasks.SourceSet" /> concept is an example of domain modelling,
+            as is the modelling of <apilink class="org.gradle.nativeplatform.NativeBinary"/> in the native plugin suite.
+        </para>
+        <para>
+            One distinguishing characteristic of Gradle compared to other build tools that also embrace modelling is that Gradle's model is open and collaborative.
+            Gradle is fundamentally a tool for modelling software construction and then realizing the model, via tasks such as compilation etc..
+            Different domain plugins (e.g. Java, C++, Android) provide models that other plugins can collaborate with and build upon.
+        </para>
+        <para>
+            While Gradle has long employed sophisticated techniques when it comes to realizing the model (i.e. what we know as building things),
+            the next generation of Gradle builds will employ some of the same techniques to building of the model itself.
+            By defining build tasks as effectively a graph of dependent functions with explicit inputs and outputs,
+            Gradle is able to order, cache, parallelize and apply other optimizations to the work.
+            Using a “graph of tasks” for the production of software is a long established idea, and necessary given the complexity of software production.
+            The task graph effectively defines the <emphasis>rules</emphasis> of execution that Gradle must follow.
+            The term “Rule based model configuration” refers to applying the same concepts to building the model that builds the task graph.
+        </para>
+        <para>
+            Another <emphasis>key</emphasis> motivation is performance and scale.
+            Aspects of the current approach that Gradle takes to modelling the build prevent pervasive parallelism and limit scalability.
+            The new model is being designed with the requirements of modern software delivery in mind, where immediate responsiveness is critical for projects large and small.
+        </para>
+    </section>
+    <section>
+        <title>Concepts</title>
+        <para>
+            This section outlines the key concepts of rule based model configuration.
+            Subsequent sections in this chapter will show the concepts in action.
+        </para>
+        <section>
+            <title>The “model space”</title>
+            <para>
+                The term “model space” is used to refer to the formal model, addressable by rules.
+            </para>
+            <para>
+                An analog with existing model is effectively the “project space”.
+                The <apilink class="org.gradle.api.Project"/> object is effectively the root of a graph of objects (e.g <literal>project.repositories</literal>, <literal>project.tasks</literal> etc.).
+                A build script is effectively adding and configuring objects of this graph.
+                For the most part, the “project space” is opaque to Gradle.
+                It is an arbitrary graph of objects that Gradle only partially understands.
+            </para>
+            <para>
+                Each project also has its own model space, which is distinct from the project space.
+                A key characteristic of the “model space” is that Gradle knows much more about it (which is knowledge that can be put to good use).
+                The objects in the model space are “managed”, to a greater extent than objects in the project space.
+                The origin, structure, state, collaborators and relationships of objects in the model space are first class constructs.
+                This is effectively the characteristic that functionally distinguishes the model space from the project space:
+                the objects of the model space are defined in ways that Gradle can understand them intimately, as opposed to an object that is the result of running relatively opaque code.
+                A “rule” is effectively a building block of this definition.
+            </para>
+            <para>
+                The model space will eventually replace the project space, in so far as it will be the only “space”.
+                However, during the transition the distinction is helpful.
+            </para>
+        </section>
+        <section>
+            <title>Model paths</title>
+            <para>
+                A model path identifies a path through a model space, to an element.
+                A common representation is a period-delimited set of names.
+                The model path <literal>"tasks"</literal> is the path to the element that is the task container.
+                Assuming a task who's name is <literal>hello</literal>, the path <literal>"tasks.hello"</literal> is the path to this task.
+            </para>
+            <para>
+                TBD - more needed here.
+            </para>
+        </section>
+        <section>
+            <title>Rules</title>
+            <para>
+                The model space is defined in terms of “rules”.
+                A rule is just a function (in the abstract sense) that either produces a model element, or acts upon a model element.
+                Every rule has a single subject and zero or more inputs.
+                Only the subject can be changed by a rule, while the inputs are effectively immutable.
+            </para>
+            <para>
+                Gradle guarantees that all inputs are fully “realized“ before the rule executes.
+                The process of “realizing” a model element is effectively executing all the rules for which it is the subject, transitioning it to its final state.
+                There is a strong analogy here to Gradle's task graph and task execution model.
+                Just as tasks depend on each other and Gradle ensures that dependencies are satisfied before executing a task,
+                rules effectively depend on each other (i.e. a rule depends on all rules who's subject is one of the inputs) and Gradle ensures that all dependencies are satisfied
+                before executing the rule.
+            </para>
+            <para>
+                Model elements are very often defined in terms of other model elements.
+                For example, a compile task's configuration can be defined in terms of the configuration of the source set that it is compiling.
+                In this scenario, the compile task would be the subject of a rule and the source set an input.
+                Such a rule could configure the task subject based on the source set input without concern for how it was configured, who it was configured by or when the configuration was specified.
+            </para>
+            <para>
+                There are several ways to declare rules, and in several forms.
+                An explanation of the different forms and mechanisms along with concrete examples is forthcoming in this chapter.
+            </para>
+        </section>
+        <section>
+            <title>Managed model elements</title>
+            <para>
+                Currently, any kind of Java object can be part of the model space.
+                However, there is a difference between “managed” and “unmanaged” objects.
+            </para>
+            <para>
+                A “managed” object is transparent and enforces immutability once realized.
+                Being transparent means that its structure is understood by the rule infrastructure and as such each of its properties are also individual elements in the model space.
+            </para>
+            <para>
+                An “unmanaged” object is opaque to the the model space and does not enforce immutability.
+                Over time, more mechanisms will be available for defining managed model elements culminating in all model elements being managed in some way.
+            </para>
+            <para>Managed models can be defined by attaching the <literal>@Managed</literal> annotation to an interface:</para>
+            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed type">
+                <sourcefile file='build.gradle' snippet='managed-type'/>
+            </sample>
+            <para>By defining a couple of getter/setter, you are effectively declaring a managed property. A managed property is a property for which Gradle
+            will enforce semantics such as immutability when a node of the model is not the subject of a rule. Therefore, this example declares a property
+            named <emphasis>name</emphasis> on the managed type <emphasis>Person</emphasis>. This property will only be writeable when the view is mutable,
+            that is to say when the <emphasis>Person</emphasis> is the subject of a <literal>Rule</literal> (see below the explanation for rules).</para>
+            <para>Properties can be of any primitive type (e.g. <literal>int</literal>), boxed type (e.g <literal>Integer</literal>), <literal>String</literal>,
+                <literal>File</literal> or enumeration. In addition, properties can also be of any type which is itself managed:</para>
+            <table>
+                <thead>
+                    <td>Property type</td><td>Nullable</td><td>Example</td>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <literal>String</literal>
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a String property" >
+                                <sourcefile file='build.gradle' snippet='property-type-string'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <literal>File</literal>
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a File property" >
+                                <sourcefile file='build.gradle' snippet='property-type-file'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <literal>Integer</literal>, <literal>Boolean</literal>, <literal>Byte</literal>, <literal>Short</literal>,
+                            <literal>Float</literal>, <literal>Long</literal>, <literal>Double</literal>
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a Long property" >
+                                <sourcefile file='build.gradle' snippet='property-type-long'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <literal>int</literal>, <literal>boolean</literal>, <literal>byte</literal>, <literal>short</literal>,
+                            <literal>float</literal>, <literal>long</literal>, <literal>double</literal>
+                        </td>
+                        <td>No</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a boolean property">
+                                <sourcefile file='build.gradle' snippet='property-type-boolean'/>
+                            </sample>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="an int property" >
+                                <sourcefile file='build.gradle' snippet='property-type-int'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Another <emphasis>managed</emphasis> type.
+                        </td>
+                        <td>Only if read/write</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed property">
+                                <sourcefile file='build.gradle' snippet='property-type-managed'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            An <emphasis>enumeration</emphasis> type.
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="an enumeration type property">
+                                <sourcefile file='build.gradle' snippet='property-type-enum'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            A <literal>ManagedSet</literal>.
+                        </td>
+                        <td>Only if read/write</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed set">
+                                <sourcefile file='build.gradle' snippet='property-type-managedset'/>
+                            </sample>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <para>If the type of a property is itself a managed type, it is possible to declare only a getter, in which case you are declaring a
+            read-only property. A read-only property must not be mistaken with an immutable property. A read-only property will be instantiated by Gradle,
+            and cannot be replaced with another object of the same type (for example calling a setter). However, the properties of that property can potentially
+            be changed, if, and only if, the property is the subject of a rule. If it's not the case, the property is immutable, like any classic
+            read/write managed property.</para>
+            <para>Managed types can be defined out of interfaces or abstract classes and are usually defined in plugins, which are written either in Java or Groovy.
+                Please see the <apilink class="org.gradle.model.Managed" /> annotation
+                for more information on creating managed model objects.</para>
+        </section>
+        <section>
+            <title>References, binding and scopes</title>
+            <para>
+                As previously mentioned, a rule has a subject and zero or more inputs.
+                The rule's subject and inputs are declared as “references” and are “bound” to model elements before execution by Gradle.
+                Each rule must effectively forward declare the subject and inputs as references.
+                Precisely how this is done depends on the form of the rule.
+                For example, the rules provided by a <apilink class="org.gradle.model.RuleSource" /> declare references as method parameters.
+            </para>
+            <para>
+                A reference is either “by-path” or “by-type”.
+            </para>
+            <para>
+                A “by-type” reference identifies a particular model element by its type.
+                For example, a reference to the <apilink class="org.gradle.api.tasks.TaskContainer" /> effectively identifies the <literal>"tasks"</literal> element in the project model space.
+                The model space is not exhaustively searched for candidates for by-type binding.
+                The search space for a by-type binding is determined by the “scope” of the rule (discussed later).
+            </para>
+            <para>
+                A “by-path” reference identifies a particular model element by its path in model space.
+                By-path references are always relative to the rule scope; there is currently no way to path “out” of the scope.
+                All by-path references also have an associated type, but this does not influence what the reference binds to.
+                The element identified by the path must however by type compatible with the reference, or a fatal “binding failure” will occur.
+            </para>
+            <section>
+                <title>Binding scope</title>
+                <para>
+                    Rules are bound within a “scope”, which determines how references bind.
+                    Most rules are bound at the project scope (i.e. the root of the model graph for the project).
+                    However, rules can be scoped to a node within the graph.
+                    The <apilink class="org.gradle.model.ModelMap" method="named(java.lang.String, java.lang.Class)" /> method is an example,
+                    of a mechanism for applying scoped rules.
+                    Rules declared in the build script using the <literal>model {}</literal> block, or via a <literal>RuleSource</literal> applied as a plugin use the root of the model space as the scope.
+                    This can be considered the default scope.
+                </para>
+                <para>
+                    By-path references are always relative to the rule scope.
+                    When the scope is the root, this effectively allows binding to any element in the graph.
+                    When it is not, the children of the scope can be referred to by-path.
+                </para>
+                <para>
+                    When binding by-type references, the following elements are considered:
+                </para>
+                <itemizedlist>
+                    <listitem>The scope element itself.</listitem>
+                    <listitem>The immediate children of the scope element.</listitem>
+                    <listitem>The immediate children of the model space (i.e. project space) root.</listitem>
+                </itemizedlist>
+                <para>
+                    For the common case, where the rule is effectively scoped to the root, only the immediate children of the root need to be considered.
+                </para>
+            </section>
+        </section>
+    </section>
+    <section>
+        <title>Rule sources</title>
+        <para>
+            One way to define rules, is via a <apilink class="org.gradle.model.RuleSource" /> subclass.
+            Such types can be applied in the same manner (to project objects) as <apilink class="org.gradle.api.Plugin" /> implementations (i.e. via <apilink class="org.gradle.api.Project" method="apply(java.util.Map)" />).
+        </para>
+        <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title='applying a rule source plugin'>
+            <sourcefile file='build.gradle' snippet='managed-type-and-plugin'/>
+        </sample>
+        <para>
+            Rule source plugins can be packaged and distributed in the same manner as other types of plugins (see <xref linkend="custom_plugins" />).
+        </para>
+        <para>
+            The different methods of the rule source are discrete, independent rules.
+            Their order, or the fact that they belong to the same class, are irrelevant.
+        </para>
+        <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a model creation rule">
+            <sourcefile file='build.gradle' snippet='create-rule'/>
+        </sample>
+        <para>
+            This rule declares that there is a model element at path <literal>"person"</literal> (defined by the method name), of type <literal>Person</literal>.
+            This is the form of the <apilink class="org.gradle.model.Model" /> type rule for <apilink class="org.gradle.model.Managed" /> types.
+            Here, the person object is the rule subject.
+            The method could potentially have a body, that mutated the person instance.
+            It could also potentially have more parameters, that would be the rule inputs.
+        </para>
+        <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a model mutation rule">
+            <sourcefile file='build.gradle' snippet='plugin-mutate-rule'/>
+        </sample>
+        <para>
+            This <apilink class="org.gradle.model.Mutate" /> rule mutates the person object.
+            The first parameter to the method is the subject.
+            Here, a by-type reference is used as no <apilink class="org.gradle.model.Path" /> annotation is present on the parameter.
+            It could also potentially have more parameters, that would be the rule inputs.
+        </para>
+        <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="creating a task">
+            <sourcefile file='build.gradle' snippet='task-create-rule'/>
+        </sample>
+        <para>
+            This <apilink class="org.gradle.model.Mutate" /> rule effectively adds a task, by mutating the tasks collection.
+            The subject here is the <literal>"tasks"</literal> node, which is available as a <apilink class="org.gradle.model.ModelMap" /> of <apilink class="org.gradle.api.Task" />.
+            The only input is our person element.
+            As the person is being used as an input here, it will have been realised before executing this rule.
+            That is, the task container effectively <emphasis>depends on</emphasis> the person element.
+            If there are other configuration rules for the person element, potentially specified in a build script or other plugin, the will also be guaranteed to have been executed.
+        </para>
+        <para>
+            As <literal>Person</literal> is a <apilink class="org.gradle.model.Managed" /> type in this example, any attempt to modify the person parameter in this method would result in an exception being thrown.
+            Managed objects enforce immutability at the appropriate point in their lifecycle.
+        </para>
+        <para>
+            Please see the documentation for <apilink class="org.gradle.model.RuleSource" /> for more information on constraints on how rule sources must be implemented and for more types of rules.
+        </para>
+    </section>
+    <section>
+        <title>The “model DSL”</title>
+        <para>
+            It is also possible to declare rules directly in the build script using the “model DSL”.
+        </para>
+        <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="the model dsl">
+            <sourcefile file='build.gradle' snippet='dsl'/>
+        </sample>
+        <para>
+            Continuing with the example so far of the model element <literal>"person"</literal> of type <literal>Person</literal> being present,
+            the above DSL snippet effectively adds a mutation rule for the person that sets its <literal>lastName</literal> property.
+        </para>
+        <para>
+            The general form of the model DSL is:
+        </para>
+        <programlisting>
+model {
+  «model-path-to-subject» {
+    «imperative code»
+  }
+}
+        </programlisting>
+        <para>
+            Where there may be multiple blocks.
+        </para>
+        <para>
+            It is also possible to create <apilink class="org.gradle.model.Managed" /> type elements at the root level.
+        </para>
+        <para>
+            The general form of a creation rule is:
+        </para>
+        <programlisting>
+model {
+  «element-name»(«element-type») {
+    «imperative code»
+  }
+}
+        </programlisting>
+        <para>
+            The following model rule is creating the person element:
+        </para>
+        <sample id='modelDslCreate' dir='modelRules/modelDsl' includeLocation="true" title="a DSL creation rule">
+            <sourcefile file='build.gradle' snippet="create-rule"/>
+        </sample>
+        <para>
+            The model DSL is currently quite limited.
+            It is only possible to declare creation and general mutation rules.
+            It is also only possible to refer to the subject by-path and it is not possible for the rule to have inputs.
+            These are all limitations that will be addressed in future Gradle versions.
+        </para>
+    </section>
+    <section>
+        <title>The model report</title>
+        <para>
+            The built-in <apilink class="org.gradle.api.reporting.model.ModelReport"/> task displays a hierarchical view of the elements in the model space.
+            Each item prefixed with a `+`, excluding the topmost `+ model`, on the model report is a model element and the visual nesting of these elements correlates to the model
+            path (e.g. `tasks.help`). The model report displays the following details about each model element:
+        </para>
+
+        <table>
+            <title>Model report - model element details</title>
+            <thead>
+                <td>Detail</td>
+                <td>Description</td>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Type</td>
+                    <td>This is the underlying type of the model element and is typically a fully qualified class name.</td>
+                </tr>
+                <tr>
+                    <td>Value</td>
+                    <td>Is conditionally displayed on the report when a model element can be represented as a string.</td>
+                </tr>
+                <tr>
+                    <td>Creator</td>
+                    <td>Every model element has a creator. A creator signifies the origin of the model element (i.e. what created the model element).</td>
+                </tr>
+                <tr>
+                    <td>Rules</td>
+                    <td>Is a listing of the rules, excluding the creator rule, which are executed for a given model element. The order in which the rules are displayed reflects
+                        the order in which they are executed.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <sample id='basicRuleSourcePlugin-model-task' dir='modelRules/basicRuleSourcePlugin' title='model task output'>
+            <output args='model' ignoreExtraLines="true"/>
+        </sample>
+    </section>
+    <section>
+        <title>Limitations and future direction</title>
+        <para>
+            Rule based model configuration is the future of Gradle.
+            This area is fledgling, but under very active development.
+            Early experiments have demonstrated that this approach is more efficient, able to provide richer diagnostics and authoring assistance and is more extensible.
+            However, there are currently many limitations.
+        </para>
+        <para>
+            The majority of the development to date has been focused on proving the efficacy of the approach, and building the internal rule execution engine and model graph mechanics.
+            The user facing aspects (e.g the DSL, rule source classes) are yet to be optimized for conciseness and general usability.
+            Likewise, many necessary configuration patterns and constructs are not yet able to be expressed via the API.
+        </para>
+        <para>
+            In conjunction with the addition of better syntax, a richer toolkit of configuration constructs and generally more expressive power, more tooling will be added that will enable
+            build engineers and users alike to comprehend, modify and extend builds in new ways.
+        </para>
+        <para>
+            Due to the inherent nature of the rule based approach, it is more efficient at constructing the build model than today's Gradle.
+            However, in the future Gradle will also leverage the parallelism that this approach enables both at configuration and execution time.
+            Moreover, due to increased transparency of the model Gradle will be able to further reduce build times by caching and pre-computing the build model.
+            Beyond improved general build performance, this will greatly improve the experience when using Gradle from tools such as IDEs.
+        </para>
+        <para>
+            As this area of Gradle is under active development, it will be changing rapidly.
+            Please be sure to consult the documentation of Gradle corresponding to the version you are using and to watch for changes announced in the release notes for future versions.
+        </para>
+    </section>
+</chapter>

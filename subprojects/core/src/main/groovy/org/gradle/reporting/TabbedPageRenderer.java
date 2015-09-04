@@ -19,9 +19,13 @@ import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.util.GradleVersion;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Date;
 
 public abstract class TabbedPageRenderer<T> extends ReportRenderer<T, HtmlPageBuilder<SimpleHtmlWriter>> {
+    private static final URL BASE_STYLE_URL = TabbedPageRenderer.class.getResource("/org/gradle/reporting/base-style.css");
+    private static final URL REPORT_JS_URL = TabbedPageRenderer.class.getResource("/org/gradle/reporting/report.js");
+
     private T model;
 
     protected T getModel() {
@@ -38,13 +42,15 @@ public abstract class TabbedPageRenderer<T> extends ReportRenderer<T, HtmlPageBu
         return getTitle();
     }
 
+    protected abstract URL getStyleUrl();
+
     @Override
     public void render(final T model, HtmlPageBuilder<SimpleHtmlWriter> builder) throws IOException {
         this.model = model;
 
-        String baseStyleLink = builder.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
-        String reportJsLink = builder.requireResource(getClass().getResource("/org/gradle/reporting/report.js"));
-        String styleLink = builder.requireResource(getClass().getResource("style.css"));
+        String baseStyleLink = builder.requireResource(BASE_STYLE_URL);
+        String reportJsLink = builder.requireResource(REPORT_JS_URL);
+        String styleLink = builder.requireResource(getStyleUrl());
 
         SimpleHtmlWriter htmlWriter = builder.getOutput();
 

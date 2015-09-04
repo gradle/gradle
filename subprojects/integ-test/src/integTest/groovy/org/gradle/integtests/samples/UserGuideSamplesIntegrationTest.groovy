@@ -27,6 +27,12 @@ class UserGuideSamplesIntegrationTest {
      - gradle intTestImage makes sure that the samples' resources are copied to the right place
      - gradle docs:userguideDocbook makes sure that samples' info is extracted from XMLs
      - the 'expected' content of the asserting mechanism lives under docs/src/samples/userguideOutput
+     - Running:
+        ./gradlew intTestImage docs:userguideDocbook integtest:integTest --tests org.gradle.integtests.samples.UserGuideSamplesIntegrationTest
 
+     Samples are not tested by default. For a sample to be executed and tested, you need to:
+     - add a nested <output/> tag to the <sample/> tag
+     - use the `args` parameter of the output tag to specify the tasks to be executed
+     - optionally set the name of the reference output file (by default, will use [sample id].out)
     */
 }

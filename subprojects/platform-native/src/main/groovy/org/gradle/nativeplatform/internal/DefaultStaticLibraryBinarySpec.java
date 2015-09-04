@@ -22,7 +22,8 @@ import org.gradle.nativeplatform.StaticLibraryBinary;
 import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
+import org.gradle.platform.base.BinaryTasksCollection;
+import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ import java.util.Set;
 
 public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements StaticLibraryBinary, StaticLibraryBinarySpecInternal {
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
-    private final DefaultTasksCollection tasks = new DefaultTasksCollection(this);
+    private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private File staticLibraryFile;
 
     public File getStaticLibraryFile() {
@@ -68,9 +69,9 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return tasks;
     }
 
-    private static class DefaultTasksCollection extends DefaultBinaryTasksCollection implements StaticLibraryBinarySpec.TasksCollection {
-        public DefaultTasksCollection(NativeBinarySpecInternal binary) {
-            super(binary);
+    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements StaticLibraryBinarySpec.TasksCollection {
+        public DefaultTasksCollection(BinaryTasksCollection delegate) {
+            super(delegate);
         }
 
         public CreateStaticLibrary getCreateStaticLib() {

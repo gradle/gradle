@@ -11,7 +11,7 @@ dependencies {
     provided 'log4j:log4j:1.2.17'
     compile project(':api')
     runtime 'joda-time:joda-time:2.5'
-    testCompile 'junit:junit:4.11'
+    testCompile 'junit:junit:4.12'
 }
 
 eclipse {

@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "executes init.gradle from user home dir"() {
@@ -55,6 +56,7 @@ class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
         b < c
     }
 
+    @LeaksFileHandles
     def "executes init script with correct environment"() {
         given:
         def implClassName = 'com.google.common.collect.Multimap'

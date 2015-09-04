@@ -68,9 +68,6 @@
                 <td>path</td>
             </tr>
             <tr>
-                <td>plugins</td>
-            </tr>
-            <tr>
                 <td>project</td>
             </tr>
             <tr>
@@ -142,9 +139,6 @@
             </tr>
             <tr>
                 <td>buildscript</td>
-            </tr>
-            <tr>
-                <td>apply</td>
             </tr>
             <tr>
                 <td>file</td>

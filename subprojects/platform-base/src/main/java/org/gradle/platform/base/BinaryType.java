@@ -31,16 +31,12 @@ import java.lang.annotation.Target;
  * {@link org.gradle.platform.base.BinaryType} annotation.
  *
  * <pre autoTested=''>
- * import org.gradle.model.*
- * import org.gradle.model.collection.*
- *
  * interface SampleBinary extends BinarySpec {}
  * class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
  *
  * apply plugin: MySamplePlugin
  *
- * {@literal @}RuleSource
- * class MySamplePlugin {
+ * class MySamplePlugin extends RuleSource {
  *     {@literal @}BinaryType
  *     void defineBinaryType(BinaryTypeBuilder<SampleBinary> builder) {
  *         builder.defaultImplementation(DefaultSampleBinary)

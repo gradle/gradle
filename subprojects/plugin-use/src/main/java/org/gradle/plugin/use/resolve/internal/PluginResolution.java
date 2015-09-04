@@ -16,15 +16,12 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import org.gradle.api.Action;
 import org.gradle.plugin.internal.PluginId;
 
 /**
  * The result of attempting to resolve a plugin to a classpath.
  */
-public interface PluginResolution {
-
+public interface PluginResolution extends Action<PluginResolveContext> {
     PluginId getPluginId();
-
-    Class<?> resolve();
-
 }

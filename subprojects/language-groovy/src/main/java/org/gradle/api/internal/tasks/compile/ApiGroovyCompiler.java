@@ -27,22 +27,26 @@ import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.messages.SimpleMessage;
 import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
+import org.codehaus.groovy.tools.javac.JavaCompilerFactory;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
     private final Compiler<JavaCompileSpec> javaCompiler;
@@ -65,11 +69,13 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             configuration.setOptimizationOptions(spec.getGroovyCompileOptions().getOptimizationOptions());
         } catch (NoSuchMethodError ignored) { /* method was only introduced in Groovy 1.8 */ }
         Map<String, Object> jointCompilationOptions = new HashMap<String, Object>();
-        jointCompilationOptions.put("stubDir", spec.getGroovyCompileOptions().getStubDir());
+        final File stubDir = spec.getGroovyCompileOptions().getStubDir();
+        stubDir.mkdirs();
+        jointCompilationOptions.put("stubDir", stubDir);
         jointCompilationOptions.put("keepStubs", spec.getGroovyCompileOptions().isKeepStubs());
         configuration.setJointCompilationOptions(jointCompilationOptions);
 
-        URLClassLoader classPathLoader = new GroovyCompileTransformingClassLoader(new DefaultClassPath(spec.getClasspath()));
+        URLClassLoader classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), new DefaultClassPath(spec.getClasspath()));
         GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
 
         FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
@@ -79,7 +85,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         // or a NoClassDefFoundError will occur. Essentially this is drawing a line between the Groovy compiler and the Groovy
         // library, albeit only for selected classes that run a high risk of being statically referenced from a transform.
         groovyCompilerClassLoader.disallowClass("groovy.util.GroovyTestCase");
-        groovyCompilerClassLoader.disallowClass("groovy.servlet.GroovyServlet");
+        groovyCompilerClassLoader.disallowPackage("groovy.servlet");
 
         // AST transforms need their own class loader that shares compiler classes with the compiler itself
         final GroovyClassLoader astTransformClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);
@@ -96,18 +102,42 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                 return astTransformClassLoader;
             }
         };
+
+        final boolean shouldProcessAnnotations = shouldProcessAnnotations(astTransformClassLoader, spec);
+        if (shouldProcessAnnotations) {
+            // If an annotation processor is detected, we need to force Java stub generation, so the we can process annotations on Groovy classes
+            // We are forcing stub generation by tricking the groovy compiler into thinking there are java files to compile.
+            // All java files are just passed to the compile method of the JavaCompiler and aren't processed internally by the Groovy Compiler.
+            // Since we're maintaining our own list of Java files independent what's passed by the Groovy compiler, adding a non-existant java file
+            // to the sources won't cause any issues.
+            unit.addSources(new File[] {new File("ForceStubGeneration.java")});
+        }
+
         unit.addSources(Iterables.toArray(spec.getSource(), File.class));
-        unit.setCompilerFactory(new org.codehaus.groovy.tools.javac.JavaCompilerFactory() {
+        unit.setCompilerFactory(new JavaCompilerFactory() {
             public JavaCompiler createCompiler(final CompilerConfiguration config) {
                 return new JavaCompiler() {
                     public void compile(List<String> files, CompilationUnit cu) {
+                        if (shouldProcessAnnotations) {
+                            // In order for the Groovy stubs to have annotation processors invoked against them, they must be compiled as source.
+                            // Classes compiled as a result of being on the -sourcepath do not have the annotation processor run against them
+                            spec.setSource(spec.getSource().plus(new SimpleFileCollection(stubDir).getAsFileTree()));
+                        } else {
+                            // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
+                            // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.
+                            FileCollection sourcepath = new SimpleFileCollection(stubDir);
+                            if (spec.getCompileOptions().getSourcepath() != null) {
+                                sourcepath = spec.getCompileOptions().getSourcepath().plus(sourcepath);
+                            }
+                            spec.getCompileOptions().setSourcepath(sourcepath);
+                        }
+
                         spec.setSource(spec.getSource().filter(new Spec<File>() {
                             public boolean isSatisfiedBy(File file) {
                                 return file.getName().endsWith(".java");
                             }
                         }));
-                        spec.getCompileOptions().getCompilerArgs().add("-sourcepath");
-                        spec.getCompileOptions().getCompilerArgs().add(((File) config.getJointCompilationOptions().get("stubDir")).getAbsolutePath());
+
                         try {
                             javaCompiler.execute(spec);
                         } catch (CompilationFailedException e) {
@@ -126,6 +156,30 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
 
         return new SimpleWorkResult(true);
+    }
+
+    private boolean shouldProcessAnnotations(ClassLoader classLoader, GroovyJavaJointCompileSpec spec) {
+        return !isAnnotationProcessingDisabled(spec)
+               && (isAnnotationProcessorOnClasspath(classLoader) || isDefaultAnnotationProcessorDiscoveryOverridden(spec));
+    }
+
+    private boolean isAnnotationProcessingDisabled(GroovyJavaJointCompileSpec spec) {
+        List<String> compilerArgs = spec.getCompileOptions().getCompilerArgs();
+        return !spec.getGroovyCompileOptions().isJavaAnnotationProcessing() || compilerArgs.contains("-proc:none");
+    }
+
+    private boolean isAnnotationProcessorOnClasspath(ClassLoader classLoader) {
+        try {
+            Enumeration<URL> processorEntries = classLoader.getResources("META-INF/services/javax.annotation.processing.Processor");
+            return processorEntries.hasMoreElements();
+        } catch (IOException e) {
+            throw new GradleException("Failed to retrieve annotation processor metadata from classpath", e);
+        }
+    }
+
+    private boolean isDefaultAnnotationProcessorDiscoveryOverridden(GroovyJavaJointCompileSpec spec) {
+        List<String> compilerArgs = spec.getCompileOptions().getCompilerArgs();
+        return !Collections.disjoint(compilerArgs, Arrays.asList("-processorpath", "-processor"));
     }
 
     private void applyConfigurationScript(File configScript, CompilerConfiguration configuration) {
@@ -178,4 +232,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
     }
 
+    private ClassLoader getExtClassLoader() {
+        return new DefaultClassLoaderFactory().getIsolatedSystemClassLoader();
+    }
 }

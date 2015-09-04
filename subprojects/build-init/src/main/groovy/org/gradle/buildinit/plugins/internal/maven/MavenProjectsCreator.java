@@ -19,18 +19,18 @@ package org.gradle.buildinit.plugins.internal.maven;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
 import org.gradle.internal.SystemProperties;
-import org.gradle.mvn3.org.apache.maven.execution.*;
-import org.gradle.mvn3.org.apache.maven.project.*;
-import org.gradle.mvn3.org.apache.maven.settings.Settings;
-import org.gradle.mvn3.org.codehaus.plexus.ContainerConfiguration;
-import org.gradle.mvn3.org.codehaus.plexus.DefaultContainerConfiguration;
-import org.gradle.mvn3.org.codehaus.plexus.DefaultPlexusContainer;
-import org.gradle.mvn3.org.codehaus.plexus.PlexusContainerException;
-import org.gradle.mvn3.org.codehaus.plexus.classworlds.ClassWorld;
-import org.gradle.mvn3.org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.gradle.mvn3.org.codehaus.plexus.configuration.PlexusConfigurationException;
-import org.gradle.mvn3.org.sonatype.aether.RepositorySystemSession;
-import org.gradle.mvn3.org.sonatype.aether.util.DefaultRepositorySystemSession;
+import org.apache.maven.execution.*;
+import org.apache.maven.project.*;
+import org.apache.maven.settings.Settings;
+import org.codehaus.plexus.ContainerConfiguration;
+import org.codehaus.plexus.DefaultContainerConfiguration;
+import org.codehaus.plexus.DefaultPlexusContainer;
+import org.codehaus.plexus.PlexusContainerException;
+import org.codehaus.plexus.classworlds.ClassWorld;
+import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.codehaus.plexus.configuration.PlexusConfigurationException;
+import org.sonatype.aether.RepositorySystemSession;
+import org.sonatype.aether.util.DefaultRepositorySystemSession;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -53,9 +53,6 @@ public class MavenProjectsCreator {
     }
 
     private Set<MavenProject> createNow(Settings settings, File pomFile) throws PlexusContainerException, PlexusConfigurationException, ComponentLookupException, MavenExecutionRequestPopulationException, ProjectBuildingException {
-        //using jarjar for maven3 classes affects the contents of the effective pom
-        //references to certain Maven standard plugins contain jarjar in the fqn
-        //not sure if this is a problem.
         ContainerConfiguration containerConfiguration = new DefaultContainerConfiguration()
                 .setClassWorld(new ClassWorld("plexus.core", ClassWorld.class.getClassLoader()))
                 .setName("mavenCore");
@@ -64,7 +61,7 @@ public class MavenProjectsCreator {
         ProjectBuilder builder = container.lookup(ProjectBuilder.class);
         MavenExecutionRequest executionRequest = new DefaultMavenExecutionRequest();
         final Properties properties = new Properties();
-        properties.putAll(SystemProperties.asMap());
+        properties.putAll(SystemProperties.getInstance().asMap());
         executionRequest.setSystemProperties(properties);
         MavenExecutionRequestPopulator populator = container.lookup(MavenExecutionRequestPopulator.class);
         populator.populateFromSettings(executionRequest, settings);

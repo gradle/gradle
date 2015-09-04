@@ -188,7 +188,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * <p>
      * The location for the repository is determined as follows (in order of precedence):
      * <ol>
-     * <li>The value of system property 'maven.repo.path' if set;</li>
+     * <li>The value of system property 'maven.repo.local' if set;</li>
      * <li>The value of element &lt;localRepository&gt; of <code>~/.m2/settings.xml</code> if this file exists and element is set;</li>
      * <li>The value of element &lt;localRepository&gt; of <code>$M2_HOME/conf/settings.xml</code> (where <code>$M2_HOME</code> is the value of the environment variable with that name) if this file exists and element is set;</li>
      * <li>The path <code>~/.m2/repository</code>.</li>

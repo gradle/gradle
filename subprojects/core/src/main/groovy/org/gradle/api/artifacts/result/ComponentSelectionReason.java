@@ -42,8 +42,8 @@ public interface ComponentSelectionReason {
     boolean isConflictResolution();
 
     /**
-     * Informs whether the component was selected by the dependency resolve rule.
-     * Users can configure dependency resolve rules via {@link org.gradle.api.artifacts.ResolutionStrategy#eachDependency(org.gradle.api.Action)}
+     * Informs whether the component was selected by the dependency substitution rule.
+     * Users can configure dependency substitution rules via {@link org.gradle.api.artifacts.ResolutionStrategy#getDependencySubstitution()}
      *
      * @since 1.4
      */

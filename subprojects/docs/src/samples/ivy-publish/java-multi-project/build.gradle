@@ -20,7 +20,7 @@ project(":project1") {
     description = "The first project"
 
     dependencies {
-       compile 'junit:junit:4.11', project(':project2')
+       compile 'junit:junit:4.12', project(':project2')
     }
 }
 

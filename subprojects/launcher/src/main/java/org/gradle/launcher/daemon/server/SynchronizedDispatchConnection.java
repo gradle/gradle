@@ -16,20 +16,21 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.internal.concurrent.Synchronizer;
-import org.gradle.logging.internal.OutputEvent;
+import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.gradle.messaging.remote.internal.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Connection decorator that synchronizes dispatching.
+ *
+ * The plan is to replace this with a Connection implementation that queues outgoing messages and dispatches them from a worker thread.
  */
 public class SynchronizedDispatchConnection<T> implements Connection<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SynchronizedDispatchConnection.class);
-    
-    private final Synchronizer sync = new Synchronizer();
+    private final Object lock = new Object();
     private final Connection<T> delegate;
+    private boolean dispatching;
 
     public SynchronizedDispatchConnection(Connection<T> delegate) {
         this.delegate = delegate;
@@ -41,14 +42,21 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
     }
 
     public void dispatch(final T message) {
-        if (!(message instanceof OutputEvent)) {
+        if (!(message instanceof OutputMessage)) {
             LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
         }
-        sync.synchronize(new Runnable() {
-            public void run() {
-                delegate.dispatch(message);
+        synchronized (lock) {
+            if (dispatching) {
+                // Safety check: dispatching a message should not cause the thread to dispatch another message (eg should not do any logging)
+                throw new IllegalStateException("This thread is already dispatching a message.");
             }
-        });
+            dispatching = true;
+            try {
+                delegate.dispatch(message);
+            } finally {
+                dispatching = false;
+            }
+        }
     }
 
     public T receive() {

@@ -23,7 +23,7 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.Actions
-import org.gradle.listener.ListenerManager
+import org.gradle.internal.event.ListenerManager
 import org.gradle.util.WrapUtil
 import org.jmock.Expectations
 import org.junit.After
@@ -255,9 +255,8 @@ class DefaultTaskTest extends AbstractTaskTest {
         def actionExecuted = false
         def closureAction = { t -> actionExecuted = true } as Action
         defaultTask.actions.add(closureAction)
-        defaultTask.execute()
+        execute(defaultTask)
         assertTrue(actionExecuted)
-
     }
 
     @Issue("GRADLE-2774")
@@ -266,7 +265,7 @@ class DefaultTaskTest extends AbstractTaskTest {
         def actionExecuted = false
         def closureAction = { t -> actionExecuted = true } as Action
         defaultTask.actions.addAll(Lists.newArrayList(closureAction))
-        defaultTask.execute()
+        execute(defaultTask)
 
         assertTrue(actionExecuted)
     }
@@ -277,9 +276,8 @@ class DefaultTaskTest extends AbstractTaskTest {
         def actionExecuted = false
         def closureAction = { t -> actionExecuted = true } as Action
         defaultTask.actions.addAll(0, Lists.newArrayList(closureAction))
-        defaultTask.execute()
+        execute(defaultTask)
         assertTrue(actionExecuted)
-
     }
 
     @Issue("GRADLE-2774")
@@ -288,7 +286,7 @@ class DefaultTaskTest extends AbstractTaskTest {
         def actionExecuted = false
         def closureAction = { t -> actionExecuted = true } as Action
         defaultTask.actions.listIterator().add(closureAction)
-        defaultTask.execute()
+        execute(defaultTask)
         assertTrue(actionExecuted)
     }
 
@@ -344,17 +342,6 @@ class DefaultTaskTest extends AbstractTaskTest {
         } catch (TaskExecutionException e) {
             assertThat(e.cause, sameInstance(failure))
         }
-
-        assertThat(defaultTask.state.failure, instanceOf(TaskExecutionException))
-        assertThat(defaultTask.state.failure.cause, sameInstance(failure))
-    }
-
-    @Test
-    public void testExecuteWithoutThrowingTaskFailureThrowsExecutionFailure() {
-        def failure = new RuntimeException()
-        defaultTask.doFirst { throw failure }
-
-        defaultTask.executeWithoutThrowingTaskFailure()
 
         assertThat(defaultTask.state.failure, instanceOf(TaskExecutionException))
         assertThat(defaultTask.state.failure.cause, sameInstance(failure))

@@ -16,13 +16,17 @@
 
 
 package org.gradle.launcher
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class EnablingParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        executer.withDeprecationChecksDisabled()
+    }
 
     def "parallel mode enabled from command line"() {
         buildFile << "assert gradle.startParameter.parallelThreadCount == 15"
@@ -32,7 +36,7 @@ class EnablingParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "parallel mode enabled via gradle.properties"() {
         file("gradle.properties") << "org.gradle.parallel=true"
-        buildFile << "assert gradle.startParameter.parallelThreadCount == -1"
+        buildFile << "assert gradle.startParameter.parallelProjectExecutionEnabled"
         expect:
         run()
     }
@@ -42,5 +46,13 @@ class EnablingParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "assert gradle.startParameter.parallelThreadCount == 15"
         expect:
         run("--parallel-threads=15")
+    }
+
+    @Ignore
+    def "parallel-threads is deprecated"() {
+        when:
+        run("--parallel-threads=15")
+        then:
+        output.contains("--parallel-threads option is deprecated")
     }
 }

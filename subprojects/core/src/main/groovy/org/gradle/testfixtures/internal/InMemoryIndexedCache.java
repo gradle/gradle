@@ -17,9 +17,9 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.serialize.InputStreamBackedDecoder;
-import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.serialize.InputStreamBackedDecoder;
+import org.gradle.internal.serialize.OutputStreamBackedEncoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

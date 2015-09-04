@@ -17,40 +17,23 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.BiAction;
-import org.gradle.model.internal.core.Inputs;
-import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
-import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.ModelSchema;
 
 import java.util.List;
 
-public class RuleMethodBackedMutationAction<T> implements BiAction<MutableModelNode, Inputs> {
-    private final ModelSchema<T> schema;
+public class RuleMethodBackedMutationAction<T> implements BiAction<T, List<ModelView<?>>> {
     private final ModelRuleInvoker<?> ruleInvoker;
-    private final ModelRuleDescriptor descriptor;
-    private final List<ModelReference<?>> inputReferences;
 
-    public RuleMethodBackedMutationAction(ModelSchema<T> schema, ModelRuleInvoker<?> ruleInvoker, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputReferences) {
-        this.schema = schema;
+    public RuleMethodBackedMutationAction(ModelRuleInvoker<?> ruleInvoker) {
         this.ruleInvoker = ruleInvoker;
-        this.descriptor = descriptor;
-        this.inputReferences = inputReferences;
     }
 
-    public void execute(MutableModelNode modelNode, Inputs inputs) {
-        ModelView<? extends T> modelView = modelNode.asWritable(schema.getType(), descriptor, inputs);
-        if (modelView == null) {
-            throw new IllegalStateException("Couldn't produce managed node as schema type");
-        }
-
+    public void execute(T subject, List<ModelView<?>> inputs) {
         Object[] args = new Object[inputs.size() + 1];
-        args[0] = modelView.getInstance();
+        args[0] = subject;
         for (int i = 0; i < inputs.size(); i++) {
-            args[i + 1] = inputs.get(i, inputReferences.get(i).getType()).getInstance();
+            args[i + 1] = inputs.get(i).getInstance();
         }
         ruleInvoker.invoke(args);
-        modelView.close();
     }
 }

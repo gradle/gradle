@@ -31,9 +31,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Jvm implements JavaInfo {
-    
+
     private final static Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
-    
+
     private final OperatingSystem os;
     //supplied java location
     private final File javaBase;
@@ -91,13 +91,12 @@ public class Jvm implements JavaInfo {
             this.javaVersion = null;
         }
     }
-    
+
     /**
      * Creates jvm instance for given java home. Attempts to validate if provided javaHome is a valid jdk or jre location.
      *
      * @param javaHome - location of your jdk or jre (jdk is safer), cannot be null
      * @return jvm for given java home
-     *
      * @throws org.gradle.internal.jvm.JavaHomeException when supplied javaHome does not seem to be a valid jdk or jre location
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder
      */
@@ -116,7 +115,24 @@ public class Jvm implements JavaInfo {
         if (userSupplied) {
             return "User-supplied java: " + javaBase;
         }
-        return String.format("%s (%s %s)", SystemProperties.getJavaVersion(), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
+        return String.format("%s (%s %s)", SystemProperties.getInstance().getJavaVersion(), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        Jvm other = (Jvm) obj;
+        return other.javaHome.equals(javaHome);
+    }
+
+    @Override
+    public int hashCode() {
+        return javaHome.hashCode();
     }
 
     private File findExecutable(String command) {
@@ -128,19 +144,19 @@ public class Jvm implements JavaInfo {
 
         if (userSupplied) { //then we want to validate strictly
             throw new JavaHomeException(String.format("The supplied javaHome seems to be invalid."
-                    + " I cannot find the %s executable. Tried location: %s", command, executable.getAbsolutePath()));
+                + " I cannot find the %s executable. Tried location: %s", command, executable.getAbsolutePath()));
         }
 
         File pathExecutable = os.findInPath(command);
         if (pathExecutable != null) {
             LOGGER.info(String.format("Unable to find the '%s' executable using home: %s. We found it on the PATH: %s.",
-                    command, getJavaHome(), pathExecutable));
+                command, getJavaHome(), pathExecutable));
             return pathExecutable;
         }
 
         LOGGER.warn("Unable to find the '{}' executable. Tried the java home: {} and the PATH."
                 + " We will assume the executable can be ran in the current working folder.",
-                command, getJavaHome());
+            command, getJavaHome());
         return new File(os.getExecutableName(command));
     }
 
@@ -151,6 +167,9 @@ public class Jvm implements JavaInfo {
         return findExecutable("java");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public File getJavacExecutable() throws JavaHomeException {
         return findExecutable("javac");
     }
@@ -218,10 +237,13 @@ public class Jvm implements JavaInfo {
      */
     @Nullable
     public Jre getStandaloneJre() {
+        if (javaVersion.isJava9Compatible()) {
+            return null;
+        }
         if (os.isWindows()) {
             File jreDir;
             if (javaVersion.isJava5()) {
-                jreDir = new File(javaHome.getParentFile(), String.format("jre%s", SystemProperties.getJavaVersion()));
+                jreDir = new File(javaHome.getParentFile(), String.format("jre%s", SystemProperties.getInstance().getJavaVersion()));
             } else {
                 jreDir = new File(javaHome.getParentFile(), String.format("jre%s", javaVersion.getMajorVersion()));
             }
@@ -236,12 +258,15 @@ public class Jvm implements JavaInfo {
     }
 
     /**
-     * Locates the JRE installation for this JVM.
+     * Locates the JRE installation for this JVM. Returns null if no JRE installation is available.
      */
+    @Nullable
     public Jre getJre() {
         File jreDir = new File(javaBase, "jre");
         if (jreDir.isDirectory()) {
             return new DefaultJre(jreDir);
+        } else if (JavaVersion.current().isJava9Compatible()) {
+            return null;
         }
         return new DefaultJre(javaBase);
     }
@@ -260,7 +285,7 @@ public class Jvm implements JavaInfo {
         }
 
         if (os.isWindows()) {
-            String version = SystemProperties.getJavaVersion();
+            String version = SystemProperties.getInstance().getJavaVersion();
             if (javaHome.getName().matches("jre\\d+") || javaHome.getName().equals(String.format("jre%s", version))) {
                 javaHome = new File(javaHome.getParentFile(), String.format("jdk%s", version));
                 toolsJar = new File(javaHome, "lib/tools.jar");
@@ -296,8 +321,7 @@ public class Jvm implements JavaInfo {
     }
 
     /**
-     * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE,
-     * but this is likely an over-simplification.
+     * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE, but this is likely an over-simplification.
      */
     static class AppleJvm extends Jvm {
         AppleJvm(OperatingSystem os) {

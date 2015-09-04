@@ -26,8 +26,17 @@ class PlayAppWithFailingTestsIntegrationTest extends PlayMultiVersionIntegration
 
     PlayApp playApp = new WithFailingTestsApp();
 
-    def setup(){
-        playApp.writeSources(testDirectory.file("."))
+    def setup() {
+        playApp.writeSources(testDirectory)
+        buildFile << """
+model {
+    components {
+        play {
+            targetPlatform "play-${version}"
+        }
+    }
+}
+"""
     }
 
     def "reports failing run play app tests"() {
@@ -36,13 +45,13 @@ class PlayAppWithFailingTestsIntegrationTest extends PlayMultiVersionIntegration
         then:
 
         output.contains(TextUtil.toPlatformLineSeparators("""
-FailingApplicationSpec > Application should::render the index page FAILED
-    org.specs2.reporter.SpecFailureAssertionFailedError
+FailingApplicationSpec > failingTest FAILED
+    java.lang.AssertionError at FailingApplicationSpec.scala:23
 """))
 
         output.contains(TextUtil.toPlatformLineSeparators("""
-FailingIntegrationSpec > Application should::work from within a browser FAILED
-    org.specs2.reporter.SpecFailureAssertionFailedError
+FailingIntegrationSpec > failingTest FAILED
+    java.lang.AssertionError at FailingIntegrationSpec.scala:23
 """))
         errorOutput.contains("6 tests completed, 2 failed")
         errorOutput.contains("> There were failing tests.")

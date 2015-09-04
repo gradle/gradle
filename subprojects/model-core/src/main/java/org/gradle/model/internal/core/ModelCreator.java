@@ -20,7 +20,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
-public interface ModelCreator {
+public interface ModelCreator extends ModelRule {
     ModelRuleDescriptor getDescriptor();
 
     ModelPath getPath();
@@ -29,7 +29,9 @@ public interface ModelCreator {
 
     ModelAdapter getAdapter();
 
-    void create(MutableModelNode node, Inputs inputs);
+    void create(MutableModelNode node, List<ModelView<?>> inputs);
+
+    boolean isEphemeral();
 
     List<? extends ModelReference<?>> getInputs();
 }

@@ -23,11 +23,14 @@ import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     public static final String STRICT_MODE_PROPERTY = "org.gradle.classloaderscope.strict";
 
-    final ScopeNodeIdentifier id;
+    final ClassLoaderScopeIdentifier id;
     private final ClassLoaderScope parent;
     private final ClassLoaderCache classLoaderCache;
 
@@ -35,6 +38,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     private ClassPath export = new DefaultClassPath();
     private ClassPath local = new DefaultClassPath();
+    private List<ClassLoader> ownLoaders = new ArrayList<ClassLoader>();
 
     // If these are not null, we are pessimistic (loaders asked for before locking)
     private MultiParentClassLoader exportingClassLoader;
@@ -44,7 +48,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
     private ClassLoader effectiveLocalClassLoader;
     private ClassLoader effectiveExportClassLoader;
 
-    public DefaultClassLoaderScope(ScopeNodeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache) {
+    public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache) {
         this.id = id;
         this.parent = parent;
         this.classLoaderCache = classLoaderCache;
@@ -68,12 +72,16 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         if (effectiveLocalClassLoader == null) {
             if (locked) {
                 if (local.isEmpty() && export.isEmpty()) {
+                    classLoaderCache.remove(id.localId());
+                    classLoaderCache.remove(id.exportId());
                     effectiveLocalClassLoader = parent.getExportClassLoader();
                     effectiveExportClassLoader = parent.getExportClassLoader();
                 } else if (export.isEmpty()) {
+                    classLoaderCache.remove(id.exportId());
                     effectiveLocalClassLoader = buildLockedLoader(id.localId(), local);
                     effectiveExportClassLoader = parent.getExportClassLoader();
                 } else if (local.isEmpty()) {
+                    classLoaderCache.remove(id.localId());
                     effectiveLocalClassLoader = buildLockedLoader(id.exportId(), export);
                     effectiveExportClassLoader = effectiveLocalClassLoader;
                 } else {
@@ -111,8 +119,20 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         return parent;
     }
 
+    @Override
+    public boolean defines(Class<?> clazz) {
+        for (ClassLoader ownLoader : ownLoaders) {
+            if (ownLoader.equals(clazz.getClassLoader())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private ClassLoader loader(ClassLoaderId id, ClassPath classPath) {
-        return classLoaderCache.get(id, classPath, parent.getExportClassLoader(), null);
+        ClassLoader classLoader = classLoaderCache.get(id, classPath, parent.getExportClassLoader(), null);
+        ownLoaders.add(classLoader);
+        return classLoader;
     }
 
     public ClassLoaderScope local(ClassPath classPath) {
@@ -152,8 +172,11 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
         }
     }
 
-    public ClassLoaderScope createChild() {
-        return new DefaultClassLoaderScope(id.newChild(), this, classLoaderCache);
+    public ClassLoaderScope createChild(String name) {
+        if (name == null) {
+            throw new IllegalArgumentException("'name' cannot be null");
+        }
+        return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache);
     }
 
     public ClassLoaderScope lock() {

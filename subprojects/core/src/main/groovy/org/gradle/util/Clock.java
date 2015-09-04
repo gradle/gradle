@@ -62,7 +62,7 @@ public class Clock {
     }
 
     public static String prettyTime(long timeInMs) {
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         if (timeInMs > MS_PER_HOUR) {
             result.append(timeInMs / MS_PER_HOUR).append(" hrs ");
         }

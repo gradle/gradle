@@ -32,7 +32,9 @@ public abstract class AbstractOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
     public void define(@Nullable Map<String, Object> args) {
-        if (args == null) { return; }
+        if (args == null) {
+            return;
+        }
         for (Map.Entry<String, Object> arg: args.entrySet()) {
             JavaReflectionUtil.writeableProperty(getClass(), arg.getKey()).setValue(this, arg.getValue());
         }
@@ -69,7 +71,7 @@ public abstract class AbstractOptions implements Serializable {
     }
 
     private void addValueToMapIfNotNull(Map<String, Object> map, Field field) {
-        Object value = JavaReflectionUtil.readableProperty(getClass(), field.getName()).getValue(this);
+        Object value = JavaReflectionUtil.readableProperty(this, Object.class, field.getName()).getValue(this);
         if (value != null) {
             map.put(getAntPropertyName(field.getName()), getAntPropertyValue(field.getName(), value));
         }

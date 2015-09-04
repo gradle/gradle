@@ -818,6 +818,27 @@ However, `gradle assemble` will silently do nothing when _none_ of the binaries 
 
 In this story, we will change this behaviour so that if _no_ binaries can be built with `assemble`, Gradle will report the reason that each defined binary is not buildable.
 
+#### Implementation
+- Create BinaryBuildAbility interface:
+    public interface BinaryBuildAbility {
+        boolean isBuildable();
+        void explain(TreeVisitor<? super String> visitor);
+    }
+- Add getBuildAbility() to BinarySpecInternal
+- Make setBuildable from BinarySpecInternal configure something of type BinaryBuildAbility
+- Change BaseBinarySpec to determine isBuildable() using BinaryBuildAbility
+- Create an AssembleBinariesTask class to replace the default assembly task.  This task should contain:
+    - A list of binaries that are not buildable
+    - A task action that, if the task has unbuildable binaries and no dependencies (i.e. at least one buildable binary was not found), throws an exception with the reason for each unbuildable binary
+- When configuring the assemble task, if a binary is not buildable, add the binary to the list of unbuildable binaries in AssembleBinariesTask
+- Change component report to output reasons for unbuildable binaries
+
+#### Test Cases
+- When there are no buildable binaries, assemble fails outputting unbuildable information for each binary
+- Unbuildable information is NOT displayed when there is at least one buildable binary
+- Unbuildable information is NOT displayed When there are no buildable binaries, but assemble has other configured dependencies
+- When there are no binaries configured at all, no failure is produced
+
 ## Feature: Plugin implements custom language support
 
 ### Story: Plugin declares custom language source set

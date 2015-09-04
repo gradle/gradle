@@ -15,7 +15,10 @@
  */
 package org.gradle.groovy.compile
 
-class   InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
+@LeaksFileHandles
+class InProcessGroovyCompilerIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
 
     String compilerConfiguration() {
 '''

@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.server.sftp
 
 import org.apache.commons.io.FileUtils
-import org.apache.commons.io.FilenameUtils
 import org.apache.sshd.SshServer
 import org.apache.sshd.common.NamedFactory
 import org.apache.sshd.common.file.virtualfs.VirtualFileSystemFactory
@@ -36,7 +35,6 @@ import org.gradle.test.fixtures.server.ExpectOne
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.ServerExpectation
 import org.gradle.test.fixtures.server.ServerWithExpectations
-import org.gradle.util.AvailablePortFinder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -94,15 +92,15 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         baseDir = testDirectoryProvider.getTestDirectory().createDir("sshd/files")
         configDir = testDirectoryProvider.getTestDirectory().createDir("sshd/config")
 
-        def portFinder = AvailablePortFinder.createPrivate()
-        port = portFinder.nextAvailable
-        sshd = setupConfiguredTestSshd()
+        // Set the port to 0 to have it automatically assign a port
+        sshd = setupConfiguredTestSshd(0)
         sshd.start()
+        port = sshd.getPort()
         allowInit()
     }
 
-    public void stop(boolean immediately = false) {
-        sshd?.stop(immediately);
+    public void stop(boolean immediately = true) {
+        sshd?.stop(immediately)
     }
 
     public void restart() {
@@ -116,13 +114,13 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         passwordAuthenticationEnabled = true
     }
 
-    private SshServer setupConfiguredTestSshd() {
+    private SshServer setupConfiguredTestSshd(int sshPort) {
         //copy dsa key to config directory
         URL fileUrl = ClassLoader.getSystemResource("sshd-config/test-dsa.key");
         FileUtils.copyURLToFile(fileUrl, new File(configDir, "test-dsa.key"));
 
         SshServer sshServer = SshServer.setUpDefaultServer();
-        sshServer.setPort(port);
+        sshServer.setPort(sshPort);
         sshServer.setFileSystemFactory(new TestVirtualFileSystemFactory());
         sshServer.setSubsystemFactories(Arrays.<NamedFactory<Command>> asList(new SftpSubsystem.Factory() {
             Command create() {
@@ -157,6 +155,10 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         return new URI("sftp://${hostAddress}:${port}")
     }
 
+    void allowAll() {
+        expectations << new SftpAllowAll()
+    }
+
     void allowInit() {
         expectations << new SftpAllow(SftpSubsystem.SSH_FXP_INIT)
     }
@@ -188,7 +190,6 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
     }
 
     void expectFileUpload(String path) {
-        expectLstat(FilenameUtils.getFullPathNoEndSeparator(path))
         expectOpen(path)
         allowWrite(path)
         expectClose(path)
@@ -285,6 +286,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
             int pos = buffer.rpos()
             def command = commandMessage(buffer, type)
+            println ("Handling $command")
             buffer.rpos(pos)
 
             def matched = expectations.find { it.matches(buffer, type, id) }
@@ -434,6 +436,20 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
 
         boolean matches(Buffer buffer, int type, int id) {
             return type == expectedType
+        }
+
+        void assertMet() {
+            //can never be not met
+        }
+    }
+
+    class SftpAllowAll implements SftpExpectation {
+
+        final boolean failing = false
+        final boolean missing = false
+
+        boolean matches(Buffer buffer, int type, int id) {
+            return true
         }
 
         void assertMet() {

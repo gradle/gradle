@@ -40,7 +40,7 @@ abstract class AbstractLanguagePluginSpec extends Specification {
 
 
         then:
-        def languageRegistry = project.modelRegistry.get(new ModelPath("languages"), ModelType.of(LanguageRegistry))
+        def languageRegistry = project.modelRegistry.realize(new ModelPath("languages"), ModelType.of(LanguageRegistry))
         def languageRegistration = languageRegistry.find { it.name == language }
 
         languageRegistration != null

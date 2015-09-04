@@ -17,14 +17,15 @@
 package org.gradle.api.internal.notations
 
 import org.gradle.api.artifacts.DependencyArtifact
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter
+import org.gradle.internal.typeconversion.NotationParserBuilder
 import spock.lang.Specification
 
 public class DependencyMapNotationConverterTest extends Specification {
 
-    def parser = new NotationConverterToNotationParserAdapter(new DependencyMapNotationConverter<DefaultExternalModuleDependency>(new DirectInstantiator(), DefaultExternalModuleDependency.class));
+    def parser = NotationParserBuilder.toType(ExternalModuleDependency).converter(new DependencyMapNotationConverter<DefaultExternalModuleDependency>(DirectInstantiator.INSTANCE, DefaultExternalModuleDependency.class)).toComposite()
 
     def "with artifact"() {
         when:

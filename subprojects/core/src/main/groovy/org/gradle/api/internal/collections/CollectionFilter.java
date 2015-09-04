@@ -55,4 +55,9 @@ public class CollectionFilter<T> implements Spec<T> {
     public boolean isSatisfiedBy(T element) {
         return filter(element) != null;
     }
+
+    @SuppressWarnings("unchecked")
+    public <S extends T> CollectionFilter<S> and(CollectionFilter<S> other) {
+        return new CollectionFilter<S>(other.type, Specs.and(spec, other.spec));
+    }
 }

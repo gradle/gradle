@@ -157,7 +157,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         fails "tasks"
-        failure.assertHasLineNumber 23
+        failure.assertHasLineNumber 22
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString(ModelBlockTransformer.NON_LITERAL_CLOSURE_TO_TOP_LEVEL_MODEL_MESSAGE))
     }
@@ -165,11 +165,10 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
     String testPluginImpl() {
         return """
             class TestPlugin {
-                @org.gradle.model.RuleSource
-                static class Rules {
-                    @org.gradle.model.Model String foo() { "foo" }
-                    @org.gradle.model.Model List<String> strings() { [] }
-                    @org.gradle.model.Mutate void addTask(org.gradle.model.collection.CollectionBuilder<Task> tasks, List<String> strings) {
+                static class Rules extends org.gradle.model.RuleSource {
+                    @Model String foo() { "foo" }
+                    @Model List<String> strings() { [] }
+                    @Mutate void addTask(ModelMap<Task> tasks, List<String> strings) {
                         tasks.create("printStrings") { it.doLast { println "strings: " + strings } }
                     }
                 }

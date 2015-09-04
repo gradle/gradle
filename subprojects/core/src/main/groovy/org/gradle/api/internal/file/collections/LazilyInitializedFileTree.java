@@ -15,18 +15,18 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileTreeInternal;
 
 /**
  * A {@link org.gradle.api.internal.file.collections.DelegatingFileTree} whose delegate is created lazily.
  */
 public abstract class LazilyInitializedFileTree extends DelegatingFileTree {
-    private FileTree delegate;
+    private FileTreeInternal delegate;
 
-    public abstract FileTree createDelegate();
+    public abstract FileTreeInternal createDelegate();
 
     @Override
-    public final synchronized FileTree getDelegate() {
+    public final synchronized FileTreeInternal getDelegate() {
         if (delegate == null) {
             delegate = createDelegate();
         }

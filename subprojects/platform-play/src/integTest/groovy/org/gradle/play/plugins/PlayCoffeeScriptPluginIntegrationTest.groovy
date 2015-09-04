@@ -27,7 +27,7 @@ class PlayCoffeeScriptPluginIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             plugins {
-                id 'play-application'
+                id 'play'
                 id 'play-coffeescript'
             }
 
@@ -49,10 +49,11 @@ class PlayCoffeeScriptPluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         normalizedOutput.contains("""
-    CoffeeScript source 'play:coffeeScriptAssets'
-        app/assets
+    CoffeeScript source 'play:coffeeScript'
+        srcDir: app/assets
+        includes: **/*.coffee
     CoffeeScript source 'play:otherCoffeeScript'
-        src/play/otherCoffeeScript
+        srcDir: src/play/otherCoffeeScript
 """)
     }
 
@@ -61,7 +62,7 @@ class PlayCoffeeScriptPluginIntegrationTest extends AbstractIntegrationSpec {
             task checkTasks {
                 doLast {
                     assert tasks.withType(CoffeeScriptCompile).size() == 2
-                    tasks.withType(CoffeeScriptCompile)*.name as Set == ["compilePlayBinaryCoffeeScriptAssets", "compilePlayBinaryOtherCoffeeScript"] as Set
+                    tasks.withType(CoffeeScriptCompile)*.name as Set == ["compileCoffeeScriptPlayBinary", "compileOtherCoffeeScriptPlayBinary"] as Set
                 }
             }
         """

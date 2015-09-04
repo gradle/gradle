@@ -18,8 +18,8 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.file.*;
-import org.gradle.api.internal.file.DefaultFileTreeElement;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
@@ -36,7 +36,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Pattern;
 
 /**
  * Directory walker supporting {@link Spec}s for includes and excludes.
@@ -47,9 +46,11 @@ import java.util.regex.Pattern;
  * excludes.
  */
 public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection, LocalFileTree, DirectoryTree {
+
     private static final Logger LOGGER = Logging.getLogger(DirectoryFileTree.class);
 
     private final File dir;
+
     private PatternSet patternSet;
     private boolean postfix;
     private final FileSystem fileSystem = FileSystems.getDefault();
@@ -93,16 +94,12 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     }
 
     public boolean contains(File file) {
-        String prefix = dir.getAbsolutePath() + File.separator;
-        if (!file.getAbsolutePath().startsWith(prefix)) {
-            return false;
-        }
-        if (!file.isFile()) {
-            return false;
-        }
-        RelativePath path = new RelativePath(true, file.getAbsolutePath().substring(prefix.length()).split(
-                Pattern.quote(File.separator)));
-        return patternSet.getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(file, path, fileSystem, fileSystem));
+        return DirectoryTrees.contains(fileSystem, this, file) && file.isFile();
+    }
+
+    @Override
+    public void registerWatchPoints(FileSystemSubset.Builder builder) {
+        builder.add(this);
     }
 
     /**
@@ -186,5 +183,9 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     public DirectoryFileTree postfix() {
         postfix = true;
         return this;
+    }
+
+    public PatternSet getPatternSet() {
+        return patternSet;
     }
 }

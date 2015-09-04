@@ -29,7 +29,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.AntUtil;
 import org.slf4j.Logger;
@@ -64,8 +63,6 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             classpath = classpath.plus(moduleRegistry.getModule("gradle-native").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-messaging").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("slf4j-api").getClasspath());
-            classpath = classpath.plus(moduleRegistry.getExternalModule("logback-classic").getClasspath());
-            classpath = classpath.plus(moduleRegistry.getExternalModule("logback-core").getClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("jul-to-slf4j").getClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("guava-jdk5").getClasspath());
             return classpath;
@@ -120,7 +117,6 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
                     BootstrapSecurityManager.class,
                     EncodedStream.EncodedInput.class);
             List<Class<?>> classes = new ArrayList<Class<?>>();
-            classes.add(BootstrapClassLoaderWorker.class);
             classes.addAll(renamedClasses);
             for (Class<?> aClass : classes) {
                 final String fileName = aClass.getName().replace('.', '/') + ".class";
@@ -165,12 +161,17 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
                 }
             });
 
-            for (Class<?> renamedClass : renamedClasses) {
-                Rule rule = new Rule();
-                rule.setPattern(renamedClass.getName());
-                rule.setResult("jarjar.@0");
-                task.addConfiguredRule(rule);
-            }
+            // Don't rename references to this class
+            Rule rule = new Rule();
+            rule.setPattern(SystemApplicationClassLoaderWorker.class.getName());
+            rule.setResult(SystemApplicationClassLoaderWorker.class.getName());
+            task.addConfiguredRule(rule);
+
+            // Rename everything else
+            rule = new Rule();
+            rule.setPattern("org.gradle.**");
+            rule.setResult("jarjar.@0");
+            task.addConfiguredRule(rule);
 
             AntUtil.execute(task);
         }

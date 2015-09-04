@@ -25,13 +25,15 @@ import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 public class IncrementalCompilerBuilder {
     private final TaskArtifactStateCacheAccess cacheAccess;
     private final FileSnapshotter fileSnapshotter;
+    private final CompilationStateCacheFactory compilationStateCacheFactory;
 
-    public IncrementalCompilerBuilder(TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter) {
+    public IncrementalCompilerBuilder(TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory) {
         this.cacheAccess = cacheAccess;
         this.fileSnapshotter = fileSnapshotter;
+        this.compilationStateCacheFactory = compilationStateCacheFactory;
     }
 
-    public Compiler<NativeCompileSpec> createIncrementalCompiler(TaskInternal task, Compiler<NativeCompileSpec> compiler, NativeToolChain toolchain) {
-        return new IncrementalNativeCompiler(task, cacheAccess, fileSnapshotter, compiler, toolchain);
+    public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain) {
+        return new IncrementalNativeCompiler<T>(task, cacheAccess, fileSnapshotter, compilationStateCacheFactory, compiler, toolchain);
     }
 }

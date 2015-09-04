@@ -16,64 +16,58 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory
-import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.internal.Factory
 import spock.lang.Specification
 
-class DefaultJavaCompilerFactoryTest extends Specification {
-    def factory = new DefaultJavaCompilerFactory(new File("daemon-work-dir"), Mock(CompilerDaemonFactory))
-    def options = new CompileOptions()
-    
-    def "creates in-process compiler when not forking"() {
-        options.fork = false
+import javax.tools.JavaCompiler
 
+class DefaultJavaCompilerFactoryTest extends Specification {
+    Factory<JavaCompiler> javaCompilerFinder = Mock()
+    def factory = new DefaultJavaCompilerFactory(new File("daemon-work-dir"), Mock(CompilerDaemonFactory), javaCompilerFinder)
+    
+    def "creates in-process compiler when JavaCompileSpec is provided"() {
         expect:
-        def compiler = factory.create(options)
+        def compiler = factory.create(JavaCompileSpec.class)
         compiler instanceof NormalizingJavaCompiler
         compiler.delegate instanceof JdkJavaCompiler
     }
 
-    def "creates in-process compiler when not forking and joint compilation"() {
-        options.fork = false
-
+    def "creates in-process compiler when JavaCompileSpec is provided and joint compilation"() {
         expect:
-        def compiler = factory.createForJointCompilation(options)
+        def compiler = factory.createForJointCompilation(JavaCompileSpec.class)
         compiler instanceof JdkJavaCompiler
     }
 
-    def "creates command line compiler when forking and forkOptions.executable is set"() {
-        options.fork = true
-        options.forkOptions.executable = "/path/to/javac"
-
+    def "creates command line compiler when CommandLineJavaCompileSpec is provided"() {
         expect:
-        def compiler = factory.create(options)
+        def compiler = factory.create(TestCommandLineJavaSpec.class)
         compiler instanceof NormalizingJavaCompiler
         compiler.delegate instanceof CommandLineJavaCompiler
     }
 
-    def "creates command line compiler when forking and forkOptions.executable is set and joint compilation"() {
-        options.fork = true
-        options.forkOptions.executable = "/path/to/javac"
-
+    def "creates command line compiler when CommandLineJavaCompileSpec is provided and joint compilation"() {
         expect:
-        def compiler = factory.createForJointCompilation(options)
+        def compiler = factory.createForJointCompilation(TestCommandLineJavaSpec)
         compiler instanceof CommandLineJavaCompiler
     }
 
-    def "creates daemon compiler when forking"() {
-        options.fork = true
-
+    def "creates daemon compiler when ForkingJavaCompileSpec"() {
         expect:
-        def compiler = factory.create(options)
+        def compiler = factory.create(TestForkingJavaCompileSpec)
         compiler instanceof NormalizingJavaCompiler
         compiler.delegate instanceof DaemonJavaCompiler
         compiler.delegate.delegate instanceof JdkJavaCompiler
     }
 
-    def "creates in-process compiler when forking and joint compilation"() {
-        options.fork = true
-
+    def "creates in-process compiler when ForkingJavaCompileSpec is provided and joint compilation"() {
         expect:
-        def compiler = factory.createForJointCompilation(options)
+        def compiler = factory.createForJointCompilation(TestForkingJavaCompileSpec)
         compiler instanceof JdkJavaCompiler
+    }
+
+    private static class TestCommandLineJavaSpec extends DefaultJavaCompileSpec implements CommandLineJavaCompileSpec {
+    }
+
+    private static class TestForkingJavaCompileSpec extends DefaultJavaCompileSpec implements ForkingJavaCompileSpec {
     }
 }

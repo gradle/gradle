@@ -42,10 +42,11 @@ class ZipCopyActionTest extends Specification {
 
     ZipCopyAction visitor
     TestFile zipFile
+    def encoding = 'UTF-8'
 
     def setup() {
         zipFile = tmpDir.getTestDirectory().file("test.zip")
-        visitor = new ZipCopyAction(zipFile, new DefaultZipCompressor(false, ZipOutputStream.STORED), new DocumentationRegistry())
+        visitor = new ZipCopyAction(zipFile, new DefaultZipCompressor(false, ZipOutputStream.STORED), new DocumentationRegistry(), encoding)
     }
 
     void createsZipFile() {
@@ -90,7 +91,7 @@ class ZipCopyActionTest extends Specification {
     void wrapsFailureToOpenOutputFile() {
         given:
         def invalidZipFile = tmpDir.createDir("test.zip")
-        visitor = new ZipCopyAction(invalidZipFile, new DefaultZipCompressor(false, ZipOutputStream.STORED), new DocumentationRegistry())
+        visitor = new ZipCopyAction(invalidZipFile, new DefaultZipCompressor(false, ZipOutputStream.STORED), new DocumentationRegistry(), encoding)
 
         when:
         visitor.execute(new CopyActionProcessingStream() {
@@ -122,7 +123,7 @@ class ZipCopyActionTest extends Specification {
         1 * docRegistry.getDslRefForProperty(Zip, "zip64") >> "doc url"
         0 * docRegistry._
 
-        visitor = new ZipCopyAction(zipFile, compressor, docRegistry)
+        visitor = new ZipCopyAction(zipFile, compressor, docRegistry, encoding)
 
         when:
         zip(file("file2"))

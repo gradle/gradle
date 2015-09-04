@@ -16,6 +16,7 @@
 
 package org.gradle.api.reporting.components.internal;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
@@ -24,10 +25,7 @@ import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 import static org.gradle.logging.StyledTextOutput.Style.Info;
 
@@ -65,13 +63,13 @@ public class ComponentReportRenderer extends TextReportRenderer {
                 seen = true;
             }
             componentRenderer.render(component, getBuilder());
-            componentSourceSets.addAll(component.getSource());
-            componentBinaries.addAll(component.getBinaries());
+            componentSourceSets.addAll(component.getSources().values());
+            componentBinaries.addAll(component.getBinaries().values());
         }
     }
 
     public void renderSourceSets(Collection<LanguageSourceSet> sourceSets) {
-        Set<LanguageSourceSet> additionalSourceSets = new LinkedHashSet<LanguageSourceSet>();
+        Set<LanguageSourceSet> additionalSourceSets = Sets.newTreeSet(SourceSetRenderer.SORT_ORDER);
         for (LanguageSourceSet sourceSet : sourceSets) {
             if (!componentSourceSets.contains(sourceSet)) {
                 additionalSourceSets.add(sourceSet);
@@ -87,7 +85,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
     }
 
     public void renderBinaries(Collection<BinarySpec> binaries) {
-        Set<BinarySpec> additionalBinaries = new LinkedHashSet<BinarySpec>();
+        Set<BinarySpec> additionalBinaries = Sets.newTreeSet(TypeAwareBinaryRenderer.SORT_ORDER);
         for (BinarySpec binary : binaries) {
             if (!componentBinaries.contains(binary)) {
                 additionalBinaries.add(binary);

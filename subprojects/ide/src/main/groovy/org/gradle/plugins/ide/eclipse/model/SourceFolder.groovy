@@ -24,6 +24,7 @@ class SourceFolder extends AbstractClasspathEntry {
     List<String> excludes
     //optional
     File dir
+    String name;
 
     SourceFolder(Node node) {
         super(node)
@@ -43,15 +44,14 @@ class SourceFolder extends AbstractClasspathEntry {
         'src'
     }
 
-    String getName() {
-        dir.name
-    }
-
     String getAbsolutePath() {
         dir.absolutePath
     }
 
-    void trimPath() {
+    void trim(String prefix = null) {
+        if(prefix != null){
+            name = prefix + "-" + name
+        }
         path = name
     }
 
@@ -73,7 +73,6 @@ class SourceFolder extends AbstractClasspathEntry {
         if (nativeLibraryLocation != that.nativeLibraryLocation) { return false }
         if (output != that.output) { return false }
         if (path != that.path) { return false }
-
         return true
     }
 
@@ -87,6 +86,7 @@ class SourceFolder extends AbstractClasspathEntry {
         result = 31 * result + (output != null ? output.hashCode() : 0);
         result = 31 * result + excludes.hashCode();
         result = 31 * result + includes.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0)
         return result;
     }
 

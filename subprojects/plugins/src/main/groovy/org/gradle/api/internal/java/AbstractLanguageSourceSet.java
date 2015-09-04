@@ -27,6 +27,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     private final String name;
     private final String fullName;
     private final String displayName;
+    private final String parentName;
     private final SourceDirectorySet source;
     private boolean generated;
     private Task generatorTask;
@@ -36,6 +37,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
         this.fullName = parentName + StringUtils.capitalize(name);
         this.displayName = String.format("%s '%s:%s'", typeName, parentName, name);
         this.source = source;
+        this.parentName = parentName;
         super.builtBy(source.getBuildDependencies());
     }
 
@@ -83,4 +85,5 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     public SourceDirectorySet getSource() {
         return source;
     }
+
 }

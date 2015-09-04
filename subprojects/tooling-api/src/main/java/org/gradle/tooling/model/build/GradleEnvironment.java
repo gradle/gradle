@@ -16,6 +16,10 @@
 
 package org.gradle.tooling.model.build;
 
+import org.gradle.api.Incubating;
+
+import java.io.File;
+
 /**
  * Informs about the Gradle environment, for example the Gradle version.
  * <p>
@@ -26,9 +30,18 @@ package org.gradle.tooling.model.build;
 public interface GradleEnvironment {
 
     /**
+     * Informs about the Gradle user home.
+     *
+     * @since 2.4
+     */
+    @Incubating
+    File getGradleUserHome();
+
+    /**
      * Informs about the Gradle version.
      *
      * @since 1.0-milestone-8
      */
     String getGradleVersion();
+
 }

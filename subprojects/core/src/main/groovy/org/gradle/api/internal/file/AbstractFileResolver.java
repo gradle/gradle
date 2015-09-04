@@ -23,7 +23,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -34,12 +36,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
 public abstract class AbstractFileResolver implements FileResolver {
+    private static final Pattern FILE_SEPARATOR_PATTERN = Pattern.compile("[/" + Pattern.quote(File.separator) + "]");
+
     private final FileSystem fileSystem;
     private final NotationParser<Object, Object> fileNotationParser;
 
@@ -67,8 +70,9 @@ public abstract class AbstractFileResolver implements FileResolver {
                 return resolve(notation, PathValidation.NONE);
             }
 
-            public void describe(Collection<String> candidateFormats) {
-                candidateFormats.add("Anything that can be converted to a file, as per Project.file()");
+            @Override
+            public void describe(DiagnosticsVisitor visitor) {
+                visitor.candidate("Anything that can be converted to a file, as per Project.file()");
             }
         };
     }
@@ -93,8 +97,7 @@ public abstract class AbstractFileResolver implements FileResolver {
                 // on Windows, File.getCanonicalFile() doesn't resolve symlinks
                 return file.getCanonicalFile();
             }
-
-            String[] segments = file.getPath().split(String.format("[/%s]", Pattern.quote(File.separator)));
+            String[] segments = FILE_SEPARATOR_PATTERN.split(file.getPath());
             List<String> path = new ArrayList<String>(segments.length);
             for (String segment : segments) {
                 if (segment.equals("..")) {
@@ -236,19 +239,19 @@ public abstract class AbstractFileResolver implements FileResolver {
         }
     }
 
-    public FileCollection resolveFiles(Object... paths) {
+    public FileCollectionInternal resolveFiles(Object... paths) {
         if (paths.length == 1 && paths[0] instanceof FileCollection) {
-            return (FileCollection) paths[0];
+            return Cast.cast(FileCollectionInternal.class, paths[0]);
         }
         return new DefaultConfigurableFileCollection(this, null, paths);
     }
 
-    public FileTree resolveFilesAsTree(Object... paths) {
-        return resolveFiles(paths).getAsFileTree();
+    public FileTreeInternal resolveFilesAsTree(Object... paths) {
+        return Cast.cast(FileTreeInternal.class, resolveFiles(paths).getAsFileTree());
     }
 
-    public FileTree compositeFileTree(List<FileTree> fileTrees) {
-        return new DefaultCompositeFileTree(fileTrees);
+    public FileTreeInternal compositeFileTree(List<? extends FileTree> fileTrees) {
+        return new DefaultCompositeFileTree(CollectionUtils.checkedCast(FileTreeInternal.class, fileTrees));
     }
 
     public ReadableResource resolveResource(Object path) {

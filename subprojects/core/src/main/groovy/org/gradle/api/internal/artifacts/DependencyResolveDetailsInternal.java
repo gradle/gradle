@@ -20,5 +20,10 @@ import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 public interface DependencyResolveDetailsInternal extends DependencyResolveDetails {
+
     void useVersion(String version, ComponentSelectionReason selectionReason);
+
+    ComponentSelectionReason getSelectionReason();
+
+    boolean isUpdated();
 }

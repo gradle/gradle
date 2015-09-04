@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.quality
-
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl
@@ -30,12 +30,12 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
 
 import javax.inject.Inject
-
 /**
  * Runs a set of static code analysis rules on Java source code files and
  * generates a report of problems found.
  *
  * @see PmdPlugin
+ * @see PmdExtension
  */
 class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> {
     /**
@@ -95,10 +95,39 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     boolean ignoreFailures
 
     /**
+     * Specifies the rule priority threshold.
+     * 
+	 * @see PmdExtension#rulePriority
+	 */
+    @Incubating
+	int rulePriority
+
+    /**
+     * Sets the rule priority threshold.
+     */
+    @Incubating
+    void setRulePriority(int intValue) {
+        validate(intValue)
+        rulePriority = intValue
+    }
+
+    /**
      * Whether or not to write PMD results to {@code System.out}.
      */
     @Incubating
     boolean consoleOutput
+
+    /**
+     * Compile class path for the classes to be analyzed.
+     *
+     * The classes on this class path are used during analysis but aren't analyzed themselves.
+     *
+     * This is only well supported for PMD 5.2.1 or better.
+     */
+    @InputFiles
+    @Optional
+    @Incubating
+    FileCollection classpath
 
     Pmd() {
         reports = instantiator.newInstance(PmdReportsImpl, this)
@@ -132,6 +161,8 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
             }
         }
 
+        antPmdArgs["minimumPriority"] = getRulePriority()
+
         antBuilder.withClasspath(getPmdClasspath()).execute { a ->
             ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
             ant.pmd(antPmdArgs) {
@@ -145,6 +176,10 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
                 def ruleSetConfig = getRuleSetConfig()
                 if (ruleSetConfig != null) {
                     ruleset(ruleSetConfig.asFile())
+                }
+
+                if (getClasspath() != null) {
+                    getClasspath().addToAntBuilder(ant, 'auxclasspath', FileCollection.AntType.ResourceCollection)
                 }
 
                 if (reports.html.enabled) {
@@ -199,5 +234,15 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      */
     PmdReports getReports() {
         reports
+    }
+
+    /**
+     * Validates the value is a valid PMD RulePriority (1-5)
+     * @param value rule priority threshold
+     */
+    static void validate(int value) {
+        if (value > 5 || value < 1) {
+            throw new InvalidUserDataException(String.format("Invalid rulePriority '%d'.  Valid range 1 (highest) to 5 (lowest).", value));
+        }
     }
 }

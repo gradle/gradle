@@ -65,7 +65,7 @@ public abstract class AbstractStyledTextOutput implements StyledTextOutput, Stan
     }
 
     public StyledTextOutput println() {
-        text(SystemProperties.getLineSeparator());
+        text(SystemProperties.getInstance().getLineSeparator());
         return this;
     }
 

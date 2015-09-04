@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
-import org.gradle.api.internal.notations.ModuleIdentiferNotationConverter;
+import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
@@ -39,7 +39,6 @@ import org.gradle.internal.rules.*;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.List;
 import java.util.Set;
@@ -72,7 +71,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
         return NotationParserBuilder
                 .toType(ModuleIdentifier.class)
-                .converter(new ModuleIdentiferNotationConverter())
+                .converter(new ModuleIdentifierNotationConverter())
                 .toComposite();
     }
 
@@ -126,23 +125,8 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
         processAllRules(metadata, details);
         if (!metadata.getStatusScheme().contains(metadata.getStatus())) {
-            throw new ModuleVersionResolveException(metadata.getId(), "Unexpected status '" + metadata.getStatus() + "' specified for %s. Expected one of: " +  metadata.getStatusScheme());
+            throw new ModuleVersionResolveException(metadata.getId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", metadata.getStatus(), metadata.getComponentId().getDisplayName(), metadata.getStatusScheme()));
         }
-    }
-
-    public void eachComponent(Action<? super ComponentMetadataDetails> rule) {
-        warnDeprecated();
-        all(rule);
-    }
-
-    public void eachComponent(Closure<?> rule) {
-        warnDeprecated();
-        all(rule);
-    }
-
-    // TODO:DAZ Remove in 2.4
-    private void warnDeprecated() {
-        DeprecationLogger.nagUserWith("ComponentMetadataHandler.eachComponent() is deprecated and will be removed in the next minor release. Use ComponentMetadataHandler.all() instead.");
     }
 
     private void processAllRules(ModuleComponentResolveMetaData metadata, ComponentMetadataDetails details) {

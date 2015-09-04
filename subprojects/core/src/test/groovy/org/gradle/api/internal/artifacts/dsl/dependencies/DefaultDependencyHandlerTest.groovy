@@ -243,6 +243,19 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API) >> dependency
     }
 
+    void "creates Gradle test-kit dependency"() {
+        Dependency dependency = Mock()
+
+        when:
+        def result = dependencyHandler.gradleTestKit()
+
+        then:
+        result == dependency
+
+        and:
+        1 * dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT) >> dependency
+    }
+
     void "creates local groovy dependency"() {
         Dependency dependency = Mock()
 

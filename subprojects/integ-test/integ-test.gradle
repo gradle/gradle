@@ -21,12 +21,18 @@ useTestFixtures(sourceSet: 'integTest', project: ':platformNative')
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':docs:userguideDocbook')
 
-    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m'
+
+    def userguideOutput = new File(project(':docs').samplesSrcDir, "userguideOutput")
+    inputs.files(fileTree(userguideOutput))
 
     doFirst {
         systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
-        systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
+        systemProperties['integTest.userGuideOutputDir'] = userguideOutput.absolutePath
     }
+
+    // You can exclude the userguide samples by their ids by specifying this system property.
+    // E.g. ./gradlew integTest:integTest -D:integTest:integTest.single=UserGuideSamplesIntegrationTest -Dorg.gradle.userguide.samples.exclude=completeCUnitExample,nativeComponentReport
+    systemProperty "org.gradle.userguide.samples.exclude", System.getProperty("org.gradle.userguide.samples.exclude")
 
     // You can filter the userguide samples to be run by specifying this system property.
     // E.g. ./gradlew integTest:integTest -D:integTest:integTest.single=UserGuideSamplesIntegrationTest -Dorg.gradle.userguide.samples.filter=signing/.+

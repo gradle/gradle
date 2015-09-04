@@ -32,7 +32,7 @@ public interface PotentialPlugin<T> {
         HYBRID_IMPERATIVE_AND_RULES_CLASS
     }
 
-    Class<T> asClass();
+    Class<? extends T> asClass();
 
     boolean isImperative();
 

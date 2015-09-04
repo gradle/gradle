@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.Serializer;
+import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
@@ -35,6 +37,8 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
             return new DefaultProjectComponentIdentifier(decoder.readString());
         } else if(Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
+        } else if (Implementation.LIBRARY.getId() == id) {
+            return new DefaultLibraryBinaryIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         }
 
         throw new IllegalArgumentException("Unable to find component identifier with id: " + id);
@@ -55,13 +59,19 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
             ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier)value;
             encoder.writeByte(Implementation.BUILD.getId());
             encoder.writeString(projectComponentIdentifier.getProjectPath());
+        } else if(value instanceof DefaultLibraryBinaryIdentifier) {
+            LibraryBinaryIdentifier libraryIdentifier = (LibraryBinaryIdentifier)value;
+            encoder.writeByte(Implementation.LIBRARY.getId());
+            encoder.writeString(libraryIdentifier.getProjectPath());
+            encoder.writeString(libraryIdentifier.getLibraryName());
+            encoder.writeString(libraryIdentifier.getVariant());
         } else {
             throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
         }
     }
 
     private static enum Implementation {
-        MODULE((byte) 1), BUILD((byte) 2);
+        MODULE((byte) 1), BUILD((byte) 2), LIBRARY((byte) 3);
 
         private final byte id;
 

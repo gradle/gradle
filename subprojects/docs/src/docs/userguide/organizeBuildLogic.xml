@@ -105,7 +105,19 @@
             <output args="-q show"/>
         </sample>
     </section>
-    
+
+    <section id="sec:configuring_using_external_script">
+        <title>Configuring the project using an external build script</title>
+        <para>You can configure the current project using an external build script. All of the Gradle build language
+            is available in the external script. You can even apply other scripts from the external script.
+        </para>
+        <sample id="configureProjectUsingScript" dir="userguide/tutorial/configureProjectUsingScript" title="Configuring the project using an external build script">
+            <sourcefile file="build.gradle"/>
+            <sourcefile file="other.gradle"/>
+            <output args="-q hello"/>
+        </sample>
+    </section>
+
     <section id='sec:build_sources'>
         <title>Build sources in the <filename>buildSrc</filename> project</title>
         <para>When you run Gradle, it checks for the existence of a directory called <filename>buildSrc</filename>. 
@@ -177,8 +189,8 @@
             <output args="-q encode"/>
         </sample>
         <para>
-            For multi-project builds, the dependencies declared in the a project's build script, are available to the
-            build scripts of all sub-projects.
+            For multi-project builds, the dependencies declared with a project's <literal>buildscript()</literal> method
+            are available to the build scripts of all its sub-projects.
         </para>
     </section>
 

@@ -56,6 +56,7 @@ class PmdPluginTest extends Specification {
         extension.ruleSetFiles.empty
         extension.reportsDir == project.file("build/reports/pmd")
         !extension.ignoreFailures
+        extension.rulePriority == 5
     }
 
     def "configures pmd task for each source set"() {
@@ -108,6 +109,7 @@ class PmdPluginTest extends Specification {
             assert reports.xml.destination == project.file("build/reports/pmd/${sourceSet.name}.xml")
             assert reports.html.destination == project.file("build/reports/pmd/${sourceSet.name}.html")
             assert ignoreFailures == false
+            assert rulePriority == 5
         }
     }
 
@@ -124,6 +126,7 @@ class PmdPluginTest extends Specification {
         task.reports.xml.destination == project.file("build/reports/pmd/custom.xml")
         task.reports.html.destination == project.file("build/reports/pmd/custom.html")
         task.ignoreFailures == false
+        task.rulePriority == 5
     }
 
     def "adds pmd tasks to check lifecycle task"() {
@@ -153,6 +156,7 @@ class PmdPluginTest extends Specification {
             ruleSetFiles = project.files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
             ignoreFailures = true
+            rulePriority = 3
         }
 
         expect:
@@ -176,6 +180,7 @@ class PmdPluginTest extends Specification {
             assert reports.xml.destination == project.file("pmd-reports/${sourceSet.name}.xml")
             assert reports.html.destination == project.file("pmd-reports/${sourceSet.name}.html")
             assert ignoreFailures == true
+            assert rulePriority == 3
         }
     }
 
@@ -187,6 +192,7 @@ class PmdPluginTest extends Specification {
             ruleSetFiles = project.files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
             ignoreFailures = true
+            rulePriority = 3
         }
 
         expect:
@@ -200,6 +206,15 @@ class PmdPluginTest extends Specification {
         task.reports.html.destination == project.file("pmd-reports/custom.html")
         task.outputs.files.files == task.reports.enabled*.destination as Set
         task.ignoreFailures == true
+        task.rulePriority == 3
     }
 
+    def "configures pmd classpath based on sourcesets"() {
+        project.pluginManager.apply(JavaBasePlugin)
+        project.sourceSets {
+            main
+        }
+        expect:
+        project.tasks.getByName("pmdMain").classpath == project.sourceSets.main.compileClasspath
+    }
 }

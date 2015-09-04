@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.scala.DaemonScalaCompiler;
 import org.gradle.api.internal.tasks.scala.NormalizingScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.scala.ZincScalaCompiler;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
@@ -30,7 +31,7 @@ import java.io.File;
 import java.util.Set;
 
 public class DefaultScalaToolProvider implements ToolProvider {
-    public static final String DEFAULT_ZINC_VERSION = "0.3.0";
+    public static final String DEFAULT_ZINC_VERSION = "0.3.7";
 
     private ProjectFinder projectFinder;
     private final CompilerDaemonManager compilerDaemonManager;
@@ -45,20 +46,18 @@ public class DefaultScalaToolProvider implements ToolProvider {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(T spec) {
-        if (spec instanceof ScalaJavaJointCompileSpec) {
+    public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
+        if (ScalaJavaJointCompileSpec.class.isAssignableFrom(spec)) {
             File projectDir = projectFinder.getProject(":").getProjectDir();
-            org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> scalaCompiler;
-            try {
-                scalaCompiler = (Compiler<ScalaJavaJointCompileSpec>) getClass().getClassLoader()
-                        .loadClass("org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler").getConstructor(Iterable.class, Iterable.class).newInstance(resolvedScalaClasspath, resolvedZincClasspath);
-            } catch (Exception e) {
-                throw new RuntimeException("Internal error: Failed to load org.gradle.api.internal.tasks.scala.jdk6.ZincScalaCompiler", e);
-            }
-
+            Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new ZincScalaCompiler(resolvedScalaClasspath, resolvedZincClasspath);
             return (Compiler<T>) new NormalizingScalaCompiler(new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(projectDir, scalaCompiler, compilerDaemonManager, resolvedZincClasspath));
         }
-        throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getClass().getSimpleName()));
+        throw new IllegalArgumentException(String.format("Cannot create Compiler for unsupported CompileSpec type '%s'", spec.getSimpleName()));
+    }
+
+    @Override
+    public <T> T get(Class<T> toolType) {
+        throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }
 
     public boolean isAvailable() {

@@ -17,101 +17,201 @@
 package org.gradle.play.tasks
 
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
+import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.util.TextUtil
 
 class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
+    def destinationDirPath = "build/playBinary/src/compilePlayBinaryTwirlTemplates/views/html"
+    def destinationDir = file(destinationDirPath)
 
-    def setup(){
+    def setup() {
+        settingsFile << """ rootProject.name = 'twirl-play-app' """
         buildFile << """
-        model {
-            tasks {
-                create("twirlCompile", TwirlCompile){ task ->
-                    task.outputDirectory = file('build/twirl')
-                    task.sourceDirectory = file('./app')
-                    task.platform = binaries.playBinary.targetPlatform
+            plugins {
+                id 'play-application'
+            }
+
+            repositories {
+                jcenter()
+                maven {
+                    name "typesafe-maven-release"
+                    url "https://repo.typesafe.com/typesafe/maven-releases"
+                }
+                ivy {
+                    name "typesafe-ivy-release"
+                    url "https://repo.typesafe.com/typesafe/ivy-releases"
+                    layout "ivy"
                 }
             }
-        }
-"""
+
+            model {
+                components {
+                    play {
+                        targetPlatform "play-${version}"
+                    }
+                }
+            }
+        """
     }
 
-    def "can run TwirlCompile"(){
+    def "can run TwirlCompile"() {
         given:
         withTwirlTemplate()
         when:
-        succeeds("twirlCompile")
+        succeeds("compilePlayBinaryTwirlTemplates")
         then:
-        file("build/twirl/views/html/index.template.scala").exists()
+        destinationDir.assertHasDescendants("index.template.scala")
 
         when:
-        succeeds("twirlCompile")
+        succeeds("compilePlayBinaryTwirlTemplates")
         then:
-        skipped(":twirlCompile");
+        skipped(":compilePlayBinaryTwirlTemplates");
     }
 
-    def "runs compiler incrementally"(){
+    def "runs compiler incrementally"() {
         when:
         withTwirlTemplate("input1.scala.html")
         then:
-        succeeds("twirlCompile")
+        succeeds("compilePlayBinaryTwirlTemplates")
         and:
-        file("build/twirl/views/html").assertHasDescendants("input1.template.scala")
-        def input1FirstCompileSnapshot = file("build/twirl/views/html/input1.template.scala").snapshot();
+        destinationDir.assertHasDescendants("input1.template.scala")
+        def input1FirstCompileSnapshot = file("${destinationDirPath}/input1.template.scala").snapshot();
 
         when:
         withTwirlTemplate("input2.scala.html")
         and:
-        succeeds("twirlCompile")
+        succeeds("compilePlayBinaryTwirlTemplates")
         then:
-        file("build/twirl/views/html").assertHasDescendants("input1.template.scala", "input2.template.scala")
+        destinationDir.assertHasDescendants("input1.template.scala", "input2.template.scala")
         and:
-        file("build/twirl/views/html/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot)
+        file("${destinationDirPath}/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot)
 
         when:
         file("app/views/input2.scala.html").delete()
         then:
-        succeeds("twirlCompile")
+        succeeds("compilePlayBinaryTwirlTemplates")
         and:
-        file("build/twirl/views/html").assertHasDescendants("input1.template.scala")
+        destinationDir.assertHasDescendants("input1.template.scala")
     }
 
     def "removes stale output files in incremental compile"(){
         given:
         withTwirlTemplate("input1.scala.html")
         withTwirlTemplate("input2.scala.html")
-        succeeds("twirlCompile")
+        succeeds("compilePlayBinaryTwirlTemplates")
 
         and:
-        file("build/twirl/views/html").assertHasDescendants("input1.template.scala", "input2.template.scala")
-        def input1FirstCompileSnapshot = file("build/twirl/views/html/input1.template.scala").snapshot();
+        destinationDir.assertHasDescendants("input1.template.scala", "input2.template.scala")
+        def input1FirstCompileSnapshot = file("${destinationDirPath}/input1.template.scala").snapshot();
 
         when:
         file("app/views/input2.scala.html").delete()
 
         then:
-        succeeds("twirlCompile")
+        succeeds("compilePlayBinaryTwirlTemplates")
         and:
-        file("build/twirl/views/html").assertHasDescendants("input1.template.scala")
-        file("build/twirl/views/html/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot);
+        destinationDir.assertHasDescendants("input1.template.scala")
+        file("${destinationDirPath}/input1.template.scala").assertHasNotChangedSince(input1FirstCompileSnapshot);
+        file("${destinationDirPath}/input2.template.scala").assertDoesNotExist()
+    }
+
+    def "builds multiple twirl source sets as part of play build" () {
+        withExtraSourceSets()
+        withTemplateSource(file("app", "views", "index.scala.html"))
+        withTemplateSource(file("otherSources", "templates", "other.scala.html"))
+        withTemplateSource(file("extraSources", "extra.scala.html"))
+
+        when:
+        succeeds "assemble"
+
+        then:
+        executedAndNotSkipped(
+                ":compilePlayBinaryTwirlTemplates",
+                ":compilePlayBinaryExtraTwirl",
+                ":compilePlayBinaryOtherTwirl"
+        )
+
+        and:
+        destinationDir.assertHasDescendants("index.template.scala")
+        file("build/playBinary/src/compilePlayBinaryOtherTwirl/templates/html").assertHasDescendants("other.template.scala")
+        file("build/playBinary/src/compilePlayBinaryExtraTwirl/html").assertHasDescendants("extra.template.scala")
+
+        and:
+        jar("build/playBinary/lib/twirl-play-app.jar")
+            .containsDescendants("views/html/index.class", "templates/html/other.class", "html/extra.class")
+    }
+
+    def "extra sources appear in the component report"() {
+        withExtraSourceSets()
+
+        when:
+        succeeds "components"
+
+        then:
+        output.contains(TextUtil.toPlatformLineSeparators("""
+Play Application 'play'
+-----------------------
+
+Source sets
+    Java source 'play:java'
+        srcDir: app
+        includes: **/*.java
+    JVM resources 'play:resources'
+        srcDir: conf
+    Routes source 'play:routes'
+        srcDir: conf
+        includes: routes, *.routes
+    Scala source 'play:scala'
+        srcDir: app
+        includes: **/*.scala
+    Twirl template source 'play:extraTwirl'
+        srcDir: extraSources
+    Twirl template source 'play:otherTwirl'
+        srcDir: otherSources
+    Twirl template source 'play:twirlTemplates'
+        srcDir: app
+        includes: **/*.html
+
+Binaries
+"""))
+
+    }
+
+
+    def withTemplateSource(File templateFile) {
+        templateFile << """@(message: String)
+
+    @play20.welcome(message)
+
+"""
     }
 
     def withTwirlTemplate(String fileName = "index.scala.html") {
         def templateFile = file("app", "views", fileName)
         templateFile.createFile()
-        templateFile << """@(message: String)
+        withTemplateSource(templateFile)
+    }
 
-@main("Welcome to Play") {
-
-    @play20.welcome(message)
-
-}
-
-"""
+    def withExtraSourceSets() {
         buildFile << """
-            model{
-                tasks.twirlCompile{
-                    source '${templateFile.toURI()}'
+            model {
+                components {
+                    play {
+                        sources {
+                            extraTwirl(TwirlSourceSet) {
+                                source.srcDir "extraSources"
+                            }
+                            otherTwirl(TwirlSourceSet) {
+                                source.srcDir "otherSources"
+                            }
+                        }
+                    }
                 }
-            }"""
+            }
+        """
+    }
 
+    JarTestFixture jar(String fileName) {
+        new JarTestFixture(file(fileName))
     }
 }

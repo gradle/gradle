@@ -21,11 +21,13 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.GradleVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
 
+@LeaksFileHandles
 class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
@@ -35,7 +37,7 @@ class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
 
     def buildSucceeds(String script) {
         file('build.gradle') << script
-        executer.withArguments("--info").withNoDefaultJvmArgs().run()
+        executer.withArguments("--info").useDefaultBuildJvmArgs().run()
     }
 
     def "honours jvm args specified in gradle.properties"() {
@@ -69,7 +71,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         def javaHome = Jvm.current().javaHome
         def javaLink = file("javaLink")
         javaLink.createLink(javaHome)
-        file("tmp").deleteDir().createDir()
+        file("tmp").createDir().deleteDir()
 
         String linkPath = TextUtil.escapeString(javaLink.absolutePath)
         file("gradle.properties") << "org.gradle.java.home=$linkPath"
