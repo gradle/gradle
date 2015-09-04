@@ -423,8 +423,18 @@ task performanceExperiments(type: Test) {
     }
 }
 
+task manualPerformanceTest(type: Test) {
+    //dependsOn prepareSamples
+    finalizedBy report
+    maxParallelForks = 1
+    options {
+        includeCategories 'org.gradle.performance.ManualPerformanceTest'
+    }
+    testLogging.showStandardStreams = true
+}
+
 if (project.hasProperty('org.gradle.performance.use_yourkit')) {
-    [performanceTest, performanceExperiments].each { testTask ->
+    [performanceTest, performanceExperiments, manualPerformanceTest].each { testTask ->
         testTask.with {
             testLogging.showStandardStreams = true
             systemProperties['org.gradle.performance.use_yourkit'] = '1'
@@ -436,11 +446,13 @@ if (project.hasProperty('org.gradle.performance.use_yourkit')) {
 integTest {
     options {
         excludeCategories 'org.gradle.performance.PerformanceTest'
+        excludeCategories 'org.gradle.performance.ManualPerformanceTest'
     }
 }
 
 java9IntegTest {
     options {
         excludeCategories 'org.gradle.performance.PerformanceTest'
+        excludeCategories 'org.gradle.performance.ManualPerformanceTest'
     }
 }
