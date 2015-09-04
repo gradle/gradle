@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
+
 import com.google.common.base.Optional
 import com.google.common.collect.ImmutableMap
 import org.gradle.model.internal.core.MutableModelNode
@@ -144,8 +145,10 @@ class ManagedProxyClassGeneratorTest extends Specification {
         impl instanceof ManagedInstance
         ((ManagedInstance) impl).backingNode == node
 
-        when: impl.unmanagedValue = "Lajos"
-        then: unmanagedInstance.unmanagedValue == "Lajos"
+        when:
+        impl.unmanagedValue = "Lajos"
+        then:
+        unmanagedInstance.unmanagedValue == "Lajos"
 
         when:
         def greeting = impl.sayHello()
@@ -255,7 +258,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         def data = [:]
         def state = Mock(ModelElementState)
-        state.get(_) >> { args->
+        state.get(_) >> { args ->
             data[args[0]]
         }
         state.set(_, _) >> { args ->
@@ -266,7 +269,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         def instance = proxy.newInstance(state)
 
         then:
-        new GroovyShell(loader,new Binding(instance:instance)).evaluate """
+        new GroovyShell(loader, new Binding(instance: instance)).evaluate """
             instance.primitiveProperty = $value
             assert instance.primitiveProperty == $value
             instance
@@ -285,6 +288,66 @@ class ManagedProxyClassGeneratorTest extends Specification {
         double        | "123.456d"
     }
 
+
+    @Unroll
+    def "can read and write #value to managed property of type List<#scalarType>"() {
+        def loader = new GroovyClassLoader(getClass().classLoader)
+        when:
+        def clazz = loader.parseClass """
+            interface PrimitiveProperty {
+                List<$scalarType.name> getItems()
+
+                void setItems(List<$scalarType.name> value)
+            }
+        """
+
+
+        def data = [:]
+        def state = Mock(ModelElementState)
+        state.get(_) >> { args ->
+            data[args[0]]
+        }
+        state.set(_, _) >> { args ->
+            data[args[0]] = args[1]
+        }
+        def properties = [property(clazz, 'items', MANAGED)]
+        def proxy = generate(clazz, null, properties)
+        def instance = proxy.newInstance(state)
+
+        then:
+        new GroovyShell(loader, new Binding(instance: instance)).evaluate """
+            instance.items = $value
+            assert instance.items == $value
+            instance
+        """
+
+        where:
+        scalarType | value
+        String     | "null"
+        String     | "['123']"
+        Boolean    | "null"
+        Boolean    | "[true, false]"
+        Character  | "null"
+        Character  | "[(char)'1',(char)'2',(char)'3']"
+        Byte       | "null"
+        Byte       | "[1,2]"
+        Short      | "null"
+        Short      | "[1,2,3]"
+        Integer    | "null"
+        Integer    | "[1,2,3]"
+        Long       | "null"
+        Long       | "[1L,2L,3L]"
+        Float      | "null"
+        Float      | "[1f,2f]"
+        Double     | "null"
+        Double     | "[1d,2d,3d]"
+        BigInteger | "null"
+        BigInteger | "[1G,2G,3G]"
+        BigDecimal | "null"
+        BigDecimal | "[1G,2G,3G]"
+        File       | "null"
+        File       | "[new File('foo')]"
+    }
 
     def <T> T newInstance(Class<T> type) {
         def generated = generate(type)
@@ -320,12 +383,15 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     static interface SomeType {
         Integer getValue()
+
         void setValue(Integer value)
     }
 
     static abstract class SomeTypeWithReadOnly {
         abstract Integer getValue()
+
         abstract void setValue(Integer value)
+
         String getReadOnly() {
             return "read-only"
         }
@@ -333,12 +399,15 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     static interface PublicUnmanagedType {
         String getUnmanagedValue()
+
         void setUnmanagedValue(String unmanagedValue)
+
         String sayHello()
     }
 
     static interface InternalUnmanagedType extends PublicUnmanagedType {
         Integer add(Integer a, Integer b)
+
         void throwError()
     }
 
@@ -363,27 +432,28 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
     static interface ManagedSubType extends PublicUnmanagedType {
         String getManagedValue()
+
         void setManagedValue(String managedValue)
     }
 
     static Map<Class<?>, Collection<ModelPropertyExtractionResult<?>>> managedProperties = ImmutableMap.builder()
         .put(SomeType, [
-           property(SomeType, "value", MANAGED)
-        ])
+        property(SomeType, "value", MANAGED)
+    ])
         .put(SomeTypeWithReadOnly, [
-            property(SomeTypeWithReadOnly, "value", MANAGED),
-            property(SomeTypeWithReadOnly, "readOnly", UNMANAGED)
-        ])
+        property(SomeTypeWithReadOnly, "value", MANAGED),
+        property(SomeTypeWithReadOnly, "readOnly", UNMANAGED)
+    ])
         .put(PublicUnmanagedType, [
-            property(PublicUnmanagedType, "unmanagedValue", UNMANAGED)
-        ])
+        property(PublicUnmanagedType, "unmanagedValue", UNMANAGED)
+    ])
         .put(ManagedSubType, [
-            property(ManagedSubType, "unmanagedValue", DELEGATED),
-            property(ManagedSubType, "managedValue", MANAGED)
-        ])
+        property(ManagedSubType, "unmanagedValue", DELEGATED),
+        property(ManagedSubType, "managedValue", MANAGED)
+    ])
         .put(SomeTypeWithParameters, [
-            property(SomeTypeWithParameters, "values", MANAGED),
-            property(SomeTypeWithParameters, "optional", MANAGED)
-        ])
+        property(SomeTypeWithParameters, "values", MANAGED),
+        property(SomeTypeWithParameters, "optional", MANAGED)
+    ])
         .build()
 }

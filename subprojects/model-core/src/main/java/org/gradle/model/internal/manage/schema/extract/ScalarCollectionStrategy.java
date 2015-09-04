@@ -75,7 +75,7 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         };
     }
 
-    private static class ListViewFactory<T> implements ModelViewFactory<List<T>> {
+    public static class ListViewFactory<T> implements ModelViewFactory<List<T>> {
         private final ModelType<T> elementType;
 
         public ListViewFactory(ModelType<T> elementType) {
@@ -125,11 +125,15 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
             if (write) {
                 state.assertCanMutate();
             }
-            List<T> delegate = Cast.uncheckedCast(modelNode.getPrivateData(List.class));
+            List<T> delegate = Cast.uncheckedCast(ScalarCollectionSchema.get(modelNode));
+            return initialValue(write, delegate);
+        }
+
+        private List<T> initialValue(boolean write, List<T> delegate) {
             if (delegate == null) {
                 if (write) {
                     delegate = new ArrayList<T>();
-                    modelNode.setPrivateData(List.class, delegate);
+                    ScalarCollectionSchema.set(modelNode, delegate);
                 } else {
                     delegate = Collections.emptyList();
                 }

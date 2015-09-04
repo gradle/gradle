@@ -85,12 +85,21 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
                     .build();
                 modelNode.addLink(creator);
             } else {
-                ModelManagedImplStructSchema<P> structSchema = (ModelManagedImplStructSchema<P>) propertySchema;
-                ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, ManagedProxyFactory.INSTANCE);
-                ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
-                    .withProjection(projection)
-                    .descriptor(descriptor).build();
-                modelNode.addReference(creator);
+                if (propertySchema instanceof ScalarCollectionSchema) {
+                    ManagedImplModelSchema<P> managedPropertySchema = (ManagedImplModelSchema<P>) propertySchema;
+                    ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), managedPropertySchema.getNodeInitializer())
+                        .descriptor(descriptor)
+                        .build();
+                    modelNode.addLink(creator);
+                } else {
+                    ModelManagedImplStructSchema<P> structSchema = (ModelManagedImplStructSchema<P>) propertySchema;
+                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, ManagedProxyFactory.INSTANCE);
+                    ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
+                        .withProjection(projection)
+                        .descriptor(descriptor).build();
+                    modelNode.addReference(creator);
+                }
+
             }
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);

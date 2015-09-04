@@ -16,7 +16,6 @@
 
 package org.gradle.model.managed
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 
@@ -59,7 +58,6 @@ class ManagedListIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'check'
     }
 
-    @NotYetImplemented
     def "rule can mutate a managed type with a list of scalar read-write property"() {
         given:
         buildScript '''
@@ -71,14 +69,17 @@ class ManagedListIntegrationTest extends AbstractIntegrationSpec {
         }
 
         class Rules extends RuleSource {
+            static final List<String> INITIAL = ['initial']
+
             @Model
             void createContainer(Container c) {
                 assert c.items == null
-                c.items = ['initial']
+                c.items = INITIAL
             }
 
             @Mutate
             void addItems(Container c) {
+                assert !c.items.is(INITIAL)
                 c.items.add 'foo'
             }
 
@@ -86,6 +87,124 @@ class ManagedListIntegrationTest extends AbstractIntegrationSpec {
             void addCheckTask(ModelMap<Task> tasks, Container c) {
                 tasks.create('check') {
                     assert c.items == ['initial','foo']
+                }
+            }
+        }
+
+        apply plugin: Rules
+        '''
+
+        expect:
+        succeeds 'check'
+    }
+
+    def "rule can nullify a managed type with a list of scalar read-write property"() {
+        given:
+        buildScript '''
+
+        @Managed
+        interface Container {
+            List<String> getItems()
+            void setItems(List<String> items)
+        }
+
+        class Rules extends RuleSource {
+            static final List<String> INITIAL = ['initial']
+
+            @Model
+            void createContainer(Container c) {
+                assert c.items == null
+                c.items = INITIAL
+            }
+
+            @Mutate
+            void nullify(Container c) {
+                c.items = null
+            }
+
+            @Mutate
+            void addCheckTask(ModelMap<Task> tasks, Container c) {
+                tasks.create('check') {
+                    assert c.items == null
+                }
+            }
+        }
+
+        apply plugin: Rules
+        '''
+
+        expect:
+        succeeds 'check'
+    }
+
+    def "rule can overwrite value of a managed type with a list of scalar read-write property"() {
+        given:
+        buildScript '''
+
+        @Managed
+        interface Container {
+            List<String> getItems()
+            void setItems(List<String> items)
+        }
+
+        class Rules extends RuleSource {
+            static final List<String> INITIAL = ['initial']
+
+            @Model
+            void createContainer(Container c) {
+                assert c.items == null
+                c.items = INITIAL
+            }
+
+            @Mutate
+            void nullify(Container c) {
+                c.items = ['b','c']
+            }
+
+            @Mutate
+            void addCheckTask(ModelMap<Task> tasks, Container c) {
+                tasks.create('check') {
+                    assert c.items == ['b','c']
+                }
+            }
+        }
+
+        apply plugin: Rules
+        '''
+
+        expect:
+        succeeds 'check'
+    }
+
+    def "rule can nullify and set value of a managed type in the same mutation block"() {
+        given:
+        buildScript '''
+
+        @Managed
+        interface Container {
+            List<String> getItems()
+            void setItems(List<String> items)
+        }
+
+        class Rules extends RuleSource {
+            static final List<String> INITIAL = ['initial']
+
+            @Model
+            void createContainer(Container c) {
+                assert c.items == null
+                c.items = INITIAL
+            }
+
+            @Mutate
+            void nullify(Container c) {
+                c.items = null
+                c.items = ['b','c']
+            }
+
+            @Mutate
+            void addCheckTask(ModelMap<Task> tasks, Container c) {
+                tasks.create('check') {
+                    assert c.items == ['b','c']
                 }
             }
         }
