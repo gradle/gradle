@@ -36,12 +36,12 @@ class IncrementalTaskInputsPerformanceTest extends AbstractCrossBuildPerformance
         runner.testId = "compare incremental task inputs to ordinary task inputs"
         runner.buildSpec {
             projectName("compareTaskInputs").displayName("incremental inputs $inputCount").invocation {
-                tasksToRun("clean", "buildIncremental").args("-PinputCount=$inputCount").useDaemon()
+                tasksToRun("buildIncremental").args("-PinputCount=$inputCount").useDaemon()
             }
         }
         runner.baseline {
             projectName("compareTaskInputs").displayName("ordinary inputs $inputCount").invocation {
-                tasksToRun("clean", "buildOrdinary").args("-PinputCount=$inputCount").useDaemon()
+                tasksToRun("buildOrdinary").args("-PinputCount=$inputCount").useDaemon()
             }
         }
 
