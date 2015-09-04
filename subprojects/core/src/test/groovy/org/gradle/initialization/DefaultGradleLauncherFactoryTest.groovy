@@ -86,15 +86,15 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         def launcher = factory.newInstance(startParameter)
 
         then:
-        launcher.servicesToStop.elements.any { it.toString() == "BuildSessionScopeServices" }
-        launcher.servicesToStop.elements.any { it.toString() == "BuildScopeServices" }
+        launcher.toStopOnStop.elements.any { it.toString() == "BuildSessionScopeServices" }
+        launcher.toStopOnStop.elements.any { it.toString() == "BuildScopeServices" }
 
         when:
         launcher.buildListener.buildStarted(launcher.gradle)
         launcher.stop()
 
         then:
-        launcher.servicesToStop.elements.every { it.isClosed() }
+        launcher.toStopOnStop.elements.every { it.isClosed() }
     }
 
     def "launcher stops build service scope when context is provided" () {
@@ -111,13 +111,13 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         def launcher = factory.newInstance(startParameter, requestContext, sessionServices)
 
         then:
-        launcher.servicesToStop.elements.any { it.toString() == "BuildScopeServices" }
+        launcher.toStopOnStop.elements.any { it.toString() == "BuildScopeServices" }
 
         when:
         launcher.buildListener.buildStarted(launcher.gradle)
         launcher.stop()
 
         then:
-        launcher.servicesToStop.elements.every { it.isClosed() }
+        launcher.toStopOnStop.elements.every { it.isClosed() }
     }
 }
