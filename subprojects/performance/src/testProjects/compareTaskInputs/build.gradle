@@ -1,0 +1,44 @@
+// use "-I init.gradle -u" cli parameters to run manually from build/compareTaskInputs directory
+
+apply plugin:'base'
+
+class OrdinaryTaskInputTask extends DefaultTask {
+    @InputFiles
+    FileCollection inputFiles
+
+    @TaskAction
+    void noOp() {
+        // no-op
+    }
+}
+
+class IncrementalTaskInputTask extends DefaultTask {
+    @InputFiles
+    FileCollection inputFiles
+
+    @TaskAction
+    void noOp(IncrementalTaskInputs inputs) {
+        // no-op
+    }
+}
+
+task buildIncremental
+
+task buildOrdinary
+
+def inputCount = project.hasProperty("inputCount") ? project.inputCount as int : 10000
+
+def taskCount = project.hasProperty("taskCount") ? project.taskCount as int : 1000
+
+for(int i=1;i <= taskCount;i++) {
+    def taskIncremental=project.tasks.create(name: "incrementalTask$i", type: IncrementalTaskInputTask) {
+        inputFiles = fileTree(dir:"src/${inputCount}files")
+
+    }
+    buildIncremental.dependsOn taskIncremental
+
+    def taskOrdinary=project.tasks.create(name: "ordinaryTask$i", type: OrdinaryTaskInputTask) {
+        inputFiles = fileTree(dir:"src/${inputCount}files")
+    }
+    buildOrdinary.dependsOn taskOrdinary
+}
