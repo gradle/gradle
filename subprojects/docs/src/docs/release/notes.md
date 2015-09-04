@@ -24,8 +24,8 @@ for any gradle execution via this wrapper. This issue has been fixed in 2.7.
 When authenticating to Maven or Ivy repositories over HTTP/HTTPS, Gradle will attempt to use all supported authentication schemes to connect (NTLM, Kerberos, Digest, Basic).
 This release allows for the explicit selection of authentication schemes that should be used, allowing a build author to prevent the use of an unwanted authentication scheme.
 
-The authentication schemes to use are specified by adding them to the new 
-<a href="dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html#org.gradle.api.artifacts.repositories.MavenArtifactRepository:authentication(org.gradle.api.Action)">authentication</a> 
+The authentication schemes to use are specified by adding them to the new
+<a href="dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html#org.gradle.api.artifacts.repositories.MavenArtifactRepository:authentication(org.gradle.api.Action)">authentication</a>
 element for a repository.
 
 For example, to configure a repository to use only digest authentication:
@@ -183,6 +183,7 @@ We would like to thank the following community members for making contributions 
 * [Ethan Hall](https://github.com/ethankhall) - Support for Checkstyle 6.8
 * [Chris Purcell](https://github.com/cjp39) - Documentation improvements
 * [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements
+* [Hao Xia](https://github.com/jasonxh) - GRADLE-3338 Bump up joda-time version to resolve issue with JDK 8u60
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
