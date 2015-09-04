@@ -26,6 +26,7 @@ import org.objectweb.asm.Opcodes;
 public class AbstractProxyClassGenerator {
     private static final JavaMethod<ClassLoader, ?> DEFINE_CLASS_METHOD = JavaReflectionUtil.method(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, Integer.TYPE, Integer.TYPE);
     protected static final String CONSTRUCTOR_NAME = "<init>";
+    protected static final String STATIC_CONSTRUCTOR_NAME = "<clinit>";
     protected static final String CONCRETE_SIGNATURE = null;
     protected static final String[] NO_EXCEPTIONS = new String[0];
 
