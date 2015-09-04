@@ -56,7 +56,7 @@ However, in some cases a server will respond with a different response for resou
 This causes dependency resolution to fail.
 
 To get around this behavior, credentials may be sent to the server preemptively.
-Where a repository is explicitly configured to use the [`BasicAuthentication`](javadoc/org/gradle/authentication/http/BasicAuthentication.html) scheme, Gradle
+Where a repository is explicitly configured to use the [`BasicAuthentication`](dsl/org.gradle.authentication.http.BasicAuthentication.html) scheme, Gradle
 will send credentials preemptively for every request:
 
     authentication {
