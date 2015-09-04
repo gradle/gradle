@@ -6,9 +6,12 @@ class OrdinaryTaskInputTask extends DefaultTask {
     @InputFiles
     FileCollection inputFiles
 
+    @OutputFile
+    File outputFile
+
     @TaskAction
-    void noOp() {
-        // no-op
+    void run() {
+        outputFile.text = name
     }
 }
 
@@ -16,9 +19,12 @@ class IncrementalTaskInputTask extends DefaultTask {
     @InputFiles
     FileCollection inputFiles
 
+    @OutputFile
+    File outputFile
+
     @TaskAction
-    void noOp(IncrementalTaskInputs inputs) {
-        // no-op
+    void run(IncrementalTaskInputs inputs) {
+        outputFile.text = name
     }
 }
 
@@ -33,12 +39,14 @@ def taskCount = project.hasProperty("taskCount") ? project.taskCount as int : 10
 for(int i=1;i <= taskCount;i++) {
     def taskIncremental=project.tasks.create(name: "incrementalTask$i", type: IncrementalTaskInputTask) {
         inputFiles = fileTree(dir:"src/${inputCount}files")
+        outputFile = file("$buildDir/incrementalTask${i}_output")
 
     }
     buildIncremental.dependsOn taskIncremental
 
     def taskOrdinary=project.tasks.create(name: "ordinaryTask$i", type: OrdinaryTaskInputTask) {
         inputFiles = fileTree(dir:"src/${inputCount}files")
+        outputFile = file("$buildDir/ordinaryTask${i}_output")
     }
     buildOrdinary.dependsOn taskOrdinary
 }
