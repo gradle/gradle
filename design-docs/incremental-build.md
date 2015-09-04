@@ -36,9 +36,7 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 - This does not need to be automated
 - Compare time to perform up-to-date checks for otherwise identical tasks at
-   - 1, 100, 1000 and 10000 inputs
-   - 1, 100, 1000 and 10000 outputs
-   - 16 tests for each case (32 total)
+   - 1, 10, 100, 1000 and 10000 inputs
 
 ## Story: Compare "one change" and "no change" cases
 
@@ -52,23 +50,20 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 - This does not need to be automated
 - Collect time to perform up-to-date checks at
-   - 1, 100, 1000 and 10000 inputs
-   - 1, 100, 1000 and 10000 outputs
-   - 16 tests for each case (32 total)
+   - 1, 10, 100, 1000 and 10000 inputs
 
 ## Story: Find breaking point for input and output sizes
 
-- Vary number of inputs and outputs
-- Vary sizes of inputs and outputs
+- Vary number of inputs
+- Vary sizes of inputs
 - Breaking point is the point where Gradle fails due to memory (reported issue) or takes a "long" time (>60 seconds for a single task).
 
 ### Test coverage
 
 - This does not need to be automated
 - Collect time to perform up-to-date checks at
+   - 1, 10, 100, 1000 and 10000 inputs
    - 10k, 50k, 100k, 500k, 1m inputs (smaller if impractical)
-   - 10k, 50k, 100k, 500k, 1m outputs (smaller if impractical)
-   - 16 tests
 - Collect time to perform up-to-date checks for 100 inputs at
    - 1MB, 10MB, 50MB, 100MB inputs (smaller if impractical)
 
