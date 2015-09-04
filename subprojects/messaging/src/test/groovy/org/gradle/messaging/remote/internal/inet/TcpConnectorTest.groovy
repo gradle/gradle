@@ -19,6 +19,8 @@ import org.gradle.internal.id.UUIDGenerator
 import org.gradle.internal.serialize.*
 import org.gradle.messaging.remote.internal.*
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.ports.FixedAvailablePortAllocator
 import spock.lang.Issue
 import spock.lang.Shared
@@ -277,6 +279,7 @@ class TcpConnectorTest extends ConcurrentSpec {
     }
 
     @Issue("GRADLE-2316")
+    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "detects self connect when outgoing connection binds to same port"() {
         given:
         def socketChannel = SocketChannel.open()
@@ -295,6 +298,7 @@ class TcpConnectorTest extends ConcurrentSpec {
     }
 
     @Issue("GRADLE-2316")
+    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "does not detect self connect when outgoing connection bind to different ports"() {
         given:
         def action = Mock(Action)
