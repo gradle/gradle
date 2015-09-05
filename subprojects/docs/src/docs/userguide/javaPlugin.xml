@@ -119,7 +119,7 @@
                     Some plugins add additional test compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
-                <td>Assembles the test classes and resources directories</td>
+                <td>Assembles the test classes and resources directories.</td>
             </tr>
             <tr>
                 <td>
