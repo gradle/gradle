@@ -15,14 +15,13 @@
  */
 
 package org.gradle.integtests.tooling
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.tooling.*
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 import org.mortbay.jetty.MimeTypes
 
@@ -33,6 +32,7 @@ import java.util.concurrent.TimeUnit
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
+@LeaksFileHandles
 class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
@@ -42,7 +42,6 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         toolingApi.requireIsolatedUserHome()
     }
 
-    @LeaksFileHandles
     def "downloads distribution with valid user-agent information"() {
         assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :binZip task"
 
