@@ -102,10 +102,6 @@ public abstract class DelegatingFileCollection implements FileCollectionInternal
         return getDelegate().iterator();
     }
 
-    public String getDisplayName() {
-        return getDelegate().getDisplayName();
-    }
-
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {
         getDelegate().registerWatchPoints(builder);

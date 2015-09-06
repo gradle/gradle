@@ -53,7 +53,6 @@ class DelegatingFileCollectionTest extends Specification {
             addToAntBuilder(anObject, "nodeName", FileCollection.AntType.MatchingTask)
             addToAntBuilder(anObject, "nodeName")
             getBuildDependencies()
-            getDisplayName()
             delegate.iterator() // avoid collision with DGM method
         }
 
@@ -74,7 +73,6 @@ class DelegatingFileCollectionTest extends Specification {
             1 * getAsFileTree()
             1 * addToAntBuilder(anObject, "nodeName", FileCollection.AntType.MatchingTask)
             1 * addToAntBuilder(anObject, "nodeName")
-            1 * getDisplayName()
             1 * getBuildDependencies()
             1 * iterator()
             0 * _
