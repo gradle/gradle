@@ -56,7 +56,7 @@ uploadArchives {
         then:
         def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
         mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.jar")
-        mavenModule.parsedPom.scopes.runtime.assertDependsOn(
+        mavenModule.parsedPom.scopes.compile.assertDependsOn(
                 "group:projectA:RELEASE",
                 "group:projectB:LATEST",
                 "group:projectC:1.+",
