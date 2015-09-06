@@ -19,7 +19,7 @@ package org.gradle.integtests.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 
-class MavenPublishRespectsPomConfigurationTest extends AbstractIntegrationSpec {
+class MavenPomConfigurationPublishIntegrationTest extends AbstractIntegrationSpec {
 
     @Ignore
     def "project dependencies in pom respect renamed artifactId"() {

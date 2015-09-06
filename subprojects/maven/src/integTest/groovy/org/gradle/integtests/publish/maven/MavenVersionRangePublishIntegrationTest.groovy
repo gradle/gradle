@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class MavenPublishVersionRangeIntegrationTest extends AbstractIntegrationSpec {
+class MavenVersionRangePublishIntegrationTest extends AbstractIntegrationSpec {
 
     public void "version range is mapped to maven syntax in published pom file"() {
         given:

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
 // this spec documents the status quo, not a desired behavior
-class MavenPomGenerationIntegrationTest extends AbstractIntegrationSpec {
+class MavenPomGenerationPublishIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "how configuration of archive task affects generated POM"() {

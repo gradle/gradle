@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Issue
 
-class MavenPublishIgnoresMavenSettingsTest extends AbstractIntegrationSpec {
+class MavenSettingsPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 

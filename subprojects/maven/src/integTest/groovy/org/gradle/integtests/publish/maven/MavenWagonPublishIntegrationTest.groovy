@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven
+package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
-class MavenProtocolProviderIntegrationTest extends AbstractMavenPublishIntegTest {
+class MavenWagonPublishIntegrationTest extends AbstractMavenPublishIntegTest {
 
     def "uses provided wagon type to perform publication"() {
         given:

@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
 
-class MavenPublicationVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
+class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
     public void "version range is mapped to maven syntax in published pom file"() {

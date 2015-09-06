@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven
+package org.gradle.integtests.publish.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.server.sftp.MavenSftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
 import spock.lang.Ignore
 
-class MavenLegacyPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
+class MavenSftpPublishIntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
     final SFTPServer server = new SFTPServer(this)
 
