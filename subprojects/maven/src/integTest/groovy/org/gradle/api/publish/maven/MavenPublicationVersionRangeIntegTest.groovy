@@ -17,17 +17,13 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import spock.lang.Issue
 
 class MavenPublicationVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
     public void "version range is mapped to maven syntax in published pom file"() {
         given:
-
-        mavenRepo.module('group', 'projectA', '1.0').publish()
-        mavenRepo.module('group', 'projectA', '2.0').publish()
-        mavenRepo.module('group', 'projectB', '1.1.1').publish()
-
         settingsFile << "rootProject.name = 'publishTest' "
         buildFile << """
             apply plugin: 'maven-publish'
@@ -50,6 +46,9 @@ class MavenPublicationVersionRangeIntegTest extends AbstractMavenPublishIntegTes
             dependencies {
                 compile "group:projectA:latest.release"
                 compile "group:projectB:latest.integration"
+                compile "group:projectC:1.+"
+                compile "group:projectD:[1.0,2.0)"
+                compile "group:projectE:[1.0]"
             }"""
 
         when:
@@ -59,6 +58,48 @@ class MavenPublicationVersionRangeIntegTest extends AbstractMavenPublishIntegTes
         mavenModule.assertPublishedAsJavaModule()
 
         mavenModule.parsedPom.scopes.keySet() == ["runtime"] as Set
-        mavenModule.parsedPom.scopes.runtime.assertDependsOn("group:projectA:RELEASE", "group:projectB:LATEST")
+        mavenModule.parsedPom.scopes.runtime.assertDependsOn(
+            "group:projectA:RELEASE",
+            "group:projectB:LATEST",
+            "group:projectC:1.+",
+            "group:projectD:[1.0,2.0)",
+            "group:projectE:[1.0]"
+        )
     }
+
+    @Issue("GRADLE-3233")
+    def "publishes POM dependency for Gradle dependency with empty version"() {
+        settingsFile << "rootProject.name = 'publishTest' "
+        buildFile << """
+
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'org.gradle.test'
+            version = '1.9'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            dependencies {
+                compile "group:projectA"
+                compile group:"group", name:"projectB", version:null
+            }"""
+
+        when:
+        run "publish"
+
+        then:
+        mavenModule.assertPublishedAsJavaModule()
+        mavenModule.parsedPom.scopes.runtime.assertDependsOn("group:projectA:", "group:projectB:")
+    }
+
 }
