@@ -26,6 +26,9 @@ import org.gradle.internal.Cast;
 
 import java.util.Collection;
 
+/**
+ * A {@link FileTree} that contains the union of zero or more file trees.
+ */
 public abstract class CompositeFileTree extends CompositeFileCollection implements FileTreeInternal {
     protected Collection<? extends FileTreeInternal> getSourceCollections() {
         return Cast.uncheckedCast(super.getSourceCollections());

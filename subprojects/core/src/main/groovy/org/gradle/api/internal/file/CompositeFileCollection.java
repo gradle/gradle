@@ -29,8 +29,11 @@ import java.io.File;
 import java.util.*;
 
 /**
- * A {@link org.gradle.api.file.FileCollection} which contains the union of the given source collections. Maintains file
- * ordering.
+ * A {@link org.gradle.api.file.FileCollection} that contains the union of zero or more file collections. Maintains file ordering.
+ *
+ * <p>The source file collections are calculated from the result of calling {@link #resolve(FileCollectionResolveContext)}, and may be lazily created.
+ * This also means that the source collections can be created using any representation supported by {@link FileCollectionResolveContext}.
+ * </p>
  */
 public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer {
     public Set<File> getFiles() {

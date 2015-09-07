@@ -22,11 +22,12 @@ public interface FileCollectionResolveContext {
      * Adds the given element to be resolved. Handles the following types:
      *
      * <ul>
-     *     <li>{@link Iterable} - elements are recursively resolved.
+     *     <li>{@link Iterable} or array - elements are recursively resolved.
      *     <li>{@link groovy.lang.Closure} - return value is recursively resolved, if not null.
      *     <li>{@link java.util.concurrent.Callable} - return value is recursively resolved, if not null.
      *     <li>{@link org.gradle.api.file.FileCollection} - resolved as is.
      *     <li>{@link org.gradle.api.Task} - resolved to task.outputs.files
+     *     <li>{@link org.gradle.api.tasks.TaskOutputs} - resolved to outputs.files
      *     <li>{@link MinimalFileSet} - wrapped as a {@link org.gradle.api.file.FileCollection}.
      *     <li>{@link MinimalFileTree} - wrapped as a {@link org.gradle.api.file.FileTree}.
      *     <li>{@link FileCollectionContainer} - recursively resolved.
