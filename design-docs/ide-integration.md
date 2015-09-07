@@ -155,6 +155,30 @@ results in
 * given project layout
 
 ```
+    root
+    |- foo-bar
+    |- foo
+    |  \- bar
+    \- baz
+       \- bar
+```
+
+results in
+
+```
+    root
+    \- foo-bar
+    \- foo
+       \- root-foo-bar
+    \- baz
+       \- root-baz-bar
+
+```
+
+
+* given project layout
+
+```
     myproject
     \- myproject-app
     \- myproject-bar
