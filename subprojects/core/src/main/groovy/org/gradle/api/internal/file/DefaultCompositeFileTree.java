@@ -33,11 +33,6 @@ public class DefaultCompositeFileTree extends CompositeFileTree {
     }
 
     @Override
-    protected Collection<? extends FileTreeInternal> getSourceCollections() {
-        return fileTrees;
-    }
-
-    @Override
     public String getDisplayName() {
         return "file tree";
     }
