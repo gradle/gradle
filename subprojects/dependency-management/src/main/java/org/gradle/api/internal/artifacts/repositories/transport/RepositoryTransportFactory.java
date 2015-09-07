@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.credentials.Credentials;
@@ -111,10 +109,10 @@ public class RepositoryTransportFactory {
     }
 
     private void validateConnectorFactoryCredentials(Set<String> schemes, ResourceConnectorFactory factory, Collection<Authentication> authentications) {
-        Multiset duplicatedAuthentications = HashMultiset.create();
+        Set<Class<? extends Authentication>> configuredAuthenticationTypes = Sets.newHashSet();
 
         for (Authentication authentication : authentications) {
-            AuthenticationInternal authenticationInternal = (AuthenticationInternal)authentication;
+            AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
             boolean isAuthenticationSupported = false;
             Credentials credentials = authenticationInternal.getCredentials();
 
@@ -139,8 +137,7 @@ public class RepositoryTransportFactory {
                 throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
             }
 
-            int count = duplicatedAuthentications.add(authenticationInternal.getType(), 1);
-            if (count > 0) {
+            if (!configuredAuthenticationTypes.add(authenticationInternal.getType())) {
                 throw new InvalidUserDataException(String.format("You cannot configure multiple authentication schemes of the same type.  The duplicate one is %s.", authentication));
             }
         }
