@@ -77,7 +77,6 @@ class ScalaBasePlugin implements Plugin<Project> {
             sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.scala.contains(element.file) }
 
             configureScalaCompile(javaPlugin, sourceSet)
-            configureScalaConsole(sourceSet)
         }
     }
 
