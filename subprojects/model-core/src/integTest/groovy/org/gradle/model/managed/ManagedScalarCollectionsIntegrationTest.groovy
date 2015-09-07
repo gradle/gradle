@@ -18,20 +18,23 @@ package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
+import spock.lang.Unroll
 
-class ManagedListIntegrationTest extends AbstractIntegrationSpec {
+class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
+    private final static List<String> MANAGED_SCALAR_COLLECTION_TYPES = ['List', 'Set']
     def setup() {
         EnableModelDsl.enable(executer)
     }
 
-    def "rule can mutate a managed type with a list of scalar read-only property"() {
+    @Unroll
+    def "rule can mutate a managed type with a #type of scalar read-only property"() {
         given:
-        buildScript '''
+        buildScript """
 
         @Managed
         interface Container {
-            List<String> getItems()
+            $type<String> getItems()
         }
 
         class Rules extends RuleSource {
@@ -46,30 +49,34 @@ class ManagedListIntegrationTest extends AbstractIntegrationSpec {
             @Mutate
             void addCheckTask(ModelMap<Task> tasks, Container c) {
                 tasks.create('check') {
-                    assert c.items == ['foo']
+                    assert c.items == ['foo'] as $type
                 }
             }
         }
 
         apply plugin: Rules
-        '''
+        """
 
         expect:
         succeeds 'check'
+
+        where:
+        type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    def "rule can mutate a managed type with a list of scalar read-write property"() {
+    @Unroll
+    def "rule can mutate a managed type with a #type of scalar read-write property"() {
         given:
-        buildScript '''
+        buildScript """
 
         @Managed
         interface Container {
-            List<String> getItems()
-            void setItems(List<String> items)
+            $type<String> getItems()
+            void setItems($type<String> items)
         }
 
         class Rules extends RuleSource {
-            static final List<String> INITIAL = ['initial']
+            static final $type<String> INITIAL = ['initial']
 
             @Model
             void createContainer(Container c) {
@@ -86,30 +93,34 @@ class ManagedListIntegrationTest extends AbstractIntegrationSpec {
             @Mutate
             void addCheckTask(ModelMap<Task> tasks, Container c) {
                 tasks.create('check') {
-                    assert c.items == ['initial','foo']
+                    assert c.items == ['initial','foo'] as $type
                 }
             }
         }
 
         apply plugin: Rules
-        '''
+        """
 
         expect:
         succeeds 'check'
+
+        where:
+        type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    def "rule can nullify a managed type with a list of scalar read-write property"() {
+    @Unroll
+    def "rule can nullify a managed type with a #type of scalar read-write property"() {
         given:
-        buildScript '''
+        buildScript """
 
         @Managed
         interface Container {
-            List<String> getItems()
-            void setItems(List<String> items)
+            $type<String> getItems()
+            void setItems($type<String> items)
         }
 
         class Rules extends RuleSource {
-            static final List<String> INITIAL = ['initial']
+            static final $type<String> INITIAL = ['initial']
 
             @Model
             void createContainer(Container c) {
@@ -131,24 +142,28 @@ class ManagedListIntegrationTest extends AbstractIntegrationSpec {
         }
 
         apply plugin: Rules
-        '''
+        """
 
         expect:
         succeeds 'check'
+
+        where:
+        type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    def "rule can overwrite value of a managed type with a list of scalar read-write property"() {
+    @Unroll
+    def "rule can overwrite value of a managed type with a #type of scalar read-write property"() {
         given:
-        buildScript '''
+        buildScript """
 
         @Managed
         interface Container {
-            List<String> getItems()
-            void setItems(List<String> items)
+            $type<String> getItems()
+            void setItems($type<String> items)
         }
 
         class Rules extends RuleSource {
-            static final List<String> INITIAL = ['initial']
+            static final $type<String> INITIAL = ['initial']
 
             @Model
             void createContainer(Container c) {
@@ -164,30 +179,34 @@ class ManagedListIntegrationTest extends AbstractIntegrationSpec {
             @Mutate
             void addCheckTask(ModelMap<Task> tasks, Container c) {
                 tasks.create('check') {
-                    assert c.items == ['b','c']
+                    assert c.items == ['b','c'] as $type
                 }
             }
         }
 
         apply plugin: Rules
-        '''
+        """
 
         expect:
         succeeds 'check'
+
+        where:
+        type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    def "rule can nullify and set value of a managed type in the same mutation block"() {
+    @Unroll
+    def "rule can nullify and set value of a managed type #type in the same mutation block"() {
         given:
-        buildScript '''
+        buildScript """
 
         @Managed
         interface Container {
-            List<String> getItems()
-            void setItems(List<String> items)
+            $type<String> getItems()
+            void setItems($type<String> items)
         }
 
         class Rules extends RuleSource {
-            static final List<String> INITIAL = ['initial']
+            static final $type<String> INITIAL = ['initial']
 
             @Model
             void createContainer(Container c) {
@@ -204,25 +223,29 @@ class ManagedListIntegrationTest extends AbstractIntegrationSpec {
             @Mutate
             void addCheckTask(ModelMap<Task> tasks, Container c) {
                 tasks.create('check') {
-                    assert c.items == ['b','c']
+                    assert c.items == ['b','c'] as $type
                 }
             }
         }
 
         apply plugin: Rules
-        '''
+        """
 
         expect:
         succeeds 'check'
+
+        where:
+        type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    def "rule cannot mutate a managed type with a list of scalar property when not the subject of the rule"() {
+    @Unroll
+    def "rule cannot mutate a managed type with a #type of scalar property when not the subject of the rule"() {
         when:
-        buildScript '''
+        buildScript """
 
         @Managed
         interface Container {
-            List<String> getItems()
+            $type<String> getItems()
         }
 
         class Rules extends RuleSource {
@@ -241,23 +264,26 @@ class ManagedListIntegrationTest extends AbstractIntegrationSpec {
         }
 
         apply plugin: Rules
-        '''
+        """
 
         then:
         fails 'tasks'
 
         and:
-        failure.assertHasCause "Attempt to mutate closed view of model of type 'java.util.List<java.lang.String>' given to rule 'Rules#tryToMutate'"
+        failure.assertHasCause "Attempt to mutate closed view of model of type 'java.util.$type<java.lang.String>' given to rule 'Rules#tryToMutate'"
 
+        where:
+        type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    def "rule cannot mutate closed view even using iterator"() {
+    @Unroll
+    def "rule cannot mutate closed view even using iteratoron #type"() {
         when:
-        buildScript '''
+        buildScript """
 
         @Managed
         interface Container {
-            List<String> getItems()
+            $type<String> getItems()
         }
 
         class Rules extends RuleSource {
@@ -278,13 +304,16 @@ class ManagedListIntegrationTest extends AbstractIntegrationSpec {
         }
 
         apply plugin: Rules
-        '''
+        """
 
         then:
         fails 'tasks'
 
         and:
-        failure.assertHasCause "Attempt to mutate closed view of model of type 'java.util.List<java.lang.String>' given to rule 'Rules#tryToMutate'"
+        failure.assertHasCause "Attempt to mutate closed view of model of type 'java.util.$type<java.lang.String>' given to rule 'Rules#tryToMutate'"
+
+        where:
+        type << MANAGED_SCALAR_COLLECTION_TYPES
 
     }
 }
