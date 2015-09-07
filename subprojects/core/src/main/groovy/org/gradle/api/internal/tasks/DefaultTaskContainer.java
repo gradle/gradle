@@ -245,7 +245,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
     }
 
-
     public <U extends Task> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
         throw new UnsupportedOperationException();
     }
