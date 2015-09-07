@@ -68,7 +68,7 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         return new Function<ModelCollectionSchema<T, E>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelCollectionSchema<T, E> schema) {
-                if (schema.getType().getRawClass()==List.class) {
+                if (schema.getType().getRawClass() == List.class) {
                     return new ProjectionOnlyNodeInitializer(
                         ScalarCollectionModelProjection.get(
                             ModelTypes.list(schema.getElementType()),
@@ -337,7 +337,7 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         }
     }
 
-    private static class ListBackedCollection<T> extends NodeBackedCollection<T,List<T>> implements List<T> {
+    private static class ListBackedCollection<T> extends NodeBackedCollection<T, List<T>> implements List<T> {
 
         public ListBackedCollection(MutableModelNode modelNode, ModelViewState state, ModelType<T> elementType) {
             super(modelNode, state, elementType);
