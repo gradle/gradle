@@ -15,13 +15,21 @@
  */
 package org.gradle.api.internal.file
 
+import org.gradle.api.Task
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 class LazilyInitializedFileCollectionTest extends Specification {
     def createCount = 0
     def fileCollection = new LazilyInitializedFileCollection() {
+        @Override
+        String getDisplayName() {
+            return "test collection"
+        }
+
         @Override
         FileCollectionInternal createDelegate() {
             createCount++
@@ -46,5 +54,28 @@ class LazilyInitializedFileCollectionTest extends Specification {
         then:
         createCount == 1
         files == [new File("foo")] as Set
+    }
+
+    def "creates delegate when task dependencies are queried"() {
+        expect:
+        createCount == 0
+
+        when:
+        fileCollection.buildDependencies
+
+        then:
+        createCount == 0
+
+        when:
+        fileCollection.buildDependencies.getDependencies(Stub(Task))
+
+        then:
+        createCount == 1
+
+        when:
+        fileCollection.buildDependencies.getDependencies(Stub(Task))
+
+        then:
+        createCount == 1
     }
 }

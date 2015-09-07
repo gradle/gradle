@@ -78,6 +78,11 @@ public class ScalaRuntime {
         // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
         return new LazilyInitializedFileCollection() {
             @Override
+            public String getDisplayName() {
+                return "Scala runtime classpath";
+            }
+
+            @Override
             public FileCollectionInternal createDelegate() {
                 if (project.getRepositories().isEmpty()) {
                     throw new GradleException(String.format("Cannot infer Scala class path because no repository is declared in %s", project));

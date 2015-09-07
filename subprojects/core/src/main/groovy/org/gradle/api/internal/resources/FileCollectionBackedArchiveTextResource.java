@@ -35,6 +35,11 @@ public class FileCollectionBackedArchiveTextResource extends FileCollectionBacke
                                                    final String path, Charset charset) {
         super(tempFileProvider, new LazilyInitializedFileCollection() {
             @Override
+            public String getDisplayName() {
+                return String.format("entry '%s' in archive %s", path, fileCollection);
+            }
+
+            @Override
             public FileCollectionInternal createDelegate() {
                 File archiveFile = fileCollection.getSingleFile();
                 String fileExtension = Files.getFileExtension(archiveFile.getName());

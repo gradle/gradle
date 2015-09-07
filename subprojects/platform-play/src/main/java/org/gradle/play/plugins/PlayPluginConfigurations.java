@@ -117,6 +117,11 @@ public class PlayPluginConfigurations {
         }
 
         @Override
+        public String getDisplayName() {
+            return configuration.toString();
+        }
+
+        @Override
         public FileCollectionInternal createDelegate() {
             ImmutableSet.Builder<File> files = ImmutableSet.builder();
             for (ResolvedArtifact artifact : configuration.getResolvedConfiguration().getResolvedArtifacts()) {

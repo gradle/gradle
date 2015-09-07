@@ -76,6 +76,11 @@ public class GroovyRuntime {
         // would differ in at least the following ways: 1. live 2. no autowiring
         return new LazilyInitializedFileCollection() {
             @Override
+            public String getDisplayName() {
+                return "Groovy runtime classpath";
+            }
+
+            @Override
             public FileCollectionInternal createDelegate() {
                 GroovyJarFile groovyJar = findGroovyJarFile(classpath);
                 if (groovyJar == null) {
