@@ -20,7 +20,19 @@ import org.gradle.api.Task;
 
 public interface TaskDependencyResolveContext {
     /**
-     * Adds a dependency to the result.
+     * Adds a dependency to the result. Supported types:
+     *
+     * <ul>
+     *
+     * <li>{@link org.gradle.api.Task}</li>
+     *
+     * <li>{@link org.gradle.api.tasks.TaskDependency}</li>
+     *
+     * <li>{@link org.gradle.api.internal.tasks.TaskDependencyInternal}</li>
+     *
+     * <li>{@link org.gradle.api.internal.tasks.TaskDependencyContainer}</li>
+     *
+     * <li>{@link org.gradle.api.Buildable}</li>
      */
     void add(Object dependency);
 
