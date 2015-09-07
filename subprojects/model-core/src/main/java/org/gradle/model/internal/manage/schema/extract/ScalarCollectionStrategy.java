@@ -19,6 +19,8 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.*;
@@ -38,8 +40,8 @@ import java.util.*;
 public class ScalarCollectionStrategy extends CollectionStrategy {
 
     public final static List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(
-        ModelType.of(List.class)//,
-        //ModelType.of(Set.class)
+        ModelType.of(List.class),
+        ModelType.of(Set.class)
     );
 
     public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
@@ -66,12 +68,21 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         return new Function<ModelCollectionSchema<T, E>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelCollectionSchema<T, E> schema) {
-                return new ProjectionOnlyNodeInitializer(
-                    ScalarCollectionModelProjection.get(
-                        ModelTypes.list(schema.getElementType()),
-                        new ListViewFactory<E>(schema.getElementType())
-                    )
-                );
+                if (schema.getType().getRawClass()==List.class) {
+                    return new ProjectionOnlyNodeInitializer(
+                        ScalarCollectionModelProjection.get(
+                            ModelTypes.list(schema.getElementType()),
+                            new ListViewFactory<E>(schema.getElementType())
+                        )
+                    );
+                } else {
+                    return new ProjectionOnlyNodeInitializer(
+                        ScalarCollectionModelProjection.get(
+                            ModelTypes.set(schema.getElementType()),
+                            new SetViewFactory<E>(schema.getElementType())
+                        )
+                    );
+                }
             }
         };
     }
@@ -107,7 +118,7 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         public ModelView<List<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
             ModelType<List<T>> listType = ModelTypes.list(elementType);
             DefaultModelViewState state = new DefaultModelViewState(listType, ruleDescriptor, writable, !writable);
-            NodeBackedList<T> list = new NodeBackedList<T>(modelNode, state, elementType);
+            ListBackedCollection<T> list = new ListBackedCollection<T>(modelNode, state, elementType);
             return InstanceModelView.of(modelNode.getPath(), listType, list, state.closer());
         }
 
@@ -131,35 +142,72 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         }
     }
 
-    private static class NodeBackedList<T> implements List<T>, ManagedInstance {
+    public static class SetViewFactory<T> implements ModelViewFactory<Set<T>> {
+        private final ModelType<T> elementType;
+
+        public SetViewFactory(ModelType<T> elementType) {
+            this.elementType = elementType;
+        }
+
+        @Override
+        public ModelView<Set<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
+            ModelType<Set<T>> setType = ModelTypes.set(elementType);
+            DefaultModelViewState state = new DefaultModelViewState(setType, ruleDescriptor, writable, !writable);
+            SetBackedCollection<T> set = new SetBackedCollection<T>(modelNode, state, elementType);
+            return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            ListViewFactory<?> that = (ListViewFactory<?>) o;
+            return elementType.equals(that.elementType);
+
+        }
+
+        @Override
+        public int hashCode() {
+            return elementType.hashCode();
+        }
+    }
+
+    private abstract static class NodeBackedCollection<T, C extends Collection<T>> implements Collection<T>, ManagedInstance {
         private final MutableModelNode modelNode;
         private final ModelViewState state;
         private final ModelType<T> elementType;
 
-        public NodeBackedList(MutableModelNode modelNode, ModelViewState state, ModelType<T> elementType) {
+        public NodeBackedCollection(MutableModelNode modelNode, ModelViewState state, ModelType<T> elementType) {
             this.modelNode = modelNode;
             this.state = state;
             this.elementType = elementType;
         }
 
-        private List<T> getDelegate(boolean write) {
+        protected C getDelegate(boolean write) {
             if (write) {
                 state.assertCanMutate();
             }
-            List<T> delegate = Cast.uncheckedCast(ScalarCollectionSchema.get(modelNode));
+            Collection<T> delegate = Cast.uncheckedCast(ScalarCollectionSchema.get(modelNode));
             return initialValue(write, delegate);
         }
 
-        private List<T> initialValue(boolean write, List<T> delegate) {
+        protected abstract C createPrivateData(boolean mutable);
+
+        private C initialValue(boolean write, Collection<T> delegate) {
             if (delegate == null) {
                 if (write) {
-                    delegate = new ArrayList<T>();
+                    delegate = createPrivateData(true);
                     ScalarCollectionSchema.set(modelNode, delegate);
                 } else {
-                    delegate = Collections.emptyList();
+                    delegate = createPrivateData(false);
                 }
             }
-            return delegate;
+            return Cast.uncheckedCast(delegate);
         }
 
         @Override
@@ -172,7 +220,7 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
             return ModelType.of(this.getClass());
         }
 
-        private void validateElementType(Object o) {
+        protected void validateElementType(Object o) {
             if (o != null) {
                 ModelType<?> obType = ModelType.of(o.getClass());
                 if (!obType.equals(elementType)) {
@@ -181,7 +229,7 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
             }
         }
 
-        private void validateCollection(Collection<? extends T> c) {
+        protected void validateCollection(Collection<? extends T> c) {
             for (T element : c) {
                 validateElementType(element);
             }
@@ -194,21 +242,9 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         }
 
         @Override
-        public void add(int index, T element) {
-            validateElementType(element);
-            getDelegate(true).add(index, element);
-        }
-
-        @Override
         public boolean addAll(Collection<? extends T> c) {
             validateCollection(c);
             return getDelegate(true).addAll(c);
-        }
-
-        @Override
-        public boolean addAll(int index, Collection<? extends T> c) {
-            validateCollection(c);
-            return getDelegate(true).addAll(index, c);
         }
 
         @Override
@@ -232,18 +268,8 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         }
 
         @Override
-        public T get(int index) {
-            return getDelegate(false).get(index);
-        }
-
-        @Override
         public int hashCode() {
             return getDelegate(false).hashCode();
-        }
-
-        @Override
-        public int indexOf(Object o) {
-            return getDelegate(false).indexOf(o);
         }
 
         @Override
@@ -254,26 +280,6 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         @Override
         public Iterator<T> iterator() {
             return new MutationSafeIterator(getDelegate(false).iterator());
-        }
-
-        @Override
-        public int lastIndexOf(Object o) {
-            return getDelegate(false).lastIndexOf(o);
-        }
-
-        @Override
-        public ListIterator<T> listIterator() {
-            return getDelegate(false).listIterator();
-        }
-
-        @Override
-        public ListIterator<T> listIterator(int index) {
-            return getDelegate(false).listIterator(index);
-        }
-
-        @Override
-        public T remove(int index) {
-            return getDelegate(true).remove(index);
         }
 
         @Override
@@ -292,19 +298,8 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         }
 
         @Override
-        public T set(int index, T element) {
-            validateElementType(element);
-            return getDelegate(true).set(index, element);
-        }
-
-        @Override
         public int size() {
             return getDelegate(false).size();
-        }
-
-        @Override
-        public List<T> subList(int fromIndex, int toIndex) {
-            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -338,6 +333,91 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
             public void remove() {
                 state.assertCanMutate();
                 delegate.remove();
+            }
+        }
+    }
+
+    private static class ListBackedCollection<T> extends NodeBackedCollection<T,List<T>> implements List<T> {
+
+        public ListBackedCollection(MutableModelNode modelNode, ModelViewState state, ModelType<T> elementType) {
+            super(modelNode, state, elementType);
+        }
+
+        @Override
+        protected List<T> createPrivateData(boolean mutable) {
+            if (mutable) {
+                return Lists.newArrayList();
+            }
+            return Collections.emptyList();
+        }
+
+        @Override
+        public void add(int index, T element) {
+            validateElementType(element);
+            getDelegate(true).add(index, element);
+        }
+
+
+        @Override
+        public boolean addAll(int index, Collection<? extends T> c) {
+            validateCollection(c);
+            return getDelegate(true).addAll(index, c);
+        }
+
+        @Override
+        public T get(int index) {
+            return getDelegate(false).get(index);
+        }
+
+        @Override
+        public int indexOf(Object o) {
+            return getDelegate(false).indexOf(o);
+        }
+
+        @Override
+        public int lastIndexOf(Object o) {
+            return getDelegate(false).lastIndexOf(o);
+        }
+
+        @Override
+        public ListIterator<T> listIterator() {
+            return getDelegate(false).listIterator();
+        }
+
+        @Override
+        public ListIterator<T> listIterator(int index) {
+            return getDelegate(false).listIterator(index);
+        }
+
+        @Override
+        public T remove(int index) {
+            return getDelegate(true).remove(index);
+        }
+
+        @Override
+        public List<T> subList(int fromIndex, int toIndex) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public T set(int index, T element) {
+            validateElementType(element);
+            return getDelegate(true).set(index, element);
+        }
+    }
+
+    private static class SetBackedCollection<T> extends NodeBackedCollection<T, Set<T>> implements Set<T> {
+
+        public SetBackedCollection(MutableModelNode modelNode, ModelViewState state, ModelType<T> elementType) {
+            super(modelNode, state, elementType);
+        }
+
+        @Override
+        protected Set<T> createPrivateData(boolean mutable) {
+            if (mutable) {
+                return Sets.newLinkedHashSet();
+            } else {
+                return Collections.emptySet();
             }
         }
     }
