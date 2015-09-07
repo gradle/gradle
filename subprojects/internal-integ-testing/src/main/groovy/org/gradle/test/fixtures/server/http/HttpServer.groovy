@@ -52,14 +52,14 @@ class HttpServer extends ServerWithExpectations {
     private SslSocketConnector sslConnector
     AuthScheme authenticationScheme = AuthScheme.BASIC
     boolean logRequests = true
-    final Set<String> authenticationOrder = Sets.newLinkedHashSet()
+    final Set<String> authenticationAttempts = Sets.newLinkedHashSet()
 
     protected Matcher expectedUserAgent = null
 
     List<ServerExpectation> expectations = []
 
     enum AuthScheme {
-        BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler()), PREEMPTIVE_BASIC(new PreemptiveBasicAuthHandler())
+        BASIC(new BasicAuthHandler()), DIGEST(new DigestAuthHandler()), HIDE_UNAUTHORIZED(new HideUnauthorizedBasicAuthHandler())
 
         final AuthSchemeHandler handler;
 
@@ -96,9 +96,9 @@ class HttpServer extends ServerWithExpectations {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 String authorization = request.getHeader(HttpHeaders.AUTHORIZATION)
                 if (authorization!=null) {
-                    authenticationOrder << authorization.split(" ")[0]
+                    authenticationAttempts << authorization.split(" ")[0]
                 } else {
-                    authenticationOrder << "None"
+                    authenticationAttempts << "None"
                 }
                 if (logRequests) {
                     println("handling http request: $request.method $target")
@@ -731,7 +731,7 @@ class HttpServer extends ServerWithExpectations {
         }
     }
 
-    public static class PreemptiveBasicAuthHandler extends AuthSchemeHandler {
+    public static class HideUnauthorizedBasicAuthHandler extends AuthSchemeHandler {
         @Override
         protected String constraintName() {
             return Constraint.__BASIC_AUTH
