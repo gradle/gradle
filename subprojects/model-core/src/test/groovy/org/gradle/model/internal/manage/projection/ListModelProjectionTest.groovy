@@ -15,16 +15,18 @@
  */
 
 package org.gradle.model.internal.manage.projection
-
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.type.ModelType
+import org.gradle.model.Managed
 
 class ListModelProjectionTest extends AbstractCollectionModelProjectionTest<String, List<String>> {
 
+    @Managed
+    static interface Internal {
+        List<String> getItems()
+    }
+
     @Override
-    void createModel() {
-        collectionType = new ModelType<List<String>>() {}
-        reference = ModelReference.of(collectionPath, new ModelType<List<String>>() {})
+    Class<?> holderType() {
+        Internal
     }
 
     def "can remove using index"() {

@@ -15,16 +15,18 @@
  */
 
 package org.gradle.model.internal.manage.projection
-
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.type.ModelType
+import org.gradle.model.Managed
 
 class SetModelProjectionTest extends AbstractCollectionModelProjectionTest<String, Set<String>> {
 
+    @Managed
+    static interface Internal {
+        Set<String> getItems()
+    }
+
     @Override
-    void createModel() {
-        collectionType = new ModelType<Set<String>>() {}
-        reference = ModelReference.of(collectionPath, new ModelType<Set<String>>() {})
+    Class<?> holderType() {
+        Internal
     }
 
     @Override

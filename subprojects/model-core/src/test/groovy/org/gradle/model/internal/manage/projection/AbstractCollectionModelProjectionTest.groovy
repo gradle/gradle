@@ -27,22 +27,31 @@ import spock.lang.Specification
 
 abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>> extends Specification {
 
-    def collectionPath = ModelPath.path("collection")
-    def collectionType
     def schemaStore = DefaultModelSchemaStore.instance
+    def collectionPath = ModelPath.path("collection")
     def registry = new ModelRegistryHelper()
-    def ModelReference<C> reference
+    def internalType
+    def internalTypeSchema
+    def collectionProperty
+    def collectionType
+    def collectionSchema
+    private ModelReference<C> reference
 
-    abstract void createModel()
+    abstract Class<?> holderType()
 
     C checkable(List<T> list) {
         list
     }
 
     def setup() {
-        createModel()
+        internalType = holderType()
+        internalTypeSchema = schemaStore.getSchema(internalType)
+        collectionProperty = internalTypeSchema.getProperty('items')
+        collectionType = collectionProperty.type
+        collectionSchema = schemaStore.getSchema(collectionType)
+        reference = ModelReference.of(collectionPath, collectionType)
         registry.create(
-            ModelCreators.of(collectionPath, schemaStore.getSchema(collectionType).nodeInitializer)
+            ModelCreators.of(collectionPath, collectionSchema.nodeInitializer)
                 .descriptor("define collection")
                 .build()
         )
