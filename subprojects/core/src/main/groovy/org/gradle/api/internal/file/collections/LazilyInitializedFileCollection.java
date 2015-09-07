@@ -17,13 +17,14 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 
 /**
  * A {@link DelegatingFileCollection} whose delegate is created lazily.
  */
-public abstract class LazilyInitializedFileCollection extends DelegatingFileCollection {
+public abstract class LazilyInitializedFileCollection extends DelegatingFileCollection implements TaskDependencyContainer {
     private FileCollectionInternal delegate;
 
     public abstract String getDisplayName();
@@ -38,7 +39,7 @@ public abstract class LazilyInitializedFileCollection extends DelegatingFileColl
         return new AbstractTaskDependency() {
             @Override
             public void resolve(TaskDependencyResolveContext context) {
-                context.add(getDelegate());
+                LazilyInitializedFileCollection.this.resolve(context);
             }
         };
     }

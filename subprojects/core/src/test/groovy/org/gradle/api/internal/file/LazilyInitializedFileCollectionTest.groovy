@@ -18,16 +18,25 @@ package org.gradle.api.internal.file
 import org.gradle.api.Task
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 @UsesNativeServices
 class LazilyInitializedFileCollectionTest extends Specification {
     def createCount = 0
+    def taskDependenciesCount = 0
+    def task = Stub(Task)
     def fileCollection = new LazilyInitializedFileCollection() {
         @Override
         String getDisplayName() {
             return "test collection"
+        }
+
+        @Override
+        void resolve(TaskDependencyResolveContext context) {
+            taskDependenciesCount++
+            context.add(task)
         }
 
         @Override
@@ -56,26 +65,32 @@ class LazilyInitializedFileCollectionTest extends Specification {
         files == [new File("foo")] as Set
     }
 
-    def "creates delegate when task dependencies are queried"() {
+    def "does not create delegate when task dependencies are queried"() {
         expect:
         createCount == 0
+        taskDependenciesCount == 0
 
         when:
         fileCollection.buildDependencies
 
         then:
         createCount == 0
+        taskDependenciesCount == 0
 
         when:
-        fileCollection.buildDependencies.getDependencies(Stub(Task))
+        def deps = fileCollection.buildDependencies.getDependencies(Stub(Task))
 
         then:
-        createCount == 1
+        deps as List == [task]
+        createCount == 0
+        taskDependenciesCount == 1
 
         when:
-        fileCollection.buildDependencies.getDependencies(Stub(Task))
+        deps = fileCollection.buildDependencies.getDependencies(Stub(Task))
 
         then:
-        createCount == 1
+        deps as List == [task]
+        createCount == 0
+        taskDependenciesCount == 2
     }
 }

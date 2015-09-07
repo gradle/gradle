@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
@@ -50,8 +50,9 @@ public class FileCollectionBackedArchiveTextResource extends FileCollectionBacke
                 return (FileCollectionInternal) archiveContents.matching(patternSet);
             }
 
-            public TaskDependency getBuildDependencies() {
-                return fileCollection.getBuildDependencies();
+            @Override
+            public void resolve(TaskDependencyResolveContext context) {
+                context.add(fileCollection);
             }
         }, charset);
     }

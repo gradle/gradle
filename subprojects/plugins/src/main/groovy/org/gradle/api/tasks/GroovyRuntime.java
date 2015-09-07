@@ -25,7 +25,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 
 import java.io.File;
@@ -108,11 +108,10 @@ public class GroovyRuntime {
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
             @Override
-            public TaskDependency getBuildDependencies() {
+            public void resolve(TaskDependencyResolveContext context) {
                 if (classpath instanceof Buildable) {
-                    return ((Buildable) classpath).getBuildDependencies();
+                    context.add(classpath);
                 }
-                return new DefaultTaskDependency();
             }
         };
     }
