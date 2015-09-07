@@ -77,7 +77,6 @@ class ScalaBasePlugin implements Plugin<Project> {
             sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.scala.contains(element.file) }
 
             configureScalaCompile(javaPlugin, sourceSet)
-            configureScalaConsole(sourceSet)
         }
     }
 
@@ -103,18 +102,6 @@ class ScalaBasePlugin implements Plugin<Project> {
                 }
             }
         }
-    }
-
-    private void configureScalaConsole(SourceSet sourceSet) {
-        def taskName = sourceSet.getTaskName("scala", "Console")
-        def scalaConsole = project.tasks.create(taskName, JavaExec)
-        scalaConsole.dependsOn(sourceSet.runtimeClasspath)
-        scalaConsole.description = "Starts a Scala REPL with the $sourceSet.name runtime class path."
-        scalaConsole.main = "scala.tools.nsc.MainGenericRunner"
-        scalaConsole.conventionMapping.classpath = { scalaRuntime.inferScalaClasspath(sourceSet.runtimeClasspath) }
-        scalaConsole.systemProperty("scala.usejavacp", true)
-        scalaConsole.standardInput = System.in
-        scalaConsole.conventionMapping.jvmArgs = { ["-classpath", sourceSet.runtimeClasspath.asPath] }
     }
 
     private void configureCompileDefaults() {
