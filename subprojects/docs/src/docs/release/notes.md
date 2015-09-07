@@ -111,6 +111,7 @@ We would like to thank the following community members for making contributions 
 * [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - Allow user to configure auxclasspath for PMD
 * [Alpha Hinex](https://github.com/AlphaHinex) - Allow encoding to be specified for Zip task
 * [Brian Johnson](https://github.com/john3300) - Fix AIX support for GRADLE-2799
+* [Alex Muthmann](https://github.com/deveth0) - Documentation fix
 * [Adam Roberts](https://github.com/AdamRoberts) - Specify minimum priority for PMD task
 * [John Wass](https://github.com/jw3) - Documentation fix
 
