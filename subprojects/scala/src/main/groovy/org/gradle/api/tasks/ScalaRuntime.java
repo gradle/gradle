@@ -20,11 +20,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.internal.Cast;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -105,11 +104,7 @@ public class ScalaRuntime {
                 if (classpath instanceof Buildable) {
                     return ((Buildable) classpath).getBuildDependencies();
                 }
-                return new TaskDependency() {
-                    public Set<? extends Task> getDependencies(Task task) {
-                        return Collections.emptySet();
-                    }
-                };
+                return new DefaultTaskDependency();
             }
         };
     }

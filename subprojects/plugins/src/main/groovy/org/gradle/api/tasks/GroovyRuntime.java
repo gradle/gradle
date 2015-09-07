@@ -16,18 +16,20 @@
 package org.gradle.api.tasks;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.*;
+import org.gradle.api.Buildable;
+import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.internal.Cast;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Provides information related to the Groovy runtime(s) used in a project. Added by the
@@ -105,11 +107,7 @@ public class GroovyRuntime {
                 if (classpath instanceof Buildable) {
                     return ((Buildable) classpath).getBuildDependencies();
                 }
-                return new TaskDependency() {
-                    public Set<? extends Task> getDependencies(Task task) {
-                        return Collections.emptySet();
-                    }
-                };
+                return new DefaultTaskDependency();
             }
         };
     }
