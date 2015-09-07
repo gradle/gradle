@@ -82,6 +82,41 @@ class ManagedProxyClassGeneratorTest extends Specification {
         1 * state.get("value") >> { 1 }
     }
 
+    @Unroll
+    def "only generates the requested boolean getter methods"() {
+        given:
+        def impl = newInstance(type)
+
+        when:
+        def methods = impl.class.declaredMethods
+        def getGetter = methods.find { it.name == 'getFlag' }
+        def isGetter = methods.find { it.name == 'isFlag' }
+
+        then:
+        (getGetter != null) == expectGetGetter
+        (isGetter != null) == expectIsGetter
+
+        where:
+        type           | expectGetGetter | expectIsGetter
+        BooleanGetter1 | true            | false
+        BooleanGetter2 | false           | true
+        BooleanGetter3 | true            | true
+    }
+
+    static interface BooleanGetter1 {
+        boolean getFlag()
+    }
+
+    static interface BooleanGetter2 {
+        boolean isFlag()
+    }
+
+    static interface BooleanGetter3 {
+        boolean getFlag()
+
+        boolean isFlag()
+    }
+
     def "equals() returns false for non-compatible types"() {
         def impl = newInstance(SomeType)
         expect:
@@ -365,13 +400,18 @@ class ManagedProxyClassGeneratorTest extends Specification {
     }
 
     private static def property(Class<?> parentType, String name, StateManagementType stateManagementType) {
-        def getter = parentType.getMethod("get" + name.capitalize());
+        def getter
+        try {
+            getter = parentType.getMethod("get${name.capitalize()}");
+        } catch (NoSuchMethodException ex) {
+            getter = parentType.getMethod("is${name.capitalize()}");
+        }
         def type = ModelType.returnType(getter)
         def getterRef = new WeaklyTypeReferencingMethod(ModelType.of(parentType), type, getter)
         def getterContext = new PropertyAccessorExtractionContext([getter])
         def setterContext;
         try {
-            def setter = parentType.getMethod("set" + name.capitalize(), type.getRawClass())
+            def setter = parentType.getMethod("set${name.capitalize()}", type.getRawClass())
             setterContext = new PropertyAccessorExtractionContext([setter])
         } catch (ignore) {
             setterContext = null
@@ -436,24 +476,19 @@ class ManagedProxyClassGeneratorTest extends Specification {
         void setManagedValue(String managedValue)
     }
 
-    static Map<Class<?>, Collection<ModelPropertyExtractionResult<?>>> managedProperties = ImmutableMap.builder()
-        .put(SomeType, [
-        property(SomeType, "value", MANAGED)
-    ])
-        .put(SomeTypeWithReadOnly, [
-        property(SomeTypeWithReadOnly, "value", MANAGED),
-        property(SomeTypeWithReadOnly, "readOnly", UNMANAGED)
-    ])
-        .put(PublicUnmanagedType, [
-        property(PublicUnmanagedType, "unmanagedValue", UNMANAGED)
-    ])
-        .put(ManagedSubType, [
-        property(ManagedSubType, "unmanagedValue", DELEGATED),
-        property(ManagedSubType, "managedValue", MANAGED)
-    ])
-        .put(SomeTypeWithParameters, [
-        property(SomeTypeWithParameters, "values", MANAGED),
-        property(SomeTypeWithParameters, "optional", MANAGED)
-    ])
-        .build()
+    static Map<Class<?>, Collection<ModelPropertyExtractionResult<?>>> managedProperties =
+        ImmutableMap.copyOf([
+            (SomeType)              : [property(SomeType, "value", MANAGED)],
+            (SomeTypeWithReadOnly)  : [property(SomeTypeWithReadOnly, "value", MANAGED),
+                                       property(SomeTypeWithReadOnly, "readOnly", UNMANAGED)],
+            (PublicUnmanagedType)   : [property(PublicUnmanagedType, "unmanagedValue", UNMANAGED)],
+
+            (ManagedSubType)        : [property(ManagedSubType, "unmanagedValue", DELEGATED),
+                                       property(ManagedSubType, "managedValue", MANAGED)],
+            (SomeTypeWithParameters): [property(SomeTypeWithParameters, "values", MANAGED),
+                                       property(SomeTypeWithParameters, "optional", MANAGED)],
+            (BooleanGetter1)        : [property(BooleanGetter1, "flag", MANAGED)],
+            (BooleanGetter2)        : [property(BooleanGetter1, "flag", MANAGED)],
+            (BooleanGetter3)        : [property(BooleanGetter1, "flag", MANAGED)],
+        ])
 }

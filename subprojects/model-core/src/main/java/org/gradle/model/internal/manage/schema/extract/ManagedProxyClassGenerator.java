@@ -335,7 +335,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             switch (property.getStateManagementType()) {
                 case MANAGED:
                     Class<?> propertyTypeClass = property.getType().getConcreteClass();
-                    writeGetter(visitor, generatedType, propertyName, propertyTypeClass, propertyResult.getGetter().getMostSpecificSignature());
+                    writeGetter(visitor, managedTypeClass, generatedType, propertyName, propertyTypeClass, propertyResult.getGetter().getMostSpecificSignature());
                     if (propertyResult.getSetter() != null) {
                         writeSetter(visitor, generatedType, propertyName, propertyTypeClass, propertyResult.getSetter().getMostSpecificSignature());
                     }
@@ -523,20 +523,29 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitFieldInsn(GETSTATIC, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
     }
 
-    private void writeGetter(ClassVisitor visitor, Type generatedType, String propertyName, Class<?> propertyTypeClass, String signature) {
+    private void writeGetter(ClassVisitor visitor, Class<?> managedTypeClass, Type generatedType, String propertyName, Class<?> propertyTypeClass, String signature) {
         List<String> getters = new ArrayList<String>(2);
         getters.add(getGetterName(propertyName));
         if (propertyTypeClass == boolean.class) {
             getters.add(getIsGetterName(propertyName));
         }
         for (String getter : getters) {
-            MethodVisitor methodVisitor = declareMethod(visitor, getter, Type.getMethodDescriptor(Type.getType(propertyTypeClass)), signature);
+            Method declaredMethod;
+            try {
+                declaredMethod = managedTypeClass.getMethod(getter);
+            } catch (NoSuchMethodException e) {
+                // make sure that we don't generate is/get method if the managed type doesn't declare it
+                continue;
+            }
+            if (declaredMethod.getReturnType().isAssignableFrom(propertyTypeClass)) {
+                MethodVisitor methodVisitor = declareMethod(visitor, getter, Type.getMethodDescriptor(Type.getType(propertyTypeClass)), signature);
 
-            putStateFieldValueOnStack(methodVisitor, generatedType);
-            putConstantOnStack(methodVisitor, propertyName);
-            invokeStateGetMethod(methodVisitor);
-            castFirstStackElement(methodVisitor, propertyTypeClass);
-            finishVisitingMethod(methodVisitor, returnCode(propertyTypeClass));
+                putStateFieldValueOnStack(methodVisitor, generatedType);
+                putConstantOnStack(methodVisitor, propertyName);
+                invokeStateGetMethod(methodVisitor);
+                castFirstStackElement(methodVisitor, propertyTypeClass);
+                finishVisitingMethod(methodVisitor, returnCode(propertyTypeClass));
+            }
         }
 
     }
