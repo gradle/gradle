@@ -18,15 +18,19 @@ package org.gradle.plugin.use.resolve.service.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.plugins.DefaultPluginRegistry;
+import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
-import org.gradle.internal.Factories;
+import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
-import org.gradle.plugin.use.resolve.internal.InjectedClassPathPluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
+import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.util.CollectionUtils;
 
@@ -37,29 +41,68 @@ import java.util.List;
 public class InjectedClassPathPluginResolver implements PluginResolver {
     private final ClassLoaderScope parentScope;
     private final PluginInspector pluginInspector;
-    private final List<URI> classpath;
+    private final ClassPath classPath;
+    private final PluginRegistry pluginRegistry;
 
-    public InjectedClassPathPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, List<URI> classpath) {
+    public InjectedClassPathPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, List<URI> injectedClasspath) {
         this.parentScope = parentScope;
         this.pluginInspector = pluginInspector;
-        this.classpath = classpath;
+        classPath = new DefaultClassPath(transformClasspathFiles(injectedClasspath));
+        pluginRegistry = createPluginRegistry();
+    }
+
+    private ClassLoaderScope createClassLoaderScope() {
+        ClassLoaderScope loaderScope = parentScope.createChild("injected-plugin");
+        loaderScope.local(classPath);
+        loaderScope.lock();
+        return loaderScope;
+    }
+
+    private List<File> transformClasspathFiles(List<URI> classpath) {
+        return CollectionUtils.collect(classpath, new Transformer<File, URI>() {
+            public File transform(URI uri) {
+                return new File(uri);
+            }
+        });
+    }
+
+    private PluginRegistry createPluginRegistry() {
+        ClassLoaderScope loaderScope = createClassLoaderScope();
+        return new DefaultPluginRegistry(pluginInspector, loaderScope);
     }
 
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
-        if(!classpath.isEmpty()) {
-            List<File> classpathFiles = CollectionUtils.collect(classpath, new Transformer<File, URI>() {
-                public File transform(URI uri) {
-                    return new File(uri);
-                }
-            });
+        PluginImplementation<?> plugin = pluginRegistry.lookup(pluginRequest.getId());
 
-            ClassPath classPath = new DefaultClassPath(classpathFiles);
-            PluginResolution resolution = new InjectedClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector);
+        if (plugin != null) {
+            PluginResolution resolution = new InjectedClassPathPluginResolution(plugin);
             result.found(getDescription(), resolution);
+        } else {
+            throw new UnknownPluginException("Plugin with id '" + pluginRequest.getId() + "' not found. Searched classpath: " + classPath.getAsFiles());
         }
     }
 
     public String getDescription() {
         return "Injected classpath";
+    }
+
+    public boolean isClasspathEmpty() {
+        return classPath.isEmpty();
+    }
+
+    private class InjectedClassPathPluginResolution implements PluginResolution {
+        private final PluginImplementation<?> plugin;
+
+        public InjectedClassPathPluginResolution(PluginImplementation<?> plugin) {
+            this.plugin = plugin;
+        }
+
+        public PluginId getPluginId() {
+            return plugin.getPluginId();
+        }
+
+        public void execute(PluginResolveContext pluginResolveContext) {
+            pluginResolveContext.add(plugin);
+        }
     }
 }

@@ -58,7 +58,10 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
         resolvers.add(pluginResolutionServiceResolver);
-        resolvers.add(injectedClassPathPluginResolver);
+
+        if(!injectedClassPathPluginResolver.isClasspathEmpty()) {
+            resolvers.add(injectedClassPathPluginResolver);
+        }
     }
 
 }
