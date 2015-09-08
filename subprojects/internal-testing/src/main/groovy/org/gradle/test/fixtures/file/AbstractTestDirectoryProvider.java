@@ -51,10 +51,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         Class<?> testClass = description.getTestClass();
         init(description.getMethodName(), testClass.getSimpleName());
 
-        boolean cleansUpWithInterceptor =
-                testClass.getAnnotation(CleanupTestDirectory.class) != null
-                    || description.getAnnotation(CleanupTestDirectory.class) != null;
-        TestDirectoryCleaner testDirectoryCleaner = cleansUpWithInterceptor ? null : new TestDirectoryCleaner(getTestDirectory(), testClass, description);
+        TestDirectoryCleaner testDirectoryCleaner = new TestDirectoryCleaner(getTestDirectory(), testClass, description, true);
 
         return new TestDirectoryCleaningStatement(base, testDirectoryCleaner);
     }
@@ -72,9 +69,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         @Override
         public void evaluate() throws Throwable {
             base.evaluate();
-            if (testDirectoryCleaner != null) {
-                testDirectoryCleaner.cleanup();
-            }
+            testDirectoryCleaner.cleanup();
         }
     }
 

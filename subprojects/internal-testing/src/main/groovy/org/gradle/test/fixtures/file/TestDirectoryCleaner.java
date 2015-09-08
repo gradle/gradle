@@ -23,19 +23,34 @@ public class TestDirectoryCleaner {
     private final TestFile testDirectory;
     private final boolean leaksHandles;
     private final String displayName;
+    private final boolean skipCleanup;
 
     public TestDirectoryCleaner(TestFile testDirectory, Class<?> testClass, Description description) {
+        this(testDirectory, testClass, description, false);
+    }
+
+    public TestDirectoryCleaner(TestFile testDirectory, Class<?> testClass, Description description, boolean skipIfCleanupAnnotated) {
         this.testDirectory = testDirectory;
         this.leaksHandles =
             testClass.getAnnotation(LeaksFileHandles.class) != null
                 || description.getAnnotation(LeaksFileHandles.class) != null
-        // For now, assume that all tests run with the daemon executer leak file handles
-        // This seems to be true for any test that uses `GradleExecuter.requireOwnGradleUserHomeDir`
+                // For now, assume that all tests run with the daemon executer leak file handles
+                // This seems to be true for any test that uses `GradleExecuter.requireOwnGradleUserHomeDir`
                 || "daemon".equals(System.getProperty("org.gradle.integtest.executer"));
         this.displayName = description.getDisplayName();
+
+        boolean cleansUpWithInterceptor =
+            testClass.getAnnotation(CleanupTestDirectory.class) != null
+                || description.getAnnotation(CleanupTestDirectory.class) != null;
+
+        this.skipCleanup = cleansUpWithInterceptor && skipIfCleanupAnnotated;
     }
 
     public void cleanup() throws Throwable {
+        if (skipCleanup) {
+            return;
+        }
+
         try {
             if (testDirectory.exists()) {
                 FileUtils.forceDelete(testDirectory);
