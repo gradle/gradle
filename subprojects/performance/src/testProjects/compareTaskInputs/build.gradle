@@ -40,6 +40,7 @@ def inputFileSize = project.hasProperty("inputFileSize") ? project.inputFileSize
 
 def performanceTestInputFiles = inputFileSize ? fileTree(dir: "src/${inputCount}_${inputFileSize}_files") : fileTree(dir: "src/${inputCount}files")
 assert !performanceTestInputFiles.isEmpty()
+println "Using input directory ${performanceTestInputFiles.dir}"
 
 for(int i=1;i <= taskCount;i++) {
     def taskIncremental=project.tasks.create(name: "incrementalTask$i", type: IncrementalTaskInputTask) {
