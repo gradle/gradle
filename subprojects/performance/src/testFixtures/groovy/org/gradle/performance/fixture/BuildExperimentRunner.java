@@ -46,7 +46,7 @@ public class BuildExperimentRunner {
         final List<String> additionalArgs = dataCollector.getAdditionalArgs(workingDirectory);
 
         GradleInvocationSpec buildSpec = experiment.getInvocation().withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
-        GradleSession session = executerProvider.session(buildSpec, experiment.getDisplayInfo());
+        GradleSession session = executerProvider.session(buildSpec);
 
         session.prepare();
         try {

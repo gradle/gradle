@@ -33,10 +33,10 @@ class ToolingApiBackedGradleSession implements GradleSession {
     private ProjectConnection projectConnection
     private BuildLauncher buildLauncher
 
-    ToolingApiBackedGradleSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider, BuildDisplayInfo displayInfo) {
+    ToolingApiBackedGradleSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider
         this.invocation = invocation
-        this.executerBackedSession = new GradleExecuterBackedSession(invocation, testDirectoryProvider, displayInfo)
+        this.executerBackedSession = new GradleExecuterBackedSession(invocation, testDirectoryProvider)
     }
 
     @Override

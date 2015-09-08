@@ -16,7 +16,7 @@
 
 package org.gradle.performance.fixture
 
-import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -24,25 +24,35 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
-
 @Requires(TestPrecondition.NOT_WINDOWS)
 class YourkitSupportTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def "Yourkit options should be passed to executer"() {
+    def "Yourkit options should be added to agentpath argument"() {
         given:
         def yjpDir = tmpDir.createDir("yjp")
         def yjpAgentFile = yjpDir.createFile("bin/linux-x86-64/libyjpagent.so")
         def yourkit = new YourkitSupport("", yjpDir.toString(), OperatingSystem.LINUX)
-        def executer = Mock(GradleExecuter)
         def options = [tracing: true]
         when:
-        yourkit.enableYourkit(executer, options)
+        def actualArgs = yourkit.profilerArguments(options)
         then:
-        1 * executer.withBuildJvmOpts({ it == "-agentpath:${yjpAgentFile}=tracing".toString() })
+        actualArgs == [ "-agentpath:${yjpAgentFile}=tracing".toString() ]
+    }
 
-
+    def "YourKit options should be added to jvm opts"() {
+        given:
+        def yjpDir = tmpDir.createDir("yjp")
+        def yjpAgentFile = yjpDir.createFile("bin/linux-x86-64/libyjpagent.so")
+        def yourkit = new YourkitSupport("", yjpDir.toString(), OperatingSystem.LINUX)
+        def options = [tracing: true]
+        def invocation = GradleInvocationSpec.builder().
+                        distribution(Mock(GradleDistribution)).
+                        workingDirectory(tmpDir.getTestDirectory()).
+                        useProfiler(yourkit).profilerOpts(options).build()
+        expect:
+        invocation.jvmOpts == [ "-agentpath:${yjpAgentFile}=tracing".toString() ]
     }
 
     def "when yourkit properties file doesn't exist, it should use defaults"() {

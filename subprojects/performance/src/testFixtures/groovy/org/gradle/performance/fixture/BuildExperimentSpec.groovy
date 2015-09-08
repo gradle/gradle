@@ -84,7 +84,7 @@ class BuildExperimentSpec {
             assert warmUpCount >= 0
             assert invocationCount > 0
 
-            new BuildExperimentSpec(displayName, projectName, invocation.build(), warmUpCount, invocationCount)
+            new BuildExperimentSpec(displayName, projectName, invocation.buildInfo(displayName, projectName).build(), warmUpCount, invocationCount)
         }
     }
 }

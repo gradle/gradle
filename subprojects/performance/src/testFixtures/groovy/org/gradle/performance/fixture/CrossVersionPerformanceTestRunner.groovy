@@ -111,7 +111,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             gradleOpts(this.gradleOpts as String[])
             useDaemon(this.useDaemon)
         }
-        YourkitSupport.handleBuildInvocation(builder.invocation)
+
         def spec = builder.build()
 
         experimentRunner.run(spec, results)

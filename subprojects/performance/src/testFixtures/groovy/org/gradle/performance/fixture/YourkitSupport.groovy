@@ -15,12 +15,9 @@
  */
 
 package org.gradle.performance.fixture
-
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.os.OperatingSystem
-
 /**
  *
  * Helper class for adding Yourkit Java Profiler (YJP) agent start up arguments for builds launched in performance tests.
@@ -96,7 +93,7 @@ import org.gradle.internal.os.OperatingSystem
  * </pre>
  */
 @CompileStatic
-class YourkitSupport {
+class YourkitSupport implements Profiler {
     static final String USE_YOURKIT = "org.gradle.performance.use_yourkit"
     private static final Set<String> NO_ARGS_OPTIONS =
         ['onlylocal', 'united_log', 'sampling', 'tracing', 'call_counting', 'allocsampled', 'monitors', 'disablestacktelemetry', 'disableexceptiontelemetry', 'disableoomedumper', 'disablealloc', 'disabletracing', 'disableall'] as Set
@@ -113,10 +110,6 @@ class YourkitSupport {
         this.yjpAgentPath = yjpAgentPath
         this.yjpHome = yjpHome
         this.operatingSystem = operatingSystem
-    }
-
-    public static Map<String, Object> loadProperties() {
-        loadProperties(DEFAULT_YOURKIT_PROPERTIES_FILE)
     }
 
     @CompileDynamic
@@ -137,17 +130,22 @@ class YourkitSupport {
         yourkitOptions
     }
 
-    static void handleBuildInvocation(GradleInvocationSpec.Builder invocation) {
+    @Override
+    void addProfilerDefaults(GradleInvocationSpec.Builder invocation) {
         if (System.getProperty(USE_YOURKIT)) {
-            invocation.useYourkit().yourkitOpts(YourkitSupport.loadProperties())
+            invocation.useProfiler().profilerOpts(loadProperties())
         }
     }
 
-    void enableYourkit(GradleExecuter executer, Map<String, Object> yourkitOptions) {
+    @Override
+    List<String> profilerArguments(Map<String, Object> yourkitOptions) {
         String resolvedYjpAgentPath = locateYjpAgent()
         String yjpAgentOptions = buildYjpAgentOptionsString(yourkitOptions)
-        String jvmOption = "-agentpath:$resolvedYjpAgentPath=$yjpAgentOptions".toString()
-        executer.withBuildJvmOpts(jvmOption)
+        return [ "-agentpath:$resolvedYjpAgentPath=$yjpAgentOptions".toString() ]
+    }
+
+    public Map<String, Object> loadProperties() {
+        loadProperties(DEFAULT_YOURKIT_PROPERTIES_FILE)
     }
 
     private String buildYjpAgentOptionsString(Map<String, Object> yourkitOptions) {

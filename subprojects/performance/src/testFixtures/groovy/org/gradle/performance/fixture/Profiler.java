@@ -16,23 +16,11 @@
 
 package org.gradle.performance.fixture;
 
-import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import java.util.List;
+import java.util.Map;
 
-public class GradleSessionProvider {
+public interface Profiler {
+    void addProfilerDefaults(GradleInvocationSpec.Builder invocation);
 
-    private final TestDirectoryProvider testDirectoryProvider;
-
-    public GradleSessionProvider(TestDirectoryProvider testDirectoryProvider) {
-        this.testDirectoryProvider = testDirectoryProvider;
-    }
-
-    public GradleSession session(GradleInvocationSpec buildSpec) {
-        if (buildSpec.isUseToolingApi()) {
-            return new ToolingApiBackedGradleSession(buildSpec, testDirectoryProvider);
-        } else {
-            return new GradleExecuterBackedSession(buildSpec, testDirectoryProvider);
-        }
-
-    }
-
+    List<String> profilerArguments(Map<String, Object> yourkitOptions);
 }
