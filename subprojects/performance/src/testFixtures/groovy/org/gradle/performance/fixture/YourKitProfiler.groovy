@@ -44,7 +44,8 @@ import org.gradle.internal.os.OperatingSystem
  *
  * <p>
  * Performance tests extending {@link org.gradle.performance.AbstractCrossBuildPerformanceTest} or {@link org.gradle.performance.AbstractCrossVersionPerformanceTest} will add
- * YJP agent parameters to the Gradle build process when you add {@code -Porg.gradle.performance.use_yourkit } parameter to the command line.
+ * YJP agent parameters to the Gradle build process when you add {@code -Porg.gradle.performance.use_yourkit } parameter to the command line.  You can also enable the YourKit
+ * profiler by adding -Dorg.gradle.performance.use_yourkit=1 to the VM options from IntelliJ.
  *
  * <p>
  * Example of running a single performance test with YJP agent options:
@@ -91,9 +92,19 @@ import org.gradle.internal.os.OperatingSystem
  * probe_disable=*
  * delay=0
  * </pre>
+ * <p>
+ *
+ * Defaults are currently:
+ * <pre>
+ * sampling=true
+ * disablealloc=true
+ * monitors=true
+ * probe_disable=*
+ * delay=0
+ * </pre>
  */
 @CompileStatic
-class YourkitSupport implements Profiler {
+class YourKitProfiler implements Profiler {
     static final String USE_YOURKIT = "org.gradle.performance.use_yourkit"
     private static final Set<String> NO_ARGS_OPTIONS =
         ['onlylocal', 'united_log', 'sampling', 'tracing', 'call_counting', 'allocsampled', 'monitors', 'disablestacktelemetry', 'disableexceptiontelemetry', 'disableoomedumper', 'disablealloc', 'disabletracing', 'disableall'] as Set
@@ -102,11 +113,11 @@ class YourkitSupport implements Profiler {
     private String yjpHome
     private OperatingSystem operatingSystem
 
-    public YourkitSupport() {
+    public YourKitProfiler() {
         this(System.getenv("YJP_AGENT_PATH"), System.getenv("YJP_HOME"), OperatingSystem.current())
     }
 
-    public YourkitSupport(String yjpAgentPath, String yjpHome, OperatingSystem operatingSystem) {
+    public YourKitProfiler(String yjpAgentPath, String yjpHome, OperatingSystem operatingSystem) {
         this.yjpAgentPath = yjpAgentPath
         this.yjpHome = yjpHome
         this.operatingSystem = operatingSystem

@@ -25,7 +25,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @Requires(TestPrecondition.NOT_WINDOWS)
-class YourkitSupportTest extends Specification {
+class YourKitProfilerTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
@@ -33,7 +33,7 @@ class YourkitSupportTest extends Specification {
         given:
         def yjpDir = tmpDir.createDir("yjp")
         def yjpAgentFile = yjpDir.createFile("bin/linux-x86-64/libyjpagent.so")
-        def yourkit = new YourkitSupport("", yjpDir.toString(), OperatingSystem.LINUX)
+        def yourkit = new YourKitProfiler("", yjpDir.toString(), OperatingSystem.LINUX)
         def options = [tracing: true]
         when:
         def actualArgs = yourkit.profilerArguments(options)
@@ -45,7 +45,7 @@ class YourkitSupportTest extends Specification {
         given:
         def yjpDir = tmpDir.createDir("yjp")
         def yjpAgentFile = yjpDir.createFile("bin/linux-x86-64/libyjpagent.so")
-        def yourkit = new YourkitSupport("", yjpDir.toString(), OperatingSystem.LINUX)
+        def yourkit = new YourKitProfiler("", yjpDir.toString(), OperatingSystem.LINUX)
         def options = [tracing: true]
         def invocation = GradleInvocationSpec.builder().
                         distribution(Mock(GradleDistribution)).
@@ -59,7 +59,7 @@ class YourkitSupportTest extends Specification {
         given:
         File yourkitPropertiesFile = tmpDir.file("doesnt_exist.properties")
         when:
-        def yourkitOptions = YourkitSupport.loadProperties(yourkitPropertiesFile)
+        def yourkitOptions = YourKitProfiler.loadProperties(yourkitPropertiesFile)
         then:
         yourkitOptions.size() > 0
     }
@@ -69,7 +69,7 @@ class YourkitSupportTest extends Specification {
         File yourkitPropertiesFile = tmpDir.file("yourkit.properties")
         yourkitPropertiesFile.text = "sampling=true\ndelay=0"
         when:
-        def yourkitOptions = YourkitSupport.loadProperties(yourkitPropertiesFile)
+        def yourkitOptions = YourKitProfiler.loadProperties(yourkitPropertiesFile)
         then:
         yourkitOptions == [sampling: 'true', delay: '0']
     }

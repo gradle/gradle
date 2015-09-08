@@ -57,7 +57,7 @@ class GradleInvocationSpec {
     }
 
     static class Builder {
-        Profiler profiler = new YourkitSupport()
+        Profiler profiler = new YourKitProfiler()
         GradleDistribution gradleDistribution
         File workingDirectory
         List<String> tasksToRun = []
@@ -137,7 +137,7 @@ class GradleInvocationSpec {
             this
         }
 
-        Builder useProfiler(YourkitSupport profiler) {
+        Builder useProfiler(Profiler profiler) {
             useProfiler()
             this.profiler = profiler
             this
@@ -149,7 +149,7 @@ class GradleInvocationSpec {
         }
 
         Builder buildInfo(String displayName, String projectName) {
-            this.profilerOpts.put("sessionname", "$projectName $displayName".toString())
+            this.profilerOpts.put("sessionname", "$projectName $displayName".replace(' ', "_").toString())
             this
         }
 
