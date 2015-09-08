@@ -77,11 +77,18 @@ public class TcpOutgoingConnector implements OutgoingConnector {
     private SocketChannel tryConnect(InetEndpoint address, InetAddress candidate) throws IOException {
         for (int i=0; i< MAXIMUM_RETRIES; i++) {
             SocketChannel socketChannel = SocketChannel.open();
-            socketChannel.socket().connect(new InetSocketAddress(candidate, address.getPort()), CONNECT_TIMEOUT);
+
+            try {
+                socketChannel.socket().connect(new InetSocketAddress(candidate, address.getPort()), CONNECT_TIMEOUT);
+            } catch (IOException e) {
+                socketChannel.close();
+                throw e;
+            }
+
             if (!detectSelfConnect(socketChannel)) {
                 return socketChannel;
             }
-            LOGGER.info("Retrying connection... {}/{}", i, MAXIMUM_RETRIES);
+            LOGGER.debug("Retrying connection... {}/{}", i, MAXIMUM_RETRIES);
             socketChannel.close();
         }
         throw new SocketException("Exceeded retries after detecting TCP self-connect.");
@@ -92,7 +99,7 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         SocketAddress localAddress = socket.getLocalSocketAddress();
         SocketAddress remoteAddress = socket.getRemoteSocketAddress();
         if (localAddress.equals(remoteAddress)) {
-            LOGGER.info("Detected that socket was bound to {} while connecting to {}. This looks like the socket connected to itself.",
+            LOGGER.debug("Detected that socket was bound to {} while connecting to {}. This looks like the socket connected to itself.",
                 localAddress, remoteAddress);
             return true;
         }
