@@ -105,7 +105,7 @@ import org.gradle.internal.os.OperatingSystem
  */
 @CompileStatic
 class YourKitProfiler implements Profiler {
-    static final String USE_YOURKIT = "org.gradle.performance.use_yourkit"
+    private static final String USE_YOURKIT = "org.gradle.performance.use_yourkit"
     private static final Set<String> NO_ARGS_OPTIONS =
         ['onlylocal', 'united_log', 'sampling', 'tracing', 'call_counting', 'allocsampled', 'monitors', 'disablestacktelemetry', 'disableexceptiontelemetry', 'disableoomedumper', 'disablealloc', 'disabletracing', 'disableall'] as Set
     private static final File DEFAULT_YOURKIT_PROPERTIES_FILE = new File(System.getProperty("user.home"), ".gradle/yourkit.properties")
