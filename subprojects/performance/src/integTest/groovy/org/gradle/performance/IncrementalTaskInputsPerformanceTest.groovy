@@ -26,6 +26,7 @@ class IncrementalTaskInputsPerformanceTest extends AbstractCrossBuildPerformance
 
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+        builder.invocation.gradleOpts("-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/tmp")
         builder.invocationCount(1).warmUpCount(1)
     }
 
@@ -42,6 +43,34 @@ class IncrementalTaskInputsPerformanceTest extends AbstractCrossBuildPerformance
         runner.baseline {
             projectName("compareTaskInputs").displayName("ordinary inputs $inputCount").invocation {
                 tasksToRun("buildOrdinary").args("-PinputCount=$inputCount").useDaemon()
+            }
+        }
+
+        then:
+        runner.run()
+
+        where:
+        inputCount << [1, 10, 100, 1000, 10000]
+    }
+
+    @Unroll
+    def "compare 'no change' to 'one change' with #inputCount inputs"() {
+        given:
+        def taskCount=100
+
+        when:
+        runner.testGroup = "incremental task inputs"
+        runner.testId = "compare 'no change' to 'one change'"
+        runner.buildSpec {
+            invocationCount(5).warmUpCount(2)
+            projectName("compareTaskInputs").displayName("no change with $inputCount inputs").invocation {
+                tasksToRun("buildIncremental").args("-PinputCount=$inputCount", "-PtaskCount=$taskCount").useDaemon()
+            }
+        }
+        runner.baseline {
+            invocationCount(5).warmUpCount(2)
+            projectName("compareTaskInputs").displayName("one change with $inputCount inputs").invocation {
+                tasksToRun("buildIncremental").args("-PinputCount=$inputCount", "-PtaskCount=$taskCount", "-PchangeOneInput=true").useDaemon()
             }
         }
 

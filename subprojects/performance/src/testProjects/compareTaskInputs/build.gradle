@@ -50,3 +50,10 @@ for(int i=1;i <= taskCount;i++) {
     }
     buildOrdinary.dependsOn taskOrdinary
 }
+
+if(project.hasProperty("changeOneInput")) {
+    // modify last file in input directory
+    File lastInputFile = file("src/${inputCount}files/file${inputCount}")
+    assert lastInputFile.isFile()
+    lastInputFile.text = "file changed ${System.currentTimeMillis()}"
+}
