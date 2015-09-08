@@ -17,32 +17,33 @@
 package org.gradle.util.ports
 
 class FixedAvailablePortAllocator extends AbstractAvailablePortAllocator {
-    static final String MAX_FORKS_SYSTEM_PROPERTY = "org.gradle.test.maxParallelForks"
-    static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker";
-    static final String AGENT_NUM_SYS_PROPERTY = "org.gradle.ci.agentNum";
-    static final String TOTAL_AGENTS_SYS_PROPERTY = "org.gradle.ci.agentCount";
+    static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker"
+    static final String AGENT_NUM_SYS_PROPERTY = "org.gradle.ci.agentNum"
+    static final String TOTAL_AGENTS_SYS_PROPERTY = "org.gradle.ci.agentCount"
+    static final int DEFAULT_RANGE_SIZE = 20
     private static FixedAvailablePortAllocator instance
     final int workerId
     final int agentNum
-    final int maxForks
     final int totalAgents
+    final int bucketsPerAgent
+    final int rangeCount
+    final int rangeSize
 
-    FixedAvailablePortAllocator(int maxForks, int workerId, int agentNum, int totalAgents) {
+    FixedAvailablePortAllocator(int workerId, int agentNum, int totalAgents) {
         this.agentNum = agentNum
         this.workerId = workerId
-        this.maxForks = maxForks
         this.totalAgents = totalAgents
-        this.rangeCount = maxForks * totalAgents
-        this.rangeSize = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / rangeCount
+        this.rangeSize = DEFAULT_RANGE_SIZE
+        this.bucketsPerAgent = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / (rangeSize * totalAgents)
+        this.rangeCount = bucketsPerAgent * totalAgents
     }
 
     public static FixedAvailablePortAllocator getInstance() {
         if (instance == null) {
-            int maxForks = Integer.getInteger(MAX_FORKS_SYSTEM_PROPERTY, 1)
             int totalAgents = Integer.getInteger(TOTAL_AGENTS_SYS_PROPERTY, 1)
             int agentNum = Integer.getInteger(AGENT_NUM_SYS_PROPERTY, 1)
             int workerId = Integer.getInteger(WORKER_ID_SYS_PROPERTY, -1)
-            instance = new FixedAvailablePortAllocator(maxForks, workerId, agentNum, totalAgents)
+            instance = new FixedAvailablePortAllocator(workerId, agentNum, totalAgents)
         }
         return instance
     }
@@ -58,12 +59,9 @@ class FixedAvailablePortAllocator extends AbstractAvailablePortAllocator {
         }
 
         int fixedRange = 0
-        if (rangeCount > 1) {
-            if (workerId != -1) {
-                fixedRange = ((workerId - 1) % maxForks) + ((agentNum - 1) * maxForks)
-            } else {
-                throw new IllegalStateException("${MAX_FORKS_SYSTEM_PROPERTY} is set, but ${WORKER_ID_SYS_PROPERTY} was not!")
-            }
+
+        if (workerId != -1) {
+            fixedRange = ((workerId - 1) % bucketsPerAgent) + ((agentNum - 1) * bucketsPerAgent)
         }
 
         int startPort = MIN_PRIVATE_PORT + (fixedRange * rangeSize)
