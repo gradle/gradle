@@ -24,16 +24,14 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.ServletContainer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ports.FixedAvailablePortAllocator
-import org.gradle.util.ports.PortAllocator
+import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 import spock.lang.AutoCleanup
-import spock.lang.Shared
 
 @Requires(TestPrecondition.JDK7_OR_EARLIER)
 class SonarSmokeIntegrationTest extends AbstractIntegrationSpec {
-    @Shared
-    PortAllocator portFinder = FixedAvailablePortAllocator.getInstance()
+    @Rule
+    ReleasingPortAllocator portFinder = new ReleasingPortAllocator()
 
     @AutoCleanup("stop")
     ServletContainer container
@@ -67,10 +65,6 @@ sonar.embeddedDatabase.port=$databasePort
 
         container = new ServletContainer(warFile)
         container.start()
-    }
-
-    def cleanup() {
-        portFinder.releasePort(databasePort)
     }
 
     @LeaksFileHandles

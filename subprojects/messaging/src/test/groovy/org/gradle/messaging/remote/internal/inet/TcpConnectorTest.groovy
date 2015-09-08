@@ -21,7 +21,8 @@ import org.gradle.messaging.remote.internal.*
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.ports.FixedAvailablePortAllocator
+import org.gradle.util.ports.ReleasingPortAllocator
+import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Timeout
@@ -37,6 +38,7 @@ class TcpConnectorTest extends ConcurrentSpec {
     final def addressFactory = new InetAddressFactory()
     final def outgoingConnector = new TcpOutgoingConnector()
     final def incomingConnector = new TcpIncomingConnector(executorFactory, addressFactory, idGenerator)
+    @Rule ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def "client can connect to server"() {
         Action action = Mock()
@@ -283,7 +285,7 @@ class TcpConnectorTest extends ConcurrentSpec {
     def "detects self connect when outgoing connection binds to same port"() {
         given:
         def socketChannel = SocketChannel.open()
-        def port = FixedAvailablePortAllocator.instance.assignPort()
+        def port = portAllocator.assignPort()
         def localAddress = addressFactory.findLocalAddresses().find { it instanceof Inet6Address }
         def selfConnect = new InetSocketAddress(localAddress, port)
 
@@ -305,7 +307,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         def socketChannel = SocketChannel.open()
         def acceptor = incomingConnector.accept(action, false)
         def localAddress = addressFactory.findLocalAddresses().find { it instanceof Inet6Address }
-        def bindPort = FixedAvailablePortAllocator.instance.assignPort()
+        def bindPort = portAllocator.assignPort()
         def bindAddress = new InetSocketAddress(localAddress, bindPort)
         def connectAddress = new InetSocketAddress(localAddress, acceptor.address.port)
 
