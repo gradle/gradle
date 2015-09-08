@@ -59,7 +59,10 @@ for(int i=1;i <= taskCount;i++) {
 
 if(project.hasProperty("changeOneInput")) {
     // modify last file in input directory
-    File lastInputFile = file("src/${inputCount}files/file${inputCount}")
+    File lastInputFile = new File(performanceTestInputFiles.dir, "file${inputCount}")
     assert lastInputFile.isFile()
-    lastInputFile.text = "file changed ${System.currentTimeMillis()}"
+    println "changing $lastInputFile"
+    lastInputFile.withWriterAppend {
+        it << "\nfile changed ${System.currentTimeMillis()}"
+    }
 }

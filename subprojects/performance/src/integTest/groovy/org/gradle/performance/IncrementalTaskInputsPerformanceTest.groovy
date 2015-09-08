@@ -81,6 +81,20 @@ class IncrementalTaskInputsPerformanceTest extends AbstractCrossBuildPerformance
         inputCount << [1, 10, 100, 1000, 10000]
     }
 
+    private void setupWithVariousInputsAndFileSizes(builder, taskCount, inputCount, inputFileSize, modifyInputs) {
+        builder.with {
+            projectName("compareTaskInputs").displayName("$inputCount inputs of $inputFileSize${modifyInputs ? ' modified' : ''}").invocation {
+                tasksToRun("buildIncremental").args("-PinputCount=$inputCount", "-PtaskCount=$taskCount").useDaemon()
+                if (inputFileSize) {
+                    args("-PinputFileSize=$inputFileSize")
+                }
+                if (modifyInputs) {
+                    args("-PchangeOneInput=true")
+                }
+            }
+        }
+    }
+
     @Unroll
     def "find breaking point for input sizes - #inputCount inputs of #inputFileSize"() {
         given:
@@ -89,11 +103,11 @@ class IncrementalTaskInputsPerformanceTest extends AbstractCrossBuildPerformance
         when:
         runner.testGroup = "incremental task inputs"
         runner.testId = "find breaking point for input sizes"
+        runner.baseline {
+            setupWithVariousInputsAndFileSizes(delegate, taskCount, inputCount, inputFileSize, false)
+        }
         runner.buildSpec {
-            invocationCount(1).warmUpCount(1)
-            projectName("compareTaskInputs").displayName("$inputCount inputs of $inputFileSize").invocation {
-                tasksToRun("buildIncremental").args("-PinputCount=$inputCount", "-PtaskCount=$taskCount", "-PinputFileSize=$inputFileSize").useDaemon()
-            }
+            setupWithVariousInputsAndFileSizes(delegate, taskCount, inputCount, inputFileSize, true)
         }
 
         then:
@@ -112,11 +126,11 @@ class IncrementalTaskInputsPerformanceTest extends AbstractCrossBuildPerformance
         when:
         runner.testGroup = "incremental task inputs"
         runner.testId = "find breaking point for input sizes"
+        runner.baseline {
+            setupWithVariousInputsAndFileSizes(delegate, taskCount, inputCount, inputFileSize, false)
+        }
         runner.buildSpec {
-            invocationCount(1).warmUpCount(1)
-            projectName("compareTaskInputs").displayName("$inputCount inputs of $inputFileSize").invocation {
-                tasksToRun("buildIncremental").args("-PinputCount=$inputCount", "-PtaskCount=$taskCount", "-PinputFileSize=$inputFileSize").useDaemon()
-            }
+            setupWithVariousInputsAndFileSizes(delegate, taskCount, inputCount, inputFileSize, true)
         }
 
         then:
@@ -125,5 +139,4 @@ class IncrementalTaskInputsPerformanceTest extends AbstractCrossBuildPerformance
         where:
         inputFileSize << [1, 10, 50, 100].collect { "${it}M".toString() }
     }
-
 }
