@@ -435,16 +435,55 @@ task generateCompareTaskInputs(type: ProjectGeneratorTask) {
             into "build/compareTaskInputs"
             exclude "build.gradle"
         }
-        def generateInputFiles = { dir, count ->
+        def generateInputFiles = { dir, count, content ->
             for(int i=1;i <= count;i++) {
                 File file = new File(dir, "file$i")
-                file.text = "file$i content"
+                file.bytes = content
             }
         }
         [1,10,100,1000,10000].each { count ->
             def dir = file("$buildDir/compareTaskInputs/src/${count}files")
             dir.mkdirs()
-            generateInputFiles dir, count
+            generateInputFiles dir, count, "file content".bytes
+        }
+
+        def generateHardLinkedFiles = { dir, count, contentFilePath ->
+            for (int i = 1; i <= count; i++) {
+                File file = new File(dir, "file$i")
+                // use hard links to save disk space
+                Class.forName("java.nio.file.Files").createLink(file.toPath(), contentFilePath);
+            }
+        }
+
+        def generateFiles = { count, size, sizeDesc, sizeMultiplier ->
+            def dir = file("$buildDir/compareTaskInputs/src/${count}_${size}${sizeDesc}_files")
+            dir.mkdirs()
+
+            def contentFile = new File(dir, "content_to_link")
+            def filesize = size * sizeMultiplier
+            contentFile.withOutputStream { outputStream ->
+                byte[] charsToUse = "abcdefghijklmnopqrstuvwxyz0123456789".getBytes()
+                for (int i = 0; i < filesize; i++) {
+                    outputStream.write(charsToUse, i % charsToUse.length, 1)
+                }
+            }
+
+            generateHardLinkedFiles dir, count, contentFile.toPath()
+
+            contentFile.delete()
+        }
+
+        // 1, 10, 100, 1000 and 10000 inputs
+        // 10k, 50k, 100k, 500k, 1000k inputs
+        [1,10,100,1000,10000].each { count ->
+            [10, 50, 100, 500, 1000].each { sizeInKBytes ->
+                generateFiles count, sizeInKBytes, "k", 1024
+            }
+        }
+
+        // 100 input of sizes 1MB, 10MB, 50MB, 100MB inputs
+        [1, 10, 50, 100].each { sizeInMB ->
+            generateFiles 100, sizeInMB, "M", 1024*1024
         }
     }
 }
