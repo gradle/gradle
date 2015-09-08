@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project.antbuilder
 
+import org.gradle.api.internal.classloading.GroovyJava7RuntimeMemoryLeakStrategy
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition

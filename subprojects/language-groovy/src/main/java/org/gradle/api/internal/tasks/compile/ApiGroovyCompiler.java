@@ -31,6 +31,7 @@ import org.codehaus.groovy.tools.javac.JavaCompiler;
 import org.codehaus.groovy.tools.javac.JavaCompilerFactory;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.classloading.MemoryLeakPrevention;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
@@ -57,6 +58,12 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     public WorkResult execute(final GroovyJavaJointCompileSpec spec) {
+        ClassLoader apiCompilerClassLoader = this.getClass().getClassLoader();
+        MemoryLeakPrevention prevention = new MemoryLeakPrevention(
+            "API Groovy Compiler",
+            apiCompilerClassLoader,
+            null);
+        prevention.prepare();
         CompilerConfiguration configuration = new CompilerConfiguration();
         configuration.setVerbose(spec.getGroovyCompileOptions().isVerbose());
         configuration.setSourceEncoding(spec.getGroovyCompileOptions().getEncoding());
@@ -109,7 +116,14 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         for (File file : spec.getClasspath()) {
             astTransformClassLoader.addClasspath(file.getPath());
         }
-
+        MemoryLeakPrevention groovyCompilerLeakPrevention = new MemoryLeakPrevention(
+            "Groovy compile classpath classloader", compileClasspathClassLoader, null
+        );
+        MemoryLeakPrevention astxformsLeakPrevention = new MemoryLeakPrevention(
+            "Groovy AST xforms classloader", astTransformClassLoader, null
+        );
+        groovyCompilerLeakPrevention.prepare();
+        astxformsLeakPrevention.prepare();
         JavaAwareCompilationUnit unit = new JavaAwareCompilationUnit(configuration, compileClasspathClassLoader) {
             @Override
             public GroovyClassLoader getTransformLoader() {
@@ -167,6 +181,10 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         } catch (org.codehaus.groovy.control.CompilationFailedException e) {
             System.err.println(e.getMessage());
             throw new CompilationFailedException();
+        } finally {
+            prevention.dispose(getExtClassLoader(), astTransformClassLoader, compileClasspathClassLoader);
+            groovyCompilerLeakPrevention.dispose(getExtClassLoader(), apiCompilerClassLoader, astTransformClassLoader);
+            astxformsLeakPrevention.dispose(getExtClassLoader(), apiCompilerClassLoader, compileClasspathClassLoader);
         }
 
         return new SimpleWorkResult(true);

@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.project.antbuilder;
+package org.gradle.api.internal.classloading;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class MemoryLeakPrevention {
@@ -52,7 +53,7 @@ public class MemoryLeakPrevention {
 
     public MemoryLeakPrevention(String name, ClassLoader leakingLoader, final ClassPath classPath, Strategy... strategies) {
         this.name = name;
-        this.strategies = ImmutableSet.copyOf(Iterables.filter(Arrays.asList(strategies), new Predicate<Strategy>() {
+        this.strategies = Sets.newHashSet(Iterables.filter(Arrays.asList(strategies), new Predicate<Strategy>() {
             @Override
             public boolean apply(Strategy input) {
                 return input.appliesTo(classPath);
@@ -80,13 +81,16 @@ public class MemoryLeakPrevention {
     }
 
     private void doWithClassPath(StrategyAction action) {
+        Set<Strategy> blackListedStrategies = new LinkedHashSet<Strategy>();
         for (Strategy strategy : strategies) {
             try {
                 action.execute(strategy);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 LOG.debug("Cannot apply memory leak strategy", e);
+                blackListedStrategies.add(strategy);
             }
         }
+        strategies.removeAll(blackListedStrategies);
     }
 
     public void dispose(final ClassLoader... affectedLoaders) {

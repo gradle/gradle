@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
+import org.gradle.api.internal.classloading.MemoryLeakPrevention;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.lang.ref.PhantomReference;

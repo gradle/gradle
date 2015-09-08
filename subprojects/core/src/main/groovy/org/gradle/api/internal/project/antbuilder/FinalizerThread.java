@@ -16,6 +16,7 @@
 package org.gradle.api.internal.project.antbuilder;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.internal.classloading.MemoryLeakPrevention;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;

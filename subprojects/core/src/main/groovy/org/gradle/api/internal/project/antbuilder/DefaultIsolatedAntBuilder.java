@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.classloading.MemoryLeakPrevention;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
