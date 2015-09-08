@@ -79,6 +79,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### AvailablePortFinder
+
+The class `org.gradle.util.AvailablePortFinder` has been deprecated and will be removed in the next version of Gradle.  Although this class is an internal class and
+not a part of the public API, some users may be utilizing it and should plan to implement an alternative.
+
+
 ## Potential breaking changes
 
 Upgraded to Groovy 2.4.4. This should be transparent to the majority of users, however it can imply some minor breaking changes.
