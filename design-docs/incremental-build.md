@@ -28,7 +28,7 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 ## Story: Compare tasks using IncrementalTaskInputs with "regular" tasks
 
-- Vary number of inputs and outputs
+- Vary number of inputs
 - If difference between calculating up-to-date checks is identical or within an order of magnitude, remove this as a variable in future plans.
 - Collect numbers for a report
 
@@ -40,8 +40,8 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 ## Story: Compare "one change" and "no change" cases
 
-- Vary number of inputs and outputs
-- Compare no input or output change case with one input or output change case
+- Vary number of inputs
+- Compare no input change case with one input change case
 - If difference between calculating up-to-date checks is identical or within an order of magnitude, remove this as a variable for now and focus on 'no change' cases.
 - Future stories may address the "ripple" effect of a single input invalidating multiple tasks in a chain.
 - Collect numbers for a report
