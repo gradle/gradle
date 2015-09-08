@@ -80,4 +80,50 @@ class IncrementalTaskInputsPerformanceTest extends AbstractCrossBuildPerformance
         where:
         inputCount << [1, 10, 100, 1000, 10000]
     }
+
+    @Unroll
+    def "find breaking point for input sizes - #inputCount inputs of #inputFileSize"() {
+        given:
+        def taskCount = 100
+
+        when:
+        runner.testGroup = "incremental task inputs"
+        runner.testId = "find breaking point for input sizes"
+        runner.buildSpec {
+            invocationCount(1).warmUpCount(1)
+            projectName("compareTaskInputs").displayName("$inputCount inputs of $inputFileSize").invocation {
+                tasksToRun("buildIncremental").args("-PinputCount=$inputCount", "-PtaskCount=$taskCount", "-PinputFileSize=$inputFileSize").useDaemon()
+            }
+        }
+
+        then:
+        runner.run()
+
+        where:
+        [inputCount, inputFileSize] << [[1, 10, 100, 1000, 10000], [10, 50, 100, 500, 1000].collect { "${it}k".toString() }].combinations()
+    }
+
+    @Unroll
+    def "find breaking point for input sizes - 100 inputs of #inputFileSize"() {
+        given:
+        def taskCount = 10
+        def inputCount = 100
+
+        when:
+        runner.testGroup = "incremental task inputs"
+        runner.testId = "find breaking point for input sizes"
+        runner.buildSpec {
+            invocationCount(1).warmUpCount(1)
+            projectName("compareTaskInputs").displayName("$inputCount inputs of $inputFileSize").invocation {
+                tasksToRun("buildIncremental").args("-PinputCount=$inputCount", "-PtaskCount=$taskCount", "-PinputFileSize=$inputFileSize").useDaemon()
+            }
+        }
+
+        then:
+        runner.run()
+
+        where:
+        inputFileSize << [1, 10, 50, 100].collect { "${it}M".toString() }
+    }
+
 }

@@ -36,16 +36,21 @@ def inputCount = project.hasProperty("inputCount") ? project.inputCount as int :
 
 def taskCount = project.hasProperty("taskCount") ? project.taskCount as int : 1000
 
+def inputFileSize = project.hasProperty("inputFileSize") ? project.inputFileSize : ""
+
+def performanceTestInputFiles = inputFileSize ? fileTree(dir: "src/${inputCount}_${inputFileSize}_files") : fileTree(dir: "src/${inputCount}files")
+assert !performanceTestInputFiles.isEmpty()
+
 for(int i=1;i <= taskCount;i++) {
     def taskIncremental=project.tasks.create(name: "incrementalTask$i", type: IncrementalTaskInputTask) {
-        inputFiles = fileTree(dir:"src/${inputCount}files")
+        inputFiles = performanceTestInputFiles
         outputFile = file("$buildDir/incrementalTask${i}_output")
 
     }
     buildIncremental.dependsOn taskIncremental
 
     def taskOrdinary=project.tasks.create(name: "ordinaryTask$i", type: OrdinaryTaskInputTask) {
-        inputFiles = fileTree(dir:"src/${inputCount}files")
+        inputFiles = performanceTestInputFiles
         outputFile = file("$buildDir/ordinaryTask${i}_output")
     }
     buildOrdinary.dependsOn taskOrdinary
