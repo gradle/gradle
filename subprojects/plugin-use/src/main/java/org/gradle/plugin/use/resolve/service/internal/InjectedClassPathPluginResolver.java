@@ -40,15 +40,13 @@ import java.util.List;
 
 public class InjectedClassPathPluginResolver implements PluginResolver {
     private final ClassLoaderScope parentScope;
-    private final PluginInspector pluginInspector;
     private final ClassPath classPath;
     private final PluginRegistry pluginRegistry;
 
     public InjectedClassPathPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, List<URI> injectedClasspath) {
         this.parentScope = parentScope;
-        this.pluginInspector = pluginInspector;
         classPath = new DefaultClassPath(transformClasspathFiles(injectedClasspath));
-        pluginRegistry = createPluginRegistry();
+        pluginRegistry = new DefaultPluginRegistry(pluginInspector, createClassLoaderScope());
     }
 
     private ClassLoaderScope createClassLoaderScope() {
@@ -64,11 +62,6 @@ public class InjectedClassPathPluginResolver implements PluginResolver {
                 return new File(uri);
             }
         });
-    }
-
-    private PluginRegistry createPluginRegistry() {
-        ClassLoaderScope loaderScope = createClassLoaderScope();
-        return new DefaultPluginRegistry(pluginInspector, loaderScope);
     }
 
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
@@ -103,6 +96,7 @@ public class InjectedClassPathPluginResolver implements PluginResolver {
 
         public void execute(PluginResolveContext pluginResolveContext) {
             pluginResolveContext.add(plugin);
+            pluginResolveContext.addClassPath(classPath);
         }
     }
 }

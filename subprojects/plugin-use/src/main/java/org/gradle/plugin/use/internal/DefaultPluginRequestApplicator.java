@@ -51,7 +51,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     public void applyPlugins(PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
         if (requests.isEmpty()) {
-            defineScriptHandlerClassScope(scriptHandler, classLoaderScope);
+            defineScriptHandlerClassScope(scriptHandler, classLoaderScope, Collections.unmodifiableSet(Collections.<ClassPath>emptySet()));
             return;
         }
 
@@ -70,6 +70,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         // Could be different to ids in the requests as they may be unqualified
         final Map<Result, PluginId> legacyActualPluginIds = Maps.newLinkedHashMap();
         final Map<Result, PluginImplementation<?>> pluginImpls = Maps.newLinkedHashMap();
+        final Set<ClassPath> pluginClassPaths = Sets.newHashSet();
 
         if (!results.isEmpty()) {
             final RepositoryHandler repositories = scriptHandler.getRepositories();
@@ -90,6 +91,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                             @Override
                             public void add(PluginImplementation<?> plugin) {
                                 pluginImpls.put(result, plugin);
+                            }
+
+                            public void addClassPath(ClassPath classPath) {
+                                pluginClassPaths.add(classPath);
                             }
                         });
                     }
@@ -112,7 +117,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             }
         }
 
-        defineScriptHandlerClassScope(scriptHandler, classLoaderScope);
+        defineScriptHandlerClassScope(scriptHandler, classLoaderScope, pluginClassPaths);
 
         // We're making an assumption here that the target's plugin registry is backed classLoaderScope.
         // Because we are only build.gradle files right now, this holds.
@@ -137,9 +142,14 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
     }
 
-    private void defineScriptHandlerClassScope(ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope) {
+    private void defineScriptHandlerClassScope(ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, Set<ClassPath> pluginClassPaths) {
         ClassPath classPath = scriptHandler.getScriptClassPath();
         classLoaderScope.export(classPath);
+
+        for (ClassPath injectedClassPaths : pluginClassPaths) {
+            classLoaderScope.export(injectedClassPaths);
+        }
+
         classLoaderScope.lock();
     }
 

@@ -417,6 +417,20 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        file("src/main/groovy/org/gradle/test/ByeWorld.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+
+            class ByeWorld extends DefaultTask {
+                @TaskAction
+                void doSomething() {
+                    println 'Bye world!'
+                }
+            }
+        """
+
         file("src/main/resources/META-INF/gradle-plugins/com.company.helloworld.properties") << """
             implementation-class=org.gradle.test.HelloWorldPlugin
         """
@@ -448,19 +462,24 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         plugins {
                             id 'com.company.helloworld'
                         }
+
+                        import org.gradle.test.ByeWorld
+
+                        task byeWorld(type: ByeWorld)
                     \"\"\"
 
                     when:
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
-                        .withArguments('helloWorld')
+                        .withArguments('helloWorld', 'byeWorld')
                         .withClasspath(pluginClasspath)
                         .build()
 
                     then:
                     result.standardOutput.contains('Hello world!')
+                    result.standardOutput.contains('Bye world!')
                     result.standardError == ''
-                    result.taskPaths(SUCCESS) == [':helloWorld']
+                    result.taskPaths(SUCCESS) == [':helloWorld', ':byeWorld']
                     result.taskPaths(SKIPPED).empty
                     result.taskPaths(UP_TO_DATE).empty
                     result.taskPaths(FAILED).empty

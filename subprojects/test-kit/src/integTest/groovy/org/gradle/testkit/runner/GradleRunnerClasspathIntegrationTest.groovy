@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
@@ -101,7 +100,6 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
         killUserDaemon()
     }
 
-    @Ignore
     def "can use plugin classes for declared plugin in provided classpath"() {
         given:
         compilePluginProjectSources()
