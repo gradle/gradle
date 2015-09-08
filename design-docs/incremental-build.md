@@ -4,27 +4,20 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 # Establishing Baseline
 
-## Story: Add 'profiler' (YourKit) hook to performance test harness
+## ~~Story: Add 'profiler' (YourKit) hook to performance test harness~~
 
 - Make it easier for us to collect profiling data and share profiling setup
-- Gradle dev adds `YJP_HOME` (Yourkit home directory path) or `YJP_AGENT_PATH` (Yourkit agent library file path) environment variable.
-- Gradle dev writes a performance test that extends AbstractCrossBuildPerformanceTest or AbstractCrossVersionPerformanceTest.
-- Gradle dev enables YJP by passing `-Porg.gradle.performance.use_yourkit` project property in running the performance test.
+- ~~Gradle dev adds `YJP_HOME` (Yourkit home directory path) or `YJP_AGENT_PATH` (Yourkit agent library file path) environment variable.~~
+- ~~Gradle dev writes a performance test that extends AbstractCrossBuildPerformanceTest or AbstractCrossVersionPerformanceTest.~~
+- ~~Gradle dev enables YJP by passing `-Porg.gradle.performance.use_yourkit` project property in running the performance test.~~
   - example use: `./gradlew performance:performanceTest -Porg.gradle.performance.use_yourkit -D:performance:performanceTest.single=NativePreCompiledHeaderPerformanceTest`
-- Yourkit agent options are loaded from `~/.gradle/yourkit.properties` by default.
+- ~~Yourkit agent options are loaded from `~/.gradle/yourkit.properties` by default.~~
   - Yourkit supports these startup options: https://www.yourkit.com/docs/java/help/startup_options.jsp .
-- Yourkit profiling snapshot data get saved to `~/Snapshots` by default. The file name contains the test project name and display name from the performance test.
+- ~~Yourkit profiling snapshot data get saved to `~/Snapshots` by default. The file name contains the test project name and display name from the performance test.~~
 
 ### Test coverage
 
 - TBD, whatever makes sense (this should touch test infrastructure only)
-
-### Open Issues
-
-- Skip warm-up or have explicit opt-in for warm up profiling?
-  - Conditionally enabling the profiler in the code by using Yourkit API.
-- For cross-version tests, skip all versions except the current?
-- Do we care about conditionally profiling the CLI and daemon processes (such that the profiling options should be configurable for each)?
 
 ## Story: Compare tasks using IncrementalTaskInputs with "regular" tasks
 
@@ -99,3 +92,7 @@ TBD
 
 - Check behavior of Prebuilt Libraries with large number of headers (https://discuss.gradle.org/t/native-performance-issue-with-no-op-builds-with-boost-as-a-dependency)
 - See incremental-build-old.md for other ideas and specific issues.
+- Profiler support: Skip warm-up or have explicit opt-in for warm up profiling?
+  - Conditionally enabling the profiler in the code by using Yourkit API.
+- Profiler support: For cross-version tests, skip all versions except the current?
+- Profiler support: Do we care about conditionally profiling the CLI and daemon processes (such that the profiling options should be configurable for each)?
