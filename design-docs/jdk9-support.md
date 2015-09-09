@@ -7,9 +7,17 @@ At this stage, however, there will be no special support for Java 9 specific fea
 
 It is a non-goal of this feature to be able to build Gradle on Java 9. This is a later feature.
 
-## Issues
+## Cannot fork test worker processes
 
-This list is in priority order.
+See:
+- https://discuss.gradle.org/t/classcastexception-from-org-gradle-process-internal-child-bootstrapsecuritymanager/2443
+- https://issues.gradle.org/browse/GRADLE-3287
+- http://download.java.net/jdk9/docs/api/index.html
+
+As of b80, an `@argsfile` command-line option is available for the `java` command, change the worker process launcher to use this on Java 9.  
+Reuse handling for `javac` from java compiler infrastructure.
+
+## Fix test fixtures and test assumptions
 
 - `tools.jar` no longer exists as part of the JDK so `org.gradle.internal.jvm.JdkTools`(and others) need an alternative way to
 get a SystemJavaCompiler which does rely on the JavaCompiler coming from an isolated, non-system `ClassLoader`. One approach would be:
@@ -27,16 +35,7 @@ get a SystemJavaCompiler which does rely on the JavaCompiler coming from an isol
 - Some tests which garbage collect(`System.gc()`) are failing. See: `ModelRuleExtractorTest`. There would need to be some exploration
 to figure out how (or if) garbage collection is different on JDK9.
 
-### Scala compilation is broken
-
-### Cannot fork test worker processes
-
-See:
-- https://discuss.gradle.org/t/classcastexception-from-org-gradle-process-internal-child-bootstrapsecuritymanager/2443
-- https://issues.gradle.org/browse/GRADLE-3287
-- http://download.java.net/jdk9/docs/api/index.html
-
-Proposed solution is to use a classpath manifest jar only on 9 and later.
+## Scala compilation is broken
 
 ## Update linux jdk9 installation
 
@@ -46,7 +45,7 @@ Proposed solution is to use a classpath manifest jar only on 9 and later.
 
 ## Add windows jdk9 coverage to Gradle CI pipeline
 
-At the moment there is no 64bit windows jdk9 available yet (Build b60)
+A 64 bit windows installer is now available (as of b80).
 
 ### implementation
 
@@ -62,7 +61,8 @@ At the moment there is no 64bit windows jdk9 available yet (Build b60)
 
 Goal: Run a coverage CI build on Java 9. At completion, it will be possible to build and test Gradle using Java 9.
 
-### Initial JDK9 support in Gradle's own build
+## Initial JDK9 support in Gradle's own build
+
 [gradle/java9.gradle](gradle/java9.gradle) adds both unit and integration test tasks executing on JDK 9.
  Once JDK 9 has been fully supported, jdk9 specific test tasks should be removed along with `[gradle/java9.gradle]`
 
@@ -72,6 +72,11 @@ Goal: full support of the Java 9 module system, and its build and runtime featur
 
 In no particular order:
 
+- Make further use of `@argfile` when supported 
+    - `JavaExec` task
+    - daemon launcher
+    - generated application start scripts
+- Use `-release` javac flag for JVM binary that target older Java platform versions 
 - Extract or validate module dependencies declared in `module-info.java`
     - Infer API and runtime requirements based on required and exported modules
 - Extract or validate platform dependencies declared in `module-info.java`
