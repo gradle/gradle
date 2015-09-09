@@ -56,18 +56,20 @@ class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
     @LeaksFileHandles
     def "can execute servlet"() {
         given:
+        def httpPort = portAllocator.assignPort()
+        def stopPort = portAllocator.assignPort()
+        def url = "http://localhost:${httpPort}/customized/hello"
+
         // Inject some int test stuff
         sample.dir.file('build.gradle') << """
-import static org.gradle.integtests.fixtures.UrlValidator.*
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.api.plugins.jetty.internal.Monitor
 
-httpPort = ${portAllocator.assignPort()}
-stopPort = ${portAllocator.assignPort()}
+httpPort = ${httpPort}
+stopPort = ${stopPort}
 
 println "http port = \$httpPort, stop port = \$stopPort"
 
-ext.url = new URL("http://localhost:\$httpPort/customized/hello")
+ext.url = new URL("${url}")
 
 [jettyRun, jettyRunWar]*.daemon = true
 [jettyRun, jettyRunWar]*.doLast {
@@ -90,13 +92,6 @@ private void callServlet() {
 }
 
 [runTest, runWarTest]*.finalizedBy jettyStop
-
-jettyStop.doLast {
-    ConcurrentTestUtil.poll(10) {
-        notAvailable(url.toString())
-    }
-}
-
 """
 
         when:
