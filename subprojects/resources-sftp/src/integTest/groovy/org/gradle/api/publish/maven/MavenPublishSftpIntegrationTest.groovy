@@ -22,7 +22,7 @@ import org.junit.Rule
 
 class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
-    final SFTPServer server = new SFTPServer(this)
+    final SFTPServer server = new SFTPServer(temporaryFolder)
 
     MavenSftpRepository getMavenSftpRepo() {
         new MavenSftpRepository(server, '/repo')
