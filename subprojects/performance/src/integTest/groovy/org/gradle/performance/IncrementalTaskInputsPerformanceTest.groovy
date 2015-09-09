@@ -81,15 +81,22 @@ class IncrementalTaskInputsPerformanceTest extends AbstractCrossBuildPerformance
         inputCount << [1, 10, 100, 1000, 10000]
     }
 
-    private void setupWithVariousInputsAndFileSizes(builder, taskCount, inputCount, inputFileSize, modifyInputs) {
+    private void setupWithVariousInputsAndFileSizes(builder, taskCount, inputCount, inputFileSize, modifyInputs, testInputs = true) {
         builder.with {
-            projectName("compareTaskInputs").displayName("$inputCount inputs of $inputFileSize${modifyInputs ? ' modified' : ''}").invocation {
-                tasksToRun("buildIncremental").args("-PinputCount=$inputCount", "-PtaskCount=$taskCount").useDaemon()
+            projectName("compareTaskInputs")
+            displayName("$inputCount ${testInputs ? 'inputs' : 'outputs'} of $inputFileSize${modifyInputs ? ' modified' : ''}")
+            invocation {
+                tasksToRun(testInputs ? "buildIncremental" : "buildOutputs")
+                args("-PinputCount=$inputCount", "-PtaskCount=$taskCount")
+                useDaemon()
                 if (inputFileSize) {
                     args("-PinputFileSize=$inputFileSize")
                 }
                 if (modifyInputs) {
                     args("-PchangeOneInput=true")
+                }
+                if (!testInputs) {
+                    args("-PchangeSingleFile=true")
                 }
             }
         }
@@ -139,4 +146,50 @@ class IncrementalTaskInputsPerformanceTest extends AbstractCrossBuildPerformance
         where:
         inputFileSize << [1, 10, 50, 100].collect { "${it}M".toString() }
     }
+
+    @Unroll
+    def "find breaking point for output sizes - #inputCount outputs of #inputFileSize"() {
+        given:
+        def taskCount = 100
+
+        when:
+        runner.testGroup = "incremental task inputs"
+        runner.testId = "find breaking point for output sizes"
+        runner.baseline {
+            setupWithVariousInputsAndFileSizes(delegate, taskCount, inputCount, inputFileSize, false, false)
+        }
+        runner.buildSpec {
+            setupWithVariousInputsAndFileSizes(delegate, taskCount, inputCount, inputFileSize, true, false)
+        }
+
+        then:
+        runner.run()
+
+        where:
+        [inputCount, inputFileSize] << [[1, 10, 100, 1000, 10000], [10, 50, 100, 500, 1000].collect { "${it}k".toString() }].combinations()
+    }
+
+    @Unroll
+    def "find breaking point for output sizes - 100 inputs of #inputFileSize"() {
+        given:
+        def taskCount = 10
+        def inputCount = 100
+
+        when:
+        runner.testGroup = "incremental task inputs"
+        runner.testId = "find breaking point for output sizes"
+        runner.baseline {
+            setupWithVariousInputsAndFileSizes(delegate, taskCount, inputCount, inputFileSize, false, false)
+        }
+        runner.buildSpec {
+            setupWithVariousInputsAndFileSizes(delegate, taskCount, inputCount, inputFileSize, true, false)
+        }
+
+        then:
+        runner.run()
+
+        where:
+        inputFileSize << [1, 10, 50, 100].collect { "${it}M".toString() }
+    }
+
 }
