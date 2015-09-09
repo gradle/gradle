@@ -89,6 +89,7 @@ See discussion about parameters.  Uses java-lang/jvm-component software model pl
 ### Open Issues
 
 - Need to incorporate test execution into this as well
+- How are we going to handle external dependencies while the jvm-component plugins do not support external dependencies?
 
 ## Story: Update performance generator to create representative C/C++ project
 
