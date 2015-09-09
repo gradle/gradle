@@ -101,6 +101,7 @@ public abstract class GradleRunner {
      *
      * @param testKitDir the test kit directory
      * @return {@code this}
+     * @since 2.7
      */
     public abstract GradleRunner withTestKitDir(File testKitDir);
 

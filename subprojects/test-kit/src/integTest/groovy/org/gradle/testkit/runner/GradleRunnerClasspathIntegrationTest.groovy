@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
@@ -126,6 +127,114 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
         killUserDaemon()
     }
 
+    def "can create enhanced tasks for custom task types in plugin for provided classpath"() {
+        given:
+        pluginProjectFile('src/main/groovy/org/gradle/test/Messenger.groovy') << """
+            package org.gradle.test
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+            import org.gradle.api.tasks.Input
+
+            class Messenger extends DefaultTask {
+                @Input
+                String message
+
+                @TaskAction
+                void doSomething() {
+                    println message
+                }
+            }
+        """
+
+        compilePluginProjectSources()
+        buildFile << pluginDeclaration()
+        buildFile << """
+            import org.gradle.test.Messenger
+
+            task helloMessage(type: Messenger) {
+                message = 'Hello message'
+            }
+
+            model {
+                tasks {
+                    byeMessage(Messenger) {
+                        message = 'Bye message'
+                    }
+                }
+            }
+        """
+
+        when:
+        GradleRunner gradleRunner = runner('helloMessage', 'byeMessage')
+        gradleRunner.withClasspath(getPluginClasspath())
+        BuildResult result = gradleRunner.build()
+
+        then:
+        noExceptionThrown()
+        result.standardOutput.contains(':helloMessage')
+        result.standardOutput.contains(':byeMessage')
+        result.standardOutput.contains('Hello message')
+        result.standardOutput.contains('Bye message')
+        !result.standardError
+        result.tasks.collect { it.path } == [':helloMessage', ':byeMessage']
+        result.taskPaths(SUCCESS) == [':helloMessage', ':byeMessage']
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UP_TO_DATE).empty
+        result.taskPaths(FAILED).empty
+
+        cleanup:
+        killUserDaemon()
+    }
+
+    @Unroll
+    def "can resolve plugin for provided classpath that applies another plugin under test by #type"() {
+        given:
+        pluginProjectFile('src/main/groovy/org/gradle/test/CompositePlugin.groovy') << """
+            package org.gradle.test
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class CompositePlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.apply(plugin: $notation)
+                }
+            }
+        """
+
+        pluginProjectFile('src/main/resources/META-INF/gradle-plugins/com.company.composite.properties') << """
+            implementation-class=org.gradle.test.CompositePlugin
+        """
+
+        compilePluginProjectSources()
+        buildFile << pluginDeclaration('com.company.composite')
+
+        when:
+        GradleRunner gradleRunner = runner('helloWorld')
+        gradleRunner.withClasspath(getPluginClasspath())
+        BuildResult result = gradleRunner.build()
+
+        then:
+        noExceptionThrown()
+        result.standardOutput.contains(':helloWorld')
+        result.standardOutput.contains('Hello world!')
+        !result.standardError
+        result.tasks.collect { it.path } == [':helloWorld']
+        result.taskPaths(SUCCESS) == [':helloWorld']
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UP_TO_DATE).empty
+        result.taskPaths(FAILED).empty
+
+        cleanup:
+        killUserDaemon()
+
+        where:
+        type         | notation
+        'class type' | 'HelloWorldPlugin'
+        'identifier' | "'com.company.helloworld'"
+    }
+
     def "cannot use plugin classes for undeclared plugin in provided classpath"() {
         given:
         compilePluginProjectSources()
@@ -160,10 +269,10 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
         userDaemons[0]
     }
 
-    private String pluginDeclaration() {
+    private String pluginDeclaration(String pluginIdentifier = 'com.company.helloworld') {
         """
         plugins {
-            id 'com.company.helloworld'
+            id '$pluginIdentifier'
         }
         """
     }
