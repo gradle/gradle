@@ -20,6 +20,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.util.GUtil;
 
@@ -87,9 +88,12 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void resolve(FileCollectionResolveContext context) {
         FileCollectionResolveContext nested = context.push(resolver);
-        if (!buildDependency.getValues().isEmpty()) {
-            nested.add(buildDependency);
-        }
         nested.add(files);
+    }
+
+    @Override
+    public void resolve(TaskDependencyResolveContext context) {
+        context.add(buildDependency);
+        super.resolve(context);
     }
 }

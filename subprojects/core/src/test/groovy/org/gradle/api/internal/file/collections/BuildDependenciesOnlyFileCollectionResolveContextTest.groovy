@@ -15,185 +15,140 @@
  */
 package org.gradle.api.internal.file.collections
 
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.tasks.TaskDependency
-import org.gradle.util.UsesNativeServices
-import spock.lang.Specification
-import org.gradle.api.file.FileTree
+import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.tasks.TaskOutputs
+import spock.lang.Specification
 
-@UsesNativeServices
+import java.util.concurrent.Callable
+
 class BuildDependenciesOnlyFileCollectionResolveContextTest extends Specification {
-    final BuildDependenciesOnlyFileCollectionResolveContext context = new BuildDependenciesOnlyFileCollectionResolveContext()
+    def taskContext = Mock(TaskDependencyResolveContext)
+    def context = new BuildDependenciesOnlyFileCollectionResolveContext(taskContext)
 
-    def resolveAsBuildableReturnsEmptyListWhenContextIsEmpty() {
-        expect:
-        context.resolveAsBuildables() == []
-    }
-
-    def resolveAsBuildableIgnoresAMinimalFileCollection() {
-        MinimalFileCollection fileCollection = Mock()
+    def ignoresAMinimalFileCollection() {
+        def fileCollection = Mock(MinimalFileCollection)
 
         when:
         context.add(fileCollection)
-        def result = context.resolveAsBuildables()
 
         then:
-        result.size() == 0
+        0 * taskContext._
     }
 
-    def resolveAsBuildableWrapsAMinimalFileCollectionWhichImplementsBuildableInAnEmptyFileTree() {
-        TestFileSet fileCollection = Mock()
-        TaskDependency buildDependency = Mock()
+    def queuesAMinimalFileCollectionWhichImplementsBuildable() {
+        def fileCollection = Mock(TestFileSet)
 
         when:
         context.add(fileCollection)
-        def result = context.resolveAsBuildables()
 
         then:
-        result.size() == 1
-        result[0] instanceof FileTreeAdapter
-        result[0].tree instanceof EmptyFileTree
-        result[0].tree.buildDependencies == buildDependency
-        1 * fileCollection.buildDependencies >> buildDependency
+        1 * taskContext.add(fileCollection)
+        0 * taskContext._
     }
 
-    def resolveAsBuildableIgnoresAMinimalFileTree() {
-        MinimalFileTree fileTree = Mock()
-
-        when:
-        context.add(fileTree)
-        def result = context.resolveAsBuildables()
-
-        then:
-        result == []
-    }
-
-    def resolveAsBuildableWrapsAMinimalFileTreeWhichImplementsBuildable() {
-        TestFileTree fileTree = Mock()
-        TaskDependency dependency = Mock()
-
-        when:
-        context.add(fileTree)
-        def result = context.resolveAsBuildables()
-
-        then:
-        result.size() == 1
-        result[0] instanceof FileTreeAdapter
-        result[0].tree instanceof EmptyFileTree
-        result[0].tree.buildDependencies == dependency
-        1 * fileTree.buildDependencies >> dependency
-    }
-
-    def resolveAsBuildablesForAFileCollection() {
-        FileCollection fileCollection = Mock()
-        TaskDependency dependency = Mock()
+    def queuesAFileCollection() {
+        def fileCollection = Mock(FileCollection)
 
         when:
         context.add(fileCollection)
-        def result = context.resolveAsBuildables()
 
         then:
-        result.size() == 1
-        result[0] instanceof FileTreeAdapter
-        result[0].tree instanceof EmptyFileTree
-        result[0].tree.buildDependencies == dependency
-        1 * fileCollection.buildDependencies >> dependency
+        1 * taskContext.add(fileCollection)
+        0 * taskContext._
     }
 
-    def resolveAsBuildablesDelegatesToACompositeFileCollection() {
-        FileCollectionContainer composite = Mock()
-        FileTree contents = Mock()
+    def queuesATask() {
+        def task = Mock(Task)
 
         when:
-        context.add(composite)
-        def result = context.resolveAsBuildables()
+        context.add(task)
 
         then:
-        result.size() == 1
-        result[0] instanceof FileTreeAdapter
-        result[0].tree instanceof EmptyFileTree
-        1 * composite.resolve(!null) >> { it[0].add(contents) }
+        1 * taskContext.add(task)
+        0 * taskContext._
     }
 
-    def resolveAsBuildablesWrapsATaskDependencyInAnEmptyFileTree() {
-        TaskDependency dependency = Mock()
+    def queuesATaskOutputs() {
+        def outputs = Mock(TaskOutputs)
+        def files = Mock(FileCollection)
+
+        given:
+        outputs.files >> files
 
         when:
-        context.add(dependency)
-        def result = context.resolveAsBuildables()
+        context.add(outputs)
 
         then:
-        result.size() == 1
-        result[0] instanceof FileTreeAdapter
-        result[0].tree instanceof EmptyFileTree
-        result[0].tree.buildDependencies == dependency
+        1 * taskContext.add(files)
+        0 * taskContext._
     }
 
-    def resolveAsBuildablesIgnoresOtherTypes() {
+    def invokesAClosureAndHandlesTheResult() {
+        def closure = Mock(Closure)
+        def result = Mock(Task)
+
+        when:
+        context.add(closure)
+
+        then:
+        1 * closure.call() >> result
+        1 * taskContext.add(result)
+        0 * taskContext._
+    }
+
+    def invokesACallableAndHandlesTheResult() {
+        def callable = Mock(Callable)
+        def result = Mock(Task)
+
+        when:
+        context.add(callable)
+
+        then:
+        1 * callable.call() >> result
+        1 * taskContext.add(result)
+        0 * taskContext._
+    }
+
+    def flattensAnIterable() {
+        def collection1 = Mock(FileCollection)
+        def collection2 = Mock(FileCollection)
+        def collection3 = Mock(FileCollection)
+
+        when:
+        context.add([collection1, [collection2, [collection3], []]])
+
+        then:
+        1 * taskContext.add(collection1)
+        1 * taskContext.add(collection2)
+        1 * taskContext.add(collection3)
+        0 * taskContext._
+    }
+
+    def flattensAnArray() {
+        def collection1 = Mock(FileCollection)
+        def collection2 = Mock(FileCollection)
+        def collection3 = Mock(FileCollection)
+
+        when:
+        context.add([collection1, [collection2, collection3] as Object[]] as Object[])
+
+        then:
+        1 * taskContext.add(collection1)
+        1 * taskContext.add(collection2)
+        1 * taskContext.add(collection3)
+        0 * taskContext._
+    }
+
+    def ignoresOtherTypes() {
         when:
         context.add('a')
-        def result = context.resolveAsBuildables()
+        context.add(Stub(TaskDependency))
+        context.add(Stub(Runnable))
 
         then:
-        result == []
-    }
-
-    def canPushContextWhenResolvingBuildables() {
-        FileResolver fileResolver = Mock()
-        TaskDependency dependency = Mock()
-
-        when:
-        context.push(fileResolver).add(dependency)
-        def result = context.resolveAsBuildables()
-
-        then:
-        result.size() == 1
-        result[0] instanceof FileTreeAdapter
-        result[0].tree instanceof EmptyFileTree
-        result[0].tree.buildDependencies == dependency
-    }
-
-    def pushedContextIgnoresOtherTypes() {
-        FileResolver fileResolver = Mock()
-
-        when:
-        context.push(fileResolver).add('a')
-        def result = context.resolveAsBuildables()
-
-        then:
-        result == []
-    }
-
-    def nestedContextIgnoresOtherTypes() {
-        when:
-        def nested = context.newContext()
-        nested.add('a')
-        def result = nested.resolveAsFileCollections()
-
-        then:
-        result == []
-    }
-
-    def file(String name) {
-        File f = Mock()
-        _ * f.file >> true
-        _ * f.exists() >> true
-        _ * f.canonicalFile >> f
-        f
-    }
-
-    def directory(String name) {
-        File f = Mock()
-        _ * f.directory >> true
-        _ * f.exists() >> true
-        _ * f.canonicalFile >> f
-        f
-    }
-
-    def nonExistent(String name) {
-        File f = Mock()
-        _ * f.canonicalFile >> f
-        f
+        0 * taskContext._
     }
 }

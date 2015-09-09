@@ -20,7 +20,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.Cast;
 
@@ -85,11 +85,6 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         }
 
         @Override
-        public TaskDependency getBuildDependencies() {
-            return CompositeFileTree.this.getBuildDependencies();
-        }
-
-        @Override
         public void resolve(FileCollectionResolveContext context) {
             ResolvableFileCollectionResolveContext nestedContext = context.newContext();
             CompositeFileTree.this.resolve(nestedContext);
@@ -100,6 +95,11 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
                     context.add(set.matching(patterns));
                 }
             }
+        }
+
+        @Override
+        public void resolve(TaskDependencyResolveContext context) {
+            CompositeFileTree.this.resolve(context);
         }
     }
 }

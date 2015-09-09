@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
@@ -186,6 +187,11 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
+            public void resolve(TaskDependencyResolveContext context) {
+                context.add(AbstractFileCollection.this);
+            }
+
+            @Override
             public String getDisplayName() {
                 return AbstractFileCollection.this.getDisplayName();
             }
@@ -217,7 +223,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected String getCapDisplayName() {
         return StringUtils.capitalize(getDisplayName());
     }
-
 
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {

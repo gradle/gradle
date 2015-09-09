@@ -18,7 +18,9 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.Task
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext
-import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -30,7 +32,7 @@ class CompositeFileCollectionSpec extends Specification {
             @Override
             void resolve(FileCollectionResolveContext context) {
                 visited++
-                context.add(new SimpleFileCollection([new File("foo")]))
+                context.add(new File("foo").absoluteFile)
             }
         }
 
@@ -51,10 +53,14 @@ class CompositeFileCollectionSpec extends Specification {
 
     def "visits contents when task dependencies are queried"() {
         def visited = 0;
+        def task = Stub(Task)
+        def dependency = Stub(Task)
+        def child = collectionDependsOn(dependency)
         def collection = new TestCollection() {
             @Override
             void resolve(FileCollectionResolveContext context) {
                 visited++
+                context.add(child)
             }
         }
 
@@ -65,22 +71,240 @@ class CompositeFileCollectionSpec extends Specification {
         visited == 0
 
         when:
-        dependencies.getDependencies(Stub(Task))
+        def deps = dependencies.getDependencies(task)
 
         then:
         visited == 1
+        deps as List == [dependency]
 
         when:
-        dependencies.getDependencies(Stub(Task))
+        deps = dependencies.getDependencies(Stub(Task))
 
         then:
         visited == 2
+        deps as List == [dependency]
+    }
+
+    def "subtype can avoid creating content when task dependencies are queried"() {
+        def visited = 0;
+        def task = Stub(Task)
+        def dependency = Stub(Task)
+        def collection = new TestCollection() {
+            @Override
+            void resolve(TaskDependencyResolveContext context) {
+                visited++
+                context.add(dependency)
+            }
+        }
+
+        when:
+        def dependencies = collection.buildDependencies
+
+        then:
+        visited == 0
+
+        when:
+        def deps = dependencies.getDependencies(task)
+
+        then:
+        visited == 1
+        deps as List == [dependency]
+
+        when:
+        deps = dependencies.getDependencies(Stub(Task))
+
+        then:
+        visited == 2
+        deps as List == [dependency]
+    }
+
+    def "collection dependencies are live"() {
+        def task = Stub(Task)
+        def dependency1 = Stub(Task)
+        def dependency2 = Stub(Task)
+        def dependencySource = Mock(TaskDependencyContainer)
+
+        def collection = new TestCollection() {
+            @Override
+            void resolve(TaskDependencyResolveContext context) {
+                context.add(dependencySource)
+            }
+        }
+
+        given:
+        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
+        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
+        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency1); context.add(dependency2) }
+        def dependencies = collection.buildDependencies
+
+        expect:
+        dependencies.getDependencies(task) as List == [dependency1]
+        dependencies.getDependencies(task) as List == [dependency2]
+        dependencies.getDependencies(task) as List == [dependency1, dependency2]
+    }
+
+    def "filtered collection has same live dependencies as original collection"() {
+        def task = Stub(Task)
+        def dependency1 = Stub(Task)
+        def dependency2 = Stub(Task)
+        def dependencySource = Mock(TaskDependencyContainer)
+
+        def collection = new TestCollection() {
+            @Override
+            void resolve(TaskDependencyResolveContext context) {
+                context.add(dependencySource)
+            }
+        }
+
+        given:
+        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
+        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
+
+        def dependencies = collection.filter { false }.buildDependencies
+
+        expect:
+        dependencies.getDependencies(task) as List == [dependency1]
+        dependencies.getDependencies(task) as List == [dependency2]
+    }
+
+    def "FileTree view has same live dependencies as original collection"() {
+        def task = Stub(Task)
+        def dependency1 = Stub(Task)
+        def dependency2 = Stub(Task)
+        def dependencySource = Mock(TaskDependencyContainer)
+
+        def collection = new TestCollection() {
+            @Override
+            void resolve(TaskDependencyResolveContext context) {
+                context.add(dependencySource)
+            }
+        }
+
+        given:
+        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
+        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
+
+        def dependencies = collection.asFileTree.buildDependencies
+
+        expect:
+        dependencies.getDependencies(task) as List == [dependency1]
+        dependencies.getDependencies(task) as List == [dependency2]
+    }
+
+    def "visits content of tree of collections"() {
+        def child1 = new TestCollection() {
+            @Override
+            void resolve(FileCollectionResolveContext context) {
+                context.add(new File("1").absoluteFile)
+            }
+        }
+        def child2 = new TestCollection() {
+            @Override
+            void resolve(FileCollectionResolveContext context) {
+                context.add(child1)
+            }
+        }
+        def child3 = new TestCollection() {
+            @Override
+            void resolve(FileCollectionResolveContext context) {
+                context.add(new File("2").absoluteFile)
+            }
+        }
+        def collection = new TestCollection() {
+            @Override
+            void resolve(FileCollectionResolveContext context) {
+                context.add(child2)
+                context.add(child3)
+            }
+        }
+
+        expect:
+        collection.files.size() == 2
+    }
+
+    def "visits content of tree of collections when dependencies are queried"() {
+        def task = Stub(Task)
+        def dependency1 = Stub(Task)
+        def dependency2 = Stub(Task)
+        def child1 = new TestCollection() {
+            @Override
+            void resolve(FileCollectionResolveContext context) {
+                context.add(collectionDependsOn(dependency1))
+            }
+        }
+        def child2 = new TestCollection() {
+            @Override
+            void resolve(FileCollectionResolveContext context) {
+                context.add(child1)
+            }
+        }
+        def child3 = new TestCollection() {
+            @Override
+            void resolve(FileCollectionResolveContext context) {
+                context.add(child2)
+                context.add(collectionDependsOn(dependency2))
+            }
+        }
+        def collection = new TestCollection() {
+            @Override
+            void resolve(FileCollectionResolveContext context) {
+                context.add(child3)
+            }
+        }
+
+        expect:
+        collection.buildDependencies.getDependencies(task) == [dependency1, dependency2] as LinkedHashSet
+    }
+
+    def "descendent can avoid visiting content when task dependencies are queried"() {
+        def task = Stub(Task)
+        def dependency1 = Stub(Task)
+        def dependency2 = Stub(Task)
+        def child1 = new TestCollection() {
+            @Override
+            void resolve(TaskDependencyResolveContext context) {
+                context.add(dependency1)
+            }
+        }
+        def child2 = new TestCollection() {
+            @Override
+            void resolve(FileCollectionResolveContext context) {
+                context.add(child1)
+            }
+        }
+        def child3 = new TestCollection() {
+            @Override
+            void resolve(FileCollectionResolveContext context) {
+                context.add(child2)
+                context.add(collectionDependsOn(dependency2))
+            }
+        }
+        def collection = new TestCollection() {
+            @Override
+            void resolve(FileCollectionResolveContext context) {
+                context.add(child3)
+            }
+        }
+
+        expect:
+        collection.buildDependencies.getDependencies(task) == [dependency1, dependency2] as LinkedHashSet
+    }
+
+    def collectionDependsOn(Task... tasks) {
+        def collection = Stub(FileCollectionInternal)
+        collection.buildDependencies >> Stub(TaskDependency) { getDependencies(_) >> tasks }
+        return collection
     }
 
     private static abstract class TestCollection extends CompositeFileCollection {
         @Override
         String getDisplayName() {
             return "<display-name>"
+        }
+
+        @Override
+        void resolve(FileCollectionResolveContext context) {
+            throw new UnsupportedOperationException()
         }
     }
 }

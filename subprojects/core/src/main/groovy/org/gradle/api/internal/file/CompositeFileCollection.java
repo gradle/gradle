@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.*;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -34,8 +34,10 @@ import java.util.*;
  * <p>The source file collections are calculated from the result of calling {@link #resolve(FileCollectionResolveContext)}, and may be lazily created.
  * This also means that the source collections can be created using any representation supported by {@link FileCollectionResolveContext}.
  * </p>
+ *
+ * <p>The dependencies of this collection are calculated from the result of calling {@link #resolve(TaskDependencyResolveContext)}.</p>
  */
-public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer {
+public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer, TaskDependencyContainer {
     public Set<File> getFiles() {
         Set<File> files = new LinkedHashSet<File>();
         for (FileCollection collection : getSourceCollections()) {
@@ -92,6 +94,11 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
             }
 
             @Override
+            public void resolve(TaskDependencyResolveContext context) {
+                CompositeFileCollection.this.resolve(context);
+            }
+
+            @Override
             public String getDisplayName() {
                 return CompositeFileCollection.this.getDisplayName();
             }
@@ -109,36 +116,36 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
             }
 
             @Override
-            public String getDisplayName() {
-                return CompositeFileCollection.this.getDisplayName();
+            public void resolve(TaskDependencyResolveContext context) {
+                CompositeFileCollection.this.resolve(context);
             }
 
             @Override
-            public TaskDependency getBuildDependencies() {
-                return CompositeFileCollection.this.getBuildDependencies();
+            public String getDisplayName() {
+                return CompositeFileCollection.this.getDisplayName();
+            }
+        };
+    }
+
+    // This is final - use {@link TaskDependencyContainer#resolve} to provide the dependencies instead.
+    @Override
+    public final TaskDependency getBuildDependencies() {
+        return new AbstractTaskDependency() {
+            @Override
+            public String toString() {
+                return CompositeFileCollection.this.toString() + " dependencies";
+            }
+
+            public void resolve(TaskDependencyResolveContext context) {
+                CompositeFileCollection.this.resolve(context);
             }
         };
     }
 
     @Override
-    public TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            public void resolve(TaskDependencyResolveContext context) {
-                addDependencies(context);
-            }
-        };
-    }
-
-    /**
-     * Allows subclasses to add additional dependencies
-     * @param context The context to add dependencies to.
-     */
-    protected void addDependencies(TaskDependencyResolveContext context) {
-        BuildDependenciesOnlyFileCollectionResolveContext fileContext = new BuildDependenciesOnlyFileCollectionResolveContext();
+    public void resolve(TaskDependencyResolveContext context) {
+        BuildDependenciesOnlyFileCollectionResolveContext fileContext = new BuildDependenciesOnlyFileCollectionResolveContext(context);
         resolve(fileContext);
-        for (Buildable buildable : fileContext.resolveAsBuildables()) {
-            context.add(buildable);
-        }
     }
 
     protected Collection<? extends FileCollectionInternal> getSourceCollections() {
