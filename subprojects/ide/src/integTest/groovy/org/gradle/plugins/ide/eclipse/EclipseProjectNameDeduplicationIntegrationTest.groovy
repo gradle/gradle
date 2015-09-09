@@ -101,7 +101,7 @@ class EclipseProjectNameDeduplicationIntegrationTest extends AbstractEclipseInte
         project("foo-bar").projectName == "foo-bar"
         project("foo").projectName == "foo"
         project("foo/bar").projectName == "root-foo-bar"
-        project("baz/bar").projectName == "root-baz-bar"
+        project("baz/bar").projectName == "baz-bar"
     }
 
     def "dedups projects with different nested level"() {

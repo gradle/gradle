@@ -27,28 +27,38 @@ class ModuleNameDeduper {
     void dedupe(Collection<DeduplicationTarget> targets) {
         List<String> givenEclipseProjectNames = targets.collect { it.moduleName }
         targets.each { target ->
-            doDeduplication(givenEclipseProjectNames, targets, target)
+            DeduplicationTarget prefixTarget = getPrefixTarget(targets, target)
+            doDeduplication(givenEclipseProjectNames, targets, target, prefixTarget)
         }
     }
 
-    private String doDeduplication(List<String> givenModuleNames, Collection<DeduplicationTarget> targets, DeduplicationTarget target) {
+    private String doDeduplication(List<String> givenModuleNames, Collection<DeduplicationTarget> targets, DeduplicationTarget target, DeduplicationTarget prefixTarget) {
+        String givenModuleName = target.moduleName
         Project project = target.project
         if (project.parent == null) {
-            return target.moduleName
+            return givenModuleName
         }
-        String givenModuleName = target.moduleName
         boolean isDuplicate = givenModuleNames.findAll { givenModuleName == it }.size() > 1
+        def newModuleName = givenModuleName
         if (isDuplicate) {
-            def parentTarget = targets.find { it.project.equals(project.parent) }
-            if(parentTarget == null){
-                parentTarget = new DeduplicationTarget(project: project.parent, moduleName: project.name, updateModuleName: { })
+            def prefixTargetPrefix = getPrefixTarget(targets, prefixTarget);
+            newModuleName = doDeduplication(givenModuleNames, targets, prefixTarget, prefixTargetPrefix) + "-" + givenModuleName
+            if (givenModuleNames.contains(newModuleName)) {
+                target.moduleName = newModuleName
+                newModuleName = doDeduplication(givenModuleNames + newModuleName, targets, target, prefixTargetPrefix)
             }
-            givenModuleName = doDeduplication(givenModuleNames, targets, parentTarget) + "-" + givenModuleName
+            newModuleName = removeDuplicateWords(newModuleName)
+            target.updateModuleName(newModuleName)
         }
+        return newModuleName;
+    }
 
-        def deduplicatedModuleName = removeDuplicateWords(givenModuleName)
-        target.updateModuleName(deduplicatedModuleName)
-        return deduplicatedModuleName;
+    DeduplicationTarget getPrefixTarget(List<DeduplicationTarget> allTargets, DeduplicationTarget target) {
+        def prefixTarget = allTargets.find { it.project.equals(target.project.parent) }
+        if (prefixTarget == null) {
+            prefixTarget = new DeduplicationTarget(project: target.project.parent, moduleName: target.project.name, updateModuleName: {})
+        }
+        return prefixTarget
     }
 
     private String removeDuplicateWords(String givenProjectName) {
