@@ -55,6 +55,49 @@ Many Gradle compilers are spawned as separate daemons to accommodate special hea
 the end of the build.  With Gradle 2.8, these compiler daemons are kept running during the lifetime of a continuous build session and only stopped when the continuous build is canceled.
 This improves the performance of continuous builds as the cost of re-spawning these compilers is avoided in between builds.
 
+### TestKit API exposes method for injecting classes under test
+
+Previous releases of Gradle required the end user to provide classes under test (e.g. plugin and custom task implementations) to the TestKit by assigning them to the buildscript's classpath.
+
+This release makes it more convenient to inject classes under test through the `GradleRunner` API with the method
+[withClasspath(java.util.List)](javadoc/org/gradle/testkit/runner/GradleRunner.html#withClasspath(java.util.List)). This classpath is then available to use to locate plugins in a test build via the
+[plugins DSL](userguide/plugins.html#sec:plugins_block). The following code example demonstrates the use of the new TestKit API in a test class based on the test framework Spock:
+
+    class BuildLogicFunctionalTest extends Specification {
+        @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+        File buildFile
+        List<URI> pluginClasspath
+
+        def setup() {
+            buildFile = testProjectDir.newFile('build.gradle')
+            pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
+              .readLines()
+              .collect { new File(it).toURI() }
+        }
+
+        def "execute helloWorld task"() {
+            given:
+            buildFile << """
+                plugins {
+                    id 'com.company.helloworld'
+                }
+            """
+
+            when:
+            def result = GradleRunner.create()
+                .withProjectDir(testProjectDir.root)
+                .withArguments('helloWorld')
+                .withClasspath(pluginClasspath)
+                .build()
+
+            then:
+            result.standardOutput.contains('Hello world!')
+            result.taskPaths(SUCCESS) == [':helloWorld']
+        }
+    }
+
+Future versions of Gradle will aim for automatically injecting the classpath without additional configuration from the end user.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

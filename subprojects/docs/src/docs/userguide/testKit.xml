@@ -102,7 +102,7 @@
                 Therefore, the test build does not share the same classpath or classloaders as the test process and the code under test is not implicitly available to the test build.
             </para>
             <para>
-                At the moment the TestKit does not provide any convenient mechanism to inject the code under test into the test builds.
+                At the moment the TestKit does not provide any automatic mechanism to inject the code under test into the test builds.
                 This feature will be added to future versions.
             </para>
             <para>
@@ -113,7 +113,9 @@
                 <sourcefile file="plugin/build.gradle" snippet="test-logic-classpath"/>
             </sample>
             <para>
-                The tests can then read this value, and inject the classpath into the test build.
+                The tests can then read this value, and inject the classpath into the test build by using the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withClasspath"/>.
+                This classpath is then available to use to locate plugins in a test build via the plugins DSL (see <xref linkend="plugins"/>). Applying plugins with the plugins DSL requires the
+                definition of a plugin identifier.
                 The following is an example (in Groovy) of doing this from within a Spock Framework <literal>setup()</literal> method, which is analogous to a JUnit <literal>@Before</literal> method.
             </para>
             <sample id="testKitFunctionalTestSpockClassesTestConfig" dir="testKit/testKitSpockClasspath" includeLocation="true" title="Injecting the code under test classes into test builds">

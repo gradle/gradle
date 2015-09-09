@@ -26,8 +26,9 @@ class BuildLogicFunctionalTest extends Specification {
 
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
-
     // START SNIPPET functional-test-classpath-setup
+    List<URI> pluginClasspath
+
     def setup() {
         buildFile = testProjectDir.newFile('build.gradle')
 
@@ -36,34 +37,29 @@ class BuildLogicFunctionalTest extends Specification {
             throw new IllegalStateException("Did not find plugin classpath resource, run `testClasses` build task.")
         }
 
-        def pluginClasspath = pluginClasspathResource.readLines()
+        pluginClasspath = pluginClasspathResource.readLines()
             .collect { it.replace('\\', '\\\\') } // escape backslashes in Windows paths
-            .collect { "'$it'" }
-            .join(", ")
-
-        // Add the logic under test to the test build
-        buildFile << """
-            buildscript {
-                dependencies {
-                    classpath files($pluginClasspath)
-                }
-            }
-        """
+            .collect { new File(it).toURI() }
     }
-    // END SNIPPET functional-test-classpath-setup
 
     def "hello world task prints hello world"() {
         given:
-        buildFile << 'apply plugin: org.gradle.sample.HelloWorldPlugin'
+        buildFile << """
+            plugins {
+                id 'org.gradle.sample.helloworld'
+            }
+        """
 
         when:
         def result = GradleRunner.create()
             .withProjectDir(testProjectDir.root)
             .withArguments('helloWorld')
+            .withClasspath(pluginClasspath)
             .build()
 
         then:
         result.standardOutput.contains('Hello world!')
         result.task(":helloWorld").outcome == SUCCESS
     }
+    // END SNIPPET functional-test-classpath-setup
 }
