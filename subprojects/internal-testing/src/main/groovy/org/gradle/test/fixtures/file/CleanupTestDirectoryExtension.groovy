@@ -33,17 +33,8 @@ class CleanupTestDirectoryExtension extends AbstractAnnotationDrivenExtension<Cl
         }
     }
 
-    private static class FailureListener extends AbstractRunListener {
-        Throwable exceptionCaught
-
-        @Override
-        void error(ErrorInfo error) {
-            exceptionCaught = error.exception
-        }
-    }
-
     private static class FailureCleanupInterceptor implements IMethodInterceptor {
-        private final String fieldName
+        final String fieldName
 
         FailureCleanupInterceptor(String fieldName) {
             this.fieldName = fieldName
@@ -51,14 +42,14 @@ class CleanupTestDirectoryExtension extends AbstractAnnotationDrivenExtension<Cl
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            FailureListener listener = new FailureListener()
-            invocation.spec.addListener(listener)
+            invocation.spec.addListener(new AbstractRunListener() {
+                @Override
+                void error(ErrorInfo error) {
+                    TestDirectoryProvider provider = GroovyRuntimeUtil.getProperty(invocation.instance, fieldName) as TestDirectoryProvider
+                    provider.suppressCleanup()
+                }
+            })
             invocation.proceed()
-            if (!listener.exceptionCaught) {
-                TestDirectoryProvider testDirectoryProvider = GroovyRuntimeUtil.getProperty(invocation.instance, fieldName) as TestDirectoryProvider
-                TestDirectoryCleaner testDirectoryCleaner = new TestDirectoryCleaner(testDirectoryProvider.testDirectory, invocation.instance.class, invocation.method.description)
-                testDirectoryCleaner.cleanup()
-            }
         }
     }
 }

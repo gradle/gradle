@@ -27,7 +27,7 @@ import org.junit.runner.RunWith
 import spock.lang.Specification
 
 @RunWith(CrossVersionTestRunner)
-abstract class CrossVersionIntegrationSpec extends Specification implements TestDirectoryProvider {
+abstract class CrossVersionIntegrationSpec extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     final GradleDistribution current = new UnderDevelopmentGradleDistribution()
     static GradleDistribution previous

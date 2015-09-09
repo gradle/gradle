@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.file;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -29,13 +30,18 @@ import java.util.regex.Pattern;
  * A JUnit rule which provides a unique temporary folder for the test.
  */
 abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
-    private TestFile dir;
-    private String prefix;
+
     protected static TestFile root;
+
     private static final Random RANDOM = new Random();
     private static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
     private static final int MAX_RANDOM_PART_VALUE = Integer.valueOf("zzzzz", ALL_DIGITS_AND_LETTERS_RADIX);
     private static final Pattern WINDOWS_RESERVED_NAMES = Pattern.compile("(con)|(prn)|(aux)|(nul)|(com\\d)|(lpt\\d)", Pattern.CASE_INSENSITIVE);
+
+    private TestFile dir;
+    private String prefix;
+    private boolean cleanup = true;
+    private boolean suppressCleanupErrors;
 
     private String determinePrefix() {
         StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
@@ -47,29 +53,50 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         return "unknown-test-class";
     }
 
+    @Override
+    public void suppressCleanup() {
+        cleanup = false;
+    }
+
     public Statement apply(final Statement base, Description description) {
         Class<?> testClass = description.getTestClass();
         init(description.getMethodName(), testClass.getSimpleName());
 
-        TestDirectoryCleaner testDirectoryCleaner = new TestDirectoryCleaner(getTestDirectory(), testClass, description, true);
+        suppressCleanupErrors = testClass.getAnnotation(LeaksFileHandles.class) != null
+            || description.getAnnotation(LeaksFileHandles.class) != null
+            // For now, assume that all tests run with the daemon executer leak file handles
+            // This seems to be true for any test that uses `GradleExecuter.requireOwnGradleUserHomeDir`
+            || "daemon".equals(System.getProperty("org.gradle.integtest.executer"));
 
-        return new TestDirectoryCleaningStatement(base, testDirectoryCleaner);
+        return new TestDirectoryCleaningStatement(base, description.getDisplayName());
     }
 
     private class TestDirectoryCleaningStatement extends Statement {
-
         private final Statement base;
-        private final TestDirectoryCleaner testDirectoryCleaner;
+        private final String displayName;
 
-        public TestDirectoryCleaningStatement(Statement base, TestDirectoryCleaner testDirectoryCleaner) {
+        public TestDirectoryCleaningStatement(Statement base, String displayName) {
             this.base = base;
-            this.testDirectoryCleaner = testDirectoryCleaner;
+            this.displayName = displayName;
         }
 
         @Override
         public void evaluate() throws Throwable {
+            // implicitly don't clean up if this throws
             base.evaluate();
-            testDirectoryCleaner.cleanup();
+
+            try {
+                if (cleanup && dir != null && dir.exists()) {
+                    FileUtils.forceDelete(dir);
+                }
+            } catch (Exception e) {
+                if (suppressCleanupErrors) {
+                    System.err.println("Couldn't delete test dir for " + displayName + " (test is holding files open)");
+                    e.printStackTrace(System.err);
+                } else {
+                    throw e;
+                }
+            }
         }
     }
 
@@ -120,5 +147,4 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     public TestFile createDir(Object... path) {
         return file((Object[]) path).createDir();
     }
-
 }
