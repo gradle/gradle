@@ -313,12 +313,12 @@ It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpe
     - A top level element.
 - Empty by default.
 
-- Out-of-scope: Adding any contents. This is the next story.
+- Out-of-scope: Making `FunctionalSourceSet` managed.
+- Out-of-scope: Adding any children. This is the next story. Children can be added by first attaching a factory using `registerFactory`.  
 
 ### Implementation
 
 - Converge on `NodeInitializer` as the strategy for creating the children of a managed type, the elements of a model collection and top level elements:
-    - Hoist this up to `ModelSchema`
     - Replace the various `ChildNodeInitializerStrategy` implementation with one that delegates to the schema.
     - Add some way to register a `NodeInitializer` for an unmanaged or partially managed type.
 - Change validation for managed type properties and managed collection elements to allow any type for which a creation strategy is available.
@@ -326,7 +326,7 @@ It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpe
 
 ## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
 
-- All registered source set types are available to be added.
+- All registered `LanguageSourceSet` types are available to be added.
 - TBD: Need some convention for source directory locations. Possibly add a `baseDir` property to `FunctionalSourceSet` and default source directories to `$baseDir/$sourceSet.name`
 
 - Out-of-scope: Instances are visible in top level `sources` container.
@@ -346,6 +346,7 @@ no knowledge of where its elements end up being referenced.
 - TBD: Need some convention for source directory locations.
 - TBD: Reporting changes, if any
 
+- Out-of-scope: Making `LanguageSourceSet` managed.
 - Out-of-scope: Instances are visible in top level `sources` container.
 
 ### Implementation
@@ -354,15 +355,13 @@ no knowledge of where its elements end up being referenced.
 
 ## Story: Elements of binary `sources` container are visible to rules
 
+- TBD: change `FunctionalSourceSet` to extend `ModelMap`
+
 ### Implementation
 
 - Use the same approach as used to make `ComponentSpec.sources` visible to rules.
     - Will need to make `BaseBinarySpec` node backed, similar to `BaseComponentSpec`.   
     - Should refactor to simplify both cases.
-
-## Story: `FunctionalSourceSet` extends `ModelMap`
-
-### Implementation
 
 - TBD: Currently `CUnitPlugin` uses methods on `FunctionalSourceSet` that are not available on `ModelMap`.
 - TBD: Reuse `FunctionalSourceSet` for `ComponentSpec.sources` and `BinarySpec.sources`.
