@@ -58,6 +58,10 @@ class ToolingApi implements TestRule {
         this.testWorkDirProvider = testWorkDirProvider
     }
 
+    GradleVersion getDistributionVersion(){
+        return dist.getVersion()
+    }
+
     /**
      * Specifies that the test use its own Gradle user home dir and daemon registry.
      */
