@@ -441,7 +441,7 @@ task generateCompareTaskInputs(type: ProjectGeneratorTask) {
                 file.bytes = content
             }
         }
-        [1,10,100,1000,10000].each { count ->
+        ([1,10,100]+(1000..10000).step(1000)).each { count ->
             def dir = file("$buildDir/compareTaskInputs/src/${count}files")
             dir.mkdirs()
             generateInputFiles dir, count, "file content".bytes
@@ -473,17 +473,19 @@ task generateCompareTaskInputs(type: ProjectGeneratorTask) {
             contentFile.delete()
         }
 
-        // 1, 10, 100, 1000 and 10000 inputs
-        // 10k, 50k, 100k, 500k, 1000k inputs
-        [1,10,100,1000,10000].each { count ->
-            [10, 50, 100, 500, 1000].each { sizeInKBytes ->
-                generateFiles count, sizeInKBytes, "k", 1024
+        if(!project.hasProperty("skipGeneratingLargeFiles")) {
+            // 1, 10, 100, 1000 and 10000 inputs
+            // 10k, 50k, 100k, 500k, 1000k inputs
+            [1, 10, 100, 1000, 10000].each { count ->
+                [10, 50, 100, 500, 1000].each { sizeInKBytes ->
+                    generateFiles count, sizeInKBytes, "k", 1024
+                }
             }
-        }
 
-        // 100 input of sizes 1MB, 10MB, 50MB, 100MB inputs
-        [1, 10, 50, 100].each { sizeInMB ->
-            generateFiles 100, sizeInMB, "M", 1024*1024
+            // 100 input of sizes 1MB, 10MB, 50MB, 100MB inputs
+            [1, 10, 50, 100].each { sizeInMB ->
+                generateFiles 100, sizeInMB, "M", 1024 * 1024
+            }
         }
     }
 }

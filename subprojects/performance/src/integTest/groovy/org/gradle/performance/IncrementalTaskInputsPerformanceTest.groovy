@@ -26,7 +26,7 @@ class IncrementalTaskInputsPerformanceTest extends AbstractCrossBuildPerformance
 
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        builder.invocation.gradleOpts("-Xmx4g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/tmp")
+        builder.invocation.gradleOpts("-Xmx1g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/tmp")
         builder.invocationCount(1).warmUpCount(1)
     }
 
@@ -51,6 +51,24 @@ class IncrementalTaskInputsPerformanceTest extends AbstractCrossBuildPerformance
 
         where:
         inputCount << [1, 10, 100, 1000, 10000]
+    }
+
+    @Unroll
+    def "find break point for number of inputs #inputCount"() {
+        when:
+        runner.testGroup = "incremental task inputs"
+        runner.testId = "find break point for number of inputs"
+        runner.buildSpec {
+            projectName("compareTaskInputs").displayName("incremental inputs $inputCount").invocation {
+                tasksToRun("buildIncremental").args("-PinputCount=$inputCount").useDaemon()
+            }
+        }
+
+        then:
+        runner.run()
+
+        where:
+        inputCount << (1000..10000).step(1000)
     }
 
     @Unroll
