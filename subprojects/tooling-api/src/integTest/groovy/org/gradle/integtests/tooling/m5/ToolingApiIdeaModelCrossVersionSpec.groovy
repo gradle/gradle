@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.m5
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.idea.*
+import spock.lang.Ignore
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
@@ -212,6 +213,7 @@ project(':impl') {
         mod.scope.scope == 'COMPILE'
     }
 
+    @Ignore
     def "makes sure module names are unique"() {
         
         file('build.gradle').text = """
