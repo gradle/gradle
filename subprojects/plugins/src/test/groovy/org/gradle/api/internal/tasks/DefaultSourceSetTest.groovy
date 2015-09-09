@@ -18,10 +18,12 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Task
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.tasks.SourceSet
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Before
 import org.junit.Test
+
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
@@ -136,7 +138,7 @@ class DefaultSourceSetTest {
     }
 
     @Test
-    public void classesCollectionTracksChangesToClassesDir() {
+    public void tracksChangesToClassesDir() {
         SourceSet sourceSet = sourceSet('set-name')
         assertThat(sourceSet.output.files, isEmpty())
 
@@ -147,12 +149,37 @@ class DefaultSourceSetTest {
     }
 
     @Test
-    public void classesCollectionDependenciesTrackChangesToCompileTasks() {
+    public void dependenciesTrackChangesToCompileTasks() {
         SourceSet sourceSet = sourceSet('set-name')
-        assertThat(sourceSet.output.buildDependencies.getDependencies(null), isEmpty())
-
         sourceSet.output.classesDir = new File('classes')
+
+        def dependencies = sourceSet.output.buildDependencies
+        assertThat(dependencies.getDependencies(null), isEmpty())
+
         sourceSet.compiledBy('a', 'b')
-        assertThat(sourceSet.output.buildDependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b'] as Set))
+        assertThat(dependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b'] as Set))
+
+        sourceSet.compiledBy('c')
+        assertThat(dependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b', 'c'] as Set))
+    }
+
+    @Test
+    public void dependenciesTrackChangesToOutputDirs() {
+        SourceSet sourceSet = sourceSet('set-name')
+        sourceSet.output.classesDir = new File('classes')
+
+        def dependencies = sourceSet.output.buildDependencies
+        assertThat(dependencies.getDependencies(null), isEmpty())
+
+        sourceSet.compiledBy('a')
+
+        def dirs1 = new DefaultConfigurableFileCollection(fileResolver, taskResolver)
+
+        dirs1.builtBy('b')
+        sourceSet.output.dir(dirs1)
+        assertThat(dependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b'] as Set))
+
+        dirs1.builtBy('c')
+        assertThat(dependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b', 'c'] as Set))
     }
 }
