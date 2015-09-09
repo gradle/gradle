@@ -107,7 +107,7 @@ Generalise the previous story to also work with `BinarySpec` and `LanguageSource
 - Should start to unify the type registration infrastructure, so that registration for all types are treated the same way and there are few or no differences
 between the implementation of component, binary and source set type registration rules. This will be required for the next stories.
 
-## Plugin author declares internal views for extensible type
+## Plugin author declares internal views for any extensible type
 
 Given a plugin defines a general purpose type that is then extended by another plugin, allow internal views to be declared for the general type as well as the
 specialized type. For example:
@@ -193,10 +193,14 @@ Infer a model element's hidden properties based on the parent's views:
 
 Some candidates:
 
-- Consistent validation when managed type, ModelMap and ModelSet are used as inputs.
-- Consistent validation when managed type, ModelMap and ModelSet are mutated after view is closed.
-- Consistent validation when managed type, ModelMap and ModelSet used on subject that is not mutable.
-- Consistent error message for ModelMap<T> and ModelSet<T> where T is not managed.
+- Consistent validation when managed type, Collection, ModelMap and ModelSet are mutated as inputs.
+    - Directly
+    - When parent is input.
+- Consistent validation when managed type, Collection, ModelMap and ModelSet are mutated after view is closed.
+- Consistent validation when managed type, Collection, ModelMap and ModelSet are mutated as subject that is not mutable (eg in validation).
+    - Directly
+    - When parent is subject
+- Consistent error message for managed type property, ModelMap<T> and ModelSet<T> where T is not managed.
 - Consistent usage of ModelMap and ModelSet with reference properties.
 - Consistent mutation methods on ModelMap and ModelSet.
 - Enforce that `@Defaults` rules cannot be applied to an element created using non-void `@Model` rule.
@@ -301,16 +305,15 @@ build types and flavors each with an associated source set.
 
 It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpec.sources` model backed containers.
 
-## Story: Allow `LanguageSourceSet` instances to be attached to a managed type
+## Story: Allow `FunctionalSourceSet` instances to be attached to a managed type
 
-- Allow any registered subtype of `LanguageSourceSet` to be used as:
+- Allow a `FunctionalSourceSet` to be used as:
     - A read-only property of a `@Managed` type
     - An element of managed collections `ModelSet` and `ModelMap`
     - A top level element.
-- TBD: Need some convention for source directory locations. Possibly add a `baseDir` property to `FunctionalSourceSet` and default source directories to `$baseDir/$sourceSet.name`
-- TBD: Reporting changes, if any
+- Empty by default.
 
-- Out-of-scope: Instances are visible in top level `sources` container.
+- Out-of-scope: Adding any contents. This is the next story.
 
 ### Implementation
 
@@ -319,6 +322,34 @@ It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpe
     - Replace the various `ChildNodeInitializerStrategy` implementation with one that delegates to the schema.
     - Add some way to register a `NodeInitializer` for an unmanaged or partially managed type.
 - Change validation for managed type properties and managed collection elements to allow any type for which a creation strategy is available.
+- Add a creation strategy for `FunctionalSourceSet`
+
+## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
+
+- All registered source set types are available to be added.
+- TBD: Need some convention for source directory locations. Possibly add a `baseDir` property to `FunctionalSourceSet` and default source directories to `$baseDir/$sourceSet.name`
+
+- Out-of-scope: Instances are visible in top level `sources` container.
+
+### Implementation
+
+- TBD: Currently rules push language registrations into various well known instances. Should change this to work with all instances, ideally by pull rather than push.
+- TBD: Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has 
+no knowledge of where its elements end up being referenced.
+
+## Story: Allow `LanguageSourceSet` instances to be attached to a managed type
+
+- Allow any registered subtype of `LanguageSourceSet` to be used as:
+    - A read-only property of a `@Managed` type
+    - An element of managed collections `ModelSet` and `ModelMap`
+    - A top level element.
+- TBD: Need some convention for source directory locations.
+- TBD: Reporting changes, if any
+
+- Out-of-scope: Instances are visible in top level `sources` container.
+
+### Implementation
+
 - Add creation strategy for `LanguageSourceSet` backed by type registration.
 
 ## Story: Elements of binary `sources` container are visible to rules
@@ -329,21 +360,14 @@ It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpe
     - Will need to make `BaseBinarySpec` node backed, similar to `BaseComponentSpec`.   
     - Should refactor to simplify both cases.
 
-## Story: Allow `FunctionalSourceSet` instances to be attached to a managed type
-
-- Empty by default.
-- All registered source set types are available to be added.
-- TBD: Change `FunctionalSourceSet` to extend `ModelMap`. Probably should be split out as a separate story.
+## Story: `FunctionalSourceSet` extends `ModelMap`
 
 ### Implementation
 
-- TBD: Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has 
-no knowledge of where its elements end up being referenced.
-- TBD: Currently rules push language registrations into various well known instances. Should change this to work with all instances, ideally by pull rather than push.
 - TBD: Currently `CUnitPlugin` uses methods on `FunctionalSourceSet` that are not available on `ModelMap`.
 - TBD: Reuse `FunctionalSourceSet` for `ComponentSpec.sources` and `BinarySpec.sources`.
 
-## Story: Elements of `sources` container are visible to rules 
+## Story: Elements of project `sources` container are visible to rules 
 
 - TBD: Change `ProjectSourceSet` so that it is bridged in the same way as the `binaries` container, alternatively move `sources` completely into model space.
 - TBD: Currently `JavaBasePlugin` contributes source sets to `sources` container.
