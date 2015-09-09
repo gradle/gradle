@@ -20,7 +20,8 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 class TextResourceIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources resource = new TestResources(this)
+    @Rule
+    TestResources resource = new TestResources(temporaryFolder)
 
     def "string backed text resource"() {
         when:

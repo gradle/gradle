@@ -24,7 +24,7 @@ import org.junit.Rule
 class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
-    final S3Server server = new S3Server(this)
+    final S3Server server = new S3Server(temporaryFolder)
 
     @Override
     RepositoryServer getServer() {
