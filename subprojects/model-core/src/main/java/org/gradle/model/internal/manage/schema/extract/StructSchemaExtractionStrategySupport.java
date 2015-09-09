@@ -163,7 +163,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
     }
 
     @Nullable
-    private <R> ModelPropertyExtractionResult<R> extractPropertySchema(ModelSchemaExtractionContext<?> extractionContext, String propertyName, PropertyAccessorExtractionContext getterContext, PropertyAccessorExtractionContext setterContext, int getterPrefixLen) {
+    private <R> ModelPropertyExtractionResult<R> extractPropertySchema(final ModelSchemaExtractionContext<?> extractionContext, String propertyName, PropertyAccessorExtractionContext getterContext, PropertyAccessorExtractionContext setterContext, int getterPrefixLen) {
         // Take the most specific declaration of the getter
         Method mostSpecificGetter = getterContext.getMostSpecificDeclaration();
         if (mostSpecificGetter.getParameterTypes().length != 0) {
@@ -177,7 +177,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         }
 
         ModelProperty.StateManagementType stateManagementType = determineStateManagementType(extractionContext, getterContext);
-        ModelType<R> returnType = ModelType.returnType(mostSpecificGetter);
+        final ModelType<R> returnType = ModelType.returnType(mostSpecificGetter);
 
         boolean writable = setterContext != null;
         if (writable) {
@@ -190,9 +190,14 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
             }
         }));
 
-        WeaklyTypeReferencingMethod<?, R> getterRef = WeaklyTypeReferencingMethod.of(extractionContext.getType(), returnType, getterContext.getMostSpecificDeclaration());
+        List<WeaklyTypeReferencingMethod<?, R>> getterRefs = Lists.newArrayList(Iterables.transform(getterContext.getGetters(), new Function<Method, WeaklyTypeReferencingMethod<?, R>>() {
+            @Override
+            public WeaklyTypeReferencingMethod<?, R> apply(@Nullable Method getter) {
+                return WeaklyTypeReferencingMethod.of(extractionContext.getType(), returnType, getter);
+            }
+        }));
         return new ModelPropertyExtractionResult<R>(
-            ModelProperty.of(returnType, propertyName, stateManagementType, writable, declaringClasses, getterRef),
+            ModelProperty.of(returnType, propertyName, stateManagementType, writable, declaringClasses, getterRefs),
             getterContext,
             setterContext
         );

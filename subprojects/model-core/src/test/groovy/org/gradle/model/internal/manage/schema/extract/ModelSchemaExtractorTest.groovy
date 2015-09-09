@@ -1220,8 +1220,14 @@ interface Managed${typeName} {
     }
 
     def "allows both is and get style getters"() {
-        expect:
-        store.getSchema(HasDualGetter)
+        when:
+        def schema = store.getSchema(HasDualGetter)
+
+        then:
+        schema instanceof ManagedImplModelSchema
+        def redundant = schema.properties[0]
+        assert redundant instanceof ModelProperty
+        redundant.getters.size()==2
     }
 
     @Managed

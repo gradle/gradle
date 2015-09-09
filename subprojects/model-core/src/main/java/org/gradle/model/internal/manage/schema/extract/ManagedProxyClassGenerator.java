@@ -32,9 +32,7 @@ import org.objectweb.asm.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -335,7 +333,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
             switch (property.getStateManagementType()) {
                 case MANAGED:
                     Class<?> propertyTypeClass = property.getType().getConcreteClass();
-                    writeGetter(visitor, managedTypeClass, generatedType, propertyName, propertyTypeClass, propertyResult.getGetter().getMostSpecificSignature());
+                    writeGetter(visitor, generatedType, propertyName, propertyTypeClass, propertyResult.getGetter());
                     if (propertyResult.getSetter() != null) {
                         writeSetter(visitor, generatedType, propertyName, propertyTypeClass, propertyResult.getSetter().getMostSpecificSignature());
                     }
@@ -523,29 +521,19 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitFieldInsn(GETSTATIC, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
     }
 
-    private void writeGetter(ClassVisitor visitor, Class<?> managedTypeClass, Type generatedType, String propertyName, Class<?> propertyTypeClass, String signature) {
-        List<String> getters = new ArrayList<String>(2);
-        getters.add(getGetterName(propertyName));
-        if (propertyTypeClass == boolean.class) {
-            getters.add(getIsGetterName(propertyName));
-        }
-        for (String getter : getters) {
-            Method declaredMethod;
-            try {
-                declaredMethod = managedTypeClass.getMethod(getter);
-            } catch (NoSuchMethodException e) {
-                // make sure that we don't generate is/get method if the managed type doesn't declare it
-                continue;
-            }
-            if (declaredMethod.getReturnType().isAssignableFrom(propertyTypeClass)) {
-                MethodVisitor methodVisitor = declareMethod(visitor, getter, Type.getMethodDescriptor(Type.getType(propertyTypeClass)), signature);
+    private void writeGetter(ClassVisitor visitor, Type generatedType, String propertyName, Class<?> propertyTypeClass, PropertyAccessorExtractionContext getterContext) {
+        for (Method getter : getterContext.getGetters()) {
+            MethodVisitor methodVisitor = declareMethod(
+                visitor,
+                getter.getName(),
+                Type.getMethodDescriptor(Type.getType(propertyTypeClass)),
+                AsmClassGeneratorUtils.signature(getter));
 
-                putStateFieldValueOnStack(methodVisitor, generatedType);
-                putConstantOnStack(methodVisitor, propertyName);
-                invokeStateGetMethod(methodVisitor);
-                castFirstStackElement(methodVisitor, propertyTypeClass);
-                finishVisitingMethod(methodVisitor, returnCode(propertyTypeClass));
-            }
+            putStateFieldValueOnStack(methodVisitor, generatedType);
+            putConstantOnStack(methodVisitor, propertyName);
+            invokeStateGetMethod(methodVisitor);
+            castFirstStackElement(methodVisitor, propertyTypeClass);
+            finishVisitingMethod(methodVisitor, returnCode(propertyTypeClass));
         }
 
     }
@@ -556,10 +544,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private static String getGetterName(String propertyName) {
         return "get" + StringUtils.capitalize(propertyName);
-    }
-
-    private static String getIsGetterName(String propertyName) {
-        return "is" + StringUtils.capitalize(propertyName);
     }
 
     private static String getSetterName(String propertyName) {

@@ -29,6 +29,8 @@ import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.lang.reflect.Method
+
 import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.*
 
 class ManagedProxyClassGeneratorTest extends Specification {
@@ -101,6 +103,8 @@ class ManagedProxyClassGeneratorTest extends Specification {
         BooleanGetter1 | true            | false
         BooleanGetter2 | false           | true
         BooleanGetter3 | true            | true
+        BooleanGetter4 | true            | true
+        BooleanGetter5 | false           | true
     }
 
     static interface BooleanGetter1 {
@@ -114,6 +118,16 @@ class ManagedProxyClassGeneratorTest extends Specification {
     static interface BooleanGetter3 {
         boolean getFlag()
 
+        boolean isFlag()
+    }
+
+    static interface BooleanGetter4 extends BooleanGetter1 {
+        // make sure that getters from parents are used
+        boolean isFlag()
+    }
+
+    static interface BooleanGetter5 extends BooleanGetter2 {
+        // make sure that overrides do not generate duplicates
         boolean isFlag()
     }
 
@@ -400,15 +414,18 @@ class ManagedProxyClassGeneratorTest extends Specification {
     }
 
     private static def property(Class<?> parentType, String name, StateManagementType stateManagementType) {
-        def getter
+        List<Method> getters = []
         try {
-            getter = parentType.getMethod("get${name.capitalize()}");
+            getters << parentType.getMethod("get${name.capitalize()}");
         } catch (NoSuchMethodException ex) {
-            getter = parentType.getMethod("is${name.capitalize()}");
         }
-        def type = ModelType.returnType(getter)
-        def getterRef = new WeaklyTypeReferencingMethod(ModelType.of(parentType), type, getter)
-        def getterContext = new PropertyAccessorExtractionContext([getter])
+        try {
+            getters << parentType.getMethod("is${name.capitalize()}");
+        } catch (NoSuchMethodException ex) {
+        }
+        def type = ModelType.returnType(getters[0])
+        def getterRefs = getters.collect { new WeaklyTypeReferencingMethod(ModelType.of(parentType), type, it) }
+        def getterContext = new PropertyAccessorExtractionContext(getters)
         def setterContext;
         try {
             def setter = parentType.getMethod("set${name.capitalize()}", type.getRawClass())
@@ -417,7 +434,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
             setterContext = null
         }
         return new ModelPropertyExtractionResult<?>(
-            ModelProperty.of(type, name, stateManagementType, setterContext != null, Collections.emptySet(), getterRef),
+            ModelProperty.of(type, name, stateManagementType, setterContext != null, Collections.emptySet(), getterRefs),
             getterContext, setterContext)
     }
 
@@ -488,7 +505,9 @@ class ManagedProxyClassGeneratorTest extends Specification {
             (SomeTypeWithParameters): [property(SomeTypeWithParameters, "values", MANAGED),
                                        property(SomeTypeWithParameters, "optional", MANAGED)],
             (BooleanGetter1)        : [property(BooleanGetter1, "flag", MANAGED)],
-            (BooleanGetter2)        : [property(BooleanGetter1, "flag", MANAGED)],
-            (BooleanGetter3)        : [property(BooleanGetter1, "flag", MANAGED)],
+            (BooleanGetter2)        : [property(BooleanGetter2, "flag", MANAGED)],
+            (BooleanGetter3)        : [property(BooleanGetter3, "flag", MANAGED)],
+            (BooleanGetter4)        : [property(BooleanGetter4, "flag", MANAGED)],
+            (BooleanGetter5)        : [property(BooleanGetter5, "flag", MANAGED)],
         ])
 }

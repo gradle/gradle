@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
@@ -24,8 +25,10 @@ import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class PropertyAccessorExtractionContext {
@@ -89,6 +92,22 @@ public class PropertyAccessorExtractionContext {
 
     public Collection<Annotation> getAnnotations() {
         return annotations.values();
+    }
+
+    public List<Method> getGetters() {
+        List<Method> getters;
+        if (mostSpecificDeclaration.getReturnType()==Boolean.TYPE) {
+            getters = Lists.newArrayList();
+            for (Method getter : declaringMethods) {
+                if (Proxy.isProxyClass(getter.getDeclaringClass())) {
+                    continue;
+                }
+                getters.add(getter);
+            }
+        } else {
+            getters = Collections.singletonList(mostSpecificDeclaration);
+        }
+        return getters;
     }
 
 }
