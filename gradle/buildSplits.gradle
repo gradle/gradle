@@ -1,5 +1,3 @@
-import org.gradle.build.BuildTypes
-
 /*
  * Copyright 2015 the original author or authors.
  *
@@ -15,6 +13,7 @@ import org.gradle.build.BuildTypes
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.build.BuildTypes
 
 def buckets = [
     '1': [':modelCore', ':announce', ':antlr', ':internalIntegTesting', ':internalTesting', ':maven', ':messaging',
@@ -40,21 +39,31 @@ assert coveredProjects.size() == subprojects.size(): "The following projects sho
 buckets.each { String bucketName, List<String> projects ->
     buildTypeList.each { BuildTypes.BuildType buildType ->
         def tasks = tasksForProjects(buildType, projects)
-        project.getExtensions().buildTypes."${buildType.name + bucketName}"(tasks, buildType.projectProperties)
+        project.getExtensions().buildTypes."${buildType.name + bucketName}"(buildType.projectProperties, *tasks)
     }
 
 }
 
 def tasksForProjects(BuildTypes.BuildType buildType, List<String> projects) {
-    Set tasks = []
-    projects.each {
-        buildType.tasks.each { String task ->
+    Set<String> tasks = []
+    projects.each { String p ->
+        buildType.tasks.each { String t ->
+            String task = reverseGrouping(t)
             if (!task.contains(':')) {
-                tasks << ["$project:${task}"]
+                tasks << "$p:${task}"
             } else {
                 tasks << task
             }
         }
     }
-    return tasks
+    return tasks.toList()
 }
+
+
+def String reverseGrouping(String task) {
+    if (task.startsWith('runtime')) {
+        return task.substring(7, 8).toLowerCase() + task.substring(8, task.length() - 1)
+    }
+    task
+}
+

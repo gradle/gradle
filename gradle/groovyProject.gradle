@@ -79,9 +79,7 @@ if (file("src/testFixtures").exists()) {
     apply from: "$rootDir/gradle/testFixtures.gradle"
 }
 
-if (file("src/integTest").exists()) {
-    apply from: "$rootDir/gradle/integTest.gradle"
-}
+apply from: "$rootDir/gradle/integTest.gradle"
 
 class ClasspathManifest extends DefaultTask {
 
