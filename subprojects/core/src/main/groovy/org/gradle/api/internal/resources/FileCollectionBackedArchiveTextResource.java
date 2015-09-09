@@ -18,7 +18,6 @@ package org.gradle.api.internal.resources;
 import com.google.common.io.Files;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
@@ -40,14 +39,14 @@ public class FileCollectionBackedArchiveTextResource extends FileCollectionBacke
             }
 
             @Override
-            public FileCollectionInternal createDelegate() {
+            public FileCollection createDelegate() {
                 File archiveFile = fileCollection.getSingleFile();
                 String fileExtension = Files.getFileExtension(archiveFile.getName());
                 FileTree archiveContents = fileExtension.equals("jar") || fileExtension.equals("zip")
                     ? fileOperations.zipTree(archiveFile) : fileOperations.tarTree(archiveFile);
                 PatternSet patternSet = new PatternSet();
                 patternSet.include(path);
-                return (FileCollectionInternal) archiveContents.matching(patternSet);
+                return archiveContents.matching(patternSet);
             }
 
             @Override

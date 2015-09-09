@@ -81,7 +81,7 @@ public class GroovyRuntime {
             }
 
             @Override
-            public FileCollectionInternal createDelegate() {
+            public FileCollection createDelegate() {
                 GroovyJarFile groovyJar = findGroovyJarFile(classpath);
                 if (groovyJar == null) {
                     throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s", classpath));
@@ -103,7 +103,7 @@ public class GroovyRuntime {
                     // add groovy-ant to bring in Groovydoc
                     dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
                 }
-                return Cast.cast(FileCollectionInternal.class, project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()])));
+                return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)

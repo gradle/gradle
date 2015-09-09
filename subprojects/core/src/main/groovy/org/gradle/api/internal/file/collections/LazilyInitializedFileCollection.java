@@ -15,42 +15,22 @@
  */
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.CompositeFileCollection;
 
 /**
- * A {@link DelegatingFileCollection} whose delegate is created lazily.
+ * A {@link FileCollection} whose contents is created lazily.
  */
-public abstract class LazilyInitializedFileCollection extends DelegatingFileCollection implements TaskDependencyContainer {
-    private FileCollectionInternal delegate;
-
-    public abstract String getDisplayName();
+public abstract class LazilyInitializedFileCollection extends CompositeFileCollection {
+    private FileCollection delegate;
 
     @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    @Override
-    public TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            @Override
-            public void resolve(TaskDependencyResolveContext context) {
-                LazilyInitializedFileCollection.this.resolve(context);
-            }
-        };
-    }
-
-    public abstract FileCollectionInternal createDelegate();
-
-    @Override
-    public final synchronized FileCollectionInternal getDelegate() {
+    public void resolve(FileCollectionResolveContext context) {
         if (delegate == null) {
             delegate = createDelegate();
         }
-        return delegate;
+        context.add(delegate);
     }
+
+    public abstract FileCollection createDelegate();
 }

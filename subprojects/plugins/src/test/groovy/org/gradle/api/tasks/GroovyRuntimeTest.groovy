@@ -54,7 +54,8 @@ class GroovyRuntimeTest extends Specification {
 
         then:
         classpath instanceof LazilyInitializedFileCollection
-        with(classpath.delegate) {
+        classpath.sourceCollections.size() == 1
+        with(classpath.sourceCollections[0]) {
             it instanceof Configuration
             state == Configuration.State.UNRESOLVED
             dependencies.size() == 2

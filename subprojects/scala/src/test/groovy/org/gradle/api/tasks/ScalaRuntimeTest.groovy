@@ -39,7 +39,8 @@ class ScalaRuntimeTest extends Specification {
 
         then:
         classpath instanceof LazilyInitializedFileCollection
-        with(classpath.delegate) {
+        classpath.sourceCollections.size() == 1
+        with(classpath.sourceCollections[0]) {
             it instanceof Configuration
             it.state == Configuration.State.UNRESOLVED
             it.dependencies.size() == 1
