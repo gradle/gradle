@@ -5,14 +5,14 @@ plugins {
 
 model {
     components {
-        main(JvmLibrarySpec)<% if (binding.hasVariable("projectDependencies") && subprojectNumber > 1) { %> {
+        main(JvmLibrarySpec)<% if (binding.hasVariable("generatedDependencies")) {
+            def projectDependencies = generatedDependencies.get(subprojectNumber)
+            if(projectDependencies) {
+            %> {
             sources {
                 java {
                     dependencies {<%
-                        def maxDependencies = binding.hasVariable("maxDependencies") ? binding.maxDependencies : 5
-                        def startNumber = subprojectNumber - maxDependencies
-                        startNumber = Math.max(1, startNumber)
-                        (startNumber..<subprojectNumber).each {
+                        projectDependencies.each {
 %>
                         project ':project${it}' library 'main'<%
                         } %>
@@ -20,6 +20,6 @@ model {
                 }
             }
         }
-<% } %>
+<% } } %>
     }
 }

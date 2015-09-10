@@ -1,3 +1,4 @@
+apply from: 'src/dependency_generator.groovy'
 apply from: 'src/generator.groovy'
 apply plugin: 'javascript-base'
 
@@ -385,7 +386,7 @@ task generateBigNewMultiprojectJava(type: ProjectGeneratorTask) {
     sourceFiles = 300
     linesOfCodePerSourceFile = 350
     subProjectTemplates = ['java-source', 'new-java-project']
-    templateArgs = [projectDependencies: true, maxDependencies: 8]
+    templateArgs = [projectDependencies: true, generatedDependencies: DependencyGenerator.newInstance(numberOfProjects: 150).createDependencies()]
     testDependencies = files()
 }
 
