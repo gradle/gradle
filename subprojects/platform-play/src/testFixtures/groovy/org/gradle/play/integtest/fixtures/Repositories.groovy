@@ -16,22 +16,20 @@
 
 package org.gradle.play.integtest.fixtures
 
-import org.gradle.api.tasks.compile.AbstractCompilerContinuousIntegrationTest
-import static org.gradle.play.integtest.fixtures.Repositories.*
 
-abstract class AbstractPlayCompilerContinuousIntegrationTest extends AbstractCompilerContinuousIntegrationTest {
-    String getPlugins() {
-        return "id 'play-application'"
-    }
-
-    @Override
-    String getApplyAndConfigure() {
-        return """
-            plugins {
-                $plugins
+class Repositories {
+    public static final String PLAY_REPOSITORES = """
+        repositories {
+            jcenter()
+            maven {
+                name "typesafe-maven-release"
+                url "https://repo.typesafe.com/typesafe/maven-releases"
             }
-
-            ${PLAY_REPOSITORES}
-        """
-    }
+            ivy {
+                name "typesafe-ivy-release"
+                url "https://repo.typesafe.com/typesafe/ivy-releases"
+                layout "ivy"
+            }
+        }
+    """
 }

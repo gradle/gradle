@@ -22,6 +22,7 @@ import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.test.fixtures.archive.JarTestFixture
+import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class MixedPlayAndJvmLibraryProjectIntegrationTest extends AbstractIntegrationSpec {
     TestJvmComponent jvmApp = new TestJavaComponent()
@@ -33,31 +34,20 @@ class MixedPlayAndJvmLibraryProjectIntegrationTest extends AbstractIntegrationSp
         jvmApp.writeResources(file("src/jvmLib/resources"))
         settingsFile.text = "rootProject.name = 'mixedJvmAndPlay'"
         buildFile.text = """
-        plugins {
-            id 'jvm-component'
-            id '${jvmApp.languageName}-lang'
-            id 'play'
-        }
-        repositories {
-            mavenCentral()
-            jcenter()
-            maven {
-                name "typesafe-maven-release"
-                url "https://repo.typesafe.com/typesafe/maven-releases"
+            plugins {
+                id 'jvm-component'
+                id '${jvmApp.languageName}-lang'
+                id 'play'
             }
-            ivy {
-                name "typesafe-ivy-release"
-                url "https://repo.typesafe.com/typesafe/ivy-releases"
-                layout "ivy"
-            }
-        }
 
-        model {
-            components {
-                jvmLib(JvmLibrarySpec)
+            ${PLAY_REPOSITORES}
+
+            model {
+                components {
+                    jvmLib(JvmLibrarySpec)
+                }
             }
-        }
-"""
+        """
     }
 
     def "assemble builds jvm component and play component binaries"() {

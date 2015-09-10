@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -30,23 +31,12 @@ class PlayApplicationPluginIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """ rootProject.name = 'play-app' """
         buildFile << """
-        plugins {
-            id 'play-application'
-        }
+            plugins {
+                id 'play-application'
+            }
 
-        repositories {
-            jcenter()
-            maven {
-                name "typesafe-maven-release"
-                url "https://repo.typesafe.com/typesafe/maven-releases"
-            }
-            ivy {
-                name "typesafe-ivy-release"
-                url "https://repo.typesafe.com/typesafe/ivy-releases"
-                layout "ivy"
-            }
-        }
-"""
+            ${PLAY_REPOSITORES}
+        """
     }
 
     def "cannot register multiple PlayApplicationSpec components"() {

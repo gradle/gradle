@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
+import static org.gradle.play.integtest.fixtures.Repositories.*
 
 abstract class AbstractRoutesCompileIntegrationTest extends MultiVersionIntegrationSpec {
     def destinationDirPath = "build/playBinary/src/compilePlayBinaryRoutes"
@@ -48,18 +49,7 @@ model {
     }
 }
 
-repositories {
-    jcenter()
-    maven {
-        name "typesafe-maven-release"
-        url "https://repo.typesafe.com/typesafe/maven-releases"
-    }
-    ivy {
-        name "typesafe-ivy-release"
-        url "https://repo.typesafe.com/typesafe/ivy-releases"
-        layout "ivy"
-    }
-}
+${PLAY_REPOSITORES}
 """
     }
 
