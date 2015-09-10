@@ -241,7 +241,8 @@ This diagram shows the intended ClassLoader hierarchy. The piece to be added is 
 
 ## Story: IDE user debugs test build
 
-The previous stories set up the basic mechanics for the test-kit. To make the test-kit production-ready these mechanics need to be fine-tuned.
+By default functional tests are executed in a forked daemon process. Debugging test execution in a different JVM other than the "main" Gradle process would require additional setup from the end user.
+This story improves the end user experience by allowing for conveniently step through code for debugging purposes from the IDE without the need for any complicated configuration.
 
 ### User visible changes
 
@@ -249,25 +250,29 @@ The `GradleRunner` interface will be extended to provide additional methods.
 
     public interface GradleRunner {
         boolean isDebug();
-        void setDebug(boolean debug);
+        GradleRunner withDebug(boolean debug);
     }
 
 ### Implementation
 
-* When debug is enabled, run the build in embedded mode.
-* Can enable debug via `GradleRunner.setDebug()`.
+* When debug is enabled, run the build in embedded mode by setting `DefaultGradleConnector.embedded(true)`.
+* Can enable debug via `GradleRunner.withDebug(boolean)`.
 * Debug is automatically enabled when `Test.debug` is true.
 * Debug is automatically enabled when test is being run or debugged from an IDE.
 
 ### Test coverage
 
-* A user can start the `GradleRunner` with remote debugging JVM parameter for debugging purposes. By default the `GradleRunner` does not use the debugging JVM parameters.
+* The debug flag is properly passed to the tooling API.
 * All previous features work in debug mode. Potentially add a test runner to run each test in debug and non-debug mode.
 * Manually verify that when using an IDE, a breakpoint can be added in Gradle code (say in the Java plugin), the test run, and the breakpoint hit.
+* If the debug flag is not set explicitly by the user or run from the IDE, functional tests run in a forked daemon process.
 
 ### Open issues
 
 - Port number?
+- Do we expect classloading issues between user-defined dependencies and Gradle core dependencies when running in embedded mode?
+- How do we reliably determine that the build is executed from an IDE?
+- Should the integration with `Test.debug` be moved to the story that addresses the plugin development plugin?
 
 ## Story: Developer inspects build result of unexpected build failure
 
