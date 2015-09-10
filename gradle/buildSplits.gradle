@@ -16,13 +16,13 @@
 import org.gradle.build.BuildTypes
 
 def buckets = [
-    '1': [':modelCore', ':announce', ':antlr', ':internalIntegTesting', ':internalTesting', ':maven', ':messaging',
+    '1': [':platformPlay', ':modelCore', ':announce', ':antlr', ':internalIntegTesting', ':internalTesting', ':maven', ':messaging',
           ':performance', ':platformBase', ':platformJvm', ':buildComparison', ':buildInit', ':cli', ':codeQuality', ':testKit',
           ':docs', ':ear', ':ide', ':ideNative', ':ivy', ':jacoco', ':javascript', ':jetty', ':languageGroovy', ':languageJvm',
           ':launcher', ':languageNative', ':platformNative', ':testingNative', ':native'
     ],
 
-    '2': [':platformPlay', ':dependencyManagement', ':core', ':toolingApi',
+    '2': [':dependencyManagement', ':core', ':toolingApi',
           ':modelGroovy', ':pluginDevelopment', ':pluginUse', ':publish', ':scala', ':signing', ':sonar',
           ':openApi', ':osgi', ':toolingApiBuilders', ':ui', ':wrapper', ':languageScala', ':diagnostics',
           ':plugins', ':integTest',
