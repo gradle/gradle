@@ -45,6 +45,7 @@ class ModuleNameDeduperTest extends Specification {
     TargetStub sub1App = new TargetStub(projectMock("app", sub1.project))
     TargetStub sub2App = new TargetStub(projectMock("app", sub2.project))
 
+
     def "does nothing when no duplicates"() {
         given:
         def dedupeMe = [sub1, sub2]
@@ -72,7 +73,22 @@ class ModuleNameDeduperTest extends Specification {
         sub.moduleName == "myproject-myproject"
     }
 
-    def "should dedupe module names"() {
+    def "keeps similar parent and child project name"() {
+        def similarSub = new TargetStub(projectMock("myproject", root.project))
+        given:
+        def dedupeMe = [root, sub1, similarSub ]
+
+        when:
+        deduper.dedupe(dedupeMe)
+
+        then:
+        dedupeMe == [root, sub1, similarSub]
+        root.moduleName == "myproject"
+        sub1.moduleName == "sub1"
+        similarSub.moduleName == "myproject-myproject"
+    }
+
+    def "should dedup module names"() {
         given:
         def dedupeMe = [root, sub1, sub2, sub1App, sub2App]
         assert sub1App.moduleName == "app"
@@ -104,7 +120,6 @@ class ModuleNameDeduperTest extends Specification {
         myProjectApp1.moduleName == "myproject-app"
         myProjectBar1.moduleName == "myproject-bar"
         myProjectApp2.moduleName == "myproject-bar-app"
-
     }
 
     def "allows deduplication with parent not part of the target list"() {
