@@ -258,7 +258,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'Cannot configure this operation once it has started.'
+        e.message == 'Cannot configure this operation (logger - old) once it has started.'
     }
 
     def cannotChangeShortDescriptionAfterStart() {
@@ -271,7 +271,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'Cannot configure this operation once it has started.'
+        e.message == 'Cannot configure this operation (logger - old) once it has started.'
     }
 
     def cannotChangeLoggingHeaderAfterStart() {
@@ -284,23 +284,24 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'Cannot configure this operation once it has started.'
+        e.message == 'Cannot configure this operation (logger - old) once it has started.'
     }
 
     def cannotMakeProgressBeforeStart() {
         def logger = factory.newOperation('logger')
+        logger.description = 'op'
 
         when:
         logger.progress('new')
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'This operation is not running.'
+        e.message == 'This operation (logger - op) has not been started.'
     }
 
     def cannotMakeProgressAfterCompletion() {
         def logger = factory.newOperation('logger')
-        logger.description = 'not empty'
+        logger.description = 'op'
         logger.started()
         logger.completed()
 
@@ -309,23 +310,24 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'This operation is not running.'
+        e.message == 'This operation (logger - op) has already been completed.'
     }
 
     def cannotCompleteBeforeStart() {
         def logger = factory.newOperation('logger')
+        logger.description = 'op'
 
         when:
         logger.completed('finished')
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'This operation is not running.'
+        e.message == 'This operation (logger - op) has not been started.'
     }
 
     def cannotStartMultipleTimes() {
         def logger = factory.newOperation('logger')
-        logger.description = 'not empty'
+        logger.description = 'op'
         logger.started()
 
         when:
@@ -333,12 +335,12 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'This operation has already been started.'
+        e.message == 'This operation (logger - op) has already been started.'
     }
 
     def cannotStartAfterComplete() {
         def logger = factory.newOperation('logger')
-        logger.description = 'not empty'
+        logger.description = 'op'
         logger.started()
         logger.completed()
 
@@ -347,12 +349,12 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'This operation has completed.'
+        e.message == 'This operation (logger - op) has already completed.'
     }
 
     def cannotCompleteMultipleTimes() {
         def logger = factory.newOperation('logger')
-        logger.description = 'not empty'
+        logger.description = 'op'
         logger.started()
         logger.completed()
 
@@ -361,7 +363,7 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
 
         then:
         IllegalStateException e = thrown()
-        e.message == 'This operation is not running.'
+        e.message == 'This operation (logger - op) has already been completed.'
     }
 
     def "can log start conveniently"() {
