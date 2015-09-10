@@ -181,6 +181,26 @@ eclipseJdt.doLast() {
         assert jdt.contains('dummy=testValue')
     }
 
+    @Test
+    void settingProjectNameWithinBeforeMergedIsDeprecated(){
+        executer.withDeprecationChecksDisabled()
+        def result = runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    file {
+      beforeMerged { project ->
+        project.name = "custom-name"
+      }
+    }
+  }
+}
+"""
+        result.assertOutputContains("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook has been deprecated and is scheduled to be removed in Gradle")
+    }
+
     protected def contains(String ... contents) {
         contents.each { assert content.contains(it)}
     }
