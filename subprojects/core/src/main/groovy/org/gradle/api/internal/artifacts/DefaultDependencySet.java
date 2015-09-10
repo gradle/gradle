@@ -48,7 +48,8 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
             return String.format("build dependencies %s", DefaultDependencySet.this);
         }
 
-        public void resolve(TaskDependencyResolveContext context) {
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
             for (SelfResolvingDependency dependency : DefaultDependencySet.this.withType(SelfResolvingDependency.class)) {
                 context.add(dependency);
             }

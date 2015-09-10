@@ -134,7 +134,7 @@ public class PlayPluginConfigurations {
         }
 
         @Override
-        public void resolve(TaskDependencyResolveContext context) {
+        public void visitDependencies(TaskDependencyResolveContext context) {
             context.add(configuration);
         }
     }

@@ -41,7 +41,8 @@ class TasksFromDependentProjects extends AbstractTaskDependency {
         this.checker = checker;
     }
 
-    public void resolve(TaskDependencyResolveContext context) {
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
         Project thisProject = context.getTask().getProject();
         Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
         for (Task nextTask : tasksWithName) {

@@ -98,8 +98,8 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         }
 
         @Override
-        public void resolve(TaskDependencyResolveContext context) {
-            CompositeFileTree.this.resolve(context);
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            CompositeFileTree.this.visitDependencies(context);
         }
     }
 }

@@ -102,7 +102,7 @@ public class ScalaRuntime {
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
             @Override
-            public void resolve(TaskDependencyResolveContext context) {
+            public void visitDependencies(TaskDependencyResolveContext context) {
                 if (classpath instanceof Buildable) {
                     context.add(classpath);
                 }

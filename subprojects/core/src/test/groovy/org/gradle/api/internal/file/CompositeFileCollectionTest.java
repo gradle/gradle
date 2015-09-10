@@ -256,7 +256,7 @@ public class CompositeFileCollectionTest {
         }
 
         @Override
-        public void resolve(TaskDependencyResolveContext context) {
+        public void visitDependencies(TaskDependencyResolveContext context) {
             throw new UnsupportedOperationException();
         }
     }

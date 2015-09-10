@@ -91,7 +91,7 @@ class CompositeFileCollectionSpec extends Specification {
         def dependency = Stub(Task)
         def collection = new TestCollection() {
             @Override
-            void resolve(TaskDependencyResolveContext context) {
+            void visitDependencies(TaskDependencyResolveContext context) {
                 visited++
                 context.add(dependency)
             }
@@ -126,15 +126,15 @@ class CompositeFileCollectionSpec extends Specification {
 
         def collection = new TestCollection() {
             @Override
-            void resolve(TaskDependencyResolveContext context) {
+            void visitDependencies(TaskDependencyResolveContext context) {
                 context.add(dependencySource)
             }
         }
 
         given:
-        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
-        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
-        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency1); context.add(dependency2) }
+        1 * dependencySource.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
+        1 * dependencySource.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
+        1 * dependencySource.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependency1); context.add(dependency2) }
         def dependencies = collection.buildDependencies
 
         expect:
@@ -151,14 +151,14 @@ class CompositeFileCollectionSpec extends Specification {
 
         def collection = new TestCollection() {
             @Override
-            void resolve(TaskDependencyResolveContext context) {
+            void visitDependencies(TaskDependencyResolveContext context) {
                 context.add(dependencySource)
             }
         }
 
         given:
-        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
-        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
+        1 * dependencySource.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
+        1 * dependencySource.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
 
         def dependencies = collection.filter { false }.buildDependencies
 
@@ -175,14 +175,14 @@ class CompositeFileCollectionSpec extends Specification {
 
         def collection = new TestCollection() {
             @Override
-            void resolve(TaskDependencyResolveContext context) {
+            void visitDependencies(TaskDependencyResolveContext context) {
                 context.add(dependencySource)
             }
         }
 
         given:
-        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
-        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
+        1 * dependencySource.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
+        1 * dependencySource.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
 
         def dependencies = collection.asFileTree.buildDependencies
 
@@ -262,7 +262,7 @@ class CompositeFileCollectionSpec extends Specification {
         def dependency2 = Stub(Task)
         def child1 = new TestCollection() {
             @Override
-            void resolve(TaskDependencyResolveContext context) {
+            void visitDependencies(TaskDependencyResolveContext context) {
                 context.add(dependency1)
             }
         }

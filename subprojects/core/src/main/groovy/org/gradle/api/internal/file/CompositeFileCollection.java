@@ -35,7 +35,7 @@ import java.util.*;
  * This also means that the source collections can be created using any representation supported by {@link FileCollectionResolveContext}.
  * </p>
  *
- * <p>The dependencies of this collection are calculated from the result of calling {@link #resolve(TaskDependencyResolveContext)}.</p>
+ * <p>The dependencies of this collection are calculated from the result of calling {@link #visitDependencies(TaskDependencyResolveContext)}.</p>
  */
 public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer, TaskDependencyContainer {
     public Set<File> getFiles() {
@@ -94,8 +94,8 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
             }
 
             @Override
-            public void resolve(TaskDependencyResolveContext context) {
-                CompositeFileCollection.this.resolve(context);
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                CompositeFileCollection.this.visitDependencies(context);
             }
 
             @Override
@@ -116,8 +116,8 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
             }
 
             @Override
-            public void resolve(TaskDependencyResolveContext context) {
-                CompositeFileCollection.this.resolve(context);
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                CompositeFileCollection.this.visitDependencies(context);
             }
 
             @Override
@@ -136,14 +136,14 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
                 return CompositeFileCollection.this.toString() + " dependencies";
             }
 
-            public void resolve(TaskDependencyResolveContext context) {
-                CompositeFileCollection.this.resolve(context);
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                CompositeFileCollection.this.visitDependencies(context);
             }
         };
     }
 
     @Override
-    public void resolve(TaskDependencyResolveContext context) {
+    public void visitDependencies(TaskDependencyResolveContext context) {
         BuildDependenciesOnlyFileCollectionResolveContext fileContext = new BuildDependenciesOnlyFileCollectionResolveContext(context);
         visitContents(fileContext);
     }

@@ -85,7 +85,7 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
             if (node instanceof TaskDependencyContainer) {
                 TaskDependencyContainer taskDependency = (TaskDependencyContainer) node;
                 queue.clear();
-                taskDependency.resolve(CachingTaskDependencyResolveContext.this);
+                taskDependency.visitDependencies(CachingTaskDependencyResolveContext.this);
                 connectedNodes.addAll(queue);
             } else if (node instanceof Buildable) {
                 Buildable buildable = (Buildable) node;

@@ -155,7 +155,8 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     private class TaskDependencyImpl extends AbstractTaskDependency {
-        public void resolve(TaskDependencyResolveContext context) {
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
             if (!buildProjectDependencies) {
                 return;
             }

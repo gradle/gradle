@@ -50,7 +50,7 @@ public class FileCollectionBackedArchiveTextResource extends FileCollectionBacke
             }
 
             @Override
-            public void resolve(TaskDependencyResolveContext context) {
+            public void visitDependencies(TaskDependencyResolveContext context) {
                 context.add(fileCollection);
             }
         }, charset);

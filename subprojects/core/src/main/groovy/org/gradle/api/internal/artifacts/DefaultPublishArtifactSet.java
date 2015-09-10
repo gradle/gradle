@@ -74,7 +74,8 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
     }
 
     private class ArtifactsTaskDependency extends AbstractTaskDependency {
-        public void resolve(TaskDependencyResolveContext context) {
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
             for (PublishArtifact publishArtifact : DefaultPublishArtifactSet.this) {
                 context.add(publishArtifact);
             }

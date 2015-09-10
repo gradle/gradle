@@ -154,7 +154,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     @Override
-    public void resolve(TaskDependencyResolveContext context) {
+    public void visitDependencies(TaskDependencyResolveContext context) {
         context.add(buildDependency);
     }
 

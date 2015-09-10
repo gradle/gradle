@@ -32,14 +32,14 @@ class CompositeFileTreeSpec extends Specification {
 
         def collection = new TestTree() {
             @Override
-            void resolve(TaskDependencyResolveContext context) {
+            void visitDependencies(TaskDependencyResolveContext context) {
                 context.add(dependencySource)
             }
         }
 
         given:
-        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
-        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
+        1 * dependencySource.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
+        1 * dependencySource.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
 
         def dependencies = collection.matching { false }.buildDependencies
 
@@ -56,14 +56,14 @@ class CompositeFileTreeSpec extends Specification {
 
         def collection = new TestTree() {
             @Override
-            void resolve(TaskDependencyResolveContext context) {
+            void visitDependencies(TaskDependencyResolveContext context) {
                 context.add(dependencySource)
             }
         }
 
         given:
-        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
-        1 * dependencySource.resolve(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
+        1 * dependencySource.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependency1) }
+        1 * dependencySource.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependency2) }
 
         def dependencies = collection.matching(Stub(PatternFilterable)).buildDependencies
 
@@ -84,7 +84,7 @@ class CompositeFileTreeSpec extends Specification {
         }
 
         @Override
-        void resolve(TaskDependencyResolveContext context) {
+        void visitDependencies(TaskDependencyResolveContext context) {
             throw new UnsupportedOperationException()
         }
     }

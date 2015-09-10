@@ -187,7 +187,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public void resolve(TaskDependencyResolveContext context) {
+            public void visitDependencies(TaskDependencyResolveContext context) {
                 context.add(AbstractFileCollection.this);
             }
 

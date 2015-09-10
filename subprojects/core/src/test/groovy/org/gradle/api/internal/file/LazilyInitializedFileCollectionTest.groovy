@@ -34,7 +34,7 @@ class LazilyInitializedFileCollectionTest extends Specification {
         }
 
         @Override
-        void resolve(TaskDependencyResolveContext context) {
+        void visitDependencies(TaskDependencyResolveContext context) {
             taskDependenciesCount++
             context.add(task)
         }

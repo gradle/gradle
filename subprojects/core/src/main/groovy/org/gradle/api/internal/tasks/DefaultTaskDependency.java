@@ -40,7 +40,8 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         this.resolver = resolver;
     }
 
-    public void resolve(TaskDependencyResolveContext context) {
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
         LinkedList<Object> queue = new LinkedList<Object>(values);
         while (!queue.isEmpty()) {
             Object dependency = queue.removeFirst();

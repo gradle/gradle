@@ -43,7 +43,8 @@ class TasksFromDependentProjectsTest extends Specification {
             it.tasks.create "someTask"
         }
 
-        when: dep.resolve(context)
+        when: dep.visitDependencies(context)
+
         then:
         1 * context.getTask() >> child1.tasks["buildDependents"]
         1 * checker.isDependent(child1, "testRuntime", child1) >> false

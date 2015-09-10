@@ -42,7 +42,8 @@ public class DirectBuildDependencies extends AbstractTaskDependency {
         this.publishArtifacts = artifacts;
     }
 
-    public void resolve(TaskDependencyResolveContext context) {
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
         for (SelfResolvingDependency dependency : dependencies.withType(SelfResolvingDependency.class)) {
             if (!(dependency instanceof ProjectDependency)) {
                 context.add(dependency);

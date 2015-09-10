@@ -92,8 +92,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public void resolve(TaskDependencyResolveContext context) {
+    public void visitDependencies(TaskDependencyResolveContext context) {
         context.add(buildDependency);
-        super.resolve(context);
+        super.visitDependencies(context);
     }
 }

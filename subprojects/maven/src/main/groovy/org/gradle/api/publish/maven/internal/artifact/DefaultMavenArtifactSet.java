@@ -80,7 +80,8 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     }
 
     private class ArtifactsTaskDependency extends AbstractTaskDependency {
-        public void resolve(TaskDependencyResolveContext context) {
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
             for (MavenArtifact mavenArtifact : DefaultMavenArtifactSet.this) {
                 context.add(mavenArtifact);
             }
