@@ -246,11 +246,11 @@ This story improves the end user experience by allowing for conveniently step th
 
 ### User visible changes
 
-The `GradleRunner` interface will be extended to provide additional methods.
+The `GradleRunner` abstract class will be extended to provide additional methods.
 
-    public interface GradleRunner {
-        boolean isDebug();
-        GradleRunner withDebug(boolean debug);
+    public abstract class GradleRunner {
+        public abstract boolean isDebug();
+        public abstract GradleRunner withDebug(boolean debug);
     }
 
 ### Implementation
@@ -265,11 +265,11 @@ The `GradleRunner` interface will be extended to provide additional methods.
 * The debug flag is properly passed to the tooling API.
 * All previous features work in debug mode. Potentially add a test runner to run each test in debug and non-debug mode.
 * Manually verify that when using an IDE, a breakpoint can be added in Gradle code (say in the Java plugin), the test run, and the breakpoint hit.
-* If the debug flag is not set explicitly by the user or run from the IDE, functional tests run in a forked daemon process.
+* If the debug flag is not set explicitly through the API or run from the IDE, functional tests run in a forked daemon process.
 
 ### Open issues
 
-- Port number?
+- Port number? (Is this even an issue? Probably not because the tests are executed in the same JVM.)
 - Do we expect classloading issues between user-defined dependencies and Gradle core dependencies when running in embedded mode?
 - How do we reliably determine that the build is executed from an IDE?
 - Should the integration with `Test.debug` be moved to the story that addresses the plugin development plugin?
