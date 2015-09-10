@@ -1,0 +1,25 @@
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec)<% if (binding.hasVariable("projectDependencies") && subprojectNumber > 1) { %> {
+            sources {
+                java {
+                    dependencies {<%
+                        def maxDependencies = binding.hasVariable("maxDependencies") ? binding.maxDependencies : 5
+                        def startNumber = subprojectNumber - maxDependencies
+                        startNumber = Math.max(1, startNumber)
+                        (startNumber..<subprojectNumber).each {
+%>
+                        project ':project${it}' library 'main'<%
+                        } %>
+                    }
+                }
+            }
+        }
+<% } %>
+    }
+}

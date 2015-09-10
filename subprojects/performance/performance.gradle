@@ -379,6 +379,16 @@ task bigOldJavaMoreSource(type: ProjectGeneratorTask) {
     testDependencies = files()
 }
 
+task generateBigNewMultiprojectJava(type: ProjectGeneratorTask) {
+    destDir = file("$buildDir/bigNewMultiprojectJava")
+    projects = 150
+    sourceFiles = 300
+    linesOfCodePerSourceFile = 350
+    subProjectTemplates = ['java-source', 'new-java-project']
+    templateArgs = [projectDependencies: true, maxDependencies: 8]
+    testDependencies = files()
+}
+
 task all(dependsOn: generators)
 
 task prepareSamples(dependsOn: [bigEmpty, small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
@@ -490,7 +500,7 @@ task generateCompareTaskInputs(type: ProjectGeneratorTask) {
     }
 }
 
-task prepareManualSamples(dependsOn: generateCompareTaskInputs)
+task prepareManualSamples(dependsOn: [generateCompareTaskInputs, generateBigNewMultiprojectJava])
 
 task manualPerformanceTest(type: Test) {
     dependsOn prepareManualSamples
