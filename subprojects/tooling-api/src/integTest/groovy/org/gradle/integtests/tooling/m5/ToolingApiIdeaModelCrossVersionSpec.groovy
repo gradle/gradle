@@ -19,7 +19,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.idea.*
-import spock.lang.Ignore
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
