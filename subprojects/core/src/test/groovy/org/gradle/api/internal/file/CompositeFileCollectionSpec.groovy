@@ -30,7 +30,7 @@ class CompositeFileCollectionSpec extends Specification {
         def visited = 0;
         def collection = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 visited++
                 context.add(new File("foo").absoluteFile)
             }
@@ -58,7 +58,7 @@ class CompositeFileCollectionSpec extends Specification {
         def child = collectionDependsOn(dependency)
         def collection = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 visited++
                 context.add(child)
             }
@@ -194,25 +194,25 @@ class CompositeFileCollectionSpec extends Specification {
     def "visits content of tree of collections"() {
         def child1 = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 context.add(new File("1").absoluteFile)
             }
         }
         def child2 = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 context.add(child1)
             }
         }
         def child3 = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 context.add(new File("2").absoluteFile)
             }
         }
         def collection = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 context.add(child2)
                 context.add(child3)
             }
@@ -228,26 +228,26 @@ class CompositeFileCollectionSpec extends Specification {
         def dependency2 = Stub(Task)
         def child1 = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 context.add(collectionDependsOn(dependency1))
             }
         }
         def child2 = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 context.add(child1)
             }
         }
         def child3 = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 context.add(child2)
                 context.add(collectionDependsOn(dependency2))
             }
         }
         def collection = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 context.add(child3)
             }
         }
@@ -268,20 +268,20 @@ class CompositeFileCollectionSpec extends Specification {
         }
         def child2 = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 context.add(child1)
             }
         }
         def child3 = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 context.add(child2)
                 context.add(collectionDependsOn(dependency2))
             }
         }
         def collection = new TestCollection() {
             @Override
-            void resolve(FileCollectionResolveContext context) {
+            void visitContents(FileCollectionResolveContext context) {
                 context.add(child3)
             }
         }
@@ -303,7 +303,7 @@ class CompositeFileCollectionSpec extends Specification {
         }
 
         @Override
-        void resolve(FileCollectionResolveContext context) {
+        void visitContents(FileCollectionResolveContext context) {
             throw new UnsupportedOperationException()
         }
     }

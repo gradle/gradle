@@ -251,7 +251,7 @@ public class CompositeFileCollectionTest {
         }
 
         @Override
-        public void resolve(FileCollectionResolveContext context) {
+        public void visitContents(FileCollectionResolveContext context) {
             context.add(sourceCollections);
         }
 

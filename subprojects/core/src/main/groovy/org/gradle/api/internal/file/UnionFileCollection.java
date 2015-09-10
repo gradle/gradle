@@ -49,7 +49,7 @@ public class UnionFileCollection extends CompositeFileCollection {
     }
 
     @Override
-    public void resolve(FileCollectionResolveContext context) {
+    public void visitContents(FileCollectionResolveContext context) {
         context.add(source);
     }
 }

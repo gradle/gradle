@@ -180,7 +180,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     public FileTree getAsFileTree() {
         return new CompositeFileTree() {
             @Override
-            public void resolve(FileCollectionResolveContext context) {
+            public void visitContents(FileCollectionResolveContext context) {
                 ResolvableFileCollectionResolveContext nested = context.newContext();
                 nested.add(AbstractFileCollection.this);
                 context.add(nested.resolveAsFileTrees());

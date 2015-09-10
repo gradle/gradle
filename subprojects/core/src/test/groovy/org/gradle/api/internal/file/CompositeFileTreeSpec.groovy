@@ -79,7 +79,7 @@ class CompositeFileTreeSpec extends Specification {
         }
 
         @Override
-        void resolve(FileCollectionResolveContext context) {
+        void visitContents(FileCollectionResolveContext context) {
             throw new UnsupportedOperationException()
         }
 

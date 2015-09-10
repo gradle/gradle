@@ -41,7 +41,7 @@ class FileCollectionAdapterTest extends Specification {
         FileCollectionResolveContext context = Mock()
 
         when:
-        adapter.resolve(context)
+        adapter.visitContents(context)
 
         then:
         1 * context.add(fileSet)

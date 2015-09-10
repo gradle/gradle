@@ -47,7 +47,7 @@ public class CompositeFileTreeTest {
         }
 
         @Override
-        public void resolve(FileCollectionResolveContext context) {
+        public void visitContents(FileCollectionResolveContext context) {
             context.add(source1);
             context.add(source2);
         }

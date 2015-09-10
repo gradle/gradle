@@ -93,7 +93,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             }
         }
 
-        fileSet.resolve(resolveContext)
+        fileSet.visitContents(resolveContext)
     }
 
     @Test public void testResolveAddsBuildDependenciesIfNotEmpty() {
@@ -105,7 +105,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
             one(resolveContext).add(withParam(instanceOf(TaskDependency)))
         }
 
-        fileSet.resolve(resolveContext)
+        fileSet.visitContents(resolveContext)
     }
     
     @Test public void testCanScanForFiles() {

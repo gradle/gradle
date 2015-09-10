@@ -284,7 +284,7 @@ public class DefaultConfigurableFileCollectionTest {
             one(nestedContext).add(collection.getFrom());
         }});
 
-        collection.resolve(resolveContext);
+        collection.visitContents(resolveContext);
     }
 
     @Test

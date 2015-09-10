@@ -25,7 +25,7 @@ public abstract class LazilyInitializedFileCollection extends CompositeFileColle
     private FileCollection delegate;
 
     @Override
-    public void resolve(FileCollectionResolveContext context) {
+    public void visitContents(FileCollectionResolveContext context) {
         if (delegate == null) {
             delegate = createDelegate();
         }

@@ -203,7 +203,7 @@ public class TestTest extends AbstractConventionTaskTest {
         assertThat(classFiles, instanceOf(CompositeFileTree.class));
         CompositeFileTree files = (CompositeFileTree) classFiles;
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
-        files.resolve(context);
+        files.visitContents(context);
         List<? extends FileTree> contents = context.resolveAsFileTrees();
         FileTreeAdapter adapter = (FileTreeAdapter) contents.get(0);
         assertThat(adapter.getTree(), instanceOf(DirectoryFileTree.class));

@@ -85,9 +85,9 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         }
 
         @Override
-        public void resolve(FileCollectionResolveContext context) {
+        public void visitContents(FileCollectionResolveContext context) {
             ResolvableFileCollectionResolveContext nestedContext = context.newContext();
-            CompositeFileTree.this.resolve(nestedContext);
+            CompositeFileTree.this.visitContents(nestedContext);
             for (FileTree set : nestedContext.resolveAsFileTrees()) {
                 if (closure != null) {
                     context.add(set.matching(closure));

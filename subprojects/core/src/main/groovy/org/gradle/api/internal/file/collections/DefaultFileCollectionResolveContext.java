@@ -144,7 +144,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     private void resolveNested(FileCollectionContainer fileCollection) {
         addTo = queue.subList(0, 0);
         try {
-            fileCollection.resolve(this);
+            fileCollection.visitContents(this);
         } finally {
             addTo = queue;
         }

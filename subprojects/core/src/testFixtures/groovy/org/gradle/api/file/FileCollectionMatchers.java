@@ -57,7 +57,7 @@ public class FileCollectionMatchers {
                 if (expected instanceof CompositeFileCollection) {
                     CompositeFileCollection collection = (CompositeFileCollection) expected;
                     DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
-                    collection.resolve(context);
+                    collection.visitContents(context);
                     return context.resolveAsFileCollections();
                 }
                 throw new RuntimeException("Cannot get children of " + expected);

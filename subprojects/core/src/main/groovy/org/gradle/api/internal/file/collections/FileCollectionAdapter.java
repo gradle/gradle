@@ -38,7 +38,8 @@ public class FileCollectionAdapter extends AbstractFileCollection implements Fil
         return fileCollection.getDisplayName();
     }
 
-    public void resolve(FileCollectionResolveContext context) {
+    @Override
+    public void visitContents(FileCollectionResolveContext context) {
         context.add(fileCollection);
     }
 

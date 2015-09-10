@@ -31,7 +31,7 @@ import java.util.*;
 /**
  * A {@link org.gradle.api.file.FileCollection} that contains the union of zero or more file collections. Maintains file ordering.
  *
- * <p>The source file collections are calculated from the result of calling {@link #resolve(FileCollectionResolveContext)}, and may be lazily created.
+ * <p>The source file collections are calculated from the result of calling {@link #visitContents(FileCollectionResolveContext)}, and may be lazily created.
  * This also means that the source collections can be created using any representation supported by {@link FileCollectionResolveContext}.
  * </p>
  *
@@ -87,9 +87,9 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     public FileTree getAsFileTree() {
         return new CompositeFileTree() {
             @Override
-            public void resolve(FileCollectionResolveContext context) {
+            public void visitContents(FileCollectionResolveContext context) {
                 ResolvableFileCollectionResolveContext nested = context.newContext();
-                CompositeFileCollection.this.resolve(nested);
+                CompositeFileCollection.this.visitContents(nested);
                 context.add(nested.resolveAsFileTrees());
             }
 
@@ -109,7 +109,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     public FileCollection filter(final Spec<? super File> filterSpec) {
         return new CompositeFileCollection() {
             @Override
-            public void resolve(FileCollectionResolveContext context) {
+            public void visitContents(FileCollectionResolveContext context) {
                 for (FileCollection collection : CompositeFileCollection.this.getSourceCollections()) {
                     context.add(collection.filter(filterSpec));
                 }
@@ -145,16 +145,14 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     @Override
     public void resolve(TaskDependencyResolveContext context) {
         BuildDependenciesOnlyFileCollectionResolveContext fileContext = new BuildDependenciesOnlyFileCollectionResolveContext(context);
-        resolve(fileContext);
+        visitContents(fileContext);
     }
 
     protected Collection<? extends FileCollectionInternal> getSourceCollections() {
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
-        resolve(context);
+        visitContents(context);
         return context.resolveAsFileCollections();
     }
-
-    public abstract void resolve(FileCollectionResolveContext context);
 
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {

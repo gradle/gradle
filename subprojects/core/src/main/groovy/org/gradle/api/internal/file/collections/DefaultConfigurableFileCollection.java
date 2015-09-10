@@ -86,7 +86,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public void resolve(FileCollectionResolveContext context) {
+    public void visitContents(FileCollectionResolveContext context) {
         FileCollectionResolveContext nested = context.push(resolver);
         nested.add(files);
     }
