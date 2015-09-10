@@ -47,7 +47,7 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
                 doLast { task ->
                     def compilerDaemonIdentityFile = file("$compilerDaemonIdentityFileName")
                     def daemonFactory = services.get(CompilerDaemonManager)
-                    compilerDaemonIdentityFile << daemonFactory.clientsManager.allClients.collect { it.hashCode() }.sort().join(" ") + "\\n"
+                    compilerDaemonIdentityFile << daemonFactory.clientsManager.allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
                 }
             }
         """

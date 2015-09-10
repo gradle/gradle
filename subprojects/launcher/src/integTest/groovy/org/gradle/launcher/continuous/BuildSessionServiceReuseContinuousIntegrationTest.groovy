@@ -19,7 +19,7 @@ package org.gradle.launcher.continuous
 import spock.lang.Unroll
 
 
-class BuildSessionContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class BuildSessionServiceReuseContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     def cleanup() {
         gradle.cancel()
     }
@@ -42,7 +42,7 @@ class BuildSessionContinuousIntegrationTest extends Java7RequiringContinuousInte
                     def idFile = file("${idFileName}")
                     mkdir(idFile.parent)
                     def service = services.${method}(${service})
-                    idFile << service.hashCode() + "\\n"
+                    idFile << System.identityHashCode(service) + "\\n"
                 }
             }
         """
