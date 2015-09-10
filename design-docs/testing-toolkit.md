@@ -258,7 +258,8 @@ The `GradleRunner` abstract class will be extended to provide additional methods
 * When debug is enabled, run the build in embedded mode by setting `DefaultGradleConnector.embedded(true)`.
 * Can enable debug via `GradleRunner.withDebug(boolean)`.
 * Debug is automatically enabled when `Test.debug` is true.
-* Debug is automatically enabled when test is being run or debugged from an IDE.
+* Debug is automatically enabled when test is being run or debugged from an IDE. In the IDE test execution run configuration, the system property `org.gradle.testkit.debug` has to be set to `true`. A
+later story dealing with the plugin development plugin can deal with the automatic setup of the system property by pre-configuring the `idea` and `eclipse` plugin.
 
 ### Test coverage
 
