@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.TextUtil
 
 class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
@@ -157,6 +158,121 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         then:
         failure.assertHasCause('Bang')
         failure.assertHasDescription('Exception thrown while executing model rule: Rules#addTasks > create(climbTask)')
+    }
+
+    def "can not depend on a general Task"() {
+        given:
+        buildFile << """
+        task customTask << { }
+        customTask.dependsOn tasks.withType(Task)
+        """
+
+        when:
+        fails('customTask')
+
+        then:
+        failure.assertHasDescription(TextUtil.normaliseLineSeparators("""Circular dependency between the following tasks:
+:customTask
+\\--- :customTask (*)"""))
+    }
+
+    def "a non-rule-source task can depend on a rule-source task through another task collection"() {
+        given:
+        buildFile << """
+        ${ruleBasedTasks()}
+
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("climbTask", ClimbTask) { }
+            }
+        }
+        apply type: Rules
+
+        task customTask << { }
+        customTask.dependsOn tasks.withType(Task).withType(ClimbTask)
+        """
+
+        when:
+        succeeds('customTask')
+
+        then:
+        result.executedTasks.containsAll([':customTask', ':climbTask'])
+    }
+
+    def "a non-rule-source task can depend on a rule-source task with matching criteria"() {
+        given:
+        buildFile << """
+        ${ruleBasedTasks()}
+
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("climbTask", ClimbTask) { }
+            }
+        }
+        apply type: Rules
+
+        task customTask << { }
+        customTask.dependsOn tasks.withType(ClimbTask).matching { true }
+        """
+
+        when:
+        succeeds('customTask')
+
+        then:
+        result.executedTasks.containsAll([':customTask', ':climbTask'])
+    }
+
+    def "a non-rule-source task can not depend on both realizable and default task collections"() {
+        given:
+        buildFile << """
+        ${ruleBasedTasks()}
+
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("climbTask", ClimbTask) { }
+            }
+        }
+        apply type: Rules
+
+        task foo << { }
+        task customTask << { }
+        customTask.dependsOn tasks.withType(ClimbTask) + [tasks.foo]
+        """
+
+        when:
+        succeeds('customTask')
+
+        then:
+        result.executedTasks.containsAll([':customTask', ':foo'])
+    }
+
+    @NotYetImplemented
+    def "a non-rule-source task can depend on combined task collections"() {
+        given:
+        buildFile << """
+        ${ruleBasedTasks()}
+
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("climbTask", ClimbTask) { }
+                tasks.create("jumpTask", JumpTask) { }
+            }
+        }
+        apply type: Rules
+
+        task customTask << { }
+        customTask.dependsOn tasks.withType(ClimbTask) + tasks.withType(JumpTask)
+        """
+
+        when:
+        succeeds('customTask')
+
+        then:
+        result.executedTasks.containsAll([':customTask', ':climbTask', ':jumpTask'])
     }
 
     @NotYetImplemented

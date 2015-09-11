@@ -55,6 +55,10 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
         }
     }
 
+    private RealizableTaskCollection<T> realizableFor(TaskCollection<T> collection) {
+        return new RealizableTaskCollection<T>(type, collection, modelRegistry, nodePath);
+    }
+
     @Override
     public TaskCollection<T> matching(Spec<? super T> spec) {
         return delegate.matching(spec);
@@ -62,7 +66,7 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
 
     @Override
     public TaskCollection<T> matching(Closure closure) {
-        return delegate.matching(closure);
+        return realizableFor(delegate.matching(closure));
     }
 
     @Override

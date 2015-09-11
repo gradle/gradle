@@ -29,7 +29,7 @@ customTask.dependsOn tasks.withType(ClimbTask)
 ### Implementation
 Introduce a `RealizableTaskCollection` which `org.gradle.api.internal.tasks.DefaultTaskDependency` uses to trigger realisation of tasks by type.
 Because the `.withType()` construct can be used _after_ the project has been evaluated e.g. `taskGraph.whenReady{ project(":a").tasks.withType(Foo) }`
-any use of `withType()`, post project evaluation, will result in tasks of that type being realised immediately.~~
+any use of `withType()`, post project evaluation, will result in tasks of that type being realised immediately.
 
 Realise in this context means realising the model nodes of tasks of those types along with all child nodes.
 
@@ -215,3 +215,4 @@ As this collection is not actually iterated until the task graph is being constr
 - Apply `tasks.all { }` actions between initializer and mutation rules.
 - Better handle case where `check`, `build`, etc tasks are define using rules, either by allowing this and emitting deprecation warning, as when done using legacy API,
   or improved error message on conflict.
+- RealizableTaskCollection should work with collection semantics (i.e.`customTask.dependsOn tasks.withType(ClimbTask) + tasks.withType(JumpTask)`)
