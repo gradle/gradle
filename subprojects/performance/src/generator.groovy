@@ -47,6 +47,7 @@ class ProjectGeneratorTask extends DefaultTask {
     int sourceFiles = 1
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
+    int filesPerPackage = 100
 
     @InputFiles
     FileCollection testDependencies
@@ -194,40 +195,6 @@ class ProjectGeneratorTask extends DefaultTask {
         }
 
         if (args.includeSource) {
-            testProject.sourceFiles.times {
-                String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}"]
-                generate("src/main/java/${packageName.replace('.', '/')}/${classArgs.productionClassName}.java", 'Production.java', classArgs)
-            }
-            testProject.testSourceFiles.times {
-                String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}", testClassName: "Test${it + 1}"]
-                generate("src/test/java/${packageName.replace('.', '/')}/${classArgs.testClassName}.java", 'Test.java', classArgs)
-            }
-            if (groovyProject) {
-                testProject.sourceFiles.times {
-                    String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionGroovy${it + 1}"]
-                    generate("src/main/groovy/${packageName.replace('.', '/')}/${classArgs.productionClassName}.groovy", 'Production.groovy', classArgs)
-                }
-                testProject.testSourceFiles.times {
-                    String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionGroovy${it + 1}", testClassName: "TestGroovy${it + 1}"]
-                    generate("src/test/groovy/${packageName.replace('.', '/')}/${classArgs.testClassName}.groovy", 'Test.groovy', classArgs)
-                }
-            }
-            if (scalaProject) {
-                testProject.sourceFiles.times {
-                    String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionScala${it + 1}"]
-                    generate("src/main/scala/${packageName.replace('.', '/')}/${classArgs.productionClassName}.scala", 'Production.scala', classArgs)
-                }
-                testProject.testSourceFiles.times {
-                    String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionScala${it + 1}", testClassName: "TestScala${it + 1}"]
-                    generate("src/test/scala/${packageName.replace('.', '/')}/${classArgs.testClassName}.scala", 'Test.scala', classArgs)
-                }
-            }
             if (nativeProject) {
                 args.moduleCount.times { m ->
                     Map classArgs = args + [componentName: "lib${m + 1}"]
@@ -237,6 +204,42 @@ class ProjectGeneratorTask extends DefaultTask {
                     args.moduleCount.times { m ->
                         Map classArgs = args + [componentName: "lib${m + 1}", functionName: "lib${s + 1}"]
                         generate("src/${classArgs.componentName}/c/${classArgs.functionName}.c", 'lib.c', classArgs)
+                    }
+                }
+            } else {
+                def createPackageName = { fileNumber -> "org.gradle.test.performance${(int) (fileNumber / filesPerPackage) + 1}".toString() }
+                testProject.sourceFiles.times {
+                    String packageName = createPackageName(it)
+                    Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}"]
+                    generate("src/main/java/${packageName.replace('.', '/')}/${classArgs.productionClassName}.java", 'Production.java', classArgs)
+                }
+                testProject.testSourceFiles.times {
+                    String packageName = createPackageName(it)
+                    Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}", testClassName: "Test${it + 1}"]
+                    generate("src/test/java/${packageName.replace('.', '/')}/${classArgs.testClassName}.java", 'Test.java', classArgs)
+                }
+                if (groovyProject) {
+                    testProject.sourceFiles.times {
+                        String packageName = createPackageName(it)
+                        Map classArgs = args + [packageName: packageName, productionClassName: "ProductionGroovy${it + 1}"]
+                        generate("src/main/groovy/${packageName.replace('.', '/')}/${classArgs.productionClassName}.groovy", 'Production.groovy', classArgs)
+                    }
+                    testProject.testSourceFiles.times {
+                        String packageName = createPackageName(it)
+                        Map classArgs = args + [packageName: packageName, productionClassName: "ProductionGroovy${it + 1}", testClassName: "TestGroovy${it + 1}"]
+                        generate("src/test/groovy/${packageName.replace('.', '/')}/${classArgs.testClassName}.groovy", 'Test.groovy', classArgs)
+                    }
+                }
+                if (scalaProject) {
+                    testProject.sourceFiles.times {
+                        String packageName = createPackageName(it)
+                        Map classArgs = args + [packageName: packageName, productionClassName: "ProductionScala${it + 1}"]
+                        generate("src/main/scala/${packageName.replace('.', '/')}/${classArgs.productionClassName}.scala", 'Production.scala', classArgs)
+                    }
+                    testProject.testSourceFiles.times {
+                        String packageName = createPackageName(it)
+                        Map classArgs = args + [packageName: packageName, productionClassName: "ProductionScala${it + 1}", testClassName: "TestScala${it + 1}"]
+                        generate("src/test/scala/${packageName.replace('.', '/')}/${classArgs.testClassName}.scala", 'Test.scala', classArgs)
                     }
                 }
             }
