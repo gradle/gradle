@@ -2,7 +2,7 @@ import java.util.jar.Attributes
 
 apply plugin: 'groovy'
 
-archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
+archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" }}"
 
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
@@ -55,8 +55,8 @@ testTasks.all { task ->
 
 jarTasks.all { jar ->
     jar.manifest.mainAttributes(
-            (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-            (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
+        (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+        (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
     )
 }
 
@@ -95,8 +95,8 @@ class ClasspathManifest extends DefaultTask {
         def properties = new Properties()
         properties.runtime = input.fileCollection {
             (it instanceof ExternalDependency) || (it instanceof FileCollectionDependency)
-        }.collect {it.name}.join(',')
-        properties.projects = input.allDependencies.withType(ProjectDependency).collect {it.dependencyProject.archivesBaseName}.join(',')
+        }.collect { it.name }.join(',')
+        properties.projects = input.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.archivesBaseName }.join(',')
         return properties
     }
 
@@ -105,6 +105,7 @@ class ClasspathManifest extends DefaultTask {
         manifestFile.withOutputStream { properties.save(it, 'module definition') }
     }
 }
+
 ext.ClasspathManifest = ClasspathManifest
 
 // This is here mostly for the TravisCI build.
@@ -123,4 +124,8 @@ if (buildTypes.isActive("pullRequestValidation")) {
 
 task compileAll {
     dependsOn tasks.matching { it instanceof JavaCompile || it instanceof GroovyCompile }
+}
+
+test {
+    jvmArgs "-XX:MaxPermSize=512m"
 }
