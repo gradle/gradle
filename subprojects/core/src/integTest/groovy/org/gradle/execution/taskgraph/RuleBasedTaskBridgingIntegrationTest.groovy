@@ -70,7 +70,7 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         then:
         result.executedTasks.containsAll([':customTask', ':customTask', ':climbTask'])
     }
-    
+
     def "can depend on a rule-source task in a project which has already evaluated"() {
         given:
         settingsFile << 'include "sub1", "sub2"'
@@ -89,6 +89,8 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         }
 
         project("sub2") {
+            evaluationDependsOn ':sub1'
+
             task customTask  {
                 dependsOn project(":sub1").tasks.withType(ClimbTask)
             }
