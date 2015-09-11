@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling.m5
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -213,8 +212,9 @@ project(':impl') {
         mod.scope.scope == 'COMPILE'
     }
 
-    @TargetGradleVersion("<2.8")
-    def "makes sure module names are unique in gradle"() {
+    @TargetGradleVersion('>=1.0-milestone-8 <=2.7')
+    def "makes sure module names are unique"() {
+
         file('build.gradle').text = """
 subprojects {
     apply plugin: 'java'
@@ -235,7 +235,6 @@ project(':contrib:impl') {
         file('settings.gradle').text = "include 'api', 'impl', 'contrib:api', 'contrib:impl'"
 
         when:
-
         IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
 
         then:
