@@ -80,7 +80,19 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 ## Story: Update performance generator to create representative Java project
 
-See discussion about parameters.  Uses java-lang/jvm-component software model plugins.
+Uses java-lang/jvm-component software model plugins.
+
+A representative Java project:
+- 1 set of main sources
+- 1 set of unit test sources
+- Project dependencies
+- External dependencies (emulate by using jar-files)
+- Emulated checkstyle task
+- Unit test task
+
+3 different sizes of generated projects: small, medium and large.
+
+See discussion about parameters.
 
 ### Test coverage
 
@@ -90,6 +102,7 @@ See discussion about parameters.  Uses java-lang/jvm-component software model pl
 
 - Need to incorporate test execution into this as well
 - How are we going to handle external dependencies while the jvm-component plugins do not support external dependencies?
+- do we need to simulate integration tests?
 
 ## Story: Update performance generator to create representative C/C++ project
 
