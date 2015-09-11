@@ -15,10 +15,8 @@
  */
 
 package org.gradle.api.internal.tasks
-
 import org.gradle.api.Action
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.model.internal.core.ModelNode
@@ -27,13 +25,13 @@ import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
 
+import static org.gradle.api.internal.tasks.TaskContainerInternal.MODEL_PATH
+
 class RealizableTaskCollectionTest extends Specification {
 
     def "realizes a nodes link of a given type"() {
         given:
-        def project = Mock(ProjectInternal)
         ModelRegistryHelper registry = new ModelRegistryHelper()
-        project.getModelRegistry() >> registry
 
         def events = []
 
@@ -43,7 +41,7 @@ class RealizableTaskCollectionTest extends Specification {
         registry.mutate { it.path "tasks" node mutatorAction }
 
         when:
-        new RealizableTaskCollection(realizableType, Mock(DefaultTaskCollection), project).realizeRuleTaskTypes()
+        new RealizableTaskCollection(realizableType, Mock(DefaultTaskCollection), registry, MODEL_PATH).realizeRuleTaskTypes()
 
         then:
         events == ["created task $taskPath"]
@@ -56,9 +54,7 @@ class RealizableTaskCollectionTest extends Specification {
 
     def "does not realise a node link for non-realisable types"() {
         given:
-        def project = Mock(ProjectInternal)
         ModelRegistryHelper registry = new ModelRegistryHelper()
-        project.getModelRegistry() >> registry
 
         def events = []
 
@@ -70,7 +66,7 @@ class RealizableTaskCollectionTest extends Specification {
         registry.mutate { it.path "tasks" node redundantAction }
 
         when:
-        new RealizableTaskCollection(BasicTask, Mock(DefaultTaskCollection), project).realizeRuleTaskTypes()
+        new RealizableTaskCollection(BasicTask, Mock(DefaultTaskCollection), registry, MODEL_PATH).realizeRuleTaskTypes()
 
         then:
         events == ['created task tasks.basic']
@@ -79,19 +75,17 @@ class RealizableTaskCollectionTest extends Specification {
     def "realizes tasks once only"() {
         given:
         def registry = Mock(ModelRegistry)
-        def project = Mock(ProjectInternal)
-        project.getModelRegistry() >> registry
         def node = Mock(MutableModelNode)
         node.getLinks(_) >> []
 
 
         when:
-        RealizableTaskCollection collection = new RealizableTaskCollection(Class, Mock(TaskCollection), project)
+        RealizableTaskCollection collection = new RealizableTaskCollection(Class, Mock(TaskCollection), registry, MODEL_PATH)
         collection.realizeRuleTaskTypes()
         collection.realizeRuleTaskTypes()
 
         then:
-        1 * registry.atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.SelfClosed) >> node
+        1 * registry.atStateOrLater(MODEL_PATH, ModelNode.State.SelfClosed) >> node
     }
 
     private Action mutator(ModelRegistryHelper registry, events, task, String path) {

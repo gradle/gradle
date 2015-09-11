@@ -18,11 +18,12 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.*;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.*;
@@ -31,23 +32,25 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RealizableTaskCollection<T extends Task> implements TaskCollection<T>, Iterable<T> {
     private final TaskCollection<T> delegate;
     private final Class<T> type;
-    private final ProjectInternal project;
+    private final ModelRegistry modelRegistry;
+    private final ModelPath nodePath;
     private final AtomicBoolean realized = new AtomicBoolean(false);
 
 
-    public RealizableTaskCollection(Class<T> type, TaskCollection<T> delegate, ProjectInternal project) {
+    public RealizableTaskCollection(Class<T> type, TaskCollection<T> delegate, ModelRegistry modelRegistry, ModelPath nodePath) {
         this.delegate = delegate;
         this.type = type;
-        this.project = project;
+        this.modelRegistry = modelRegistry;
+        this.nodePath = nodePath;
     }
 
     public void realizeRuleTaskTypes() {
         if (realized.compareAndSet(false, true)) {
-            ModelNode modelNode = project.getModelRegistry().atStateOrLater(TaskContainerInternal.MODEL_PATH, ModelNode.State.SelfClosed);
+            ModelNode modelNode = modelRegistry.atStateOrLater(nodePath, ModelNode.State.SelfClosed);
             MutableModelNode taskContainerNode = (MutableModelNode) modelNode;
             Iterable<? extends MutableModelNode> links = taskContainerNode.getLinks(ModelType.of(type));
             for (MutableModelNode node : links) {
-                project.getModelRegistry().realizeNode(node.getPath());
+                modelRegistry.realizeNode(node.getPath());
             }
         }
     }
