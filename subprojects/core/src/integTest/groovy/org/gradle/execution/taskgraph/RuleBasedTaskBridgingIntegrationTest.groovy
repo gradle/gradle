@@ -70,38 +70,7 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         then:
         result.executedTasks.containsAll([':customTask', ':customTask', ':climbTask'])
     }
-
-    def "a non-rule-source task can depend on a rule-source task when referenced via various constructs"() {
-        given:
-        buildFile << """
-        ${ruleBasedTasks()}
-
-        class Rules extends RuleSource {
-            @Mutate
-            void addTasks(ModelMap<Task> tasks) {
-                tasks.create("climbTask", ClimbTask) { }
-                tasks.create("jumpTask", JumpTask) { }
-                tasks.create("echoTask", EchoTask) { }
-            }
-        }
-        apply type: Rules
-
-        task customClimbTask << { }
-        task customEchoTask << { }
-        task customJumpTask << { }
-
-        tasks.customClimbTask.dependsOn tasks.withType(ClimbTask)
-        project.tasks.customEchoTask.dependsOn tasks.withType(EchoTask)
-        tasks.getByPath(":customJumpTask").dependsOn tasks.withType(JumpTask)
-        """
-
-        when:
-        succeeds('customClimbTask', 'customEchoTask', 'customJumpTask')
-
-        then:
-        result.executedTasks.containsAll([':customClimbTask', ':climbTask', ':customJumpTask', ':jumpTask', ':customEchoTask', ':echoTask'])
-    }
-
+    
     def "can depend on a rule-source task in a project which has already evaluated"() {
         given:
         settingsFile << 'include "sub1", "sub2"'
