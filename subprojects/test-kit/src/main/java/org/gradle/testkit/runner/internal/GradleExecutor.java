@@ -21,5 +21,5 @@ import java.net.URI;
 import java.util.List;
 
 public interface GradleExecutor {
-    GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, List<URI> classpath);
+    GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, List<URI> classpath, boolean debug);
 }

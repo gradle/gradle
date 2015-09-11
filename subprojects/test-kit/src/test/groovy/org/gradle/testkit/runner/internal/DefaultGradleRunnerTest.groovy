@@ -18,12 +18,16 @@ package org.gradle.testkit.runner.internal
 
 import org.gradle.api.GradleException
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
+import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultGradleRunnerTest extends Specification {
+    @Rule SetSystemProperties sysProp = new SetSystemProperties()
     File gradleHome = Mock(File)
     GradleExecutor gradleExecutor = Mock(GradleExecutor)
     TestKitDirProvider testKitDirProvider = Mock(TestKitDirProvider)
@@ -39,6 +43,7 @@ class DefaultGradleRunnerTest extends Specification {
         defaultGradleRunner.projectDir == workingDir
         defaultGradleRunner.arguments == arguments
         defaultGradleRunner.classpath == []
+        !defaultGradleRunner.debug
         0 * testKitDirProvider.getDir()
     }
 
@@ -214,7 +219,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], []) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], [], false) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
     }
 
     def "temporary working space directory is not created if Gradle user home directory is not provided by user when build and fail is requested"() {
@@ -227,7 +232,41 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], []) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], [], false) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+    }
+
+    def "debug flag is passed on to executor"() {
+        given:
+        File gradleUserHomeDir = new File('some/dir')
+
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunnerWithWorkingDirAndArgument().withDebug(debug)
+        defaultGradleRunner.build()
+
+        then:
+        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], [], debug) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+
+        where:
+        debug << [true, false]
+    }
+
+    @Unroll
+    def "debug flag is #description for system property value '#systemPropertyValue'"() {
+        given:
+        System.properties[GradleRunner.DEBUG_SYS_PROP] = systemPropertyValue
+
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunner()
+
+        then:
+        defaultGradleRunner.debug == debugEnabled
+
+        where:
+        systemPropertyValue | debugEnabled | description
+        "true"              | true         | 'enabled'
+        "false"             | false        | 'disabled'
+        "test"              | false        | 'disabled'
     }
 
     private DefaultGradleRunner createRunner() {

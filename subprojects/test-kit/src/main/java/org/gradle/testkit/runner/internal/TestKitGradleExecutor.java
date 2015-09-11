@@ -54,12 +54,12 @@ public class TestKitGradleExecutor implements GradleExecutor {
         }));
     }
 
-    public GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, List<URI> classpath) {
+    public GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, List<URI> classpath, boolean debug) {
         final ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
         final ByteArrayOutputStream standardError = new ByteArrayOutputStream();
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
 
-        GradleConnector gradleConnector = buildConnector(gradleHome, gradleUserHome, projectDir);
+        GradleConnector gradleConnector = buildConnector(gradleHome, gradleUserHome, projectDir, debug);
         ProjectConnection connection = null;
 
         try {
@@ -85,7 +85,7 @@ public class TestKitGradleExecutor implements GradleExecutor {
         return new GradleExecutionResult(standardOutput, standardError, tasks);
     }
 
-    private GradleConnector buildConnector(File gradleHome, File gradleUserHome, File projectDir) {
+    private GradleConnector buildConnector(File gradleHome, File gradleUserHome, File projectDir, boolean debug) {
         DefaultGradleConnector gradleConnector = (DefaultGradleConnector) GradleConnector.newConnector();
         gradleConnector.useGradleUserHomeDir(gradleUserHome);
         gradleConnector.daemonBaseDir(new File(gradleUserHome, TEST_KIT_DAEMON_DIR_NAME));
@@ -93,6 +93,7 @@ public class TestKitGradleExecutor implements GradleExecutor {
         gradleConnector.searchUpwards(false);
         gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);
         gradleConnector.useInstallation(gradleHome);
+        gradleConnector.embedded(debug);
         return gradleConnector;
     }
 

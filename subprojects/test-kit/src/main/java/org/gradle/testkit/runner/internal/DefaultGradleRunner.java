@@ -40,6 +40,7 @@ public class DefaultGradleRunner extends GradleRunner {
     private List<String> arguments = new ArrayList<String>();
     private List<String> jvmArguments = new ArrayList<String>();
     private List<URI> classpath = new ArrayList<URI>();
+    private boolean debug;
 
     public DefaultGradleRunner(File gradleHome) {
         this(gradleHome, new TestKitGradleExecutor(), new TempTestKitDirProvider());
@@ -49,6 +50,11 @@ public class DefaultGradleRunner extends GradleRunner {
         this.gradleHome = gradleHome;
         this.gradleExecutor = gradleExecutor;
         this.testKitDirProvider = testKitDirProvider;
+        debug = isDebugEnabled();
+    }
+
+    private boolean isDebugEnabled() {
+        return Boolean.parseBoolean(System.getProperty(DEBUG_SYS_PROP, "false"));
     }
 
     public TestKitDirProvider getTestKitDirProvider() {
@@ -108,6 +114,17 @@ public class DefaultGradleRunner extends GradleRunner {
     @Override
     public GradleRunner withClasspath(List<URI> classpath) {
         this.classpath = new ArrayList<URI>(classpath);
+        return this;
+    }
+
+    @Override
+    public boolean isDebug() {
+        return debug;
+    }
+
+    @Override
+    public GradleRunner withDebug(boolean debug) {
+        this.debug = debug;
         return this;
     }
 
@@ -183,7 +200,8 @@ public class DefaultGradleRunner extends GradleRunner {
             projectDirectory,
             arguments,
             jvmArguments,
-            classpath
+            classpath,
+            debug
         );
 
         resultVerification.execute(execResult);
