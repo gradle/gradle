@@ -16,9 +16,10 @@
 
 package org.gradle.execution.taskgraph
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
+class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
     def "a non-rule-source task can depend on a rule-source task"() {
         given:
@@ -185,5 +186,69 @@ class RuleBasedTaskReferenceIntegrationTest extends AbstractIntegrationSpec impl
         then:
         failure.assertHasCause('Bang')
         failure.assertHasDescription('Exception thrown while executing model rule: Rules#addTasks > create(climbTask)')
+    }
+
+    @NotYetImplemented
+    def "actions are applied to a rule-source task using all task action constructs"() {
+        given:
+        buildFile << """
+        class OverruleTask extends EchoTask {}
+        ${ruleBasedTasks()}
+
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("actionMan", EchoTask) {
+                    text = 'This is your commander speaking'
+                }
+                tasks.create("climbTask", ClimbTask) {}
+                tasks.create("jumpTask", JumpTask) {}
+                tasks.create("overruleTask", OverruleTask) {}
+            }
+        }
+        apply type: Rules
+        tasks.withType(OverruleTask) { it.text = "actionWoman I'm the real commander" }
+        tasks.withType(ClimbTask).all { it.steps = 14 }
+        tasks.matching { it.name.contains('jump') }.all { it.height = 7 }
+
+
+        //It should be possible to reference the tasks without having to do tasks.realize()
+        assert overruleTask.text == "actionWoman I'm the real commander"
+        assert jumpTask.height == 7
+        assert climbTask.steps == 14
+        """
+
+        when:
+        succeeds('actionMan')
+
+        then:
+        output.contains("actionMan This is your commander speaking")
+    }
+
+    @NotYetImplemented
+    def "rule sources can have a task with some action applied to it as a rule subject"() {
+        given:
+        buildFile << """
+        ${ruleBasedTasks()}
+        class Rules extends RuleSource {
+            @Mutate
+            void addTasks(ModelMap<Task> tasks) {
+                tasks.create("climbTask", ClimbTask) {}
+            }
+
+            @Mutate
+            void plusOne(@Path("tasks.climbTask") ClimbTask climbTask){
+                climbTask.steps += 1
+            }
+        }
+        apply type: Rules
+        tasks.withType(ClimbTask).all { it.steps = 2 }
+
+        //It should be possible to reference the tasks without having to do tasks.realize()
+        assert climbTask.steps == 3
+        """
+
+        expect:
+        succeeds('help')
     }
 }
