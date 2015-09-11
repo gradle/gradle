@@ -386,6 +386,7 @@ task generateBigNewMultiprojectJava(type: ProjectGeneratorTask) {
     sourceFiles = 300
     linesOfCodePerSourceFile = 350
     filesPerPackage = 10
+    useSubProjectNumberInSourceFileNames = true
     subProjectTemplates = ['java-source', 'new-java-project']
     templateArgs = [projectDependencies: true, generatedDependencies: DependencyGenerator.newInstance(numberOfProjects: 150).createDependencies()]
     testDependencies = files()
