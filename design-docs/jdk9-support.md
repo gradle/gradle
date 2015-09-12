@@ -70,6 +70,8 @@ Goal: Run a coverage CI build on Java 9. At completion, it will be possible to b
 
 Goal: full support of the Java 9 module system, and its build and runtime features
 
+- [Jigsaw JSR-376](http://openjdk.java.net/projects/jigsaw/spec/)
+
 In no particular order:
 
 - Make further use of `@argfile` when supported 
@@ -82,6 +84,8 @@ In no particular order:
 - Extract or validate platform dependencies declared in `module-info.java`
 - Map module namespace to GAV namespace to resolve classpaths
 - Resolve modules for compilation module path
+    - Locate modules that provide required services.
+    - Resolve conflicts when multiple components provide the same module
 - Resolve libraries that are packaged as:
     - modular jar
     - jar
@@ -90,6 +94,7 @@ In no particular order:
 - Invoke compiler with module path and other args
 - Deal with single and multi-module source tree layouts
 - Resolve modules for runtime, packaged in various forms.
+    - Locate modules that provide required services.
 - Invoke java for module at runtime (eg for test execution)
 - Build modular jar file
     - May need to build multiple jars for a given project, one module per jar
@@ -100,6 +105,7 @@ In no particular order:
 - Publish multiple variants of a Java component 
 - Capture module identifier and dependencies in publication meta-data
 - Improve JVM platform definition and toolchains to understand and invoke modular JVMs
+- Use module layers rather than filtering when running under Java 9 to enforce isolation.
 
 Some migration/bridging options:
 
@@ -108,6 +114,7 @@ Some migration/bridging options:
     - Might not be reliable, as semantics of module and jar are somewhat different.
 - Support other JVM languages, generating modules based on dependency information.
 - Allow non-module consumers to consume modules, applying some validation at compile and runtime.
+    - This is possible already. Consumers loaded via classpath are part of an unnamed module and can read every other module.
 - Support Gradle plugins packaged as modules
 
 Abstractly:
