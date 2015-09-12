@@ -268,6 +268,78 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
         output.contains("script name: windows")
     }
 
+    def "rule can target managed element via a series of references"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Platform {
+                OperatingSystem getOperatingSystem()
+                void setOperatingSystem(OperatingSystem os)
+            }
+
+            @Managed
+            interface OperatingSystem {
+                Family getFamily()
+                void setFamily(Family family)
+            }
+
+            @Managed
+            interface Family {
+                String getName()
+                void setName(String name)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void windows(Family family) {
+                    family.name = 'windows'
+                }
+
+                @Model
+                void windows10(OperatingSystem os, Family family) {
+                    os.family = family
+                }
+
+                @Model
+                void platform(Platform platform, OperatingSystem os) {
+                    platform.operatingSystem = os
+                }
+
+                @Mutate
+                void addTask(ModelMap<Task> tasks, @Path("platform.operatingSystem.family") Family family) {
+                    tasks.create("fromPlugin") {
+                        doLast {
+                            println "plugin input: $family"
+                            println "plugin name: $family.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+
+            model {
+                tasks {
+                    fromScript(Task) {
+                        doLast {
+                            println "script input: " + $("platform.operatingSystem.family")
+                            println "script name: " + $("platform.operatingSystem.family").name
+                        }
+                    }
+                }
+            }
+        '''
+
+        then:
+        succeeds "fromPlugin", "fromScript"
+
+        and:
+        output.contains("plugin input: Family 'windows'")
+        output.contains("plugin name: windows")
+        output.contains("script input: Family 'windows'")
+        output.contains("script name: windows")
+    }
+
     def "rule can target scalar property of managed element as input"() {
         when:
         buildScript '''
