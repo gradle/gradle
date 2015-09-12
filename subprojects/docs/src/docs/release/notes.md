@@ -159,7 +159,28 @@ and we have removed any integration test coverage for these versions.
 PMD can perform additional analysis for some rules (see above), therefore new violations may be found in existing projects.  Previously, these rules were unable to detect problems
 because classes outside of your project were not available during analysis.
 
-We would recommend that you fix the violations or disable the failing rules.
+### Improved IDE project naming deduplication
+
+To ensure unique project names in the IDE, Gradle applies a deduplication logic when generating IDE metadata for Eclipse and Idea projects.
+This deduplication logic has been improved. All projects with non unique names are now deduplicated. here's an example for clarification:
+
+Given a Gradle multiproject build with the following project structure
+
+    root
+    |-foo
+    |  \- app
+    |
+    \-bar
+       \- app
+
+results in the following IDE project name mapping:
+
+    root
+    |-foo
+    |  \- foo-app
+    |
+    \-bar
+       \- bar-app
 
 ## External contributions
 
