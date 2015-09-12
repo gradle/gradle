@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.rules;
 
-import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
 import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
@@ -44,31 +42,4 @@ public class ModelMapCreators {
             .withProjection(PolymorphicModelMapProjection.of(modelType, childFactory))
             .build();
     }
-
-    public static <T> ModelCreators.Builder of(ModelPath path, final Class<T> typeClass) {
-
-        final ModelType<RuleAwarePolymorphicNamedEntityInstantiator<T>> instantiatorType = instantiatorType(typeClass);
-
-        ModelType<T> modelType = ModelType.of(typeClass);
-        return ModelCreators.of(
-            ModelReference.of(path, instantiatorType),
-            new Factory<RuleAwarePolymorphicNamedEntityInstantiator<T>>() {
-                @Override
-                public RuleAwarePolymorphicNamedEntityInstantiator<T> create() {
-                    return new DefaultRuleAwarePolymorphicNamedEntityInstantiator<T>(
-                        new DefaultPolymorphicNamedEntityInstantiator<T>(typeClass, "this collection")
-                    );
-                }
-            }
-        )
-            .withProjection(PolymorphicModelMapProjection.of(modelType, NodeBackedModelMap.createUsingParentNode(modelType)))
-            .withProjection(UnmanagedModelProjection.of(instantiatorType));
-    }
-
-    public static <T> ModelType<RuleAwarePolymorphicNamedEntityInstantiator<T>> instantiatorType(Class<T> typeClass) {
-        return new ModelType.Builder<RuleAwarePolymorphicNamedEntityInstantiator<T>>() {
-        }.where(new ModelType.Parameter<T>() {
-        }, ModelType.of(typeClass)).build();
-    }
-
 }
