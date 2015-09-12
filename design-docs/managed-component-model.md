@@ -241,14 +241,11 @@ For example:
 - When binding a path for input, need to realize enough of each element to finalize references so that references can be traversed.
 - Need to handle paths that traverse a `null` reference.
 - Error messages on binding failures.
-- Reference value can be changed while mutation is allowed. Treat reference change as remove and add.
-- Can't remove an element when it is the target of a reference.
 
 ### Test cases
 
 - Can bind to target element via reference path.
-- Nice error message when reference is `null`. Should indicate where the `null` reference is.
-- Nice error message when binding to unknown child element.
+- Nice error message when reference is `null`.
 - Can bind to child of target element via reference path.
 - When reference is attached in `@Defaults` rule, configuration rules are applied to target element.
 - Can bind element via path that contains several references.
@@ -257,8 +254,13 @@ For example:
 
 ### Backlog
 
-- Deal with case where by-path binding points to a null reference or null scala value, rather than traverses a null reference. 
+- Improve error message when input or subject cannot be bound due to a null reference.
+- Deal with case where by-path binding points to a null reference or null scalar value. Currently we supply a null value to the rule, should probably fail. 
 - Deal with by-type binding to a non-null reference.
+- Currently an input or subject reachable via a reference can be viewed only as the types from the reference definition. Instead, should be able to view the target
+using any type that the view supports.
+- The target of a reference value can be changed while mutation is allowed. Treat reference change as remove and add.
+- Can't remove an element when it is the target of a reference.
 
 ## Model report shows references between elements
 
@@ -270,6 +272,11 @@ For example:
 - Reference is not `null`.
 - Can mutate reference value during configuration.
 - Cycle from child to parent.
+
+### Backlog
+
+- A reference is almost always set via a rule on the parent or an ancestor. This is not captured, so that in the report the reference does not appear to be 
+configured by any rule.
 
 ## Referenced element can be used as subject for a rule
 
@@ -293,10 +300,16 @@ only to implement the top level containers.
 - Change `BinarySpec` implementations so that they are node backed.
 - Apply the above capabilities to the `binaries` top level container.
 
+## Run only those rules that define cross-cutting configuration
+
+- Don't need to discover the elements of a top-level container in order to apply cross-cutting rules. However, the approach so 
+far forces all elements to be discovered.
+
 ## Backlog
 
 - Apply to `ComponentSpec`, `Task`, etc.
-- Conveniences to apply rules to any thing of a given type.
+- Apply cross-cutting defaults, finalization, validation.
+- Allow rules to be applied to any thing of a given type, relative to any model element.
 
 # Feature 8: Plugin author attaches source sets to managed type
 
