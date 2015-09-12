@@ -18,13 +18,19 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.AntFileCollectionBuilder
+import org.gradle.api.internal.project.AntBuilderDelegate
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl
+import org.gradle.api.plugins.quality.internal.forking.*
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
+import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
+import org.gradle.process.internal.WorkerProcessBuilder
+import org.gradle.util.GUtil
 
 import javax.inject.Inject
 
@@ -32,6 +38,9 @@ import javax.inject.Inject
  * Runs Checkstyle against some source files.
  */
 class Checkstyle extends SourceTask implements VerificationTask, Reporting<CheckstyleReports> {
+
+    private static final String GRADLE_CHECKSTYLE_VIOLATIONS = "org.gradle.checkstyle.violations"
+
     /**
      * The class path containing the Checkstyle library to be used.
      */
@@ -107,14 +116,8 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
      * The contained reports can be configured by name and closures. Example:
      *
      * <pre>
-     * checkstyleTask {
-     *   reports {
-     *     xml {
-     *       destination "build/codenarc.xml"
-     *     }
-     *   }
-     * }
-     * </pre>
+     * checkstyleTask {*   reports {*     xml {*       destination "build/codenarc.xml"
+     *}*}*}* </pre>
      *
      * @param closure The configuration
      * @return The reports container
@@ -133,42 +136,76 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
      */
     boolean showViolations = true
 
+    @Inject
+    protected Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void run() {
-        def propertyName = "org.gradle.checkstyle.violations"
-    antBuilder.withClasspath(getCheckstyleClasspath()).execute {
+        def manager = new AntWorkerManager()
+        def spec = new AntWorkerSpec(project.getProjectDir(), getCheckstyleClasspath(), new CheckstyleAntAction(this))
+        def antResult = manager.runAntTask(getWorkerProcessBuilderFactory(), spec)
+
+        if(antResult.errorCount != 0) {
+            throw new RuntimeException(antResult.exception)
+        }
+
+        if (antResult.getProjectProperties()[GRADLE_CHECKSTYLE_VIOLATIONS]) {
+            def message = "Checkstyle rule violations were found."
+            def report = reports.firstEnabled
+            if (report) {
+                def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
+                message += " See the report at: $reportUrl"
+            }
+            if (getIgnoreFailures()) {
+                logger.warn(message)
+            } else {
+                throw new GradleException(message)
+            }
+        }
+    }
+
+    private static class CheckstyleAntAction implements AntExecutionSpec {
+
+        private final File configFile;
+        private final AntSourceBuilder sources;
+        private final Set<File> classpath = new LinkedHashSet<>()
+        private final boolean showViolations;
+        private final Map<String, Object> configProperties;
+        private final boolean isXmlEnabled;
+        private final File xmlReportDestination;
+
+        CheckstyleAntAction(Checkstyle checkstyle) {
+            this.configFile = checkstyle.configFile.absoluteFile
+            this.sources = new RootAntSourceBuilder(checkstyle.getSource(), 'fileset', FileCollection.AntType.FileSet)
+            GUtil.addToCollection(classpath, checkstyle.getCheckstyleClasspath())
+            this.showViolations = checkstyle.showViolations
+            this.configProperties = checkstyle.configProperties
+            this.isXmlEnabled = checkstyle.getReports().xml.enabled
+            this.xmlReportDestination = isXmlEnabled != null ? checkstyle.getReports().xml.destination : null
+        }
+
+        @Override
+        void configure(AntBuilderDelegate antBuilder) {
             try {
-                ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
+                antBuilder.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
             } catch (ClassNotFoundException cnfe) {
-                ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask')
+                antBuilder.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask')
             }
 
-            ant.checkstyle(config: getConfig().asFile(), failOnViolation: false, failureProperty: propertyName) {
-                getSource().addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-                getClasspath().addToAntBuilder(ant, 'classpath')
+            antBuilder.checkstyle(config: configFile, failOnViolation: false, failureProperty: GRADLE_CHECKSTYLE_VIOLATIONS) {
+                sources.apply(antBuilder)
+                new AntFileCollectionBuilder(classpath).addToAntBuilder(antBuilder, 'classpath')
                 if (showViolations) {
                     formatter(type: 'plain', useFile: false)
                 }
-                if (reports.xml.enabled) {
-                    formatter(type: 'xml', toFile: reports.xml.destination)
+                if (isXmlEnabled) {
+                    formatter(type: 'xml', toFile: xmlReportDestination)
                 }
 
-                getConfigProperties().each { key, value ->
+                configProperties.each { key, value ->
                     property(key: key, value: value.toString())
-                }
-            }
-
-            if (ant.project.properties[propertyName]) {
-                def message = "Checkstyle rule violations were found."
-                def report = reports.firstEnabled
-                if (report) {
-                    def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
-                    message += " See the report at: $reportUrl"
-                }
-                if (getIgnoreFailures()) {
-                    logger.warn(message)
-                } else {
-                    throw new GradleException(message)
                 }
             }
         }
