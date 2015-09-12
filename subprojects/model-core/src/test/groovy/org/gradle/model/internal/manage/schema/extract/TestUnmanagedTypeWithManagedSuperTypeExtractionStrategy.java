@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
@@ -30,7 +31,7 @@ public class TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy extends Man
     }
 
     @Override
-    protected <R> NodeInitializer createNodeInitializer(ModelManagedImplStructSchema<R> schema, ModelSchemaStore store) {
+    protected <R> NodeInitializer createNodeInitializer(ModelManagedImplStructSchema<R> schema, ModelSchemaStore store, NodeInitializerRegistry nodeInitializerRegistry) {
         return null;
     }
 }

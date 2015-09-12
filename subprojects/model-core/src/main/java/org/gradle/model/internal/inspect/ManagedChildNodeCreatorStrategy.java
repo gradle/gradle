@@ -18,6 +18,7 @@ package org.gradle.model.internal.inspect;
 
 import org.gradle.model.internal.core.ChildNodeInitializerStrategy;
 import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -25,19 +26,21 @@ import org.gradle.model.internal.type.ModelType;
 
 public class ManagedChildNodeCreatorStrategy<T> implements ChildNodeInitializerStrategy<T> {
 
-    private final ModelSchemaStore modelSchemaStore;
+    private final ModelSchemaStore schemaStore;
+    private final NodeInitializerRegistry nodeInitializerRegistry;
 
-    public ManagedChildNodeCreatorStrategy(ModelSchemaStore modelSchemaStore) {
-        this.modelSchemaStore = modelSchemaStore;
+    public ManagedChildNodeCreatorStrategy(ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
+        this.schemaStore = schemaStore;
+        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     @Override
     public <S extends T> NodeInitializer initializer(ModelType<S> type) {
-        ModelSchema<S> schema = modelSchemaStore.getSchema(type);
+        ModelSchema<S> schema = schemaStore.getSchema(type);
         if (!(schema instanceof ManagedImplModelSchema)) {
             throw new IllegalArgumentException("Type is not managed: " + type);
         }
-        return ((ManagedImplModelSchema<S>) schema).getNodeInitializer();
+        return nodeInitializerRegistry.getNodeInitializer((ManagedImplModelSchema<?>) schema);
     }
 
 }

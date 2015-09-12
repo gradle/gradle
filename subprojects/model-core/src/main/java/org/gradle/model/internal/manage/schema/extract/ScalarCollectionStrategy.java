@@ -40,7 +40,7 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         ModelType.of(Set.class)
     );
 
-    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store) {
+    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, NodeInitializerRegistry nodeInitializerRegistry) {
         ModelType<T> type = extractionContext.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);

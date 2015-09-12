@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect
 
 import org.gradle.model.*
+import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
@@ -37,7 +38,7 @@ import java.beans.Introspector
 
 class ModelRuleExtractorTest extends Specification {
     ModelRegistry registry = new DefaultModelRegistry(null)
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultNodeInitializerRegistry()))
 
     static class ModelThing {
         final String name

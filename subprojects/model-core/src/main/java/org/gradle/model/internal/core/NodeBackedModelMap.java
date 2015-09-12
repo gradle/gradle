@@ -106,13 +106,13 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         };
     }
 
-    public static <T> ChildNodeInitializerStrategy<T> createManagedOrUsingFactory(final ModelSchemaStore schemaStore, final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference) {
+    public static <T> ChildNodeInitializerStrategy<T> createManagedOrUsingFactory(final ModelSchemaStore schemaStore, final NodeInitializerRegistry nodeInitializerRegistry, final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference) {
         return new ChildNodeInitializerStrategy<T>() {
             @Override
             public <S extends T> NodeInitializer initializer(final ModelType<S> type) {
                 ModelSchema<S> schema = schemaStore.getSchema(type);
                 if (schema instanceof ManagedImplModelSchema) {
-                    return ((ManagedImplModelSchema<S>) schema).getNodeInitializer();
+                    return nodeInitializerRegistry.getNodeInitializer((ManagedImplModelSchema<?>) schema);
                 } else {
                     return new FactoryBasedNodeInitializer<T, S>(factoryReference, type);
                 }

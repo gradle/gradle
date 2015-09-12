@@ -17,6 +17,8 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import net.jcip.annotations.NotThreadSafe;
+import org.gradle.model.internal.core.DefaultNodeInitializerRegistry;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
@@ -29,17 +31,23 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
 
     final ModelSchemaCache cache = new ModelSchemaCache();
     final ModelSchemaExtractor schemaExtractor;
+    private final NodeInitializerRegistry nodeInitializerRegistry;
 
     public static DefaultModelSchemaStore getInstance() {
         return INSTANCE;
     }
 
     public DefaultModelSchemaStore(ModelSchemaExtractor schemaExtractor) {
+        this(schemaExtractor, new DefaultNodeInitializerRegistry());
+    }
+
+    public DefaultModelSchemaStore(ModelSchemaExtractor schemaExtractor, NodeInitializerRegistry nodeInitializerRegistry) {
         this.schemaExtractor = schemaExtractor;
+        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     public <T> ModelSchema<T> getSchema(ModelType<T> type) {
-        return schemaExtractor.extract(type, this, cache);
+        return schemaExtractor.extract(type, this, cache, nodeInitializerRegistry);
     }
 
     @Override

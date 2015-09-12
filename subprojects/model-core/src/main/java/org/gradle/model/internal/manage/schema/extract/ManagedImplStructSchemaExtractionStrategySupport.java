@@ -27,6 +27,7 @@ import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
@@ -115,7 +116,7 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
     }
 
     @Override
-    protected <R> ModelManagedImplStructSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects, final ModelSchemaStore store) {
+    protected <R> ModelManagedImplStructSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects, final ModelSchemaStore store, final NodeInitializerRegistry nodeInitializerRegistry) {
         ModelType<R> type = extractionContext.getType();
         Class<? extends R> implClass = classGenerator.generate(type, delegateType, propertyResults);
         Iterable<ModelProperty<?>> properties = Iterables.transform(propertyResults, new Function<ModelPropertyExtractionResult<?>, ModelProperty<?>>() {
@@ -127,12 +128,12 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
         return new ModelManagedImplStructSchema<R>(type, properties, aspects, implClass, delegateType, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelManagedImplStructSchema<R> schema) {
-                return createNodeInitializer(schema, store);
+                return createNodeInitializer(schema, store, nodeInitializerRegistry);
             }
         });
     }
 
-    protected abstract <R> NodeInitializer createNodeInitializer(ModelManagedImplStructSchema<R> schema, ModelSchemaStore store);
+    protected abstract <R> NodeInitializer createNodeInitializer(ModelManagedImplStructSchema<R> schema, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry);
 
     @Override
     protected void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, Method getter, String message) {
