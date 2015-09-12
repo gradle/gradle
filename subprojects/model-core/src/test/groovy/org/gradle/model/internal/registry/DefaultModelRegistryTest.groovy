@@ -243,9 +243,6 @@ class DefaultModelRegistryTest extends Specification {
         }
         registry.create("foo") { it.unmanaged(String, "ref.direct") { it } }
 
-        // TODO - remove this, should be realized via the reference
-        registry.realize("target")
-
         expect:
         registry.realize("foo", String) == "value"
     }
@@ -267,11 +264,22 @@ class DefaultModelRegistryTest extends Specification {
         }
         registry.create("foo") { it.unmanaged(String, "ref.indirect.child") { it } }
 
-        // TODO - remove this, should be realized via the reference
-        registry.realize("parent.child")
-
         expect:
         registry.realize("foo", String) == "value"
+    }
+
+    def "reference can point to ancestor of node"() {
+        given:
+        registry.create("parent") { parentBuilder ->
+            parentBuilder.unmanagedNode(String) { node ->
+                node.addReference(registry.creator("parent.child").unmanagedNode(String, {}))
+                node.applyToSelf(ModelActionRole.Mutate, registry.action().path("parent").node { it.setPrivateData(String, "value")})
+                node.getLink("child").setTarget(node)
+            }
+        }
+
+        expect:
+        registry.realize("parent.child", String) == "value"
     }
 
     def "cannot change a reference after it has been self-closed"() {

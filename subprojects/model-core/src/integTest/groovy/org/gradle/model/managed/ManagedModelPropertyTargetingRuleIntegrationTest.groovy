@@ -42,7 +42,12 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
             class RulePlugin extends RuleSource {
                 @Model
                 void platform(Platform platform) {
-                    platform.operatingSystem.name = "foo"
+                    platform.operatingSystem.name = "windows"
+                }
+
+                @Mutate
+                void configurePlatform(Platform platform) {
+                    platform.operatingSystem.name = "${platform.operatingSystem.name} 10"
                 }
 
                 @Mutate
@@ -75,9 +80,9 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
         and:
         output.contains("plugin input: OperatingSystem 'platform.operatingSystem'")
-        output.contains("plugin name: foo")
+        output.contains("plugin name: windows 10")
         output.contains("script input: OperatingSystem 'platform.operatingSystem'")
-        output.contains("script name: foo")
+        output.contains("script name: windows 10")
     }
 
     def "rule can target nested element of managed element as subject"() {
@@ -159,7 +164,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
             class RulePlugin extends RuleSource {
                 @Model
                 void os(OperatingSystem os) {
-                    os.name = "foo"
+                    os.name = "windows 10"
                 }
 
                 @Model
@@ -197,9 +202,9 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
         and:
         output.contains("plugin input: OperatingSystem 'os'")
-        output.contains("plugin name: foo")
+        output.contains("plugin name: windows 10")
         output.contains("script input: OperatingSystem 'os'")
-        output.contains("script name: foo")
+        output.contains("script name: windows 10")
     }
 
     def "rule can target nested element of managed element as input through a reference to managed element"() {
@@ -225,7 +230,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
             class RulePlugin extends RuleSource {
                 @Model
                 void windows(OperatingSystem os) {
-                    os.family.name = 'windows'
+                    os.family.name = 'windows 10'
                 }
 
                 @Model
@@ -263,9 +268,9 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
         and:
         output.contains("plugin input: Family 'windows.family'")
-        output.contains("plugin name: windows")
+        output.contains("plugin name: windows 10")
         output.contains("script input: Family 'windows.family'")
-        output.contains("script name: windows")
+        output.contains("script name: windows 10")
     }
 
     def "rule can target managed element via a series of references"() {
@@ -292,7 +297,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
             class RulePlugin extends RuleSource {
                 @Model
                 void windows(Family family) {
-                    family.name = 'windows'
+                    family.name = 'windows 10'
                 }
 
                 @Model
@@ -335,9 +340,79 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
 
         and:
         output.contains("plugin input: Family 'windows'")
-        output.contains("plugin name: windows")
+        output.contains("plugin name: windows 10")
         output.contains("script input: Family 'windows'")
-        output.contains("script name: windows")
+        output.contains("script name: windows 10")
+    }
+
+    def "target of reference is realized when used as an input"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Platforms {
+                OperatingSystem getCurrent()
+                void setCurrent(OperatingSystem os)
+
+                OperatingSystem getWindows()
+                OperatingSystem getLinux()
+            }
+
+            @Managed
+            interface OperatingSystem {
+                String getName()
+                void setName(String name)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void platforms(Platforms platforms) {
+                    platforms.current = platforms.windows
+                }
+
+                @Defaults
+                void platformDefaults(Platforms platforms) {
+                    platforms.windows.name = 'windows'
+                    platforms.linux.name = 'linux'
+                }
+
+                @Mutate
+                void configureWindows(@Path('platforms.windows') OperatingSystem os) {
+                    os.name = "$os.name 10"
+                }
+
+                @Mutate
+                void addTask(ModelMap<Task> tasks, @Path("platforms.current") OperatingSystem os) {
+                    tasks.create("fromPlugin") {
+                        doLast {
+                            println "plugin input: $os"
+                            println "plugin name: $os.name"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+
+            model {
+                tasks {
+                    fromScript(Task) {
+                        doLast {
+                            println "script input: " + $("platforms.current")
+                            println "script name: " + $("platforms.current").name
+                        }
+                    }
+                }
+            }
+        '''
+
+        then:
+        succeeds "fromPlugin", "fromScript"
+
+        and:
+        output.contains("plugin input: OperatingSystem 'platforms.windows'")
+        output.contains("plugin name: windows 10")
+        output.contains("script input: OperatingSystem 'platforms.windows'")
+        output.contains("script name: windows 10")
     }
 
     def "rule can target scalar property of managed element as input"() {

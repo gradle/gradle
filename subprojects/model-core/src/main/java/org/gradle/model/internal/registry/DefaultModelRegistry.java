@@ -1157,13 +1157,20 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            // Must graph-close each child first
-            for (ModelNodeInternal child : node.getLinks()) {
-                if (child.getPath().isDescendant(getPath())) {
-                    // The linked node is an ancestor of this node, so is already being closed
-                    continue;
+            if (node instanceof ModelReferenceNode) {
+                // Graph close the target of the reference
+                ModelReferenceNode referenceNode = (ModelReferenceNode) node;
+                ModelNodeInternal target = referenceNode.getTarget();
+                if (target.getPath().isDescendant(getPath())) {
+                    // Target is an ancestor of this node, so is already being closed
+                    return true;
                 }
-                dependencies.add(graph.nodeAtState(new NodeAtState(child.getPath(), GraphClosed)));
+                dependencies.add(graph.nodeAtState(new NodeAtState(target.getPath(), GraphClosed)));
+            } else {
+                // Must graph-close each child first
+                for (ModelNodeInternal child : node.getLinks()) {
+                    dependencies.add(graph.nodeAtState(new NodeAtState(child.getPath(), GraphClosed)));
+                }
             }
             return true;
         }
