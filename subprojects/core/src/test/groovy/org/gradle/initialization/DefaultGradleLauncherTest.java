@@ -31,7 +31,6 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.Factory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.logging.LoggingManagerInternal;
@@ -47,6 +46,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
@@ -83,7 +83,7 @@ public class DefaultGradleLauncherTest {
     private ModelConfigurationListener modelListenerMock = context.mock(ModelConfigurationListener.class);
     private BuildCompletionListener buildCompletionListener = context.mock(BuildCompletionListener.class);
     private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
-    private Stoppable buildServices = context.mock(Stoppable.class);
+    private Closeable buildServices = context.mock(Closeable.class);
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before
@@ -285,7 +285,7 @@ public class DefaultGradleLauncherTest {
     public void testCleansUpOnStop() throws IOException {
         context.checking(new Expectations() {{
             one(loggingManagerMock).stop();
-            one(buildServices).stop();
+            one(buildServices).close();
             one(buildCompletionListener).completed();
         }});
 

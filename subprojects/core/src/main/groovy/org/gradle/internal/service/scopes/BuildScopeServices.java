@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
+import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -59,6 +60,7 @@ import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
@@ -82,10 +84,14 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
 
+import java.io.Closeable;
+import java.util.List;
+
 /**
  * Contains the singleton services for a single build invocation.
  */
 public class BuildScopeServices extends DefaultServiceRegistry {
+    List<Closeable> additionalCloseables = Lists.newArrayList();
 
     public BuildScopeServices(final ServiceRegistry parent) {
         super(parent);
@@ -326,4 +332,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultAuthenticationSchemeRegistry();
     }
 
+    public List<Closeable> getAdditionalCloseables() {
+        return additionalCloseables;
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        CompositeStoppable.stoppable(additionalCloseables).stop();
+    }
 }

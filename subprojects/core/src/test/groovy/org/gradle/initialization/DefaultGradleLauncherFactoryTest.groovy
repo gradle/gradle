@@ -18,7 +18,6 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.logging.LoggingServiceRegistry
@@ -79,45 +78,5 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         request.client == clientMetaData
         launcher.gradle.services.get(BuildCancellationToken) == cancellationToken
         launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
-    }
-
-    def "launcher stops build and session service scopes when no context is provided" () {
-        when:
-        def launcher = factory.newInstance(startParameter)
-
-        then:
-        launcher.toStopOnStop.elements.any { it.toString() == "BuildSessionScopeServices" }
-        launcher.toStopOnStop.elements.any { it.toString() == "BuildScopeServices" }
-
-        when:
-        launcher.buildListener.buildStarted(launcher.gradle)
-        launcher.stop()
-
-        then:
-        launcher.toStopOnStop.elements.every { it.isClosed() }
-    }
-
-    def "launcher stops build service scope when context is provided" () {
-        def cancellationToken = Stub(BuildCancellationToken)
-        def clientMetaData = Stub(BuildClientMetaData)
-        def eventConsumer = Stub(BuildEventConsumer)
-        def requestContext = Stub(BuildRequestContext) {
-            getCancellationToken() >> cancellationToken
-            getClient() >> clientMetaData
-            getEventConsumer() >> eventConsumer
-        }
-
-        when:
-        def launcher = factory.newInstance(startParameter, requestContext, sessionServices)
-
-        then:
-        launcher.toStopOnStop.elements.any { it.toString() == "BuildScopeServices" }
-
-        when:
-        launcher.buildListener.buildStarted(launcher.gradle)
-        launcher.stop()
-
-        then:
-        launcher.toStopOnStop.elements.every { it.isClosed() }
     }
 }

@@ -274,6 +274,20 @@ public class BuildScopeServicesTest extends Specification {
         operationLoggerFactory instanceof DefaultBuildOperationLoggerFactory
     }
 
+    def "closes all additional closeables when closed" () {
+        Closeable closeable1 = Mock(Closeable)
+        Closeable closeable2 = Mock(Closeable)
+
+        when:
+        registry.getAdditionalCloseables().add(closeable1)
+        registry.getAdditionalCloseables().add(closeable2)
+        registry.close()
+
+        then:
+        1 * closeable1.close()
+        1 * closeable2.close()
+    }
+
     private <T> T expectParentServiceLocated(Class<T> type) {
         T t = Mock(type)
         parent.get(type) >> t

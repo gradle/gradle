@@ -182,9 +182,15 @@ public class GlobalScopeServicesTest {
         assertThat(registry().get(ClassPathSnapshotter.class), instanceOf(FileClassPathSnapshotter.class));
         assertThat(longLivingProcessRegistry().get(ClassPathSnapshotter.class), instanceOf(HashClassPathSnapshotter.class));
     }
+
     @Test
     public void providesAClassloaderCache() throws Exception {
         assertThat(registry().get(ClassLoaderCache.class), instanceOf(DefaultClassLoaderCache.class));
+    }
+
+    @Test
+    public void providesABuildScopeServicesFactory() throws Exception {
+        assertThat(registry().get(BuildScopeServicesFactory.class), instanceOf(BuildScopeServicesFactory.class));
     }
 
 }
