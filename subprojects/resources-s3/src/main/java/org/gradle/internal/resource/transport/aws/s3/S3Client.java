@@ -63,8 +63,7 @@ public class S3Client {
                 credentials = new BasicSessionCredentials(accessKey,
                                                           secretKey,
                                                           sessionToken);
-            }
-            else {
+            } else {
                 credentials = new BasicAWSCredentials(accessKey, secretKey);
             }
         }
