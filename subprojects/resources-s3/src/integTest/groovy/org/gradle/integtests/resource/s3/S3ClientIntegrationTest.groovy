@@ -120,6 +120,7 @@ class S3ClientIntegrationTest extends Specification {
         String bucketName = System.getenv('G_S3_BUCKET')
         credentials.setAccessKey(System.getenv('G_AWS_ACCESS_KEY_ID'))
         credentials.setSecretKey(System.getenv('G_AWS_SECRET_ACCESS_KEY'))
+        credentials.setSessionToken(System.getenv('G_AWS_SESSION_TOKEN'))
         S3Client s3Client = new S3Client(credentials, new S3ConnectionProperties())
 
         def fileContents = 'This is only a test'
@@ -140,6 +141,7 @@ class S3ClientIntegrationTest extends Specification {
         DefaultAwsCredentials credentials = new DefaultAwsCredentials()
         credentials.setAccessKey(System.getenv('G_AWS_ACCESS_KEY_ID'))
         credentials.setSecretKey(System.getenv('G_AWS_SECRET_ACCESS_KEY'))
+        credentials.setSessionToken(System.getenv('G_AWS_SESSION_TOKEN'))
 
         S3Client s3Client = new S3Client(credentials, new S3ConnectionProperties())
 

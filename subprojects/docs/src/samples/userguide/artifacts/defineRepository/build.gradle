@@ -47,6 +47,15 @@ repositories {
             secretKey "someSecret"
         }
     }
+
+    ivy {
+        url "s3://myCompanyBucket/ivyrepo2"
+        credentials(AwsCredentials) {
+            accessKey "someKey"
+            secretKey "someSecret"
+            sessionToken "someSessionToken"
+        }
+    }
 }
 //END SNIPPET maven-ivy-s3-repository
 

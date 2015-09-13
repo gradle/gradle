@@ -861,7 +861,7 @@
                 </tr>
                 <tr>
                     <td><literal>s3</literal></td>
-                    <td>access key/secret key</td>
+                    <td>access key/secret key/session token</td>
                 </tr>
             </table>
             <para>To define a repository use the <literal>repositories</literal> configuration block. Within the <literal>repositories</literal> closure,
@@ -877,7 +877,7 @@
             <sample id="mavenIvyRepositoriesAuth" dir="userguide/artifacts/defineRepository" title="Providing credentials to a Maven and Ivy repository">
                 <sourcefile file="build.gradle" snippet="maven-ivy-repository-auth"/>
             </sample>
-            <para>When using an AWS S3 backed repository you need to authenticate using <apilink class="org.gradle.api.credentials.AwsCredentials" />, providing access-key and a private-key.
+            <para>When using an AWS S3 backed repository you need to authenticate using <apilink class="org.gradle.api.credentials.AwsCredentials" />, providing access-key and a private-key.  When using the AWS Security Token Service (STS) to generate temporary security credentials, the optional session-token must also be provided.
                 The following example shows how to declare a S3 backed repository and providing AWS credentials:
             </para>
             <sample id="mavenIvyS3RepositoriesAuth" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository">

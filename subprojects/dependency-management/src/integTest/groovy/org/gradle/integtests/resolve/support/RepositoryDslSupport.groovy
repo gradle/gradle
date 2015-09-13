@@ -60,6 +60,22 @@ class RepositoryDslSupport {
 
     }
 
+    def awsSessionCredentials() {
+        """
+        repositories {
+            maven {
+                url "${s3Url}"
+                credentials(AwsCredentials) {
+                    accessKey "myAccessKey"
+                    secretKey "mySecret"
+                    sessionToken "mySessionToken"
+                }
+            }
+        }
+        """
+
+    }
+
     def ivyPasswordCredentials(){
         """
 repositories {
