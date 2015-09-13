@@ -15,15 +15,13 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
 import org.junit.Test;
 
-import java.io.FilterReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -69,6 +67,28 @@ public class FilterChainTest {
         filterChain.expand(WrapUtil.toMap("prop", 1));
         Reader transformedReader = filterChain.transform(new StringReader("[$prop][${prop+1}][<%= prop+2 %>]"));
         assertThat(IOUtils.toString(transformedReader), equalTo("[1][2][3]"));
+    }
+
+    @Test
+    public void canFilterUsingISO88591() throws IOException {
+        canFilterUsingCharset("ISO_8859_1");
+    }
+
+    @Test
+    public void canFilterUsingUTF8() throws IOException {
+        canFilterUsingCharset("UTF8");
+    }
+
+    private void canFilterUsingCharset(String charset) throws IOException {
+        FilterChain filterChainWithCharset = new FilterChain(charset);
+        filterChainWithCharset.expand(WrapUtil.toMap("prop", 1));
+        byte[] source = "éàüî $prop".getBytes(charset);
+
+        InputStream transformedInputStream = filterChainWithCharset.transform(new ByteArrayInputStream(source));
+        String actualResult = new String(ByteStreams.toByteArray(transformedInputStream), charset);
+
+        String expectedResult = "éàüî 1";
+        assertThat(actualResult, equalTo(expectedResult));
     }
 
     public static class TestFilterReader extends FilterReader {
