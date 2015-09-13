@@ -89,4 +89,48 @@ class ManagedTypeReferencesIntegrationTest extends AbstractIntegrationSpec {
         output.contains("os: OperatingSystem 'os.windows'")
         output.contains("platform name: windows")
     }
+
+    def "reference can have null value when containing model element is used as input"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Platform {
+                String getDisplayName()
+                void setDisplayName(String name)
+
+                OperatingSystem getOperatingSystem()
+                void setOperatingSystem(OperatingSystem operatingSystem)
+            }
+
+            @Managed
+            interface OperatingSystem {
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void windowsPlatform(Platform platform) {
+                  assert platform.operatingSystem == null
+                }
+
+                @Mutate
+                void addPersonTask(ModelMap<Task> tasks, Platform platform) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "platform: $platform"
+                            println "os: $platform.operatingSystem"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("platform: Platform 'windowsPlatform'")
+        output.contains("os: null")
+    }
 }

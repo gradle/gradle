@@ -268,6 +268,21 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize("foo", String) == "value"
     }
 
+    def "child reference can be null when parent is realized"() {
+        given:
+        registry.create("parent") { parentBuilder ->
+            parentBuilder.unmanagedNode(String) { node ->
+                node.addReference(registry.creator("parent.child").unmanagedNode(String, {}))
+            }
+        }
+
+        when:
+        registry.realize("parent", String)
+
+        then:
+        noExceptionThrown()
+    }
+
     def "reference can point to ancestor of node"() {
         given:
         registry.create("parent") { parentBuilder ->

@@ -1161,8 +1161,8 @@ public class DefaultModelRegistry implements ModelRegistry {
                 // Graph close the target of the reference
                 ModelReferenceNode referenceNode = (ModelReferenceNode) node;
                 ModelNodeInternal target = referenceNode.getTarget();
-                if (target.getPath().isDescendant(getPath())) {
-                    // Target is an ancestor of this node, so is already being closed
+                if (target == null || target.getPath().isDescendant(getPath())) {
+                    // No target, or target is an ancestor of this node, so is already being closed
                     return true;
                 }
                 dependencies.add(graph.nodeAtState(new NodeAtState(target.getPath(), GraphClosed)));
