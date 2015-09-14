@@ -21,5 +21,14 @@ model {
             }
         }
 <% } } %>
+        test(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'main'
+                    }
+                }
+            }
+        }
     }
 }
