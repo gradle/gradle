@@ -18,12 +18,11 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ModelValueSchema;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
 public class EnumStrategy implements ModelSchemaExtractionStrategy {
 
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
+    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store) {
         ModelType<T> type = extractionContext.getType();
         if (type.getRawClass().isEnum()) {
             return new ModelSchemaExtractionResult<T>(new ModelValueSchema<T>(type));

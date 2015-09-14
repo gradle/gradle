@@ -106,7 +106,7 @@ public class ModelSchemaExtractor {
         }
 
         for (ModelSchemaExtractionStrategy strategy : strategies) {
-            ModelSchemaExtractionResult<T> result = strategy.extract(extractionContext, store, cache);
+            ModelSchemaExtractionResult<T> result = strategy.extract(extractionContext, store);
             if (result != null) {
                 cache.set(type, result.getSchema());
                 return result;

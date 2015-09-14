@@ -28,7 +28,6 @@ import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.manage.schema.*;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.*;
@@ -204,7 +203,7 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
     }
 
     @Override
-    protected <P> Action<ModelSchema<P>> createPropertyValidator(final ModelSchemaExtractionContext<?> parentContext, final ModelPropertyExtractionResult<P> propertyResult, final ModelSchemaCache modelSchemaCache) {
+    protected <P> Action<ModelSchema<P>> createPropertyValidator(final ModelSchemaExtractionContext<?> parentContext, final ModelPropertyExtractionResult<P> propertyResult, final ModelSchemaStore modelSchemaStore) {
         return new Action<ModelSchema<P>>() {
             @Override
             public void execute(ModelSchema<P> propertySchema) {
@@ -257,7 +256,7 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
                     ModelCollectionSchema<P, ?> propertyCollectionsSchema = (ModelCollectionSchema<P, ?>) propertySchema;
 
                     ModelType<?> elementType = propertyCollectionsSchema.getElementType();
-                    ModelSchema<?> elementTypeSchema = modelSchemaCache.get(elementType);
+                    ModelSchema<?> elementTypeSchema = modelSchemaStore.getSchema(elementType);
 
                     if (propertySchema instanceof ScalarCollectionSchema) {
                         if (!ScalarTypes.isScalarType(elementType)) {

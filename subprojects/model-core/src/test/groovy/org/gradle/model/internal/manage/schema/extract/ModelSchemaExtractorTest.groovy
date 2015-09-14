@@ -22,7 +22,6 @@ import org.gradle.model.ModelMap
 import org.gradle.model.ModelSet
 import org.gradle.model.Unmanaged
 import org.gradle.model.internal.manage.schema.*
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Shared
@@ -945,7 +944,7 @@ interface Managed${typeName} {
     def "can register custom strategy"() {
         when:
         def strategy = Mock(ModelSchemaExtractionStrategy) {
-            extract(_, _, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore store, ModelSchemaCache schemaCache ->
+            extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore store ->
                 if (extractionContext.type.rawClass == CustomThing) {
                     return new ModelSchemaExtractionResult(new ModelValueSchema<?>(extractionContext.type))
                 } else {

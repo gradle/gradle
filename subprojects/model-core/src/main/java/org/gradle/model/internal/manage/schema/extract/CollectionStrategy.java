@@ -23,7 +23,6 @@ import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
 import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
@@ -43,7 +42,7 @@ public abstract class CollectionStrategy implements ModelSchemaExtractionStrateg
         }
     }
 
-    protected <T, E> ModelSchemaExtractionResult<T> getModelSchemaExtractionResult(ModelType<?> modelType, final ModelSchemaExtractionContext<T> extractionContext, final ModelSchemaCache cache, final ModelType<E> elementType, ModelSchemaStore store) {
+    protected <T, E> ModelSchemaExtractionResult<T> getModelSchemaExtractionResult(ModelType<?> modelType, final ModelSchemaExtractionContext<T> extractionContext, final ModelType<E> elementType, ModelSchemaStore store) {
         if (modelType.isAssignableFrom(elementType)) {
             throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", modelType.getConcreteClass().getName()));
         }
