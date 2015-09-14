@@ -71,7 +71,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     private <R, P> ModelSchemaExtractionContext<P> toPropertyExtractionContext(ModelSchemaExtractionContext<R> parentContext, ModelPropertyExtractionResult<P> propertyResult, ModelSchemaCache modelSchemaCache) {
         ModelProperty<P> property = propertyResult.getProperty();
-        return parentContext.child(property.getType(), propertyDescription(parentContext, property), createPropertyValidator(propertyResult, modelSchemaCache));
+        return parentContext.child(property.getType(), propertyDescription(parentContext, property), createPropertyValidator(parentContext, propertyResult, modelSchemaCache));
     }
 
     private <R> List<ModelPropertyExtractionResult<?>> extractPropertySchemas(ModelSchemaExtractionContext<R> extractionContext, Multimap<String, Method> methodsByName) {
@@ -215,7 +215,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects, ModelSchemaStore store);
 
-    protected abstract <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelPropertyExtractionResult<P> propertyResult, ModelSchemaCache modelSchemaCache);
+    protected abstract <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelSchemaExtractionContext<?> extractionContext, ModelPropertyExtractionResult<P> propertyResult, ModelSchemaCache modelSchemaCache);
 
     private String propertyDescription(ModelSchemaExtractionContext<?> parentContext, ModelProperty<?> property) {
         if (property.getDeclaredBy().size() == 1 && property.getDeclaredBy().contains(parentContext.getType())) {

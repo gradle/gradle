@@ -204,7 +204,7 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
     }
 
     @Override
-    protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(final ModelPropertyExtractionResult<P> propertyResult, final ModelSchemaCache modelSchemaCache) {
+    protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(final ModelSchemaExtractionContext<?> parentContext, final ModelPropertyExtractionResult<P> propertyResult, final ModelSchemaCache modelSchemaCache) {
         return new Action<ModelSchemaExtractionContext<P>>() {
             @Override
             public void execute(ModelSchemaExtractionContext<P> propertyExtractionContext) {
@@ -213,8 +213,6 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
                 if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
                     return;
                 }
-
-                ModelSchemaExtractionContext<?> parentContext = propertyExtractionContext.getParent();
 
                 // The "name" property is handled differently if type implements Named
                 if (property.getName().equals("name") && Named.class.isAssignableFrom(parentContext.getType().getRawClass())) {

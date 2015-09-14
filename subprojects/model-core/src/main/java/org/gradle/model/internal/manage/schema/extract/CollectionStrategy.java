@@ -43,7 +43,7 @@ public abstract class CollectionStrategy implements ModelSchemaExtractionStrateg
         }
     }
 
-    protected <T, E> ModelSchemaExtractionResult<T> getModelSchemaExtractionResult(ModelType<?> modelType, ModelSchemaExtractionContext<T> extractionContext, final ModelSchemaCache cache, ModelType<E> elementType, ModelSchemaStore store) {
+    protected <T, E> ModelSchemaExtractionResult<T> getModelSchemaExtractionResult(ModelType<?> modelType, final ModelSchemaExtractionContext<T> extractionContext, final ModelSchemaCache cache, final ModelType<E> elementType, ModelSchemaStore store) {
         if (modelType.isAssignableFrom(elementType)) {
             throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", modelType.getConcreteClass().getName()));
         }
@@ -51,12 +51,12 @@ public abstract class CollectionStrategy implements ModelSchemaExtractionStrateg
         ModelCollectionSchema<T, E> schema = new ModelCollectionSchema<T, E>(extractionContext.getType(), elementType, this.<T, E>getNodeInitializer(store));
         ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", new Action<ModelSchemaExtractionContext<?>>() {
             public void execute(ModelSchemaExtractionContext<?> context) {
-                ModelSchema<?> typeParamSchema = cache.get(context.getType());
+                ModelSchema<?> typeParamSchema = cache.get(elementType);
 
                 if (!(typeParamSchema instanceof ManagedImplModelSchema)) {
-                    throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
+                    throw new InvalidManagedModelElementTypeException(extractionContext, String.format(
                         "cannot create a managed set of type %s as it is an unmanaged type. Only @Managed types are allowed.",
-                        context.getType()
+                        elementType
                     ));
                 }
             }

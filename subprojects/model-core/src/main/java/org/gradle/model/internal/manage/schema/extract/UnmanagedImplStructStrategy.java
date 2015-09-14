@@ -20,7 +20,10 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
-import org.gradle.model.internal.manage.schema.*;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.ModelUnmanagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
@@ -76,7 +79,7 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
     }
 
     @Override
-    protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelPropertyExtractionResult<P> propertyResult, ModelSchemaCache modelSchemaCache) {
+    protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelSchemaExtractionContext<?> extractionContext, ModelPropertyExtractionResult<P> propertyResult, ModelSchemaCache modelSchemaCache) {
         return Actions.doNothing();
     }
 }

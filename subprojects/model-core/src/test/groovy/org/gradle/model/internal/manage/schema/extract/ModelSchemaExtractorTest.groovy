@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
-import org.gradle.api.Action
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
@@ -1165,7 +1164,6 @@ interface Managed${typeName} {
 
     def "aspects can be extracted"() {
         def aspect = new MyAspect()
-        def aspectValidator = Mock(Action)
         def aspectExtractionStrategy = Mock(ModelSchemaAspectExtractionStrategy)
         def extractor = new ModelSchemaExtractor([], new ModelSchemaAspectExtractor([aspectExtractionStrategy]))
         def store = new DefaultModelSchemaStore(extractor)
@@ -1180,10 +1178,7 @@ interface Managed${typeName} {
 
         1 * aspectExtractionStrategy.extract(_, _) >> { ModelSchemaExtractionContext<?> extractionContext, List<ModelPropertyExtractionResult> propertyResults ->
             assert propertyResults*.property*.name == ["calculatedProp", "prop"]
-            return new ModelSchemaAspectExtractionResult(aspect, aspectValidator)
-        }
-        1 * aspectValidator.execute(_) >> { ModelSchemaExtractionContext<?> extractionContext ->
-            assert extractionContext.type.rawClass == MyTypeOfAspect
+            return new ModelSchemaAspectExtractionResult(aspect)
         }
         0 * _
     }
