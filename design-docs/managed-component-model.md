@@ -318,16 +318,62 @@ build types and flavors each with an associated source set.
 
 It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpec.sources` model backed containers.
 
-## Story: Allow `FunctionalSourceSet` instances to be attached to a managed type
+## Story: Allow top level model elements of type `FunctionalSourceSet` to created
 
-- Allow a `FunctionalSourceSet` to be used as:
-    - A read-only property of a `@Managed` type
-    - An element of managed collections `ModelSet` and `ModelMap`
-    - A top level element.
+- Allow a `FunctionalSourceSet` to be used as a top level model element.
 - Empty by default.
 
-- Out-of-scope: Making `FunctionalSourceSet` managed.
-- Out-of-scope: Adding any children. This is the next story. Children can be added by first attaching a factory using `registerFactory`.  
+For example:
+
+    model {
+        sources(FunctionalSourceSet)
+    }
+    
+Or:    
+
+    @Model
+    void sources(FunctionalSourceSet sources) {
+    }
+    
+
+- Out-of-scope: Making `FunctionalSourceSet` managed. This means, for example, the children of the source set will not be visible in the `model` report, and that
+  immutability will not be enforced.
+- Out-of-scope: Adding any children to the source set. This is a later story. A plugin can add children by first attaching a factory using `registerFactory()`.  
+
+### Test cases
+
+- Instance can be defined as above, when the `LanguageBasePlugin` plugin has been applied.
+- Instance can not be defined when `LanguageBasePlugin` has not been applied. Error message should include details of which types are available.
+- Model report shows something reasonable for source set instance.
+
+### Implementation
+
+- Converge on `NodeInitializer` as the strategy for creating all model elements, including the children of a managed type, the elements of a model collection and 
+top level model elements. For this story, we only need to make this work for top level model elements.
+- Allow a `ManagedImplModelSchema` to be located for `FunctionalSourceSet` from the `ModelSchemaStore`.
+    - Should share the same mechanism as that used to add knowledge of `JarBinarySpec`.
+- Extract validation from `NonTransformedModelDslBacking` and `TransformedModelDslBacking` into some shared location (could be on `ModelSchemaStore` or some wrapper).
+    - Error message should include details of which types can be created. Keep in mind that this validation will need to be reused in the next story, for managed type properties and collection elements.
+    - Remove hardcoded list of supported type from `ModelSchemaExtractor`. Query the strategies instead. Should distinguish between scalar and non-scalar types.
+    - Only non-scalar types can be created. All types can be properties on a managed type.
+
+## Story: Allow a managed type to have a property of type `FunctionalSourceSet`
+
+- Allow a `FunctionalSourceSet` to be used as:
+    - A read-only property or a mutable property of a `@Managed` type
+    - An element of managed collections `ModelSet` and `ModelMap`
+
+For example:
+
+    @Managed
+    interface BuildType {
+        FunctionalSourceSet getSources()
+        
+        FunctionalSourceSet getInputs()
+        void setInputs(FunctionalSourceSet sources)
+        
+        ModelMap<FunctionalSourceSet> getComponentSources()
+    }
 
 ### Implementation
 
@@ -335,7 +381,6 @@ It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpe
     - Replace the various `ChildNodeInitializerStrategy` implementation with one that delegates to the schema.
     - Add some way to register a `NodeInitializer` for an unmanaged or partially managed type.
 - Change validation for managed type properties and managed collection elements to allow any type for which a creation strategy is available.
-- Add a creation strategy for `FunctionalSourceSet`
 
 ## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
 
