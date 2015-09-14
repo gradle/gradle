@@ -20,7 +20,6 @@ def buckets = [
         ":ivy", ":platformBase", ":jacoco", ":announce", ":internalIntegTesting",
         ":diagnostics", ":jetty", ":cli", ":reporting", ":toolingApiBuilders", ":openApi"],
 
-
     "2": [":toolingApi", ":dependencyManagement", ":testKit", ":distributions",
         ":pluginUse", ":sonar", ":jacoco", ":buildInit", ":languageGroovy", ":internalTesting",
         ":languageJvm", ":performance", ":publish", ":resources", ":baseServicesGroovy", ":resourcesHttp",
@@ -50,7 +49,7 @@ def tasksForProjects(BuildTypes.BuildType buildType, List<String> projects) {
     Set<String> tasks = []
     projects.each { String p ->
         buildType.tasks.each { String t ->
-            String task = reverseGrouping(t)
+            String task = resolveTask(t)
             if (!task.contains(':')) {
                 tasks << "$p:${task}"
             } else {
@@ -62,9 +61,10 @@ def tasksForProjects(BuildTypes.BuildType buildType, List<String> projects) {
 }
 
 
-def String reverseGrouping(String task) {
-    if (task.startsWith('runtime')) {
-        return task.substring(7, 8).toLowerCase() + task.substring(8, task.length() - 1)
+def String resolveTask(String task) {
+    if (testGroupings.containsKey(task)) {
+        return testGroupings[task]
+    } else {
+        return task
     }
-    task
 }
