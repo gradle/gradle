@@ -348,8 +348,10 @@ Or:
 
 ### Implementation
 
-- Converge on `NodeInitializer` as the strategy for creating all model elements, including the children of a managed type, the elements of a model collection and 
+- Start to converge on `NodeInitializer` as the strategy for creating all model elements, including the children of a managed type, the elements of a model collection and 
 top level model elements. For this story, we only need to make this work for top level model elements.
+    - All model elements are created using a `NodeInitializer`. 
+    - Each type has 1 `NodeInitializer` implementation associated with it, that can be reused in any context where that type appears.
 - Allow a `ManagedImplModelSchema` to be located for `FunctionalSourceSet` from the `ModelSchemaStore`.
     - Should share the same mechanism as that used to add knowledge of `JarBinarySpec`.
 - Extract validation from `NonTransformedModelDslBacking` and `TransformedModelDslBacking` into some shared location (could be on `ModelSchemaStore` or some wrapper).
