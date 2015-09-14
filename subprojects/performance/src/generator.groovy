@@ -63,8 +63,11 @@ class ProjectGeneratorTask extends DefaultTask {
     Map<String, Object> templateArgs = [:]
 
     final DependencyGraph dependencyGraph = new DependencyGraph()
+    int numberOfExternalDependencies = 0
 
     MavenJarCreator mavenJarCreator = new MavenJarCreator()
+
+    Random random = new Random(1L)
 
     def ProjectGeneratorTask() {
         outputs.upToDateWhen { false }
@@ -104,12 +107,22 @@ class ProjectGeneratorTask extends DefaultTask {
 
         MavenRepository repo = generateDependencyRepository()
         generateRootProject()
-        subprojects.each {
+        subprojects.each { subproject ->
             if (repo) {
-                it.setRepository(repo)
-                it.setDependencies(repo.getDependenciesOfTransitiveLevel(1))
+                subproject.setRepository(repo)
+                pickExternalDependencies(repo, subproject)
             }
-            generateSubProject(it)
+            generateSubProject(subproject)
+        }
+    }
+
+    void pickExternalDependencies(repo, subproject) {
+        if (numberOfExternalDependencies > 0) {
+            def dependencies = [] + repo.modules
+            Collections.shuffle(dependencies, random)
+            subproject.setDependencies(dependencies.take(numberOfExternalDependencies))
+        } else {
+            subproject.setDependencies(repo.getDependenciesOfTransitiveLevel(1))
         }
     }
 

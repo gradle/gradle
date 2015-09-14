@@ -107,7 +107,7 @@ All builds:
 Small build:
 - 10 projects
 - 100 classes per project
-- 5 external dependencies per project
+- 5 external dependencies per project, 20 unique external dependencies
 - up to 3 project dependencies per project
 
 Large build:

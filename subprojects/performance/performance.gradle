@@ -405,6 +405,18 @@ configure([generateSmallNewMultiprojectJava, generateLargeNewMultiprojectJava]) 
 
     templateArgs = [projectDependencies: true, generatedDependencies: dependencyGenerator.createDependencies()]
     testDependencies = files()
+
+    dependencyGraph {
+        size = smallProjectType ? 20 : 200
+        depth = 4
+    }
+
+    mavenJarCreator.with {
+        minimumSizeKB = 200
+        maximumSizeKB = 2048
+    }
+
+    numberOfExternalDependencies = smallProjectType ? 5 : 50
 }
 
 

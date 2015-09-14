@@ -3,6 +3,24 @@ plugins {
     id 'java-lang'
 }
 
+<% if (repository) { %>
+repositories {
+    maven {
+        url "${repository.getUri()}"
+    }
+}
+<% } %>
+
+configurations {
+    compile
+}
+
+dependencies {
+    <% if (dependencies) { dependencies.each { %>
+    compile "${it.shortNotation()}"
+    <% } } %>
+}
+
 model {
     components {
         main(JvmLibrarySpec)<% if (binding.hasVariable("generatedDependencies")) {
