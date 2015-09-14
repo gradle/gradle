@@ -336,7 +336,7 @@ Or:
     }
     
 
-- Out-of-scope: Making `FunctionalSourceSet` managed. This means, for example, the children of the source set will not be visible in the `model` report, and that
+- Out-of-scope: Making the state of `FunctionalSourceSet` managed. This means, for example, the children of the source set will not be visible in the `model` report, and that
   immutability will not be enforced.
 - Out-of-scope: Adding any children to the source set. This is a later story. A plugin can add children by first attaching a factory using `registerFactory()`.  
 
@@ -348,16 +348,16 @@ Or:
 
 ### Implementation
 
-- Start to converge on `NodeInitializer` as the strategy for creating all model elements, including the children of a managed type, the elements of a model collection and 
+- Continue to converge on `NodeInitializer` as the strategy for creating all model elements, including the children of a managed type, the elements of a model collection and 
 top level model elements. For this story, we only need to make this work for top level model elements.
     - All model elements are created using a `NodeInitializer`. 
     - Each type has 1 `NodeInitializer` implementation associated with it, that can be reused in any context where that type appears.
 - Allow a `ManagedImplModelSchema` to be located for `FunctionalSourceSet` from the `ModelSchemaStore`.
-    - Should share the same mechanism as that used to add knowledge of `JarBinarySpec`.
-- Extract validation from `NonTransformedModelDslBacking` and `TransformedModelDslBacking` into some shared location (could be on `ModelSchemaStore` or some wrapper).
+- Extract validation from `NonTransformedModelDslBacking` and `TransformedModelDslBacking` into some shared location, probably on `ModelSchemaStore`. The idea here is to
+  have a single place where something outside the schema store can ask for a 'constructable' thing.
     - Error message should include details of which types can be created. Keep in mind that this validation will need to be reused in the next story, for managed type properties and collection elements.
-    - Remove hardcoded list of supported type from `ModelSchemaExtractor`. Query the strategies instead. Should distinguish between scalar and non-scalar types.
-    - Only non-scalar types can be created. All types can be properties on a managed type.
+    - Remove hardcoded list of supported types from `ModelSchemaExtractor`. Query the strategies instead. 
+    - Should distinguish between scalar and non-scalar types. Only non-scalar types can be created.
 
 ## Story: Allow a managed type to have a property of type `FunctionalSourceSet`
 
@@ -379,10 +379,15 @@ For example:
 
 ### Implementation
 
-- Converge on `NodeInitializer` as the strategy for creating the children of a managed type, the elements of a model collection and top level elements:
-    - Replace the various `ChildNodeInitializerStrategy` implementation with one that delegates to the schema.
-    - Add some way to register a `NodeInitializer` for an unmanaged or partially managed type.
+- Continue to converge on `NodeInitializer` as the strategy for creating the children of a managed type, the elements of a model collection and top level elements.
 - Change validation for managed type properties and managed collection elements to allow any type for which a creation strategy is available.
+    - Share (don't duplicate) the validation from the previous story that decides whether an instance of a given type can be created.
+    - Error message should include the types available to be used.
+- Refactors to clean up implementation:
+    - Should share the same mechanism to expose the schema for `FunctionalSourceSet` and `JarBinarySpec`, to make it easier to later add more types.
+      Ideally, this would mean registering some description of the types (eg here's a public type and here's an implementation type for it), rather than 
+      registering a `ModelSchemaExtractorStrategy` implementation.
+    - Replace the various `ChildNodeInitializerStrategy` implementations with one that delegates to the schema.
 
 ## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
 
