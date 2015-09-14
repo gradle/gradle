@@ -84,6 +84,10 @@ class ProjectGeneratorTask extends DefaultTask {
         }
     }
 
+    int getProjectCount() {
+        projects.size()
+    }
+
     void dependencyGraph(Closure configClosure) {
         configClosure.setDelegate(dependencyGraph)
         configClosure.setResolveStrategy(Closure.DELEGATE_ONLY)

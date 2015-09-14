@@ -380,17 +380,33 @@ task bigOldJavaMoreSource(type: ProjectGeneratorTask) {
     testDependencies = files()
 }
 
-task generateBigNewMultiprojectJava(type: ProjectGeneratorTask) {
-    destDir = file("$buildDir/bigNewMultiprojectJava")
-    projects = 150
-    sourceFiles = 300
-    linesOfCodePerSourceFile = 350
+task generateSmallNewMultiprojectJava(type: ProjectGeneratorTask) {
+    projects = 10
+    sourceFiles = 100
+}
+
+task generateLargeNewMultiprojectJava(type: ProjectGeneratorTask) {
+    projects = 100
+    sourceFiles = 1000
+}
+
+configure([generateSmallNewMultiprojectJava, generateLargeNewMultiprojectJava]) {
+    destDir = file("$buildDir/${java.beans.Introspector.decapitalize(name - ~/^generate/)}")
+    linesOfCodePerSourceFile = 50
     filesPerPackage = 10
     useSubProjectNumberInSourceFileNames = true
     subProjectTemplates = ['java-source', 'new-java-project']
-    templateArgs = [projectDependencies: true, generatedDependencies: DependencyGenerator.newInstance(numberOfProjects: 150).createDependencies()]
+
+    def dependencyGenerator = DependencyGenerator.newInstance(numberOfProjects: it.projectCount)
+    boolean smallProjectType = (name == 'generateSmallNewMultiprojectJava')
+    dependencyGenerator.numberOfDependencies = smallProjectType ? 3 : 10
+    dependencyGenerator.numberOfLayers = smallProjectType ? 3 : 5
+    dependencyGenerator.layerRatio = smallProjectType ? 1 : 2
+
+    templateArgs = [projectDependencies: true, generatedDependencies: dependencyGenerator.createDependencies()]
     testDependencies = files()
 }
+
 
 task all(dependsOn: generators)
 
@@ -503,7 +519,7 @@ task generateCompareTaskInputs(type: ProjectGeneratorTask) {
     }
 }
 
-task prepareManualSamples(dependsOn: [generateCompareTaskInputs, generateBigNewMultiprojectJava])
+task prepareManualSamples(dependsOn: [generateCompareTaskInputs, generateSmallNewMultiprojectJava, generateLargeNewMultiprojectJava])
 
 task manualPerformanceTest(type: Test) {
     dependsOn prepareManualSamples
