@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling
-
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
@@ -27,16 +26,20 @@ import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
 
 @Issue("GRADLE-1933")
 class ConcurrentToolingApiIntegrationSpec extends Specification {
@@ -351,6 +354,75 @@ logger.lifecycle 'this is lifecycle: $idx'
 
         concurrent.finished()
     }
+
+    def "can use different distributions of same version"() {
+        setup:
+        def distro1Zip = dist.binDistribution
+        def distro2Zip = temporaryFolder.createFile("anotherDist.zip")
+
+        // create two sample project
+        File projectA = temporaryFolder.createDir("projectA")
+        File projectB = temporaryFolder.createDir("projectB")
+
+        distro1Zip.copyTo(distro2Zip)
+        // open a connection for both projects with different distribution types
+        GradleConnector connector1 = GradleConnector.newConnector();
+        connector1.forProjectDirectory(projectA);
+        connector1.useDistribution(distro1Zip.toURI())
+        ProjectConnection connection1 = connector1.connect();
+        GradleConnector connector2 = GradleConnector.newConnector();
+        connector2.forProjectDirectory(projectB);
+        connector2.useDistribution(distro2Zip.toURI())
+        ProjectConnection connection2 = connector2.connect();
+
+        when:
+        def evaluate = { true }
+
+        for (int i = 0; i < 2; ++i) { // the exception happens the second time
+            final CountDownLatch latch = new CountDownLatch(2);
+
+            // query the same model for both projects asynchronously
+            connection1.getModel(GradleBuild.class, new ResultHandler<GradleBuild>() {
+
+                @Override
+                public void onComplete(GradleBuild arg0) {
+                    latch.countDown();
+                }
+
+                @Override
+                public void onFailure(GradleConnectionException e) {
+                    evaluate = { e.printStackTrace(); false }
+                    latch.countDown();
+                }
+            });
+            connection2.getModel(GradleBuild.class, new ResultHandler<GradleBuild>() {
+
+                @Override
+                public void onComplete(GradleBuild arg0) {
+                    latch.countDown();
+                }
+
+                @Override
+                public void onFailure(GradleConnectionException e) {
+                    evaluate = { e.printStackTrace(); false }
+                    latch.countDown();
+                }
+            });
+
+            // wait the models to finish before proceeding to the next iteration
+            latch.await();
+        }
+
+        then:
+        evaluate()
+
+        cleanup:
+        true
+//        // close connections for both projects
+        connection1.close();
+        connection2.close();
+    }
+
 
     def withConnectionInDir(String dir, Closure cl) {
         GradleConnector connector = toolingApi.connector()
