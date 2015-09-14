@@ -49,10 +49,8 @@ public abstract class CollectionStrategy implements ModelSchemaExtractionStrateg
         }
 
         ModelCollectionSchema<T, E> schema = new ModelCollectionSchema<T, E>(extractionContext.getType(), elementType, this.<T, E>getNodeInitializer(store));
-        ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", new Action<ModelSchemaExtractionContext<?>>() {
-            public void execute(ModelSchemaExtractionContext<?> context) {
-                ModelSchema<?> typeParamSchema = cache.get(elementType);
-
+        ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", new Action<ModelSchema<?>>() {
+            public void execute(ModelSchema<?> typeParamSchema) {
                 if (!(typeParamSchema instanceof ManagedImplModelSchema)) {
                     throw new InvalidManagedModelElementTypeException(extractionContext, String.format(
                         "cannot create a managed set of type %s as it is an unmanaged type. Only @Managed types are allowed.",

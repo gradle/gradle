@@ -204,10 +204,10 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
     }
 
     @Override
-    protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(final ModelSchemaExtractionContext<?> parentContext, final ModelPropertyExtractionResult<P> propertyResult, final ModelSchemaCache modelSchemaCache) {
-        return new Action<ModelSchemaExtractionContext<P>>() {
+    protected <P> Action<ModelSchema<P>> createPropertyValidator(final ModelSchemaExtractionContext<?> parentContext, final ModelPropertyExtractionResult<P> propertyResult, final ModelSchemaCache modelSchemaCache) {
+        return new Action<ModelSchema<P>>() {
             @Override
-            public void execute(ModelSchemaExtractionContext<P> propertyExtractionContext) {
+            public void execute(ModelSchema<P> propertySchema) {
                 ModelProperty<P> property = propertyResult.getProperty();
                 // Do not validate unmanaged properties
                 if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
@@ -218,8 +218,6 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
                 if (property.getName().equals("name") && Named.class.isAssignableFrom(parentContext.getType().getRawClass())) {
                     return;
                 }
-
-                ModelSchema<P> propertySchema = modelSchemaCache.get(property.getType());
 
                 // Only managed implementation and value types are allowed as a managed property type unless marked with @Unmanaged
                 boolean isAllowedPropertyTypeOfManagedType = propertySchema instanceof ManagedImplModelSchema

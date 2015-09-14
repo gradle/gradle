@@ -78,20 +78,24 @@ public class ModelSchemaExtractor {
         }
 
         for (ModelSchemaExtractionContext<?> validationContext : Lists.reverse(validations)) {
-            // TODO - this can leave invalid types in the cache
-            validationContext.validate();
+            // TODO - this will leave invalid types in the cache when it fails
+            validate(validationContext, cache);
         }
 
         return cache.get(context.getType());
     }
 
     private void pushUnsatisfiedDependencies(Iterable<? extends ModelSchemaExtractionContext<?>> allDependencies, Queue<ModelSchemaExtractionContext<?>> dependencyQueue, final ModelSchemaCache cache) {
-        // TODO - this can discard validations for types that have previously been referenced, and are referenced in a new and invalid way
+        // TODO - this will discard validations for types that have previously been referenced, and are now referenced from a newly discovered type
         Iterables.addAll(dependencyQueue, Iterables.filter(allDependencies, new Predicate<ModelSchemaExtractionContext<?>>() {
             public boolean apply(ModelSchemaExtractionContext<?> dependency) {
                 return cache.get(dependency.getType()) == null;
             }
         }));
+    }
+
+    private <T> void validate(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
+        extractionContext.validate(cache.get(extractionContext.getType()));
     }
 
     private <T> ModelSchemaExtractionResult<T> extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
