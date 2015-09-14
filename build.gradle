@@ -246,10 +246,16 @@ def userPrefsDirectory = new File("${System.getProperty("user.home")}/.java/.use
 gradle.addListener(new TaskExecutionListener(){
     public void beforeExecute(Task task) {
         doLog("before executing ", task)
+        if(userPrefsDirectory.exists()){
+            GFileUtils.forceDelete(userPrefsDirectory)
+        }
     }
 
     public void afterExecute(Task task, TaskState state) {
         doLog("after executing", task)
+        if(userPrefsDirectory.exists()){
+            GFileUtils.forceDelete(userPrefsDirectory)
+        }
     }
     void doLog(String descr, Task task){
         if(!reportsFolder.exists()){
