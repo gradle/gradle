@@ -94,31 +94,26 @@ A representative Java project:
     - testCompile configuration add junit dependency
   - add testRuntime configuration that extends testCompile
     - use testRuntime for test execution task
-- Emulated checkstyle task
+- Emulated checkstyle task per source set (main, test)
 - Unit test task
 
-3 different sizes of generated projects: small, medium and large.
+2 different sizes of generated projects: small and large.
 
 All builds:
 - multi-project builds
 - max 10 classes per package
+- 50 source lines per class
 
 Small build:
-- 5 projects
-- 20 classes per project, 100 lines per class
+- 10 projects
+- 100 classes per project
 - 5 external dependencies per project
-- up to 2 project dependencies per project
-
-Medium build:
-- 25 projects
-- 100 classes per project, 150 lines per class
-- 5 external dependencies per project, 25 unique external dependencies
-- up to 5 project dependencies per project
+- up to 3 project dependencies per project
 
 Large build:
 - 100 projects
-- 300 classes per project, 350 lines per class
-- 20 external dependencies per project, 100 unique external dependencies
+- 1000 classes per project
+- 50 external dependencies per project, 200 unique external dependencies
 - up to 10 project dependencies per project
 
 
