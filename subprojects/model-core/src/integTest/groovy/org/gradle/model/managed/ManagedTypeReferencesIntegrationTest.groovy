@@ -90,7 +90,7 @@ class ManagedTypeReferencesIntegrationTest extends AbstractIntegrationSpec {
         output.contains("platform name: windows")
     }
 
-    def "reference can have null value when containing model element is used as input"() {
+    def "reference can have null value when parent model element is realized"() {
         when:
         buildScript '''
             @Managed
