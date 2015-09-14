@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
+import java.util.zip.Deflater
 
 class TestProject {
     final String name
@@ -62,6 +63,8 @@ class ProjectGeneratorTask extends DefaultTask {
     Map<String, Object> templateArgs = [:]
 
     final DependencyGraph dependencyGraph = new DependencyGraph()
+
+    MavenJarCreator mavenJarCreator = new MavenJarCreator()
 
     def ProjectGeneratorTask() {
         outputs.upToDateWhen { false }
@@ -123,6 +126,7 @@ class ProjectGeneratorTask extends DefaultTask {
                 .withArtifacts(dependencyGraph.size)
                 .withDepth(dependencyGraph.depth)
                 .withSnapshotVersions(dependencyGraph.useSnapshotVersions)
+                .withMavenJarCreator(mavenJarCreator)
                 .create()
         return repo;
     }
@@ -296,6 +300,7 @@ class MavenRepository {
     int depth = 1
     final File rootDir
     List<MavenModule> modules = []
+    MavenJarCreator mavenJarCreator = new MavenJarCreator()
 
     MavenRepository(File rootDir) {
         println rootDir
@@ -308,7 +313,8 @@ class MavenRepository {
 
     MavenModule addModule(String groupId, String artifactId, Object version = '1.0') {
         def artifactDir = new File(rootDir, "${groupId.replace('.', '/')}/$artifactId/$version")
-        def module = new MavenModule(artifactDir, groupId, artifactId, version as String);
+        def module = new MavenModule(artifactDir, groupId, artifactId, version as String)
+        module.mavenJarCreator = mavenJarCreator
         modules << module
         return module
     }
@@ -337,6 +343,7 @@ class MavenModule {
     final timestampFormat = new SimpleDateFormat("yyyyMMdd.HHmmss")
     private final List artifacts = []
     private boolean uniqueSnapshots = true;
+    MavenJarCreator mavenJarCreator
 
     MavenModule(File moduleDir, String groupId, String artifactId, String version) {
         this.moduleDir = moduleDir
@@ -442,25 +449,7 @@ class MavenModule {
     }
 
     void createEmptyJar(File artifactFile) {
-        String content = "testcontent"
-        try {
-            FileOutputStream stream = new FileOutputStream(artifactFile);
-            JarOutputStream out = new JarOutputStream(stream, new Manifest());
-
-            // Add archive entry
-            JarEntry jarAdd = new JarEntry(artifactFile.name + ".properties");
-            jarAdd.setTime(System.currentTimeMillis());
-            out.putNextEntry(jarAdd);
-
-            // Write file to archive
-            out.write(content.getBytes("utf-8"), 0, content.getBytes("utf-8").length);
-
-            out.close();
-            stream.close();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.out.println("Error: " + ex.getMessage());
-        }
+        mavenJarCreator.createJar(this, artifactFile)
     }
 
     private File publishArtifact(Map<String, ?> artifact) {
@@ -502,6 +491,60 @@ class MavenPom {
     }
 }
 
+class MavenJarCreator {
+    int minimumSizeKB = 0
+    int maximumSizeKB = 0
+    Random random = new Random(1L)
+    byte[] charsToUse = "abcdefghijklmnopqrstuvwxyz0123456789".getBytes()
+
+    void createJar(MavenModule mavenModule, File artifactFile) {
+        try {
+            artifactFile.withOutputStream { stream ->
+                JarOutputStream out = new JarOutputStream(stream, new Manifest());
+                out.setLevel(Deflater.NO_COMPRESSION)
+                try {
+                    addJarEntry(out, artifactFile.name + ".properties", "testcontent")
+                    if (minimumSizeKB > 0) {
+                        int sizeInBytes
+                        if(maximumSizeKB > minimumSizeKB) {
+                            sizeInBytes = (minimumSizeKB + random.nextInt(maximumSizeKB - minimumSizeKB)) * 1024
+                        } else {
+                            sizeInBytes = minimumSizeKB * 1024
+                        }
+                        addGeneratedUncompressedJarEntry(out, "generated.txt", sizeInBytes)
+                    }
+                } finally {
+                    out.close()
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace()
+            System.out.println("Error: " + ex.getMessage())
+        }
+    }
+
+    private void addJarEntry(JarOutputStream out, String name, String content) {
+        // Add archive entry
+        JarEntry entry = new JarEntry(name)
+        entry.setTime(System.currentTimeMillis())
+        out.putNextEntry(entry)
+
+        // Write file to archive
+        def contentBytes = content.getBytes("utf-8")
+        out.write(contentBytes, 0, contentBytes.length)
+    }
+
+    private void addGeneratedUncompressedJarEntry(JarOutputStream out, String name, int sizeInBytes) {
+        JarEntry entry = new JarEntry(name)
+        entry.setTime(System.currentTimeMillis())
+        out.putNextEntry(entry)
+
+        for (int i = 0; i < sizeInBytes; i++) {
+            out.write(charsToUse, i % charsToUse.length, 1)
+        }
+    }
+}
+
 class MavenScope {
     final dependencies = []
 
@@ -515,6 +558,7 @@ class RepositoryBuilder {
     private int numberOfArtifacts = 0
     private File targetDir
     boolean withSnapshotVersions = false
+    private MavenJarCreator mavenJarCreator = new MavenJarCreator()
 
     public RepositoryBuilder(File targetDir) {
         this.targetDir = targetDir;
@@ -535,12 +579,18 @@ class RepositoryBuilder {
         return this;
     }
 
+    RepositoryBuilder withMavenJarCreator(MavenJarCreator mavenJarCreator) {
+        this.mavenJarCreator = mavenJarCreator
+        this
+    }
+
     MavenRepository create() {
         if (numberOfArtifacts == 0) {
             return null;
         }
         targetDir.mkdirs();
         MavenRepository repo = new MavenRepository(new File(targetDir, "mavenRepo"))
+        repo.mavenJarCreator = mavenJarCreator
         numberOfArtifacts.times {
             if (withSnapshotVersions) {
                 repo.addModule('group', "artifact$it", "1.0-SNAPSHOT")
