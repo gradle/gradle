@@ -31,7 +31,7 @@ def buckets = [
         ":resourcesS3", ":wrapper", ":resourcesSftp", ":signing", ":modelGroovy", ":baseServices"],
 
     "4": [":docs", ":integTest", ":core", ":languageNative", ":ide", ":platformNative", ":modelCore", ":testingNative",
-        "deNative", ":native"]
+        ":ideNative", ":native"]
 ]
 
 //Make sure all projects are accounted for
