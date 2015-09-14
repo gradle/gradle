@@ -16,19 +16,22 @@
 import org.gradle.build.BuildTypes
 
 def buckets = [
-    '1': [':docs', ':platformPlay', ':modelCore', ':announce', ':antlr', ':internalIntegTesting', ':internalTesting', ':maven', ':messaging',
+    '1': [':modelCore', ':announce', ':antlr', ':internalIntegTesting', ':internalTesting', ':maven', ':messaging',
           ':performance', ':platformBase', ':platformJvm', ':buildComparison', ':buildInit', ':cli', ':codeQuality', ':testKit',
           ':ear', ':ide', ':ideNative', ':ivy', ':jacoco', ':javascript', ':jetty', ':languageGroovy', ':languageJvm',
           ':launcher', ':languageNative', ':platformNative', ':testingNative', ':native'
     ],
 
-    '2': [':dependencyManagement', ':core', ':toolingApi',
+    '2': [':dependencyManagement', ':core', ':docs',
           ':modelGroovy', ':pluginDevelopment', ':pluginUse', ':publish', ':scala', ':signing', ':sonar',
           ':openApi', ':osgi', ':toolingApiBuilders', ':ui', ':wrapper', ':languageScala', ':diagnostics',
           ':plugins', ':integTest',
           ':baseServices', ':baseServicesGroovy', ':reporting', ':resources', ':resourcesHttp', ':resourcesS3', ':resourcesSftp',
           ':distributions', ':languageJava'
-    ]
+    ],
+    '3': [':toolingApi'],
+    
+    '4': [':platformPlay']
 ]
 
 //Make sure all projects are accounted for
