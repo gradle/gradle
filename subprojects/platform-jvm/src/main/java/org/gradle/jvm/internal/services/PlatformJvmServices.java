@@ -30,6 +30,7 @@ import org.gradle.jvm.internal.JarBinaryRenderer;
 import org.gradle.jvm.internal.model.JarBinarySpecSpecializationSchemaExtractionStrategy;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.model.DefaultVariantDimensionSelectorFactory;
+import org.gradle.language.base.internal.model.FunctionalSourceSetSchemaExtractionStrategy;
 import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
 import org.gradle.language.base.internal.resolve.DependentSourceSetResolveContext;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -38,6 +39,7 @@ public class PlatformJvmServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JarBinaryRenderer.class);
         registration.add(JarBinarySpecSpecializationSchemaExtractionStrategy.class);
+        registration.add(FunctionalSourceSetSchemaExtractionStrategy.class);
         registration.add(VariantDimensionSelectorFactory.class, DefaultVariantDimensionSelectorFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantDimensionSelector()));
     }
 
