@@ -16,6 +16,12 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.base.Function;
+import org.gradle.api.Action;
+import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
+import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
@@ -34,8 +40,28 @@ public abstract class SetStrategy extends CollectionStrategy {
 
             ModelType<?> elementType = type.getTypeVariables().get(0);
 
-            extractionContext.found(getModelSchemaExtractionResult(modelType, extractionContext, elementType, store));
+            extractionContext.found(getModelSchema(modelType, extractionContext, elementType, store));
         }
     }
 
+    protected abstract <T, E> Function<ModelCollectionSchema<T, E>, NodeInitializer> getNodeInitializer(ModelSchemaStore store);
+
+    protected <T, E> ModelSchema<T> getModelSchema(ModelType<?> modelType, final ModelSchemaExtractionContext<T> extractionContext, final ModelType<E> elementType, ModelSchemaStore store) {
+        if (modelType.isAssignableFrom(elementType)) {
+            throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", modelType.getConcreteClass().getName()));
+        }
+
+        ModelCollectionSchema<T, E> schema = new ModelCollectionSchema<T, E>(extractionContext.getType(), elementType, this.<T, E>getNodeInitializer(store));
+        extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
+            public void execute(ModelSchema<E> typeParamSchema) {
+                if (!(typeParamSchema instanceof ManagedImplModelSchema)) {
+                    throw new InvalidManagedModelElementTypeException(extractionContext, String.format(
+                        "cannot create a managed set of type %s as it is an unmanaged type. Only @Managed types are allowed.",
+                        elementType
+                    ));
+                }
+            }
+        });
+        return schema;
+    }
 }

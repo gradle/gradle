@@ -51,17 +51,16 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
             ModelType<?> elementType = type.getTypeVariables().get(0);
             if (ScalarTypes.isScalarType(elementType)) {
                 validateType(rawCollectionType, extractionContext, type);
-                extractionContext.found(createSchema(store, type, elementType));
+                extractionContext.found(createSchema(type, elementType));
             }
         }
     }
 
-    private <T, E> ScalarCollectionSchema<T, E> createSchema(ModelSchemaStore store, ModelType<T> type, ModelType<E> elementType) {
-        return new ScalarCollectionSchema<T, E>(type, elementType, this.<T, E>getNodeInitializer(store));
+    private <T, E> ScalarCollectionSchema<T, E> createSchema(ModelType<T> type, ModelType<E> elementType) {
+        return new ScalarCollectionSchema<T, E>(type, elementType, this.<T, E>getNodeInitializer());
     }
 
-    @Override
-    protected <T, E> Function<ModelCollectionSchema<T, E>, NodeInitializer> getNodeInitializer(final ModelSchemaStore store) {
+    private <T, E> Function<ModelCollectionSchema<T, E>, NodeInitializer> getNodeInitializer() {
         return new Function<ModelCollectionSchema<T, E>, NodeInitializer>() {
             @Override
             public NodeInitializer apply(ModelCollectionSchema<T, E> schema) {

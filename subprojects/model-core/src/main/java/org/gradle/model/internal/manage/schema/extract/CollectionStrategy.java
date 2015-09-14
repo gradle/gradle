@@ -15,13 +15,6 @@
  */
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
-import org.gradle.api.Action;
-import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
-import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
@@ -40,25 +33,4 @@ public abstract class CollectionStrategy implements ModelSchemaExtractionStrateg
             throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type parameter of %s has to be specified", modelType.getConcreteClass().getName()));
         }
     }
-
-    protected <T, E> ModelSchema<T> getModelSchemaExtractionResult(ModelType<?> modelType, final ModelSchemaExtractionContext<T> extractionContext, final ModelType<E> elementType, ModelSchemaStore store) {
-        if (modelType.isAssignableFrom(elementType)) {
-            throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", modelType.getConcreteClass().getName()));
-        }
-
-        ModelCollectionSchema<T, E> schema = new ModelCollectionSchema<T, E>(extractionContext.getType(), elementType, this.<T, E>getNodeInitializer(store));
-        extractionContext.child(elementType, "element type", new Action<ModelSchema<?>>() {
-            public void execute(ModelSchema<?> typeParamSchema) {
-                if (!(typeParamSchema instanceof ManagedImplModelSchema)) {
-                    throw new InvalidManagedModelElementTypeException(extractionContext, String.format(
-                        "cannot create a managed set of type %s as it is an unmanaged type. Only @Managed types are allowed.",
-                        elementType
-                    ));
-                }
-            }
-        });
-        return schema;
-    }
-
-    protected abstract <T, E> Function<ModelCollectionSchema<T, E>, NodeInitializer> getNodeInitializer(ModelSchemaStore store);
 }
