@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.play.integtest.fixtures.app
+package org.gradle.play.integtest.fixtures
 
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GFileUtils
+import static org.gradle.play.integtest.fixtures.Repositories.*
 
 abstract class PlayApp {
 
@@ -31,7 +32,13 @@ abstract class PlayApp {
     }
 
     SourceFile getGradleBuild() {
-        sourceFile("", "build.gradle")
+        def gradleBuild = sourceFile("", "build.gradle")
+        def gradleBuildWithRepositories = gradleBuild.content.concat """
+            allprojects {
+                ${PLAY_REPOSITORES}
+            }
+        """
+        return new SourceFile(gradleBuild.path, gradleBuild.name, gradleBuildWithRepositories)
     }
 
     List<SourceFile> getAssetSources() {

@@ -18,7 +18,6 @@ package org.gradle.play.integtest.fixtures
 
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
-import org.gradle.play.integtest.fixtures.app.PlayApp
 import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractPlayContinuousBuildIntegrationTest extends Java7RequiringContinuousIntegrationTest {

@@ -20,7 +20,7 @@ import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayReloadIntegrat
 import org.gradle.play.integtest.fixtures.AdvancedRunningPlayApp
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
-import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.integtest.fixtures.PlayApp
 
 class PlayReloadIntegrationTest extends AbstractMultiVersionPlayReloadIntegrationTest {
     RunningPlayApp runningApp = new AdvancedRunningPlayApp(testDirectory)

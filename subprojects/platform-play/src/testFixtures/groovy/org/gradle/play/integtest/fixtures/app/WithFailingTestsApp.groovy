@@ -17,6 +17,9 @@
 package org.gradle.play.integtest.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.play.integtest.fixtures.PlayApp
+
+import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class WithFailingTestsApp extends PlayApp {
     List<SourceFile> appSources
@@ -26,7 +29,13 @@ class WithFailingTestsApp extends PlayApp {
 
     @Override
     SourceFile getGradleBuild() {
-        return sourceFile("", "build.gradle", "basicplayapp")
+        def gradleBuild = sourceFile("", "build.gradle", "basicplayapp")
+        def gradleBuildWithRepositories = gradleBuild.content.concat """
+            allprojects {
+                ${PLAY_REPOSITORES}
+            }
+        """
+        return new SourceFile(gradleBuild.path, gradleBuild.name, gradleBuildWithRepositories)
     }
 
     public WithFailingTestsApp(){

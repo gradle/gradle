@@ -33,12 +33,7 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
 
             ${PLAY_REPOSITORES}
 
-            repositories {
-                maven {
-                    name = "gradle-js"
-                    url = "https://repo.gradle.org/gradle/javascript-public"
-                }
-            }
+            ${GRADLE_JS_REPOSITORY}
         """
     }
 
