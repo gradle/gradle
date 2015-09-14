@@ -70,8 +70,8 @@ public class ModelSchemaExtractor {
         validations.add(extractionContext);
 
         while (extractionContext != null) {
-            ModelSchemaExtractionResult<?> nextSchema = extractSchema(extractionContext, store, cache);
-            Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = nextSchema.getDependencies();
+            extractSchema(extractionContext, store, cache);
+            Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = extractionContext.getChildren();
             Iterables.addAll(validations, dependencies);
             pushUnsatisfiedDependencies(dependencies, unsatisfiedDependencies, cache);
             extractionContext = unsatisfiedDependencies.poll();
@@ -82,11 +82,10 @@ public class ModelSchemaExtractor {
             validate(validationContext, cache);
         }
 
-        return cache.get(context.getType());
+        return context.getResult();
     }
 
     private void pushUnsatisfiedDependencies(Iterable<? extends ModelSchemaExtractionContext<?>> allDependencies, Queue<ModelSchemaExtractionContext<?>> dependencyQueue, final ModelSchemaCache cache) {
-        // TODO - this will discard validations for types that have previously been referenced, and are now referenced from a newly discovered type
         Iterables.addAll(dependencyQueue, Iterables.filter(allDependencies, new Predicate<ModelSchemaExtractionContext<?>>() {
             public boolean apply(ModelSchemaExtractionContext<?> dependency) {
                 return cache.get(dependency.getType()) == null;
@@ -98,18 +97,19 @@ public class ModelSchemaExtractor {
         extractionContext.validate(cache.get(extractionContext.getType()));
     }
 
-    private <T> ModelSchemaExtractionResult<T> extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
+    private <T> void extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
         final ModelType<T> type = extractionContext.getType();
         ModelSchema<T> cached = cache.get(type);
         if (cached != null) {
-            return new ModelSchemaExtractionResult<T>(cached);
+            extractionContext.found(cached);
+            return;
         }
 
         for (ModelSchemaExtractionStrategy strategy : strategies) {
-            ModelSchemaExtractionResult<T> result = strategy.extract(extractionContext, store);
-            if (result != null) {
-                cache.set(type, result.getSchema());
-                return result;
+            strategy.extract(extractionContext, store);
+            if (extractionContext.getResult() != null) {
+                cache.set(type, extractionContext.getResult());
+                return;
             }
         }
 

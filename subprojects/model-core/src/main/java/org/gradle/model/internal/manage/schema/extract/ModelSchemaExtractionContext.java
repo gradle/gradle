@@ -33,6 +33,8 @@ public class ModelSchemaExtractionContext<T> {
     private final ModelType<T> type;
     private final String description;
     private final List<Action<? super ModelSchema<T>>> validators;
+    private ModelSchema<T> result;
+    private final List<ModelSchemaExtractionContext<?>> children = Lists.newArrayList();
 
     private ModelSchemaExtractionContext(ModelSchemaExtractionContext<?> parent, ModelType<T> type, String description, Action<? super ModelSchema<T>> validator) {
         this.parent = parent;
@@ -64,12 +66,27 @@ public class ModelSchemaExtractionContext<T> {
         return description == null ? type.toString() : String.format("%s (%s)", description, type);
     }
 
+    public List<ModelSchemaExtractionContext<?>> getChildren() {
+        return children;
+    }
+
     public <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description) {
         return child(type, description, Actions.doNothing());
     }
 
     public <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description, Action<? super ModelSchema<C>> validator) {
-        return new ModelSchemaExtractionContext<C>(this, type, description, validator);
+        ModelSchemaExtractionContext<C> childContext = new ModelSchemaExtractionContext<C>(this, type, description, validator);
+        children.add(childContext);
+        return childContext;
+    }
+
+    @Nullable
+    public ModelSchema<T> getResult() {
+        return result;
+    }
+
+    public void found(ModelSchema<T> result) {
+        this.result = result;
     }
 
     public void validate(ModelSchema<T> schema) {

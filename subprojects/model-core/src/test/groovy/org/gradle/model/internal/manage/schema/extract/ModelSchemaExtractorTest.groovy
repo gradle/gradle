@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract
 
+import org.gradle.api.Action
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
@@ -946,9 +947,7 @@ interface Managed${typeName} {
         def strategy = Mock(ModelSchemaExtractionStrategy) {
             extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore store ->
                 if (extractionContext.type.rawClass == CustomThing) {
-                    return new ModelSchemaExtractionResult(new ModelValueSchema<?>(extractionContext.type))
-                } else {
-                    return null
+                    extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
                 }
             }
         }
@@ -958,6 +957,53 @@ interface Managed${typeName} {
         then:
         store.getSchema(CustomThing) instanceof ModelValueSchema
         store.getSchema(UnmanagedThing) instanceof ModelUnmanagedImplStructSchema
+    }
+
+    def "custom strategy can register dependency on other type"() {
+        def strategy = Mock(ModelSchemaExtractionStrategy)
+        def extractor = new ModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
+        def store = new DefaultModelSchemaStore(extractor)
+
+        when:
+        def customSchema = store.getSchema(CustomThing)
+
+        then:
+        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+            assert extractionContext.type == ModelType.of(CustomThing)
+            extractionContext.child(ModelType.of(UnmanagedThing), "child")
+            extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
+        }
+        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+            assert extractionContext.type == ModelType.of(UnmanagedThing)
+        }
+
+        and:
+        customSchema instanceof ModelValueSchema
+    }
+
+    def "validator is invoked after all dependencies have been visited"() {
+        def strategy = Mock(ModelSchemaExtractionStrategy)
+        def validator = Mock(Action)
+        def extractor = new ModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
+        def store = new DefaultModelSchemaStore(extractor)
+
+        when:
+        store.getSchema(CustomThing)
+
+        then:
+        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+            assert extractionContext.type == ModelType.of(CustomThing)
+            extractionContext.addValidator(validator)
+            extractionContext.child(ModelType.of(UnmanagedThing), "child")
+            extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
+        }
+        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+            assert extractionContext.type == ModelType.of(UnmanagedThing)
+            return null;
+        }
+
+        then:
+        1 * validator.execute(_)
     }
 
     @Managed

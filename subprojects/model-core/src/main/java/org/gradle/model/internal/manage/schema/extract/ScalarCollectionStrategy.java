@@ -43,7 +43,7 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         ModelType.of(Set.class)
     );
 
-    public <T> ModelSchemaExtractionResult<T> extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store) {
+    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store) {
         ModelType<T> type = extractionContext.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);
@@ -51,11 +51,9 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
             ModelType<?> elementType = type.getTypeVariables().get(0);
             if (ScalarTypes.isScalarType(elementType)) {
                 validateType(rawCollectionType, extractionContext, type);
-                return new ModelSchemaExtractionResult<T>(createSchema(store, type, elementType));
+                extractionContext.found(createSchema(store, type, elementType));
             }
         }
-
-        return null;
     }
 
     private <T, E> ScalarCollectionSchema<T, E> createSchema(ModelSchemaStore store, ModelType<T> type, ModelType<E> elementType) {

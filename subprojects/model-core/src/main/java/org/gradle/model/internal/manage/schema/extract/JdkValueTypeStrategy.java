@@ -22,18 +22,16 @@ import org.gradle.model.internal.type.ModelType;
 
 public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
 
-    public <R> ModelSchemaExtractionResult<R> extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store) {
+    public <R> void extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store) {
         ModelType<R> type = extractionContext.getType();
         if (ScalarTypes.TYPES.contains(type)) {
-            return new ModelSchemaExtractionResult<R>(new ModelValueSchema<R>(type));
+            extractionContext.found(new ModelValueSchema<R>(type));
         } else {
             for (ModelType<?> nonFinalType : ScalarTypes.NON_FINAL_TYPES) {
                 if (nonFinalType.isAssignableFrom(type)) {
                     throw new InvalidManagedModelElementTypeException(extractionContext, "subclasses of " + nonFinalType + " are not supported");
                 }
             }
-
-            return null;
         }
     }
 

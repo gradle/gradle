@@ -47,10 +47,10 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     protected abstract boolean isTarget(ModelType<?> type);
 
-    public <R> ModelSchemaExtractionResult<R> extract(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store) {
+    public <R> void extract(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store) {
         ModelType<R> type = extractionContext.getType();
         if (!isTarget(type)) {
-            return null;
+            return;
         }
 
         validateTypeHierarchy(extractionContext, type);
@@ -59,18 +59,16 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         List<ModelSchemaAspect> aspects = aspectExtractor.extract(extractionContext, propertyExtractionResults);
 
         ModelSchema<R> schema = createSchema(extractionContext, propertyExtractionResults, aspects, store);
-        Iterable<ModelSchemaExtractionContext<?>> propertyDependencies = Iterables.transform(propertyExtractionResults, new Function<ModelPropertyExtractionResult<?>, ModelSchemaExtractionContext<?>>() {
-            public ModelSchemaExtractionContext<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
-                return toPropertyExtractionContext(extractionContext, propertyResult, store);
-            }
-        });
+        for (ModelPropertyExtractionResult<?> propertyResult : propertyExtractionResults) {
+            toPropertyExtractionContext(extractionContext, propertyResult, store);
+        }
 
-        return new ModelSchemaExtractionResult<R>(schema, propertyDependencies);
+        extractionContext.found(schema);
     }
 
-    private <R, P> ModelSchemaExtractionContext<P> toPropertyExtractionContext(ModelSchemaExtractionContext<R> parentContext, ModelPropertyExtractionResult<P> propertyResult, ModelSchemaStore modelSchemaStore) {
+    private <R, P> void toPropertyExtractionContext(ModelSchemaExtractionContext<R> parentContext, ModelPropertyExtractionResult<P> propertyResult, ModelSchemaStore modelSchemaStore) {
         ModelProperty<P> property = propertyResult.getProperty();
-        return parentContext.child(property.getType(), propertyDescription(parentContext, property), createPropertyValidator(parentContext, propertyResult, modelSchemaStore));
+        parentContext.child(property.getType(), propertyDescription(parentContext, property), createPropertyValidator(parentContext, propertyResult, modelSchemaStore));
     }
 
     private <R> List<ModelPropertyExtractionResult<?>> extractPropertySchemas(ModelSchemaExtractionContext<R> extractionContext, Multimap<String, Method> methodsByName) {
