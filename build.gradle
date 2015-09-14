@@ -238,3 +238,23 @@ task installAll(type: Install) {
 apply from: "gradle/intTestImage.gradle"
 apply from: 'gradle/pullRequestBuild.gradle'
 apply from: 'gradle/buildSplits.gradle'
+
+def reportsFolder = new File(buildDir, "reports")
+ext.preferencesTraceFile = new File(reportsFolder, "preferences.trace.log")
+def userPrefsDirectory = new File("${System.getProperty("user.home")}/.java/.userPrefs")
+
+gradle.addListener(new TaskExecutionListener(){
+    public void beforeExecute(Task task) {
+        doLog("before executing ", task)
+    }
+
+    public void afterExecute(Task task, TaskState state) {
+        doLog("after executing", task)
+    }
+    void doLog(String descr, Task task){
+        if(!reportsFolder.exists()){
+            reportsFolder.mkdirs()
+        }
+        preferencesTraceFile << "$descr , '${task.path}', ${userPrefsDirectory.absolutePath}, ${userPrefsDirectory.exists()}\n"
+    }
+})
