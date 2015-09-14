@@ -22,6 +22,7 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.DefaultJvmBinaryTasks;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
@@ -29,6 +30,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.*;
 
@@ -59,6 +61,11 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
             return name.substring(0, name.length() - 7);
         }
         return name;
+    }
+
+    @Override
+    public Class<? extends BinarySpec> getPublicType() {
+        return ClassDirectoryBinarySpec.class;
     }
 
     public JvmBinaryTasks getTasks() {

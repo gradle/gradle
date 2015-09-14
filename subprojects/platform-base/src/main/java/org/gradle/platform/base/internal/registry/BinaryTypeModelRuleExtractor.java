@@ -106,7 +106,7 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
             final ModelView<ITaskFactory> taskFactory = ModelViews.assertType(inputs.get(1), ModelType.of(ITaskFactory.class));
             NamedDomainObjectFactory<BaseBinarySpec> factory = new NamedDomainObjectFactory<BaseBinarySpec>() {
                 public BaseBinarySpec create(String name) {
-                    return BaseBinarySpec.create(implementationType.getConcreteClass(), name, instantiator, taskFactory.getInstance());
+                    return BaseBinarySpec.create(publicClass, implementationType.getConcreteClass(), name, instantiator, taskFactory.getInstance());
                 }
             };
             factories.registerFactory(publicClass, factory, descriptor);

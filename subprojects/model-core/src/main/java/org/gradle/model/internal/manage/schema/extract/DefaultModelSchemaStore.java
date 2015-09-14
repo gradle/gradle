@@ -16,17 +16,11 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.NotThreadSafe;
-import org.gradle.internal.Cast;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 @NotThreadSafe
 public class DefaultModelSchemaStore implements ModelSchemaStore {
@@ -35,38 +29,22 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
 
     final ModelSchemaCache cache = new ModelSchemaCache();
     final ModelSchemaExtractor schemaExtractor;
-    private final List<ModelTypeExtractor> typeExtractors;
 
     public static DefaultModelSchemaStore getInstance() {
         return INSTANCE;
     }
 
     public DefaultModelSchemaStore(ModelSchemaExtractor schemaExtractor) {
-        this(schemaExtractor, Collections.<ModelTypeExtractor>emptyList());
-    }
-
-    public DefaultModelSchemaStore(ModelSchemaExtractor schemaExtractor, Collection<ModelTypeExtractor> typeExtractor) {
         this.schemaExtractor = schemaExtractor;
-        this.typeExtractors = ImmutableList.copyOf(typeExtractor);
     }
 
     public <T> ModelSchema<T> getSchema(ModelType<T> type) {
-        ModelType<T> schemaType = type;
-        for (ModelTypeExtractor typeExtractor : typeExtractors) {
-            schemaType = Cast.uncheckedCast(typeExtractor.extractFromType(schemaType));
-        }
-        return schemaExtractor.extract(schemaType, this, cache);
+        return schemaExtractor.extract(type, this, cache);
     }
 
     @Override
     public <T> ModelSchema<T> getSchema(Class<T> type) {
         return getSchema(ModelType.of(type));
-    }
-
-    @Override
-    public <T> ModelSchema<? super T> getInstanceSchema(T instance) {
-        ModelType<? super T> type = ManagedInstanceTypeUtils.extractModelTypeFromInstance(instance);
-        return getSchema(type);
     }
 
     @Override

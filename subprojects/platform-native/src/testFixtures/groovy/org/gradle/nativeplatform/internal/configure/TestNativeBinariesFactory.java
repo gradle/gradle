@@ -26,16 +26,14 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.ComponentSpecInternal;
 
 public class TestNativeBinariesFactory {
 
     public static <T extends BaseBinarySpec & NativeBinarySpec> T create(Class<T> type, String name, Instantiator instantiator, ITaskFactory taskFactory, final NativeComponentSpec component,
         final BinaryNamingScheme namingScheme, final NativeDependencyResolver resolver,
         final NativePlatform platform, final BuildType buildType, final Flavor flavor) {
-        T binary = BaseBinarySpec.create(type, name, instantiator, taskFactory);
+        T binary = BaseBinarySpec.create(type, type, name, instantiator, taskFactory);
         NativeBinaries.initialize(binary, namingScheme, resolver, platform, buildType, flavor);
-        ComponentSpecInternal componentInternal = (ComponentSpecInternal) component;
         binary.getInputs().addAll(component.getSources().values());
         return binary;
     }

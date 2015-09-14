@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.sources.BaseLanguageSourceSet
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ModelInstantiationException
 import spock.lang.Specification
 
@@ -39,7 +40,7 @@ class BaseBinarySpecTest extends Specification {
 
     def "cannot create instance of base class"() {
         when:
-        BaseBinarySpec.create(BaseBinarySpec, "sampleBinary", instantiator, Mock(ITaskFactory))
+        BaseBinarySpec.create(BinarySpec, BaseBinarySpec, "sampleBinary", instantiator, Mock(ITaskFactory))
 
         then:
         def e = thrown ModelInstantiationException
@@ -47,7 +48,7 @@ class BaseBinarySpecTest extends Specification {
     }
 
     def "binary has name and sensible display name"() {
-        def binary = BaseBinarySpec.create(MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
+        def binary = BaseBinarySpec.create(BinarySpec, MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
 
         expect:
         binary.class == MySampleBinary
@@ -57,7 +58,7 @@ class BaseBinarySpecTest extends Specification {
 
     def "create fails if subtype does not have a public no-args constructor"() {
         when:
-        BaseBinarySpec.create(MyConstructedBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
+        BaseBinarySpec.create(BinarySpec, MyConstructedBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
 
         then:
         def e = thrown ModelInstantiationException
@@ -68,7 +69,7 @@ class BaseBinarySpecTest extends Specification {
 
     def "can own source sets"() {
         def fileResolver = Mock(FileResolver)
-        def binary = BaseBinarySpec.create(MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
+        def binary = BaseBinarySpec.create(BinarySpec, MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
         binary.entityInstantiator.registerFactory(CustomSourceSet, new NamedDomainObjectFactory<CustomSourceSet>() {
             @Override
             CustomSourceSet create(String name) {
@@ -96,7 +97,7 @@ class BaseBinarySpecTest extends Specification {
 
     def "source property is the same as inputs property"() {
         given:
-        def binary = BaseBinarySpec.create(MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
+        def binary = BaseBinarySpec.create(BinarySpec, MySampleBinary, "sampleBinary", instantiator, Mock(ITaskFactory))
 
         expect:
         binary.source == binary.inputs

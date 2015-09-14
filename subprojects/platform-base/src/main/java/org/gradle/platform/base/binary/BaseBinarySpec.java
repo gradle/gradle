@@ -31,6 +31,7 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
@@ -60,19 +61,20 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     private final String name;
     private final String typeName;
+    private final Class<? extends BinarySpec> publicType;
 
     private boolean disabled;
 
-    public static <T extends BaseBinarySpec> T create(Class<T> type, String name, Instantiator instantiator, ITaskFactory taskFactory) {
-        if (type.equals(BaseBinarySpec.class)) {
+    public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType, String name, Instantiator instantiator, ITaskFactory taskFactory) {
+        if (implementationType.equals(BaseBinarySpec.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseBinarySpec.");
         }
-        nextBinaryInfo.set(new BinaryInfo(name, type.getSimpleName(), taskFactory, instantiator));
+        nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, taskFactory, instantiator));
         try {
             try {
-                return instantiator.newInstance(type);
+                return instantiator.newInstance(implementationType);
             } catch (ObjectInstantiationException e) {
-                throw new ModelInstantiationException(String.format("Could not create binary of type %s", type.getSimpleName()), e.getCause());
+                throw new ModelInstantiationException(String.format("Could not create binary of type %s", implementationType.getSimpleName()), e.getCause());
             }
         } finally {
             nextBinaryInfo.set(null);
@@ -88,7 +90,8 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
             throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead.");
         }
         this.name = info.name;
-        this.typeName = info.typeName;
+        this.publicType = info.publicType;
+        this.typeName = info.implementationType.getSimpleName();
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
         DefaultPolymorphicNamedEntityInstantiator<LanguageSourceSet> entityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<LanguageSourceSet>(LanguageSourceSet.class, "owned sources");
         this.entityInstantiator = entityInstantiator;
@@ -98,6 +101,11 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
             entityInstantiator,
             new Namer(),
             Actions.doNothing());
+    }
+
+    @Override
+    public Class<? extends BinarySpec> getPublicType() {
+        return publicType;
     }
 
     protected String getTypeName() {
@@ -161,13 +169,15 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     private static class BinaryInfo {
         private final String name;
-        private final String typeName;
+        private final Class<? extends BinarySpec> publicType;
+        private final Class<? extends BaseBinarySpec> implementationType;
         private final ITaskFactory taskFactory;
         private final Instantiator instantiator;
 
-        private BinaryInfo(String name, String typeName, ITaskFactory taskFactory, Instantiator instantiator) {
+        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, Class<? extends BaseBinarySpec> implementationType, ITaskFactory taskFactory, Instantiator instantiator) {
             this.name = name;
-            this.typeName = typeName;
+            this.publicType = publicType;
+            this.implementationType = implementationType;
             this.taskFactory = taskFactory;
             this.instantiator = instantiator;
         }

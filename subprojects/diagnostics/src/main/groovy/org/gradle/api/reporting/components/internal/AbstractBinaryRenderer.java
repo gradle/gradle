@@ -77,7 +77,7 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
     }
 
     protected void renderVariants(T binary, TextReportBuilder builder) {
-        ModelSchema<?> schema = schemaStore.getInstanceSchema(binary);
+        ModelSchema<?> schema = schemaStore.getSchema(((BinarySpecInternal)binary).getPublicType());
         if (!(schema instanceof ModelStructSchema)) {
             return;
         }
