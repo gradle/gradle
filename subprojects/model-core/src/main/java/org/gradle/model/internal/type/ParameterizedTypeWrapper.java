@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.type;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Nullable;
 
 import java.lang.reflect.ParameterizedType;
@@ -54,6 +55,14 @@ class ParameterizedTypeWrapper implements ParameterizedType, TypeWrapper {
     @Override
     public Type unwrap() {
         return this;
+    }
+
+    @Override
+    public void collectClasses(ImmutableList.Builder<Class<?>> builder) {
+        rawType.collectClasses(builder);
+        for (TypeWrapper actualTypeArgument : actualTypeArguments) {
+            actualTypeArgument.collectClasses(builder);
+        }
     }
 
     @Override
