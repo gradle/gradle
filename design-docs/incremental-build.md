@@ -92,7 +92,24 @@ A representative Java project:
 
 3 different sizes of generated projects: small, medium and large.
 
-See discussion about parameters.
+All builds:
+- multi-project builds
+- max 10 classes per package
+
+Small build:
+- 5 projects
+- 20 classes per project, 100 lines per class
+- 5 external dependencies per project
+
+Medium build:
+- 25 projects
+- 100 classes per project, 150 lines per class
+- 5 external dependencies per project, 25 unique external dependencies
+
+Large build:
+- 100 projects
+- 300 classes per project, 350 lines per class
+- 5 external dependencies per project, 100 unique external dependencies
 
 ### Test coverage
 
