@@ -395,7 +395,7 @@ configure([generateSmallNewMultiprojectJava, generateLargeNewMultiprojectJava]) 
     linesOfCodePerSourceFile = 50
     filesPerPackage = 10
     useSubProjectNumberInSourceFileNames = true
-    subProjectTemplates = ['java-source', 'new-java-project']
+    subProjectTemplates = ['java-source', 'new-java-project', 'with-junit']
 
     def dependencyGenerator = DependencyGenerator.newInstance(numberOfProjects: it.projectCount)
     boolean smallProjectType = (name == 'generateSmallNewMultiprojectJava')

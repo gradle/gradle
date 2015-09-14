@@ -8,17 +8,21 @@ repositories {
     maven {
         url "${repository.getUri()}"
     }
+    mavenCentral()
 }
 <% } %>
 
 configurations {
     compile
+    testCompile.extendsFrom compile
+    testRuntime.extendsFrom testCompile
 }
 
 dependencies {
     <% if (dependencies) { dependencies.each { %>
     compile "${it.shortNotation()}"
     <% } } %>
+    testCompile 'junit:junit:4.12'
 }
 
 model {
