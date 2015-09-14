@@ -16,22 +16,22 @@
 import org.gradle.build.BuildTypes
 
 def buckets = [
-    '1': [':modelCore', ':announce', ':antlr', ':internalIntegTesting', ':internalTesting', ':maven', ':messaging',
-          ':performance', ':platformBase', ':platformJvm', ':buildComparison', ':buildInit', ':cli', ':codeQuality', ':testKit',
-          ':ear', ':ide', ':ideNative', ':ivy', ':jacoco', ':javascript', ':jetty', ':languageGroovy', ':languageJvm',
-          ':launcher', ':languageNative', ':platformNative', ':testingNative', ':native'
-    ],
+    "1": [":platformPlay", ":scala", ":languageScala", ":buildComparison",
+        ":ivy", ":platformBase", ":jacoco", ":announce", ":internalIntegTesting",
+        ":diagnostics", ":jetty", ":cli", ":reporting", ":toolingApiBuilders", ":openApi"],
 
-    '2': [':dependencyManagement', ':core', ':docs',
-          ':modelGroovy', ':pluginDevelopment', ':pluginUse', ':publish', ':scala', ':signing', ':sonar',
-          ':openApi', ':osgi', ':toolingApiBuilders', ':ui', ':wrapper', ':languageScala', ':diagnostics',
-          ':plugins', ':integTest',
-          ':baseServices', ':baseServicesGroovy', ':reporting', ':resources', ':resourcesHttp', ':resourcesS3', ':resourcesSftp',
-          ':distributions', ':languageJava'
-    ],
-    '3': [':toolingApi'],
-    
-    '4': [':platformPlay']
+
+    "2": [":toolingApi", ":dependencyManagement", ":testKit", ":distributions",
+        ":pluginUse", ":sonar", ":jacoco", ":buildInit", ":languageGroovy", ":internalTesting",
+        ":languageJvm", ":performance", ":publish", ":resources", ":baseServicesGroovy", ":resourcesHttp",
+        ":pluginDevelopment", ":osgi"],
+
+    "3": [":launcher", ":plugins", ":codeQuality", ":languageJava",
+        ":ui", ":maven", ":javascript", ":antlr", ":messaging", ":ear",
+        ":resourcesS3", ":wrapper", ":resourcesSftp", ":signing", ":modelGroovy", ":baseServices"],
+
+    "4": [":docs", ":integTest", ":core", ":languageNative", ":ide", ":platformNative", ":modelCore", ":testingNative",
+        "deNative", ":native"]
 ]
 
 //Make sure all projects are accounted for
@@ -44,7 +44,6 @@ buckets.each { String bucketName, List<String> projects ->
         def tasks = tasksForProjects(buildType, projects)
         project.getExtensions().buildTypes."${buildType.name + bucketName}"(buildType.projectProperties, *tasks)
     }
-
 }
 
 def tasksForProjects(BuildTypes.BuildType buildType, List<String> projects) {
@@ -69,4 +68,3 @@ def String reverseGrouping(String task) {
     }
     task
 }
-
