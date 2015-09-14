@@ -86,7 +86,14 @@ A representative Java project:
 - 1 set of main sources
 - 1 set of unit test sources
 - Project dependencies
-- External dependencies (emulate by using jar-files)
+- External dependencies
+  - use generated maven repository with generated jar files with realistic sizes (200k-2000k)
+  - define dependencies in build by using old-model configurations
+  - wire old-model configurations in to new-model generated tasks (compile, test)
+  - add testCompile configuration that extends compile configuration
+    - testCompile configuration add junit dependency
+  - add testRuntime configuration that extends testCompile
+    - use testRuntime for test execution task
 - Emulated checkstyle task
 - Unit test task
 
@@ -100,25 +107,30 @@ Small build:
 - 5 projects
 - 20 classes per project, 100 lines per class
 - 5 external dependencies per project
+- up to 2 project dependencies per project
 
 Medium build:
 - 25 projects
 - 100 classes per project, 150 lines per class
 - 5 external dependencies per project, 25 unique external dependencies
+- up to 5 project dependencies per project
 
 Large build:
 - 100 projects
 - 300 classes per project, 350 lines per class
-- 5 external dependencies per project, 100 unique external dependencies
+- 20 external dependencies per project, 100 unique external dependencies
+- up to 10 project dependencies per project
+
 
 ### Test coverage
 
-- Performance test that runs against 2.6 and latest release
+- Performance test that runs against latest release and master branch.
 
 ### Open Issues
 
-- Need to incorporate test execution into this as well
-- How are we going to handle external dependencies while the jvm-component plugins do not support external dependencies?
+~~- Need to incorporate test execution into this as well~~
+
+~~- How are we going to handle external dependencies while the jvm-component plugins do not support external dependencies?~~
 - do we need to simulate integration tests?
 
 ## Story: Update performance generator to create representative C/C++ project
