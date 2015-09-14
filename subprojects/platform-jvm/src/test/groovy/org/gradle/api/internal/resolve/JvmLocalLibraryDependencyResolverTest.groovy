@@ -33,6 +33,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResu
 import org.gradle.jvm.JarBinarySpec
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.internal.DefaultJavaPlatformVariantDimensionSelector
+import org.gradle.jvm.internal.JarBinarySpecInternal
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.base.internal.model.DefaultVariantDimensionSelectorFactory
@@ -224,7 +225,8 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
                 def lib = Mock(JvmLibrarySpec)
                 lib.name >> library
                 def binaries = Mock(ModelMap)
-                def binary = Mock(JarBinarySpec)
+                def binary = Mock(JarBinarySpecInternal)
+                binary.publicType >> JarBinarySpec
                 binary.id >> new DefaultLibraryBinaryIdentifier(project.path, library, 'api')
                 binary.displayName >> "binary for $lib"
                 binary.name >> 'api'
