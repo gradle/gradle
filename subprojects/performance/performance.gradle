@@ -427,7 +427,7 @@ task prepareSamples(dependsOn: [bigEmpty, small, multi, lotDependencies, withJUn
                                 smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
                                 variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
                                 smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
-                                bigOldJavaMoreSource, lotProjectDependencies])
+                                bigOldJavaMoreSource, lotProjectDependencies, generateSmallNewMultiprojectJava, generateLargeNewMultiprojectJava])
 
 task report {
     def reportDir = new File(buildDir, "performance-tests/report")
@@ -531,7 +531,7 @@ task generateCompareTaskInputs(type: ProjectGeneratorTask) {
     }
 }
 
-task prepareManualSamples(dependsOn: [generateCompareTaskInputs, generateSmallNewMultiprojectJava, generateLargeNewMultiprojectJava])
+task prepareManualSamples(dependsOn: [generateCompareTaskInputs])
 
 task manualPerformanceTest(type: Test) {
     dependsOn prepareManualSamples

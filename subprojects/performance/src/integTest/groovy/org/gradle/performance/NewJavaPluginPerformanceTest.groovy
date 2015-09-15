@@ -16,23 +16,23 @@
 
 package org.gradle.performance
 
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(ManualPerformanceTest)
 class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' build")
+    @Unroll("Project '#testProject' measuring incremental build speed")
     def "build new java project"() {
         given:
         runner.testId = "build new java project $testProject"
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.6', 'last']
+        runner.targetVersions = ['last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xmx1g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/tmp"]
+        runner.runs = 1
+        runner.warmUpRuns = 1
 
         when:
         def result = runner.run()
@@ -41,7 +41,8 @@ class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject              | maxExecutionTimeRegression
-        "bigNewMultiprojectJava" | millis(5000)
+        testProject                | maxExecutionTimeRegression
+        "smallNewMultiprojectJava" | millis(1000)
+        "largeNewMultiprojectJava" | millis(5000)
     }
 }
