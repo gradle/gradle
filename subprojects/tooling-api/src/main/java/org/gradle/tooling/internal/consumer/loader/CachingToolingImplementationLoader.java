@@ -15,11 +15,6 @@
  */
 package org.gradle.tooling.internal.consumer.loader;
 
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.gradle.api.internal.hash.DefaultHasher;
-import org.gradle.api.internal.hash.Hasher;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -27,16 +22,14 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
-import org.gradle.util.GFileUtils;
 
 import java.io.Closeable;
-import java.io.File;
-import java.util.*;
-import java.util.zip.Adler32;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CachingToolingImplementationLoader implements ToolingImplementationLoader, Closeable {
     private final ToolingImplementationLoader loader;
-    private final Map<Long, ConsumerConnection> connections = new HashMap<Long, ConsumerConnection>();
+    private final Map<ClassPath, ConsumerConnection> connections = new HashMap<ClassPath, ConsumerConnection>();
 
     public CachingToolingImplementationLoader(ToolingImplementationLoader loader) {
         this.loader = loader;
@@ -44,43 +37,14 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
 
     public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
         ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory, connectionParameters.getGradleUserHomeDir(), cancellationToken);
-        Long hash = createHash(classpath);
-        ConsumerConnection connection = connections.get(hash);
+
+        ConsumerConnection connection = connections.get(classpath);
         if (connection == null) {
             connection = loader.create(distribution, progressLoggerFactory, connectionParameters, cancellationToken);
-            connections.put(hash, connection);
+            connections.put(classpath, connection);
         }
 
         return connection;
-    }
-
-    private Long createHash(ClassPath classPath){
-        List<String> visitedFilePaths = Lists.newLinkedList();
-        Set<File> visitedDirs = Sets.newLinkedHashSet();
-        List<File> cpFiles = classPath.getAsFiles();
-
-        Adler32 checksum = new Adler32();
-        hash(checksum, visitedFilePaths, visitedDirs, cpFiles.iterator());
-        return checksum.getValue();
-    }
-
-    /**
-     * Copied logic here from HashClassPathSnapshotter but without the caching of filesnapshots boilerplate
-     * */
-    private void hash(Adler32 combinedHash, List<String> visitedFilePaths, Set<File> visitedDirs, Iterator<File> toHash) {
-        Hasher hasher = new DefaultHasher();
-        while (toHash.hasNext()) {
-            File file = toHash.next();
-            file = GFileUtils.canonicalise(file);
-            if (file.isDirectory()) {
-                if (visitedDirs.add(file)) {
-                    hash(combinedHash, visitedFilePaths, visitedDirs, Iterators.forArray(file.listFiles()));
-                }
-            } else if (file.isFile()) {
-                visitedFilePaths.add(file.getAbsolutePath());
-                combinedHash.update(hasher.hash(file));
-            }
-        }
     }
 
     public void close() {
