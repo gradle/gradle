@@ -19,6 +19,7 @@ package org.gradle.model.dsl.internal
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
 import org.gradle.model.ModelSet
+import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
@@ -32,7 +33,8 @@ class NonTransformedModelDslBackingTest extends Specification {
 
     def modelRegistry = new ModelRegistryHelper()
     def schemaStore = DefaultModelSchemaStore.instance
-    def modelDsl = new NonTransformedModelDslBacking(getModelRegistry(), schemaStore)
+    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
+    def modelDsl = new NonTransformedModelDslBacking(getModelRegistry(), schemaStore, nodeInitializerRegistry)
 
     void register(String pathString, Object element) {
         modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).descriptor("register").build())
