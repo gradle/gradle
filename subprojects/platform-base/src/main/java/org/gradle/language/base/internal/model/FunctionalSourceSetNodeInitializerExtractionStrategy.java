@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect;
+package org.gradle.language.base.internal.model;
 
-import org.gradle.model.internal.core.ChildNodeInitializerStrategy;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.extract.NodeInitializerExtractionStrategy;
 import org.gradle.model.internal.type.ModelType;
 
-public class ManagedChildNodeCreatorStrategy<T> implements ChildNodeInitializerStrategy<T> {
-
-    private final NodeInitializerRegistry nodeInitializerRegistry;
-
-    public ManagedChildNodeCreatorStrategy(NodeInitializerRegistry nodeInitializerRegistry) {
-        this.nodeInitializerRegistry = nodeInitializerRegistry;
-    }
+public class FunctionalSourceSetNodeInitializerExtractionStrategy implements NodeInitializerExtractionStrategy {
+    private static final ModelType<FunctionalSourceSet> FUNCTIONAL_SOURCE_SET_TYPE = ModelType.of(FunctionalSourceSet.class);
 
     @Override
-    public <S extends T> NodeInitializer initializer(ModelType<S> type) {
-        NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(type);
-        if (nodeInitializer == null) {
-            throw new IllegalArgumentException("Type is not managed: " + type);
+    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema, NodeInitializerRegistry nodeInitializerRegistry) {
+        if (FUNCTIONAL_SOURCE_SET_TYPE.isAssignableFrom(schema.getType())) {
+            return new FunctionalSourceSetModelInitializer();
         }
-        return nodeInitializer;
+        return null;
     }
-
 }

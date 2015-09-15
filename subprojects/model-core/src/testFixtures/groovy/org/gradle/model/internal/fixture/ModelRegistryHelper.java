@@ -59,7 +59,7 @@ public class ModelRegistryHelper implements ModelRegistry {
     private final ModelRegistry modelRegistry;
 
     public ModelRegistryHelper() {
-        this(new DefaultModelRegistry(new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance(), new DefaultNodeInitializerRegistry()))));
+        this(new DefaultModelRegistry(new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance(), new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.getInstance())))));
     }
 
     public ModelRegistryHelper(ModelRegistryScope modelRegistryScope) {

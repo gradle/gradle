@@ -18,14 +18,10 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.inspect.ManagedModelInitializer;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
 
@@ -53,8 +49,8 @@ public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtraction
     }
 
     @Override
-    protected <R> ModelManagedImplStructSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects, final ModelSchemaStore store, NodeInitializerRegistry nodeInitializerRegistry) {
-        final ModelManagedImplStructSchema<R> schema = super.createSchema(extractionContext, propertyResults, aspects, store, nodeInitializerRegistry);
+    protected <R> ModelManagedImplStructSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects) {
+        final ModelManagedImplStructSchema<R> schema = super.createSchema(extractionContext, propertyResults, aspects);
         extractionContext.addValidator(new Action<ModelSchema<R>>() {
             @Override
             public void execute(ModelSchema<R> modelSchema) {
@@ -62,11 +58,6 @@ public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtraction
             }
         });
         return schema;
-    }
-
-    @Override
-    protected <R> NodeInitializer createNodeInitializer(ModelManagedImplStructSchema<R> schema, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
-        return new ManagedModelInitializer<R>(schema, schemaStore, nodeInitializerRegistry);
     }
 
     private <R> void ensureCanBeInstantiated(ModelSchemaExtractionContext<R> extractionContext, ModelManagedImplStructSchema<R> schema) {

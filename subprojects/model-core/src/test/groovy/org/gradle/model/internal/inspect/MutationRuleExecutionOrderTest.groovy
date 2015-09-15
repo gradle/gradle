@@ -27,7 +27,7 @@ import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
 
 class MutationRuleExecutionOrderTest extends Specification {
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultNodeInitializerRegistry()))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)))
     def modelRegistry = new ModelRegistryHelper(new DefaultModelRegistry(extractor))
 
     static class MutationRecorder {

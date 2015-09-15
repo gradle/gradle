@@ -16,29 +16,19 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import org.gradle.model.internal.core.ModelProjection;
-import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
 public class ModelCollectionSchema<T, E> extends AbstractModelSchema<T> implements ManagedImplModelSchema<T> {
 
     private final ModelType<E> elementType;
-    private final NodeInitializer nodeInitializer;
 
-    public ModelCollectionSchema(ModelType<T> type, ModelType<E> elementType, ModelProjection projection) {
+    public ModelCollectionSchema(ModelType<T> type, ModelType<E> elementType) {
         super(type);
         this.elementType = elementType;
-        this.nodeInitializer = new ProjectionOnlyNodeInitializer(projection);
     }
 
     public ModelType<E> getElementType() {
         return elementType;
-    }
-
-    @Override
-    public NodeInitializer getNodeInitializer() {
-        return nodeInitializer;
     }
 
     @Override

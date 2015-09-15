@@ -17,7 +17,6 @@
 package org.gradle.language.base.internal.model;
 
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionContext;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionStrategy;
@@ -25,7 +24,7 @@ import org.gradle.model.internal.type.ModelType;
 
 public class FunctionalSourceSetSchemaExtractionStrategy implements ModelSchemaExtractionStrategy {
     @Override
-    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, NodeInitializerRegistry nodeInitializerRegistry) {
+    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store) {
         ModelType<FunctionalSourceSet> functionalSourceSetModelType = ModelType.of(FunctionalSourceSet.class);
         if (extractionContext.getType().isAssignableFrom(functionalSourceSetModelType)) {
             extractionContext.found(new FunctionalSourceSetSchema<T>(extractionContext.getType()));

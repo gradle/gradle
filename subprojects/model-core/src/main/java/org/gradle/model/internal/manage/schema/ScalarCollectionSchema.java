@@ -16,15 +16,14 @@
 package org.gradle.model.internal.manage.schema;
 
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.ModelProjection;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 
 public class ScalarCollectionSchema<T, E> extends ModelCollectionSchema<T, E> {
-    public ScalarCollectionSchema(ModelType<T> type, ModelType<E> elementType, ModelProjection projection) {
-        super(type, elementType, projection);
+    public ScalarCollectionSchema(ModelType<T> type, ModelType<E> elementType) {
+        super(type, elementType);
     }
 
     public static void clear(MutableModelNode node) {

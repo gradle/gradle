@@ -59,11 +59,13 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     private final ModelRegistry modelRegistry;
     private final ModelSchemaStore schemaStore;
+    private final NodeInitializerRegistry nodeInitializerRegistry;
 
     @Inject
-    public ComponentModelBasePlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
+    public ComponentModelBasePlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
         this.modelRegistry = modelRegistry;
         this.schemaStore = schemaStore;
+        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     public void apply(final ProjectInternal project) {
@@ -78,7 +80,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             ComponentSpec.class,
             ComponentSpecContainer.class,
             schema.getImplementationType().asSubclass(ComponentSpecContainer.class),
-            ModelReference.of(ComponentSpecFactory.class),
+            nodeInitializerRegistry,
             descriptor
         );
         modelRegistry.create(componentsCreator);
@@ -186,6 +188,11 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 instanceFactoryRegistry.register(ModelType.of(type), ModelReference.of(ComponentSpecFactory.class));
             }
             return instanceFactoryRegistry;
+        }
+
+        @Model
+        NodeInitializerRegistry createNodeInitializerRegistry(ServiceRegistry serviceRegistry, InstanceFactoryRegistry instanceFactoryRegistry) {
+            return serviceRegistry.get(NodeInitializerRegistry.class);
         }
 
         @Defaults

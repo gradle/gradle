@@ -27,7 +27,6 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.model.Managed;
 import org.gradle.model.ModelMap;
 import org.gradle.model.ModelSet;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
@@ -63,7 +62,7 @@ public class ModelSchemaExtractor {
             .build();
     }
 
-    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaStore store, ModelSchemaCache cache, NodeInitializerRegistry nodeInitializerRegistry) {
+    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaStore store, ModelSchemaCache cache) {
         ModelSchemaExtractionContext<T> context = ModelSchemaExtractionContext.root(type);
         List<ModelSchemaExtractionContext<?>> validations = Lists.newLinkedList();
         Queue<ModelSchemaExtractionContext<?>> unsatisfiedDependencies = Lists.newLinkedList();
@@ -71,7 +70,7 @@ public class ModelSchemaExtractor {
         validations.add(extractionContext);
 
         while (extractionContext != null) {
-            extractSchema(extractionContext, store, cache, nodeInitializerRegistry);
+            extractSchema(extractionContext, store, cache);
             Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = extractionContext.getChildren();
             Iterables.addAll(validations, dependencies);
             pushUnsatisfiedDependencies(dependencies, unsatisfiedDependencies, cache);
@@ -98,7 +97,7 @@ public class ModelSchemaExtractor {
         extractionContext.validate(cache.get(extractionContext.getType()));
     }
 
-    private <T> void extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache, NodeInitializerRegistry nodeInitializerRegistry) {
+    private <T> void extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
         final ModelType<T> type = extractionContext.getType();
         ModelSchema<T> cached = cache.get(type);
         if (cached != null) {
@@ -107,7 +106,7 @@ public class ModelSchemaExtractor {
         }
 
         for (ModelSchemaExtractionStrategy strategy : strategies) {
-            strategy.extract(extractionContext, store, nodeInitializerRegistry);
+            strategy.extract(extractionContext, store);
             if (extractionContext.getResult() != null) {
                 cache.set(type, extractionContext.getResult());
                 return;

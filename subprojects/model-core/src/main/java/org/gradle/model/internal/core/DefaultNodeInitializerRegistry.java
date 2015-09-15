@@ -16,11 +16,50 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
+import com.google.common.collect.ImmutableList;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.extract.*;
+import org.gradle.model.internal.type.ModelType;
+
+import java.util.Collections;
+import java.util.List;
 
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
+    private final ModelSchemaStore schemaStore;
+    private final ImmutableList<NodeInitializerExtractionStrategy> strategies;
+
+    public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore) {
+        this(schemaStore, new DefaultInstanceFactoryRegistry(), Collections.<NodeInitializerExtractionStrategy>emptyList());
+    }
+
+    public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore, InstanceFactoryRegistry instanceFactoryRegistry, List<NodeInitializerExtractionStrategy> strategies) {
+        this.schemaStore = schemaStore;
+        this.strategies = ImmutableList.<NodeInitializerExtractionStrategy>builder()
+            .addAll(strategies)
+            .add(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry))
+            .add(new ModelSetNodeInitializerExtractionStrategy())
+            .add(new ManagedSetNodeInitializerExtractionStrategy())
+            .add(new ModelMapNodeInitializerExtractionStrategy())
+            .add(new ScalarCollectionNodeInitializerExtractionStrategy())
+            .add(new ManagedImplStructNodeInitializerExtractionStrategy(schemaStore))
+            .build();
+    }
+
     @Override
-    public <T> NodeInitializer getNodeInitializer(ManagedImplModelSchema<T> schema) {
-        return schema.getNodeInitializer();
+    public <T> NodeInitializer getNodeInitializer(ModelSchema<T> schema) {
+        for (NodeInitializerExtractionStrategy extractor : strategies) {
+            NodeInitializer nodeInitializer = extractor.extractNodeInitializer(schema, this);
+            if (nodeInitializer != null) {
+                return nodeInitializer;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public <T> NodeInitializer getNodeInitializer(ModelType<T> type) {
+        ModelSchema<T> schema = schemaStore.getSchema(type);
+        return getNodeInitializer(schema);
     }
 }

@@ -28,7 +28,7 @@ import spock.lang.Specification
 abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>> extends Specification {
 
     def schemaStore = DefaultModelSchemaStore.instance
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry()
+    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
     def collectionPath = ModelPath.path("collection")
     def registry = new ModelRegistryHelper()
     def internalType

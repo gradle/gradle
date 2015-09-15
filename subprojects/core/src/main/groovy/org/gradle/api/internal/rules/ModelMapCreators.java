@@ -29,17 +29,16 @@ public class ModelMapCreators {
                                                                       Class<T> typeClass,
                                                                       Class<C> containerClass,
                                                                       Class<? extends C> viewClass,
-                                                                      ModelReference<? extends InstanceFactory<? super T, String>> factoryReference,
+                                                                      NodeInitializerRegistry nodeInitializerRegistry,
                                                                       ModelRuleDescriptor descriptor) {
-
-        ChildNodeInitializerStrategy<T> childFactory = NodeBackedModelMap.createUsingFactory(factoryReference);
-
         ModelType<C> containerType = ModelType.of(containerClass);
         ModelType<T> modelType = ModelType.of(typeClass);
+        ChildNodeInitializerStrategy<T> childFactory = NodeBackedModelMap.createUsingRegistry(modelType, nodeInitializerRegistry);
         return ModelCreators.of(ModelReference.of(path, containerType), Factories.<C>constantNull())
             .descriptor(descriptor)
             .withProjection(new SpecializedModelMapProjection<C, T>(containerType, modelType, viewClass, childFactory))
             .withProjection(PolymorphicModelMapProjection.of(modelType, childFactory))
+            .inputs(ModelReference.of(NodeInitializerRegistry.class))
             .build();
     }
 }

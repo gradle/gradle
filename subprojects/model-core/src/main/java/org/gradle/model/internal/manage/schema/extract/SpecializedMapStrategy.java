@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.type.ModelType;
@@ -33,7 +32,7 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
     private final ManagedCollectionProxyClassGenerator generator = new ManagedCollectionProxyClassGenerator();
 
     @Override
-    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, NodeInitializerRegistry nodeInitializerRegistry) {
+    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store) {
         Type type = extractionContext.getType().getType();
         if (!(type instanceof Class)) {
             return;

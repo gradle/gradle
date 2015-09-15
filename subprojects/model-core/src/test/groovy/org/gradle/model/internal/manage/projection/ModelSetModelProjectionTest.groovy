@@ -47,7 +47,7 @@ class ModelSetModelProjectionTest extends Specification {
     def collectionPath = ModelPath.path("collection")
     def collectionType = new ModelType<ModelSet<NamedThing>>() {}
     def schemaStore = DefaultModelSchemaStore.instance
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry()
+    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
     def registry = new ModelRegistryHelper()
     private ModelReference<ModelSet<NamedThing>> reference = ModelReference.of(collectionPath, new ModelType<ModelSet<NamedThing>>() {})
 

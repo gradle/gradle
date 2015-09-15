@@ -15,14 +15,12 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
-
 import org.gradle.api.Action
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
 import org.gradle.model.ModelSet
 import org.gradle.model.Unmanaged
-import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.manage.schema.*
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
@@ -946,7 +944,7 @@ interface Managed${typeName} {
     def "can register custom strategy"() {
         when:
         def strategy = Mock(ModelSchemaExtractionStrategy) {
-            extract(_, _, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore store, NodeInitializerRegistry nodeInitializerRegistry ->
+            extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore store ->
                 if (extractionContext.type.rawClass == CustomThing) {
                     extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
                 }
@@ -969,12 +967,12 @@ interface Managed${typeName} {
         def customSchema = store.getSchema(CustomThing)
 
         then:
-        1 * strategy.extract(_, _, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss, NodeInitializerRegistry nodeInitializerRegistry ->
+        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
             assert extractionContext.type == ModelType.of(CustomThing)
             extractionContext.child(ModelType.of(UnmanagedThing), "child")
             extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
         }
-        1 * strategy.extract(_, _, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss, NodeInitializerRegistry nodeInitializerRegistry ->
+        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
         }
 
@@ -992,13 +990,13 @@ interface Managed${typeName} {
         store.getSchema(CustomThing)
 
         then:
-        1 * strategy.extract(_, _, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss, NodeInitializerRegistry nodeInitializerRegistry ->
+        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
             assert extractionContext.type == ModelType.of(CustomThing)
             extractionContext.addValidator(validator)
             extractionContext.child(ModelType.of(UnmanagedThing), "child")
             extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
         }
-        1 * strategy.extract(_, _, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss, NodeInitializerRegistry nodeInitializerRegistry ->
+        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
             return null;
         }

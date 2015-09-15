@@ -16,11 +16,6 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
-import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.ManagedImplStructSchemaExtractionStrategySupport;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor;
 import org.gradle.platform.base.BinarySpec;
@@ -33,8 +28,4 @@ public class BinarySpecSpecializationSchemaExtractionStrategy extends ManagedImp
         super(aspectExtractor, BinarySpecInternal.class, BinarySpec.class);
     }
 
-    @Override
-    protected <R> NodeInitializer createNodeInitializer(ModelManagedImplStructSchema<R> schema, ModelSchemaStore store, NodeInitializerRegistry nodeInitializerRegistry) {
-        return null;
-    }
 }

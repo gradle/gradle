@@ -16,8 +16,6 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import org.gradle.model.internal.core.NodeInitializer;
-
 /**
  * Model schema with managed implementation. This means that we have control over the actual implementation type for the type
  * described in the schema, and we also control the instantiation of managed view instances.
@@ -25,5 +23,4 @@ import org.gradle.model.internal.core.NodeInitializer;
  * @param <T> the type the schema is extracted from.
  */
 public interface ManagedImplModelSchema<T> extends ModelSchema<T> {
-    NodeInitializer getNodeInitializer();
 }

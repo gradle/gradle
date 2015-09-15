@@ -27,7 +27,7 @@ import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -42,7 +42,6 @@ import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.ComponentSpecFactory;
 import org.gradle.platform.base.test.TestSuiteContainer;
 import org.gradle.platform.base.test.TestSuiteSpec;
 
@@ -56,11 +55,13 @@ import java.io.File;
 public class NativeBinariesTestPlugin implements Plugin<Project> {
     private final ModelRegistry modelRegistry;
     private final ModelSchemaStore schemaStore;
+    private final NodeInitializerRegistry nodeInitializerRegistry;
 
     @Inject
-    public NativeBinariesTestPlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
+    public NativeBinariesTestPlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
         this.modelRegistry = modelRegistry;
         this.schemaStore = schemaStore;
+        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     public void apply(final Project project) {
@@ -68,7 +69,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
 
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(NativeBinariesTestPlugin.class.getName() + ".apply()");
         SpecializedMapSchema<TestSuiteContainer> schema = (SpecializedMapSchema<TestSuiteContainer>) schemaStore.getSchema(ModelType.of(TestSuiteContainer.class));
-        ModelCreator testSuitesCreator = ModelMapCreators.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getImplementationType().asSubclass(TestSuiteContainer.class), ModelReference.of(ComponentSpecFactory.class), descriptor);
+        ModelCreator testSuitesCreator = ModelMapCreators.specialized(ModelPath.path("testSuites"), TestSuiteSpec.class, TestSuiteContainer.class, schema.getImplementationType().asSubclass(TestSuiteContainer.class), nodeInitializerRegistry, descriptor);
 
         modelRegistry.create(testSuitesCreator);
     }

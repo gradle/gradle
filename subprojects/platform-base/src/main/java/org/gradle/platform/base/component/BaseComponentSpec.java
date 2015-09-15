@@ -35,12 +35,10 @@ import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.RuleContext;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.BinarySpecFactory;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.util.DeprecationLogger;
@@ -88,12 +86,12 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
     private final MutableModelNode sources;
     private MutableModelNode modelNode;
 
-    public static <T extends BaseComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, MutableModelNode modelNode, ProjectSourceSet allSourceSets, Instantiator instantiator, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
+    public static <T extends BaseComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, MutableModelNode modelNode, ProjectSourceSet allSourceSets, Instantiator instantiator, NodeInitializerRegistry nodeInitializerRegistry) {
         if (type.equals(BaseComponentSpec.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseComponentSpec.");
         }
         FunctionalSourceSet mainSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet.class, identifier.getName(), instantiator, allSourceSets);
-        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, type.getSimpleName(), mainSourceSet, instantiator, schemaStore, nodeInitializerRegistry));
+        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, type.getSimpleName(), mainSourceSet, instantiator, nodeInitializerRegistry));
         try {
             try {
                 return instantiator.newInstance(type);
@@ -126,7 +124,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
                 .withProjection(
                     ModelMapModelProjection.unmanaged(
                         BinarySpec.class,
-                        NodeBackedModelMap.createManagedOrUsingFactory(info.schemaStore, info.nodeInitializerRegistry, ModelReference.of(BinarySpecFactory.class))
+                        NodeBackedModelMap.createUsingRegistry(ModelType.of(BinarySpec.class), info.nodeInitializerRegistry)
                     )
                 )
                 .build()
@@ -230,7 +228,6 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         final String typeName;
         final FunctionalSourceSet sourceSets;
         final Instantiator instantiator;
-        final ModelSchemaStore schemaStore;
         final NodeInitializerRegistry nodeInitializerRegistry;
 
         private ComponentInfo(
@@ -239,7 +236,6 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
             String typeName,
             FunctionalSourceSet sourceSets,
             Instantiator instantiator,
-            ModelSchemaStore schemaStore,
             NodeInitializerRegistry nodeInitializerRegistry
         ) {
             this.componentIdentifier = componentIdentifier;
@@ -247,7 +243,6 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
             this.typeName = typeName;
             this.sourceSets = sourceSets;
             this.instantiator = instantiator;
-            this.schemaStore = schemaStore;
             this.nodeInitializerRegistry = nodeInitializerRegistry;
         }
     }

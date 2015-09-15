@@ -56,7 +56,7 @@ public class ManagedSetStrategy extends SetStrategy {
         public ModelView<ManagedSet<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
             ModelType<ManagedSet<T>> setType = ModelTypes.managedSet(elementType);
             DefaultModelViewState state = new DefaultModelViewState(setType, ruleDescriptor, writable, !writable);
-            NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, new ManagedChildNodeCreatorStrategy<T>(store, nodeInitializerRegistry));
+            NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry));
             return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
         }
 

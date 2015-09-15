@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,48 +16,45 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.ModelSet;
+import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
+import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
-@ThreadSafe
-public class ModelSetStrategy extends SetStrategy {
-
-    public ModelSetStrategy() {
-        super(new ModelType<ModelSet<?>>() {
-        });
-    }
+public class ManagedSetNodeInitializerExtractionStrategy extends CollectionNodeInitializerExtractionSupport {
+    private static final ModelType<ManagedSet<?>> MANAGED_SET_MODEL_TYPE = new ModelType<ManagedSet<?>>() {
+    };
 
     @Override
-    protected <E> ModelProjection getProjection(ModelType<E> elementType, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
-        return TypedModelProjection.of(
-            ModelTypes.modelSet(elementType),
-            new ModelSetModelViewFactory<E>(elementType, schemaStore, nodeInitializerRegistry)
-        );
+    protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema, NodeInitializerRegistry nodeInitializerRegistry) {
+        if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(schema.getType())) {
+            ModelProjection projection = TypedModelProjection.of(
+                ModelTypes.managedSet(schema.getElementType()),
+                new ManagedSetModelViewFactory<E>(schema.getElementType(), nodeInitializerRegistry)
+            );
+            return new ProjectionOnlyNodeInitializer(projection);
+        }
+        return null;
     }
 
-    private static class ModelSetModelViewFactory<T> implements ModelViewFactory<ModelSet<T>> {
+    private static class ManagedSetModelViewFactory<T> implements ModelViewFactory<ManagedSet<T>> {
         private final ModelType<T> elementType;
-        private final ModelSchemaStore store;
         private final NodeInitializerRegistry nodeInitializerRegistry;
 
-        public ModelSetModelViewFactory(ModelType<T> elementType, ModelSchemaStore store, NodeInitializerRegistry nodeInitializerRegistry) {
+        public ManagedSetModelViewFactory(ModelType<T> elementType, NodeInitializerRegistry nodeInitializerRegistry) {
             this.elementType = elementType;
-            this.store = store;
             this.nodeInitializerRegistry = nodeInitializerRegistry;
         }
 
         @Override
-        public ModelView<ModelSet<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
-            ModelType<ModelSet<T>> setType = ModelTypes.modelSet(elementType);
+        public ModelView<ManagedSet<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
+            ModelType<ManagedSet<T>> setType = ModelTypes.managedSet(elementType);
             DefaultModelViewState state = new DefaultModelViewState(setType, ruleDescriptor, writable, !writable);
-            final ManagedChildNodeCreatorStrategy<T> childCreator = new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry);
-            NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, childCreator);
+            NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry));
             return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
         }
 
@@ -70,7 +67,7 @@ public class ModelSetStrategy extends SetStrategy {
                 return false;
             }
 
-            ModelSetModelViewFactory<?> that = (ModelSetModelViewFactory<?>) o;
+            ManagedSetModelViewFactory<?> that = (ManagedSetModelViewFactory<?>) o;
             return elementType.equals(that.elementType);
 
         }
@@ -80,6 +77,4 @@ public class ModelSetStrategy extends SetStrategy {
             return elementType.hashCode();
         }
     }
-
-
 }

@@ -236,12 +236,13 @@ public class GlobalScopeServices {
         return new DefaultInstanceFactoryRegistry();
     }
 
-    protected NodeInitializerRegistry createNodeInitializerRegistry() {
-        return new DefaultNodeInitializerRegistry();
+    protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {
+        return new DefaultModelSchemaStore(modelSchemaExtractor);
     }
 
-    protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor, NodeInitializerRegistry nodeInitializerRegistry) {
-        return new DefaultModelSchemaStore(modelSchemaExtractor, nodeInitializerRegistry);
+    protected NodeInitializerRegistry createNodeInitializerRegistry(ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore, InstanceFactoryRegistry instanceFactoryRegistry) {
+        List<NodeInitializerExtractionStrategy> strategies = serviceRegistry.getAll(NodeInitializerExtractionStrategy.class);
+        return new DefaultNodeInitializerRegistry(schemaStore, instanceFactoryRegistry, strategies);
     }
 
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {

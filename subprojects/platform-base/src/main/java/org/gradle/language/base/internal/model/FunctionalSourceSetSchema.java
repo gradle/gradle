@@ -16,7 +16,6 @@
 
 package org.gradle.language.base.internal.model;
 
-import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.manage.schema.AbstractModelSchema;
 import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
 import org.gradle.model.internal.type.ModelType;
@@ -25,10 +24,5 @@ public class FunctionalSourceSetSchema<T> extends AbstractModelSchema<T> impleme
 
     protected FunctionalSourceSetSchema(ModelType<T> type) {
         super(type);
-    }
-
-    @Override
-    public NodeInitializer getNodeInitializer() {
-        return new FunctionalSourceSetModelInitializer();
     }
 }
