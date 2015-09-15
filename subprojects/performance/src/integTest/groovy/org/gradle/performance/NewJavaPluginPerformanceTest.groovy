@@ -30,7 +30,7 @@ class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = ['last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xmx1g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/tmp"]
+        runner.gradleOpts = ["-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/tmp"]
         runner.runs = 1
         runner.warmUpRuns = 1
 
