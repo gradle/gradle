@@ -4,7 +4,7 @@
 @Managed
 interface Person {
 // START SNIPPET property-type-string
-  void setFirstName(String n)
+  void setFirstName(String name)
   String getFirstName()
 // END SNIPPET property-type-string
 
