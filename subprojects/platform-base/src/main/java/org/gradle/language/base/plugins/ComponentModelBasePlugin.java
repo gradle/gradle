@@ -35,10 +35,7 @@ import org.gradle.language.base.internal.model.ComponentBinaryRules;
 import org.gradle.language.base.internal.model.ComponentRules;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
@@ -177,6 +174,18 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 }
             });
             return binarySpecFactory;
+        }
+
+        @Model
+        InstanceFactoryRegistry createInstanceFactoryRegistry(ServiceRegistry serviceRegistry, BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
+            InstanceFactoryRegistry instanceFactoryRegistry = serviceRegistry.get(InstanceFactoryRegistry.class);
+            for (Class<? extends BinarySpec> type : binarySpecFactory.getSupportedTypes()) {
+                instanceFactoryRegistry.register(ModelType.of(type), ModelReference.of(BinarySpecFactory.class));
+            }
+            for (Class<? extends ComponentSpec> type : componentSpecFactory.getSupportedTypes()) {
+                instanceFactoryRegistry.register(ModelType.of(type), ModelReference.of(ComponentSpecFactory.class));
+            }
+            return instanceFactoryRegistry;
         }
 
         @Defaults

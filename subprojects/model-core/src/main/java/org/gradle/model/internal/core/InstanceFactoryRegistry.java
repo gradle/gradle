@@ -16,16 +16,10 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
-import org.gradle.internal.util.BiFunction;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
-import java.util.Set;
+public interface InstanceFactoryRegistry {
+    <T> ModelReference<InstanceFactory<? super T, String>> getFactory(ModelType<T> type);
 
-public interface InstanceFactory<T, P> {
-    <S extends T> S create(Class<S> type, MutableModelNode modelNode, P payload);
-
-    Set<Class<? extends T>> getSupportedTypes();
-
-    <S extends T> void register(Class<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, ? super P, ? super MutableModelNode> factory);
+    <T> void register(ModelType<T> type, ModelReference<? extends InstanceFactory<? super T, String>> factoryReference);
 }
