@@ -70,4 +70,37 @@ class ClasspathWiring extends RuleSource {
     }
 }
 
+class TestTaskWiring extends RuleSource {
+    @Mutate
+    void createTestTask(ModelMap<Task> tasks, BinaryContainer binaries, ModelMap<JvmLibrarySpec> libraries) {
+        def testJarClassesDir = binaries.getByName('testJar').classesDir
+        def testSourceDirs = libraries.get('test').sources.collect {
+            it.source.srcDirs
+        }.flatten()
+        def additionalClassPath = [binaries.getByName('mainJar').classesDir, testJarClassesDir]
+        tasks.create("test", Test) {
+            dependsOn "compileTestJarTestJava"
+            classpath = project.files(additionalClassPath) + project.configurations.getByName('testRuntime')
+            testClassesDir = testJarClassesDir
+            testSrcDirs = testSourceDirs
+            description = "Runs the unit tests."
+            binResultsDir = new File(getTestResultsDir(project), String.format("binary/%s", name))
+            workingDir = project.projectDir
+            reports.html.destination = getTestReportDir(project)
+            reports.junitXml.destination = getTestResultsDir(project)
+        }
+        tasks.get("check").dependsOn "test"
+    }
+
+    static final String testResultsDirName = 'test-results'
+    static final String testReportDirName = 'tests'
+    private File getTestResultsDir(Project project) {
+        new File(project.buildDir, testResultsDirName)
+    }
+    private File getTestReportDir(Project project) {
+        new File(new File(project.buildDir, 'reports'), testReportDirName)
+    }
+}
+
 apply plugin: ClasspathWiring
+apply plugin: TestTaskWiring
