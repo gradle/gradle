@@ -35,13 +35,14 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     private final MutableModelNode modelNode;
 
     public RealizableTaskCollection(Class<T> type, TaskCollection<T> delegate, MutableModelNode modelNode) {
+        assert !(delegate instanceof RealizableTaskCollection) : "Attempt to wrap already realizable task collection in realizable wrapper: " + delegate;
+
         this.delegate = delegate;
         this.type = type;
         this.modelNode = modelNode;
     }
 
     public void realizeRuleTaskTypes() {
-        // Realizing is idempotent, but this method may be called many times.
         // Task dependencies may be calculated more than once.
         // This guard is purely an optimisation.
         if (realized.compareAndSet(false, true)) {
@@ -52,18 +53,18 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
         }
     }
 
-    private RealizableTaskCollection<T> realizableFor(TaskCollection<T> collection) {
-        return new RealizableTaskCollection<T>(type, collection, modelNode);
+    private <S extends T> RealizableTaskCollection<S> realizable(Class<S> type, TaskCollection<S> collection) {
+        return new RealizableTaskCollection<S>(type, collection, modelNode);
     }
 
     @Override
     public TaskCollection<T> matching(Spec<? super T> spec) {
-        return delegate.matching(spec);
+        return realizable(type, delegate.matching(spec));
     }
 
     @Override
     public TaskCollection<T> matching(Closure closure) {
-        return realizableFor(delegate.matching(closure));
+        return realizable(type, delegate.matching(closure));
     }
 
     @Override
@@ -78,7 +79,7 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
 
     @Override
     public <S extends T> TaskCollection<S> withType(Class<S> type) {
-        return delegate.withType(type);
+        return realizable(type, delegate.withType(type));
     }
 
     @Override
@@ -148,12 +149,12 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
 
     @Override
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
-        return delegate.withType(type, configureAction);
+        return realizable(type, (DefaultTaskCollection<S>) delegate.withType(type, configureAction));
     }
 
     @Override
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
-        return delegate.withType(type, configureClosure);
+        return realizable(type, (DefaultTaskCollection<S>) delegate.withType(type, configureClosure));
     }
 
     @Override

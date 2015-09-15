@@ -24,6 +24,7 @@ import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.tasks.TaskCollection;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -45,7 +46,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final NamedEntityInstantiator<Task> instantiator;
 
     public DefaultTaskContainer(MutableModelNode modelNode, ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
-        super(Task.class, instantiator, project, modelNode);
+        super(Task.class, instantiator, project);
         this.modelNode = modelNode;
         this.taskFactory = taskFactory;
         this.projectAccessListener = projectAccessListener;
@@ -290,5 +291,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             taskContainer.add(task);
             mutableModelNode.setPrivateData(taskModelType, task);
         }
+    }
+
+    @Override
+    public <S extends Task> TaskCollection<S> withType(Class<S> type) {
+        return new RealizableTaskCollection<S>(type, super.withType(type), modelNode);
     }
 }
