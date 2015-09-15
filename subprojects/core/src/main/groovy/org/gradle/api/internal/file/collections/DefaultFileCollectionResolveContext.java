@@ -96,6 +96,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         List<T> result = new ArrayList<T>();
         while (!queue.isEmpty()) {
             Object element = queue.remove(0);
+            // TODO - need to sync with BuildDependenciesOnlyFileCollectionResolveContext
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
                 converter.convertInto(nestedContext, result, fileResolver);
@@ -143,7 +144,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     private void resolveNested(FileCollectionContainer fileCollection) {
         addTo = queue.subList(0, 0);
         try {
-            fileCollection.resolve(this);
+            fileCollection.visitContents(this);
         } finally {
             addTo = queue;
         }
@@ -194,7 +195,12 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 for (File file : fileSet.getFiles()) {
                     convertFileToFileTree(file, result);
                 }
-            } else if (element instanceof FileCollection || element instanceof MinimalFileCollection) {
+            } else if (element instanceof FileCollection) {
+                FileCollection fileCollection = (FileCollection) element;
+                for (File file : fileCollection.getFiles()) {
+                    convertFileToFileTree(file, result);
+                }
+            } else if (element instanceof MinimalFileCollection) {
                 throw new UnsupportedOperationException(String.format("Cannot convert instance of %s to FileTree", element.getClass().getSimpleName()));
             } else if (element instanceof TaskDependency) {
                 // Ignore

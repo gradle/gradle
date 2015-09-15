@@ -62,7 +62,6 @@ import org.hamcrest.Matchers;
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -204,11 +203,12 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
                 startParameter.getLogLevel(),
                 DaemonUsage.EXPLICITLY_DISABLED,
                 startParameter.isContinuous(),
-                interactive
+                interactive,
+                classpath
             );
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(
                 new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),
-                    ManagementFactory.getRuntimeMXBean().getStartTime()),
+                    System.currentTimeMillis()),
                 new DefaultBuildCancellationToken(),
                 new NoOpBuildEventConsumer(),
                 outputListener, errorListener);

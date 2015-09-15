@@ -19,10 +19,7 @@ package org.gradle.model.internal.manage.projection;
 import com.google.common.base.Optional;
 import org.gradle.internal.Cast;
 import org.gradle.model.ModelViewClosedException;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelView;
-import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.TypeCompatibilityModelProjectionSupport;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -30,20 +27,24 @@ import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
 
     private final ModelSchemaStore schemaStore;
+    private final NodeInitializerRegistry nodeInitializerRegistry;
     private final ManagedProxyFactory proxyFactory;
     private final ModelManagedImplStructSchema<M> schema;
 
-    public ManagedModelProjection(ModelManagedImplStructSchema<M> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+    public ManagedModelProjection(ModelManagedImplStructSchema<M> schema, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry, ManagedProxyFactory proxyFactory) {
         super(schema.getType(), true, true);
         this.schema = schema;
         this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;
+        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     @Override
@@ -100,15 +101,23 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     MutableModelNode propertyNode = modelNode.getLink(propertyName);
                     propertyNode.ensureUsable();
 
+                    ModelView<? extends T> modelView;
+                    ModelSchema<T> propertySchema = schemaStore.getSchema(propertyType);
+                    if (property.isWritable() && propertySchema instanceof ScalarCollectionSchema) {
+                        Collection<?> instance = ScalarCollectionSchema.get(propertyNode);
+                        if (instance == null) {
+                            return null;
+                        }
+                    }
                     if (writable) {
-                        ModelView<? extends T> modelView = propertyNode.asWritable(propertyType, ruleDescriptor, null);
+                        modelView = propertyNode.asWritable(propertyType, ruleDescriptor, null);
                         if (closed) {
                             modelView.close();
                         }
-                        return modelView.getInstance();
                     } else {
-                        return propertyNode.asReadOnly(propertyType, ruleDescriptor).getInstance();
+                        modelView = propertyNode.asReadOnly(propertyType, ruleDescriptor);
                     }
+                    return modelView.getInstance();
                 }
 
                 public void set(String name, Object value) {
@@ -132,17 +141,38 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                     if (propertySchema instanceof ManagedImplModelSchema) {
                         if (value == null) {
-                            propertyNode.setTarget(null);
+                            if (propertySchema instanceof ScalarCollectionSchema) {
+                                ScalarCollectionSchema.clear(propertyNode);
+                            } else {
+                                propertyNode.setTarget(null);
+                            }
                         } else if (ManagedInstance.class.isInstance(value)) {
                             ManagedInstance managedInstance = (ManagedInstance) value;
                             MutableModelNode targetNode = managedInstance.getBackingNode();
                             propertyNode.setTarget(targetNode);
+                        } else if (propertySchema instanceof ScalarCollectionSchema && Collection.class.isInstance(value)) {
+                            Collection<Object> values = Cast.uncheckedCast(value);
+                            ScalarCollectionSchema<T, Object> scalarSchema = Cast.uncheckedCast(propertySchema);
+                            initializeCollection(propertyNode, propertyType, scalarSchema, values);
                         } else {
                             throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", name, getType()));
                         }
                     } else {
                         T castValue = Cast.uncheckedCast(value);
                         propertyNode.setPrivateData(propertyType, castValue);
+                    }
+                }
+
+                private <T, E> void initializeCollection(MutableModelNode propertyNode, ModelType<T> propertyType, ScalarCollectionSchema<T, E> propertySchema, Collection<E> value) {
+                    ScalarCollectionSchema.clear(propertyNode);
+                    NodeInitializer initializer = nodeInitializerRegistry.getNodeInitializer(propertySchema);
+                    List<? extends ModelProjection> projections = initializer.getProjections();
+                    for (ModelProjection projection : projections) {
+                        ModelView<? extends T> modelView = projection.asWritable(propertyType, propertyNode, ruleDescriptor, null);
+                        if (modelView != null) {
+                            Collection<E> instance = Cast.uncheckedCast(modelView.getInstance());
+                            instance.addAll(value);
+                        }
                     }
                 }
             }

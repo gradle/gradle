@@ -1,3 +1,4 @@
+apply from: 'src/dependency_generator.groovy'
 apply from: 'src/generator.groovy'
 apply plugin: 'javascript-base'
 
@@ -379,6 +380,18 @@ task bigOldJavaMoreSource(type: ProjectGeneratorTask) {
     testDependencies = files()
 }
 
+task generateBigNewMultiprojectJava(type: ProjectGeneratorTask) {
+    destDir = file("$buildDir/bigNewMultiprojectJava")
+    projects = 150
+    sourceFiles = 300
+    linesOfCodePerSourceFile = 350
+    filesPerPackage = 10
+    useSubProjectNumberInSourceFileNames = true
+    subProjectTemplates = ['java-source', 'new-java-project']
+    templateArgs = [projectDependencies: true, generatedDependencies: DependencyGenerator.newInstance(numberOfProjects: 150).createDependencies()]
+    testDependencies = files()
+}
+
 task all(dependsOn: generators)
 
 task prepareSamples(dependsOn: [bigEmpty, small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
@@ -423,8 +436,103 @@ task performanceExperiments(type: Test) {
     }
 }
 
+task generateCompareTaskInputs(type: ProjectGeneratorTask) {
+    destDir = file("$buildDir/compareTaskInputs")
+    projects = 1
+    subProjectTemplates = ['empty']
+    templateArgs = [original: file("src/testProjects/compareTaskInputs/build.gradle").text]
+    testDependencies = files()
+    doLast {
+        project.copy {
+            from "src/testProjects/compareTaskInputs"
+            into "build/compareTaskInputs"
+            exclude "build.gradle"
+        }
+        def generateInputFiles = { dir, count, content ->
+            for(int i=1;i <= count;i++) {
+                File file = new File(dir, "file$i")
+                file.bytes = content
+            }
+        }
+        ([1,10,100]+(1000..10000).step(1000)).each { count ->
+            def dir = file("$buildDir/compareTaskInputs/src/${count}files")
+            dir.mkdirs()
+            generateInputFiles dir, count, "file content".bytes
+        }
+
+        def generateHardLinkedFiles = { dir, count, contentFilePath ->
+            for (int i = 1; i <= count; i++) {
+                File file = new File(dir, "file$i")
+                // use hard links to save disk space
+                Class.forName("java.nio.file.Files").createLink(file.toPath(), contentFilePath);
+            }
+        }
+
+        def generateFiles = { count, size, sizeDesc, sizeMultiplier ->
+            def dir = file("$buildDir/compareTaskInputs/src/${count}_${size}${sizeDesc}_files")
+            dir.mkdirs()
+
+            def contentFile = new File(dir, "content_to_link")
+            def filesize = size * sizeMultiplier
+            contentFile.withOutputStream { outputStream ->
+                byte[] charsToUse = "abcdefghijklmnopqrstuvwxyz0123456789".getBytes()
+                for (int i = 0; i < filesize; i++) {
+                    outputStream.write(charsToUse, i % charsToUse.length, 1)
+                }
+            }
+
+            generateHardLinkedFiles dir, count, contentFile.toPath()
+
+            contentFile.delete()
+        }
+
+        if(!project.hasProperty("skipGeneratingLargeFiles")) {
+            // 1, 10, 100, 1000 and 10000 inputs
+            // 10k, 50k, 100k, 500k, 1000k inputs
+            [1, 10, 100, 1000, 10000].each { count ->
+                [10, 50, 100, 500, 1000].each { sizeInKBytes ->
+                    generateFiles count, sizeInKBytes, "k", 1024
+                }
+            }
+
+            // 100 input of sizes 1MB, 10MB, 50MB, 100MB inputs
+            [1, 10, 50, 100].each { sizeInMB ->
+                generateFiles 100, sizeInMB, "M", 1024 * 1024
+            }
+        }
+    }
+}
+
+task prepareManualSamples(dependsOn: [generateCompareTaskInputs, generateBigNewMultiprojectJava])
+
+task manualPerformanceTest(type: Test) {
+    dependsOn prepareManualSamples
+    finalizedBy report
+    maxParallelForks = 1
+    options {
+        includeCategories 'org.gradle.performance.ManualPerformanceTest'
+    }
+    testLogging.showStandardStreams = true
+}
+
+if (project.hasProperty('org.gradle.performance.use_yourkit')) {
+    configure([performanceTest, performanceExperiments, manualPerformanceTest]) {
+        testLogging.showStandardStreams = true
+        systemProperties['org.gradle.performance.use_yourkit'] = '1'
+        outputs.upToDateWhen { false }
+    }
+}
+
 integTest {
     options {
         excludeCategories 'org.gradle.performance.PerformanceTest'
+        excludeCategories 'org.gradle.performance.ManualPerformanceTest'
+    }
+}
+
+java9IntegTest {
+    options {
+        excludeCategories 'org.gradle.performance.PerformanceTest'
+        excludeCategories 'org.gradle.performance.ManualPerformanceTest'
     }
 }

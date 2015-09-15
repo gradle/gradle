@@ -140,6 +140,6 @@ Required by:
         expect:
         fails 'retrieve'
         and:
-        errorOutput.contains("> Authentication scheme of 'DefaultBasicAuthentication' is not supported by protocols [s3]")
+        errorOutput.contains("> Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 's3'")
     }
 }

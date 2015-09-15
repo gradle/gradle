@@ -37,6 +37,7 @@ class DaemonClientServicesTest extends Specification {
             .parent(LoggingServiceRegistry.newEmbeddableLogging())
             .parent(NativeServicesTestFixture.instance)
             .provider(new GlobalScopeServices(false))
+            .provider(new DaemonClientGlobalServices())
             .build()
     final services = new DaemonClientServices(parentServices, parameters, System.in)
 

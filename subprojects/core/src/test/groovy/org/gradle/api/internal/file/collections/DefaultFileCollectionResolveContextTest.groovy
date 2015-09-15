@@ -149,7 +149,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result == [contents]
-        1 * composite.resolve(!null) >> { it[0].add(contents) }
+        1 * composite.visitContents(!null) >> { it[0].add(contents) }
     }
 
     def resolveAsFileTreesDelegatesToACompositeFileCollection() {
@@ -162,7 +162,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result == [contents]
-        1 * composite.resolve(!null) >> { it[0].add(contents) }
+        1 * composite.visitContents(!null) >> { it[0].add(contents) }
     }
 
     def resolveAsMinimalFileCollectionsDelegatesToACompositeFileCollection() {
@@ -175,7 +175,7 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result == [contents]
-        1 * composite.resolve(!null) >> { it[0].add(contents) }
+        1 * composite.visitContents(!null) >> { it[0].add(contents) }
     }
 
     def resolvesCompositeFileCollectionsInDepthwiseOrder() {
@@ -192,8 +192,8 @@ class DefaultFileCollectionResolveContextTest extends Specification {
 
         then:
         result == [child1, child2, child3]
-        1 * parent1.resolve(!null) >> { it[0].add(child1); it[0].add(parent2) }
-        1 * parent2.resolve(!null) >> { it[0].add(child2) }
+        1 * parent1.visitContents(!null) >> { it[0].add(child1); it[0].add(parent2) }
+        1 * parent2.visitContents(!null) >> { it[0].add(child2) }
     }
 
     def recursivelyResolvesReturnValueOfAClosure() {

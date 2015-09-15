@@ -17,7 +17,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.*
-import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.ivy.IvyFileRepository
@@ -34,7 +34,8 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
  *
  * Plan is to bring features over as needed.
  */
-class AbstractIntegrationSpec extends Specification implements TestDirectoryProvider {
+@CleanupTestDirectory
+class AbstractIntegrationSpec extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 

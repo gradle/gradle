@@ -20,6 +20,7 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.Transformer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.SystemProperties
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
 abstract class AbstractComponentReportIntegrationTest extends AbstractIntegrationSpec {
@@ -31,6 +32,7 @@ abstract class AbstractComponentReportIntegrationTest extends AbstractIntegratio
 
     boolean outputMatches(String actualOutput, String expectedOutput) {
         String cleaned = actualOutput.substring(0, actualOutput.lastIndexOf("BUILD SUCCESSFUL"))
+        cleaned = cleaned.replaceAll(/Download .*${SystemProperties.instance.lineSeparator}/, "")
         assert cleaned == expected(expectedOutput)
         return true
     }

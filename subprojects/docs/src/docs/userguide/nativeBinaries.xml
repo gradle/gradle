@@ -3,7 +3,7 @@
 
     <note>
         <para>
-            The Gradle support for building native binaries is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+            Support for building native binaries is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
         </para>
     </note>
 
@@ -120,7 +120,7 @@
     </section>
 
     <section>
-        <title>Component model</title>
+        <title>Native software model</title>
         <para>
             To build native binaries using Gradle, your project should define one or more <firstterm>native components</firstterm>. Each component represents either an
             executable or a library that Gradle should build. A project can define any number of components. Gradle does not define any components by default.

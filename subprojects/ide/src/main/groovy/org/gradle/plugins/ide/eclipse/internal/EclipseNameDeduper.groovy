@@ -24,10 +24,13 @@ class EclipseNameDeduper {
 
     void configureRoot(Project rootProject) {
         def eclipseProjects = rootProject.allprojects.findAll { it.plugins.hasPlugin(EclipsePlugin) }
+
         new ProjectDeduper().dedupe(eclipseProjects, { project ->
             new DeduplicationTarget(project: project,
-                    moduleName: project.eclipseProject.projectModel.name,
-                    updateModuleName: { project.eclipseProject.projectModel.name = it })
+                moduleName: project.eclipseProject.projectModel.name,
+                updateModuleName: { project.eclipseProject.projectModel.name = it })
         })
     }
+
+
 }

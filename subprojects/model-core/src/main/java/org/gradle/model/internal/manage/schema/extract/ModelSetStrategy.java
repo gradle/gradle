@@ -16,14 +16,11 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.ModelSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
-import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
-import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
@@ -37,34 +34,29 @@ public class ModelSetStrategy extends SetStrategy {
     }
 
     @Override
-    protected <T, E> Function<ModelCollectionSchema<T, E>, NodeInitializer> getNodeInitializer(final ModelSchemaStore store) {
-        return new Function<ModelCollectionSchema<T, E>, NodeInitializer>() {
-            @Override
-            public NodeInitializer apply(ModelCollectionSchema<T, E> schema) {
-                return new ProjectionOnlyNodeInitializer(
-                    TypedModelProjection.of(
-                        ModelTypes.modelSet(schema.getElementType()),
-                        new ModelSetModelViewFactory<E>(schema.getElementType(), store)
-                    )
-                );
-            }
-        };
+    protected <E> ModelProjection getProjection(ModelType<E> elementType, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
+        return TypedModelProjection.of(
+            ModelTypes.modelSet(elementType),
+            new ModelSetModelViewFactory<E>(elementType, schemaStore, nodeInitializerRegistry)
+        );
     }
 
     private static class ModelSetModelViewFactory<T> implements ModelViewFactory<ModelSet<T>> {
         private final ModelType<T> elementType;
         private final ModelSchemaStore store;
+        private final NodeInitializerRegistry nodeInitializerRegistry;
 
-        public ModelSetModelViewFactory(ModelType<T> elementType, ModelSchemaStore store) {
+        public ModelSetModelViewFactory(ModelType<T> elementType, ModelSchemaStore store, NodeInitializerRegistry nodeInitializerRegistry) {
             this.elementType = elementType;
             this.store = store;
+            this.nodeInitializerRegistry = nodeInitializerRegistry;
         }
 
         @Override
         public ModelView<ModelSet<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
             ModelType<ModelSet<T>> setType = ModelTypes.modelSet(elementType);
             DefaultModelViewState state = new DefaultModelViewState(setType, ruleDescriptor, writable, !writable);
-            final ManagedChildNodeCreatorStrategy<T> childCreator = new ManagedChildNodeCreatorStrategy<T>(store);
+            final ManagedChildNodeCreatorStrategy<T> childCreator = new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry);
             NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, childCreator);
             return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
         }

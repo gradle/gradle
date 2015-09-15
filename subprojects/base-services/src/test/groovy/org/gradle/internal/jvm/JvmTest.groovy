@@ -19,6 +19,7 @@ package org.gradle.internal.jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Matchers
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
@@ -241,6 +242,27 @@ class JvmTest extends Specification {
         '1.5.0_22' | 'jre1.5.0_22' | 'jdk1.5.0_22'
     }
 
+    def "JVMs are equal when their Java home dirs are the same"() {
+        given:
+        TestFile installDir = tmpDir.createDir('software')
+        installDir.create {
+            lib {
+                file 'tools.jar'
+            }
+            bin {
+                file 'java'
+            }
+        }
+
+        expect:
+        def jvm = new Jvm(os, installDir)
+        def current = Jvm.current()
+
+        Matchers.strictlyEquals(jvm, new Jvm(os, installDir))
+        Matchers.strictlyEquals(current, Jvm.forHome(current.javaHome))
+        jvm != current
+    }
+
     def "uses system property to determine if Sun/Oracle JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'Sun'
@@ -291,7 +313,7 @@ class JvmTest extends Specification {
 
         then:
         home.file(theOs.getExecutableName("jre/bin/javadoc")).absolutePath ==
-            Jvm.forHome(home.file("jre")).getExecutable("javadoc").absolutePath
+                Jvm.forHome(home.file("jre")).getExecutable("javadoc").absolutePath
     }
 
     def "finds tools.jar if java home supplied"() {
@@ -308,7 +330,7 @@ class JvmTest extends Specification {
 
         then:
         home.file("jdk/lib/tools.jar").absolutePath ==
-            Jvm.forHome(home.file("jdk")).toolsJar.absolutePath
+                Jvm.forHome(home.file("jdk")).toolsJar.absolutePath
     }
 
     def "provides decent feedback if executable not found"() {

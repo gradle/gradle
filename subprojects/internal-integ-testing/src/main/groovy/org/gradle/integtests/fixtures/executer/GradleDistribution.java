@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -67,6 +68,11 @@ public interface GradleDistribution {
      * Returns true if the tooling API is supported by this distribution.
      */
     boolean isToolingApiSupported();
+
+    /**
+     * Returns true if the tooling API of this distribution supports the given target JVM.
+     */
+    boolean isToolingApiTargetJvmSupported(JavaVersion javaVersion);
 
     /**
      * Returns true if the tooling API of this distribution correctly handles non-ASCII characters in logging output.

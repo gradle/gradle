@@ -21,6 +21,6 @@ import org.gradle.authentication.http.DigestAuthentication;
 
 public class DefaultDigestAuthentication extends AbstractAuthentication implements DigestAuthentication {
     public DefaultDigestAuthentication(String name) {
-        super(name, PasswordCredentials.class);
+        super(name, DigestAuthentication.class, PasswordCredentials.class);
     }
 }

@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.execution.internal.InternalTaskExecutionListener;
 import org.gradle.api.execution.internal.TaskOperationInternal;
@@ -31,10 +31,11 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.progress.OperationResult;
 import org.gradle.internal.progress.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequestVersion2;
-import org.gradle.tooling.internal.protocol.test.InternalTestMethod;
+import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
+import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -44,10 +45,10 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
     private long resultCount;
     private Map<Object, String> runningTasks = Maps.newHashMap();
 
-    private InternalTestExecutionRequestVersion2 internalTestExecutionRequest;
+    private TestExecutionRequestAction internalTestExecutionRequest;
     private List<FailedTest> failedTests = Lists.newArrayList();
 
-    public TestExecutionResultEvaluator(InternalTestExecutionRequestVersion2 internalTestExecutionRequest) {
+    public TestExecutionResultEvaluator(TestExecutionRequestAction internalTestExecutionRequest) {
         this.internalTestExecutionRequest = internalTestExecutionRequest;
     }
 
@@ -65,28 +66,31 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
             throw new TestExecutionException("No matching tests found in any candidate test task.\n" + formattedTestRequest);
         }
         if (hasFailedTests()) {
-            StringBuffer failedTestsMessage = new StringBuffer("Test failed.\n")
+            StringBuilder failedTestsMessage = new StringBuilder("Test failed.\n")
                 .append(INDENT).append("Failed tests:");
-            List<Throwable> causes = Lists.newArrayList();
             for (FailedTest failedTest : failedTests) {
                 failedTestsMessage.append("\n").append(Strings.repeat(INDENT, 2)).append(failedTest.getDescription());
-                causes.addAll(failedTest.testResult.getExceptions());
             }
-            throw new TestExecutionException(failedTestsMessage.toString(), causes);
+            throw new TestExecutionException(failedTestsMessage.toString());
         }
     }
 
     private String formatInternalTestExecutionRequest() {
-        StringBuffer requestDetails = new StringBuffer(INDENT).append("Requested tests:");
+        StringBuilder requestDetails = new StringBuilder(INDENT).append("Requested tests:");
         for (InternalTestDescriptor internalTestDescriptor : internalTestExecutionRequest.getTestExecutionDescriptors()) {
             requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append(internalTestDescriptor.getDisplayName());
             requestDetails.append(" (Task: '").append(((DefaultTestDescriptor) internalTestDescriptor).getTaskPath()).append("')");
         }
-        for (String testClass : internalTestExecutionRequest.getTestClassNames()) {
-            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class ").append(testClass);
-        }
-        for (InternalTestMethod testMethod : internalTestExecutionRequest.getTestMethods()) {
-            requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(testMethod.getDescription());
+        final Collection<InternalJvmTestRequest> internalJvmTestRequests = internalTestExecutionRequest.getInternalJvmTestRequests();
+
+        for (InternalJvmTestRequest internalJvmTestRequest : internalJvmTestRequests) {
+            final String className = internalJvmTestRequest.getClassName();
+            final String methodName = internalJvmTestRequest.getMethodName();
+            if(methodName == null){
+                requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class ").append(className);
+            }else{
+                requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(className).append(".").append(methodName).append("()");
+            }
         }
         return requestDetails.toString();
     }
@@ -102,7 +106,7 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
             resultCount = resultCount + testResult.getTestCount();
         }
         if (!testDescriptor.isComposite() && testResult.getFailedTestCount() != 0) {
-            failedTests.add(new FailedTest(testDescriptor.getName(), testDescriptor.getClassName(), getTaskPath(testDescriptor), testResult));
+            failedTests.add(new FailedTest(testDescriptor.getName(), testDescriptor.getClassName(), getTaskPath(testDescriptor)));
         }
     }
 
@@ -116,7 +120,6 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
 
     @Override
     public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
-
     }
 
     @Override
@@ -129,17 +132,15 @@ class TestExecutionResultEvaluator implements TestListenerInternal, InternalTask
         runningTasks.remove(taskOperation.getId());
     }
 
-    private class FailedTest {
+    private static class FailedTest {
         final String name;
         final String className;
         final String taskPath;
-        final TestResult testResult;
 
-        public FailedTest(String name, String className, String taskPath, TestResult testResult) {
+        public FailedTest(String name, String className, String taskPath) {
             this.name = name;
             this.className = className;
             this.taskPath = taskPath;
-            this.testResult = testResult;
         }
 
         public String getDescription() {

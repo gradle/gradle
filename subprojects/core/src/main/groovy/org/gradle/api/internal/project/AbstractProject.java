@@ -63,10 +63,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelCreators;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
@@ -904,6 +901,12 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected NodeInitializerRegistry getNodeInitializerRegistry() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
         return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), this);
@@ -965,10 +968,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     public void model(Closure<?> modelRules) {
         ModelRegistry modelRegistry = getModelRegistry();
         ModelSchemaStore modelSchemaStore = getModelSchemaStore();
+        NodeInitializerRegistry nodeInitializerRegistry = getNodeInitializerRegistry();
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
-            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, modelSchemaStore, this.getRootProject().getFileResolver()), modelRules);
+            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, modelSchemaStore, nodeInitializerRegistry, this.getRootProject().getFileResolver()), modelRules);
         } else {
-            new NonTransformedModelDslBacking(modelRegistry, modelSchemaStore).configure(modelRules);
+            new NonTransformedModelDslBacking(modelRegistry, modelSchemaStore, nodeInitializerRegistry).configure(modelRules);
         }
     }
 

@@ -18,9 +18,8 @@ package org.gradle.api.internal.file;
 
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
 
-public interface FileCollectionInternal extends FileCollection, MinimalFileSet {
+public interface FileCollectionInternal extends FileCollection {
 
     /**
      * Adds a logical description of the potential contents of this collection to the builder.

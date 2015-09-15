@@ -17,9 +17,9 @@
 package org.gradle.model.internal.registry
 
 import org.gradle.api.Transformer
-import org.gradle.api.internal.rules.ModelMapCreators
 import org.gradle.internal.Factory
-import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.ModelNode
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import spock.lang.Specification
 
@@ -152,7 +152,7 @@ class ModelRegistryEphemeralNodeTest extends Specification {
                 .create("things") {
             it.ephemeral(true).modelMap(Thing)
         }
-        .mutate(ModelMapCreators.instantiatorType(Thing)) {
+        .mutate(ModelRegistryHelper.instantiatorType(Thing)) {
             it.registerFactory(Thing) { new Thing(name: it) }
         }
         registry.mutateModelMap("things", Thing) {

@@ -16,52 +16,22 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ModelValueSchema;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
-
-import java.io.File;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.List;
 
 public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
 
-    public final static List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(
-        ModelType.of(String.class),
-        ModelType.of(Boolean.class),
-        ModelType.of(Character.class),
-        ModelType.of(Byte.class),
-        ModelType.of(Short.class),
-        ModelType.of(Integer.class),
-        ModelType.of(Float.class),
-        ModelType.of(Long.class),
-        ModelType.of(Double.class),
-        ModelType.of(BigInteger.class),
-        ModelType.of(BigDecimal.class),
-        ModelType.of(File.class)
-    );
-
-    // Expected to be a subset of above
-    private final static List<ModelType<?>> NON_FINAL_TYPES = ImmutableList.<ModelType<?>>of(
-        ModelType.of(BigInteger.class),
-        ModelType.of(BigDecimal.class)
-    );
-
-    public <R> ModelSchemaExtractionResult<R> extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
+    public <R> void extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store) {
         ModelType<R> type = extractionContext.getType();
-        if (TYPES.contains(type)) {
-            return new ModelSchemaExtractionResult<R>(new ModelValueSchema<R>(type));
+        if (ScalarTypes.TYPES.contains(type)) {
+            extractionContext.found(new ModelValueSchema<R>(type));
         } else {
-            for (ModelType<?> nonFinalType : NON_FINAL_TYPES) {
+            for (ModelType<?> nonFinalType : ScalarTypes.NON_FINAL_TYPES) {
                 if (nonFinalType.isAssignableFrom(type)) {
                     throw new InvalidManagedModelElementTypeException(extractionContext, "subclasses of " + nonFinalType + " are not supported");
                 }
             }
-
-            return null;
         }
     }
 

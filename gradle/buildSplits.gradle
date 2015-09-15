@@ -1,0 +1,70 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import org.gradle.build.BuildTypes
+
+def buckets = [
+    "1": [":platformPlay", ":scala", ":languageScala", ":buildComparison",
+        ":ivy", ":platformBase", ":jacoco", ":announce", ":internalIntegTesting",
+        ":diagnostics", ":jetty", ":cli", ":reporting", ":toolingApiBuilders", ":openApi"],
+
+
+    "2": [":toolingApi", ":dependencyManagement", ":testKit", ":distributions",
+        ":pluginUse", ":sonar", ":jacoco", ":buildInit", ":languageGroovy", ":internalTesting",
+        ":languageJvm", ":performance", ":publish", ":resources", ":baseServicesGroovy", ":resourcesHttp",
+        ":pluginDevelopment", ":osgi"],
+
+    "3": [":launcher", ":plugins", ":codeQuality", ":languageJava",
+        ":ui", ":maven", ":javascript", ":antlr", ":messaging", ":ear",
+        ":resourcesS3", ":wrapper", ":resourcesSftp", ":signing", ":modelGroovy", ":baseServices"],
+
+    "4": [":docs", ":integTest", ":core", ":languageNative", ":ide", ":platformNative", ":modelCore", ":testingNative",
+        ":ideNative", ":native"]
+]
+
+//Make sure all projects are accounted for
+def coveredProjects = (buckets.collect { it.value }).flatten()
+assert coveredProjects.size() == subprojects.size(): "The following projects should be added to a bucket: ${subprojects.collect { ":${it.name}" } - coveredProjects}"
+
+
+buckets.each { String bucketName, List<String> projects ->
+    buildTypeList.each { BuildTypes.BuildType buildType ->
+        def tasks = tasksForProjects(buildType, projects)
+        project.getExtensions().buildTypes."${buildType.name + bucketName}"(buildType.projectProperties, *tasks)
+    }
+}
+
+def tasksForProjects(BuildTypes.BuildType buildType, List<String> projects) {
+    Set<String> tasks = []
+    projects.each { String p ->
+        buildType.tasks.each { String t ->
+            String task = reverseGrouping(t)
+            if (!task.contains(':')) {
+                tasks << "$p:${task}"
+            } else {
+                tasks << task
+            }
+        }
+    }
+    return tasks.toList()
+}
+
+
+def String reverseGrouping(String task) {
+    if (task.startsWith('runtime')) {
+        return task.substring(7, 8).toLowerCase() + task.substring(8, task.length() - 1)
+    }
+    task
+}

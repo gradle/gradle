@@ -22,14 +22,13 @@ import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
-import java.util.List;
 
 public interface VersionedRoutesCompilerAdapter extends Serializable {
     String getDependencyNotation();
 
     ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
 
-    Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean staticRoutesGenerator, Collection<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
+    Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean injectedRoutesGenerator, Collection<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
 
-    List<String> getClassLoaderPackages();
+    Iterable<String> getClassLoaderPackages();
 }

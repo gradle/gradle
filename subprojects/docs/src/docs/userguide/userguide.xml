@@ -96,7 +96,7 @@
     <xi:include href='publishingIvy.xml'/>
     <xi:include href='publishingMaven.xml'/>
     <xi:include href='newModel.xml'/>
-    <xi:include href='newJavaPlugin.xml'/>
+    <xi:include href='buildingJavaLibraries.xml'/>
     <!-- this is generated -->
     <xi:include href='../../../build/src/samplesList.xml'/>
     <xi:include href='potentialTraps.xml'/>

@@ -30,6 +30,7 @@ import org.sonatype.aether.util.repository.DefaultProxySelector;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 public class MavenDeployAction extends AbstractMavenPublishAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeployAction.class);
@@ -37,8 +38,8 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
     private RemoteRepository remoteRepository;
     private RemoteRepository remoteSnapshotRepository;
 
-    public MavenDeployAction(File pomFile) {
-        super(pomFile);
+    public MavenDeployAction(File pomFile, List<File> wagonJars) {
+        super(pomFile, wagonJars);
     }
 
     public void setRepositories(RemoteRepository repository, RemoteRepository snapshotRepository) {

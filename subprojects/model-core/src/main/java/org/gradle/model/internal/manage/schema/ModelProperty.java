@@ -17,12 +17,14 @@
 package org.gradle.model.internal.manage.schema;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.List;
 import java.util.Set;
 
 @ThreadSafe
@@ -50,19 +52,19 @@ public class ModelProperty<T> {
     private final StateManagementType stateManagementType;
     private final boolean writable;
     private final Set<ModelType<?>> declaredBy;
-    private final WeaklyTypeReferencingMethod<?, T> getter;
+    private final List<WeaklyTypeReferencingMethod<?, T>> getters;
 
-    private ModelProperty(ModelType<T> type, String name, StateManagementType stateManagementType, boolean writable, Set<ModelType<?>> declaredBy, WeaklyTypeReferencingMethod<?, T> getter) {
+    private ModelProperty(ModelType<T> type, String name, StateManagementType stateManagementType, boolean writable, Set<ModelType<?>> declaredBy, List<WeaklyTypeReferencingMethod<?, T>> getters) {
         this.name = name;
         this.type = type;
         this.stateManagementType = stateManagementType;
         this.writable = writable;
         this.declaredBy = ImmutableSet.copyOf(declaredBy);
-        this.getter = getter;
+        this.getters = ImmutableList.copyOf(getters);
     }
 
-    public static <T> ModelProperty<T> of(ModelType<T> type, String name, StateManagementType stateManagementType, boolean writable, Set<ModelType<?>> declaredBy, WeaklyTypeReferencingMethod<?, T> getter) {
-        return new ModelProperty<T>(type, name, stateManagementType, writable, declaredBy, getter);
+    public static <T> ModelProperty<T> of(ModelType<T> type, String name, StateManagementType stateManagementType, boolean writable, Set<ModelType<?>> declaredBy, List<WeaklyTypeReferencingMethod<?, T>> getters) {
+        return new ModelProperty<T>(type, name, stateManagementType, writable, declaredBy, getters);
     }
 
     public String getName() {
@@ -85,8 +87,16 @@ public class ModelProperty<T> {
         return declaredBy;
     }
 
+    private WeaklyTypeReferencingMethod<?, T> firstGetter() {
+        return getters.get(0);
+    }
+
+    public List<WeaklyTypeReferencingMethod<?, T>> getGetters() {
+        return getters;
+    }
+
     public <I> T getPropertyValue(I instance) {
-        return Cast.<WeaklyTypeReferencingMethod<I, T>>uncheckedCast(getter).invoke(instance);
+        return Cast.<WeaklyTypeReferencingMethod<I, T>>uncheckedCast(firstGetter()).invoke(instance);
     }
 
     @Override

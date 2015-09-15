@@ -15,6 +15,9 @@
  */
 package org.gradle.plugins.ide.internal.configurer
 
+import com.google.common.collect.Lists
+import org.gradle.api.Project
+
 /**
  * Able to deduplicate names. Useful for IDE plugins to make sure module names (IDEA) or project names (Eclipse) are unique.
  * <p>
@@ -22,13 +25,48 @@ package org.gradle.plugins.ide.internal.configurer
 class ModuleNameDeduper {
 
     void dedupe(Collection<DeduplicationTarget> targets) {
-        def allNames = []
+        List<String> givenEclipseProjectNames = targets.collect { it.moduleName }
         targets.each { target ->
-            def name = target.candidateNames.find { !allNames.contains(it) }
-            if (name) {
-                allNames << name
-                target.updateModuleName(name)
-            }
+            DeduplicationTarget prefixTarget = getPrefixTarget(targets, target)
+            doDeduplication(givenEclipseProjectNames, targets, target, prefixTarget)
         }
     }
+
+    private String doDeduplication(List<String> givenModuleNames, Collection<DeduplicationTarget> targets, DeduplicationTarget target, DeduplicationTarget prefixTarget) {
+        String givenModuleName = target.moduleName
+        Project project = target.project
+        if (project.parent == null) {
+            return givenModuleName
+        }
+        boolean isDuplicate = givenModuleNames.findAll { givenModuleName == it }.size() > 1
+        def newModuleName = givenModuleName
+        if (isDuplicate) {
+            def prefixTargetPrefix = getPrefixTarget(targets, prefixTarget);
+            newModuleName = doDeduplication(givenModuleNames, targets, prefixTarget, prefixTargetPrefix) + "-" + givenModuleName
+            if (givenModuleNames.contains(newModuleName)) {
+                target.moduleName = newModuleName
+                newModuleName = doDeduplication(givenModuleNames + newModuleName, targets, target, prefixTargetPrefix)
+            }
+            newModuleName = removeDuplicateWords(newModuleName)
+            target.updateModuleName(newModuleName)
+        }
+        return newModuleName;
+    }
+
+    DeduplicationTarget getPrefixTarget(List<DeduplicationTarget> allTargets, DeduplicationTarget target) {
+        def prefixTarget = allTargets.find { it.project.equals(target.project.parent) }
+        if (prefixTarget == null) {
+            prefixTarget = new DeduplicationTarget(project: target.project.parent, moduleName: target.project.name, updateModuleName: {})
+        }
+        return prefixTarget
+    }
+
+    private String removeDuplicateWords(String givenProjectName) {
+        def wordlist = Lists.newArrayList(givenProjectName.split("-"))
+        if (wordlist.size() > 2) {
+            wordlist = wordlist.unique()
+        }
+        return wordlist.join("-")
+    }
+
 }

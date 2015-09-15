@@ -15,16 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
@@ -83,24 +79,13 @@ public class RepositoryTransportFactory {
         return createTransport(Collections.singleton(scheme), name, authentications);
     }
 
-    /**
-     * TODO René: why do we have two different PasswordCredentials
-     * */
-    private org.gradle.internal.resource.PasswordCredentials convertPasswordCredentials(Credentials credentials) {
-        if (!(credentials instanceof PasswordCredentials)) {
-            throw new IllegalArgumentException(String.format("Credentials must be an instance of: %s", PasswordCredentials.class.getCanonicalName()));
-        }
-        PasswordCredentials passwordCredentials = (PasswordCredentials) credentials;
-        return new org.gradle.internal.resource.PasswordCredentials(passwordCredentials.getUsername(), passwordCredentials.getPassword());
-    }
-
     public RepositoryTransport createTransport(Set<String> schemes, String name, Collection<Authentication> authentications) {
         validateSchemes(schemes);
 
         ResourceConnectorFactory connectorFactory = findConnectorFactory(schemes);
 
         // Ensure resource transport protocol, authentication types and credentials are all compatible
-        validateConnectorFactoryCredentials(connectorFactory, authentications);
+        validateConnectorFactoryCredentials(schemes, connectorFactory, authentications);
 
         // File resources are handled slightly differently at present.
         // file:// repos are treated differently
@@ -123,13 +108,13 @@ public class RepositoryTransportFactory {
         }
     }
 
-    private void validateConnectorFactoryCredentials(ResourceConnectorFactory factory, Collection<Authentication> authentications) {
-        Multiset duplicatedAuthentications = HashMultiset.create();
+    private void validateConnectorFactoryCredentials(Set<String> schemes, ResourceConnectorFactory factory, Collection<Authentication> authentications) {
+        Set<Class<? extends Authentication>> configuredAuthenticationTypes = Sets.newHashSet();
 
         for (Authentication authentication : authentications) {
+            AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
             boolean isAuthenticationSupported = false;
-            Class declaredClass = new DslObject(authentication).getDeclaredType();
-            Credentials credentials = ((AuthenticationInternal) authentication).getCredentials();
+            Credentials credentials = authenticationInternal.getCredentials();
 
             for (Class<?> authenticationType : factory.getSupportedAuthentication()) {
                 if (authenticationType.isAssignableFrom(authentication.getClass())) {
@@ -139,22 +124,21 @@ public class RepositoryTransportFactory {
             }
 
             if (!isAuthenticationSupported) {
-                throw new InvalidUserDataException(String.format("Authentication scheme of '%s' is not supported by protocols %s",
-                    declaredClass.getSimpleName(), factory.getSupportedProtocols()));
+                throw new InvalidUserDataException(String.format("Authentication scheme %s is not supported by protocol '%s'",
+                    authentication, schemes.iterator().next()));
             }
 
             if (credentials != null) {
                 if (!((AuthenticationInternal) authentication).supports(credentials)) {
-                    throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme '%s'",
-                        credentials.getClass().getSimpleName(), declaredClass.getSimpleName()));
+                    throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme %s",
+                        credentials.getClass().getSimpleName(), authentication));
                 }
             } else {
                 throw new InvalidUserDataException("You cannot configure authentication schemes for a repository if no credentials are provided.");
             }
 
-            int count = duplicatedAuthentications.add(declaredClass, 1);
-            if (count > 0) {
-                throw new InvalidUserDataException(String.format("You cannot configure multiple authentication schemes of the same type '%s'.", declaredClass.getSimpleName()));
+            if (!configuredAuthenticationTypes.add(authenticationInternal.getType())) {
+                throw new InvalidUserDataException(String.format("You cannot configure multiple authentication schemes of the same type.  The duplicate one is %s.", authentication));
             }
         }
     }
@@ -185,9 +169,6 @@ public class RepositoryTransportFactory {
 
             if(credentials == null) {
                 return null;
-            }
-            if (org.gradle.internal.resource.PasswordCredentials.class.isAssignableFrom(type)) {
-                return type.cast(convertPasswordCredentials(credentials));
             }
             if (type.isAssignableFrom(credentials.getClass())) {
                 return type.cast(credentials);

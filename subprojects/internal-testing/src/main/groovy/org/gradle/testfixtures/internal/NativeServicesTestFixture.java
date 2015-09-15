@@ -17,7 +17,6 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 
 import java.io.File;
 
@@ -25,15 +24,9 @@ public class NativeServicesTestFixture {
     static NativeServices nativeServices;
     static boolean initialized;
 
-    public static void initialize(File gradleUserHomeDir) {
-        if (!initialized) {
-            NativeServices.initialize(gradleUserHomeDir);
-        }
-    }
-
     public static void initialize() {
         if (!initialized) {
-            File nativeDir = TestNameTestDirectoryProvider.newInstance().getTestDirectory();
+            File nativeDir = new File(System.getProperty("integTest.gradleUserHomeDir", "build/user-home"), "worker-1/test-fixtures");
             NativeServices.initialize(nativeDir);
         }
     }

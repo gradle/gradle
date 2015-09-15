@@ -2,6 +2,21 @@ This specification defines a number of improvements to the tooling API.
 
 # Use cases
 
+## Bugfix: allow concurrent usage of different gradle distributions of the same version
+
+When using the tooling api to work with different gradle distributions of the same version (e.g a gradle "-bin" and a "-all" distribution)
+an OverlappingFileException can be thrown in the current implementation.
+This is caused by loading the same version of the Gradle provider loaded up in multiple ClassLoaders (from each of the different distributions for the 2 different builds).
+The provider loading must be changed to deal with this.
+
+### implementation
+- Instead of using the version string as cache key in `PersistentDaemonRegistry` use a hash of the contents of the provider's classpath as a key to the cache.
+
+### integration test coverage
+
+- Can load and use multiple distributions of the same gradle version for doing running multiple build requests via tooling api.
+    - using the new tooling-api tested against multiple (older) gradle versions
+
 ## Tooling can be developed for Gradle plugins
 
 Many plugins have a model of some kind that declares something about the project. In order to build tooling for these

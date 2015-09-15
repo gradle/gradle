@@ -111,11 +111,10 @@ class DefaultExecHandleSpec extends Specification {
         when:
         execHandle.start();
         execHandle.abort();
-        def result = execHandle.waitForFinish();
-
         then:
         execHandle.state == ExecHandleState.ABORTED
-        result.exitValue != 0
+        and:
+        execHandle.waitForFinish().exitValue != 0
     }
 
     void "clients can listen to notifications"() {

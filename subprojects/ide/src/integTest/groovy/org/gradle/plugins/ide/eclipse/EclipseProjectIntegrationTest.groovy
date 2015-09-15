@@ -15,21 +15,17 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.TestResources
-import org.junit.Rule
-import org.junit.Test
+import spock.lang.Unroll
 
-class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationTest {
+class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
 
-    @Rule
-    public final TestResources testResources = new TestResources(testDirectoryProvider)
+    def setup(){
+        settingsFile.text = "rootProject.name = 'root'"
+    }
 
-    String content
-
-    @Test
     void allowsConfiguringEclipseProject() {
-        //when
-        runEclipseTask """
+        given:
+        buildScript """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -61,33 +57,31 @@ eclipse {
   }
 }
         """
+        when:
+        run("eclipse")
+        then:
 
-        //then
-        content = getFile([:], '.project').text
+        project.projectName == 'someBetterName'
+        project.comment == 'a test project'
+        project.assertHasReferencedProjects('some referenced project', 'some cool project')
 
-        def dotProject = parseProjectFile()
-        assert dotProject.name.text() == 'someBetterName'
-        assert dotProject.comment.text() == 'a test project'
+        project.assertHasNatures('test.groovy.nature', 'test.java.nature')
+        project.assertHasBuilders('org.eclipse.jdt.core.javabuilder','buildThisLovelyProject','buildWithTheArguments')
+        project.assertHasBuilder('buildWithTheArguments', [argumentFoo:'a foo argument'])
+        project.assertHasLinkedResource('linkToFolderFoo', 'aFolderFoo', '/test/folders/foo')
+        project.assertHasLinkedResource('linkToUriFoo', 'aFooUri', 'http://test/uri/foo')
 
-        contains('some referenced project', 'some cool project')
-        contains('test.java.nature', 'test.groovy.nature')
-        contains('buildThisLovelyProject', 'argumentFoo', 'a foo argument', 'buildWithTheArguments')
-
-        contains('linkToFolderFoo', 'aFolderFoo', '/test/folders/foo')
-        contains('linkToUriFoo', 'aFooUri', 'http://test/uri/foo')
-
-        contains('<motto>Stay happy!</motto>')
+        file('.project').text.contains('<motto>Stay happy!</motto>')
 
         def jdt = parseJdtFile()
         assert jdt.contains('targetPlatform=1.3')
         assert jdt.contains('source=1.4')
     }
 
-    @Test
     void enablesBeforeAndWhenHooksForProject() {
-        //given
-        def project = file('.project')
-        project << '''<?xml version="1.0" encoding="UTF-8"?>
+        given:
+        def projectFile = file('.project')
+        projectFile << '''<?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
 	<name>root</name>
 	<comment/>
@@ -105,8 +99,8 @@ eclipse {
 	<linkedResources/>
 </projectDescription>'''
 
-        //when
-        runEclipseTask """
+        and:
+        buildScript """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -127,23 +121,22 @@ eclipse {
   }
 }
         """
+        when:
+        run "eclipse"
 
-        content = getFile([:], '.project').text
-        //then
-
-        contains('some.nature.one', 'some.nature.two', 'some.nature.three')
+        then:
+        project.assertHasNatures('org.eclipse.jdt.core.javanature', 'some.nature.one', 'some.nature.two', 'some.nature.three')
     }
 
-    @Test
     void enablesBeforeAndWhenAndWithPropertiesHooksForJdt() {
-        //given
+        given:
         def jdtFile = file('.settings/org.eclipse.jdt.core.prefs')
         jdtFile << '''
 org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.3
 '''
 
-        //when
-        runEclipseTask """
+        and:
+        buildScript """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -173,15 +166,44 @@ eclipseJdt.doLast() {
   assert hooks == ['beforeMerged', 'whenMerged', 'withProperties']
 }
         """
-
+        when:
+        run "eclipse"
         def jdt = parseJdtFile()
-
+        then:
         //then
         assert jdt.contains('targetPlatform=1.1')
         assert jdt.contains('dummy=testValue')
     }
 
-    protected def contains(String ... contents) {
-        contents.each { assert content.contains(it)}
+    @Unroll
+    void "setting project name within #hook is deprecated"(){
+        given:
+
+        buildScript """
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+eclipse {
+  project {
+    file {
+      $hook { project ->
+        project.name = "custom-name"
+      }
+    }
+  }
+}
+"""
+        when:
+        executer.withDeprecationChecksDisabled()
+        run "eclipse"
+
+        then:
+        output.contains("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook has been deprecated and is scheduled to be removed in Gradle")
+        where:
+        hook << ["whenMerged", "beforeMerged"]
+    }
+
+    String parseJdtFile() {
+        file('.settings/org.eclipse.jdt.core.prefs').text
     }
 }

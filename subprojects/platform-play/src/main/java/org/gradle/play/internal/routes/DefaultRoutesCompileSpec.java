@@ -28,17 +28,17 @@ public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
     private final boolean javaProject;
     private final boolean namespaceReverseRouter;
     private final boolean generateReverseRoutes;
-    private final boolean staticRoutesGenerator;
+    private final boolean injectedRoutesGenerator;
     private final Collection<String> additionalImports;
 
-    public DefaultRoutesCompileSpec(Iterable<File> sourceFiles, File outputDirectory, BaseForkOptions forkOptions, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean staticRoutesGenerator, Collection<String> additionalImports) {
+    public DefaultRoutesCompileSpec(Iterable<File> sourceFiles, File outputDirectory, BaseForkOptions forkOptions, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean injectedRoutesGenerator, Collection<String> additionalImports) {
         this.sourceFiles = sourceFiles;
         this.outputDirectory = outputDirectory;
         this.forkOptions = forkOptions;
         this.javaProject = javaProject;
         this.namespaceReverseRouter = namespaceReverseRouter;
         this.generateReverseRoutes = generateReverseRoutes;
-        this.staticRoutesGenerator = staticRoutesGenerator;
+        this.injectedRoutesGenerator = injectedRoutesGenerator;
         this.additionalImports = additionalImports;
     }
 
@@ -67,8 +67,8 @@ public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
     }
 
     @Override
-    public boolean isStaticRoutesGenerator() {
-        return staticRoutesGenerator;
+    public boolean isInjectedRoutesGenerator() {
+        return injectedRoutesGenerator;
     }
 
     @Override

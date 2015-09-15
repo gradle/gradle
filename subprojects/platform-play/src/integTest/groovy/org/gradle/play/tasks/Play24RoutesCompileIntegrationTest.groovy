@@ -50,15 +50,12 @@ class Play24RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegratio
     def "can specify route compiler type as injected"() {
         given:
         withRoutesTemplate()
-        file("app/controllers/Application.scala").with {
-            // change Scala companion object into a regular class
-            text = text.replaceFirst(/object/, "class")
-        }
+        withInjectedRoutesController()
         buildFile << """
 model {
     components {
         play {
-            useStaticRouter = false
+            injectedRoutesGenerator = true
         }
     }
 }
@@ -67,5 +64,36 @@ model {
         succeeds("compilePlayBinaryScala")
         and:
         destinationDir.assertHasDescendants(createRouteFileList() as String[])
+    }
+
+    def "recompiles when route compiler type is changed"() {
+        when:
+        withRoutesTemplate()
+        then:
+        succeeds("compilePlayBinaryScala")
+
+        when:
+        withInjectedRoutesController()
+        buildFile << """
+model {
+    components {
+        play {
+            injectedRoutesGenerator = true
+        }
+    }
+}
+"""
+        then:
+        succeeds("compilePlayBinaryScala")
+        executedTasks.contains(":compilePlayBinaryRoutes")
+        and:
+        destinationDir.assertHasDescendants(createRouteFileList() as String[])
+    }
+
+    private withInjectedRoutesController() {
+        file("app/controllers/Application.scala").with {
+            // change Scala companion object into a regular class
+            text = text.replaceFirst(/object/, "class")
+        }
     }
 }

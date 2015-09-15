@@ -16,8 +16,8 @@
 
 package org.gradle.sonar.runner.tasks;
 
-import com.beust.jcommander.internal.Maps;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;

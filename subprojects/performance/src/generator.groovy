@@ -47,6 +47,8 @@ class ProjectGeneratorTask extends DefaultTask {
     int sourceFiles = 1
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
+    int filesPerPackage = 100
+    boolean useSubProjectNumberInSourceFileNames = false
 
     @InputFiles
     FileCollection testDependencies
@@ -151,36 +153,11 @@ class ProjectGeneratorTask extends DefaultTask {
 
     def generateProject(Map args, TestProject testProject) {
         File projectDir = args.projectDir
-        List<String> templates = args.templates
         logger.lifecycle "Generating test project '$testProject.name' into $projectDir"
 
         def files = []
         files.addAll(args.files)
         files.addAll(['build.gradle', 'pom.xml', 'build.xml'])
-
-        Closure generate = { String name, String templateName, Map templateArgs ->
-            File destFile = new File(projectDir, name)
-            File baseFile = project.file("src/templates/$templateName")
-
-            List<File> templateFiles = []
-            if (baseFile.exists()) {
-                templateFiles << baseFile
-            }
-            templateFiles.addAll templates.collect { project.file("src/templates/$it/$templateName") }.findAll { it.exists() }
-            if (templateFiles.empty) {
-                return
-            }
-            templateFiles.subList(0, templateFiles.size() - 1).each {
-                def writer = new StringWriter()
-                getTemplate(it).make(templateArgs).writeTo(writer)
-                templateArgs.original = writer.toString()
-            }
-
-            destFile.parentFile.mkdirs()
-            destFile.withWriter { Writer writer ->
-                getTemplate(templateFiles.last()).make(templateArgs).writeTo(writer)
-            }
-        }
 
         args += [projectName  : testProject.name, subprojectNumber: testProject.subprojectNumber, groovyProject: groovyProject, scalaProject: scalaProject,
                  propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)), repository: testProject.repository, dependencies: testProject.dependencies,
@@ -190,56 +167,97 @@ class ProjectGeneratorTask extends DefaultTask {
         args += templateArgs
 
         files.each { String name ->
-            generate(name, name, args)
+            generateWithTemplate(projectDir, name, name, args)
         }
 
         if (args.includeSource) {
-            testProject.sourceFiles.times {
-                String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}"]
-                generate("src/main/java/${packageName.replace('.', '/')}/${classArgs.productionClassName}.java", 'Production.java', classArgs)
-            }
-            testProject.testSourceFiles.times {
-                String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                Map classArgs = args + [packageName: packageName, productionClassName: "Production${it + 1}", testClassName: "Test${it + 1}"]
-                generate("src/test/java/${packageName.replace('.', '/')}/${classArgs.testClassName}.java", 'Test.java', classArgs)
-            }
-            if (groovyProject) {
-                testProject.sourceFiles.times {
-                    String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionGroovy${it + 1}"]
-                    generate("src/main/groovy/${packageName.replace('.', '/')}/${classArgs.productionClassName}.groovy", 'Production.groovy', classArgs)
-                }
-                testProject.testSourceFiles.times {
-                    String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionGroovy${it + 1}", testClassName: "TestGroovy${it + 1}"]
-                    generate("src/test/groovy/${packageName.replace('.', '/')}/${classArgs.testClassName}.groovy", 'Test.groovy', classArgs)
-                }
-            }
-            if (scalaProject) {
-                testProject.sourceFiles.times {
-                    String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionScala${it + 1}"]
-                    generate("src/main/scala/${packageName.replace('.', '/')}/${classArgs.productionClassName}.scala", 'Production.scala', classArgs)
-                }
-                testProject.testSourceFiles.times {
-                    String packageName = "org.gradle.test.performance${(int) (it / 100) + 1}"
-                    Map classArgs = args + [packageName: packageName, productionClassName: "ProductionScala${it + 1}", testClassName: "TestScala${it + 1}"]
-                    generate("src/test/scala/${packageName.replace('.', '/')}/${classArgs.testClassName}.scala", 'Test.scala', classArgs)
-                }
-            }
             if (nativeProject) {
-                args.moduleCount.times { m ->
-                    Map classArgs = args + [componentName: "lib${m + 1}"]
-                    generate("src/${classArgs.componentName}/headers/pch.h", 'pch.h', classArgs)
+                generateNativeProjectSource(projectDir, testProject, args)
+            } else {
+                generateJvmProjectSource(projectDir, "java", testProject, args)
+                if (groovyProject) {
+                    generateJvmProjectSource(projectDir, "groovy", testProject, args)
                 }
-                testProject.sourceFiles.times { s ->
-                    args.moduleCount.times { m ->
-                        Map classArgs = args + [componentName: "lib${m + 1}", functionName: "lib${s + 1}"]
-                        generate("src/${classArgs.componentName}/c/${classArgs.functionName}.c", 'lib.c', classArgs)
-                    }
+                if (scalaProject) {
+                    generateJvmProjectSource(projectDir, "scala", testProject, args)
                 }
             }
+        }
+    }
+
+    void generateWithTemplate(File projectDir, String name, String templateName, Map templateArgs) {
+        File destFile = new File(projectDir, name)
+        File baseFile = project.file("src/templates/$templateName")
+
+        List<File> templateFiles = []
+        if (baseFile.exists()) {
+            templateFiles << baseFile
+        }
+        List<String> templates = templateArgs.templates
+        templateFiles.addAll templates.collect { project.file("src/templates/$it/$templateName") }.findAll { it.exists() }
+        if (templateFiles.empty) {
+            return
+        }
+        templateFiles.subList(0, templateFiles.size() - 1).each {
+            def writer = new StringWriter()
+            getTemplate(it).make(templateArgs).writeTo(writer)
+            templateArgs.original = writer.toString()
+        }
+
+        destFile.parentFile.mkdirs()
+        destFile.withWriter { Writer writer ->
+            getTemplate(templateFiles.last()).make(templateArgs).writeTo(writer)
+        }
+    }
+
+    void generateNativeProjectSource(File projectDir, TestProject testProject, Map args) {
+        args.moduleCount.times { m ->
+            Map classArgs = args + [componentName: "lib${m + 1}"]
+            generateWithTemplate(projectDir, "src/${classArgs.componentName}/headers/pch.h", 'pch.h', classArgs)
+        }
+        testProject.sourceFiles.times { s ->
+            args.moduleCount.times { m ->
+                Map classArgs = args + [componentName: "lib${m + 1}", functionName: "lib${s + 1}"]
+                generateWithTemplate(projectDir, "src/${classArgs.componentName}/c/${classArgs.functionName}.c", 'lib.c', classArgs)
+            }
+        }
+    }
+
+    void generateJvmProjectSource(File projectDir, String sourceLang, TestProject testProject, Map args) {
+        def classFilePrefix
+        def classFileTemplate
+        def testFilePrefix
+        def testFileTemplate
+
+        if (sourceLang == "groovy") {
+            classFilePrefix = "ProductionGroovy"
+            classFileTemplate = "Production.groovy"
+            testFilePrefix = "TestGroovy"
+            testFileTemplate = "Test.groovy"
+        } else if (sourceLang == "scala") {
+            classFilePrefix = "ProductionScala"
+            classFileTemplate = "Production.scala"
+            testFilePrefix = "TestScala"
+            testFileTemplate = "Test.scala"
+        } else {
+            classFilePrefix = "Production"
+            classFileTemplate = "Production.java"
+            testFilePrefix = "Test"
+            testFileTemplate = "Test.java"
+        }
+
+        def createPackageName = { fileNumber -> "org.gradle.test.performance${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${(int) (fileNumber / filesPerPackage) + 1}".toString() }
+        def createFileName = { prefix, fileNumber -> "${prefix}${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${fileNumber + 1}".toString() }
+
+        testProject.sourceFiles.times {
+            String packageName = createPackageName(it)
+            Map classArgs = args + [packageName: packageName, productionClassName: createFileName(classFilePrefix, it)]
+            generateWithTemplate(projectDir, "src/main/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.productionClassName}.${sourceLang}", classFileTemplate, classArgs)
+        }
+        testProject.testSourceFiles.times {
+            String packageName = createPackageName(it)
+            Map classArgs = args + [packageName: packageName, productionClassName: createFileName(classFilePrefix, it), testClassName: createFileName(testFilePrefix, it)]
+            generateWithTemplate(projectDir, "src/test/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.testClassName}.${sourceLang}", testFileTemplate, classArgs)
         }
     }
 

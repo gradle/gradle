@@ -35,6 +35,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     String testProject
     boolean useDaemon
+    boolean allowEmptyTargetVersions = false
 
     List<String> tasksToRun = []
     List<String> args = []
@@ -50,7 +51,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     CrossVersionPerformanceResults run() {
-        assert !targetVersions.empty
+        assert allowEmptyTargetVersions || !targetVersions.empty
         assert testId
 
         def results = new CrossVersionPerformanceResults(
@@ -75,7 +76,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         // A target version may be something that is yet unreleased, so filter that out
         allVersions.removeAll { !releasedVersions.contains(it) }
 
-        assert !allVersions.isEmpty()
+        assert allowEmptyTargetVersions || !allVersions.isEmpty()
 
         File projectDir = testProjectLocator.findProjectDir(testProject)
 
@@ -98,7 +99,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
-        def spec = BuildExperimentSpec.builder()
+        def builder = BuildExperimentSpec.builder()
                 .projectName(testId)
                 .displayName(dist.version.version)
                 .warmUpCount(warmUpRuns)
@@ -110,7 +111,9 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             args(this.args as String[])
             gradleOpts(this.gradleOpts as String[])
             useDaemon(this.useDaemon)
-        }.build()
+        }
+
+        def spec = builder.build()
 
         experimentRunner.run(spec, results)
     }

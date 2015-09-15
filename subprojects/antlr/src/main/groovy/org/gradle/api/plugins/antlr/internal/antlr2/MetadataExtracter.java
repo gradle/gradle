@@ -20,6 +20,8 @@ import org.gradle.api.UncheckedIOException;
 
 import java.io.*;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Preprocess an Antlr grammar file so that dependencies between grammars can be properly determined such that they can
@@ -67,8 +69,7 @@ public class MetadataExtracter {
         try {
             return getPackageName(new FileReader(grammarFileFile));
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            throw new UncheckedIOException("Cannot read antlr grammar file", e);
         }
     }
 
@@ -81,7 +82,14 @@ public class MetadataExtracter {
                 line = line.trim();
                 if (line.startsWith("package") && line.endsWith(";")) {
                     grammarPackageName =  line.substring(8, line.length() - 1);
+                }else if(line.startsWith("header")){
+                    Pattern p = Pattern.compile("header \\{\\s*package\\s+(.+);\\s+\\}");
+                    Matcher m = p.matcher(line);
+                    if(m.matches()){
+                        grammarPackageName = m.group(1);
+                    }
                 }
+
             }
         } finally {
             try {

@@ -70,6 +70,7 @@ class DistributionTestExecHandleBuilder extends ExecHandleBuilder {
         void shutdown(int port) {
             try {
                 stop(port)
+                waitForFinish()
             } finally {
                 try {
                     abort()

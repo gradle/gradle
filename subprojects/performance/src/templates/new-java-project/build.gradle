@@ -1,0 +1,25 @@
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+model {
+    components {
+        main(JvmLibrarySpec)<% if (binding.hasVariable("generatedDependencies")) {
+            def projectDependencies = generatedDependencies.get(subprojectNumber)
+            if(projectDependencies) {
+            %> {
+            sources {
+                java {
+                    dependencies {<%
+                        projectDependencies.each {
+%>
+                        project ':project${it}' library 'main'<%
+                        } %>
+                    }
+                }
+            }
+        }
+<% } } %>
+    }
+}

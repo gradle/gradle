@@ -24,7 +24,7 @@ import org.junit.Rule
 class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegrationTest {
 
     @Rule
-    final S3Server server = new S3Server(this)
+    final S3Server server = new S3Server(temporaryFolder)
 
     @Override
     RepositoryServer getServer() {
@@ -64,6 +64,6 @@ class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegr
         expect:
         fails 'retrieve'
         and:
-        errorOutput.contains("> Authentication scheme of 'DefaultBasicAuthentication' is not supported by protocols [s3]")
+        errorOutput.contains("> Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 's3'")
     }
 }

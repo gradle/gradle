@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse.model
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.DeprecationLogger
 
 /**
  * Enables fine-tuning project details (.project file) of the Eclipse plugin
@@ -246,19 +246,33 @@ class EclipseProject {
     }
 
     /**
-     * See {@link #file(Closure) }
+     * See {@link #file(Closure)}
      */
     final XmlFileContentMerger file
 
-    /*****/
+    /** ***/
 
     EclipseProject(XmlFileContentMerger file) {
-        this.file = file
+        this.file = file;
     }
 
     void mergeXmlProject(Project xmlProject) {
-        file.beforeMerged.execute(xmlProject)
+        DeprecationWarningDecoratedProject decoratedProject = new DeprecationWarningDecoratedProject(xmlProject)
+        file.beforeMerged.execute(decoratedProject)
         xmlProject.configure(this)
-        file.whenMerged.execute(xmlProject)
+        file.whenMerged.execute(decoratedProject)
+    }
+
+    class DeprecationWarningDecoratedProject {
+        @Delegate private Project delegate
+
+        DeprecationWarningDecoratedProject(Project delegate) {
+            this.delegate = delegate
+        }
+
+        void setName(String name){
+            DeprecationLogger.nagUserOfDeprecated("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook")
+            this.delegate.setName(name)
+        }
     }
 }

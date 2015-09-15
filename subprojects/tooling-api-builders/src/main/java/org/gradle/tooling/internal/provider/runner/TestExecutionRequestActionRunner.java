@@ -30,44 +30,33 @@ import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
 import java.util.Collections;
 
 public class TestExecutionRequestActionRunner implements BuildActionRunner {
-    public TestExecutionRequestActionRunner() {
-    }
-
     @Override
     public void run(BuildAction action, BuildController buildController) {
         if (!(action instanceof TestExecutionRequestAction)) {
             return;
         }
-        final GradleInternal gradle = buildController.getGradle();
+        GradleInternal gradle = buildController.getGradle();
 
-
-        Throwable failure = null;
         try {
-            final TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
-            final TestExecutionResultEvaluator testExecutionResultEvaluator = new TestExecutionResultEvaluator(testExecutionRequestAction);
+            TestExecutionRequestAction testExecutionRequestAction = (TestExecutionRequestAction) action;
+            TestExecutionResultEvaluator testExecutionResultEvaluator = new TestExecutionResultEvaluator(testExecutionRequestAction);
             gradle.addListener(testExecutionResultEvaluator);
-            doRun(testExecutionRequestAction, buildController, testExecutionResultEvaluator);
+            doRun(testExecutionRequestAction, buildController);
             testExecutionResultEvaluator.evaluate();
         } catch (RuntimeException rex) {
             Throwable throwable = findRootCause(rex);
             if (throwable instanceof TestExecutionException) {
-                failure = new InternalTestExecutionException("Error while running test(s)", throwable);
+                throw new InternalTestExecutionException("Error while running test(s)", throwable);
             } else {
                 throw rex;
             }
         }
         PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
-        BuildActionResult buildActionResult;
-        if (failure != null) {
-            buildActionResult = new BuildActionResult(null, payloadSerializer.serialize(failure));
-        } else {
-            buildActionResult = new BuildActionResult(payloadSerializer.serialize(null), null);
-        }
-        buildController.setResult(buildActionResult);
+        buildController.setResult(new BuildActionResult(payloadSerializer.serialize(null), null));
     }
 
-    private void doRun(TestExecutionRequestAction action, BuildController buildController, TestExecutionResultEvaluator testEvaluationListener) {
-        TestExecutionBuildConfigurationAction testTasksConfigurationAction = new TestExecutionBuildConfigurationAction(action.getTestExecutionRequest(), buildController.getGradle());
+    private void doRun(TestExecutionRequestAction action, BuildController buildController) {
+        TestExecutionBuildConfigurationAction testTasksConfigurationAction = new TestExecutionBuildConfigurationAction(action, buildController.getGradle());
         buildController.getGradle().getServices().get(BuildConfigurationActionExecuter.class).setTaskSelectors(Collections.singletonList(testTasksConfigurationAction));
         buildController.run();
     }

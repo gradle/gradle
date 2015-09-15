@@ -21,6 +21,7 @@ import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Actions;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
@@ -31,9 +32,11 @@ public class ModelSchemaExtractionContext<T> {
     private final ModelSchemaExtractionContext<?> parent;
     private final ModelType<T> type;
     private final String description;
-    private final List<Action<? super ModelSchemaExtractionContext<T>>> validators;
+    private final List<Action<? super ModelSchema<T>>> validators;
+    private ModelSchema<T> result;
+    private final List<ModelSchemaExtractionContext<?>> children = Lists.newArrayList();
 
-    private ModelSchemaExtractionContext(ModelSchemaExtractionContext<?> parent, ModelType<T> type, String description, Action<? super ModelSchemaExtractionContext<T>> validator) {
+    private ModelSchemaExtractionContext(ModelSchemaExtractionContext<?> parent, ModelType<T> type, String description, Action<? super ModelSchema<T>> validator) {
         this.parent = parent;
         this.type = type;
         this.description = description;
@@ -63,21 +66,36 @@ public class ModelSchemaExtractionContext<T> {
         return description == null ? type.toString() : String.format("%s (%s)", description, type);
     }
 
+    public List<ModelSchemaExtractionContext<?>> getChildren() {
+        return children;
+    }
+
     public <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description) {
         return child(type, description, Actions.doNothing());
     }
 
-    public <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description, Action<? super ModelSchemaExtractionContext<C>> validator) {
-        return new ModelSchemaExtractionContext<C>(this, type, description, validator);
+    public <C> ModelSchemaExtractionContext<C> child(ModelType<C> type, String description, Action<? super ModelSchema<C>> validator) {
+        ModelSchemaExtractionContext<C> childContext = new ModelSchemaExtractionContext<C>(this, type, description, validator);
+        children.add(childContext);
+        return childContext;
     }
 
-    public void validate() {
-        for (Action<? super ModelSchemaExtractionContext<T>> validator : validators) {
-            validator.execute(this);
+    @Nullable
+    public ModelSchema<T> getResult() {
+        return result;
+    }
+
+    public void found(ModelSchema<T> result) {
+        this.result = result;
+    }
+
+    public void validate(ModelSchema<T> schema) {
+        for (Action<? super ModelSchema<T>> validator : validators) {
+            validator.execute(schema);
         }
     }
 
-    public void addValidator(Action<? super ModelSchemaExtractionContext<T>> validator) {
+    public void addValidator(Action<? super ModelSchema<T>> validator) {
         validators.add(validator);
     }
 }

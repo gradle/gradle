@@ -28,18 +28,18 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
     private static final DefaultModelSchemaStore INSTANCE = new DefaultModelSchemaStore(new ModelSchemaExtractor());
 
     final ModelSchemaCache cache = new ModelSchemaCache();
-    final ModelSchemaExtractor extractor;
+    final ModelSchemaExtractor schemaExtractor;
 
     public static DefaultModelSchemaStore getInstance() {
         return INSTANCE;
     }
 
-    public DefaultModelSchemaStore(ModelSchemaExtractor extractor) {
-        this.extractor = extractor;
+    public DefaultModelSchemaStore(ModelSchemaExtractor schemaExtractor) {
+        this.schemaExtractor = schemaExtractor;
     }
 
     public <T> ModelSchema<T> getSchema(ModelType<T> type) {
-        return extractor.extract(type, this, cache);
+        return schemaExtractor.extract(type, this, cache);
     }
 
     @Override

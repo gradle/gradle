@@ -37,6 +37,7 @@ import org.gradle.tooling.internal.provider.connection.BuildLogLevelMixIn;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
+import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -196,9 +197,10 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     public BuildResult<?> runTests(InternalTestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
         validateCanRun();
+        ProviderInternalTestExecutionRequest testExecutionRequestVersion2 = adapter.adapt(ProviderInternalTestExecutionRequest.class, testExecutionRequest);
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
-        Object results = connection.runTests(testExecutionRequest, buildCancellationToken, providerParameters);
+        Object results = connection.runTests(testExecutionRequestVersion2, buildCancellationToken, providerParameters);
         return new ProviderBuildResult<Object>(results);
     }
 

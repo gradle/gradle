@@ -17,6 +17,7 @@
 package org.gradle.play.integtest.fixtures.app
 
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.play.integtest.fixtures.PlayApp
 
 class PlayMultiProject extends PlayApp {
     @Override

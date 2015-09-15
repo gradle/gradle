@@ -152,13 +152,12 @@ assert classesDir.directory
 
         file('gradle.properties') << """
 org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
-org.gradle.jvmargs=-XX:+IgnoreUnrecognizedVMOptions
 """
         file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 
         when:
         // Need the forking executer for this to work. Embedded executer will not fork a new process if jvm doesn't match.
-        def out = executer.requireGradleHome().run().output
+        def out = executer.requireGradleHome().useDefaultBuildJvmArgs().run().output
 
         then:
         out.contains("javaHome=" + alternateJavaHome.canonicalPath)

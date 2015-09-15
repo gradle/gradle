@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.rules;
 
-import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
 import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
@@ -31,44 +29,16 @@ public class ModelMapCreators {
                                                                       Class<T> typeClass,
                                                                       Class<C> containerClass,
                                                                       Class<? extends C> viewClass,
-                                                                      ModelReference<? extends InstanceFactory<? super T, String>> factoryReference,
+                                                                      NodeInitializerRegistry nodeInitializerRegistry,
                                                                       ModelRuleDescriptor descriptor) {
-
-        ChildNodeInitializerStrategy<T> childFactory = NodeBackedModelMap.createUsingFactory(factoryReference);
-
         ModelType<C> containerType = ModelType.of(containerClass);
         ModelType<T> modelType = ModelType.of(typeClass);
+        ChildNodeInitializerStrategy<T> childFactory = NodeBackedModelMap.createUsingRegistry(modelType, nodeInitializerRegistry);
         return ModelCreators.of(ModelReference.of(path, containerType), Factories.<C>constantNull())
             .descriptor(descriptor)
             .withProjection(new SpecializedModelMapProjection<C, T>(containerType, modelType, viewClass, childFactory))
             .withProjection(PolymorphicModelMapProjection.of(modelType, childFactory))
+            .inputs(ModelReference.of(NodeInitializerRegistry.class))
             .build();
     }
-
-    public static <T> ModelCreators.Builder of(ModelPath path, final Class<T> typeClass) {
-
-        final ModelType<RuleAwarePolymorphicNamedEntityInstantiator<T>> instantiatorType = instantiatorType(typeClass);
-
-        ModelType<T> modelType = ModelType.of(typeClass);
-        return ModelCreators.of(
-            ModelReference.of(path, instantiatorType),
-            new Factory<RuleAwarePolymorphicNamedEntityInstantiator<T>>() {
-                @Override
-                public RuleAwarePolymorphicNamedEntityInstantiator<T> create() {
-                    return new DefaultRuleAwarePolymorphicNamedEntityInstantiator<T>(
-                        new DefaultPolymorphicNamedEntityInstantiator<T>(typeClass, "this collection")
-                    );
-                }
-            }
-        )
-            .withProjection(PolymorphicModelMapProjection.of(modelType, NodeBackedModelMap.createUsingParentNode(modelType)))
-            .withProjection(UnmanagedModelProjection.of(instantiatorType));
-    }
-
-    public static <T> ModelType<RuleAwarePolymorphicNamedEntityInstantiator<T>> instantiatorType(Class<T> typeClass) {
-        return new ModelType.Builder<RuleAwarePolymorphicNamedEntityInstantiator<T>>() {
-        }.where(new ModelType.Parameter<T>() {
-        }, ModelType.of(typeClass)).build();
-    }
-
 }

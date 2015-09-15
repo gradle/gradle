@@ -254,6 +254,38 @@
         </table>
     </section>
 
+    <section condition="noNavBar">
+        <title>Authentication types</title>
+        <para>Credentials and Authentication types for connecting to repositories:</para>
+        <table>
+            <title>Credential and Authentication types</title>
+            <tr>
+                <td>org.gradle.api.artifacts.repositories.AuthenticationSupported</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.credentials.Credentials</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.repositories.PasswordCredentials</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.credentials.AwsCredentials</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.repositories.AuthenticationContainer</td>
+            </tr>
+            <tr>
+                <td>org.gradle.authentication.Authentication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.authentication.http.BasicAuthentication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.authentication.http.DigestAuthentication</td>
+            </tr>
+        </table>
+    </section>
+
     <section>
         <title>Help Task types</title>
         <para>Below are the task types that are available for every Gradle project.
@@ -508,7 +540,7 @@
         <title>Native software model types</title>
         <para>Used to configure software components developed with native code.</para>
         <table>
-            <title>Native software component model types</title>
+            <title>Native software types</title>
             <tr>
                 <td>org.gradle.nativeplatform.NativeExecutable</td>
             </tr>
@@ -550,6 +582,9 @@
             </tr>
             <tr>
                 <td>org.gradle.nativeplatform.NativeExecutableBinarySpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativeplatform.NativeLibraryBinarySpec</td>
             </tr>
             <tr>
                 <td>org.gradle.nativeplatform.SharedLibraryBinarySpec</td>

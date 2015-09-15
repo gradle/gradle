@@ -128,6 +128,8 @@ public interface MutableModelNode extends ModelNode {
      */
     void ensureUsable();
 
+    void ensureAtLeast(ModelNode.State state);
+
     void setHidden(boolean hidden);
 
     boolean isMutable();

@@ -16,8 +16,8 @@
 
 package org.gradle.model.internal.inspect
 
-import org.codehaus.groovy.reflection.ClassInfo
 import org.gradle.model.*
+import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
@@ -25,6 +25,7 @@ import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
+import org.gradle.model.internal.manage.schema.extract.ModelStoreTestUtils
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
@@ -37,7 +38,7 @@ import java.beans.Introspector
 
 class ModelRuleExtractorTest extends Specification {
     ModelRegistry registry = new DefaultModelRegistry(null)
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)))
 
     static class ModelThing {
         final String name
@@ -519,11 +520,7 @@ ${ManagedWithNonManageableParents.name}
     }
 
     private void forcefullyClearReferences(Class<?> clazz) {
-        // Remove soft references (dependent on Groovy internals)
-        def f = ClassInfo.getDeclaredField("globalClassSet")
-        f.setAccessible(true)
-        ClassInfo.ClassInfoSet globalClassSet = f.get(null) as ClassInfo.ClassInfoSet
-        globalClassSet.remove(clazz)
+        ModelStoreTestUtils.removeClassFromGlobalClassSet(clazz)
 
         // Remove soft references
         Introspector.flushFromCaches(clazz)

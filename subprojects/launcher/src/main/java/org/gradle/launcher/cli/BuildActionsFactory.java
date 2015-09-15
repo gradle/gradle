@@ -28,10 +28,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
-import org.gradle.launcher.daemon.client.DaemonClient;
-import org.gradle.launcher.daemon.client.DaemonClientFactory;
-import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
-import org.gradle.launcher.daemon.client.DaemonStopClient;
+import org.gradle.launcher.daemon.client.*;
 import org.gradle.launcher.daemon.configuration.CurrentProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
@@ -56,6 +53,7 @@ class BuildActionsFactory implements CommandLineAction {
 
     public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
         Parameters parameters = parametersConverter.convert(commandLine, new Parameters());
+        parameters.getDaemonParameters().applyDefaultsFor(new JvmVersionDetector().getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
 
         if (parameters.getDaemonParameters().isStop()) {
             return stopAllDaemons(parameters.getDaemonParameters(), loggingServices);
@@ -144,7 +142,7 @@ class BuildActionsFactory implements CommandLineAction {
                 System.getenv(),
                 SystemProperties.getInstance().getCurrentDir(),
                 startParameter.getLogLevel(),
-                daemonParameters.getDaemonUsage(), startParameter.isContinuous(), daemonParameters.isInteractive());
+                daemonParameters.getDaemonUsage(), startParameter.isContinuous(), daemonParameters.isInteractive(), startParameter.getClasspath());
         return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters, sharedServices);
     }
 

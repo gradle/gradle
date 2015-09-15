@@ -16,18 +16,20 @@
 package org.gradle.api.tasks;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.*;
+import org.gradle.api.Buildable;
+import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Provides information related to the Groovy runtime(s) used in a project. Added by the
@@ -74,7 +76,12 @@ public class GroovyRuntime {
         // would differ in at least the following ways: 1. live 2. no autowiring
         return new LazilyInitializedFileCollection() {
             @Override
-            public FileCollectionInternal createDelegate() {
+            public String getDisplayName() {
+                return "Groovy runtime classpath";
+            }
+
+            @Override
+            public FileCollection createDelegate() {
                 GroovyJarFile groovyJar = findGroovyJarFile(classpath);
                 if (groovyJar == null) {
                     throw new GradleException(String.format("Cannot infer Groovy class path because no Groovy Jar was found on class path: %s", classpath));
@@ -96,20 +103,15 @@ public class GroovyRuntime {
                     // add groovy-ant to bring in Groovydoc
                     dependencies.add(project.getDependencies().create(notation.replace(":groovy:", ":groovy-ant:")));
                 }
-                return Cast.cast(FileCollectionInternal.class, project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()])));
+                return project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[dependencies.size()]));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
             @Override
-            public TaskDependency getBuildDependencies() {
+            public void visitDependencies(TaskDependencyResolveContext context) {
                 if (classpath instanceof Buildable) {
-                    return ((Buildable) classpath).getBuildDependencies();
+                    context.add(classpath);
                 }
-                return new TaskDependency() {
-                    public Set<? extends Task> getDependencies(Task task) {
-                        return Collections.emptySet();
-                    }
-                };
             }
         };
     }

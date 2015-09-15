@@ -70,6 +70,16 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
+    public ModelPromise getPromise() {
+        return target == null ? super.getPromise() : target.getPromise();
+    }
+
+    @Override
+    public ModelAdapter getAdapter() {
+        return target == null ? super.getAdapter() : target.getAdapter();
+    }
+
+    @Override
     public void addLink(ModelCreator creator) {
         throw new UnsupportedOperationException();
     }
@@ -136,7 +146,7 @@ class ModelReferenceNode extends ModelNodeInternal {
 
     @Nullable
     @Override
-    public MutableModelNode getLink(String name) {
+    public ModelNodeInternal getLink(String name) {
         return target == null ? null : target.getLink(name);
     }
 
@@ -194,6 +204,13 @@ class ModelReferenceNode extends ModelNodeInternal {
     public void ensureUsable() {
         if (target != null) {
             target.ensureUsable();
+        }
+    }
+
+    @Override
+    public void ensureAtLeast(State state) {
+        if (target != null) {
+            target.ensureAtLeast(state);
         }
     }
 

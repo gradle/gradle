@@ -6,4 +6,7 @@ tasks.withType(GroovyCompile) {
     options.encoding = 'utf-8'
     options.compilerArgs = ['-Xlint:-options']
     groovyOptions.encoding = 'utf-8'
+    if (!JavaVersion.current().java9Compatible) {
+        options.forkOptions.jvmArgs = ['-XX:MaxPermSize=512m']
+    }
 }

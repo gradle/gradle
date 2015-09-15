@@ -29,11 +29,11 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
-    private DefaultConfigurableFileCollection outputDirectories;
+    private final DefaultConfigurableFileCollection outputDirectories;
     private Object classesDir;
     private Object resourcesDir;
-    private DefaultConfigurableFileCollection dirs;
-    private FileResolver fileResolver;
+    private final DefaultConfigurableFileCollection dirs;
+    private final FileResolver fileResolver;
 
     public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, TaskResolver taskResolver) {
         this.fileResolver = fileResolver;
@@ -51,7 +51,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     }
 
     @Override
-    public void resolve(FileCollectionResolveContext context) {
+    public void visitContents(FileCollectionResolveContext context) {
         context.add(outputDirectories);
     }
 

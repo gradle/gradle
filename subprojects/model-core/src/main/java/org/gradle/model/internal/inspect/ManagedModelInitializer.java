@@ -30,13 +30,14 @@ import java.util.List;
 
 public class ManagedModelInitializer<T> implements NodeInitializer {
 
-    private static final ManagedProxyFactory PROXY_FACTORY = new ManagedProxyFactory();
     protected final ModelManagedImplStructSchema<T> modelSchema;
     protected final ModelSchemaStore schemaStore;
+    protected final NodeInitializerRegistry nodeInitializerRegistry;
 
-    public ManagedModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore) {
+    public ManagedModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
         this.modelSchema = modelSchema;
         this.schemaStore = schemaStore;
+        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     @Override
@@ -65,7 +66,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
 
     @Override
     public List<? extends ModelProjection> getProjections() {
-        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, PROXY_FACTORY));
+        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, nodeInitializerRegistry, ManagedProxyFactory.INSTANCE));
     }
 
     private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property) {
@@ -81,17 +82,26 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
         if (propertySchema instanceof ManagedImplModelSchema) {
             if (!property.isWritable()) {
                 ManagedImplModelSchema<P> managedPropertySchema = (ManagedImplModelSchema<P>) propertySchema;
-                ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), managedPropertySchema.getNodeInitializer())
+                ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), nodeInitializerRegistry.getNodeInitializer(managedPropertySchema))
                     .descriptor(descriptor)
                     .build();
                 modelNode.addLink(creator);
             } else {
-                ModelManagedImplStructSchema<P> structSchema = (ModelManagedImplStructSchema<P>) propertySchema;
-                ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, PROXY_FACTORY);
-                ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
-                    .withProjection(projection)
-                    .descriptor(descriptor).build();
-                modelNode.addReference(creator);
+                if (propertySchema instanceof ScalarCollectionSchema) {
+                    ManagedImplModelSchema<P> managedPropertySchema = (ManagedImplModelSchema<P>) propertySchema;
+                    ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), nodeInitializerRegistry.getNodeInitializer(managedPropertySchema))
+                        .descriptor(descriptor)
+                        .build();
+                    modelNode.addLink(creator);
+                } else {
+                    ModelManagedImplStructSchema<P> structSchema = (ModelManagedImplStructSchema<P>) propertySchema;
+                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, nodeInitializerRegistry, ManagedProxyFactory.INSTANCE);
+                    ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
+                        .withProjection(projection)
+                        .descriptor(descriptor).build();
+                    modelNode.addReference(creator);
+                }
+
             }
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);

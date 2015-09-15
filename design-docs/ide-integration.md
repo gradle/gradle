@@ -39,13 +39,15 @@ The general algorithm will look like this:
 
 1. if no duplicate of project name is found in the hierarchy, use the original name as IDE project name
 2. root project name keeps the original name in IDE
-3. if a project with the same name is found
+3. for all non unique project names
 
     3.1 the IDE project name candidate is changed to be _deduplicated_ `project.parent.name` + `-` + `project.name`
 
     3.2 duplicate words in the IDE project name candidate are removed.( eg `gradle-gradle-core` becomes `gradle-core`
 
     3.3 skip 3.2 for identical parent and child project name
+
+    3.4 repeat starting from 3.1 with all projects with non unique names yet
 
 4. deprecate setting ide project name in whenMerged/beforeMerged hook.
 
@@ -149,6 +151,30 @@ results in
        \- bar
           \- bar-app
 ```
+
+* given project layout
+
+```
+    root
+    |- foo-bar
+    |- foo
+    |  \- bar
+    \- baz
+       \- bar
+```
+
+results in
+
+```
+    root
+    \- foo-bar
+    \- foo
+       \- root-foo-bar
+    \- baz
+       \- root-baz-bar
+
+```
+
 
 * given project layout
 

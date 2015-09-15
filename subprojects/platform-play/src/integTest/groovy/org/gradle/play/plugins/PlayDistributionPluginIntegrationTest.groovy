@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
+import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -33,18 +34,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
                 id 'play'
             }
 
-            repositories {
-                jcenter()
-                maven {
-                    name "typesafe-maven-release"
-                    url "https://repo.typesafe.com/typesafe/maven-releases"
-                }
-                ivy {
-                    name "typesafe-ivy-release"
-                    url "https://repo.typesafe.com/typesafe/ivy-releases"
-                    layout "ivy"
-                }
-            }
+            ${PLAY_REPOSITORES}
         """
     }
 

@@ -22,9 +22,9 @@ import org.gradle.scala.internal.reflect.ScalaReflectionUtil;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.List;
 
 class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
+    private static final Iterable<String> SHARED_PACKAGES = Arrays.asList("play.templates");
 
     private static final String DEFAULT_JAVA_IMPORTS =
               "import play.api.templates._;"
@@ -80,8 +80,8 @@ class TwirlCompilerAdapterV22X implements VersionedTwirlCompilerAdapter {
         };
     }
 
-    public List<String> getClassLoaderPackages() {
-        return Arrays.asList("play.templates");
+    public Iterable<String> getClassLoaderPackages() {
+        return SHARED_PACKAGES;
     }
 
     public String getDependencyNotation() {

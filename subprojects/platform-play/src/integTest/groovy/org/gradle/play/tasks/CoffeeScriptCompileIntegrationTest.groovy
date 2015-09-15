@@ -16,6 +16,8 @@
 
 package org.gradle.play.tasks
 
+import static org.gradle.play.integtest.fixtures.Repositories.*
+
 class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileIntegrationTest {
     @Override
     String getDefaultSourceSet() {
@@ -29,22 +31,9 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
                 id 'play-coffeescript'
             }
 
-            repositories {
-                jcenter()
-                maven {
-                    name "typesafe-maven-release"
-                    url "https://repo.typesafe.com/typesafe/maven-releases"
-                }
-                ivy {
-                    name "typesafe-ivy-release"
-                    url "https://repo.typesafe.com/typesafe/ivy-releases"
-                    layout "ivy"
-                }
-                maven {
-                    name = "gradle-js"
-                    url = "https://repo.gradle.org/gradle/javascript-public"
-                }   
-            }
+            ${PLAY_REPOSITORES}
+
+            ${GRADLE_JS_REPOSITORY}
         """
     }
 

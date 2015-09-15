@@ -29,7 +29,7 @@ import org.gradle.tooling.events.test.TestOperationDescriptor;
 public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
 
     /**
-     * Adds tests to be executed by passing test descriptors received from a previously Gradle Run.
+     * Adds tests to be executed by passing test descriptors received from a previous Gradle Run.
      *
      * @param descriptors The OperationDescriptor defining one or more tests.
      * @return this
@@ -38,7 +38,7 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     TestLauncher withTests(TestOperationDescriptor... descriptors);
 
     /**
-     * Adds tests to be executed by passing test descriptors received from a previously Gradle Run.
+     * Adds tests to be executed by passing test descriptors received from a previous Gradle Run.
      *
      * @param descriptors The OperationDescriptor defining one or more tests.
      * @return this
@@ -65,29 +65,29 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     TestLauncher withJvmTestClasses(Iterable<String> testClasses);
 
     /**
-     * Adds tests to be executed declared by class name.
+     * Adds tests to be executed declared by class and method name.
      *
-     * @param testClass The class names of the tests methods to be executed.
-     * @param methods The method names to be executed.
+     * @param testClass The name of the class containing the methods to execute.
+     * @param methods The names of the test methods to be executed.
      * @return this
      * @since 2.7
      */
     TestLauncher withJvmTestMethods(String testClass, String... methods);
 
     /**
-     * Adds tests to be executed declared by class name.
+     * Adds tests to be executed declared by class and methods name.
      *
-     * @param testClass The class names of the tests methods to be executed.
-     * @param methods The method names to be executed.
+     * @param testClass The name of the class containing the methods to execute.
+     * @param methods The names of the test methods to be executed.
      * @return this
      * @since 2.7
      */
     TestLauncher withJvmTestMethods(String testClass, Iterable<String> methods);
 
     /**
-     * Executes the build, blocking until it is complete.
+     * Executes the tests, blocking until complete.
      *
-     * @throws TestExecutionException when no tests for execution declared or can be found.
+     * @throws TestExecutionException when one or more tests fail, or no tests for execution declared or no matching tests can be found.
      * @throws UnsupportedVersionException When the target Gradle version does not support test execution.
      * @throws org.gradle.tooling.exceptions.UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
      * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
@@ -101,7 +101,7 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     void run() throws TestExecutionException;
 
     /**
-     * Launches the build. This method returns immediately, and the result is later passed to the given handler.
+     * Starts executing the tests. This method returns immediately, and the result is later passed to the given handler.
      *
      * <p>If the operation fails, the handler's {@link ResultHandler#onFailure(GradleConnectionException)}
      * method is called with the appropriate exception. See {@link #run()} for a description of the various exceptions that the operation may fail with.

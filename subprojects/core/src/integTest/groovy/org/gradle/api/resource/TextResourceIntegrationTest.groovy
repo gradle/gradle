@@ -17,14 +17,12 @@ package org.gradle.api.resource
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.junit.Rule
-import spock.lang.IgnoreIf
 
 class TextResourceIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources resource = new TestResources(this)
+    @Rule
+    TestResources resource = new TestResources(temporaryFolder)
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "string backed text resource"() {
         when:
         run("stringText")
@@ -40,7 +38,6 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks == [":stringText"] as Set
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "file backed text resource"() {
         when:
         run("generateConfigFile")
@@ -57,7 +54,6 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks == [":fileText"] as Set
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "single-element file collection backed text resource"() {
         when:
         run("fileCollectionText")
@@ -73,7 +69,6 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks == [":generateConfigFile", ":fileCollectionText"] as Set
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
     def "archive entry backed text resource"() {
         when:
         run("archiveEntryText")

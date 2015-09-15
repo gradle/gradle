@@ -27,7 +27,6 @@ import org.gradle.scala.internal.reflect.ScalaOptionInvocationWrapper;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Twirl compiler uses reflection to load and invoke the actual compiler classes/methods.
@@ -65,7 +64,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
         return adapter.getDependencyNotation();
     }
 
-    public List<String> getClassLoaderPackages() {
+    public Iterable<String> getClassLoaderPackages() {
         return adapter.getClassLoaderPackages();
     }
 }

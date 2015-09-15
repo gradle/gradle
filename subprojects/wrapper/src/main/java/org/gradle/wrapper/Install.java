@@ -49,7 +49,6 @@ public class Install {
             public File call() throws Exception {
                 final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
                 if (distDir.isDirectory() && markerFile.isFile()) {
-                    verifyDownloadChecksum(configuration.getDistribution().toString(), localZipFile, distributionSha256Sum);
                     return getAndVerifyDistributionRoot(distDir, distDir.getAbsolutePath());
                 }
 
@@ -122,23 +121,25 @@ public class Install {
     }
 
     private void verifyDownloadChecksum(String sourceUrl, File localZipFile, String expectedSum) throws Exception {
-        // if a SHA-256 hash sum has been defined in gradle-wrapper.properties, verify it here
-        String actualSum = calculateSha256Sum(localZipFile);
-        if (expectedSum != null && !expectedSum.equals(actualSum)) {
-            localZipFile.delete();
-            String message = String.format("Verification of Gradle distribution failed!%n"
-                + "%n"
-                + "Your Gradle distribution may have been tampered with.%n"
-                + "Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.%n"
-                + "%n"
-                + " Distribution Url: %s%n"
-                + "Download Location: %s%n"
-                + "Expected checksum: '%s'%n"
-                + "  Actual checksum: '%s'%n",
-                sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum
-            );
-            System.err.println(message);
-            System.exit(1);
+        if (expectedSum != null) {
+            // if a SHA-256 hash sum has been defined in gradle-wrapper.properties, verify it here
+            String actualSum = calculateSha256Sum(localZipFile);
+            if (!expectedSum.equals(actualSum)) {
+                localZipFile.delete();
+                String message = String.format("Verification of Gradle distribution failed!%n"
+                        + "%n"
+                        + "Your Gradle distribution may have been tampered with.%n"
+                        + "Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.%n"
+                        + "%n"
+                        + " Distribution Url: %s%n"
+                        + "Download Location: %s%n"
+                        + "Expected checksum: '%s'%n"
+                        + "  Actual checksum: '%s'%n",
+                    sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum
+                );
+                System.err.println(message);
+                System.exit(1);
+            }
         }
     }
 

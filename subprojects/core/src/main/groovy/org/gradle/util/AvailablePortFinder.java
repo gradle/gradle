@@ -67,6 +67,7 @@ public class AvailablePortFinder {
      * @throws NoSuchElementException if no available port is found
      */
     public int getNextAvailable() {
+        DeprecationLogger.nagUserWith(this.getClass().getSimpleName() + " has been deprecated and is scheduled to be removed in the next version of Gradle.");
         lock.lock();
         try {
             while (true) {

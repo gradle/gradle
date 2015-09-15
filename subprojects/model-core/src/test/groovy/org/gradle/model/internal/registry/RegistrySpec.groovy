@@ -115,7 +115,7 @@ class RegistrySpec extends Specification {
         }
 
         @Override
-        MutableModelNode getLink(String name) {
+        ModelNodeInternal getLink(String name) {
             return null
         }
 
@@ -184,6 +184,10 @@ class RegistrySpec extends Specification {
 
         }
 
+        @Override
+        void ensureAtLeast(ModelNode.State state) {
+
+        }
 
         @Override
         def <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {

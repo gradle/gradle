@@ -20,10 +20,12 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+import java.util.Set;
+
 public interface InstanceFactory<T, P> {
     <S extends T> S create(Class<S> type, MutableModelNode modelNode, P payload);
 
-    String getSupportedTypeNames();
+    Set<Class<? extends T>> getSupportedTypes();
 
     <S extends T> void register(Class<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, ? super P, ? super MutableModelNode> factory);
 }

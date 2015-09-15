@@ -56,17 +56,19 @@ public class TransformedModelDslBacking {
     };
 
     private final ModelRegistry modelRegistry;
+    private final NodeInitializerRegistry nodeInitializerRegistry;
     private final Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor;
     private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
     private final ModelSchemaStore schemaStore;
 
-    public TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, RelativeFilePathResolver relativeFilePathResolver) {
-        this(modelRegistry, schemaStore, INPUT_PATHS_EXTRACTOR, new RelativePathSourceLocationTransformer(relativeFilePathResolver));
+    public TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry, RelativeFilePathResolver relativeFilePathResolver) {
+        this(modelRegistry, schemaStore, nodeInitializerRegistry, INPUT_PATHS_EXTRACTOR, new RelativePathSourceLocationTransformer(relativeFilePathResolver));
     }
 
-    TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor, Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
+    TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor, Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
         this.modelRegistry = modelRegistry;
         this.schemaStore = schemaStore;
+        this.nodeInitializerRegistry = nodeInitializerRegistry;
         this.inputPathsExtractor = inputPathsExtractor;
         this.ruleLocationExtractor = ruleLocationExtractor;
     }
@@ -86,7 +88,8 @@ public class TransformedModelDslBacking {
         if (!(schema instanceof ManagedImplModelSchema)) {
             throw new InvalidModelRuleDeclarationException(descriptor, "Cannot create an element of type " + type.getName() + " as it is not a managed type");
         }
-        modelRegistry.create(ModelCreators.of(modelPath, ((ManagedImplModelSchema<T>) schema).getNodeInitializer()).descriptor(descriptor).build());
+        NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer((ManagedImplModelSchema<?>) schema);
+        modelRegistry.create(ModelCreators.of(modelPath, nodeInitializer).descriptor(descriptor).build());
         registerAction(modelPath, type, descriptor, ModelActionRole.Initialize, closure);
     }
 

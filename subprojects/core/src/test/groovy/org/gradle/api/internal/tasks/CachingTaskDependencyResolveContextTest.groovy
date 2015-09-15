@@ -37,7 +37,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(_)
+        1 * dependency.visitDependencies(_)
         tasks.isEmpty()
     }
 
@@ -46,7 +46,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(_) >> { args -> args[0].add(target) }
+        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(target) }
         tasks == [target] as LinkedHashSet
     }
 
@@ -57,7 +57,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(_) >> { args -> args[0].add(otherDependency) }
+        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherDependency) }
         1 * otherDependency.getDependencies(task) >> { [target] as Set }
         tasks == [target] as LinkedHashSet
     }
@@ -69,8 +69,20 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(_) >> { args -> args[0].add(otherDependency) }
-        1 * otherDependency.resolve(_) >> { args -> args[0].add(target) }
+        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherDependency) }
+        1 * otherDependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(target) }
+        tasks == [target] as LinkedHashSet
+    }
+
+    def resolvesTaskDependencyContainer() {
+        TaskDependencyContainer otherDependency = Mock()
+
+        when:
+        def tasks = context.getDependencies(task)
+
+        then:
+        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherDependency) }
+        1 * otherDependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(target) }
         tasks == [target] as LinkedHashSet
     }
 
@@ -82,13 +94,13 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(_) >> { args -> args[0].add(buildable) }
+        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(buildable) }
         1 * buildable.getBuildDependencies() >> { otherDependency }
         1 * otherDependency.getDependencies(task) >> { [target] as Set }
         tasks == [target] as LinkedHashSet
     }
 
-    def resolvesBuildableInternal() {
+    def resolvesBuildableWithInternalTaskDependency() {
         Buildable buildable = Mock()
         TaskDependencyInternal otherDependency = Mock()
 
@@ -96,9 +108,9 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(_) >> { args -> args[0].add(buildable) }
+        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(buildable) }
         1 * buildable.getBuildDependencies() >> { otherDependency }
-        1 * otherDependency.resolve(_) >> { args -> args[0].add(target) }
+        1 * otherDependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(target) }
         tasks == [target] as LinkedHashSet
     }
 
@@ -107,7 +119,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(_) >> { args -> args[0].add('unknown') }
+        1 * dependency.visitDependencies(_) >> { args -> args[0].add('unknown') }
         def e = thrown(GradleException)
         e.cause instanceof IllegalArgumentException
         e.cause.message == "Cannot resolve object of unknown type String to a Task."
@@ -121,11 +133,11 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(_) >> { args ->
-            args[0].add(otherDependency)
-            args[0].add(otherDependency2)
+        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(otherDependency)
+            context.add(otherDependency2)
         }
-        1 * otherDependency.resolve(_) >> { args -> args[0].add(otherDependency2) }
+        1 * otherDependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherDependency2) }
         1 * otherDependency2.getDependencies(task) >> { [target] as Set }
         tasks == [target] as LinkedHashSet
     }
@@ -138,12 +150,12 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(_) >> { args ->
-            args[0].add(otherDependency)
-            args[0].add(otherDependency2)
+        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(otherDependency)
+            context.add(otherDependency2)
         }
-        1 * otherDependency.resolve(_) >> { args -> args[0].add(otherDependency2) }
-        1 * otherDependency2.resolve(_) >> { args -> args[0].add(target) }
+        1 * otherDependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherDependency2) }
+        1 * otherDependency2.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(target) }
         tasks == [target] as LinkedHashSet
     }
 
@@ -156,11 +168,11 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(_) >> { args ->
-            args[0].add(otherDependency)
-            args[0].add(buildable)
+        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context
+            context.add(otherDependency)
+            context.add(buildable)
         }
-        1 * otherDependency.resolve(_) >> { args -> args[0].add(buildable) }
+        1 * otherDependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(buildable) }
         1 * buildable.getBuildDependencies() >> otherDependency2
         1 * otherDependency2.getDependencies(task) >> { [target] as Set }
         tasks == [target] as LinkedHashSet
@@ -175,13 +187,13 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(_) >> { args ->
-            args[0].add(otherDependency)
-            args[0].add(buildable)
+        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            context.add(otherDependency)
+            context.add(buildable)
         }
-        1 * otherDependency.resolve(_) >> { args -> args[0].add(buildable) }
+        1 * otherDependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(buildable) }
         1 * buildable.getBuildDependencies() >> otherDependency2
-        1 * otherDependency2.resolve(_) >> { args -> args[0].add(target) }
+        1 * otherDependency2.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(target) }
         tasks == [target] as LinkedHashSet
     }
 
@@ -192,7 +204,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(_) >> { throw failure }
+        1 * dependency.visitDependencies(_) >> { throw failure }
         def e = thrown(GradleException)
         e.message == "Could not determine the dependencies of $task."
         e.cause == failure

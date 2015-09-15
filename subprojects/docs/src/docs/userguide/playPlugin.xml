@@ -17,7 +17,7 @@
     <title>The Play Plugin</title>
     <note>
         <para>
-            The Gradle support for building Play applications is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+            Support for building Play applications is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
         </para>
     </note>
 
@@ -421,7 +421,7 @@
 
                 Under the covers, the Play plugin is using the <literal>InjectedRoutesGenerator</literal> instead of the default <literal>StaticRoutesGenerator</literal> to generate the router classes.
             </para>
-            <sample id="configureRoutesCompiler" dir="play/injected-routes" title="Configuring routes style">
+            <sample id="configureRoutesCompiler" dir="play/play-2.4" title="Configuring routes style">
                 <sourcefile file="build.gradle" snippet="play-injected-routes-compiler"/>
             </sample>
         </section>

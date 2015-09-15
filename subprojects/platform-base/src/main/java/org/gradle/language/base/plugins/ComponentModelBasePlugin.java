@@ -35,13 +35,10 @@ import org.gradle.language.base.internal.model.ComponentBinaryRules;
 import org.gradle.language.base.internal.model.ComponentRules;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.ModelMapSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
@@ -62,11 +59,13 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     private final ModelRegistry modelRegistry;
     private final ModelSchemaStore schemaStore;
+    private final NodeInitializerRegistry nodeInitializerRegistry;
 
     @Inject
-    public ComponentModelBasePlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
+    public ComponentModelBasePlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
         this.modelRegistry = modelRegistry;
         this.schemaStore = schemaStore;
+        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     public void apply(final ProjectInternal project) {
@@ -74,14 +73,14 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         SimpleModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor(ComponentModelBasePlugin.class.getSimpleName() + ".apply()");
 
-        ModelMapSchema<ComponentSpecContainer> schema = (ModelMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
+        SpecializedMapSchema<ComponentSpecContainer> schema = (SpecializedMapSchema<ComponentSpecContainer>) schemaStore.getSchema(ModelType.of(ComponentSpecContainer.class));
         ModelPath components = ModelPath.path("components");
         ModelCreator componentsCreator = ModelMapCreators.specialized(
             components,
             ComponentSpec.class,
             ComponentSpecContainer.class,
-            schema.getManagedImpl().asSubclass(ComponentSpecContainer.class),
-            ModelReference.of(ComponentSpecFactory.class),
+            schema.getImplementationType().asSubclass(ComponentSpecContainer.class),
+            nodeInitializerRegistry,
             descriptor
         );
         modelRegistry.create(componentsCreator);
@@ -177,6 +176,23 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 }
             });
             return binarySpecFactory;
+        }
+
+        @Model
+        InstanceFactoryRegistry createInstanceFactoryRegistry(ServiceRegistry serviceRegistry, BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
+            InstanceFactoryRegistry instanceFactoryRegistry = serviceRegistry.get(InstanceFactoryRegistry.class);
+            for (Class<? extends BinarySpec> type : binarySpecFactory.getSupportedTypes()) {
+                instanceFactoryRegistry.register(ModelType.of(type), ModelReference.of(BinarySpecFactory.class));
+            }
+            for (Class<? extends ComponentSpec> type : componentSpecFactory.getSupportedTypes()) {
+                instanceFactoryRegistry.register(ModelType.of(type), ModelReference.of(ComponentSpecFactory.class));
+            }
+            return instanceFactoryRegistry;
+        }
+
+        @Model
+        NodeInitializerRegistry createNodeInitializerRegistry(ServiceRegistry serviceRegistry, InstanceFactoryRegistry instanceFactoryRegistry) {
+            return serviceRegistry.get(NodeInitializerRegistry.class);
         }
 
         @Defaults

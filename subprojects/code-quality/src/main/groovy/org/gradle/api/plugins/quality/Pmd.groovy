@@ -16,10 +16,10 @@
 package org.gradle.api.plugins.quality
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl
-import org.gradle.api.plugins.quality.internal.RulePriority
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
@@ -35,6 +35,7 @@ import javax.inject.Inject
  * generates a report of problems found.
  *
  * @see PmdPlugin
+ * @see PmdExtension
  */
 class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> {
     /**
@@ -94,12 +95,9 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     boolean ignoreFailures
 
     /**
-	 * The rule priority threshold; violations for rules with a lower priority will not be reported.
-     * Default value is 5, which means that all violations will be reported.
-     * <p>
-     * See the official documentation for the list of priorities.
-     * Example: rulePriority = 3
-     * </p>
+     * Specifies the rule priority threshold.
+     * 
+	 * @see PmdExtension#rulePriority
 	 */
     @Incubating
 	int rulePriority
@@ -109,7 +107,7 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      */
     @Incubating
     void setRulePriority(int intValue) {
-        RulePriority.validate(intValue)
+        validate(intValue)
         rulePriority = intValue
     }
 
@@ -236,5 +234,15 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
      */
     PmdReports getReports() {
         reports
+    }
+
+    /**
+     * Validates the value is a valid PMD RulePriority (1-5)
+     * @param value rule priority threshold
+     */
+    static void validate(int value) {
+        if (value > 5 || value < 1) {
+            throw new InvalidUserDataException(String.format("Invalid rulePriority '%d'.  Valid range 1 (highest) to 5 (lowest).", value));
+        }
     }
 }

@@ -40,6 +40,7 @@ public class ClassDocSuperTypeBuilder {
             // Assume this is a class and so has implemented all properties and methods somewhere in the superclass hierarchy
             ClassDoc superClass = model.getClassDoc(superClassName);
             classDoc.setSuperClass(superClass);
+            superClass.addSubClass(classDoc);
         }
 
         List<String> interfaceNames = classMetaData.getInterfaceNames();
@@ -47,6 +48,7 @@ public class ClassDocSuperTypeBuilder {
             ClassDoc superInterface = model.findClassDoc(interfaceName);
             if (superInterface != null) {
                 classDoc.getInterfaces().add(superInterface);
+                superInterface.addSubClass(classDoc);
             }
         }
 

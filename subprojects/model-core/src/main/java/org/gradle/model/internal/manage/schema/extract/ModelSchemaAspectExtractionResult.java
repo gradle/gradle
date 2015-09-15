@@ -16,28 +16,14 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.api.Action;
-import org.gradle.api.Nullable;
-
 public class ModelSchemaAspectExtractionResult {
     private final ModelSchemaAspect aspect;
-    private final Action<? super ModelSchemaExtractionContext<?>> validator;
 
     public ModelSchemaAspectExtractionResult(ModelSchemaAspect aspect) {
-        this(aspect, null);
-    }
-
-    public ModelSchemaAspectExtractionResult(ModelSchemaAspect aspect, @Nullable Action<? super ModelSchemaExtractionContext<?>> validator) {
         this.aspect = aspect;
-        this.validator = validator;
     }
 
     public ModelSchemaAspect getAspect() {
         return aspect;
-    }
-
-    @Nullable
-    public Action<? super ModelSchemaExtractionContext<?>> getValidator() {
-        return validator;
     }
 }

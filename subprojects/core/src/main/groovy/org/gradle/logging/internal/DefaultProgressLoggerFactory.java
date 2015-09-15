@@ -75,6 +75,11 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             this.timeProvider = timeProvider;
         }
 
+        @Override
+        public String toString() {
+            return String.format("%s - %s", category, description);
+        }
+
         public String getDescription() {
             return description;
         }
@@ -120,10 +125,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             if (!GUtil.isTrue(description)) {
                 throw new IllegalStateException("A description must be specified before this operation is started.");
             }
-            if (state == State.started) {
-                throw new IllegalStateException("This operation has already been started.");
-            }
-            assertNotCompleted();
+            assertNotStarted();
             state = State.started;
             if (parent == null) {
                 parent = current.get();
@@ -154,21 +156,27 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             return status == null ? "" : status;
         }
 
-        private void assertNotCompleted() {
+        private void assertNotStarted() {
+            if (state == State.started) {
+                throw new IllegalStateException(String.format("This operation (%s) has already been started.", this));
+            }
             if (state == State.completed) {
-                throw new IllegalStateException("This operation has completed.");
+                throw new IllegalStateException(String.format("This operation (%s) has already completed.", this));
             }
         }
 
         private void assertRunning() {
-            if (state != State.started) {
-                throw new IllegalStateException("This operation is not running.");
+            if (state == State.idle) {
+                throw new IllegalStateException(String.format("This operation (%s) has not been started.", this));
+            }
+            if (state == State.completed) {
+                throw new IllegalStateException(String.format("This operation (%s) has already been completed.", this));
             }
         }
 
         private void assertCanConfigure() {
             if (state != State.idle) {
-                throw new IllegalStateException("Cannot configure this operation once it has started.");
+                throw new IllegalStateException(String.format("Cannot configure this operation (%s) once it has started.", this));
             }
         }
     }

@@ -27,9 +27,22 @@ customTask.dependsOn tasks.withType(ClimbTask)
 ```
 
 ### Implementation
-Realise, after all of the `afterEvaluates` of all projects, all rule source tasks which have been addressed via the `withType(SomeType)` construct.
-Realise in this context means realising the model nodes of tasks of those types along with all child nodes.'
-_More to follow - spiking_
+Introduce a `RealizableTaskCollection` which `org.gradle.api.internal.tasks.DefaultTaskDependency` uses to trigger realisation of tasks by type.
+Because the `.withType()` construct can be used _after_ the project has been evaluated e.g. `taskGraph.whenReady{ project(":a").tasks.withType(Foo) }`
+any use of `withType()`, post project evaluation, will result in tasks of that type being realised immediately.
+
+Realise in this context means realising the model nodes of tasks of those types along with all child nodes.
+
+_Implementation Spike_
+
+~~1. Using a `ProjectConfigureAction` and tracking all task types addressed via `withType()`
+    - Add a new `ProjectConfigureAction` to the `ProjectEvaluator` which would act as the trigger point to realise all rule based tasks which have been addressed via `.withType()`.
+    This would be added via [BuildScopeServices](http://github.com/gradle/gradle/blob/master/subprojects/core/src/main/groovy/org/gradle/internal/service/scopes/BuildScopeServices.java#L173-173)
+    - Override the `public <S extends Task> TaskCollection<S> withType(Class<S> type)` method in [DefaultTaskContainer](http://github.com/gradle/gradle/blob/master/subprojects/core/src/main/groovy/org/gradle/api/internal/tasks/DefaultTaskContainer.java).
+    This implementation would add each supplied `Class<S> type` to a `Set`. This `Set` would then be used by a `ProjectConfigureAction` to realise all of the necessary tasks.~~
+
+~~2. Post evaluation use of `.withType()` triggers task realization immediately but only for task types which have not already been realised.~~
+
 
 ### Test cases
 
@@ -52,15 +65,6 @@ task foo  {
 }
 ```
 - Build failure when failing to create a rule based task.
-- can dependOn a variable which has been assigned to `tasks.withType(ClimbTask)`
-
-e.g.
-
-```groovy
-def t = tasks.withType(ClimbTask)
-customTask.dependsOn t
-```
-
 - Realizing all subtypes of a rule source task - `customTask` should have a dependency on any tasks of type `Child`
 e.g.
 
@@ -71,10 +75,8 @@ customTask.dependsOn tasks.withType(Parent)
 ```
 
 ### Open Questions:
-- Should we reach across projects i.e. `project(":projectA").tasks['customTask'].dependsOn tasks.withType(ClimbTask)` where `ClimbTask` is a rule
- source task added by 'projectB'
-
-
+- ~~Should we reach across projects i.e. `project(":projectA").tasks['customTask'].dependsOn tasks.withType(ClimbTask)` where `ClimbTask` is a rule
+ source task added by 'projectB'~~ Yes
 
 ## User configures rule based task in build script directly
 
@@ -205,3 +207,12 @@ task install(dependsOn:  subprojects.collect { Project p -> p.tasks.withType(Pub
 ```
 
 As this collection is not actually iterated until the task graph is being constructed, creating just before that time would suffice.
+
+# Backlog
+
+- Better handle `tasks.<name>` in imperative API/DSL. Should attempt to discover task rules before failing, currently does not, only attempts to realise the task node.
+- Apply before-each and after-each rules to tasks defined using imperative DSL.
+- Apply `tasks.all { }` actions between initializer and mutation rules.
+- Better handle case where `check`, `build`, etc tasks are define using rules, either by allowing this and emitting deprecation warning, as when done using legacy API,
+  or improved error message on conflict.
+- RealizableTaskCollection should work with collection semantics (i.e.`customTask.dependsOn tasks.withType(ClimbTask) + tasks.withType(JumpTask)`)

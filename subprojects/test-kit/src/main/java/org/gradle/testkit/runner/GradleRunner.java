@@ -23,6 +23,7 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import java.io.File;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -54,6 +55,8 @@ import java.util.List;
 @Incubating
 public abstract class GradleRunner {
 
+    public static final String DEBUG_SYS_PROP = "org.gradle.testkit.debug";
+
     /**
      * Creates a new Gradle runner.
      * <p>
@@ -82,6 +85,27 @@ public abstract class GradleRunner {
         }
         return new DefaultGradleRunner(gradleHome);
     }
+
+    /**
+     * Sets the directory to use for Test Kit's working storage needs.
+     * <p>
+     * This directory is used internally to store various files required by the runner.
+     * If no explicit Gradle user home is specified via the build arguments (i.e. the {@code -g «dir»} option}),
+     * this directory will also be used for the Gradle user home for the test build.
+     * <p>
+     * If no value has been specified when the build is initiated, a directory unique to the current operating system
+     * user will be created and used within the JVM's temporary directory as advertised by the {@code java.io.tmpdir} system property.
+     * This directory is not deleted by the runner after the test build.
+     * <p>
+     * You may wish to specify a location that is within your project and regularly cleaned, such as the project's build directory.
+     * <p>
+     * The actual contents of this directory are an internal implementation detail and may change at any time.
+     *
+     * @param testKitDir the test kit directory
+     * @return {@code this}
+     * @since 2.7
+     */
+    public abstract GradleRunner withTestKitDir(File testKitDir);
 
     /**
      * The directory that the build will be executed in.
@@ -141,6 +165,52 @@ public abstract class GradleRunner {
      * @see #getArguments()
      */
     public abstract GradleRunner withArguments(String... arguments);
+
+    /**
+     * The injected classpath for the build e.g. classes under test, external libraries.
+     *
+     * The returned list is an unmodifiable view of items.
+     * Returns an empty list if no classpath was provided with {@link #withClasspath(List)}.
+     *
+     * @return the classpath URIs
+     * @since 2.8
+     */
+    public abstract List<URI> getClasspath();
+
+    /**
+     * Sets the injected classpath for the build.
+     * The provided list of URIs is additive to the default classpath.
+     *
+     * @param classpath the classpath URIs
+     * @return this
+     * @see #getClasspath()
+     * @since 2.8
+     */
+    public abstract GradleRunner withClasspath(List<URI> classpath);
+
+    /**
+     * Indicates if test execution is debuggable from an IDE. Enabled debugging effectively executes the tests in same JVM process
+     * as the "main" Gradle process.
+     * <p>
+     * If tests are executed from an IDE, debugging is enabled by default. If tests are not executed from an IDE, debugging is disabled.
+     * <p>
+     * The debug flag can be set programmatically by invoking the method {@link #withDebug(boolean)} which takes precedence over
+     * the default debug value chosen based on the test execution environment.
+     *
+     * @return the debug flag
+     * @since 2.8
+     */
+    public abstract boolean isDebug();
+
+    /**
+     * Enables/disables test execution for debugging purposes.
+     *
+     * @param debug the debug flag
+     * @return this
+     * @see #isDebug()
+     * @since 2.8
+     */
+    public abstract GradleRunner withDebug(boolean debug);
 
     /**
      * Executes a build, expecting it to complete without failure.

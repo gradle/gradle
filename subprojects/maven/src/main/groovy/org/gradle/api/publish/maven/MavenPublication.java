@@ -61,15 +61,14 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * task sourceJar(type: Jar) {
  *   from sourceSets.main.allJava
+ *   classifier "sources"
  * }
  *
  * publishing {
  *   publications {
  *     myPublication(MavenPublication) {
  *       from components.java
- *       artifact(sourceJar) {
- *         classifier "sources"
- *       }
+ *       artifact sourceJar
  *       pom.withXml {
  *         asNode().appendNode('description', 'A demonstration of Maven POM customization')
  *       }

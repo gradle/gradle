@@ -16,5 +16,20 @@
 
 package org.gradle.play.integtest.fixtures.app
 
+import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.play.integtest.fixtures.PlayApp
+
+import static org.gradle.play.integtest.fixtures.Repositories.*
+
 class AdvancedPlayApp extends PlayApp {
+    @Override
+    SourceFile getGradleBuild() {
+        def gradleBuild = super.getGradleBuild()
+        def gradleBuildWithRepositories = gradleBuild.content.concat """
+            allprojects {
+                ${GRADLE_JS_REPOSITORY}
+            }
+        """
+        return new SourceFile(gradleBuild.path, gradleBuild.name, gradleBuildWithRepositories)
+    }
 }

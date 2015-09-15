@@ -17,6 +17,7 @@
 package org.gradle.model.internal.type;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import java.lang.annotation.Annotation;
@@ -30,7 +31,7 @@ import java.util.Arrays;
  * on the type variable, and throws an {@link UnsupportedOperationException} if
  * {@link #getGenericDeclaration()} is called.
  */
-public class TypeVariableTypeWrapper<D extends GenericDeclaration> implements TypeWrapper {
+class TypeVariableTypeWrapper<D extends GenericDeclaration> implements TypeWrapper {
     private static final Class<?>[] TYPE_VARIABLE_INTERFACE = {TypeVariable.class};
 
     private final String name;
@@ -46,6 +47,13 @@ public class TypeVariableTypeWrapper<D extends GenericDeclaration> implements Ty
     @Override
     public Type unwrap() {
         return (Type) Proxy.newProxyInstance(getClass().getClassLoader(), TYPE_VARIABLE_INTERFACE, new TypeVariableInvocationHandler(this));
+    }
+
+    @Override
+    public void collectClasses(ImmutableList.Builder<Class<?>> builder) {
+        for (TypeWrapper bound : bounds) {
+            bound.collectClasses(builder);
+        }
     }
 
     @Override

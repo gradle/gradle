@@ -16,38 +16,29 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import com.google.common.base.Function;
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.ref.WeakReference;
 
 public class ModelManagedImplStructSchema<T> extends AbstractModelStructSchema<T> implements ManagedImplModelSchema<T> {
-    private final WeakReference<Class<? extends T>> managedImpl;
+    private final WeakReference<Class<? extends T>> implementationType;
     private final WeakReference<Class<?>> delegateType;
-    private final NodeInitializer nodeInitializer;
 
-    public ModelManagedImplStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects, Class<? extends T> managedImpl, @Nullable Class<?> delegateType, Function<? super ModelManagedImplStructSchema<T>, NodeInitializer> nodeInitializer) {
+    public ModelManagedImplStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects, Class<? extends T> implementationType, @Nullable Class<?> delegateType) {
         super(type, properties, aspects);
-        this.nodeInitializer = nodeInitializer.apply(this);
-        this.managedImpl = new WeakReference<Class<? extends T>>(managedImpl);
+        this.implementationType = new WeakReference<Class<? extends T>>(implementationType);
         this.delegateType = new WeakReference<Class<?>>(delegateType);
     }
 
-    public Class<? extends T> getManagedImpl() {
-        return managedImpl.get();
+    public Class<? extends T> getImplementationType() {
+        return implementationType.get();
     }
 
     @Nullable
     public Class<?> getDelegateType() {
         return delegateType.get();
-    }
-
-    @Override
-    public NodeInitializer getNodeInitializer() {
-        return nodeInitializer;
     }
 
     @Override

@@ -16,31 +16,25 @@
 
 package org.gradle.internal.authentication;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.credentials.Credentials;
-import org.gradle.api.specs.Spec;
-import org.gradle.util.CollectionUtils;
-
-import java.util.Set;
+import org.gradle.authentication.Authentication;
 
 public abstract class AbstractAuthentication implements AuthenticationInternal {
+    private final String name;
+    private final Class<? extends Credentials> supportedCredentialType;
+    private final Class<? extends Authentication> type;
     private Credentials credentials;
-    private String name;
-    private Set<Class<? extends Credentials>> supportedCredentials;
 
-    public AbstractAuthentication(String name) {
+    public AbstractAuthentication(String name, Class<? extends Authentication> type) {
         this.name = name;
-        this.supportedCredentials = Sets.newHashSet();
+        this.supportedCredentialType = null;
+        this.type = type;
     }
 
-    public AbstractAuthentication(String name, Class<? extends Credentials> supportedCredential) {
+    public AbstractAuthentication(String name, Class<? extends Authentication> type, Class<? extends Credentials> supportedCredential) {
         this.name = name;
-        this.supportedCredentials = Sets.<Class<? extends Credentials>>newHashSet(supportedCredential);
-    }
-
-    public AbstractAuthentication(String name, Class<? extends Credentials>... supportedCredentials) {
-        this.name = name;
-        this.supportedCredentials = Sets.newHashSet(supportedCredentials);
+        this.supportedCredentialType = supportedCredential;
+        this.type = type;
     }
 
     @Override
@@ -59,17 +53,17 @@ public abstract class AbstractAuthentication implements AuthenticationInternal {
     }
 
     @Override
-    public Set<Class<? extends Credentials>> getSupportedCredentials() {
-        return supportedCredentials;
+    public boolean supports(final Credentials credentials) {
+        return supportedCredentialType.isAssignableFrom(credentials.getClass());
     }
 
     @Override
-    public boolean supports(final Credentials credentials) {
-        return CollectionUtils.any(getSupportedCredentials(), new Spec<Class<? extends Credentials>>() {
-            @Override
-            public boolean isSatisfiedBy(Class<? extends Credentials> element) {
-                return element.isAssignableFrom(credentials.getClass());
-            }
-        });
+    public Class<? extends Authentication> getType() {
+        return type;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("'%s'(%s)", getName(), getType().getSimpleName());
     }
 }

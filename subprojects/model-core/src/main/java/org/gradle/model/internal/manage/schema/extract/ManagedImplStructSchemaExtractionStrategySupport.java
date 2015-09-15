@@ -26,9 +26,7 @@ import org.gradle.api.Named;
 import org.gradle.internal.reflect.MethodDescription;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
-import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.manage.schema.*;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.*;
@@ -37,7 +35,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.*;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.isMethodDeclaredInManagedType;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.walkTypeHierarchy;
 
 public abstract class ManagedImplStructSchemaExtractionStrategySupport extends StructSchemaExtractionStrategySupport {
 
@@ -115,22 +114,22 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
     }
 
     @Override
-    protected <R> ModelManagedImplStructSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
-        Class<? extends R> implClass = classGenerator.generate(type.getConcreteClass(), delegateType, properties);
-        return new ModelManagedImplStructSchema<R>(type, properties, aspects, implClass, delegateType, new Function<ModelManagedImplStructSchema<R>, NodeInitializer>() {
+    protected <R> ModelManagedImplStructSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects) {
+        ModelType<R> type = extractionContext.getType();
+        Class<? extends R> implClass = classGenerator.generate(type, delegateType, propertyResults);
+        Iterable<ModelProperty<?>> properties = Iterables.transform(propertyResults, new Function<ModelPropertyExtractionResult<?>, ModelProperty<?>>() {
             @Override
-            public NodeInitializer apply(ModelManagedImplStructSchema<R> schema) {
-                return createNodeInitializer(schema, store);
+            public ModelProperty<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
+                return propertyResult.getProperty();
             }
         });
+        return new ModelManagedImplStructSchema<R>(type, properties, aspects, implClass, delegateType);
     }
 
-    protected abstract <R> NodeInitializer createNodeInitializer(ModelManagedImplStructSchema<R> schema, ModelSchemaStore store);
-
     @Override
-    protected void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getter, String message) {
-        if (getter.isDeclaredInManagedType()) {
-            throw invalidMethod(extractionContext, message, getter.getMostSpecificDeclaration());
+    protected void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, Method getter, String message) {
+        if (ModelSchemaUtils.isMethodDeclaredInManagedType(getter)) {
+            throw invalidMethod(extractionContext, message, getter);
         }
     }
 
@@ -196,24 +195,20 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
     }
 
     @Override
-    protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(final ModelPropertyExtractionResult<P> propertyResult, final ModelSchemaCache modelSchemaCache) {
-        return new Action<ModelSchemaExtractionContext<P>>() {
+    protected <P> Action<ModelSchema<P>> createPropertyValidator(final ModelSchemaExtractionContext<?> parentContext, final ModelPropertyExtractionResult<P> propertyResult, final ModelSchemaStore modelSchemaStore) {
+        return new Action<ModelSchema<P>>() {
             @Override
-            public void execute(ModelSchemaExtractionContext<P> propertyExtractionContext) {
+            public void execute(ModelSchema<P> propertySchema) {
                 ModelProperty<P> property = propertyResult.getProperty();
                 // Do not validate unmanaged properties
                 if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
                     return;
                 }
 
-                ModelSchemaExtractionContext<?> parentContext = propertyExtractionContext.getParent();
-
                 // The "name" property is handled differently if type implements Named
                 if (property.getName().equals("name") && Named.class.isAssignableFrom(parentContext.getType().getRawClass())) {
                     return;
                 }
-
-                ModelSchema<P> propertySchema = modelSchemaCache.get(property.getType());
 
                 // Only managed implementation and value types are allowed as a managed property type unless marked with @Unmanaged
                 boolean isAllowedPropertyTypeOfManagedType = propertySchema instanceof ManagedImplModelSchema
@@ -250,22 +245,29 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
                 }
 
                 if (propertySchema instanceof ModelCollectionSchema) {
-                    if (property.isWritable()) {
-                        throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                            "property '%s' cannot have a setter (%s properties must be read only).",
-                            property.getName(), property.getType().toString()));
-                    }
-
                     ModelCollectionSchema<P, ?> propertyCollectionsSchema = (ModelCollectionSchema<P, ?>) propertySchema;
 
                     ModelType<?> elementType = propertyCollectionsSchema.getElementType();
-                    ModelSchema<?> elementTypeSchema = modelSchemaCache.get(elementType);
+                    ModelSchema<?> elementTypeSchema = modelSchemaStore.getSchema(elementType);
 
-                    if (!(elementTypeSchema instanceof ManagedImplModelSchema)) {
-                        throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                            "property '%s' cannot be a model map of type %s as it is not a %s type.",
-                            property.getName(), elementType, Managed.class.getName()
-                        ));
+                    if (propertySchema instanceof ScalarCollectionSchema) {
+                        if (!ScalarTypes.isScalarType(elementType)) {
+                            throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                                "property '%s' cannot be a collection of type %s as it is not a scalar type.",
+                                property.getName(), elementType));
+                        }
+                    } else {
+                        if (property.isWritable()) {
+                            throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                                "property '%s' cannot have a setter (%s properties must be read only).",
+                                property.getName(), property.getType().toString()));
+                        }
+                        if (!(elementTypeSchema instanceof ManagedImplModelSchema)) {
+                            throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                                "property '%s' cannot be a model map of type %s as it is not a %s type.",
+                                property.getName(), elementType, Managed.class.getName()
+                            ));
+                        }
                     }
                 }
             }

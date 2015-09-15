@@ -39,7 +39,7 @@ class LiveOutputIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     void setUp() {
-        NativeServicesTestFixture.initialize(executer.gradleUserHomeDir)
+        NativeServicesTestFixture.initialize()
         javaprojectDir = sample.dir
     }
 

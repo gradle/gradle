@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
@@ -28,6 +29,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
 
@@ -42,7 +44,7 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
     }
 
     private final String displayName;
-    private final Map<Class<?>, Registration<?>> factories = Maps.newIdentityHashMap();
+    private final Map<Class<? extends T>, Registration<?>> factories = Maps.newIdentityHashMap();
 
     public BaseInstanceFactory(String displayName) {
         this.displayName = displayName;
@@ -82,7 +84,11 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
     }
 
     @Override
-    public String getSupportedTypeNames() {
+    public Set<Class<? extends T>> getSupportedTypes() {
+        return ImmutableSet.copyOf(factories.keySet());
+    }
+
+    private String getSupportedTypeNames() {
         List<String> names = Lists.newArrayList();
         for (Class<?> clazz : factories.keySet()) {
             names.add(clazz.getSimpleName());

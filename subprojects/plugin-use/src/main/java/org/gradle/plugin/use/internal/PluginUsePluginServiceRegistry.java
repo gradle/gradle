@@ -18,7 +18,6 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.authentication.Authentication;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -30,6 +29,7 @@ import org.gradle.api.internal.initialization.BasicDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.authentication.Authentication;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
@@ -102,12 +102,17 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             }, pluginInspector);
         }
 
-        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver);
+        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
+                                                          InjectedClassPathPluginResolver injectedClassPathPluginResolver) {
+            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, injectedClassPathPluginResolver);
         }
 
         PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory) {
             return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory.create());
+        }
+
+        InjectedClassPathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, StartParameter startParameter) {
+            return new InjectedClassPathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, startParameter.getClasspath());
         }
     }
 }

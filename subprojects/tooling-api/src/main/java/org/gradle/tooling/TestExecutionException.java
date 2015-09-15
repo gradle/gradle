@@ -19,7 +19,7 @@ package org.gradle.tooling;
 import org.gradle.api.Incubating;
 
 /**
- * Thrown when the {@link org.gradle.tooling.TestLauncher} cannot run tests.
+ * Thrown when the {@link org.gradle.tooling.TestLauncher} cannot run tests, or when one or more tests fail.
  * <p>
  *
  * @since 2.6

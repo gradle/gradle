@@ -25,7 +25,7 @@ import spock.lang.Unroll
 class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
 
     @Rule
-    final SFTPServer server = new SFTPServer(this)
+    final SFTPServer server = new SFTPServer(temporaryFolder)
 
     IvySftpRepository getIvySftpRepo(boolean m2Compatible = false, String dirPattern = null) {
         new IvySftpRepository(server, '/repo', m2Compatible, dirPattern)
@@ -187,8 +187,8 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         then:
         fails 'publish'
         failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
-                .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-                .assertHasCause("Could not create resource '${ivySftpRepo.uri}'.")
+            .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
+            .assertHasCause("Could not create resource '${ivySftpRepo.uri}'.")
     }
 
     def "publishing to a SFTP repo when file uploading fails"() {
@@ -203,7 +203,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         then:
         fails 'publish'
         failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
-                .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-                .assertHasCause("Could not write to resource '${module.jar.uri}'.")
+            .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
+            .assertHasCause("Could not write to resource '${module.jar.uri}'.")
     }
 }

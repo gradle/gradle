@@ -56,6 +56,7 @@ public class ModelSchemaExtractor {
             .add(new ManagedSetStrategy())
             .add(new SpecializedMapStrategy())
             .add(new ModelMapStrategy())
+            .add(new ScalarCollectionStrategy())
             .add(new ManagedImplStructStrategy(aspectExtractor))
             .add(new UnmanagedImplStructStrategy(aspectExtractor))
             .build();
@@ -69,18 +70,19 @@ public class ModelSchemaExtractor {
         validations.add(extractionContext);
 
         while (extractionContext != null) {
-            ModelSchemaExtractionResult<?> nextSchema = extractSchema(extractionContext, store, cache);
-            Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = nextSchema.getDependencies();
+            extractSchema(extractionContext, store, cache);
+            Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = extractionContext.getChildren();
             Iterables.addAll(validations, dependencies);
             pushUnsatisfiedDependencies(dependencies, unsatisfiedDependencies, cache);
             extractionContext = unsatisfiedDependencies.poll();
         }
 
         for (ModelSchemaExtractionContext<?> validationContext : Lists.reverse(validations)) {
-            validationContext.validate();
+            // TODO - this will leave invalid types in the cache when it fails
+            validate(validationContext, cache);
         }
 
-        return cache.get(context.getType());
+        return context.getResult();
     }
 
     private void pushUnsatisfiedDependencies(Iterable<? extends ModelSchemaExtractionContext<?>> allDependencies, Queue<ModelSchemaExtractionContext<?>> dependencyQueue, final ModelSchemaCache cache) {
@@ -91,18 +93,23 @@ public class ModelSchemaExtractor {
         }));
     }
 
-    private <T> ModelSchemaExtractionResult<T> extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
+    private <T> void validate(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
+        extractionContext.validate(cache.get(extractionContext.getType()));
+    }
+
+    private <T> void extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
         final ModelType<T> type = extractionContext.getType();
         ModelSchema<T> cached = cache.get(type);
         if (cached != null) {
-            return new ModelSchemaExtractionResult<T>(cached);
+            extractionContext.found(cached);
+            return;
         }
 
         for (ModelSchemaExtractionStrategy strategy : strategies) {
-            ModelSchemaExtractionResult<T> result = strategy.extract(extractionContext, store, cache);
-            if (result != null) {
-                cache.set(type, result.getSchema());
-                return result;
+            strategy.extract(extractionContext, store);
+            if (extractionContext.getResult() != null) {
+                cache.set(type, extractionContext.getResult());
+                return;
             }
         }
 
@@ -121,7 +128,7 @@ public class ModelSchemaExtractor {
     private static Iterable<String> getSupportedTypes() {
         return Arrays.asList(
             "interfaces and abstract classes annotated with " + Managed.class.getName(),
-            "JDK value types: " + Joiner.on(", ").join(Iterables.transform(JdkValueTypeStrategy.TYPES, new Function<ModelType<?>, Object>() {
+            "JDK value types: " + Joiner.on(", ").join(Iterables.transform(ScalarTypes.TYPES, new Function<ModelType<?>, Object>() {
                 public Object apply(ModelType<?> input) {
                     return input.getRawClass().getSimpleName();
                 }

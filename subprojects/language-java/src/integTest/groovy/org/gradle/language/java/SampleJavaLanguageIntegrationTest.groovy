@@ -24,13 +24,13 @@ import org.junit.Rule
 class SampleJavaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    Sample quickstart = new Sample(temporaryFolder, "newJavaPlugin/quickstart")
+    Sample quickstart = new Sample(temporaryFolder, "javaLibraryPlugin/quickstart")
 
     @Rule
-    Sample platformAware = new Sample(temporaryFolder, "newJavaPlugin/targetplatforms")
+    Sample platformAware = new Sample(temporaryFolder, "javaLibraryPlugin/targetplatforms")
 
     @Rule
-    Sample multicomponent = new Sample(temporaryFolder, "newJavaPlugin/multiplecomponents")
+    Sample multicomponent = new Sample(temporaryFolder, "javaLibraryPlugin/multiplecomponents")
 
     def "quickstart sample builds java based jvm component"() {
         setup:

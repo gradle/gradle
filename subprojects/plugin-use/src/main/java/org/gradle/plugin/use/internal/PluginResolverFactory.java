@@ -23,6 +23,7 @@ import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.service.internal.InjectedClassPathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import java.util.LinkedList;
@@ -33,15 +34,18 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
     private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
+    private final InjectedClassPathPluginResolver injectedClassPathPluginResolver;
 
     public PluginResolverFactory(
             PluginRegistry pluginRegistry,
             DocumentationRegistry documentationRegistry,
-            PluginResolutionServiceResolver pluginResolutionServiceResolver
+            PluginResolutionServiceResolver pluginResolutionServiceResolver,
+            InjectedClassPathPluginResolver injectedClassPathPluginResolver
     ) {
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
+        this.injectedClassPathPluginResolver = injectedClassPathPluginResolver;
     }
 
     public PluginResolver create() {
@@ -54,6 +58,10 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
         resolvers.add(pluginResolutionServiceResolver);
+
+        if(!injectedClassPathPluginResolver.isClasspathEmpty()) {
+            resolvers.add(injectedClassPathPluginResolver);
+        }
     }
 
 }

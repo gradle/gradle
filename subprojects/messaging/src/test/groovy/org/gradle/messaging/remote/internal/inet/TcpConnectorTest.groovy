@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 package org.gradle.messaging.remote.internal.inet
-
 import org.gradle.api.Action
 import org.gradle.internal.id.UUIDGenerator
 import org.gradle.internal.serialize.*
 import org.gradle.messaging.remote.internal.*
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.gradle.util.ports.ReleasingPortAllocator
+import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Timeout
 import spock.lang.Unroll
+
+import java.nio.channels.SocketChannel
 
 @Timeout(60)
 class TcpConnectorTest extends ConcurrentSpec {
@@ -32,6 +38,7 @@ class TcpConnectorTest extends ConcurrentSpec {
     final def addressFactory = new InetAddressFactory()
     final def outgoingConnector = new TcpOutgoingConnector()
     final def incomingConnector = new TcpIncomingConnector(executorFactory, addressFactory, idGenerator)
+    @Rule ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def "client can connect to server"() {
         Action action = Mock()
@@ -271,6 +278,49 @@ class TcpConnectorTest extends ConcurrentSpec {
         cleanup:
         connection?.stop()
         acceptor?.stop()
+    }
+
+    @Issue("GRADLE-2316")
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    def "detects self connect when outgoing connection binds to same port"() {
+        given:
+        def socketChannel = SocketChannel.open()
+        def port = portAllocator.assignPort()
+        def localAddress = addressFactory.findLocalAddresses().find { it instanceof Inet6Address }
+        def selfConnect = new InetSocketAddress(localAddress, port)
+
+        when:
+        socketChannel.socket().bind(selfConnect)
+        socketChannel.socket().connect(selfConnect)
+        then:
+        outgoingConnector.detectSelfConnect(socketChannel)
+
+        cleanup:
+        socketChannel.close()
+    }
+
+    @Issue("GRADLE-2316")
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    def "does not detect self connect when outgoing connection bind to different ports"() {
+        given:
+        def action = Mock(Action)
+        def socketChannel = SocketChannel.open()
+        def acceptor = incomingConnector.accept(action, false)
+        def localAddress = addressFactory.findLocalAddresses().find { it instanceof Inet6Address }
+        def bindPort = portAllocator.assignPort()
+        def bindAddress = new InetSocketAddress(localAddress, bindPort)
+        def connectAddress = new InetSocketAddress(localAddress, acceptor.address.port)
+
+        when:
+        socketChannel.socket().bind(bindAddress)
+        socketChannel.socket().connect(connectAddress)
+
+        then:
+        !outgoingConnector.detectSelfConnect(socketChannel)
+
+        cleanup:
+        acceptor?.stop()
+        socketChannel.close()
     }
 }
 

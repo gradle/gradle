@@ -37,9 +37,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.jvm.Classpath;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.platform.base.BinaryContainer;
@@ -130,12 +128,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 sourceSet.getResources().srcDir(String.format("src/%s/resources", sourceSet.getName()));
                 sourceSet.compiledBy(sourceSet.getClassesTaskName());
 
-                FunctionalSourceSet functionalSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet.class, sourceSet.getName(), instantiator, projectSourceSet);
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
                 DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, "java", sourceSet.getName(), sourceSet.getJava(), compileClasspath);
-                functionalSourceSet.add(javaSourceSet);
+                projectSourceSet.add(javaSourceSet);
                 JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", sourceSet.getName(), sourceSet.getResources());
-                functionalSourceSet.add(resourceSet);
+                projectSourceSet.add(resourceSet);
 
                 BinaryContainer binaryContainer = project.getExtensions().getByType(BinaryContainer.class);
                 ClassDirectoryBinarySpecInternal binary = (ClassDirectoryBinarySpecInternal) binaryContainer.create(String.format("%sClasses", sourceSet.getName()), ClassDirectoryBinarySpec.class);

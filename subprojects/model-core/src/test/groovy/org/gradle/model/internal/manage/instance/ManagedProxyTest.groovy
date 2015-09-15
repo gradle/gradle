@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class ManagedProxyTest extends Specification {
 
-    def factory = new ManagedProxyFactory()
+    def factory = ManagedProxyFactory.INSTANCE
 
     @Managed
     static private interface ManagedType {

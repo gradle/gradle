@@ -15,7 +15,6 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
-
 import org.gradle.api.Action
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
@@ -23,7 +22,6 @@ import org.gradle.model.ModelMap
 import org.gradle.model.ModelSet
 import org.gradle.model.Unmanaged
 import org.gradle.model.internal.manage.schema.*
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
 import spock.lang.Shared
@@ -34,12 +32,22 @@ import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.util.regex.Pattern
 
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.DELEGATED
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.MANAGED
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.UNMANAGED
+import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.*
 
 @SuppressWarnings("GroovyPointlessBoolean")
 class ModelSchemaExtractorTest extends Specification {
+
+    private static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = [
+        String,
+        Boolean,
+        Character,
+        Integer,
+        Long,
+        Double,
+        BigInteger,
+        BigDecimal,
+        File
+    ]
 
     def classLoader = new GroovyClassLoader(getClass().classLoader)
     @Shared
@@ -836,9 +844,9 @@ $type
     def "specialized map"() {
         expect:
         def schema = extract(SomeMap)
-        schema instanceof ModelMapSchema
+        assert schema instanceof SpecializedMapSchema
         schema.elementType == new ModelType<List<String>>() {}
-        schema.managedImpl
+        schema.implementationType
     }
 
     private void fail(extractType, errorType, String msgPattern) {
@@ -876,7 +884,7 @@ $type
         extract(generatedClass)
 
         where:
-        type << [String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal, File]
+        type << JDK_SCALAR_TYPES
     }
 
     @Unroll
@@ -888,7 +896,7 @@ $type
         fail generatedClass, "has non managed type ${type.name}, only managed types can be used"
 
         where:
-        type << [String, Boolean, Character, Integer, Long, Double, BigInteger, BigDecimal, File]
+        type << JDK_SCALAR_TYPES
     }
 
     @Managed
@@ -936,11 +944,9 @@ interface Managed${typeName} {
     def "can register custom strategy"() {
         when:
         def strategy = Mock(ModelSchemaExtractionStrategy) {
-            extract(_, _, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore store, ModelSchemaCache schemaCache ->
+            extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore store ->
                 if (extractionContext.type.rawClass == CustomThing) {
-                    return new ModelSchemaExtractionResult(new ModelValueSchema<?>(extractionContext.type))
-                } else {
-                    return null
+                    extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
                 }
             }
         }
@@ -950,6 +956,53 @@ interface Managed${typeName} {
         then:
         store.getSchema(CustomThing) instanceof ModelValueSchema
         store.getSchema(UnmanagedThing) instanceof ModelUnmanagedImplStructSchema
+    }
+
+    def "custom strategy can register dependency on other type"() {
+        def strategy = Mock(ModelSchemaExtractionStrategy)
+        def extractor = new ModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
+        def store = new DefaultModelSchemaStore(extractor)
+
+        when:
+        def customSchema = store.getSchema(CustomThing)
+
+        then:
+        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+            assert extractionContext.type == ModelType.of(CustomThing)
+            extractionContext.child(ModelType.of(UnmanagedThing), "child")
+            extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
+        }
+        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+            assert extractionContext.type == ModelType.of(UnmanagedThing)
+        }
+
+        and:
+        customSchema instanceof ModelValueSchema
+    }
+
+    def "validator is invoked after all dependencies have been visited"() {
+        def strategy = Mock(ModelSchemaExtractionStrategy)
+        def validator = Mock(Action)
+        def extractor = new ModelSchemaExtractor([strategy], new ModelSchemaAspectExtractor())
+        def store = new DefaultModelSchemaStore(extractor)
+
+        when:
+        store.getSchema(CustomThing)
+
+        then:
+        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+            assert extractionContext.type == ModelType.of(CustomThing)
+            extractionContext.addValidator(validator)
+            extractionContext.child(ModelType.of(UnmanagedThing), "child")
+            extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
+        }
+        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+            assert extractionContext.type == ModelType.of(UnmanagedThing)
+            return null;
+        }
+
+        then:
+        1 * validator.execute(_)
     }
 
     @Managed
@@ -1013,12 +1066,16 @@ interface Managed${typeName} {
 
         then:
         assert schema instanceof ModelUnmanagedImplStructSchema
-        schema.properties*.name == ["unmanagedCalculatedProp", "unmanagedProp"]
+        schema.properties*.name == ["buildable","time", "unmanagedCalculatedProp", "unmanagedProp"]
 
         schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedProp").isWritable() == true
         schema.getProperty("unmanagedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedCalculatedProp").isWritable() == false
+        schema.getProperty("buildable").stateManagementType == UNMANAGED
+        schema.getProperty("buildable").isWritable() == false
+        schema.getProperty("time").stateManagementType == UNMANAGED
+        schema.getProperty("time").isWritable() == false
     }
 
     static interface UnmanagedSuperType {
@@ -1061,7 +1118,7 @@ interface Managed${typeName} {
 
         then:
         assert schema instanceof ModelManagedImplStructSchema
-        schema.properties*.name == ["managedCalculatedProp", "managedProp", "unmanagedCalculatedProp", "unmanagedProp"]
+        schema.properties*.name == ["buildable", "managedCalculatedProp", "managedProp", "time", "unmanagedCalculatedProp", "unmanagedProp"]
 
         schema.getProperty("unmanagedProp").stateManagementType == DELEGATED
         schema.getProperty("unmanagedProp").isWritable() == true
@@ -1074,6 +1131,12 @@ interface Managed${typeName} {
 
         schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
+
+        schema.getProperty("buildable").stateManagementType == DELEGATED
+        schema.getProperty("buildable").isWritable() == false
+
+        schema.getProperty("time").stateManagementType == DELEGATED
+        schema.getProperty("time").isWritable() == false
     }
 
     @Managed
@@ -1145,7 +1208,6 @@ interface Managed${typeName} {
 
     def "aspects can be extracted"() {
         def aspect = new MyAspect()
-        def aspectValidator = Mock(Action)
         def aspectExtractionStrategy = Mock(ModelSchemaAspectExtractionStrategy)
         def extractor = new ModelSchemaExtractor([], new ModelSchemaAspectExtractor([aspectExtractionStrategy]))
         def store = new DefaultModelSchemaStore(extractor)
@@ -1160,12 +1222,193 @@ interface Managed${typeName} {
 
         1 * aspectExtractionStrategy.extract(_, _) >> { ModelSchemaExtractionContext<?> extractionContext, List<ModelPropertyExtractionResult> propertyResults ->
             assert propertyResults*.property*.name == ["calculatedProp", "prop"]
-            return new ModelSchemaAspectExtractionResult(aspect, aspectValidator)
-        }
-        1 * aspectValidator.execute(_) >> { ModelSchemaExtractionContext<?> extractionContext ->
-            assert extractionContext.type.rawClass == MyTypeOfAspect
+            return new ModelSchemaAspectExtractionResult(aspect)
         }
         0 * _
+    }
+
+    @Managed
+    interface HasIsTypeGetter {
+        boolean isRedundant()
+
+        void setRedundant(boolean redundant)
+    }
+
+    @Managed
+    interface HasGetTypeGetter {
+        boolean getRedundant()
+
+        void setRedundant(boolean redundant)
+    }
+
+    def "supports a boolean property with a get style getter"() {
+        when:
+        store.getSchema(ModelType.of(HasGetTypeGetter))
+
+        then:
+        noExceptionThrown()
+    }
+
+    @Managed
+    interface HasDualGetter {
+        boolean isRedundant()
+
+        boolean getRedundant()
+
+        void setRedundant(boolean redundant)
+    }
+
+    def "allows both is and get style getters"() {
+        when:
+        def schema = store.getSchema(HasDualGetter)
+
+        then:
+        schema instanceof ManagedImplModelSchema
+        def redundant = schema.properties[0]
+        assert redundant instanceof ModelProperty
+        redundant.getters.size()==2
+    }
+
+    @Managed
+    static interface OnlyGetGetter {
+        boolean getThing()
+    }
+
+    @Managed
+    static interface OnlyIsGetter {
+        boolean isThing()
+    }
+
+    @Managed
+    interface IsNotAllowedForOtherTypeThanBoolean {
+        String isThing()
+        void setThing(String thing)
+    }
+
+    @Managed
+    interface IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean {
+        Boolean isThing()
+        void setThing(Boolean thing)
+    }
+
+    @Unroll
+    def "must have a setter - #managedType.simpleName"() {
+        when:
+        store.getSchema(managedType)
+
+        then:
+        def ex = thrown(InvalidManagedModelElementTypeException)
+        ex.message =~ "read only property 'thing' has non managed type boolean, only managed types can be used"
+
+        where:
+        managedType << [OnlyIsGetter, OnlyGetGetter]
+    }
+
+    def "supports a boolean property with an is style getter"() {
+        expect:
+        store.getSchema(ModelType.of(HasIsTypeGetter))
+    }
+
+    @Unroll
+    def "should not allow 'is' as a prefix for getter on non primitive boolean"() {
+        when:
+        store.getSchema(IsNotAllowedForOtherTypeThanBoolean)
+
+        then:
+        def ex = thrown(InvalidManagedModelElementTypeException)
+        ex.message =~ /getter method name must start with 'get'/
+
+        where:
+        managedType << [IsNotAllowedForOtherTypeThanBoolean, IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean]
+    }
+
+    abstract class HasStaticProperties {
+        static String staticValue
+        String value
+    }
+
+    def "does not extract static properties"() {
+        def schema = store.getSchema(HasStaticProperties)
+        expect:
+        schema.properties*.name == ["value"]
+    }
+
+    abstract class HasProtectedAndPrivateProperties {
+        String value
+        protected String protectedValue
+        private String privateValue
+    }
+
+    def "does not extract protected and private properties"() {
+        def schema = store.getSchema(HasProtectedAndPrivateProperties)
+        expect:
+        schema.properties*.name == ["value"]
+    }
+
+    @Managed
+    interface HasIsAndGetPropertyWithDifferentTypes {
+        boolean isValue()
+        String getValue()
+    }
+
+    def "handles is/get property with non-matching type"() {
+        when:
+        store.getSchema(HasIsAndGetPropertyWithDifferentTypes)
+
+        then:
+        def ex = thrown InvalidManagedModelElementTypeException
+        ex.message.contains "property 'value' has both 'isValue()' and 'getValue()' getters, but they don't both return a boolean"
+    }
+
+    @Unroll
+    def "supports read-only List<#type.simpleName> property"() {
+        when:
+        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            @Managed
+            interface CollectionType {
+                List<${type.simpleName}> getItems()
+            }
+        """
+
+        def schema = extract(managedType)
+
+        then:
+        assert schema instanceof ModelManagedImplStructSchema
+        schema.properties*.name == ["items"]
+
+        schema.getProperty("items").stateManagementType == MANAGED
+        schema.getProperty("items").isWritable() == false
+
+        where:
+        type << JDK_SCALAR_TYPES
+    }
+
+    @Unroll
+    def "read-write List<#type.simpleName> property is allowed"() {
+        when:
+        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            @Managed
+            interface CollectionType {
+                List<${type.simpleName}> getItems()
+                void setItems(List<${type.simpleName}> items)
+            }
+        """
+
+        def schema = extract(managedType)
+
+        then:
+        assert schema instanceof ModelManagedImplStructSchema
+        schema.properties*.name == ["items"]
+
+        schema.getProperty("items").stateManagementType == MANAGED
+        schema.getProperty("items").isWritable() == true
+
+        where:
+        type << JDK_SCALAR_TYPES
     }
 }
 

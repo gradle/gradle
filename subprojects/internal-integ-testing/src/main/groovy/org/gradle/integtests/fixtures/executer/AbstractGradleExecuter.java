@@ -37,6 +37,7 @@ import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TextUtil;
 
 import java.io.*;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -54,6 +55,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
+    private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
 
     protected static final List<String> DEBUG_ARGS = ImmutableList.of(
         "-Xdebug",
@@ -105,7 +107,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final GradleDistribution distribution;
 
     private boolean debug = Boolean.getBoolean(DEBUG_SYSPROP);
+    private String profiler = System.getProperty(PROFILE_SYSPROP, "");
+
     protected boolean interactive;
+    protected List<URI> classpath = new ArrayList<URI>();
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
@@ -142,7 +147,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         deprecationChecksOn = true;
         stackTraceChecksOn = true;
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
+        profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
+        classpath.clear();
         return this;
     }
 
@@ -260,7 +267,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         executer.withDebug(debug);
+        executer.withProfiler(profiler);
         executer.withForceInteractive(interactive);
+        executer.withClasspath(classpath);
         return executer;
     }
 
@@ -375,6 +384,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         buildJvmOpts.add("-ea");
         if (isDebug()) {
             buildJvmOpts.addAll(DEBUG_ARGS);
+        }
+        if (isProfile()) {
+            buildJvmOpts.add(profiler);
         }
         return buildJvmOpts;
     }
@@ -848,6 +860,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    public GradleExecuter withProfiler(String args) {
+        profiler = args;
+        return this;
+    }
+
     @Override
     public GradleExecuter withForceInteractive(boolean flag) {
         interactive = flag;
@@ -855,8 +872,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
+    public GradleExecuter withClasspath(List<URI> classpath) {
+        this.classpath = classpath;
+        return this;
+    }
+
+    @Override
     public boolean isDebug() {
         return debug;
+    }
+
+    public boolean isProfile() {
+        return !profiler.isEmpty();
     }
 
     protected static class GradleInvocation {

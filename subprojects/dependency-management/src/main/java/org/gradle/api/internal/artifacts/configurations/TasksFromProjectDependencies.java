@@ -37,7 +37,8 @@ class TasksFromProjectDependencies extends AbstractTaskDependency {
         this.projectAccessListener = projectAccessListener;
     }
 
-    public void resolve(TaskDependencyResolveContext context) {
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
         resolveProjectDependencies(context, dependencies.withType(ProjectDependency.class));
     }
 

@@ -15,20 +15,26 @@
   -->
 <chapter id='new_model'>
     <title>Rule based model configuration</title>
+    <note>
+        <para>
+            Support for rule based configuration is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+        </para>
+    </note>
     <para>
-        This chapter describes and documents what is essentially the foundation for the Gradle 3.0 and the next generation of Gradle builds.
-        It is being incrementally developed during the Gradle 2.x stream. Gradle's support for <link linkend="nativeBinaries">building native applications</link> and
+        This chapter describes and documents what is essentially the foundation for Gradle 3.0 and the next generation of Gradle builds.
+        It is being incrementally developed during the Gradle 2.x stream. Gradle's support for building <link linkend="nativeBinaries">native applications</link> and
         <link linkend="play_plugin">Play Framework applications</link> already uses this configuration model.
+        Gradle also includes some initial support for building <link linkend="new_java_plugin">Java libraries</link> using this configuration model.
     </para>
     <para>
-        All of the mechanisms, DSL, API, and techniques discussed here are <emphasis>incubating</emphasis> (i.e. not considered stable and subject to change - see <xref linkend="feature_lifecycle"/>).
+        All of the mechanisms, DSL, API, and techniques discussed here are <emphasis>incubating</emphasis> and are not considered stable and subject to change - see <xref linkend="feature_lifecycle"/>).
         Exposing new features early, during incubation, allows early testing and the incorporation of real world feedback ultimately resulting in a better Gradle.
     </para>
     <para>
         The following build script is an example of a rule based build.
     </para>
     <sample id='basicRuleSourcePlugin-all' dir='modelRules/basicRuleSourcePlugin' includeLocation="true" title='an example of a simple rule based build'>
-        <sourcefile file='build.gradle' />
+        <sourcefile file='build.gradle' snippet="managed-type-plugin-and-dsl"/>
         <output args='hello'/>
     </sample>
     <para>
@@ -57,7 +63,7 @@
         <para>
             Domain modelling in Gradle is not new.
             The Java plugin's <apilink class="org.gradle.api.tasks.SourceSet" /> concept is an example of domain modelling,
-            as is the modelling of <apilink class="org.gradle.nativeplatform.NativeBinary"/> in the Native plugin suite.
+            as is the modelling of <apilink class="org.gradle.nativeplatform.NativeBinary"/> in the native plugin suite.
         </para>
         <para>
             One distinguishing characteristic of Gradle compared to other build tools that also embrace modelling is that Gradle's model is open and collaborative.
@@ -159,12 +165,118 @@
             <para>
                 A “managed” object is transparent and enforces immutability once realized.
                 Being transparent means that its structure is understood by the rule infrastructure and as such each of its properties are also individual elements in the model space.
-                Please see the <apilink class="org.gradle.model.Managed" /> annotation for more information on creating managed model objects.
             </para>
             <para>
                 An “unmanaged” object is opaque to the the model space and does not enforce immutability.
                 Over time, more mechanisms will be available for defining managed model elements culminating in all model elements being managed in some way.
             </para>
+            <para>Managed models can be defined by attaching the <literal>@Managed</literal> annotation to an interface:</para>
+            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed type">
+                <sourcefile file='build.gradle' snippet='managed-type'/>
+            </sample>
+            <para>By defining a couple of getter/setter, you are effectively declaring a managed property. A managed property is a property for which Gradle
+            will enforce semantics such as immutability when a node of the model is not the subject of a rule. Therefore, this example declares a property
+            named <emphasis>name</emphasis> on the managed type <emphasis>Person</emphasis>. This property will only be writeable when the view is mutable,
+            that is to say when the <emphasis>Person</emphasis> is the subject of a <literal>Rule</literal> (see below the explanation for rules).</para>
+            <para>Properties can be of any primitive type (e.g. <literal>int</literal>), boxed type (e.g <literal>Integer</literal>), <literal>String</literal>,
+                <literal>File</literal> or enumeration. In addition, properties can also be of any type which is itself managed:</para>
+            <table>
+                <thead>
+                    <td>Property type</td><td>Nullable</td><td>Example</td>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <literal>String</literal>
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a String property" >
+                                <sourcefile file='build.gradle' snippet='property-type-string'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <literal>File</literal>
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a File property" >
+                                <sourcefile file='build.gradle' snippet='property-type-file'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <literal>Integer</literal>, <literal>Boolean</literal>, <literal>Byte</literal>, <literal>Short</literal>,
+                            <literal>Float</literal>, <literal>Long</literal>, <literal>Double</literal>
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a Long property" >
+                                <sourcefile file='build.gradle' snippet='property-type-long'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <literal>int</literal>, <literal>boolean</literal>, <literal>byte</literal>, <literal>short</literal>,
+                            <literal>float</literal>, <literal>long</literal>, <literal>double</literal>
+                        </td>
+                        <td>No</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a boolean property">
+                                <sourcefile file='build.gradle' snippet='property-type-boolean'/>
+                            </sample>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="an int property" >
+                                <sourcefile file='build.gradle' snippet='property-type-int'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Another <emphasis>managed</emphasis> type.
+                        </td>
+                        <td>Only if read/write</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed property">
+                                <sourcefile file='build.gradle' snippet='property-type-managed'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            An <emphasis>enumeration</emphasis> type.
+                        </td>
+                        <td>Yes</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="an enumeration type property">
+                                <sourcefile file='build.gradle' snippet='property-type-enum'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            A <literal>ManagedSet</literal>.
+                        </td>
+                        <td>Only if read/write</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed set">
+                                <sourcefile file='build.gradle' snippet='property-type-managedset'/>
+                            </sample>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <para>If the type of a property is itself a managed type, it is possible to declare only a getter, in which case you are declaring a
+            read-only property. A read-only property must not be mistaken with an immutable property. A read-only property will be instantiated by Gradle,
+            and cannot be replaced with another object of the same type (for example calling a setter). However, the properties of that property can potentially
+            be changed, if, and only if, the property is the subject of a rule. If it's not the case, the property is immutable, like any classic
+            read/write managed property.</para>
+            <para>Managed types can be defined out of interfaces or abstract classes and are usually defined in plugins, which are written either in Java or Groovy.
+                Please see the <apilink class="org.gradle.model.Managed" /> annotation
+                for more information on creating managed model objects.</para>
         </section>
         <section>
             <title>References, binding and scopes</title>

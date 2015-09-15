@@ -42,15 +42,15 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
     }
 
     public <T> boolean canBeViewedAsWritable(ModelType<T> targetType) {
-        return canBeViewedAsWritable && (targetType.isAssignableFrom(type) || canSeePrimitive(targetType));
+        return canBeViewedAsWritable && canBeAssignedTo(targetType);
     }
 
-    private <T> boolean canSeePrimitive(ModelType<T> targetType) {
-        return targetType== ModelType.UNTYPED && type.getRawClass().isPrimitive();
+    private <T> boolean canBeAssignedTo(ModelType<T> targetType) {
+        return targetType.isAssignableFrom(type) || (targetType== ModelType.UNTYPED && type.getRawClass().isPrimitive());
     }
 
     public <T> boolean canBeViewedAsReadOnly(ModelType<T> targetType) {
-        return canBeViewedAsReadOnly && (targetType.isAssignableFrom(type) || canSeePrimitive(targetType));
+        return canBeViewedAsReadOnly && canBeAssignedTo(targetType);
     }
 
     public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
@@ -88,6 +88,9 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
     }
 
     public static String description(ModelType<?> type) {
+        if (type.getRawClass().getSuperclass() == null && type.getRawClass().getInterfaces().length == 0) {
+            return type.toString();
+        }
         return type.toString() + " (or assignment compatible type thereof)";
     }
 

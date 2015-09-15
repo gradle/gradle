@@ -18,13 +18,10 @@ package org.gradle.api.tasks;
 import org.gradle.api.*;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
-import org.gradle.internal.Cast;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -79,7 +76,12 @@ public class ScalaRuntime {
         // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
         return new LazilyInitializedFileCollection() {
             @Override
-            public FileCollectionInternal createDelegate() {
+            public String getDisplayName() {
+                return "Scala runtime classpath";
+            }
+
+            @Override
+            public FileCollection createDelegate() {
                 if (project.getRepositories().isEmpty()) {
                     throw new GradleException(String.format("Cannot infer Scala class path because no repository is declared in %s", project));
                 }
@@ -95,21 +97,15 @@ public class ScalaRuntime {
                     throw new AssertionError(String.format("Unexpectedly failed to parse version of Scala Jar file: %s in %s", scalaLibraryJar, project));
                 }
 
-                return Cast.cast(FileCollectionInternal.class, project.getConfigurations().detachedConfiguration(
-                    new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion)));
+                return project.getConfigurations().detachedConfiguration(new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion));
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
             @Override
-            public TaskDependency getBuildDependencies() {
+            public void visitDependencies(TaskDependencyResolveContext context) {
                 if (classpath instanceof Buildable) {
-                    return ((Buildable) classpath).getBuildDependencies();
+                    context.add(classpath);
                 }
-                return new TaskDependency() {
-                    public Set<? extends Task> getDependencies(Task task) {
-                        return Collections.emptySet();
-                    }
-                };
             }
         };
     }

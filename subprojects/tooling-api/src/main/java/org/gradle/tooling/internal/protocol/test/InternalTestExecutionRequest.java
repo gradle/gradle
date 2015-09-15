@@ -24,10 +24,11 @@ import java.util.Collection;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
+ * See {@code ProviderInternalTestExecutionRequest} for what the provider expects on a test execution request.
+ *
  * @since 2.6-rc-1
  */
 public interface InternalTestExecutionRequest extends InternalProtocolInterface {
     Collection<InternalTestDescriptor> getTestExecutionDescriptors();
     Collection<String> getTestClassNames();
-
 }

@@ -7,9 +7,17 @@ At this stage, however, there will be no special support for Java 9 specific fea
 
 It is a non-goal of this feature to be able to build Gradle on Java 9. This is a later feature.
 
-## Issues
+## Cannot fork test worker processes
 
-This list is in priority order.
+See:
+- https://discuss.gradle.org/t/classcastexception-from-org-gradle-process-internal-child-bootstrapsecuritymanager/2443
+- https://issues.gradle.org/browse/GRADLE-3287
+- http://download.java.net/jdk9/docs/api/index.html
+
+As of b80, an `@argsfile` command-line option is available for the `java` command, change the worker process launcher to use this on Java 9.  
+Reuse handling for `javac` from java compiler infrastructure.
+
+## Fix test fixtures and test assumptions
 
 - `tools.jar` no longer exists as part of the JDK so `org.gradle.internal.jvm.JdkTools`(and others) need an alternative way to
 get a SystemJavaCompiler which does rely on the JavaCompiler coming from an isolated, non-system `ClassLoader`. One approach would be:
@@ -27,18 +35,7 @@ get a SystemJavaCompiler which does rely on the JavaCompiler coming from an isol
 - Some tests which garbage collect(`System.gc()`) are failing. See: `ModelRuleExtractorTest`. There would need to be some exploration
 to figure out how (or if) garbage collection is different on JDK9.
 
-### Cannot fork build processes (e.g. test execution processes)
-
-See:
-- https://discuss.gradle.org/t/classcastexception-from-org-gradle-process-internal-child-bootstrapsecuritymanager/2443
-- https://issues.gradle.org/browse/GRADLE-3287
-- http://download.java.net/jdk9/docs/api/index.html
-
-Proposed solution is to use a classpath manifest jar only on 9 and later.
-
-### Default daemon args are invalid with Java 9
-
-See: https://issues.gradle.org/browse/GRADLE-3286
+## Scala compilation is broken
 
 ## Update linux jdk9 installation
 
@@ -48,7 +45,7 @@ See: https://issues.gradle.org/browse/GRADLE-3286
 
 ## Add windows jdk9 coverage to Gradle CI pipeline
 
-At the moment there is no 64bit windows jdk9 available yet (Build b60)
+A 64 bit windows installer is now available (as of b80).
 
 ### implementation
 
@@ -64,7 +61,8 @@ At the moment there is no 64bit windows jdk9 available yet (Build b60)
 
 Goal: Run a coverage CI build on Java 9. At completion, it will be possible to build and test Gradle using Java 9.
 
-### Initial JDK9 support in Gradle's own build
+## Initial JDK9 support in Gradle's own build
+
 [gradle/java9.gradle](gradle/java9.gradle) adds both unit and integration test tasks executing on JDK 9.
  Once JDK 9 has been fully supported, jdk9 specific test tasks should be removed along with `[gradle/java9.gradle]`
 
@@ -72,13 +70,22 @@ Goal: Run a coverage CI build on Java 9. At completion, it will be possible to b
 
 Goal: full support of the Java 9 module system, and its build and runtime features
 
+- [Jigsaw JSR-376](http://openjdk.java.net/projects/jigsaw/spec/)
+
 In no particular order:
 
+- Make further use of `@argfile` when supported 
+    - `JavaExec` task
+    - daemon launcher
+    - generated application start scripts
+- Use `-release` javac flag for JVM binary that target older Java platform versions 
 - Extract or validate module dependencies declared in `module-info.java`
     - Infer API and runtime requirements based on required and exported modules
 - Extract or validate platform dependencies declared in `module-info.java`
 - Map module namespace to GAV namespace to resolve classpaths
 - Resolve modules for compilation module path
+    - Locate modules that provide required services.
+    - Resolve conflicts when multiple components provide the same module
 - Resolve libraries that are packaged as:
     - modular jar
     - jar
@@ -87,6 +94,7 @@ In no particular order:
 - Invoke compiler with module path and other args
 - Deal with single and multi-module source tree layouts
 - Resolve modules for runtime, packaged in various forms.
+    - Locate modules that provide required services.
 - Invoke java for module at runtime (eg for test execution)
 - Build modular jar file
     - May need to build multiple jars for a given project, one module per jar
@@ -97,6 +105,7 @@ In no particular order:
 - Publish multiple variants of a Java component 
 - Capture module identifier and dependencies in publication meta-data
 - Improve JVM platform definition and toolchains to understand and invoke modular JVMs
+- Use module layers rather than filtering when running under Java 9 to enforce isolation.
 
 Some migration/bridging options:
 
@@ -105,6 +114,7 @@ Some migration/bridging options:
     - Might not be reliable, as semantics of module and jar are somewhat different.
 - Support other JVM languages, generating modules based on dependency information.
 - Allow non-module consumers to consume modules, applying some validation at compile and runtime.
+    - This is possible already. Consumers loaded via classpath are part of an unnamed module and can read every other module.
 - Support Gradle plugins packaged as modules
 
 Abstractly:

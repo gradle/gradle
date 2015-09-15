@@ -44,22 +44,24 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
     private final ModelPath modelPath;
     private final ModelRegistry modelRegistry;
     private final ModelSchemaStore modelSchemaStore;
+    private final NodeInitializerRegistry nodeInitializerRegistry;
     private AtomicBoolean executingDsl;
 
-    public NonTransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore modelSchemaStore) {
-        this(new AtomicBoolean(), null, modelRegistry, modelSchemaStore);
+    public NonTransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore modelSchemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
+        this(new AtomicBoolean(), null, modelRegistry, modelSchemaStore, nodeInitializerRegistry);
     }
 
-    private NonTransformedModelDslBacking(AtomicBoolean executingDsl, ModelPath modelPath, ModelRegistry modelRegistry, ModelSchemaStore modelSchemaStore) {
+    private NonTransformedModelDslBacking(AtomicBoolean executingDsl, ModelPath modelPath, ModelRegistry modelRegistry, ModelSchemaStore modelSchemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
         this.executingDsl = executingDsl;
         this.modelPath = modelPath;
         this.modelRegistry = modelRegistry;
         this.modelSchemaStore = modelSchemaStore;
+        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     private NonTransformedModelDslBacking getChildPath(String name) {
         ModelPath path = modelPath == null ? ModelPath.path(name) : modelPath.child(name);
-        return new NonTransformedModelDslBacking(executingDsl, path, modelRegistry, modelSchemaStore);
+        return new NonTransformedModelDslBacking(executingDsl, path, modelRegistry, modelSchemaStore, nodeInitializerRegistry);
     }
 
     private void registerConfigurationAction(final Closure<?> action) {
@@ -76,13 +78,14 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
         if (!(schema instanceof ManagedImplModelSchema)) {
             throw new InvalidModelRuleDeclarationException(descriptor, "Cannot create an element of type " + type.getName() + " as it is not a managed type");
         }
+        NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer((ManagedImplModelSchema<?>) schema);
 
         modelRegistry.create(
-            ModelCreators.of(modelPath, ((ManagedImplModelSchema<T>)schema).getNodeInitializer())
+            ModelCreators.of(modelPath, nodeInitializer)
                 .descriptor(descriptor)
                 .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(modelPath, type), descriptor, new ClosureBackedAction<T>(closure)))
                 .build()
-            );
+        );
     }
 
     public void configure(Closure<?> action) {

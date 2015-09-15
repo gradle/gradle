@@ -25,6 +25,7 @@ import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -93,6 +94,9 @@ class ProviderStartParameterConverter {
         if (parameters.getBuildLogLevel() != null) {
             startParameter.setLogLevel(parameters.getBuildLogLevel());
         }
+
+        List<URI> classpath = parameters.getClasspath(Collections.<URI>emptyList());
+        startParameter.setClasspath(classpath);
 
         return startParameter;
     }

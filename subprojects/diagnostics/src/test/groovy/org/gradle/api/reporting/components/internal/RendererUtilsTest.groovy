@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.reporting.components.internal
-
 import org.gradle.api.Named
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -67,6 +66,13 @@ class RendererUtilsTest extends Specification {
         "toString() called" | "toString() called"
     }
 
+    def "toString() declared in super-class takes precedence over Named"() {
+        def value = new NamedExtendingHasToString(name: "name", superToString: "super-to-string")
+
+        expect:
+        RendererUtils.displayValueOf(value) == "super-to-string"
+    }
+
     static class SimpleNamed implements Named {
         String name
     }
@@ -76,5 +82,17 @@ class RendererUtilsTest extends Specification {
         String toString() {
             return "toString():" + name
         }
+    }
+
+    static class HasToString {
+        String superToString
+        @Override
+        String toString() {
+            return superToString
+        }
+    }
+
+    static class NamedExtendingHasToString extends HasToString implements Named {
+        String name
     }
 }

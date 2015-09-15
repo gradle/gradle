@@ -40,7 +40,7 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     public BuildLauncher newBuild() {
-        return new DefaultBuildLauncher(connection, parameters);
+        return new DefaultBuildLauncherInternal(connection, parameters);
     }
 
     @Override

@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.antlr.internal;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlan;
 import org.gradle.api.plugins.antlr.internal.antlr2.GenerationPlanBuilder;
@@ -39,42 +39,32 @@ public class AntlrExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntlrExecuter.class);
 
     AntlrResult runAntlr(AntlrSpec spec) throws IOException, InterruptedException {
-        // Try ANTLR 4
-        try {
-            final Antlr4Tool antlr4Tool = new Antlr4Tool();
+        AntlrTool antlrTool = new Antlr4Tool();
+        if (antlrTool.available()) {
             LOGGER.info("Processing with ANTLR 4");
-            return antlr4Tool.process(spec);
-        } catch (ClassNotFoundException e) {
-            LOGGER.debug("ANTLR 4 not found on classpath");
+            return antlrTool.process(spec);
         }
 
-        // Try ANTLR 3
-        try {
-            final Antlr3Tool antlr3Tool = new Antlr3Tool();
+        antlrTool = new Antlr3Tool();
+        if (antlrTool.available()) {
             LOGGER.info("Processing with ANTLR 3");
-            return antlr3Tool.process(spec);
-        } catch (ClassNotFoundException e) {
-            LOGGER.debug("ANTLR 3 not found on classpath");
+            return antlrTool.process(spec);
         }
 
-        // Try ANTLR 2
-        try {
-            final AntlrTool antlr2Tool = new Antlr2Tool();
+        antlrTool = new Antlr2Tool();
+        if (antlrTool.available()) {
             LOGGER.info("Processing with ANTLR 2");
-            return antlr2Tool.process(spec);
-        } catch (ClassNotFoundException e) {
-            LOGGER.debug("ANTLR 2 not found on classpath");
+            return antlrTool.process(spec);
         }
-
         throw new IllegalStateException("No Antlr implementation available");
     }
 
     private static class Antlr3Tool extends AntlrTool {
-        public Antlr3Tool() throws ClassNotFoundException {
+        public Antlr3Tool() {
         }
 
         @Override
-        int invoke(List<String> arguments) throws ClassNotFoundException {
+        int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
             final Object backedObject = loadTool("org.antlr.Tool", null);
             String[] argArray = arguments.toArray(new String[arguments.size()]);
             if (inputDirectory != null) {
@@ -87,17 +77,17 @@ public class AntlrExecuter {
         }
 
         @Override
-        public void checkAvailability() throws ClassNotFoundException {
-            loadTool("org.antlr.Tool", null);
+        public boolean available() {
+            try {
+                loadTool("org.antlr.Tool", null);
+            } catch (ClassNotFoundException cnf) {
+                return false;
+            }
+            return true;
         }
     }
 
     private abstract static class AntlrTool {
-        protected File inputDirectory;
-
-        public AntlrTool() throws ClassNotFoundException {
-            checkAvailability();
-        }
         /**
          * Utility method to create an instance of the Tool class.
          *
@@ -112,8 +102,8 @@ public class AntlrExecuter {
                     Constructor<?> constructor = toolClass.getConstructor(String[].class);
                     return constructor.newInstance(new Object[]{args});
                 }
-            } catch (ClassNotFoundException e) {
-                throw e;
+            }catch(ClassNotFoundException cnf){
+                throw cnf;
             } catch (InvocationTargetException e) {
                 throw new GradleException("Failed to load ANTLR", e.getCause());
             } catch (Exception e) {
@@ -121,16 +111,25 @@ public class AntlrExecuter {
             }
         }
 
+        public final AntlrResult process(AntlrSpec spec) {
+            try {
+                return doProcess(spec);
+            } catch (ClassNotFoundException e) {
+                //this shouldn't happen if you call check availability with #available first
+                throw new GradleException("Canot process antlr sources", e);
+            }
+        }
+
         /**
          * process used for antlr3/4
-         * */
-        public AntlrResult process(AntlrSpec spec) throws ClassNotFoundException {
+         */
+        public AntlrResult doProcess(AntlrSpec spec) throws ClassNotFoundException {
             int numErrors = 0;
             if (spec.getInputDirectories().size() == 0) {
                 // we have not root source folder information for the grammar files,
                 // so we don't force relativeOutput as we can't calculate it.
                 // This results in flat generated sources in the output directory
-                numErrors += invoke(spec.asArgumentsWithFiles());
+                numErrors += invoke(spec.asArgumentsWithFiles(), null);
             } else {
                 boolean onWindows = OperatingSystem.current().isWindows();
                 for (File inputDirectory : spec.getInputDirectories()) {
@@ -144,21 +143,15 @@ public class AntlrExecuter {
                         }
                         arguments.add(relativeGrammarFilePath);
                     }
-                    setInputDirectory(inputDirectory);
-                    numErrors += invoke(arguments);
+                    numErrors += invoke(arguments, inputDirectory);
                 }
             }
             return new AntlrResult(numErrors);
         }
 
-        public void setInputDirectory(File inputDirectory) {
-            this.inputDirectory = inputDirectory;
-        }
+        abstract int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException;
 
-
-        abstract int invoke(List<String> arguments) throws ClassNotFoundException;
-
-        public abstract void checkAvailability() throws ClassNotFoundException;
+        public abstract boolean available();
 
         protected static String[] toArray(List<String> strings) {
             return strings.toArray(new String[strings.size()]);
@@ -166,12 +159,12 @@ public class AntlrExecuter {
 
     }
 
-    private static class Antlr4Tool extends AntlrTool{
-        public Antlr4Tool() throws ClassNotFoundException {
+    static class Antlr4Tool extends AntlrTool {
+        public Antlr4Tool() {
         }
 
         @Override
-        int invoke(List<String> arguments) throws ClassNotFoundException {
+        int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
             final Object backedObject = loadTool("org.antlr.v4.Tool", toArray(arguments));
             if (inputDirectory != null) {
                 JavaReflectionUtil.writeableField(backedObject.getClass(), "inputDirectory").setValue(backedObject, inputDirectory);
@@ -181,16 +174,21 @@ public class AntlrExecuter {
         }
 
         @Override
-        public void checkAvailability() throws ClassNotFoundException {
-            loadTool("org.antlr.v4.Tool", null);
+        public boolean available() {
+            try {
+                loadTool("org.antlr.v4.Tool", null);
+            } catch (ClassNotFoundException cnf) {
+                return false;
+            }
+            return true;
         }
     }
 
-    private class Antlr2Tool extends AntlrTool {
-        public Antlr2Tool() throws ClassNotFoundException {
+    private static class Antlr2Tool extends AntlrTool {
+        public Antlr2Tool() {
         }
 
-        public AntlrResult process(AntlrSpec spec) throws ClassNotFoundException {
+        public AntlrResult doProcess(AntlrSpec spec) throws ClassNotFoundException {
             XRef xref = new MetadataExtracter().extractMetadata(spec.getGrammarFiles());
             List<GenerationPlan> generationPlans = new GenerationPlanBuilder(spec.getOutputDirectory()).buildGenerationPlans(xref);
             for (GenerationPlan generationPlan : generationPlans) {
@@ -198,21 +196,30 @@ public class AntlrExecuter {
                 generationPlanArguments.add("-o");
                 generationPlanArguments.add(generationPlan.getGenerationDirectory().getAbsolutePath());
                 generationPlanArguments.add(generationPlan.getSource().getAbsolutePath());
-                invoke(generationPlanArguments);
+                invoke(generationPlanArguments, null);
+
             }
             return new AntlrResult(0);  // ANTLR 2 always returning 0
         }
 
+        /**
+         * inputDirectory is not used in antlr2
+         * */
         @Override
-        int invoke(List<String> arguments) throws ClassNotFoundException {
+        int invoke(List<String> arguments, File inputDirectory) throws ClassNotFoundException {
             final Object backedAntlrTool = loadTool("antlr.Tool", null);
             JavaReflectionUtil.method(backedAntlrTool, Integer.class, "doEverything", String[].class).invoke(backedAntlrTool, new Object[]{toArray(arguments)});
             return 0;
         }
 
         @Override
-        public void checkAvailability() throws ClassNotFoundException {
-            loadTool("antlr.Tool", null);
+        public boolean available() {
+            try {
+                loadTool("antlr.Tool", null);
+            } catch (ClassNotFoundException cnf) {
+                return false;
+            }
+            return true;
         }
     }
 }

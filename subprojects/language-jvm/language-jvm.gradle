@@ -13,4 +13,5 @@ useClassycle()
 strictCompile()
 useTestFixtures()
 useTestFixtures(sourceSet: 'testFixtures')
+useTestFixtures(project: ':launcher', sourceSet: 'testFixtures')
 

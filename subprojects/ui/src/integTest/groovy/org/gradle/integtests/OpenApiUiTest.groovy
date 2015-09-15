@@ -25,9 +25,9 @@ import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1
 import org.gradle.openapi.external.ui.*
 import org.gradle.openapi.wrappers.ui.SinglePaneUIWrapper
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -59,7 +59,7 @@ class OpenApiUiTest {
 
     @Before
     void setup() {
-        NativeServicesTestFixture.initialize(buildContext.gradleUserHomeDir)
+        NativeServicesTestFixture.initialize()
         temporaryFolder.file("settings.gradle") << "include 'services', 'services:webservice', 'api'"
         temporaryFolder.file("build.gradle") << "allprojects { apply plugin: 'java' }"
     }

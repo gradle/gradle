@@ -16,26 +16,22 @@
 
 package org.gradle.platform.base.component
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.language.base.FunctionalSourceSet
-import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelNode
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.language.base.ProjectSourceSet
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.platform.base.ComponentSpecIdentifier
 
 class BaseComponentFixtures {
 
-    static <T extends BaseComponentSpec> T create(Class<T> type, ModelRegistryHelper modelRegistry, ComponentSpecIdentifier componentId, FunctionalSourceSet functionalSourceSet, Instantiator instantiator, ModelSchemaStore schemaStore = null) {
-        if (schemaStore == null) {
-            schemaStore = DefaultModelSchemaStore.getInstance()
+    static <T extends BaseComponentSpec> T create(Class<T> type, ModelRegistryHelper modelRegistry, ComponentSpecIdentifier componentId, ProjectSourceSet allSourceSets, Instantiator instantiator, NodeInitializerRegistry nodeInitializerRegistry = null) {
+        if (nodeInitializerRegistry == null) {
+            nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)
         }
         try {
             modelRegistry.create(
                 ModelCreators.unmanagedInstanceOf(ModelReference.of(componentId.name, type), {
-                    BaseComponentSpec.create(type, componentId, it, functionalSourceSet, instantiator, schemaStore)
+                    BaseComponentSpec.create(type, componentId, it, allSourceSets, instantiator, nodeInitializerRegistry)
                 })
                     .descriptor(componentId.name)
                     .build()

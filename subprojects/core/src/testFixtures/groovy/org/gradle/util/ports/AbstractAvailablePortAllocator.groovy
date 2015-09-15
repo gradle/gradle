@@ -21,12 +21,9 @@ import java.util.concurrent.locks.ReentrantLock
 
 
 abstract class AbstractAvailablePortAllocator implements PortAllocator {
-    public static final int RANGE_SIZE = 100
     List<ReservedPortRange> reservations = []
     protected final Lock lock = new ReentrantLock()
     ReservedPortRangeFactory portRangeFactory = new DefaultReservedPortRangeFactory()
-    int rangeSize = RANGE_SIZE
-    int rangeCount = (MAX_PRIVATE_PORT - MIN_PRIVATE_PORT) / RANGE_SIZE
 
     @Override
     public int assignPort() {

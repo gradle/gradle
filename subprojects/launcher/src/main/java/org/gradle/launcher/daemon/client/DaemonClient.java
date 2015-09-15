@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
@@ -38,6 +39,7 @@ import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
 
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * The client piece of the build daemon.
@@ -113,21 +115,26 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters parameters, ServiceRegistry contextServices) {
         Object buildId = idGenerator.generateId();
         Build build = new Build(buildId, action, requestContext.getClient(), requestContext.getBuildTimeClock().getStartTime(), parameters);
+        List<DaemonInitialConnectException> accumulatedExceptions = Lists.newArrayList();
+
         int saneNumberOfAttempts = 100; //is it sane enough?
+
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
             try {
                 return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
             } catch (DaemonInitialConnectException e) {
-                //this exception means that we want to try again.
-                LOGGER.info(e.getMessage() + " Trying a different daemon...");
+                // this exception means that we want to try again.
+                LOGGER.debug("{}, Trying a different daemon...", e.getMessage());
+                accumulatedExceptions.add(e);
             } finally {
                 connection.stop();
             }
         }
-        //TODO it would be nice if below includes the errors that were accumulated above.
+
         throw new NoUsableDaemonFoundException("Unable to find a usable idle daemon. I have connected to "
-                + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build + ".");
+                + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build
+                + ".  BuildActionParameters were " + parameters + ".", accumulatedExceptions);
     }
 
     protected Object executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) throws DaemonInitialConnectException {
@@ -142,16 +149,20 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             //However, since we haven't yet started running the build, we can recover by just trying again...
             throw new DaemonInitialConnectException("Connected to a stale daemon address.", e);
         }
+
         if (result == null) {
             throw new DaemonInitialConnectException("The first result from the daemon was empty. Most likely the process died immediately after connection.");
         }
 
+        LOGGER.info("Received result {} from daemon {} (build should be starting).", result, connection.getDaemon());
+
+        DaemonDiagnostics diagnostics = null;
         if (result instanceof BuildStarted) {
-            DaemonDiagnostics diagnostics = ((BuildStarted) result).getDiagnostics();
+            diagnostics = ((BuildStarted) result).getDiagnostics();
             result = monitorBuild(build, diagnostics, connection, cancellationToken, buildEventConsumer);
         }
 
-        LOGGER.info("Received result {} from daemon {}.", result, connection.getDaemon());
+        LOGGER.info("Received result {} from daemon {} (build should be done).", result, connection.getDaemon());
 
         connection.dispatch(new Finished());
 
@@ -167,7 +178,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         } else if (result instanceof Result) {
             return ((Result) result).getValue();
         } else {
-            throw invalidResponse(result, build);
+            throw invalidResponse(result, build, diagnostics);
         }
     }
 
@@ -211,10 +222,10 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         throw new DaemonDisappearedException();
     }
 
-    private IllegalStateException invalidResponse(Object response, Build command) {
-        //TODO diagnostics could be included in the exception (they might be available).
+    private IllegalStateException invalidResponse(Object response, Build command, DaemonDiagnostics diagnostics) {
+        String diagnosticsMessage = diagnostics==null ? "No diagnostics available." : diagnostics.describe();
         return new IllegalStateException(String.format(
-                "Received invalid response from the daemon: '%s' is a result of a type we don't have a strategy to handle."
-                + "Earlier, '%s' request was sent to the daemon.", response, command));
+                "Received invalid response from the daemon: '%s' is a result of a type we don't have a strategy to handle. "
+                + "Earlier, '%s' request was sent to the daemon. Diagnostics:\n%s", response, command, diagnosticsMessage));
     }
 }

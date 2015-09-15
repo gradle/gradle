@@ -4,14 +4,50 @@
 String jdkVarName = 'JAVA_9'
 
 task java9IntegTest(type: Test) {
-    include '**/*CompilerIntegrationTest*'
     excludes = [
-        'InProcessGroovyCompilerIntegrationTest',
-        'InProcessJavaCompilerIntegrationTest',
-        'AntForkingScalaCompilerIntegrationTest',
-        'AntInProcessScalaCompilerIntegrationTest',
-        'ZincScalaCompilerIntegrationTest'
-    ].collect { "**/*${it}*" }
+            'SrcDistributionIntegrationSpec', // source compat 1.5 unsupported
+            'MavenConversionIntegrationTest', // source compat 1.5 unsupported
+            'ScalaLibraryInitIntegrationTest', // scala compile broken
+            'ApplicationIntegrationSpec', // test fixture problem
+            'ProjectLayoutIntegrationTest', //  scala compile broken
+            'SamplesApplicationIntegrationTest', // test fixture problem
+            'SamplesJavaBaseIntegrationTest', // source compat 1.5 unsupported
+            'UserGuideSamplesIntegrationTest', // source compat 1.5 unsupported
+            'IvyPublishHttpIntegTest', // uses tools.jar as large test file
+            'IvyHttpPublishIntegrationTest', // uses tools.jar as large test file
+            'JavadocIntegrationTest',
+            'JavaLanguageIntegrationTest', // source compat 1.5 unsupported
+            'SampleJavaLanguageIntegrationTest', // source compat 1.5 unsupported
+            'JointScalaLangIntegrationTest', // scala compile broken
+            'SampleScalaLanguageIntegrationTest', // scala compile broken
+            'ScalaCompilerContinuousIntegrationTest', // scala compile broken
+            'ScalaLanguageIncrementalBuildIntegrationTest', // scala compile broken
+            'ScalaLanguageIntegrationTest', // scala compile broken
+            'SystemClassLoaderTest', // system classpath changed, test expectation is wrong
+            'MultipleNativeToolChainIntegrationTest',
+            'Play', // scala runtime doesn't load, scala compile broken
+            'Twirl', // scala runtime doesn't load, scala compile broken
+            'InProcessGroovyCompilerIntegrationTest',
+            'InvokeDynamicGroovyCompilerSpec',
+            'InProcessJavaCompilerIntegrationTest',
+            'IncrementalJavaCompileIntegrationTest', // source compat 1.5 unsupported
+            'SamplesJavaQuickstartIntegrationTest', // source compat 1.5 unsupported
+            'JUnitIntegrationTest', // system classloader changed, test expectation is wrong
+            'SampleTestNGIntegrationTest', // source compat 1.4 and 1.5 unsupported
+            'TestNGIntegrationTest', // source compat 1.4 and 1.5 unsupported
+            'SamplesMixedJavaAndScalaIntegrationTest', // scala compile broken
+            'SamplesScalaCustomizedLayoutIntegrationTest', // scala compile broken
+            'SamplesScalaQuickstartIntegrationTest', // scala compile broken
+            'SamplesScalaZincIntegrationTest', // scala compile broken
+            'AntForkingScalaCompilerIntegrationTest', // scala compile broken
+            'AntInProcessScalaCompilerIntegrationTest', // scala compile broken
+            'IncrementalScalaCompileIntegrationTest', // scala compile broken
+            'ZincScalaCompilerIntegrationTest', // scala compile broken
+            'ZincScalaCompilerMultiVersionIntegrationTest', // scala compile broken
+            'ScalaTestIntegrationTest', // scala compile broken
+            'FunctionalReleaseNotesTest',
+            'StaticReleaseNotesTest',
+    ].collect { "**/*${it}*" } << 'org/gradle/integtests/tooling/**' // 2.6 provider fails to start daemon, remove this once 2.7 is released
 }
 
 task java9Test(type: Test) {

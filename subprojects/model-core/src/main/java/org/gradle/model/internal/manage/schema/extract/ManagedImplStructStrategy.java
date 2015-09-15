@@ -18,18 +18,13 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.api.Action;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.inspect.ManagedModelInitializer;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
-import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 
 public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
 
-    private static final ManagedProxyFactory PROXY_FACTORY = new ManagedProxyFactory();
     private static final ModelElementState NO_OP_MODEL_ELEMENT_STATE = new ModelElementState() {
         @Override
         public MutableModelNode getBackingNode() {
@@ -54,25 +49,20 @@ public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtraction
     }
 
     @Override
-    protected <R> ModelManagedImplStructSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
-        final ModelManagedImplStructSchema<R> schema = super.createSchema(extractionContext, store, type, properties, aspects);
-        extractionContext.addValidator(new Action<ModelSchemaExtractionContext<R>>() {
+    protected <R> ModelManagedImplStructSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects) {
+        final ModelManagedImplStructSchema<R> schema = super.createSchema(extractionContext, propertyResults, aspects);
+        extractionContext.addValidator(new Action<ModelSchema<R>>() {
             @Override
-            public void execute(ModelSchemaExtractionContext<R> validatorModelSchemaExtractionContext) {
+            public void execute(ModelSchema<R> modelSchema) {
                 ensureCanBeInstantiated(extractionContext, schema);
             }
         });
         return schema;
     }
 
-    @Override
-    protected <R> NodeInitializer createNodeInitializer(ModelManagedImplStructSchema<R> schema, ModelSchemaStore store) {
-        return new ManagedModelInitializer<R>(schema, store);
-    }
-
     private <R> void ensureCanBeInstantiated(ModelSchemaExtractionContext<R> extractionContext, ModelManagedImplStructSchema<R> schema) {
         try {
-            PROXY_FACTORY.createProxy(NO_OP_MODEL_ELEMENT_STATE, schema);
+            ManagedProxyFactory.INSTANCE.createProxy(NO_OP_MODEL_ELEMENT_STATE, schema);
         } catch (Throwable e) {
             throw new InvalidManagedModelElementTypeException(extractionContext, "instance creation failed", e);
         }

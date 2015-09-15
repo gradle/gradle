@@ -18,11 +18,11 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.*;
 
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,46 +31,51 @@ import java.util.List;
 public class DefaultGradleRunner extends GradleRunner {
 
     public static final String DIAGNOSTICS_MESSAGE_SEPARATOR = "-----";
-    private final GradleExecutor gradleExecutor = new GradleExecutor();
     private final File gradleHome;
+    private final GradleExecutor gradleExecutor;
 
-    private File gradleUserHomeDir;
+    private TestKitDirProvider testKitDirProvider;
+
     private File projectDirectory;
     private List<String> arguments = new ArrayList<String>();
     private List<String> jvmArguments = new ArrayList<String>();
+    private List<URI> classpath = new ArrayList<URI>();
+    private boolean debug;
 
     public DefaultGradleRunner(File gradleHome) {
-        this(gradleHome, new TemporaryGradleRunnerWorkingSpaceDirectoryProvider());
+        this(gradleHome, new TestKitGradleExecutor(), new TempTestKitDirProvider());
     }
 
-    DefaultGradleRunner(File gradleHome, GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider) {
+    DefaultGradleRunner(File gradleHome, GradleExecutor gradleExecutor, TestKitDirProvider testKitDirProvider) {
         this.gradleHome = gradleHome;
-        this.gradleUserHomeDir = createGradleUserHomeDir(gradleRunnerWorkingSpaceDirectoryProvider);
+        this.gradleExecutor = gradleExecutor;
+        this.testKitDirProvider = testKitDirProvider;
+        debug = isDebugEnabled();
     }
 
-    private File createGradleUserHomeDir(GradleRunnerWorkingSpaceDirectoryProvider gradleRunnerWorkingSpaceDirectoryProvider) {
-        try {
-            return gradleRunnerWorkingSpaceDirectoryProvider.createDir();
-        } catch (UncheckedIOException e) {
-            throw new InvalidRunnerConfigurationException("Unable to create or write to Gradle user home directory for test execution", e);
+    private boolean isDebugEnabled() {
+        return Boolean.parseBoolean(System.getProperty(DEBUG_SYS_PROP, "false"));
+    }
+
+    public TestKitDirProvider getTestKitDirProvider() {
+        return testKitDirProvider;
+    }
+
+    @Override
+    public DefaultGradleRunner withTestKitDir(final File testKitDir) {
+        if (testKitDir == null) {
+            throw new IllegalArgumentException("testKitDir argument cannot be null");
         }
-    }
-
-    public File getGradleUserHomeDir() {
-        return gradleUserHomeDir;
-    }
-
-    public GradleRunner withGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
+        this.testKitDirProvider = new ConstantTestKitDirProvider(testKitDir);
         return this;
     }
 
-    public GradleRunner withJvmArguments(List<String> jvmArguments) {
+    public DefaultGradleRunner withJvmArguments(List<String> jvmArguments) {
         this.jvmArguments = new ArrayList<String>(jvmArguments);
         return this;
     }
 
-    public GradleRunner withJvmArguments(String... jvmArguments) {
+    public DefaultGradleRunner withJvmArguments(String... jvmArguments) {
         return withJvmArguments(Arrays.asList(jvmArguments));
     }
 
@@ -80,7 +85,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
-    public GradleRunner withProjectDir(File projectDir) {
+    public DefaultGradleRunner withProjectDir(File projectDir) {
         this.projectDirectory = projectDir;
         return this;
     }
@@ -91,14 +96,36 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
-    public GradleRunner withArguments(List<String> arguments) {
+    public DefaultGradleRunner withArguments(List<String> arguments) {
         this.arguments = new ArrayList<String>(arguments);
         return this;
     }
 
     @Override
-    public GradleRunner withArguments(String... arguments) {
+    public DefaultGradleRunner withArguments(String... arguments) {
         return withArguments(Arrays.asList(arguments));
+    }
+
+    @Override
+    public List<URI> getClasspath() {
+        return Collections.unmodifiableList(classpath);
+    }
+
+    @Override
+    public GradleRunner withClasspath(List<URI> classpath) {
+        this.classpath = new ArrayList<URI>(classpath);
+        return this;
+    }
+
+    @Override
+    public boolean isDebug() {
+        return debug;
+    }
+
+    @Override
+    public GradleRunner withDebug(boolean debug) {
+        this.debug = debug;
+        return this;
     }
 
     @Override
@@ -165,12 +192,16 @@ public class DefaultGradleRunner extends GradleRunner {
             throw new InvalidRunnerConfigurationException("Please specify a project directory before executing the build");
         }
 
+        File testKitDir = createTestKitDir(testKitDirProvider);
+
         GradleExecutionResult execResult = gradleExecutor.run(
             gradleHome,
-            gradleUserHomeDir,
+            testKitDir,
             projectDirectory,
             arguments,
-            jvmArguments
+            jvmArguments,
+            classpath,
+            debug
         );
 
         resultVerification.execute(execResult);
@@ -181,4 +212,21 @@ public class DefaultGradleRunner extends GradleRunner {
             execResult.getTasks()
         );
     }
+
+    private File createTestKitDir(TestKitDirProvider testKitDirProvider) {
+        File dir = testKitDirProvider.getDir();
+        if (dir.isDirectory()) {
+            if (!dir.canWrite()) {
+                throw new InvalidRunnerConfigurationException("Unable to write to test kit directory: " + dir.getAbsolutePath());
+            }
+            return dir;
+        } else if (dir.exists()) {
+            throw new InvalidRunnerConfigurationException("Unable to use non-directory as test kit directory: " + dir.getAbsolutePath());
+        } else if (dir.mkdirs() || dir.isDirectory()) {
+            return dir;
+        } else {
+            throw new InvalidRunnerConfigurationException("Unable to create test kit directory: " + dir.getAbsolutePath());
+        }
+    }
+
 }

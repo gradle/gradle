@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.internal.TemporaryGradleRunnerWorkingSpaceDirectoryProvider
+import org.gradle.testkit.runner.internal.TempTestKitDirProvider
 import org.gradle.util.GFileUtils
 
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
@@ -132,6 +132,63 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             assert result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
         }
 
+        assertDaemonsAreStopping()
+    }
+
+    def "successfully execute functional test with custom Gradle user home directory"() {
+        buildFile << gradleTestKitDependency()
+        writeTest """
+            package org.gradle.test
+
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskOutcome.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                @Rule final TemporaryFolder testGradleUserHomeDir = new TemporaryFolder()
+
+                File buildFile
+
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
+                }
+
+                def "execute helloWorld task"() {
+                    given:
+                    buildFile << '''
+                        task helloWorld {
+                            doLast {
+                                println 'Hello world!'
+                            }
+                        }
+                    '''
+
+                    when:
+                    def result = GradleRunner.create()
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('helloWorld')
+                        .withTestKitDir(testGradleUserHomeDir.root)
+                        .build()
+
+                    then:
+                    result.standardOutput.contains('Hello world!')
+                    result.standardError == ''
+                    result.taskPaths(SUCCESS) == [':helloWorld']
+                    result.taskPaths(SKIPPED).empty
+                    result.taskPaths(UP_TO_DATE).empty
+                    result.taskPaths(FAILED).empty
+                }
+            }
+        """
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(":test", ":build")
         assertDaemonsAreStopping()
     }
 
@@ -302,8 +359,144 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         assertDaemonsAreStopping()
     }
 
+    def "can test plugin and custom task as external files by providing them as classpath through GradleRunner API"() {
+        file("settings.gradle") << "include 'sub'"
+        file("sub/build.gradle") << "apply plugin: 'groovy'; dependencies { compile localGroovy() }"
+        file("sub/src/main/groovy/org/gradle/test/lib/Support.groovy") << "package org.gradle.test.lib; class Support { static String MSG = 'Hello world!' }"
+
+        buildFile <<
+            gradleApiDependency() <<
+            gradleTestKitDependency() <<
+            """
+                dependencies {
+                  compile project(":sub")
+                }
+
+                task createClasspathManifest {
+                    def outputDir = file("\$buildDir/\$name")
+
+                    inputs.files sourceSets.main.runtimeClasspath
+                    outputs.dir outputDir
+
+                    doLast {
+                        outputDir.mkdirs()
+                        file("\$outputDir/plugin-classpath.txt").text = sourceSets.main.runtimeClasspath.join("\\n")
+                    }
+                }
+
+                dependencies {
+                    testCompile files(createClasspathManifest)
+                }
+            """
+
+        file("src/main/groovy/org/gradle/test/HelloWorldPlugin.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class HelloWorldPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.task('helloWorld', type: HelloWorld)
+                }
+            }
+        """
+
+        file("src/main/groovy/org/gradle/test/HelloWorld.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+            import org.gradle.test.lib.Support
+
+            class HelloWorld extends DefaultTask {
+                @TaskAction
+                void doSomething() {
+                    println Support.MSG
+                }
+            }
+        """
+
+        file("src/main/groovy/org/gradle/test/ByeWorld.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+
+            class ByeWorld extends DefaultTask {
+                @TaskAction
+                void doSomething() {
+                    println 'Bye world!'
+                }
+            }
+        """
+
+        file("src/main/resources/META-INF/gradle-plugins/com.company.helloworld.properties") << """
+            implementation-class=org.gradle.test.HelloWorldPlugin
+        """
+
+        writeTest """
+            package org.gradle.test
+
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskOutcome.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                File buildFile
+                List<URI> pluginClasspath
+
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
+                    pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
+                      .readLines()
+                      .collect { new File(it).toURI() }
+                }
+
+                def "execute helloWorld task"() {
+                    given:
+                    buildFile << \"\"\"
+                        plugins {
+                            id 'com.company.helloworld'
+                        }
+
+                        import org.gradle.test.ByeWorld
+
+                        task byeWorld(type: ByeWorld)
+                    \"\"\"
+
+                    when:
+                    def result = GradleRunner.create()
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('helloWorld', 'byeWorld')
+                        .withClasspath(pluginClasspath)
+                        .build()
+
+                    then:
+                    result.standardOutput.contains('Hello world!')
+                    result.standardOutput.contains('Bye world!')
+                    result.standardError == ''
+                    result.taskPaths(SUCCESS) == [':helloWorld', ':byeWorld']
+                    result.taskPaths(SKIPPED).empty
+                    result.taskPaths(UP_TO_DATE).empty
+                    result.taskPaths(FAILED).empty
+                }
+            }
+        """
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(':test')
+        assertDaemonsAreStopping()
+    }
+
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
-        File daemonBaseDir = new File(new TemporaryGradleRunnerWorkingSpaceDirectoryProvider().createDir(), 'daemon')
+        File daemonBaseDir = new File(new TempTestKitDirProvider().getDir(), 'daemon')
         DaemonLogsAnalyzer.newAnalyzer(daemonBaseDir, executer.distribution.version.version)
     }
 
@@ -317,7 +510,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 compile localGroovy()
-                testCompile 'org.spockframework:spock-core:1.0-groovy-2.3'
+                testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+                    exclude module: 'groovy-all'
+                }
             }
 
             repositories {

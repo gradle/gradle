@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling.m5
-
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.idea.*
@@ -22,7 +22,7 @@ import org.gradle.tooling.model.idea.*
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "builds the model even if idea plugin not applied"() {
-        
+
         file('build.gradle').text = '''
 apply plugin: 'java'
 description = 'this is a project'
@@ -42,7 +42,7 @@ description = 'this is a project'
     }
 
     def "provides basic project information"() {
-        
+
         file('build.gradle').text = """
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -62,7 +62,7 @@ idea.project {
     }
 
     def "provides all modules"() {
-        
+
         file('build.gradle').text = '''
 subprojects {
     apply plugin: 'java'
@@ -80,7 +80,7 @@ subprojects {
     }
 
     def "provides basic module information"() {
-        
+
         file('build.gradle').text = """
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -109,7 +109,7 @@ idea.module.testOutputDir = file('someTestDir')
     }
 
     def "provides source dir information"() {
-        
+
         file('build.gradle').text = "apply plugin: 'java'"
 
         projectDir.create {
@@ -141,7 +141,7 @@ idea.module.testOutputDir = file('someTestDir')
     }
 
     def "provides exclude dir information"() {
-        
+
         file('build.gradle').text = """
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -158,7 +158,7 @@ idea.module.excludeDirs += file('foo')
     }
 
     def "provides dependencies"() {
-        
+
         def fakeRepo = file("repo")
 
         def dependency = new MavenFileRepository(fakeRepo).module("foo.bar", "coolLib", 1.0)
@@ -212,8 +212,9 @@ project(':impl') {
         mod.scope.scope == 'COMPILE'
     }
 
+    @TargetGradleVersion('>=1.0-milestone-8 <=2.7')
     def "makes sure module names are unique"() {
-        
+
         file('build.gradle').text = """
 subprojects {
     apply plugin: 'java'
@@ -248,7 +249,7 @@ project(':contrib:impl') {
     }
 
     def "module has access to gradle project and its tasks"() {
-        
+
         file('build.gradle').text = """
 subprojects {
     apply plugin: 'java'
@@ -277,7 +278,7 @@ project(':impl') {
     }
 
     def "offline model should not resolve external dependencies"() {
-        
+
 
         file('build.gradle').text = """
 subprojects {

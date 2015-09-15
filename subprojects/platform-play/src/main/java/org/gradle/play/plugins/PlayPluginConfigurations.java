@@ -24,6 +24,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.io.File;
 
@@ -117,6 +118,11 @@ public class PlayPluginConfigurations {
         }
 
         @Override
+        public String getDisplayName() {
+            return configuration.toString();
+        }
+
+        @Override
         public FileCollectionInternal createDelegate() {
             ImmutableSet.Builder<File> files = ImmutableSet.builder();
             for (ResolvedArtifact artifact : configuration.getResolvedConfiguration().getResolvedArtifacts()) {
@@ -125,6 +131,11 @@ public class PlayPluginConfigurations {
                 }
             }
             return new SimpleFileCollection(files.build());
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(configuration);
         }
     }
 }

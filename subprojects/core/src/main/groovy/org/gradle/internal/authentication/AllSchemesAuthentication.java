@@ -17,24 +17,19 @@
 package org.gradle.internal.authentication;
 
 import org.gradle.api.credentials.Credentials;
-
-import java.util.HashSet;
-import java.util.Set;
+import org.gradle.authentication.Authentication;
 
 /**
  * Authentication scheme representing all supported schemes for a given protocol
  */
 public class AllSchemesAuthentication extends AbstractAuthentication {
     public AllSchemesAuthentication(Credentials credentials) {
-        super("all");
+        super("all", Authentication.class);
         this.setCredentials(credentials);
     }
 
     @Override
-    public Set<Class<? extends Credentials>> getSupportedCredentials() {
-        // effectively circumvent this check by just returning whatever kind of credentials are configured
-        Set<Class<? extends Credentials>> supported = new HashSet<Class<? extends Credentials>>();
-        supported.add(getCredentials().getClass());
-        return supported;
+    public boolean supports(Credentials credentials) {
+        return true;
     }
 }

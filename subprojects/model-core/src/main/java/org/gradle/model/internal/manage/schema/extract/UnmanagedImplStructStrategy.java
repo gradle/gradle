@@ -16,10 +16,14 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
-import org.gradle.model.internal.manage.schema.*;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.ModelUnmanagedImplStructSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
@@ -32,8 +36,14 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
         super(aspectExtractor);
     }
 
-    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store, ModelType<R> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
-        return new ModelUnmanagedImplStructSchema<R>(type, properties, aspects);
+    protected <R> ModelSchema<R> createSchema(final ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects) {
+        Iterable<ModelProperty<?>> properties = Iterables.transform(propertyResults, new Function<ModelPropertyExtractionResult<?>, ModelProperty<?>>() {
+            @Override
+            public ModelProperty<?> apply(ModelPropertyExtractionResult<?> propertyResult) {
+                return propertyResult.getProperty();
+            }
+        });
+        return new ModelUnmanagedImplStructSchema<R>(extractionContext.getType(), properties, aspects);
     }
 
     @Override
@@ -51,7 +61,7 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
     }
 
     @Override
-    protected void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, PropertyAccessorExtractionContext getter, String message) {
+    protected void handleInvalidGetter(ModelSchemaExtractionContext<?> extractionContext, Method getter, String message) {
     }
 
     @Override
@@ -68,7 +78,7 @@ public class UnmanagedImplStructStrategy extends StructSchemaExtractionStrategyS
     }
 
     @Override
-    protected <P> Action<ModelSchemaExtractionContext<P>> createPropertyValidator(ModelPropertyExtractionResult<P> propertyResult, ModelSchemaCache modelSchemaCache) {
+    protected <P> Action<ModelSchema<P>> createPropertyValidator(ModelSchemaExtractionContext<?> extractionContext, ModelPropertyExtractionResult<P> propertyResult, ModelSchemaStore modelSchemaStore) {
         return Actions.doNothing();
     }
 }

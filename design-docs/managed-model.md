@@ -57,11 +57,6 @@ may also be internal mechanisms to define such properties on other types.
 - Add support for primitive types to `ManagedProxyClassGenerator`. Handle case where state returns null by setting a default value.
 - Make sure `org.gradle.api.reporting.model.internal.ModelNodeRenderer.maybePrintValue` handles primitive types in a human readable form
 
-##### Open issues
-
-- `ModelElementState` only supports boxed types, using `get` and `set`. If the model is often updated, it could lead to performance issues, in which case it
-could be necessary to introduce primitive versions of `get` and `set`.
-
 ### Support `is` style getters for managed properties of type boolean
 
 - Should follow the JavaBeans specification: only type `boolean` should allow `is` getter style: `Boolean` shouldn't be supported.
@@ -71,6 +66,7 @@ could be necessary to introduce primitive versions of `get` and `set`.
 - Support `is` style accessor for properties with type `boolean`
 - Support type with both `is` and `get` accessors for property with type `boolean`
 - Prohibit `is` style accessors for properties of any type other than `boolean`(including Boolean)
+- Delegated boolean property declared with `is` getter in unmanaged super-type is supported
 
 ### Support for managed properties with collection of scalar types
 
@@ -207,6 +203,11 @@ be syntactic sugar for `clear` followed by `addAll`.
 
 
 ## Backlog
+
+### Performance issues
+
+- `ModelElementState` only supports boxed types, using `get` and `set`. If the model is often updated, it could lead to performance issues, in which case it
+could be necessary to introduce primitive versions of `get` and `set`.
 
 ### Support managed types declaring properties of type `ModelMap<T>`
 

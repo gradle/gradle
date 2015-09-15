@@ -1,0 +1,105 @@
+// use "-I init.gradle -u" cli parameters to run manually from build/compareTaskInputs directory
+
+apply plugin:'base'
+
+class OrdinaryTaskInputTask extends DefaultTask {
+    @InputFiles
+    FileCollection inputFiles
+
+    @OutputFile
+    File outputFile
+
+    @TaskAction
+    void run() {
+        outputFile.text = name
+    }
+}
+
+class IncrementalTaskInputTask extends DefaultTask {
+    @InputFiles
+    FileCollection inputFiles
+
+    @OutputFile
+    File outputFile
+
+    @TaskAction
+    void run(IncrementalTaskInputs inputs) {
+        outputFile.text = name
+    }
+}
+
+
+class MeasureOutputsTask extends DefaultTask {
+    @InputFile
+    File inputFile
+
+    @OutputDirectory
+    File outputDirectory
+
+    // don't specify as input
+    File sourceDirectory
+
+    @TaskAction
+    void run(IncrementalTaskInputs inputs) {
+        if (outputDirectory.exists()) {
+            outputDirectory.delete()
+        }
+        Class.forName("java.nio.file.Files").createSymbolicLink(outputDirectory.toPath(), sourceDirectory.toPath());
+    }
+}
+
+task buildIncremental
+
+task buildOrdinary
+
+task buildOutputs
+
+def inputCount = project.hasProperty("inputCount") ? project.inputCount as int : 10000
+
+def taskCount = project.hasProperty("taskCount") ? project.taskCount as int : 1000
+
+def inputFileSize = project.hasProperty("inputFileSize") ? project.inputFileSize : ""
+
+def performanceTestFiles = inputFileSize ? fileTree(dir: "src/${inputCount}_${inputFileSize}_files") : fileTree(dir: "src/${inputCount}files")
+assert !performanceTestFiles.isEmpty()
+println "Using source directory ${performanceTestFiles.dir}"
+
+def singleFile = file("src/1files/file1")
+if (project.hasProperty("changeSingleFile")) {
+    println "changing $singleFile"
+    singleFile.withWriterAppend {
+        it << "\nfile changed ${System.currentTimeMillis()}"
+    }
+}
+
+for(int i=1;i <= taskCount;i++) {
+    def taskIncremental=project.tasks.create(name: "incrementalTask$i", type: IncrementalTaskInputTask) {
+        inputFiles = performanceTestFiles
+        outputFile = file("$buildDir/incrementalTask${i}_output")
+
+    }
+    buildIncremental.dependsOn taskIncremental
+
+    def taskOrdinary=project.tasks.create(name: "ordinaryTask$i", type: OrdinaryTaskInputTask) {
+        inputFiles = performanceTestFiles
+        outputFile = file("$buildDir/ordinaryTask${i}_output")
+    }
+    buildOrdinary.dependsOn taskOrdinary
+
+    def taskOutputs = project.tasks.create(name: "outputTask$i", type: MeasureOutputsTask) {
+        inputFile = singleFile
+        sourceDirectory = performanceTestFiles.dir
+        outputDirectory = file("$buildDir/outputTask${i}_output")
+    }
+    buildOutputs.dependsOn taskOutputs
+}
+
+if(project.hasProperty("changeOneInput")) {
+    // modify last file in input directory
+    File lastInputFile = new File(performanceTestFiles.dir, "file${inputCount}")
+    assert lastInputFile.isFile()
+    println "changing $lastInputFile"
+    lastInputFile.withWriterAppend {
+        it << "\nfile changed ${System.currentTimeMillis()}"
+    }
+}

@@ -43,7 +43,6 @@ import static org.gradle.model.internal.core.ModelNode.State.*;
 
 @NotThreadSafe
 public class DefaultModelRegistry implements ModelRegistry {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModelRegistry.class);
 
     private final ModelGraph modelGraph;
@@ -869,7 +868,12 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void ensureUsable() {
-            transition(this, Initialized, true);
+            ensureAtLeast(Initialized);
+        }
+
+        @Override
+        public void ensureAtLeast(State state) {
+            transition(this, state, true);
         }
 
     }
@@ -1158,13 +1162,20 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            // Must graph-close each child first
-            for (ModelNodeInternal child : node.getLinks()) {
-                if (child.getPath().isDescendant(getPath())) {
-                    // The linked node is an ancestor of this node, so is already being closed
-                    continue;
+            if (node instanceof ModelReferenceNode) {
+                // Graph close the target of the reference
+                ModelReferenceNode referenceNode = (ModelReferenceNode) node;
+                ModelNodeInternal target = referenceNode.getTarget();
+                if (target == null || target.getPath().isDescendant(getPath())) {
+                    // No target, or target is an ancestor of this node, so is already being closed
+                    return true;
                 }
-                dependencies.add(graph.nodeAtState(new NodeAtState(child.getPath(), GraphClosed)));
+                dependencies.add(graph.nodeAtState(new NodeAtState(target.getPath(), GraphClosed)));
+            } else {
+                // Must graph-close each child first
+                for (ModelNodeInternal child : node.getLinks()) {
+                    dependencies.add(graph.nodeAtState(new NodeAtState(child.getPath(), GraphClosed)));
+                }
             }
             return true;
         }
@@ -1204,27 +1215,51 @@ public class DefaultModelRegistry implements ModelRegistry {
 
             ModelNodeInternal parent = modelGraph.find(getPath().getParent());
             if (parent == null) {
+                // No parent, we're done
                 return true;
             }
-
-            // Self close parent in order to discover its children, or its target in the case of a reference
-            dependencies.add(graph.nodeAtState(new NodeAtState(getPath().getParent(), SelfClosed)));
             if (parent instanceof ModelReferenceNode) {
-                // Rough implementation to get something to work
+                // Parent is a reference, need to resolve the target
                 ModelReferenceNode parentReference = (ModelReferenceNode) parent;
-                ModelCreator creator = ModelCreators.of(getPath())
-                        .descriptor(parent.getDescriptor())
-                        .withProjection(UnmanagedModelProjection.of(Object.class))
-                        .build();
-                ModelReferenceNode childNode = new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT), parentReference);
-                ModelNodeInternal parentTarget = parentReference.getTarget();
-                if (parentTarget != null) {
-                    childNode.setTarget(parentTarget.getLink(getPath().getName()));
+                if (parentReference.getTarget() != null) {
+                    dependencies.add(new TryResolveReference(parentReference, getPath()));
                 }
-                registerNode(childNode);
+            } else {
+                // Self close parent in order to discover its children, or its target in the case of a reference
+                dependencies.add(graph.nodeAtState(new NodeAtState(getPath().getParent(), SelfClosed)));
             }
 
             return true;
+        }
+    }
+
+    private class TryResolveReference extends ModelGoal {
+        private final ModelReferenceNode parent;
+        private final ModelPath path;
+
+        public TryResolveReference(ModelReferenceNode parent, ModelPath path) {
+            this.parent = parent;
+            this.path = path;
+        }
+
+        @Override
+        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            dependencies.add(new TryResolvePath(parent.getTarget().getPath().child(path.getName())));
+            return true;
+        }
+
+        @Override
+        void apply() {
+            // Rough implementation to get something to work
+            ModelNodeInternal parentTarget = parent.getTarget();
+            ModelNodeInternal childTarget = parentTarget.getLink(path.getName());
+            ModelCreator creator = ModelCreators.of(path)
+                .descriptor(parent.getDescriptor())
+                .withProjection(UnmanagedModelProjection.of(Object.class))
+                .build();
+            ModelReferenceNode childNode = new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT), parent);
+            childNode.setTarget(childTarget);
+            registerNode(childNode);
         }
     }
 

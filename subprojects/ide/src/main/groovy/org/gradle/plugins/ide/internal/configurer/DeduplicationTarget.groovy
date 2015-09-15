@@ -19,21 +19,7 @@ package org.gradle.plugins.ide.internal.configurer
 import org.gradle.api.Project
 
  class DeduplicationTarget {
-
-     def String moduleName
      def Project project
+     def String moduleName
      def Closure updateModuleName
-
-     Collection<String> getCandidateNames() {
-        def out = []
-        def p = project.parent
-        def currentName = moduleName
-        out << currentName
-        while (p) {
-            currentName = p.name + "-" + currentName
-            out.add(currentName)
-            p = p.parent
-        }
-        return out
-     }
 }

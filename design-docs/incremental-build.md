@@ -1,263 +1,154 @@
+# Incremental Build Improvements
+
 This spec defines some improvements to improve incremental build and task up-to-date checks
 
-# Use cases
+# Establishing Baseline
 
-## Plugin author implements a task that does work only on input files that are out-of-date
+## ~~Story: Add 'profiler' (YourKit) hook to performance test harness~~
 
-Some tasks take multiple input files and transform them into multiple output files. When this transformation is expensive,
-the task author may wish to implement the task such that it can perform the transformation only on those input files
-that are out-of-date WRT their output files.
-
-An example of such a task is a C++ compilation task. C++ source files are compiled individually to separate object files. Only those
-source files which have changed (or whose output file has changed) since last time the compilation task has executed need to be compiled.
-When the compile settings change, then all source files must be recompiled.
-
-Gradle should provide some mechanism that allows an incremental task to be implemented.
-
-## Plugin author implements a task that can accurately describe its output files
-
-For some tasks, the exact output files are not known until after the task has completed. For these tasks, Gradle scans the output directories
-both before and after task execution and determines the output files based on the differences. This has a couple of drawbacks:
-
-- It's potentially quite slow, and often the task implementation can determine the output files more cheaply.
-- It's not very accurate if the task does any kind of up-to-date checking itself or if it changes file timestamps.
-
-The set of output files is currently used for:
-
-- Detecting changes in the outputs when determining whether the task is up-to-date or not.
-- Removing stale output files. Currently, this is something that a task must implement itself. More on this below.
-
-An example of such a task is the Java compilation task. It uses the Java compiler API to perform the compilation. This API can be queried to
-determine the output files that will be generated. The Java compilation task could make this available to Gradle, rather than
-requiring two scans of the output directory to calculate the output files (one scan will still be necessary to check for changed
-output files).
-
-Gradle should provide some mechanism that allows a task to notify Gradle of its actual output files during task execution. We
-should also investigate better mechanisms for detecting the output files of a task (eg native file change notifications).
-
-## Plugin author implements a task that removes stale output files
-
-For most tasks that produce output files, stale output files from previous executions of the task should be removed when the task is executed.
-For example, old class files should be removed when the source file is renamed. Old test result files should be removed when the tests
-no longer exist. And so on.
-
-Accurate handling of stale output files makes running `clean` much less useful.
-
-For a task with `@SkipWhenEmpty` applied to its inputs, all output files should be removed when the task has no inputs.
-
-Gradle should provide some simple mechanism to declare that stale outputs for a given task (type) be removed.
-
-## Simplify the process of writing task implementations
-
-Currently, the task implementation classpath is not treated as an input of the task. This means that changing the task implementation
-does not trigger task execution, which in turn makes developing the task implementation awkward.
-
-Gradle should invalidate a task's outputs when its implementation changes.
-
-## Fix up-to-date issues on copy tasks
-
-## Plugin author implements a task that produces outputs other than files
-
-## Plugin author implements a task that uses inputs other than files
-
-# Implementation plan
-
-## Story: Plugin author uses changes to input files to implement incremental task
-
-Incremental input file changes will be provided via an optional parameter on the TaskAction method for a task. The TaskExecutionContext will provide access to the set of changed input files,
-as well as a flag to indicate if incremental execution is possible.
-If incremental execution is not possible, then the task action will be executed with a rebuild context, where every input file is regarded as 'out-of-date'.
-
-Incremental execution is not possible when:
-- Task class has changed since previous execution
-- One or more of the input properties have changed since last execution
-- Output files have changed or been removed since last execution
-- No information available about a previous execution
-- Task has no declared outputs
-- Task.upToDate() is false
-- Gradle build executed with '--rerun-tasks'
-
-        class IncrementalSync extends DefaultTask {
-            @InputFiles
-            def FileCollection src
-
-            @OutputDirectory
-            def File destination
-
-            @TaskAction
-            void execute(IncrementalTaskInputs inputs) {
-                if (!inputs.incremental) {
-                    FileUtils.forceDelete(destination)
-                }
-                inputs.outOfDate({ change ->
-                    FileUtils.copyFile(change.file, targetFile(change.file))
-                } as Action)
-                
-                inputs.removed({ change ->
-                    FileUtils.forceDelete(targetFile(change.file))
-                } as Action)
-            }
-
-            def targetFile(def inputFile) {
-                new File(destination, change.file.name)
-            }
-        }
+- Make it easier for us to collect profiling data and share profiling setup
+- ~~Gradle dev adds `YJP_HOME` (Yourkit home directory path) or `YJP_AGENT_PATH` (Yourkit agent library file path) environment variable.~~
+- ~~Gradle dev writes a performance test that extends AbstractCrossBuildPerformanceTest or AbstractCrossVersionPerformanceTest.~~
+- ~~Gradle dev enables YJP by passing `-Porg.gradle.performance.use_yourkit` project property in running the performance test.~~
+  - example use: `./gradlew performance:performanceTest -Porg.gradle.performance.use_yourkit -D:performance:performanceTest.single=NativePreCompiledHeaderPerformanceTest`
+- ~~Yourkit agent options are loaded from `~/.gradle/yourkit.properties` by default.~~
+  - Yourkit supports these startup options: https://www.yourkit.com/docs/java/help/startup_options.jsp .
+- ~~Yourkit profiling snapshot data get saved to `~/Snapshots` by default. The file name contains the test project name and display name from the performance test.~~
 
 ### Test coverage
 
-1. Incremental task action is executed with rebuild context when run for the first time
-2. Incremental task action is skipped when run with no changes since last execution
-3. Incremental task is informed of 'out-of-date' files when run with:
-    - Single added input file
-    - Single modified input file
-    - Single removed input file
-    - All input files removed
-4. Incremental task is informed of 'out-of-date' files when:
-    - Task has no declared input properties
-    - Task has no declared outputs
-5. Incremental task action is executed with every file 'out-of-date' when:
-    - Input property value has changed since previous execution
-    - Task class has changed since previous execution
-    - Output directory changed since previous execution
-    - Output file has changed since previous execution
-    - Single output file removed since previous execution
-    - All output files removed since previous execution
-    - Task.upToDate() is false
-    - Gradle build executed with '--rerun-tasks'
-6. Incremental task action is informed of all files changed since last successful execution
-7. Sad-day cases
-    - Incremental task has input files declared
-    - Incremental task action throws exception
+- TBD, whatever makes sense (this should touch test infrastructure only)
 
-### Questions
+## Story: Compare tasks using IncrementalTaskInputs with "regular" tasks
 
-Handle multiple actions added via multiple calls to outOfDate() and removed()?
-Provide a simpler API that separates outOfDate() and removed() processing temporally?
+- Vary number of inputs
+- If difference between calculating up-to-date checks is identical or within an order of magnitude, remove this as a variable in future plans.
+- Collect numbers for a report
 
-## Task implementation supports incremental execution for some types of input files
+### Test coverage
 
-A task may take as input serveral different collections of input files. This story reworks the incremental task API to allow input file changes
-to be delivered per-input file collection. It must be possible for a task to declare which of its input file collections it supports
-incremental execution for. A change in any other input file collection should trigger a rebuild execution of the task:
+- This does not need to be automated
+- Compare time to perform up-to-date checks for otherwise identical tasks at
+   - 1, 10, 100, 1000 and 10000 inputs
 
-- A file moves from one collection to another.
-- A file is added to a second collection.
-- A file is removed from some but not all collections.
+## Story: Compare "one change" and "no change" cases
 
-## C++ compilation is incremental when a C++ source file changes
+- Vary number of inputs
+- Compare no input change case with one input change case
+- If difference between calculating up-to-date checks is identical or within an order of magnitude, remove this as a variable for now and focus on 'no change' cases.
+- Future stories may address the "ripple" effect of a single input invalidating multiple tasks in a chain.
+- Collect numbers for a report
 
-Change the `CppCompile` task to be incremental wrt source file changes:
-    - When a source file is added, compile only that source file.
-    - When a source file is changed, compile only that source file.
-    - When a source file is removed, remove the object file for that source file.
-    - When a header file is changed in some way, recompile all source files.
+### Test coverage
 
-## GRADLE-918: Document task input and output annotations
+- This does not need to be automated
+- Collect time to perform up-to-date checks at
+   - 1, 10, 100, 1000 and 10000 inputs
 
-## GRADLE-2936: Invalidate task outputs when task implementation changes
+## Story: Find breaking point for input and output sizes
 
-Add to the task history a hash of the task implementation, and rebuild the task's outputs when this changes.
+### Scenario 1: vary inputs
 
-- Add a mechanism to determine a hash given a classpath. Probably also add some persistent caching for this.
-  This mechanism should be reusable, to allow us to cache the result of scanning a classpath for annotated classes,
-  such as plugin-level services.
-- The hash of a class is the hash of its ClassLoader's classpath.
-- The hash of a task is the combination of the hash of the task's implementation class plus the hash of
-  the implementation class of each task action attached to the task.
+- Vary number of inputs
+- Vary sizes of inputs
+- Breaking point is the point where Gradle fails due to memory (reported issue) or takes a "long" time (>60 seconds for a single task).
 
-## GRADLE-2115: Handle `is` property accessors for boolean properties marked with `@Input`
+#### Test coverage
 
-## GRADLE-1646: Copy tasks do not consider filter/expansion properties in up-to-date checks
+- This does not need to be automated
+- Collect time to perform up-to-date checks at
+   - 1, 10, 100, 1000 and 10000 inputs
+   - 10k, 50k, 100k, 500k, 1m inputs (smaller if impractical)
+- Collect time to perform up-to-date checks for 100 inputs at
+   - 1MB, 10MB, 50MB, 100MB inputs (smaller if impractical)
 
-- Also GRADLE-2710
+### Scenario 2: vary outputs
 
-## GRADLE-1276: processResources task considered up-to-date although its spec has changed
+- Vary number of outputs
+- Vary sizes of outputs
+- Breaking point is the point where Gradle fails due to memory (reported issue) or takes a "long" time (>60 seconds for a single task).
 
-## GRADLE-1814: Uptodate check fails when changing property includeEmptyDirs of Copy task
+#### Test coverage
 
-## GRADLE-1298: Change in filtered resource not picked up by archive tasks
+- This does not need to be automated
+- Collect time to perform up-to-date checks at
+   - 1, 10, 100, 1000 and 10000 outputs
+   - 10k, 50k, 100k, 500k, 1m outputs (smaller if impractical)
+- Collect time to perform up-to-date checks for 100 outputs at
+   - 1MB, 10MB, 50MB, 100MB outputs (smaller if impractical)
 
-## GRADLE-2082: Validate that input and output annotation are attached to property with valid type
 
-## Change type decoration so that incremental API objects are not extensible
+## Story: Update performance generator to create representative Java project
 
-Allow type decoration to distinguish between domain objects and API objects.  API objects should not be
-decorated with `DynamicObjectAware`, `IConventionAware` or `ExtensionAware` or any of the asssociated
-state.
+Uses java-lang/jvm-component software model plugins.
 
-## Improve accuracy of output file detection
+A representative Java project:
+- 1 set of main sources
+- 1 set of unit test sources
+- Project dependencies
+- External dependencies
+  - use generated maven repository with generated jar files with realistic sizes (200k-2000k)
+  - define dependencies in build by using old-model configurations
+  - wire old-model configurations in to new-model generated tasks (compile, test)
+  - add testCompile configuration that extends compile configuration
+    - testCompile configuration add junit dependency
+  - add testRuntime configuration that extends testCompile
+    - use testRuntime for test execution task
+- Emulated checkstyle task per source set (main, test)
+- Unit test task
 
-Change output file detection to use a change in file last modified time to detect that an output file has changed. Remove `OutputFilesSnapshotter`.
+2 different sizes of generated projects: small and large.
 
-## Story: Java compile task specifies its output files
+All builds:
+- multi-project builds
+- max 10 classes per package
+- 50 source lines per class
 
-A task action will be able to use an API to notify Gradle of the output files it produces. For task implementations
-that do not use this API, Gradle will scan the output directories before and after task execution to infer the task
-outputs, as it does now.
+Small build:
+- 10 projects
+- 100 classes per project
+- 5 external dependencies per project
+- up to 3 project dependencies per project
 
-- Change the Java and Groovy compile task types to use this.
-- Change the Copy and Sync task types to use this.
+Large build:
+- 100 projects
+- 1000 classes per project
+- 50 external dependencies per project, 200 unique external dependencies
+- up to 10 project dependencies per project
 
-TBD - the API, which needs to work for both 'build everything' task execution (which includes task implementations that
-are not incremental aware) and incremental task execution.
 
-TBD - Need to have a solution for Java and Groovy compile tasks with `useAnt=true`
+### Test coverage
 
-## Story: Plugin author implements task that cleans up stale output files
+- Performance test that runs against latest release and master branch.
 
-A task implementation will be able to use an API or a declarative element to request that stale output files should
-be removed.
+### Open Issues
 
-- Change the Java and Groovy compile task types to use this.
-- Change the ProcessResources and Sync task types to use this, possibly remove the ProcessResources type.
-- When a `@SkipWhenEmpty` input is empty, remove all output files from a previous execution.
+~~- Need to incorporate test execution into this as well~~
 
-TBD - The API.
+~~- How are we going to handle external dependencies while the jvm-component plugins do not support external dependencies?~~
+- do we need to simulate integration tests?
 
-## Story: Remove stale classes when compile task history is not known
+## Story: Update performance generator to create representative C/C++ project
 
-TBD - The stale outputs mechanism needs to handle the case where:
+See discussion about parameters.  Uses cpp software model plugins.
 
-- multiple tasks generate their outputs into a given output directory
-- some files exist in this output directory
-- task history is not available for one or more of the tasks
+### Test coverage
 
-TBD - The solution must handle the case where output files are generated into a directory that also contains
-non-generated files, so that simply removing the output directory is not really a solution.
+- Performance test that runs against 2.6 and latest release
 
-In particular, this story must solve the case where a classes directory is built from Java and Groovy source and static resources,
-but the task history is not available because an upgraded version of Gradle is being used.
-
-Potential solutions:
-
-- When a task in the task graph has no history and one of its output directories already exists and is not empty, then automatically
-  schedule a `clean` task for the project.
-- As above, but notify the user that they should really do a clean build first.
-- Handle this at the binary level, rather than the task level. For example, the `classes` task might remove unclaimed files (ie not known
-  to be built by any task) from the classes directory. Or perhaps when a task that contributes to the classes directory is scheduled to
-  run and no history is available for that task, then remove the classes directory and schedule a `classes` task to run.
-
-## Story: Reporting tasks are incremental wrt the settings of enabled reports only
-
-- Allow @Nested to be applied to a property that returns a collection.
-- Change TaskReportContainer to return a property that contains only the enabled reports.
-- Mark the report subclasses with the appropriate annotations.
-- Remove the existing properties on TaskReportContainer and FindBugsReportsImpl.
-
-### Test cases
-
-- Task is considered up-to-date when the setting of a disabled report is changed.
-- Task is considered out-of-date when a setting on an enabled report is changed.
-- Task is considered out-of-date when the set of enabled reports changes.
-- Task validation is applied to the settings of enabled reports.
-
-## Story: Copy task is incremental wrt its input files
-
-## Story: Plugin author uses changes to output files to implement incremental task
+## Story: TBD
 
 TBD
 
-# Open issues
+### Test coverage
 
-- Some tasks may need to know about changed output files.
-- Look at making task history available across Gradle versions.
+- TBD
+
+## Open Issues
+
+- Check behavior of Prebuilt Libraries with large number of headers (https://discuss.gradle.org/t/native-performance-issue-with-no-op-builds-with-boost-as-a-dependency)
+- See incremental-build-old.md for other ideas and specific issues.
+- Profiler support: Skip warm-up or have explicit opt-in for warm up profiling?
+  - Conditionally enabling the profiler in the code by using Yourkit API.
+- Profiler support: For cross-version tests, skip all versions except the current?
+- Profiler support: Do we care about conditionally profiling the CLI and daemon processes (such that the profiling options should be configurable for each)?

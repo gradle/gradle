@@ -30,6 +30,8 @@ class CheckstylePluginDependenciesIntegrationTest extends AbstractIntegrationSpe
         output.contains "com.puppycrawl.tools:checkstyle:"
 
         when:
+        //Language has to be English, because the error message is localised
+        defaultLocale('en')
         buildFile << """
             dependencies {
                 //downgrade version:
@@ -76,5 +78,9 @@ dependencies {
 
     private void badCode() {
         file("src/main/java/org/gradle/class1.java") << "package org.gradle; class class1 { }"
+    }
+
+    private void defaultLocale(String defaultLocale) {
+        executer.withDefaultLocale(new Locale(defaultLocale))
     }
 }

@@ -20,7 +20,7 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GFileUtils
 import org.gradle.util.TextUtil
 
-import static TaskOutcome.*
+import static org.gradle.testkit.runner.TaskOutcome.*
 
 class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerIntegrationTest {
     def "build execution for script with invalid Groovy syntax"() {
@@ -113,8 +113,7 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.build()
+        runner().build()
 
         then:
         thrown GradleConnectionException

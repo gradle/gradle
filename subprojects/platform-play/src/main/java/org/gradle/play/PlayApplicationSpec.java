@@ -59,15 +59,16 @@ public interface PlayApplicationSpec extends PlatformAwareComponentSpec {
      * dependencies to the application's controllers in its constructor.  The controllers methods need to be instance methods.
      * </p>
      *
-     * @param useStaticRouter true if a static router should be generated.
+     * @param injectedRoutesGenerator false if a static router should be generated (default).
+     * true if an injected router should be generated.
      */
-    void setUseStaticRouter(boolean useStaticRouter);
+    void setInjectedRoutesGenerator(boolean injectedRoutesGenerator);
 
     /**
-     * Will a static router be generated for this application?
+     * Will an injected router be generated for this application?
      *
-     * @return true if a static router will be generated for the application,
-     * false if an injected router will be generated.
+     * @return false if a static router will be generated for the application,
+     * true if an injected router will be generated.
      */
-    boolean getUseStaticRouter();
+    boolean getInjectedRoutesGenerator();
 }

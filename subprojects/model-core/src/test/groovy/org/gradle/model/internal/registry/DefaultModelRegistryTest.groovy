@@ -243,9 +243,6 @@ class DefaultModelRegistryTest extends Specification {
         }
         registry.create("foo") { it.unmanaged(String, "ref.direct") { it } }
 
-        // TODO - remove this, should be realized via the reference
-        registry.realize("target")
-
         expect:
         registry.realize("foo", String) == "value"
     }
@@ -265,15 +262,39 @@ class DefaultModelRegistryTest extends Specification {
                 node.getLink("indirect").setTarget(parent)
             }
         }
-        // TODO - fix up the types
-        registry.create("foo") { it.unmanaged(Object, "ref.indirect.child") { it } }
-
-        // TODO - remove this, should be realized via the reference
-        registry.realize("parent.child")
+        registry.create("foo") { it.unmanaged(String, "ref.indirect.child") { it } }
 
         expect:
-        // TODO - fix up the types
-        registry.realize("foo", Object) == "value"
+        registry.realize("foo", String) == "value"
+    }
+
+    def "child reference can be null when parent is realized"() {
+        given:
+        registry.create("parent") { parentBuilder ->
+            parentBuilder.unmanagedNode(String) { node ->
+                node.addReference(registry.creator("parent.child").unmanagedNode(String, {}))
+            }
+        }
+
+        when:
+        registry.realize("parent", String)
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "reference can point to ancestor of node"() {
+        given:
+        registry.create("parent") { parentBuilder ->
+            parentBuilder.unmanagedNode(String) { node ->
+                node.addReference(registry.creator("parent.child").unmanagedNode(String, {}))
+                node.applyToSelf(ModelActionRole.Mutate, registry.action().path("parent").node { it.setPrivateData(String, "value")})
+                node.getLink("child").setTarget(node)
+            }
+        }
+
+        expect:
+        registry.realize("parent.child", String) == "value"
     }
 
     def "cannot change a reference after it has been self-closed"() {
@@ -290,6 +311,7 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
+        e.message == "Cannot set target for model element 'ref' as this element is not mutable."
 
         where:
         newTarget << [null, Stub(MutableModelNode)]

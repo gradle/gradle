@@ -21,7 +21,6 @@ import org.gradle.scala.internal.reflect.ScalaMethod;
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
 public interface VersionedTwirlCompilerAdapter extends Serializable {
     String getDependencyNotation();
@@ -30,5 +29,5 @@ public interface VersionedTwirlCompilerAdapter extends Serializable {
 
     Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, boolean javaProject) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
 
-    List<String> getClassLoaderPackages();
+    Iterable<String> getClassLoaderPackages();
 }

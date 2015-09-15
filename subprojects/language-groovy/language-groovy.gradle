@@ -11,3 +11,4 @@ dependencies {
 strictCompile()
 useClassycle(exclude: ["org/gradle/api/internal/tasks/compile/**"])
 useTestFixtures()
+useTestFixtures(project: ':languageJvm', sourceSet: 'integTest')

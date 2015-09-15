@@ -29,7 +29,7 @@ class ModelTasksGradleUIIntegrationTest extends AbstractIntegrationSpec {
     GradlePluginLord gradlePluginLord = new GradlePluginLord()
 
     def setup() {
-        NativeServicesTestFixture.initialize(executer.gradleUserHomeDir)
+        NativeServicesTestFixture.initialize()
         gradlePluginLord.setCurrentDirectory(temporaryFolder.testDirectory);
         gradlePluginLord.setGradleHomeDirectory(distribution.gradleHomeDir);
         gradlePluginLord.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(executer.gradleUserHomeDir))

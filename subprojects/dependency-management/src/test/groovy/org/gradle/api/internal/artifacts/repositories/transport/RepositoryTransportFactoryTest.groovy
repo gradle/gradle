@@ -18,10 +18,9 @@ package org.gradle.api.internal.artifacts.repositories.transport
 
 import com.google.common.collect.Lists
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.credentials.Credentials
+import org.gradle.authentication.Authentication
 import org.gradle.internal.authentication.AbstractAuthentication
-import org.gradle.internal.credentials.DefaultAwsCredentials
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport
 import spock.lang.Specification
@@ -71,15 +70,6 @@ class RepositoryTransportFactoryTest extends Specification {
         transport.class == ResourceConnectorRepositoryTransport
     }
 
-    def "should throw when credentials types is invalid"(){
-        when:
-        repositoryTransportFactory.convertPasswordCredentials(new DefaultAwsCredentials())
-
-        then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message == "Credentials must be an instance of: ${PasswordCredentials.class.getCanonicalName()}"
-    }
-
     def "should create transport for known scheme, authentication and credentials"() {
         def authentication = new GoodCredentialsAuthentication('good')
         authentication.credentials = Mock(GoodCredentials)
@@ -100,7 +90,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "Authentication scheme of '${authentication.class.simpleName}' is not supported by protocols ${protocols}"
+        ex.message == "Authentication scheme ${authentication} is not supported by protocol '${protocols[0]}'"
 
         where:
         authentication                            | protocols
@@ -117,12 +107,12 @@ class RepositoryTransportFactoryTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication scheme '${invalidType.simpleName}'"
+        ex.message == "Credentials type of '${credentials.class.simpleName}' is not supported by authentication scheme ${failingAuthentication}"
 
         where:
-        credentials           | authentication                                                                       || invalidType
-        Mock(BadCredentials)  | [new GoodCredentialsAuthentication('good')]                                          || GoodCredentialsAuthentication
-        Mock(GoodCredentials) | [new GoodCredentialsAuthentication('good'), new BadCredentialsAuthentication('bad')] || BadCredentialsAuthentication
+        credentials           | authentication                                                                       | failingAuthentication
+        Mock(BadCredentials)  | [new GoodCredentialsAuthentication('good')]                                          | "'good'(Authentication)"
+        Mock(GoodCredentials) | [new GoodCredentialsAuthentication('good'), new BadCredentialsAuthentication('bad')] | "'bad'(Authentication)"
     }
 
     def "should throw when specifying authentication types with null credentials"() {
@@ -139,28 +129,28 @@ class RepositoryTransportFactoryTest extends Specification {
         authentication.credentials = Mock(GoodCredentials)
 
         when:
-        def transport = repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [authentication, authentication])
+        repositoryTransportFactory.createTransport(['protocol1'] as Set, null, [authentication, authentication])
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "You cannot configure multiple authentication schemes of the same type 'GoodCredentialsAuthentication'."
+        ex.message == "You cannot configure multiple authentication schemes of the same type.  The duplicate one is 'good'(Authentication)."
     }
 
     private class GoodCredentialsAuthentication extends AbstractAuthentication {
         GoodCredentialsAuthentication(String name) {
-            super(name, GoodCredentials)
+            super(name, Authentication, GoodCredentials)
         }
     }
 
     private class BadCredentialsAuthentication extends AbstractAuthentication {
         BadCredentialsAuthentication(String name) {
-            super(name, BadCredentials)
+            super(name, Authentication, BadCredentials)
         }
     }
 
     private class NoCredentialsAuthentication extends AbstractAuthentication {
         NoCredentialsAuthentication(String name) {
-            super(name)
+            super(name, Authentication)
         }
     }
 

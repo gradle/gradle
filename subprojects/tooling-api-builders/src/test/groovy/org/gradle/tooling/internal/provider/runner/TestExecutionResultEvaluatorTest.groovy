@@ -23,8 +23,8 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.tasks.testing.TestExecutionException
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.progress.OperationStartEvent
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequestVersion2
-import org.gradle.tooling.internal.protocol.test.InternalTestMethod
+import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
+import org.gradle.tooling.internal.provider.TestExecutionRequestAction
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor
 import spock.lang.Specification
 
@@ -33,7 +33,7 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 class TestExecutionResultEvaluatorTest extends Specification {
     def "evaluate throws exception if no results tracked"() {
         given:
-        def testExecutionRequest = Mock(InternalTestExecutionRequestVersion2)
+        def testExecutionRequest = Mock(TestExecutionRequestAction)
         TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(testExecutionRequest)
 
         def testDescriptorInternal = Mock(TestDescriptorInternal)
@@ -42,8 +42,18 @@ class TestExecutionResultEvaluatorTest extends Specification {
         1 * defaultTestDescriptor.getTaskPath() >> ":someTestTask"
 
         def testResult = Mock(TestResult)
-        def internalTestMethod = Mock(InternalTestMethod)
-        1 * internalTestMethod.getDescription() >> "Test Method org.acme.SomeOtherTest#someTestMethod()"
+        def testClassRequest = Mock(InternalJvmTestRequest)
+        1 * testClassRequest.getClassName() >> "org.acme.SomeFooTest"
+        1 * testClassRequest.getMethodName() >> null
+
+        def testMethodRequest = Mock(InternalJvmTestRequest)
+        1 * testMethodRequest.getClassName() >> "org.acme.SomeFooTest"
+        1 * testMethodRequest.getMethodName() >> "fooMethod"
+
+        def testMethodRequest2 = Mock(InternalJvmTestRequest)
+        1 * testMethodRequest2.getClassName() >> "org.acme.SomeBazTest"
+        1 * testMethodRequest2.getMethodName() >> "bazMethod"
+
 
         when:
         evaluator.completed(testDescriptorInternal, testResult, Mock(TestCompleteEvent))
@@ -53,18 +63,18 @@ class TestExecutionResultEvaluatorTest extends Specification {
         normaliseLineSeparators(e.message) == """No matching tests found in any candidate test task.
     Requested tests:
         Some Test Descriptor (Task: ':someTestTask')
-        Test class acme.SomeTestClass
-        Test method Test Method org.acme.SomeOtherTest#someTestMethod()"""
+        Test class org.acme.SomeFooTest
+        Test method org.acme.SomeFooTest.fooMethod()
+        Test method org.acme.SomeBazTest.bazMethod()"""
 
         and:
         1 * testExecutionRequest.getTestExecutionDescriptors()>> [defaultTestDescriptor]
-        1 * testExecutionRequest.getTestClassNames() >> ["acme.SomeTestClass"]
-        1 * testExecutionRequest.getTestMethods() >> [internalTestMethod]
+        1 * testExecutionRequest.getInternalJvmTestRequests() >> [testClassRequest, testMethodRequest, testMethodRequest2]
     }
 
     def "evaluate throws exception if test failed"() {
         given:
-        def testExecutionRequest = Mock(InternalTestExecutionRequestVersion2)
+        def testExecutionRequest = Mock(TestExecutionRequestAction)
         TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(testExecutionRequest)
 
         def testDescriptorInternal = Mock(TestDescriptorInternal)
@@ -76,8 +86,6 @@ class TestExecutionResultEvaluatorTest extends Specification {
         def testResult = Mock(TestResult)
         1 * testResult.getTestCount() >> 1
         1 * testResult.getFailedTestCount() >> 1
-        1 * testResult.getExceptions() >> []
-
 
         def testTask = Mock(TaskInternal)
         1 * testTask.getPath() >> ":someproject:someTestTask"

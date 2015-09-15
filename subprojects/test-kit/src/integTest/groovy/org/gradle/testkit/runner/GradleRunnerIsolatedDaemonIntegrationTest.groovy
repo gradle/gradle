@@ -17,45 +17,30 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.internal.FileUtils
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.util.GFileUtils
 import org.junit.Rule
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerIntegrationTest {
-    @Rule
-    final TestNameTestDirectoryProvider userHomeDirProvider = new TestNameTestDirectoryProvider()
-
-    @Rule
-    final TestNameTestDirectoryProvider testKitGradleUserHomeDirProvider = new TestNameTestDirectoryProvider()
-
-    @Rule
-    final TestNameTestDirectoryProvider userWorkingSpaceGradleUserHomeDirProvider = new TestNameTestDirectoryProvider()
 
     @Rule
     final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(15000)
 
     def "configuration in default Gradle user home directory is ignored for test execution with daemon"() {
         given:
-        File defaultGradleUserHomeDir = new File(userHomeDirProvider.testDirectory, '.gradle')
+        def userHome = file("user-home")
+        def gradleUserHome = userHome.file(".gradle")
 
         and:
-        String gradlePropertiesContent = 'myProp1=propertiesFile'
-        writeGradlePropertiesFile(defaultGradleUserHomeDir, gradlePropertiesContent)
-
-        and:
-        String initScriptContent = "allprojects { ext.myProp2 = 'initScript' }"
-        writeInitScriptFile(defaultGradleUserHomeDir, initScriptContent)
+        writeGradlePropertiesFile(gradleUserHome, 'myProp1=propertiesFile')
+        writeInitScriptFile(gradleUserHome, "allprojects { ext.myProp2 = 'initScript' }")
 
         and:
         buildFile << """
@@ -69,7 +54,7 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
 
         when:
         DefaultGradleRunner gradleRunner = runner('check')
-        gradleRunner.withJvmArguments("-Duser.home=$userHomeDirProvider.testDirectory.canonicalPath")
+        gradleRunner.withJvmArguments("-Duser.home=$userHome")
         BuildResult result = gradleRunner.build()
 
         then:
@@ -82,12 +67,8 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
 
     def "configuration in custom Gradle user home directory is used for test execution with daemon"() {
         setup:
-        String gradlePropertiesContent = 'myProp1=propertiesFile'
-        File gradlePropertiesFile = writeGradlePropertiesFile(buildContext.gradleUserHomeDir, gradlePropertiesContent)
-
-        and:
-        String initScriptContent = "allprojects { ext.myProp2 = 'initScript' }"
-        File initScriptFile = writeInitScriptFile(buildContext.gradleUserHomeDir, initScriptContent)
+        writeGradlePropertiesFile(testKitWorkspace, 'myProp1=propertiesFile')
+        writeInitScriptFile(testKitWorkspace, "allprojects { ext.myProp2 = 'initScript' }")
 
         and:
         buildFile << """
@@ -109,148 +90,95 @@ class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerInte
         result.taskPaths(SKIPPED).empty
         result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
-
-        cleanup:
-        GFileUtils.forceDelete(gradlePropertiesFile)
-        GFileUtils.forceDelete(initScriptFile)
     }
 
     @LeaksFileHandles
     def "daemon process dedicated to test execution uses short idle timeout"() {
-        given:
-        buildFile << helloWorldTask()
-
         when:
-        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testKitGradleUserHomeDirProvider.testDirectory)
-        assert testKitDaemonLogsAnalyzer.visible.empty
-        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(testKitGradleUserHomeDirProvider.testDirectory, 'helloWorld')
-        gradleRunner.build()
+        runner().build()
 
         then:
-        DaemonFixture testKitDaemon = expectSingleDaemon(testKitDaemonLogsAnalyzer)
-        testKitDaemon.context.idleTimeout == 120000
+        onlyDaemon().context.idleTimeout == 120000
     }
 
     @LeaksFileHandles
     def "daemon process dedicated to test execution is reused if one already exists"() {
-        given:
-        buildFile << helloWorldTask()
-
         when:
-        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testKitGradleUserHomeDirProvider.testDirectory)
-        assert testKitDaemonLogsAnalyzer.visible.empty
-        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(testKitGradleUserHomeDirProvider.testDirectory, 'helloWorld')
-        gradleRunner.build()
+        runner().build()
 
         then:
-        DaemonFixture initialDaemon = expectSingleDaemon(testKitDaemonLogsAnalyzer)
-        initialDaemon.assertIdle()
+        def pid = onlyDaemon().with {
+            assertIdle()
+            context.pid
+        }
 
         when:
-        gradleRunner.build()
+        runner().build()
 
         then:
-        DaemonFixture laterDaemon = expectSingleDaemon(testKitDaemonLogsAnalyzer)
-        laterDaemon.assertIdle()
-        laterDaemon.context.pid == initialDaemon.context.pid
+        onlyDaemon().context.pid == pid
     }
 
     @LeaksFileHandles
-    def "user daemon process does not reuse existing daemon process intended for test execution"() {
+    def "user daemon process does not reuse existing daemon process intended for test execution even when using same gradle user home"() {
         given:
-        buildFile << helloWorldTask()
+        def nonTestKitDaemons = daemons(testKitWorkspace)
 
         when:
-        File testKitGradleUserHomeDir = testKitGradleUserHomeDirProvider.testDirectory
-        DaemonLogsAnalyzer testKitDaemonLogsAnalyzer = createDaemonLogsAnalyzer(testKitGradleUserHomeDir)
-        assert testKitDaemonLogsAnalyzer.visible.empty
-        GradleRunner gradleRunner = runnerWithCustomGradleUserHomeDir(testKitGradleUserHomeDir, 'helloWorld')
-        gradleRunner.build()
+        runner().build()
 
         then:
-        DaemonFixture testKitDaemon = expectSingleDaemon(testKitDaemonLogsAnalyzer)
+        def testKitDaemon = onlyDaemon()
         testKitDaemon.assertIdle()
+        nonTestKitDaemons.visible.empty
 
         when:
-        DaemonLogsAnalyzer userDaemonLogsAnalyzer = createDaemonLogsAnalyzer(userWorkingSpaceGradleUserHomeDirProvider.testDirectory)
-        assert userDaemonLogsAnalyzer.visible.empty
-        GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
-        GradleExecuter executer = new DaemonGradleExecuter(distribution, userWorkingSpaceGradleUserHomeDirProvider)
-        executer.usingProjectDirectory(testProjectDir.testDirectory).withArguments('helloWorld').requireIsolatedDaemons().run()
+        new DaemonGradleExecuter(new UnderDevelopmentGradleDistribution(), testProjectDir)
+            .usingProjectDirectory(testProjectDir.testDirectory)
+            .withGradleUserHomeDir(testKitWorkspace)
+            .withDaemonBaseDir(testKitWorkspace.file("daemon")) // simulate default, our fixtures deviate from the default
+            .run()
 
         then:
-        DaemonFixture userDaemon = expectSingleDaemon(userDaemonLogsAnalyzer)
+        def userDaemon = onlyDaemon(nonTestKitDaemons)
         userDaemon.assertIdle()
         userDaemon.context.pid != testKitDaemon.context.pid
 
         cleanup:
-        userDaemon.kill()
+        userDaemon?.kill()
     }
 
     def "executing a build with a -g option does not affect daemon mechanics"() {
-        given:
-        File customGradleUserHomeDir = testKitGradleUserHomeDirProvider.testDirectory
-        buildFile << helloWorldTask()
-
         when:
-        GradleRunner gradleRunner = runner('helloWorld', "-g ${FileUtils.toSafeFileName(customGradleUserHomeDir.absolutePath)}")
-        gradleRunner.build()
+        runner("-g", file("custom-gradle-user-home").absolutePath).build()
 
         then:
-        customGradleUserHomeDir.exists()
-        !new File(customGradleUserHomeDir, 'daemon').exists()
-        new File(gradleRunner.gradleUserHomeDir, 'daemon').exists()
-        DaemonLogsAnalyzer daemonLogsAnalyzer = createDaemonLogsAnalyzer(gradleRunner.gradleUserHomeDir)
-        !daemonLogsAnalyzer.visible.empty
+        onlyDaemon().assertIdle()
     }
 
     def "runners executed concurrently can share the same Gradle user home directory"() {
-        given:
-        buildFile << helloWorldTask()
-
         when:
-        Set<GradleRunner> usedGradleUserHomeDirs = [] as Set<GradleRunner>
-
         3.times {
             concurrent.start {
-                GradleRunner gradleRunner = runner('helloWorld')
-                usedGradleUserHomeDirs << gradleRunner.gradleUserHomeDir
-                gradleRunner.build()
+                runner().build()
             }
         }
 
         then:
         concurrent.finished()
-        usedGradleUserHomeDirs.size() == 1
     }
 
-    private DaemonFixture expectSingleDaemon(DaemonLogsAnalyzer daemonLogsAnalyzer) {
-        List<DaemonFixture> userDaemons = daemonLogsAnalyzer.visible
+    protected DaemonFixture onlyDaemon(DaemonsFixture daemons = this.daemons()) {
+        List<DaemonFixture> userDaemons = daemons.visible
         assert userDaemons.size() == 1
-        DaemonFixture daemon = userDaemons[0]
-        assert daemon.context.pid
-        daemon
+        userDaemons[0]
     }
 
-    private DaemonLogsAnalyzer createDaemonLogsAnalyzer(File customGradleUserHomeDir)  {
-        DaemonLogsAnalyzer.newAnalyzer(new File(customGradleUserHomeDir, 'daemon'), buildContext.version.version)
+    static TestFile writeGradlePropertiesFile(File gradleUserHomeDir, String content) {
+        new TestFile(gradleUserHomeDir, 'gradle.properties') << content
     }
 
-    private GradleRunner runnerWithCustomGradleUserHomeDir(File customGradleUserHomeDir, String... arguments) {
-        DefaultGradleRunner gradleRunner = runner(arguments)
-        gradleRunner.withGradleUserHomeDir(customGradleUserHomeDir)
-        gradleRunner
-    }
-
-    private File writeGradlePropertiesFile(File gradleUserHomeDir, String content) {
-        File gradlePropertiesFile = new File(gradleUserHomeDir, 'gradle.properties')
-        GFileUtils.writeFile(content, gradlePropertiesFile)
-        gradlePropertiesFile
-    }
-
-    private File writeInitScriptFile(File gradleUserHomeDir, String content) {
-        File initScriptFile = new File(gradleUserHomeDir, 'init.gradle')
-        GFileUtils.writeFile(content, initScriptFile)
-        initScriptFile
+    static TestFile writeInitScriptFile(File gradleUserHomeDir, String content) {
+        new TestFile(gradleUserHomeDir, 'init.gradle') << content
     }
 }

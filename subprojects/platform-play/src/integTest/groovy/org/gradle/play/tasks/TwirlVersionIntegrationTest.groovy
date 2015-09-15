@@ -18,6 +18,7 @@ package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.play.internal.DefaultPlayPlatform
+import static org.gradle.play.integtest.fixtures.Repositories.*
 
 class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
     def baseBuildFile = """
@@ -25,18 +26,7 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
             id 'play-application'
         }
 
-        repositories {
-            jcenter()
-            maven {
-                name "typesafe-maven-release"
-                url "https://repo.typesafe.com/typesafe/maven-releases"
-            }
-            ivy {
-                name "typesafe-ivy-release"
-                url "https://repo.typesafe.com/typesafe/ivy-releases"
-                layout "ivy"
-            }
-        }
+        ${PLAY_REPOSITORES}
     """
 
     def setup() {

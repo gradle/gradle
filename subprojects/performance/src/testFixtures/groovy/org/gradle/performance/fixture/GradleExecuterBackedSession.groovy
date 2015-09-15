@@ -30,7 +30,6 @@ class GradleExecuterBackedSession implements GradleSession {
     GradleExecuterBackedSession(GradleInvocationSpec invocation, TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider
         this.invocation = invocation
-
     }
 
     @Override

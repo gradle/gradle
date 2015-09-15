@@ -19,7 +19,7 @@ package org.gradle.play.integtest.advanced
 import org.gradle.play.integtest.PlayBinaryApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.AdvancedRunningPlayApp
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
-import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.integtest.fixtures.PlayApp
 
 class PlayBinaryAdvancedAppIntegrationTest extends PlayBinaryApplicationIntegrationTest {
     def setup() {

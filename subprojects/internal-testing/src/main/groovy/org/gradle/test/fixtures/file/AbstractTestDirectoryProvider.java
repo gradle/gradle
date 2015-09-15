@@ -30,13 +30,18 @@ import java.util.regex.Pattern;
  * A JUnit rule which provides a unique temporary folder for the test.
  */
 abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
-    private TestFile dir;
-    private String prefix;
+
     protected static TestFile root;
+
     private static final Random RANDOM = new Random();
     private static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
     private static final int MAX_RANDOM_PART_VALUE = Integer.valueOf("zzzzz", ALL_DIGITS_AND_LETTERS_RADIX);
     private static final Pattern WINDOWS_RESERVED_NAMES = Pattern.compile("(con)|(prn)|(aux)|(nul)|(com\\d)|(lpt\\d)", Pattern.CASE_INSENSITIVE);
+
+    private TestFile dir;
+    private String prefix;
+    private boolean cleanup = true;
+    private boolean suppressCleanupErrors;
 
     private String determinePrefix() {
         StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
@@ -48,42 +53,44 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         return "unknown-test-class";
     }
 
+    @Override
+    public void suppressCleanup() {
+        cleanup = false;
+    }
+
     public Statement apply(final Statement base, Description description) {
         Class<?> testClass = description.getTestClass();
         init(description.getMethodName(), testClass.getSimpleName());
-        boolean leaksHandles =
-                testClass.getAnnotation(LeaksFileHandles.class) != null
-                        || description.getAnnotation(LeaksFileHandles.class) != null;
-        // For now, assume that all tests run with the daemon executer leak file handles
-        // This seems to be true for any test that uses `GradleExecuter.requireOwnGradleUserHomeDir`
-        leaksHandles = leaksHandles
-                        || "daemon".equals(System.getProperty("org.gradle.integtest.executer"));
-        return new TestDirectoryCleaningStatement(base, getTestDirectory(), leaksHandles, description.getDisplayName());
+
+        suppressCleanupErrors = testClass.getAnnotation(LeaksFileHandles.class) != null
+            || description.getAnnotation(LeaksFileHandles.class) != null
+            // For now, assume that all tests run with the daemon executer leak file handles
+            // This seems to be true for any test that uses `GradleExecuter.requireOwnGradleUserHomeDir`
+            || "daemon".equals(System.getProperty("org.gradle.integtest.executer"));
+
+        return new TestDirectoryCleaningStatement(base, description.getDisplayName());
     }
 
     private class TestDirectoryCleaningStatement extends Statement {
-
         private final Statement base;
-        private final TestFile testDirectory;
-        private final boolean leaksHandles;
         private final String displayName;
 
-        private TestDirectoryCleaningStatement(Statement base, TestFile testDirectory, boolean leaksHandles, String displayName) {
+        public TestDirectoryCleaningStatement(Statement base, String displayName) {
             this.base = base;
-            this.testDirectory = testDirectory;
-            this.leaksHandles = leaksHandles;
             this.displayName = displayName;
         }
 
         @Override
         public void evaluate() throws Throwable {
+            // implicitly don't clean up if this throws
             base.evaluate();
+
             try {
-                if (testDirectory.exists()) {
-                    FileUtils.forceDelete(testDirectory);
+                if (cleanup && dir != null && dir.exists()) {
+                    FileUtils.forceDelete(dir);
                 }
             } catch (Exception e) {
-                if (leaksHandles) {
+                if (suppressCleanupErrors) {
                     System.err.println("Couldn't delete test dir for " + displayName + " (test is holding files open)");
                     e.printStackTrace(System.err);
                 } else {
@@ -140,5 +147,4 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     public TestFile createDir(Object... path) {
         return file((Object[]) path).createDir();
     }
-
 }

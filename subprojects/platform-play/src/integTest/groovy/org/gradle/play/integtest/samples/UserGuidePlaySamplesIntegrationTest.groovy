@@ -30,7 +30,7 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample compilerPlaySample = new Sample(temporaryFolder, "play/configure-compiler")
     @Rule Sample distributionPlaySample = new Sample(temporaryFolder, "play/custom-distribution")
     @Rule Sample customAssetsPlaySample = new Sample(temporaryFolder, "play/custom-assets")
-    @Rule Sample injectedRoutesPlaySample = new Sample(temporaryFolder, "play/injected-routes")
+    @Rule Sample play24Sample = new Sample(temporaryFolder, "play/play-2.4")
 
     def "sourcesets sample is buildable" () {
         when:
@@ -101,13 +101,13 @@ class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "injected routes sample is buildable" () {
         when:
-        sample injectedRoutesPlaySample
+        sample play24Sample
 
         then:
         succeeds "build"
 
         and:
-        injectedRoutesPlaySample.dir.file("build/playBinary/src/compilePlayBinaryRoutes").assertHasDescendants(
+        play24Sample.dir.file("build/playBinary/src/compilePlayBinaryRoutes").assertHasDescendants(
             "controllers/routes.java",
             "controllers/ReverseRoutes.scala",
             "router/Routes.scala",

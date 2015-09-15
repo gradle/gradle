@@ -21,11 +21,13 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
+import org.gradle.launcher.daemon.client.JvmVersionDetector;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -37,11 +39,14 @@ import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.InternalBuildAction;
+import org.gradle.tooling.internal.protocol.InternalBuildEnvironment;
+import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
-import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
+import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,13 +63,16 @@ public class ProviderConnection {
     private final DaemonClientFactory daemonClientFactory;
     private final BuildActionExecuter<BuildActionParameters> embeddedExecutor;
     private final ServiceRegistry sharedServices;
+    private final JvmVersionDetector jvmVersionDetector;
 
-    public ProviderConnection(ServiceRegistry sharedServices, LoggingServiceRegistry loggingServices, DaemonClientFactory daemonClientFactory, BuildActionExecuter<BuildActionParameters> embeddedExecutor, PayloadSerializer payloadSerializer) {
+    public ProviderConnection(ServiceRegistry sharedServices, LoggingServiceRegistry loggingServices, DaemonClientFactory daemonClientFactory,
+                              BuildActionExecuter<BuildActionParameters> embeddedExecutor, PayloadSerializer payloadSerializer, JvmVersionDetector jvmVersionDetector) {
         this.loggingServices = loggingServices;
         this.daemonClientFactory = daemonClientFactory;
         this.embeddedExecutor = embeddedExecutor;
         this.payloadSerializer = payloadSerializer;
         this.sharedServices = sharedServices;
+        this.jvmVersionDetector = jvmVersionDetector;
     }
 
     public void configure(ProviderConnectionParameters parameters) {
@@ -90,7 +98,7 @@ public class ProviderConnection {
             return new DefaultBuildEnvironment(
                     params.gradleUserhome,
                     GradleVersion.current().getVersion(),
-                    params.daemonParams.getEffectiveJavaHome(),
+                    params.daemonParams.getEffectiveJvm().getJavaHome(),
                     params.daemonParams.getEffectiveJvmArgs());
         }
 
@@ -109,11 +117,11 @@ public class ProviderConnection {
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
     }
 
-    public Object runTests(InternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+    public Object runTests(ProviderInternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         Parameters params = initParams(providerParameters);
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
-        TestExecutionRequestAction action = new TestExecutionRequestAction(testExecutionRequest, startParameter, listenerConfig.clientSubscriptions);
+        TestExecutionRequestAction action = TestExecutionRequestAction.create(listenerConfig.clientSubscriptions, startParameter, testExecutionRequest);
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
     }
 
@@ -165,10 +173,15 @@ public class ProviderConnection {
         }
 
         //override the params with the explicit settings provided by the tooling api
-        List<String> defaultJvmArgs = daemonParams.getAllJvmArgs();
-        daemonParams.setJvmArgs(operationParameters.getJvmArguments(defaultJvmArgs));
-        File defaultJavaHome = daemonParams.getEffectiveJavaHome();
-        daemonParams.setJavaHome(operationParameters.getJavaHome(defaultJavaHome));
+        List<String> jvmArguments = operationParameters.getJvmArguments(null);
+        if (jvmArguments != null) {
+            daemonParams.setJvmArgs(jvmArguments);
+        }
+        File javaHome = operationParameters.getJavaHome(null);
+        if (javaHome != null) {
+            daemonParams.setJvm(Jvm.forHome(javaHome));
+        }
+        daemonParams.applyDefaultsFor(jvmVersionDetector.getJavaVersion(daemonParams.getEffectiveJvm()));
 
         if (operationParameters.getDaemonMaxIdleTimeValue() != null && operationParameters.getDaemonMaxIdleTimeUnits() != null) {
             int idleTimeout = (int) operationParameters.getDaemonMaxIdleTimeUnits().toMillis(operationParameters.getDaemonMaxIdleTimeValue());

@@ -25,19 +25,25 @@ import spock.lang.Specification
 
 class ConsumerOperationParametersTest extends Specification {
 
-    def "task names and empty launchables"() {
-        def builder = ConsumerOperationParameters.builder().setEntryPoint("entry-point")
+    def builder = ConsumerOperationParameters.builder().setEntryPoint("entry-point")
+
+    def "can build consumer operation parameters for provided properties"() {
+        given:
+        def tasks = ['a', 'b']
+        def classpath = [new URI('file:///Users/foo/bar/test.jar'), new URI('file:///Users/foo/bar/resources')]
+
         when:
-        builder.tasks = ['a', 'b']
+        builder.tasks = tasks
+        builder.classpath = classpath
         def params = builder.build()
 
         then:
-        params.tasks == ['a', 'b']
+        params.tasks == tasks
+        params.classpath == classpath
         params.launchables == null
     }
 
     def "launchables from provider"() {
-        def builder = ConsumerOperationParameters.builder().setEntryPoint("entry-point")
         when:
         def launchable1 = Mock(InternalLaunchable)
         def launchable2 = Mock(InternalLaunchable)
@@ -50,7 +56,6 @@ class ConsumerOperationParametersTest extends Specification {
     }
 
     def "launchables from adapters"() {
-        def builder = ConsumerOperationParameters.builder().setEntryPoint("entry-point")
         when:
         def launchable1 = Mock(TaskListingLaunchable)
         def paths1 = Sets.newTreeSet()

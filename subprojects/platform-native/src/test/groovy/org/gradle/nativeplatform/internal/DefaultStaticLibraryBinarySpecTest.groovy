@@ -22,7 +22,6 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.BuildType
@@ -45,7 +44,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir
     def instantiator = DirectInstantiator.INSTANCE
-    final library = BaseComponentFixtures.create(DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName"), new DefaultFunctionalSourceSet("name", instantiator, Stub(ProjectSourceSet)), instantiator)
+    final library = BaseComponentFixtures.create(DefaultNativeLibrarySpec, new ModelRegistryHelper(), new DefaultComponentSpecIdentifier("path", "libName"), Stub(ProjectSourceSet), instantiator)
     def namingScheme = new DefaultBinaryNamingScheme("main", "staticLibrary", [])
     def toolChain = Stub(NativeToolChainInternal)
     def platform = Stub(NativePlatform)

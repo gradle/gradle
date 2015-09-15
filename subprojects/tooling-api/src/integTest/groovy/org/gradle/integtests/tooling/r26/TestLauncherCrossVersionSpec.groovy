@@ -131,7 +131,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     }
 
     @Requires(TestPrecondition.JDK7_OR_LATER)
-    def "can run and cancel testlauncher in continuous mode"() {
+    def "can run and cancel test execution in continuous mode"() {
         given:
         collectDescriptorsFromBuild()
         when:
@@ -214,7 +214,9 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         }
         then:
         assertTaskExecuted(":secondTest")
+        assertTestExecuted(className: "more.MoreTest", methodName: "bar", task: ":secondTest")
         assertTaskExecuted(":test")
+        events.tests.size() == 10
     }
 
     def "fails with meaningful error when test task no longer exists"() {

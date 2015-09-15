@@ -17,7 +17,7 @@
 package org.gradle.play.integtest.dependencies
 
 import org.gradle.play.integtest.PlayBinaryApplicationIntegrationTest
-import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayAppWithDependencies
 
 class PlayBinaryAppWithDependenciesIntegrationTest extends PlayBinaryApplicationIntegrationTest {

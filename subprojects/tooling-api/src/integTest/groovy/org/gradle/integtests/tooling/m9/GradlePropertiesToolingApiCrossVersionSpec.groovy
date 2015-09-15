@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.build.BuildEnvironment
-import spock.lang.IgnoreIf
+import org.junit.Assume
 
 @TargetGradleVersion('>=1.0-milestone-9')
 class GradlePropertiesToolingApiCrossVersionSpec extends ToolingApiSpecification {
@@ -49,10 +49,10 @@ assert System.getProperty('some-prop') == 'some-value'
         env.java.jvmArguments.contains('-Xmx16m')
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "tooling api honours java home specified in gradle.properties"() {
-        File javaHome = AvailableJavaHomes.differentJdk.javaHome
-        String javaHomePath = TextUtil.escapeString(javaHome.canonicalPath)
+        def jdk = AvailableJavaHomes.getAvailableJdk { targetDist.isToolingApiTargetJvmSupported(it.javaVersion) }
+        Assume.assumeNotNull(jdk)
+        String javaHomePath = TextUtil.escapeString(jdk.javaHome.canonicalPath)
 
         file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
 
@@ -65,6 +65,6 @@ assert System.getProperty('some-prop') == 'some-value'
         }
 
         then:
-        env.java.javaHome == javaHome
+        env.java.javaHome == jdk.javaHome
     }
 }

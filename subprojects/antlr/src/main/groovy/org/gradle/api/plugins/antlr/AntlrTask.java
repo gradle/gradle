@@ -219,7 +219,11 @@ public class AntlrTask extends SourceTask {
     /**
      * Sets the source for this task. Delegates to {@link SourceTask#setSource(Object)}.
      *
-     * tracks the input if it is of type {@link SourceDirectorySet}
+     * If the source is of type {@link SourceDirectorySet}, then the relative path of each source grammar files
+     * is used to determine the relative output path of the generated source
+     * If the source is not of type {@link SourceDirectorySet}, then the generated source files end up
+     * flattened in the specified output directory.
+     *
      * @param source The source.
      */
     @Override
@@ -235,6 +239,7 @@ public class AntlrTask extends SourceTask {
      *
      * @return The source.
      */
+    // This method is here as the Gradle DSL generation can't handle properties with setters and getters in different classes.
     @InputFiles
     @SkipWhenEmpty
     public FileTree getSource() {

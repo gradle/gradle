@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.GradleException;
@@ -31,7 +32,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Queue;
+import java.util.Set;
 
 public class WeaklyTypeReferencingMethod<T, R> {
 
@@ -119,19 +123,36 @@ public class WeaklyTypeReferencingMethod<T, R> {
         return findMethod(target.getRawClass(), paramTypesArray);
     }
 
-    private Method findMethod(Class<?> currentTarget, Class<?>[] paramTypes) {
-        for (Method method : currentTarget.getDeclaredMethods()) {
-            if (method.getName().equals(name) && Arrays.equals(paramTypes, method.getParameterTypes())) {
-                return method;
+    private Method findMethod(Class<?> clazz, Class<?>[] paramTypes) {
+        Set<Class<?>> seenInterfaces = null;
+        Queue<Class<?>> queue = null;
+        Class<?> type = clazz;
+        while (type != null) {
+            for (Method method : type.getDeclaredMethods()) {
+                if (method.getName().equals(name) && Arrays.equals(paramTypes, method.getParameterTypes())) {
+                    return method;
+                }
             }
+
+            if (queue == null) {
+                queue = new ArrayDeque<Class<?>>();
+                seenInterfaces = Sets.newHashSet();
+            }
+
+            Class<?> superclass = type.getSuperclass();
+            if (superclass != null) {
+                queue.add(superclass);
+            }
+            for (Class<?> iface : type.getInterfaces()) {
+                if (seenInterfaces.add(iface)) {
+                    queue.add(iface);
+                }
+            }
+
+            type = queue.poll();
         }
 
-        Class<?> parent = currentTarget.getSuperclass();
-        if (parent == null) {
-            throw new org.gradle.internal.reflect.NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, Joiner.on(", ").join(paramTypes), target.getRawClass().getSimpleName()));
-        } else {
-            return findMethod(parent, paramTypes);
-        }
+        throw new org.gradle.internal.reflect.NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, Joiner.on(", ").join(paramTypes), this.target.getRawClass().getSimpleName()));
     }
 
     @Override

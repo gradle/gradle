@@ -17,10 +17,8 @@
 package org.gradle.platform.base.component
 
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
@@ -29,13 +27,7 @@ import spock.lang.Specification
 class BaseComponentSpecTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
     def componentId = new DefaultComponentSpecIdentifier("p", "c")
-    FunctionalSourceSet functionalSourceSet
-
     def modelRegistry = new ModelRegistryHelper()
-
-    def setup() {
-        functionalSourceSet = new DefaultFunctionalSourceSet("testFSS", DirectInstantiator.INSTANCE, Stub(ProjectSourceSet));
-    }
 
     def "cannot instantiate directly"() {
         when:
@@ -56,7 +48,7 @@ class BaseComponentSpecTest extends Specification {
     }
 
     private <T extends BaseComponentSpec> T create(Class<T> type) {
-        BaseComponentFixtures.create(type, modelRegistry, componentId, functionalSourceSet, instantiator)
+        BaseComponentFixtures.create(type, modelRegistry, componentId, Stub(ProjectSourceSet), instantiator)
     }
 
     def "library has name, path and sensible display name"() {
@@ -84,14 +76,11 @@ class BaseComponentSpecTest extends Specification {
 
     def "contains sources of associated main sourceSet"() {
         when:
-        def lss1 = languageSourceSet("lss1")
-        functionalSourceSet.add(lss1)
-
         def component = create(MySampleComponent)
-
-        and:
+        def lss1 = languageSourceSet("lss1")
         def lss2 = languageSourceSet("lss2")
-        functionalSourceSet.add(lss2)
+        component.functionalSourceSet.add(lss1)
+        component.functionalSourceSet.add(lss2)
 
         then:
         component.sources as List == [lss1, lss2]
@@ -99,10 +88,9 @@ class BaseComponentSpecTest extends Specification {
 
     def "source property is the same as sources property"() {
         when:
-        def lss1 = languageSourceSet("lss1")
-        functionalSourceSet.add(lss1)
-
         def component = create(MySampleComponent)
+        def lss1 = languageSourceSet("lss1")
+        component.functionalSourceSet.add(lss1)
 
         then:
         component.source.values() == [lss1]

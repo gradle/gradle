@@ -24,6 +24,7 @@ import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
+import org.gradle.api.tasks.TaskCollection;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -33,7 +34,6 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.*;
@@ -246,7 +246,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
     }
 
-
     public <U extends Task> NamedDomainObjectContainer<U> containerWithType(Class<U> type) {
         throw new UnsupportedOperationException();
     }
@@ -286,16 +285,16 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public void execute(final MutableModelNode mutableModelNode) {
-            DeprecationLogger.whileDisabled(new Runnable() {
-                @Override
-                public void run() {
-                    DefaultTaskContainer taskContainer = mutableModelNode.getParent().getPrivateData(ModelType.of(DefaultTaskContainer.class));
-                    T task = taskContainer.taskFactory.create(placeholderName, taskType);
-                    configure.execute(task);
-                    taskContainer.add(task);
-                    mutableModelNode.setPrivateData(taskModelType, task);
-                }
-            });
+            DefaultTaskContainer taskContainer = mutableModelNode.getParent().getPrivateData(ModelType.of(DefaultTaskContainer.class));
+            T task = taskContainer.taskFactory.create(placeholderName, taskType);
+            configure.execute(task);
+            taskContainer.add(task);
+            mutableModelNode.setPrivateData(taskModelType, task);
         }
+    }
+
+    @Override
+    public <S extends Task> TaskCollection<S> withType(Class<S> type) {
+        return new RealizableTaskCollection<S>(type, super.withType(type), modelNode);
     }
 }

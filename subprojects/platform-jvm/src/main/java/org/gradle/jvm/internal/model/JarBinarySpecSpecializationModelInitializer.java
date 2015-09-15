@@ -17,16 +17,15 @@
 package org.gradle.jvm.internal.model;
 
 import org.gradle.jvm.JarBinarySpec;
+import org.gradle.jvm.internal.DefaultJarBinarySpec;
 import org.gradle.jvm.internal.JarBinarySpecInternal;
-import org.gradle.model.internal.core.ModelProjection;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelView;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.ManagedModelInitializer;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.projection.ManagedModelProjection;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecFactory;
 
 import java.util.Collections;
@@ -34,10 +33,8 @@ import java.util.List;
 
 public class JarBinarySpecSpecializationModelInitializer<T> extends ManagedModelInitializer<T> {
 
-    private static final ManagedProxyFactory PROXY_FACTORY = new ManagedProxyFactory();
-
-    public JarBinarySpecSpecializationModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore) {
-        super(modelSchema, schemaStore);
+    public JarBinarySpecSpecializationModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
+        super(modelSchema, schemaStore, nodeInitializerRegistry);
     }
 
     @Override
@@ -49,12 +46,13 @@ public class JarBinarySpecSpecializationModelInitializer<T> extends ManagedModel
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
         super.execute(modelNode, inputs);
         BinarySpecFactory binarySpecFactory = (BinarySpecFactory) inputs.get(0).getInstance();
-        JarBinarySpecInternal jarBinarySpec = (JarBinarySpecInternal) binarySpecFactory.create(JarBinarySpec.class, modelNode, modelNode.getPath().getName());
+        DefaultJarBinarySpec jarBinarySpec = (DefaultJarBinarySpec) binarySpecFactory.create(JarBinarySpec.class, modelNode, modelNode.getPath().getName());
+        jarBinarySpec.setPublicType(modelSchema.getType().getConcreteClass().asSubclass(BinarySpec.class));
         modelNode.setPrivateData(JarBinarySpecInternal.class, jarBinarySpec);
     }
 
     @Override
     public List<? extends ModelProjection> getProjections() {
-        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, PROXY_FACTORY));
+        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, nodeInitializerRegistry, ManagedProxyFactory.INSTANCE));
     }
 }

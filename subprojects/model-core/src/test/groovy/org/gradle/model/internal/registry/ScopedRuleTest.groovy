@@ -19,6 +19,7 @@ package org.gradle.model.internal.registry
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.model.*
+import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.DependencyOnlyExtractedModelRule
 import org.gradle.model.internal.core.ExtractedModelRule
 import org.gradle.model.internal.core.ModelRuleExecutionException
@@ -32,7 +33,7 @@ import spock.lang.Specification
 
 class ScopedRuleTest extends Specification {
 
-    def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance())
+    def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance(), new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance))
     def registry = new ModelRegistryHelper(new DefaultModelRegistry(new ModelRuleExtractor(extractors)))
 
     static class RuleSourceUsingRuleWithDependencies extends RuleSource {

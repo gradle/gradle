@@ -29,7 +29,7 @@ Source sets
 Binaries
     Play Application Jar 'playBinary'
         build using task: :playBinary
-        platform: Play Platform (Play 2.3.9, Scala: 2.11, Java: Java SE 8)
+        targetPlatform: Play Platform (Play 2.3.9, Scala: 2.11, Java: Java SE 8)
 
 Note: currently not all plugins register their components, so some components may not be visible here.
 

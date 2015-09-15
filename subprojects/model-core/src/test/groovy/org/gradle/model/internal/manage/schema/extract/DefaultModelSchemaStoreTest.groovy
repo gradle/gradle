@@ -15,9 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
-
 import groovy.transform.CompileStatic
-import org.codehaus.groovy.reflection.ClassInfo
 import org.gradle.model.Managed
 import org.gradle.model.ModelSet
 import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema
@@ -88,7 +86,7 @@ class DefaultModelSchemaStoreTest extends Specification {
             System.gc()
             store.cleanUp()
             store.size() == 0
-            schema.managedImpl == null // collected too
+            schema.implementationType == null // collected too
         }
 
         where:
@@ -102,15 +100,12 @@ class DefaultModelSchemaStoreTest extends Specification {
         (schema.type.rawClass.classLoader as GroovyClassLoader).clearCache()
 
         // Remove soft references (dependent on Groovy internals)
-        def f = ClassInfo.getDeclaredField("globalClassSet")
-        f.setAccessible(true)
-        ClassInfo.ClassInfoSet globalClassSet = f.get(null) as ClassInfo.ClassInfoSet
-        globalClassSet.remove(schema.type.rawClass)
-        globalClassSet.remove(schema.managedImpl)
+        ModelStoreTestUtils.removeClassFromGlobalClassSet(schema.type.rawClass)
+        ModelStoreTestUtils.removeClassFromGlobalClassSet(schema.implementationType)
 
         // Remove soft references
         Introspector.flushFromCaches(schema.type.rawClass)
-        Introspector.flushFromCaches(schema.managedImpl)
+        Introspector.flushFromCaches(schema.implementationType)
     }
 
     def "canonicalizes introspection for different sites of generic type"() {

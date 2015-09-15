@@ -26,7 +26,7 @@ To create an install from the source tree you can run either of the following:
 
     ./gradlew install -Pgradle_installPath=/usr/local/gradle-source-build
 
-This will create a minimal installation; just what's needed to run Gradle (i.e. no docs). Note that the `-Pgradle_installPath` denotes where to install to. 
+This will create a minimal installation; just what's needed to run Gradle (i.e. no docs). Note that the `-Pgradle_installPath` denotes where to install to.
 
 You can then build a Gradle based project with this installation:
 
@@ -94,6 +94,6 @@ This command generates Eclipse metadata that allows importing the project into E
 
 #### Gradle for Eclipse (by Nodeclipse/Enide)
 
-With [Gradle(Enide) Eclipse plugin](http://marketplace.eclipse.org/content/gradle), you can import as general plugin or prepare before with `./gradlew eclipse`. 
+With [Gradle(Enide) Eclipse plugin](http://marketplace.eclipse.org/content/gradle), you can import as general plugin or prepare before with `./gradlew eclipse`.
 
 Build is run via right-click on `build.gradle` <kbd>Run As -> gradle build Gradle Build</kbd>

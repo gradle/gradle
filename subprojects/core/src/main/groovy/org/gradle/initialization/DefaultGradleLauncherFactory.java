@@ -16,9 +16,7 @@
 
 package org.gradle.initialization;
 
-import org.gradle.BuildLogger;
-import org.gradle.StartParameter;
-import org.gradle.TaskExecutionLogger;
+import org.gradle.*;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logging;
@@ -36,6 +34,7 @@ import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.service.scopes.BuildScopeServicesFactory;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.logging.LoggingManagerInternal;
@@ -69,7 +68,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         sharedServices.get(ListenerManager.class).removeListener(listener);
     }
 
-    public DefaultGradleLauncher newInstance(StartParameter startParameter) {
+    public GradleLauncher newInstance(StartParameter startParameter) {
         BuildRequestMetaData requestMetaData;
         BuildCancellationToken cancellationToken;
         BuildEventConsumer buildEventConsumer;
@@ -83,21 +82,24 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             cancellationToken = new DefaultBuildCancellationToken();
             buildEventConsumer = new NoOpBuildEventConsumer();
         }
-        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, sharedServices);
+        BuildScopeServicesFactory buildScopeServicesFactory = sharedServices.get(BuildScopeServicesFactory.class);
+        final BuildScopeServices buildScopeServices = buildScopeServicesFactory.create(startParameter);
+        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
     }
 
     @Override
     public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
         // This should only be used for top-level builds
         assert tracker.getCurrentBuild() == null;
-        DefaultGradleLauncher launcher = doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), parentRegistry);
+        BuildScopeServicesFactory buildScopeServicesFactory = sharedServices.get(BuildScopeServicesFactory.class);
+        BuildScopeServices buildScopeServices = buildScopeServicesFactory.create(parentRegistry);
+        DefaultGradleLauncher launcher = doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices);
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
         deploymentRegistry.onNewBuild(launcher.getGradle());
         return launcher;
     }
 
-    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, ServiceRegistry parentRegistry) {
-        BuildScopeServices serviceRegistry = new BuildScopeServices(parentRegistry, startParameter);
+    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, BuildScopeServices serviceRegistry) {
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);

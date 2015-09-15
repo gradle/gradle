@@ -67,7 +67,7 @@
             <para>
                 On Windows, this command will enable the Daemon for the current user:
                 <programlisting>
-                    (if not exist "%HOMEPATH%/.gradle" mkdir "%HOMEPATH%/.gradle") &amp;&amp; (echo "org.gradle.daemon=true" >> "%HOMEPATH%/.gradle/gradle.properties")
+                    (if not exist "%USERPROFILE%/.gradle" mkdir "%USERPROFILE%/.gradle") &amp;&amp; (echo org.gradle.daemon=true >> "%USERPROFILE%/.gradle/gradle.properties")
                 </programlisting>
                 On UNIX-like operating systems, the following Bash shell command will enable the Daemon for the current user:
                 <programlisting>

@@ -79,7 +79,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
-                <td>Copies production resources into the production classes directory.</td>
+                <td>Copies production resources into the production resources directory.</td>
             </tr>
             <tr>
                 <td>
@@ -90,7 +90,7 @@
                     Some plugins add additional compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
-                <td>Assembles the production classes directory.</td>
+                <td>Assembles the production classes and resources directories.</td>
             </tr>
             <tr>
                 <td>
@@ -108,7 +108,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
-                <td>Copies test resources into the test classes directory.</td>
+                <td>Copies test resources into the test resources directory.</td>
             </tr>
             <tr>
                 <td>
@@ -119,7 +119,7 @@
                     Some plugins add additional test compilation tasks.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
-                <td>Assembles the test classes directory.</td>
+                <td>Assembles the test classes and resources directories.</td>
             </tr>
             <tr>
                 <td>
@@ -209,7 +209,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.Copy"/></td>
-                <td>Copies the given source set's resources into the classes directory.</td>
+                <td>Copies the given source set's resources into the resources directory.</td>
             </tr>
             <tr>
                 <td>
@@ -221,7 +221,7 @@
                     Some plugins add additional compilation tasks for the source set.
                 </td>
                 <td><apilink class="org.gradle.api.Task"/></td>
-                <td>Assembles the given source set's classes directory.</td>
+                <td>Assembles the given source set's classes and resources directories.</td>
             </tr>
         </table>
 

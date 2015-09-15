@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.ReportedException;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
@@ -24,13 +25,15 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.initialization.ReportedException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
+
+import java.net.URI;
+import java.util.Collections;
 
 public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
     private final BuildActionExecuter<BuildActionParameters> executer;
@@ -47,7 +50,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
             throw new UnsupportedVersionException("Continuous build requires Tooling API client version 2.1 or later.");
         }
         BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
-            System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false);
+            System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false, parameters.getClasspath(Collections.<URI>emptyList()));
         try {
             return executer.execute(action, buildRequestContext, actionParameters, contextServices);
         } catch (ReportedException e) {

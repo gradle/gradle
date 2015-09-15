@@ -20,10 +20,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Named;
-import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.model.internal.manage.schema.*;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.ModelStructSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.VariantAspect;
 
 import java.util.Collections;
@@ -51,8 +54,7 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
     public static VariantsMetaData extractFrom(BinarySpec spec, ModelSchemaStore schemaStore) {
         Map<String, Object> variants = Maps.newLinkedHashMap();
         ImmutableMap.Builder<String, ModelType<?>> dimensionTypesBuilder = ImmutableMap.builder();
-        Class<?> specType = new DslObject(spec).getDeclaredType();
-        ModelSchema<?> schema = schemaStore.getSchema(specType);
+        ModelSchema<?> schema = schemaStore.getSchema(((BinarySpecInternal)spec).getPublicType());
         if (schema instanceof ModelStructSchema) {
             VariantAspect variantAspect = ((ModelStructSchema<?>) schema).getAspect(VariantAspect.class);
             if (variantAspect != null) {

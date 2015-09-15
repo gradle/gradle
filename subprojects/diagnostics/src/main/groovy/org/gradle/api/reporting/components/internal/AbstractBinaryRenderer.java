@@ -18,7 +18,6 @@ package org.gradle.api.reporting.components.internal;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.LanguageSourceSet;
@@ -78,7 +77,7 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
     }
 
     protected void renderVariants(T binary, TextReportBuilder builder) {
-        ModelSchema<?> schema = schemaStore.getSchema(new DslObject(binary).getDeclaredType());
+        ModelSchema<?> schema = schemaStore.getSchema(((BinarySpecInternal)binary).getPublicType());
         if (!(schema instanceof ModelStructSchema)) {
             return;
         }

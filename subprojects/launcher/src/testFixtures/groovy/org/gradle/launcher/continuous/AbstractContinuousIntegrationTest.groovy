@@ -83,7 +83,14 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
         }
         waitForBuild()
         if (result instanceof ExecutionFailure) {
-            throw new UnexpectedBuildFailure("build was expected to succeed but failed")
+            throw new UnexpectedBuildFailure("""build was expected to succeed but failed:
+-- STDOUT --
+${result.output}
+-- STDOUT --
+-- STDERR --
+${result.error}
+-- STDERR --
+""")
         }
         result
     }

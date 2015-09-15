@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve.http
-
 import org.gradle.authentication.http.BasicAuthentication
 import org.gradle.authentication.http.DigestAuthentication
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.server.http.HttpServer
 import org.hamcrest.Matchers
 import spock.lang.Unroll
+
+import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.BASIC
+import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.DIGEST
+import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.HIDE_UNAUTHORIZED
 
 class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     static String badCredentials = "credentials{username 'testuser'; password 'bad'}"
 
     @Unroll
-    def "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP ivy repository"() {
+    def "can resolve dependencies using #authSchemeName scheme from #serverAuthScheme authenticated HTTP ivy repository"() {
         given:
         def moduleA = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
         ivyHttpRepo.module('group', 'projectB', '2.1').publish()
@@ -44,7 +46,7 @@ repositories {
             username 'username'
         }
 
-        ${authSchemeType}
+        ${configuredAuthentication}
     }
 }
 configurations { compile }
@@ -58,7 +60,7 @@ task listJars << {
 """
 
         when:
-        server.authenticationScheme = authScheme
+        server.authenticationScheme = serverAuthScheme
 
         and:
         moduleA.ivy.expectGet('username', 'password')
@@ -70,20 +72,20 @@ task listJars << {
         then:
         succeeds('listJars')
         and:
-        server.authenticationOrder.asList() == authenticationOrder
+        server.authenticationAttempts.asList() == authenticationAttempts
 
         where:
-        authSchemeName     | authSchemeType                                                                | authScheme                             | authenticationOrder
-        'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.BASIC            | ['Basic']
-        'digest'           | 'authentication { auth(DigestAuthentication) }'                               | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
-        'default'          | ''                                                                            | HttpServer.AuthScheme.BASIC            | ['None', 'Basic']
-        'default'          | ''                                                                            | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
-        'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC | ['Basic']
-        'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | HttpServer.AuthScheme.DIGEST           | ['Basic', 'Digest']
+        authSchemeName     | configuredAuthentication                                                      | serverAuthScheme  | authenticationAttempts
+        'basic'            | 'authentication { auth(BasicAuthentication) }'                                | BASIC             | ['Basic']
+        'digest'           | 'authentication { auth(DigestAuthentication) }'                               | DIGEST            | ['None', 'Digest']
+        'default'          | ''                                                                            | BASIC             | ['None', 'Basic']
+        'default'          | ''                                                                            | DIGEST            | ['None', 'Digest']
+        'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HIDE_UNAUTHORIZED | ['Basic']
+        'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | DIGEST            | ['Basic', 'Digest']
     }
 
     @Unroll
-    public void "can resolve dependencies from #authScheme authenticated HTTP maven repository"() {
+    public void "can resolve dependencies using #authSchemeName scheme from #serverAuthScheme authenticated HTTP maven repository"() {
         given:
         def moduleA = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
         mavenHttpRepo.module('group', 'projectB', '2.0').publish()
@@ -103,7 +105,7 @@ repositories {
             username 'username'
         }
 
-        ${authSchemeType}
+        ${configuredAuthentication}
     }
 }
 configurations { compile }
@@ -119,7 +121,7 @@ task listJars << {
 """
 
         when:
-        server.authenticationScheme = authScheme
+        server.authenticationScheme = serverAuthScheme
 
         and:
         moduleA.pom.expectGet('username', 'password')
@@ -139,16 +141,16 @@ task listJars << {
         then:
         succeeds('listJars')
         and:
-        server.authenticationOrder.asList() == authenticationOrder
+        server.authenticationAttempts.asList() == authenticationAttempts
 
         where:
-        authSchemeName     | authSchemeType                                                                | authScheme                             | authenticationOrder
-        'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.BASIC            | ['Basic']
-        'digest'           | 'authentication { auth(DigestAuthentication) }'                               | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
-        'default'          | ''                                                                            | HttpServer.AuthScheme.BASIC            | ['None', 'Basic']
-        'default'          | ''                                                                            | HttpServer.AuthScheme.DIGEST           | ['None', 'Digest']
-        'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HttpServer.AuthScheme.PREEMPTIVE_BASIC | ['Basic']
-        'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | HttpServer.AuthScheme.DIGEST           | ['Basic', 'Digest']
+        authSchemeName     | configuredAuthentication                                                      | serverAuthScheme  | authenticationAttempts
+        'basic'            | 'authentication { auth(BasicAuthentication) }'                                | BASIC             | ['Basic']
+        'digest'           | 'authentication { auth(DigestAuthentication) }'                               | DIGEST            | ['None', 'Digest']
+        'default'          | ''                                                                            | BASIC             | ['None', 'Basic']
+        'default'          | ''                                                                            | DIGEST            | ['None', 'Digest']
+        'basic'            | 'authentication { auth(BasicAuthentication) }'                                | HIDE_UNAUTHORIZED | ['Basic']
+        'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | DIGEST            | ['Basic', 'Digest']
     }
 
     @Unroll
@@ -187,11 +189,11 @@ task listJars << {
             .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
-        authScheme                   | credsName | creds
-        HttpServer.AuthScheme.BASIC  | 'missing'   | ''
-        HttpServer.AuthScheme.DIGEST | 'missing'   | ''
-        HttpServer.AuthScheme.BASIC  | 'bad'     | badCredentials
-        HttpServer.AuthScheme.DIGEST | 'bad'     | badCredentials
+        authScheme | credsName | creds
+        BASIC      | 'missing' | ''
+        DIGEST     | 'missing' | ''
+        BASIC      | 'bad'     | badCredentials
+        DIGEST     | 'bad'     | badCredentials
     }
 
     @Unroll
@@ -231,11 +233,11 @@ task listJars << {
             .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
-        authScheme                   | credsName | creds
-        HttpServer.AuthScheme.BASIC  | 'missing'   | ''
-        HttpServer.AuthScheme.DIGEST | 'missing'   | ''
-        HttpServer.AuthScheme.BASIC  | 'bad'     | badCredentials
-        HttpServer.AuthScheme.DIGEST | 'bad'     | badCredentials
+        authScheme | credsName | creds
+        BASIC      | 'missing' | ''
+        DIGEST     | 'missing' | ''
+        BASIC      | 'bad'     | badCredentials
+        DIGEST     | 'bad'     | badCredentials
     }
 
     @Unroll
@@ -281,9 +283,9 @@ task listJars << {
             .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
-        authScheme                   | configuredAuthScheme
-        HttpServer.AuthScheme.BASIC  | DigestAuthentication.class.getSimpleName()
-        HttpServer.AuthScheme.DIGEST | BasicAuthentication.class.getSimpleName()
+        authScheme | configuredAuthScheme
+        BASIC      | DigestAuthentication.class.getSimpleName()
+        DIGEST     | BasicAuthentication.class.getSimpleName()
     }
 
     @Unroll
@@ -330,9 +332,9 @@ task listJars << {
             .assertThatCause(Matchers.containsString('Received status code 401 from server: Unauthorized'))
 
         where:
-        authScheme                   | configuredAuthScheme
-        HttpServer.AuthScheme.BASIC  | DigestAuthentication.class.getSimpleName()
-        HttpServer.AuthScheme.DIGEST | BasicAuthentication.class.getSimpleName()
+        authScheme | configuredAuthScheme
+        BASIC      | DigestAuthentication.class.getSimpleName()
+        DIGEST     | BasicAuthentication.class.getSimpleName()
     }
 
     def "fails resolving from preemptive authenticated HTTP ivy repository"() {
@@ -360,7 +362,7 @@ task listJars << {
 """
 
         and:
-        server.authenticationScheme = HttpServer.AuthScheme.PREEMPTIVE_BASIC
+        server.authenticationScheme = HIDE_UNAUTHORIZED
         server.allowGetOrHead('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
         server.allowGetOrHead('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
 
@@ -400,7 +402,7 @@ task listJars << {
 """
 
         and:
-        server.authenticationScheme = HttpServer.AuthScheme.PREEMPTIVE_BASIC
+        server.authenticationScheme = HIDE_UNAUTHORIZED
         module.pom.allowGetOrHead('username', 'password')
         module.artifact.allowGetOrHead('username', 'password')
 

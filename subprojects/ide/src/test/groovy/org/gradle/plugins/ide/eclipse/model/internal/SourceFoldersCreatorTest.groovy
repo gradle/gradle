@@ -37,6 +37,7 @@ class SourceFoldersCreatorTest extends Specification {
 
     DirectoryTree javaTree;
     DirectoryTree resourcesTree;
+    File projectRootFolder;
 
     def setup() {
         sourceSet = Mock()
@@ -46,6 +47,7 @@ class SourceFoldersCreatorTest extends Specification {
         _ * sourceSet.allSource >> allSource
         _ * sourceSet.allJava >> java
         _ * sourceSet.resources >> resources
+        projectRootFolder = tempFolder.newFolder("project-root")
     }
 
     def "applies excludes/includes for src folders"() {
@@ -57,9 +59,9 @@ class SourceFoldersCreatorTest extends Specification {
         def folders = regularSourceFolders()
         then:
         folders.find { it.dir.path.endsWith("java") }.excludes == []
-        folders.find { it.dir.path.endsWith("java") }.includes== patterns
+        folders.find { it.dir.path.endsWith("java") }.includes == patterns
         folders.find { it.dir.path.endsWith("resources") }.excludes == patterns
-        folders.find { it.dir.path.endsWith("resources") }.includes== []
+        folders.find { it.dir.path.endsWith("resources") }.includes == []
     }
 
     def "ignores excludes patterns when specified for one of shared resources/sources folders"() {
@@ -85,6 +87,35 @@ class SourceFoldersCreatorTest extends Specification {
         folders.find { it.dir.path.endsWith("shared") }.includes == []
     }
 
+    def "applies no includes when one source type has no includes declared"() {
+        given:
+        javaTree = dirTree("shared", [], [])
+        resourcesTree = dirTree("shared", [], ["**/*.properties"])
+        when:
+        def folders = regularSourceFolders()
+        then:
+        folders.find { it.dir.path.endsWith("shared") }.excludes == []
+        folders.find { it.dir.path.endsWith("shared") }.includes == []
+    }
+
+    def "applies includes when all source types have declared includes"() {
+        given:
+        javaTree = dirTree("shared", [], ["**/*.java", "**/*.xml"])
+        resourcesTree = dirTree("shared", [], ["**/*.properties", "**/*.xml"])
+        when:
+        def folders = regularSourceFolders()
+        then:
+        folders.find { it.dir.path.endsWith("shared") }.excludes == []
+        folders.find { it.dir.path.endsWith("shared") }.includes == ["**/*.properties", "**/*.xml", "**/*.java"]
+    }
+
+    def "dedups external sourcefolder names"() {
+        when:
+        def folders = externalSourceFolders("../parent1/sibling1/src", "../parent2/sibling1/src", "../sibling2/src", "../parent1/sibling1/sib-src")
+        then:
+        folders.collect { it.path } ==  ["sibling1-src", "parent2-sibling1-src", "sibling2-src", "sib-src"]
+    }
+
     private List<SourceFolder> regularSourceFolders() {
         _ * java.srcDirs >> [javaTree.dir]
         _ * java.excludes >> javaTree.patterns.excludes
@@ -98,12 +129,23 @@ class SourceFoldersCreatorTest extends Specification {
         return new SourceFoldersCreator().getRegularSourceFolders([sourceSet], { File file -> file.path })
     }
 
+    private List<SourceFolder> externalSourceFolders(String... paths) {
+        javaTree = dirTree("src", [], [])
+        resourcesTree = dirTree("resources", [], [])
 
-    private def dirTree(String dirName, List excludes, List includes) {
-        def dir = new File(tempFolder.root, dirName);
-        if (!dir.exists()) {
-            tempFolder.newFolder(dirName)
-        }
+        def allExtTrees = paths.collect { path -> dirTree(path, [], []) }
+
+        _ * java.srcDirs >> allExtTrees.collect { it.dir } + javaTree.dir
+        _ * java.srcDirTrees >> allExtTrees + javaTree
+        _ * resources.srcDirs >> [resourcesTree.dir]
+        _ * resources.srcDirTrees >> [resourcesTree]
+        _ * allSource.getSrcDirTrees() >> allExtTrees + [javaTree, resourcesTree]
+        return new SourceFoldersCreator().getExternalSourceFolders([sourceSet], { File file -> file.path })
+    }
+
+    private def dirTree(String sourceDirName, List excludes, List includes) {
+        File dir = new File(projectRootFolder, sourceDirName);
+        dir.mkdirs()
         new TestDirectoryTree(dir: dir,
             patterns: new PatternSet().setExcludes(excludes).setIncludes(includes));
     }

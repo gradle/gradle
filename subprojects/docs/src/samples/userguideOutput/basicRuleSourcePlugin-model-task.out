@@ -11,13 +11,37 @@ Root project
           | Rules:
              ⤷ PersonRules#setFirstName
              ⤷ model.person
+        + age
+              | Type:   	int
+              | Creator: 	PersonRules#person
+        + children
+              | Type:   	org.gradle.model.collection.ManagedSet<Person>
+              | Creator: 	PersonRules#person
+        + employed
+              | Type:   	boolean
+              | Creator: 	PersonRules#person
+        + father
+              | Type:   	Person
+              | Creator: 	PersonRules#person
         + firstName
               | Type:   	java.lang.String
               | Value:  	John
               | Creator: 	PersonRules#person
+        + homeDirectory
+              | Type:   	java.io.File
+              | Creator: 	PersonRules#person
+        + id
+              | Type:   	java.lang.Long
+              | Creator: 	PersonRules#person
         + lastName
               | Type:   	java.lang.String
               | Value:  	Smith
+              | Creator: 	PersonRules#person
+        + maritalStatus
+              | Type:   	MaritalStatus
+              | Creator: 	PersonRules#person
+        + mother
+              | Type:   	Person
               | Creator: 	PersonRules#person
     + tasks
           | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task>

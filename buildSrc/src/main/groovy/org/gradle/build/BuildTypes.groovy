@@ -15,8 +15,8 @@
  */
 package org.gradle.build
 
-import org.gradle.api.Project
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 
 class BuildTypes {
 
@@ -51,12 +51,11 @@ class BuildTypes {
             group = "Build Type"
             def abbreviation = name[0] + name[1..-1].replaceAll("[a-z]", "")
             def taskNames = project.gradle.startParameter.taskNames
-
             def usedName = taskNames.find { it in [name, abbreviation] }
             def index = taskNames.indexOf(usedName)
             if (usedName && !((taskNames[index - 1] == '--task') && (taskNames[index - 2] ==~ /h(e(lp?)?)?/))) {
                 activeNames << name
-                taskNames.remove((int)index)
+                taskNames.remove((int) index)
                 tasks.reverse().each {
                     taskNames.add(index, it)
                 }
@@ -72,7 +71,22 @@ class BuildTypes {
             doFirst {
                 throw new GradleException("'$name' is a build type and has to be invoked directly, and its name can only be abbreviated to '$abbreviation'.")
             }
-         }
+        }
     }
 
+    static class BuildType {
+        String name
+        List tasks
+        Map projectProperties = [:]
+
+        BuildType(String name, List tasks, Map projectProperties) {
+            this.name = name
+            this.tasks = tasks
+            this.projectProperties = projectProperties
+        }
+
+        static BuildType from(String name, List<String> tasks, Map projectProperties = [:]) {
+            return new BuildType(name, tasks, projectProperties)
+        }
+    }
 }

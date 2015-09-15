@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
@@ -179,10 +180,15 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     public FileTree getAsFileTree() {
         return new CompositeFileTree() {
             @Override
-            public void resolve(FileCollectionResolveContext context) {
+            public void visitContents(FileCollectionResolveContext context) {
                 ResolvableFileCollectionResolveContext nested = context.newContext();
                 nested.add(AbstractFileCollection.this);
                 context.add(nested.resolveAsFileTrees());
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                context.add(AbstractFileCollection.this);
             }
 
             @Override
@@ -217,7 +223,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected String getCapDisplayName() {
         return StringUtils.capitalize(getDisplayName());
     }
-
 
     @Override
     public void registerWatchPoints(FileSystemSubset.Builder builder) {

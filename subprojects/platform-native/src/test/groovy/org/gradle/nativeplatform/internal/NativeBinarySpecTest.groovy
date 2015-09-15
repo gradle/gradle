@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.internal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
-import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.language.nativeplatform.DependentSourceSet
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.nativeplatform.*
@@ -29,7 +28,6 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.Architectures
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary
-import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
@@ -40,12 +38,8 @@ class NativeBinarySpecTest extends Specification {
     def instantiator = DirectInstantiator.INSTANCE
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def sourceSet = new DefaultFunctionalSourceSet("testFunctionalSourceSet", instantiator, Stub(ProjectSourceSet))
-    def component = BaseComponentFixtures.create(TestNativeComponentSpec, new ModelRegistryHelper(), id, sourceSet, instantiator)
+    def component = BaseComponentFixtures.create(TestNativeComponentSpec, new ModelRegistryHelper(), id, Stub(ProjectSourceSet), instantiator)
 
-    def toolChain1 = Stub(NativeToolChainInternal) {
-        getName() >> "ToolChain1"
-    }
     def platform1 = Stub(NativePlatform) {
         getArchitecture() >> Architectures.forInput("i386")
     }

@@ -16,11 +16,11 @@
 
 package org.gradle.language.base.internal.model;
 
-import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.Variant;
+import org.gradle.platform.base.internal.BinarySpecInternal;
 
 // Separate Java class because IBM JDK 6
-public interface ParametrizedBinaryString extends BinarySpec {
+public interface ParametrizedBinaryString extends BinarySpecInternal {
     @Variant
     ParametrizedVariant<String> getVariant();
 }

@@ -88,7 +88,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         versionValidator.validate(daemonParameters);
 
         List<String> daemonArgs = new ArrayList<String>();
-        daemonArgs.add(daemonParameters.getEffectiveJavaExecutable().getAbsolutePath());
+        daemonArgs.add(daemonParameters.getEffectiveJvm().getJavaExecutable().getAbsolutePath());
 
         List<String> daemonOpts = daemonParameters.getEffectiveJvmArgs();
         daemonArgs.addAll(daemonOpts);

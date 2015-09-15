@@ -65,7 +65,7 @@ project(':shared:model') {
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
 
         //then
-        def dependencies = parseIml("master/api/api.iml").dependencies
+        def dependencies = parseIml("master/api/master-api.iml").dependencies
         assert dependencies.modules.size() == 2
         dependencies.assertHasModule("COMPILE", "shared-api")
         dependencies.assertHasModule("TEST", "model")
@@ -140,16 +140,16 @@ project(':services:utilities') {
         //then
         assertIprContainsCorrectModules()
 
-        def moduleDeps = parseIml("master/api/api.iml").dependencies
+        def moduleDeps = parseIml("master/api/master-api.iml").dependencies
         assert moduleDeps.modules.size() == 2
         moduleDeps.assertHasModule("COMPILE", "shared-api")
         moduleDeps.assertHasModule("COMPILE", "very-cool-model")
 
-        moduleDeps = parseIml("master/services/utilities/services-util.iml").dependencies
+        moduleDeps = parseIml("master/services/utilities/master-services-util.iml").dependencies
         assert moduleDeps.modules.size() == 4
         moduleDeps.assertHasModule("COMPILE", "shared-api")
         moduleDeps.assertHasModule("COMPILE", "very-cool-model")
-        moduleDeps.assertHasModule("COMPILE", "util")
+        moduleDeps.assertHasModule("COMPILE", "master-util")
         moduleDeps.assertHasModule("COMPILE", "contrib-services-util")
     }
 
@@ -158,11 +158,11 @@ project(':services:utilities') {
 
         ['master.iml',
          'shared-api.iml', 'shared.iml',
-         'services.iml', 'services-util.iml',
+         'master-services.iml', 'master-services-util.iml',
          'contrib-services-util.iml', 'contrib.iml', 'contrib-services.iml',
          'very-cool-model.iml',
-         'api.iml',
-         'util.iml'].each {
+         'master-api.iml',
+         'master-util.iml'].each {
             assert moduleFileNames.contains(it)
         }
     }

@@ -21,9 +21,12 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.repository.internal.MavenRepositorySystemSession;
 import org.apache.maven.repository.internal.SnapshotMetadataGeneratorFactory;
 import org.apache.maven.repository.internal.VersionsMetadataGeneratorFactory;
+import org.codehaus.plexus.DefaultContainerConfiguration;
 import org.codehaus.plexus.DefaultPlexusContainer;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
+import org.codehaus.plexus.classworlds.ClassWorld;
+import org.codehaus.plexus.classworlds.realm.ClassRealm;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
@@ -41,6 +44,7 @@ import org.sonatype.aether.util.artifact.DefaultArtifact;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -54,8 +58,8 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
     private Artifact mainArtifact;
     private SnapshotVersionManager snapshotVersionManager = new SnapshotVersionManager();
 
-    protected AbstractMavenPublishAction(File pomFile) {
-        container = newPlexusContainer();
+    protected AbstractMavenPublishAction(File pomFile, List<File> wagonJars) {
+        container = newPlexusContainer(wagonJars);
         session = new MavenRepositorySystemSession();
         session.setTransferListener(new LoggingMavenTransferListener());
         session.getConfigProperties().put("maven.metadata.legacy", "true");
@@ -99,10 +103,19 @@ abstract class AbstractMavenPublishAction implements MavenPublishAction {
         return container;
     }
 
-    private PlexusContainer newPlexusContainer() {
+    private PlexusContainer newPlexusContainer(List<File> wagonJars) {
         try {
-            return new DefaultPlexusContainer();
+            ClassWorld world = new ClassWorld("plexus.core", ClassWorld.class.getClassLoader());
+            ClassRealm classRealm = new ClassRealm(world, "plexus.core", ClassWorld.class.getClassLoader());
+            if (wagonJars != null) {
+                for (File jar : wagonJars) {
+                    classRealm.addURL(jar.toURI().toURL());
+                }
+            }
+            return new DefaultPlexusContainer(new DefaultContainerConfiguration().setRealm(classRealm));
         } catch (PlexusContainerException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (MalformedURLException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
