@@ -340,4 +340,34 @@ println t.getClass()
         expect:
         succeeds('help')
     }
+
+    def "only tasks of specified type are realized"() {
+        when:
+        buildScript """
+            ${ruleBasedTasks()}
+
+            model {
+              tasks {
+                create("climbTask", ClimbTask)
+                create("jumpTask", JumpTask)
+              }
+            }
+
+            task customTask {
+              dependsOn tasks.withType(ClimbTask)
+              doLast {
+                // This is somewhat fragile and may break when we handle realizing better
+                println "jumpTask exists: " + !tasks.withType(JumpTask).empty
+                println "climbTask exists: " + !tasks.withType(ClimbTask).empty
+              }
+            }
+        """
+
+        and:
+        run "customTask"
+
+        then:
+        outputContains "jumpTask exists: false"
+        outputContains "climbTask exists: true"
+    }
 }
