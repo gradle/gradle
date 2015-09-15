@@ -20,12 +20,8 @@ import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.registry.ModelRegistry
 import spock.lang.Specification
-
-import static org.gradle.api.internal.tasks.TaskContainerInternal.MODEL_PATH
 
 class RealizableTaskCollectionTest extends Specification {
 
@@ -41,7 +37,7 @@ class RealizableTaskCollectionTest extends Specification {
         }
 
         when:
-        new RealizableTaskCollection(realizableType, Mock(DefaultTaskCollection), registry, path).realizeRuleTaskTypes()
+        new RealizableTaskCollection(realizableType, Mock(DefaultTaskCollection), registry.node(path)).realizeRuleTaskTypes()
 
         then:
         registry.state(taskPath) == ModelNode.State.GraphClosed
@@ -65,26 +61,33 @@ class RealizableTaskCollectionTest extends Specification {
         }
 
         when:
-        def collection = new RealizableTaskCollection(BasicTask, Mock(DefaultTaskCollection), registry, path)
+        def collection = new RealizableTaskCollection(BasicTask, Mock(DefaultTaskCollection), registry.node(path))
         collection.realizeRuleTaskTypes()
 
         then:
         registry.state("tasks.redundant") == ModelNode.State.Known
     }
 
-    def "realizes tasks once only"() {
+    def "realize is idempotent"() {
         given:
-        def registry = Mock(ModelRegistry)
-        def node = Mock(MutableModelNode)
-        node.getLinks(_) >> []
+        ModelRegistryHelper registry = new ModelRegistryHelper()
+        ModelPath path = ModelPath.path("tasks")
+
+        registry.createInstance("tasks", "foo tasks")
+            .mutate {
+            it.path "tasks" node {
+                it.addLink(registry.instanceCreator("tasks.redundant", Mock(RedundantTask)))
+            }
+        }
+
 
         when:
-        RealizableTaskCollection collection = new RealizableTaskCollection(Class, Mock(TaskCollection), registry, MODEL_PATH)
+        RealizableTaskCollection collection = new RealizableTaskCollection(Class, Mock(TaskCollection), registry.node(path))
         collection.realizeRuleTaskTypes()
         collection.realizeRuleTaskTypes()
 
         then:
-        1 * registry.atStateOrLater(MODEL_PATH, ModelNode.State.SelfClosed) >> node
+        noExceptionThrown()
     }
 }
 

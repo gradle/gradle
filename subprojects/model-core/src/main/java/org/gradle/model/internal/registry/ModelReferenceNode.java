@@ -208,6 +208,13 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
+    public void ensureAtLeast(State state) {
+        if (target != null) {
+            target.ensureAtLeast(state);
+        }
+    }
+
+    @Override
     public MutableModelNode getParent() {
         return parent;
     }

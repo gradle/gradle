@@ -868,7 +868,12 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void ensureUsable() {
-            transition(this, Initialized, true);
+            ensureAtLeast(Initialized);
+        }
+
+        @Override
+        public void ensureAtLeast(State state) {
+            transition(this, state, true);
         }
 
     }
@@ -1249,9 +1254,9 @@ public class DefaultModelRegistry implements ModelRegistry {
             ModelNodeInternal parentTarget = parent.getTarget();
             ModelNodeInternal childTarget = parentTarget.getLink(path.getName());
             ModelCreator creator = ModelCreators.of(path)
-                    .descriptor(parent.getDescriptor())
-                    .withProjection(UnmanagedModelProjection.of(Object.class))
-                    .build();
+                .descriptor(parent.getDescriptor())
+                .withProjection(UnmanagedModelProjection.of(Object.class))
+                .build();
             ModelReferenceNode childNode = new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT), parent);
             childNode.setTarget(childTarget);
             registerNode(childNode);

@@ -45,7 +45,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final NamedEntityInstantiator<Task> instantiator;
 
     public DefaultTaskContainer(MutableModelNode modelNode, ProjectInternal project, Instantiator instantiator, ITaskFactory taskFactory, ProjectAccessListener projectAccessListener) {
-        super(Task.class, instantiator, project);
+        super(Task.class, instantiator, project, modelNode);
         this.modelNode = modelNode;
         this.taskFactory = taskFactory;
         this.projectAccessListener = projectAccessListener;

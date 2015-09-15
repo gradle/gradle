@@ -27,29 +27,33 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.model.internal.core.MutableModelNode;
 
 public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObjectSet<T> implements TaskCollection<T> {
     private static final Task.Namer NAMER = new Task.Namer();
 
     protected final ProjectInternal project;
+    private final MutableModelNode modelNode;
 
-    public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project) {
+    public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project, MutableModelNode modelNode) {
         super(type, instantiator, NAMER);
         this.project = project;
+        this.modelNode = modelNode;
     }
 
-    public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project) {
+    public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project, MutableModelNode modelNode) {
         super(collection, filter, instantiator, NAMER);
         this.project = project;
+        this.modelNode = modelNode;
     }
 
     protected <S extends T> DefaultTaskCollection<S> filtered(CollectionFilter<S> filter) {
-        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project);
+        return getInstantiator().newInstance(DefaultTaskCollection.class, this, filter, getInstantiator(), project, modelNode);
     }
 
     @Override
     public <S extends T> TaskCollection<S> withType(Class<S> type) {
-        return new RealizableTaskCollection<S>(type, filtered(createFilter(type)), project.getModelRegistry(), TaskContainerInternal.MODEL_PATH);
+        return new RealizableTaskCollection<S>(type, filtered(createFilter(type)), modelNode);
     }
 
     @Override

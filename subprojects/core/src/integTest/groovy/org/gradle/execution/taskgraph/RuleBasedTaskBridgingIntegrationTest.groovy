@@ -190,7 +190,9 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         apply type: Rules
 
         task customTask << { }
-        customTask.dependsOn tasks.withType(Task).withType(ClimbTask)
+def t = tasks.withType(Task).withType(ClimbTask)
+println t.getClass()
+        customTask.dependsOn t
         """
 
         when:
