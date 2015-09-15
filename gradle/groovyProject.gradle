@@ -111,7 +111,7 @@ ext.ClasspathManifest = ClasspathManifest
 // This is here mostly for the TravisCI build.
 // It advertises as an ANSI capable terminal but isn't, so we run with -q there to make
 // the output legible, but we still want test result info
-if (buildTypes.pullRequestValidation.active) {
+if (buildTypes.isActive("pullRequestValidation")) {
     tasks.withType(Test) {
         testLogging {
             quiet {

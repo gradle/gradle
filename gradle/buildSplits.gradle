@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.build.BuildTypes
 
 def buckets = [
     "1": [":platformPlay", ":scala", ":languageScala", ":buildComparison",
@@ -36,19 +37,16 @@ def buckets = [
 def coveredProjects = (buckets.collect { it.value }).flatten()
 assert coveredProjects.size() == subprojects.size(): "The following projects should be added to a bucket: ${subprojects.collect { ":${it.name}" } - coveredProjects}"
 
-//Create appropriate build types for each bucket
-buildTypes.toArray().each { buildType ->
-    buckets.each { String bucketName, List<String> projects ->
-        def projectTasks = tasksForProjects(buildType, projects)
-        buildTypes.create("${buildType.name + bucketName}") {
-            tasks projectTasks as String[]
-            projectProperties buildType.projectProperties
-        }
+
+buckets.each { String bucketName, List<String> projects ->
+    buildTypeList.each { BuildTypes.BuildType buildType ->
+        def tasks = tasksForProjects(buildType, projects)
+        project.getExtensions().buildTypes."${buildType.name + bucketName}"(buildType.projectProperties, *tasks)
     }
 }
 
-def tasksForProjects(buildType, List<String> projects) {
-    List tasks = []
+def tasksForProjects(BuildTypes.BuildType buildType, List<String> projects) {
+    Set<String> tasks = []
     projects.each { String p ->
         buildType.tasks.each { String t ->
             String task = resolveTask(t)
@@ -59,8 +57,9 @@ def tasksForProjects(buildType, List<String> projects) {
             }
         }
     }
-    return tasks
+    return tasks.toList()
 }
+
 
 def String resolveTask(String task) {
     if (testGroupings.containsKey(task)) {

@@ -14,101 +14,65 @@
  * limitations under the License.
  */
 
+import org.gradle.build.BuildTypes
+import org.gradle.build.BuildTypes.BuildType
 import org.gradle.build.Install
 
 defaultTasks 'assemble'
 apply plugin: 'java-base'
-apply plugin: 'build-types'
 archivesBaseName = 'gradle'
 
-buildTypes {
-    sanityCheck {
-        tasks "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
-    }
-
-    // The minimum to be run before check-in
-    preCommitBuild {
-        tasks "doc:checkstyleApi", "docs:check", "codeQuality", "test"
-    }
-    quickCheck {
-        tasks "doc:checkstyleApi", "docs:check", "codeQuality", "test"
-    }
-
-    // For testing pull requests
-    pullRequestValidation {
-        tasks "doc:checkstyleApi", "docs:check", "codeQuality", "core:test", "dependencyManagement:test"
-    }
-
-    // A full (in-process) test
-    developerBuild {
-        tasks "check"
-    }
-
-    // Used by the first phase of the build pipeline, running only last version on multiversion - tests
-    quickTest {
-        tasks "runtimeTests", "runtimeIntegTests", "performance:test"
-    }
-
-    // Used for builds to run all tests, but not necessarily on all platforms
-    fullTest {
-        tasks "runtimeTests", "runtimeForkingIntegTests"
-        projectProperties useIncomingDistributions: true, testAllVersions: true
-    }
-
-    // Used for builds to test the code on certain platforms
-    platformTest {
-        tasks "runtimeTests", "runtimeForkingIntegTests", "performance:test"
-        projectProperties useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true
-    }
-
-    // Tests using the daemon mode
-    daemonTest {
-        tasks "runtimeDaemonIntegTests"
-        projectProperties useIncomingDistributions: true
-    }
-
-    // Run the integration tests using the parallel executer
-    parallelTest {
-        tasks "runtimeParallelIntegTests"
-        projectProperties useIncomingDistributions: true
-    }
-
-    // Run the performance tests
-    performanceTest {
-        tasks "performance:performanceTest"
-        projectProperties useIncomingDistributions: true
-    }
-
-    // Run the performance experiments
-    performanceExperiments {
-        tasks "performance:performanceExperiments"
-        projectProperties useIncomingDistributions: true
-    }
-
-    // Used for cross version tests on CI
-    crossVersionTest {
-        tasks "crossVersionIntegTest"
-        projectProperties useIncomingDistributions: true
-    }
-
-    // Used to build production distros and smoke test them
-    packageBuild {
-        tasks "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
-    }
-
-    // Used to build production distros and smoke test them
-    promotionBuild {
-        tasks "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"
-    }
-
-    //Initial smoke test for java 9
-    java9Build {
-        tasks "java9Test", "java9IntegTest"
-        projectProperties useIncomingDistributions: true
-    }
-}
+extensions.buildTypes = new BuildTypes(project)
 
 ext {
+    buildTypeList = [
+        BuildType.from('sanityCheck', ["classes", "doc:checkstyleApi", "codeQuality", "docs:check"]),
+
+        // The minimum to be run before check-in
+        BuildType.from('preCommitBuild', ["doc:checkstyleApi", "docs:check", "codeQuality", "test"]),
+        BuildType.from('quickCheck', ["doc:checkstyleApi", "docs:check", "codeQuality", "test"]),
+
+        // For testing pull requests
+        BuildType.from('pullRequestValidation', ["doc:checkstyleApi", "docs:check", "codeQuality", "core:test", "dependencyManagement:test"]),
+
+        // A full (in-process) test
+        BuildType.from('developerBuild', ["check"]),
+
+        // Used by the first phase of the build pipeline, running only last version on multiversion - tests
+        BuildType.from('quickTest', ["runtimeTests", "runtimeIntegTests", "performance:test"]),
+
+        // Used for builds to run all tests, but not necessarily on all platforms),
+        BuildType.from('fullTest', ["runtimeTests", "runtimeForkingIntegTests"], [useIncomingDistributions: true, testAllVersions: true]),
+
+        // Used for builds to test the code on certain platforms
+        BuildType.from('platformTest', ["runtimeTests", "runtimeForkingIntegTests", "performance:test"], [useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true]),
+
+        // Tests using the daemon mode
+        BuildType.from('daemonTest', ["runtimeDaemonIntegTests"], [useIncomingDistributions: true]),
+
+        // Run the integration tests using the parallel executer
+        BuildType.from('parallelTest', ["runtimeParallelIntegTests"], [useIncomingDistributions: true]),
+
+        // Run the performance tests
+        BuildType.from('performanceTest', ["performance:performanceTest"], [useIncomingDistributions: true]),
+
+        // Run the performance experiments
+        BuildType.from('performanceExperiments', ["performance:performanceExperiments"], [useIncomingDistributions: true]),
+
+        // Used for cross version tests on CI
+        BuildType.from('crossVersionTest', ["crossVersionIntegTest"], [useIncomingDistributions: true]),
+
+        // Used to build production distros and smoke test them
+        BuildType.from('packageBuild', ["verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"]),
+
+        // Used to build production distros and smoke test them
+        BuildType.from('promotionBuild', ["verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"]),
+
+        //Initial smoke test for java 9
+        BuildType.from('java9Build', ["java9Test", "java9IntegTest"], [useIncomingDistributions: true])
+    ]
+
+
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
     isCiServer = System.getenv().containsKey("TEAMCITY_VERSION")
@@ -157,6 +121,12 @@ ext {
         project(':messaging'),
         project(':resources')
     ]
+}
+
+buildTypes {
+    ext.buildTypeList.each { BuildType bt ->
+        register(bt.name, bt.tasks, bt.projectProperties)
+    }
 }
 
 apply from: "gradle/buildReceipt.gradle"
@@ -237,7 +207,7 @@ task verifyIsProductionBuildEnvironment << {
 
 task waitForDaemonsToDie {
     if (!project.hasProperty("noWaitForDaemonsToDie")) {
-        if (isWindows && isCiServer && buildTypes.crossVersionTest.active) {
+        if (isWindows && isCiServer && buildTypes.activeNames.contains("crossVersionTest")) {
             gradle.startParameter.taskNames.add(0, it.path)
         }
         doLast {
