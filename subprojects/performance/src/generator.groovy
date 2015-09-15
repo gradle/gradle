@@ -149,7 +149,7 @@ class ProjectGeneratorTask extends DefaultTask {
     }
 
     def generateRootProject() {
-        def templates = subprojectNames.empty ? subProjectTemplates : rootProjectTemplates
+        def templates = [] + (rootProjectTemplates.empty ? subProjectTemplates : rootProjectTemplates)
         if (!templates.empty) {
             templates.addAll(['build-event-timestamps', 'heap-capture'])
         }
