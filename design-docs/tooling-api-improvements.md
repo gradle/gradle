@@ -10,12 +10,15 @@ This is caused by loading the same version of the Gradle provider loaded up in m
 The provider loading must be changed to deal with this.
 
 ### implementation
-- Instead of using the version string as cache key in `PersistentDaemonRegistry` use a hash of the contents of the provider's classpath as a key to the cache.
+- Instead of using the version string as cache key in `PersistentDaemonRegistry` use a hash of the files of the provider's classpath as a key to the cache.
 
 ### integration test coverage
 
 - Can load and use multiple distributions of the same gradle version for doing running multiple build requests via tooling api.
     - using the new tooling-api tested against multiple (older) gradle versions
+
+### Open issues
+- cannot handle init scripts in distributions init.d folder if as distribution of cached provider is used for resolving init scripts
 
 ## Tooling can be developed for Gradle plugins
 
