@@ -19,15 +19,20 @@ package org.gradle.nativeplatform.internal.configure
 import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
+import org.gradle.model.internal.core.DefaultInstanceFactoryRegistry
+import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.nativeplatform.BuildType
-import org.gradle.nativeplatform.Flavor
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.type.ModelType
+import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultNativeLibrarySpec
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.platform.base.component.BaseComponentFixtures
+import org.gradle.platform.base.internal.BinarySpecFactory
 import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.platform.base.internal.DefaultPlatformRequirement
@@ -46,7 +51,17 @@ class NativeComponentRulesTest extends Specification {
     def flavor = createStub(Flavor, "flavor1")
 
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, new ModelRegistryHelper(), id, Stub(ProjectSourceSet), instantiator)
+    def modelRegistry = new ModelRegistryHelper();
+    def component
+
+    def setup() {
+        def instanceFactoryRegistry = new DefaultInstanceFactoryRegistry()
+        [StaticLibraryBinarySpec, SharedLibraryBinarySpec, NativeExecutableBinarySpec].each { type ->
+            instanceFactoryRegistry.register(ModelType.of(type), ModelReference.of(BinarySpecFactory))
+        }
+        def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance, instanceFactoryRegistry, [])
+        component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, modelRegistry, id, Stub(ProjectSourceSet), instantiator, nodeInitializerRegistry)
+    }
 
     def "does not use variant dimension names for single valued dimensions"() {
         component.targetPlatform("platform1")
