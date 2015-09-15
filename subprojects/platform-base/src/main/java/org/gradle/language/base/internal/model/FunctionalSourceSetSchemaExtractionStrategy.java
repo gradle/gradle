@@ -27,7 +27,7 @@ public class FunctionalSourceSetSchemaExtractionStrategy implements ModelSchemaE
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store) {
         ModelType<FunctionalSourceSet> functionalSourceSetModelType = ModelType.of(FunctionalSourceSet.class);
         if (extractionContext.getType().isAssignableFrom(functionalSourceSetModelType)) {
-            extractionContext.found(new FunctionalSourceSetSchema(functionalSourceSetModelType));
+            extractionContext.found(new FunctionalSourceSetSchema<T>(extractionContext.getType()));
         }
     }
 }
