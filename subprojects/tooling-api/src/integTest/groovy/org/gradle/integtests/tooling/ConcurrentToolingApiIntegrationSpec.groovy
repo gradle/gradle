@@ -357,22 +357,27 @@ logger.lifecycle 'this is lifecycle: $idx'
 
     def "can use different distributions of same version"() {
         setup:
+        def userHome = temporaryFolder.createDir("user-home")
+
         def distro1Zip = dist.binDistribution
         def distro2Zip = temporaryFolder.createFile("anotherDist.zip")
+        distro1Zip.copyTo(distro2Zip)
 
         // create two sample project
         File projectA = temporaryFolder.createDir("projectA")
         File projectB = temporaryFolder.createDir("projectB")
 
-        distro1Zip.copyTo(distro2Zip)
         // open a connection for both projects with different distribution types
         GradleConnector connector1 = GradleConnector.newConnector();
         connector1.forProjectDirectory(projectA);
         connector1.useDistribution(distro1Zip.toURI())
+        connector1.useGradleUserHomeDir(userHome)
         ProjectConnection connection1 = connector1.connect();
+
         GradleConnector connector2 = GradleConnector.newConnector();
         connector2.forProjectDirectory(projectB);
         connector2.useDistribution(distro2Zip.toURI())
+        connector2.useGradleUserHomeDir(userHome)
         ProjectConnection connection2 = connector2.connect();
 
         when:
@@ -417,8 +422,7 @@ logger.lifecycle 'this is lifecycle: $idx'
         evaluate()
 
         cleanup:
-        true
-//        // close connections for both projects
+        // close connections for both projects
         connection1.close();
         connection2.close();
     }
