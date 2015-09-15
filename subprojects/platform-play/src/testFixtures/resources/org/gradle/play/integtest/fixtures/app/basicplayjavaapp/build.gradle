@@ -1,0 +1,21 @@
+plugins {
+    id 'play'
+}
+
+model {
+    components {
+        play {
+            binaries.all {
+                tasks.withType(TwirlCompile) {
+                    javaProject = true
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    play "com.typesafe.play:play-java_2.11:2.3.9"
+}
+
+// repositories added in PlayApp class
