@@ -657,7 +657,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failureHasCause("Cannot create a DefaultCustomComponent because this type is not known to this collection. Known types are: CustomComponent")
+        failureHasCause("Cannot create a DefaultCustomComponent because this type is not registered")
     }
 
     def "reasonable error message when creating component with no implementation"() {
@@ -676,7 +676,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failureHasCause("Cannot create a AnotherCustomComponent because this type is not known to this collection. Known types are: CustomComponent")
+        failureHasCause("Cannot create a AnotherCustomComponent because this type is not registered")
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {

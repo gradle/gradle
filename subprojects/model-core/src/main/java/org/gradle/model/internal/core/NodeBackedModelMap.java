@@ -66,7 +66,11 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
                 if (baseItemModelType.asSubclass(type) == null) {
                     throw new IllegalArgumentException(String.format("%s is not a subtype of %s", type, baseItemModelType));
                 }
-                return nodeInitializerRegistry.getNodeInitializer(type);
+                NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(type);
+                if (nodeInitializer == null) {
+                    throw new IllegalArgumentException(String.format("Cannot create a %s because this type is not registered", type));
+                }
+                return nodeInitializer;
             }
         };
     }
