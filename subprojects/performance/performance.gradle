@@ -403,7 +403,7 @@ configure([generateSmallNewMultiprojectJava, generateLargeNewMultiprojectJava]) 
     dependencyGenerator.numberOfLayers = smallProjectType ? 3 : 5
     dependencyGenerator.layerRatio = smallProjectType ? 1 : 2
 
-    templateArgs = [projectDependencies: true, generatedDependencies: dependencyGenerator.createDependencies()]
+    templateArgs = [projectDependencies: true, generatedDependencies: dependencyGenerator.createDependencies(), testMethodCount: 1]
     testDependencies = files()
 
     dependencyGraph {
