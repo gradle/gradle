@@ -1,3 +1,8 @@
+import org.gradle.api.plugins.quality.Checkstyle
+import org.gradle.jvm.JvmLibrarySpec
+import org.gradle.model.*
+import org.gradle.platform.base.BinaryContainer
+
 plugins {
     id 'jvm-component'
     id 'java-lang'
@@ -16,6 +21,7 @@ configurations {
     compile
     testCompile.extendsFrom compile
     testRuntime.extendsFrom testCompile
+    checkstyle
 }
 
 dependencies {
@@ -23,6 +29,7 @@ dependencies {
     compile "${it.shortNotation()}"
     <% } } %>
     testCompile 'junit:junit:4.12'
+    checkstyle "com.puppycrawl.tools:checkstyle:5.9"
 }
 
 model {
@@ -102,5 +109,32 @@ class TestTaskWiring extends RuleSource {
     }
 }
 
+class CheckstyleWiring extends RuleSource {
+    @Mutate
+    void createCheckstyleTasks(ModelMap<Task> tasks, BinaryContainer binaries, ModelMap<JvmLibrarySpec> libraries) {
+        def checkstyleTaskNames = libraries.collect { JvmLibrarySpec librarySpec ->
+            String taskName = "checkstyle\${librarySpec.getName().capitalize()}"
+            tasks.create(taskName, Checkstyle) { task ->
+                source = librarySpec.sources.collect {
+                    it.source.srcDirs
+                }.flatten()
+                checkstyleClasspath = project.configurations['checkstyle']
+                classpath = project.files(librarySpec.binaries.values().classesDir) + project.configurations[librarySpec == 'test' ? 'testCompile' : 'compile']
+                configFile = new File(project.rootDir, "checkstyle.xml")
+                configProperties = [:]
+                ignoreFailures = true
+                reports.xml.with {
+                    enabled = true
+                    destination = new File(new File(project.buildDir, "reports"), "\${task.name}.xml")
+                }
+                dependsOn librarySpec.binaries.values().tasks.name.flatten()
+            }
+            taskName
+        }
+        tasks.check.dependsOn checkstyleTaskNames
+    }
+}
+
 apply plugin: ClasspathWiring
 apply plugin: TestTaskWiring
+apply plugin: CheckstyleWiring

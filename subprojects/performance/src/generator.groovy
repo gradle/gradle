@@ -154,7 +154,7 @@ class ProjectGeneratorTask extends DefaultTask {
             templates.addAll(['build-event-timestamps', 'heap-capture'])
         }
         generateProject rootProject, subprojects: subprojectNames, projectDir: destDir,
-                files: subprojectNames.empty ? [] : ['settings.gradle'],
+                files: subprojectNames.empty ? [] : ['settings.gradle', 'checkstyle.xml'],
                 templates: templates,
                 includeSource: subprojectNames.empty
 
