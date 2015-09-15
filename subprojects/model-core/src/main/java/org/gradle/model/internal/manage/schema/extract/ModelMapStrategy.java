@@ -16,13 +16,10 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.ModelMapModelProjection;
-import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
-import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
 import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -64,13 +61,8 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
     }
 
     private <T, E> ModelSchema<T> gettModelSchemaExtractionResult(ModelSchemaExtractionContext<T> extractionContext, ModelType<E> elementType, final ModelSchemaStore store) {
-        ModelCollectionSchema<T, E> schema = new ModelCollectionSchema<T, E>(extractionContext.getType(), elementType, new Function<ModelCollectionSchema<T, E>, NodeInitializer>() {
-            @Override
-            public NodeInitializer apply(ModelCollectionSchema<T, E> input) {
-                final ManagedChildNodeCreatorStrategy<E> childCreator = new ManagedChildNodeCreatorStrategy<E>(store);
-                return new ProjectionOnlyNodeInitializer(ModelMapModelProjection.managed(input.getElementType(), childCreator));
-            }
-        });
+        final ManagedChildNodeCreatorStrategy<E> childCreator = new ManagedChildNodeCreatorStrategy<E>(store);
+        ModelCollectionSchema<T, E> schema = new ModelCollectionSchema<T, E>(extractionContext.getType(), elementType, ModelMapModelProjection.managed(elementType, childCreator));
         extractionContext.child(elementType, "element type");
         return schema;
     }

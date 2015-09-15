@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -25,9 +24,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
-import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
 import org.gradle.model.internal.type.ModelType;
@@ -57,30 +54,19 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
     }
 
     private <T, E> ScalarCollectionSchema<T, E> createSchema(ModelType<T> type, ModelType<E> elementType) {
-        return new ScalarCollectionSchema<T, E>(type, elementType, this.<T, E>getNodeInitializer());
-    }
-
-    private <T, E> Function<ModelCollectionSchema<T, E>, NodeInitializer> getNodeInitializer() {
-        return new Function<ModelCollectionSchema<T, E>, NodeInitializer>() {
-            @Override
-            public NodeInitializer apply(ModelCollectionSchema<T, E> schema) {
-                if (schema.getType().getRawClass() == List.class) {
-                    return new ProjectionOnlyNodeInitializer(
-                        ScalarCollectionModelProjection.get(
-                            ModelTypes.list(schema.getElementType()),
-                            new ListViewFactory<E>(schema.getElementType())
-                        )
-                    );
-                } else {
-                    return new ProjectionOnlyNodeInitializer(
-                        ScalarCollectionModelProjection.get(
-                            ModelTypes.set(schema.getElementType()),
-                            new SetViewFactory<E>(schema.getElementType())
-                        )
-                    );
-                }
-            }
-        };
+        ModelProjection projection;
+        if (type.getRawClass() == List.class) {
+            projection = ScalarCollectionModelProjection.get(
+                ModelTypes.list(elementType),
+                new ListViewFactory<E>(elementType)
+            );
+        } else {
+            projection = ScalarCollectionModelProjection.get(
+                ModelTypes.set(elementType),
+                new SetViewFactory<E>(elementType)
+            );
+        }
+        return new ScalarCollectionSchema<T, E>(type, elementType, projection);
     }
 
     private static class ScalarCollectionModelProjection<E> extends TypedModelProjection<E> {

@@ -16,14 +16,11 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
-import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
-import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
@@ -37,18 +34,11 @@ public class ManagedSetStrategy extends SetStrategy {
     }
 
     @Override
-    protected <T, E> Function<ModelCollectionSchema<T, E>, NodeInitializer> getNodeInitializer(final ModelSchemaStore store) {
-        return new Function<ModelCollectionSchema<T, E>, NodeInitializer>() {
-            @Override
-            public NodeInitializer apply(ModelCollectionSchema<T, E> schema) {
-                return new ProjectionOnlyNodeInitializer(
-                    TypedModelProjection.of(
-                        ModelTypes.managedSet(schema.getElementType()),
-                        new ManagedSetModelViewFactory<E>(schema.getElementType(), store)
-                    )
-                );
-            }
-        };
+    protected <E> ModelProjection getProjection(ModelType<E> elementType, ModelSchemaStore schemaStore) {
+        return TypedModelProjection.of(
+            ModelTypes.managedSet(elementType),
+            new ManagedSetModelViewFactory<E>(elementType, schemaStore)
+        );
     }
 
     private static class ManagedSetModelViewFactory<T> implements ModelViewFactory<ManagedSet<T>> {

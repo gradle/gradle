@@ -16,9 +16,8 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
 import org.gradle.api.Action;
-import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.ModelProjection;
 import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
 import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -44,14 +43,14 @@ public abstract class SetStrategy extends CollectionStrategy {
         }
     }
 
-    protected abstract <T, E> Function<ModelCollectionSchema<T, E>, NodeInitializer> getNodeInitializer(ModelSchemaStore store);
+    protected abstract <E> ModelProjection getProjection(ModelType<E> elementType, ModelSchemaStore schemaStore);
 
     protected <T, E> ModelSchema<T> getModelSchema(ModelType<?> modelType, final ModelSchemaExtractionContext<T> extractionContext, final ModelType<E> elementType, ModelSchemaStore store) {
         if (modelType.isAssignableFrom(elementType)) {
             throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", modelType.getConcreteClass().getName()));
         }
 
-        ModelCollectionSchema<T, E> schema = new ModelCollectionSchema<T, E>(extractionContext.getType(), elementType, this.<T, E>getNodeInitializer(store));
+        ModelCollectionSchema<T, E> schema = new ModelCollectionSchema<T, E>(extractionContext.getType(), elementType, getProjection(elementType, store));
         extractionContext.child(elementType, "element type", new Action<ModelSchema<E>>() {
             public void execute(ModelSchema<E> typeParamSchema) {
                 if (!(typeParamSchema instanceof ManagedImplModelSchema)) {
