@@ -23,7 +23,7 @@ import org.gradle.model.internal.core.*;
 import java.util.Collections;
 import java.util.List;
 
-public class FunctionalSourceSetModelInitializer implements NodeInitializer {
+public class FunctionalSourceSetNodeInitializer implements NodeInitializer {
 
     @Override
     public List<? extends ModelReference<?>> getInputs() {

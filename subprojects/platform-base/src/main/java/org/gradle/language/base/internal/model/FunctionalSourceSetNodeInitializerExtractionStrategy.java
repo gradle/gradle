@@ -29,7 +29,7 @@ public class FunctionalSourceSetNodeInitializerExtractionStrategy implements Nod
     @Override
     public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema, NodeInitializerRegistry nodeInitializerRegistry) {
         if (FUNCTIONAL_SOURCE_SET_TYPE.isAssignableFrom(schema.getType())) {
-            return new FunctionalSourceSetModelInitializer();
+            return new FunctionalSourceSetNodeInitializer();
         }
         return null;
     }
