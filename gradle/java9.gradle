@@ -47,7 +47,7 @@ task java9IntegTest(type: Test) {
             'ScalaTestIntegrationTest', // scala compile broken
             'FunctionalReleaseNotesTest',
             'StaticReleaseNotesTest',
-    ].collect { "**/*${it}*" } << 'org/gradle/integtests/tooling/**' // 2.6 provider fails to start daemon, remove this once 2.7 is released
+    ].collect { "**/*${it}*" }
 }
 
 task java9Test(type: Test) {
