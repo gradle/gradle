@@ -54,3 +54,20 @@ model {
         }
     }
 }
+
+class ClasspathWiring extends RuleSource {
+    static final def taskToConfigurationNameMapping = [compileMainJarMainJava: 'compile', compileTestJarTestJava: 'testCompile']
+
+    @Mutate
+    void wire(ModelMap<Task> tasks) {
+        tasks.withType(JavaCompile) { javaCompileTask ->
+            def configurationName = taskToConfigurationNameMapping.get(javaCompileTask.name)
+            if (configurationName) {
+                def configuration = javaCompileTask.project.configurations.getByName(configurationName)
+                javaCompileTask.classpath += configuration
+            }
+        }
+    }
+}
+
+apply plugin: ClasspathWiring
