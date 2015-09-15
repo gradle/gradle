@@ -97,15 +97,18 @@ registered when the component type is registered:
     - Default implementation type that does not implement all internal view types raises error.
     - Specifying the same internal view twice raises an error.
 
+## Plugin author declares internal view for custom non-managed binary types
 
-## Plugin author declares internal view for custom binary and source set types
-
-Generalise the previous story to also work with `BinarySpec` and `LanguageSourceSet` subtypes that provide a default implementation.
+Generalise the previous story to also work with non-managed `BinarySpec` subtypes that provide a default implementation.
 
 ### Implementation
 
 - Should start to unify the type registration infrastructure, so that registration for all types are treated the same way and there are few or no differences
 between the implementation of component, binary and source set type registration rules. This will be required for the next stories.
+
+## Plugin author declares internal view for custom non-managed source set types
+
+Add support for `LanguageSourceSet` and `FunctionalSourceSet`.
 
 ## Plugin author declares internal views for any extensible type
 
@@ -163,7 +166,7 @@ This default implementation is then used as the super class for all `@Managed` s
 - Change core plugins to declare default implementations for `ComponentSpec`, `BinarySpec` and `LanguageSourceSet`. This will allow `@Managed` subtypes of each
 of these types.
 
-## Plugin author declares internal views for custom managed component type
+## Plugin author declares internal views for custom managed binary type
 
 Given a plugin defines a `@Managed` subtype of a general type, allow the plugin to define internal views for that type.
 
