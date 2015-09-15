@@ -34,8 +34,8 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
 
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new GlobalScopeServices());
-        registration.addProvider(FunctionalSourceSetSchemaExtractionStrategy.class);
-        registration.addProvider(FunctionalSourceSetNodeInitializerExtractionStrategy.class);
+        registration.add(FunctionalSourceSetSchemaExtractionStrategy.class);
+        registration.add(FunctionalSourceSetNodeInitializerExtractionStrategy.class);
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {
