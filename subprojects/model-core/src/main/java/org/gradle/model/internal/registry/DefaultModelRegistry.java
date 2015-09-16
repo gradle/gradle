@@ -1067,11 +1067,8 @@ public class DefaultModelRegistry implements ModelRegistry {
                 throw new IllegalStateException(String.format("Cannot transition model element '%s' to state %s as it is already at state %s.", node.getPath(), getTargetState(), node.getState()));
             }
             LOGGER.debug("Transitioning model element '{}' to state {}.", node.getPath(), getTargetState().name());
-            doApply(node);
             node.setState(getTargetState());
         }
-
-        abstract void doApply(ModelNodeInternal node);
 
         @Override
         void attachToCycle(List<String> displayValue) {
@@ -1089,11 +1086,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             // Must run the creator
             dependencies.add(new RunCreatorAction(getPath(), node.getCreatorBinder()));
             return true;
-        }
-
-        @Override
-        void doApply(ModelNodeInternal node) {
-            // Nothing to do, creator action is run as a dependency
         }
     }
 
@@ -1140,10 +1132,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             return false;
         }
 
-        @Override
-        void doApply(ModelNodeInternal node) {
-            // Nothing to do, actions are run as dependencies
-        }
     }
 
     private class CloseGraph extends TransitionNodeToState {
@@ -1171,10 +1159,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             return true;
         }
 
-        @Override
-        void doApply(ModelNodeInternal node) {
-            // Nothing to do
-        }
     }
 
     /**
