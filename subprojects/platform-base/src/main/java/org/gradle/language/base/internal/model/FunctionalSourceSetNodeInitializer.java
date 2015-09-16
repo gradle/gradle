@@ -16,9 +16,11 @@
 
 package org.gradle.language.base.internal.model;
 
+import com.google.common.base.Optional;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,6 +40,17 @@ public class FunctionalSourceSetNodeInitializer implements NodeInitializer {
 
     @Override
     public List<? extends ModelProjection> getProjections() {
-        return Collections.singletonList(UnmanagedModelProjection.of(FunctionalSourceSet.class));
+        return Collections.singletonList(new FunctionalSourceSetProjection(ModelType.of(FunctionalSourceSet.class)));
+    }
+
+    static class FunctionalSourceSetProjection<M> extends UnmanagedModelProjection<M> {
+        public FunctionalSourceSetProjection(ModelType<M> type) {
+            super(type);
+        }
+
+        @Override
+        public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
+            return Optional.of(String.format("source set '%s'", modelNodeInternal.getPath().toString()));
+        }
     }
 }

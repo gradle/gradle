@@ -16,6 +16,7 @@
 
 package org.gradle.language.base
 
+import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TopLevelSourceSetIntegrationTest extends AbstractIntegrationSpec {
@@ -46,5 +47,24 @@ class TopLevelSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "components"
+    }
+
+    def "model report renders a functional source set"() {
+        buildFile << """
+        apply plugin: 'language-base'
+
+        model {
+            functionalSources(FunctionalSourceSet)
+        }
+        """
+
+        when:
+        succeeds "model"
+
+        then:
+        def modelNode = ModelReportOutput.from(output).modelNode
+        modelNode.functionalSources.@creator[0] == "model.functionalSources"
+        modelNode.functionalSources.@type[0] == "org.gradle.language.base.FunctionalSourceSet"
+        modelNode.functionalSources.@nodeValue[0] == "source set 'functionalSources'"
     }
 }
