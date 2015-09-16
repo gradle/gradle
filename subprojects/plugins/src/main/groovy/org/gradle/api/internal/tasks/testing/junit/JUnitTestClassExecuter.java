@@ -31,6 +31,7 @@ import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -129,13 +130,23 @@ public class JUnitTestClassExecuter {
 
         private final TestSelectionMatcher matcher;
 
-        public MethodNameFilter(Iterable<String> includedTests) {
+        public MethodNameFilter(Collection<String> includedTests) {
             matcher = new TestSelectionMatcher(includedTests);
         }
 
         @Override
         public boolean shouldRun(Description description) {
-            return matcher.matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description));
+            if (matcher.matchesTest(JUnitTestEventAdapter.className(description), JUnitTestEventAdapter.methodName(description))) {
+                return true;
+            }
+
+            for (Description child : description.getChildren()) {
+                if (shouldRun(child)) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public String describe() {
