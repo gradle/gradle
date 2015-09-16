@@ -10,7 +10,9 @@ This is caused by loading the same version of the Gradle provider loaded up in m
 The provider loading must be changed to deal with this.
 
 ### implementation
-- Instead of using the version string as cache key in `PersistentDaemonRegistry` use a hash of the files of the provider's classpath as a key to the cache.
+- Instead of using the version string as cache key in `CachingToolingImplementation` use a hash of the files of the provider's classpath as a key to the cache.
+- pass the distribution(by file reference) from the consumer across to the provider
+- for provider versions is >= this implementation can use cached provider, otherwise use new one.
 
 ### integration test coverage
 
