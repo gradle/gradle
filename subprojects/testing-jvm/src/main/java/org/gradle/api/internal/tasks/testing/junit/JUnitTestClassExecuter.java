@@ -31,7 +31,6 @@ import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -82,7 +81,14 @@ public class JUnitTestClassExecuter {
         }
 
         if (!options.getIncludedTests().isEmpty()) {
-            filters.add(new MethodNameFilter(options.getIncludedTests()));
+            TestSelectionMatcher matcher = new TestSelectionMatcher(options.getIncludedTests());
+
+            // If the test class name matches, skip the filter; this may be a test suite,
+            // for example, in which case we should run the entire suite without requiring
+            // each individual test name to be explicitly included.
+            if (!matcher.matchesTest(testClassName, null)) {
+                filters.add(new MethodNameFilter(matcher));
+            }
         }
 
         Request request = Request.aClass(testClass);
@@ -130,8 +136,8 @@ public class JUnitTestClassExecuter {
 
         private final TestSelectionMatcher matcher;
 
-        public MethodNameFilter(Collection<String> includedTests) {
-            matcher = new TestSelectionMatcher(includedTests);
+        public MethodNameFilter(TestSelectionMatcher matcher) {
+            this.matcher = matcher;
         }
 
         @Override

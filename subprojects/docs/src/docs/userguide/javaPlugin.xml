@@ -1239,6 +1239,9 @@
                         <para><literal>gradle test --tests *SomeSpecificTest</literal></para>
                     </listitem>
                     <listitem>
+                        <para><literal>gradle test --tests *SomeSpecificTestSuite</literal></para>
+                    </listitem>
+                    <listitem>
                         <para><literal>gradle test --tests all.in.specific.package*</literal></para>
                     </listitem>
                     <listitem>
