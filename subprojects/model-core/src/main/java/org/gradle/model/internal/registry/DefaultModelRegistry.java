@@ -1130,15 +1130,6 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            if (seenRules.isEmpty() && getTargetState().equals(DefaultsApplied)) {
-                for (RuleBinder binder : ruleBindings.getRulesWithSubject(getPath())) {
-                    if (seenRules.add(binder)) {
-                        MutatorRuleBinder<?> mutator = Cast.uncheckedCast(binder);
-                        dependencies.add(new RunModelAction(getPath(), mutator));
-                    }
-                }
-            }
-
             // Must run each action
             for (RuleBinder binder : ruleBindings.getRulesWithSubject(target)) {
                 if (seenRules.add(binder)) {

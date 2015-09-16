@@ -24,7 +24,7 @@ import org.gradle.api.Nullable;
  * <p>This is pretty much a placeholder for something more descriptive.
  */
 public enum ModelActionRole {
-    DefineRules(null), // Defines rules for an element. Does not use the subject as input and may run at any time after the element is known
+    DefineRules(ModelNode.State.RulesDefined), // Defines rules for an element. Does not use the subject as input
     Defaults(ModelNode.State.DefaultsApplied), // Allows a mutation to setup default values for an element
     Initialize(ModelNode.State.Initialized), // Mutation action provided when an element is defined
     Mutate(ModelNode.State.Mutated), // Customisations

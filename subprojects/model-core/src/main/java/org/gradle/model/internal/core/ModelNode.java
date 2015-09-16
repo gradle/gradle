@@ -34,6 +34,7 @@ public interface ModelNode {
     enum State {
         Known(true), // Initial state. Only type info is available here
         Created(true), // Private data has been created, initial rules discovered
+        RulesDefined(true), // Rules are defined
         DefaultsApplied(true), // Default values have been applied
         Initialized(true),
         Mutated(true),

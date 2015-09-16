@@ -60,11 +60,10 @@ class RuleBindings {
     private void bound(Reference reference, ModelNodeInternal node) {
         ModelBinding binding = reference.binding;
         binding.onCreate(node);
-        if (binding.predicate.getState() != null) {
-            reference.index.boundAtState.put(new NodeAtState(node.getPath(), binding.predicate.getState()), reference.owner);
-        } else {
-            reference.index.boundNoState.put(node.getPath(), reference.owner);
+        if (binding.predicate.getState() == null) {
+            throw new IllegalArgumentException("No state specified for binding: " + binding);
         }
+        reference.index.put(new NodeAtState(node.getPath(), binding.predicate.getState()), reference.owner);
     }
 
     public void remove(ModelNodeInternal node) {
@@ -125,13 +124,6 @@ class RuleBindings {
     }
 
     /**
-     * Returns the set of rules with the given target with no state as their subject.
-     */
-    public Collection<RuleBinder> getRulesWithSubject(ModelPath target) {
-        return rulesBySubject.get(target);
-    }
-
-    /**
      * Returns the set of rules with the given input.
      */
     public Collection<RuleBinder> getRulesWithInput(NodeAtState input) {
@@ -152,7 +144,6 @@ class RuleBindings {
 
     private static class NodeIndex {
         private final Multimap<NodeAtState, RuleBinder> boundAtState = LinkedHashMultimap.create();
-        private final Multimap<ModelPath, RuleBinder> boundNoState = LinkedHashMultimap.create();
 
         public void nodeRemoved(ModelNodeInternal node) {
             // This could be more efficient; assume that removal happens much less often than addition
@@ -168,12 +159,8 @@ class RuleBindings {
             }
         }
 
-        /**
-         * Returns rules for given target and no target state.
-         */
-        public Collection<RuleBinder> get(ModelPath path) {
-            Collection<RuleBinder> result = boundNoState.get(path);
-            return result == null ? Collections.<RuleBinder>emptyList() : result;
+        public void put(NodeAtState nodeAtState, RuleBinder binder) {
+            boundAtState.put(nodeAtState, binder);
         }
 
         /**

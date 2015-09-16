@@ -323,6 +323,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry
             .create("foo", new Bean(), action)
+            .configure(ModelActionRole.DefineRules, registry.action().path("foo").type(Bean).action(action))
             .configure(ModelActionRole.Defaults, registry.action().path("foo").type(Bean).action(action))
             .configure(ModelActionRole.Initialize, registry.action().path("foo").type(Bean).action(action))
             .configure(ModelActionRole.Mutate, registry.action().path("foo").type(Bean).action(action))
@@ -333,12 +334,15 @@ class DefaultModelRegistryTest extends Specification {
         def value = registry.realize("foo", Bean).value
 
         then:
-        value == "create > defaults > initialize > mutate > finalize"
+        value == "create > rules > defaults > initialize > mutate > finalize"
 
         and:
         1 * action.execute(_) >> { Bean bean ->
             assert bean.value == null
             bean.value = "create"
+        }
+        1 * action.execute(_) >> { Bean bean ->
+            bean.value += " > rules"
         }
         1 * action.execute(_) >> { Bean bean ->
             bean.value += " > defaults"
@@ -353,7 +357,7 @@ class DefaultModelRegistryTest extends Specification {
             bean.value += " > finalize"
         }
         1 * action.execute(_) >> { Bean bean ->
-            assert bean.value == "create > defaults > initialize > mutate > finalize"
+            assert bean.value == "create > rules > defaults > initialize > mutate > finalize"
         }
         0 * action._
 
@@ -641,12 +645,17 @@ class DefaultModelRegistryTest extends Specification {
 
         where:
         fromRole                   | targetRole
+        ModelActionRole.Defaults   | ModelActionRole.DefineRules
+        ModelActionRole.Initialize | ModelActionRole.DefineRules
         ModelActionRole.Initialize | ModelActionRole.Defaults
+        ModelActionRole.Mutate     | ModelActionRole.DefineRules
         ModelActionRole.Mutate     | ModelActionRole.Defaults
         ModelActionRole.Mutate     | ModelActionRole.Initialize
+        ModelActionRole.Finalize   | ModelActionRole.DefineRules
         ModelActionRole.Finalize   | ModelActionRole.Defaults
         ModelActionRole.Finalize   | ModelActionRole.Initialize
         ModelActionRole.Finalize   | ModelActionRole.Mutate
+        ModelActionRole.Validate   | ModelActionRole.DefineRules
         ModelActionRole.Validate   | ModelActionRole.Defaults
         ModelActionRole.Validate   | ModelActionRole.Initialize
         ModelActionRole.Validate   | ModelActionRole.Mutate
@@ -678,21 +687,27 @@ class DefaultModelRegistryTest extends Specification {
 
         where:
         fromState                       | targetRole
+        ModelNode.State.RulesDefined    | ModelActionRole.DefineRules
+        ModelNode.State.DefaultsApplied | ModelActionRole.DefineRules
         ModelNode.State.DefaultsApplied | ModelActionRole.Defaults
         ModelNode.State.Initialized     | ModelActionRole.Initialize
         ModelNode.State.Initialized     | ModelActionRole.Defaults
+        ModelNode.State.Initialized     | ModelActionRole.DefineRules
         ModelNode.State.Mutated         | ModelActionRole.Mutate
         ModelNode.State.Mutated         | ModelActionRole.Defaults
         ModelNode.State.Mutated         | ModelActionRole.Initialize
+        ModelNode.State.Mutated         | ModelActionRole.DefineRules
         ModelNode.State.Finalized       | ModelActionRole.Finalize
         ModelNode.State.Finalized       | ModelActionRole.Defaults
         ModelNode.State.Finalized       | ModelActionRole.Initialize
         ModelNode.State.Finalized       | ModelActionRole.Mutate
+        ModelNode.State.Finalized       | ModelActionRole.DefineRules
         ModelNode.State.SelfClosed      | ModelActionRole.Validate
         ModelNode.State.SelfClosed      | ModelActionRole.Defaults
         ModelNode.State.SelfClosed      | ModelActionRole.Initialize
         ModelNode.State.SelfClosed      | ModelActionRole.Mutate
         ModelNode.State.SelfClosed      | ModelActionRole.Finalize
+        ModelNode.State.SelfClosed      | ModelActionRole.DefineRules
     }
 
     def "can add action for #targetRole mutation when in #fromRole mutation"() {
@@ -714,22 +729,28 @@ class DefaultModelRegistryTest extends Specification {
         thing.value == "mutated"
 
         where:
-        fromRole                   | targetRole
-        ModelActionRole.Defaults   | ModelActionRole.Defaults
-        ModelActionRole.Defaults   | ModelActionRole.Initialize
-        ModelActionRole.Defaults   | ModelActionRole.Mutate
-        ModelActionRole.Defaults   | ModelActionRole.Finalize
-        ModelActionRole.Defaults   | ModelActionRole.Validate
-        ModelActionRole.Initialize | ModelActionRole.Initialize
-        ModelActionRole.Initialize | ModelActionRole.Mutate
-        ModelActionRole.Initialize | ModelActionRole.Finalize
-        ModelActionRole.Initialize | ModelActionRole.Validate
-        ModelActionRole.Mutate     | ModelActionRole.Mutate
-        ModelActionRole.Mutate     | ModelActionRole.Finalize
-        ModelActionRole.Mutate     | ModelActionRole.Validate
-        ModelActionRole.Finalize   | ModelActionRole.Finalize
-        ModelActionRole.Finalize   | ModelActionRole.Validate
-        ModelActionRole.Validate   | ModelActionRole.Validate
+        fromRole                    | targetRole
+        ModelActionRole.DefineRules | ModelActionRole.DefineRules
+        ModelActionRole.DefineRules | ModelActionRole.Defaults
+        ModelActionRole.DefineRules | ModelActionRole.Initialize
+        ModelActionRole.DefineRules | ModelActionRole.Mutate
+        ModelActionRole.DefineRules | ModelActionRole.Finalize
+        ModelActionRole.DefineRules | ModelActionRole.Validate
+        ModelActionRole.Defaults    | ModelActionRole.Defaults
+        ModelActionRole.Defaults    | ModelActionRole.Initialize
+        ModelActionRole.Defaults    | ModelActionRole.Mutate
+        ModelActionRole.Defaults    | ModelActionRole.Finalize
+        ModelActionRole.Defaults    | ModelActionRole.Validate
+        ModelActionRole.Initialize  | ModelActionRole.Initialize
+        ModelActionRole.Initialize  | ModelActionRole.Mutate
+        ModelActionRole.Initialize  | ModelActionRole.Finalize
+        ModelActionRole.Initialize  | ModelActionRole.Validate
+        ModelActionRole.Mutate      | ModelActionRole.Mutate
+        ModelActionRole.Mutate      | ModelActionRole.Finalize
+        ModelActionRole.Mutate      | ModelActionRole.Validate
+        ModelActionRole.Finalize    | ModelActionRole.Finalize
+        ModelActionRole.Finalize    | ModelActionRole.Validate
+        ModelActionRole.Validate    | ModelActionRole.Validate
     }
 
     def "closes inputs for mutation discovered after running mutation with role #targetRole"() {
@@ -755,7 +776,7 @@ class DefaultModelRegistryTest extends Specification {
         thing.value == "input value"
 
         where:
-        targetRole << ModelActionRole.values().find { it.targetState != null }
+        targetRole << ModelActionRole.values()
     }
 
     def "can add action for #targetRole mutation when in #fromState state"() {
@@ -780,6 +801,11 @@ class DefaultModelRegistryTest extends Specification {
 
         where:
         fromState                       | targetRole
+        ModelNode.State.RulesDefined    | ModelActionRole.Defaults
+        ModelNode.State.RulesDefined    | ModelActionRole.Initialize
+        ModelNode.State.RulesDefined    | ModelActionRole.Mutate
+        ModelNode.State.RulesDefined    | ModelActionRole.Finalize
+        ModelNode.State.RulesDefined    | ModelActionRole.Validate
         ModelNode.State.DefaultsApplied | ModelActionRole.Initialize
         ModelNode.State.DefaultsApplied | ModelActionRole.Mutate
         ModelNode.State.DefaultsApplied | ModelActionRole.Finalize
@@ -812,6 +838,7 @@ class DefaultModelRegistryTest extends Specification {
         state                           | expected
         ModelNode.State.Known           | null
         ModelNode.State.Created         | "created"
+        ModelNode.State.RulesDefined    | ModelActionRole.DefineRules.name()
         ModelNode.State.DefaultsApplied | ModelActionRole.Defaults.name()
         ModelNode.State.Initialized     | ModelActionRole.Initialize.name()
         ModelNode.State.Mutated         | ModelActionRole.Mutate.name()
@@ -956,6 +983,7 @@ class DefaultModelRegistryTest extends Specification {
 
         where:
         state                           | role
+        ModelNode.State.RulesDefined    | ModelActionRole.DefineRules
         ModelNode.State.DefaultsApplied | ModelActionRole.Defaults
         ModelNode.State.Initialized     | ModelActionRole.Initialize
         ModelNode.State.Mutated         | ModelActionRole.Mutate
