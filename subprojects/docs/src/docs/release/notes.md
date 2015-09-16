@@ -128,24 +128,15 @@ in the next major Gradle version (Gradle 3.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
 
-<!--
-### Example deprecation
--->
-
 ### AvailablePortFinder
 
 The class `org.gradle.util.AvailablePortFinder` has been deprecated and will be removed in the next version of Gradle.  Although this class is an internal class and
 not a part of the public API, some users may be utilizing it and should plan to implement an alternative.
 
-
 ## Potential breaking changes
 
 Upgraded to Groovy 2.4.4. This should be transparent to the majority of users, however it can imply some minor breaking changes.
 Please refer to the [Groovy language changelogs](http://groovy-lang.org/changelogs.html) for further details.
-
-<!--
-### Example breaking change
--->
 
 ### Support for PMD versions <5.0
 
