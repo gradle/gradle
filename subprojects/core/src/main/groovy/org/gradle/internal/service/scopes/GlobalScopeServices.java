@@ -266,7 +266,4 @@ public class GlobalScopeServices {
         return new DefaultFileWatcherFactory(executorFactory);
     }
 
-    BuildScopeServicesFactory createBuildScopeServicesFactory(final ServiceRegistry serviceRegistry) {
-        return new BuildScopeServicesFactory(serviceRegistry);
-    }
 }

@@ -16,15 +16,17 @@
 
 package org.gradle.initialization;
 
-import org.gradle.*;
+import org.gradle.BuildLogger;
+import org.gradle.StartParameter;
+import org.gradle.TaskExecutionLogger;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DeploymentRegistry;
-import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.BuildConfigurationActionExecuter;
+import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -34,7 +36,7 @@ import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.service.scopes.BuildScopeServicesFactory;
+import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.logging.LoggingManagerInternal;
@@ -82,8 +84,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             cancellationToken = new DefaultBuildCancellationToken();
             buildEventConsumer = new NoOpBuildEventConsumer();
         }
-        BuildScopeServicesFactory buildScopeServicesFactory = sharedServices.get(BuildScopeServicesFactory.class);
-        final BuildScopeServices buildScopeServices = buildScopeServicesFactory.create(startParameter);
+
+        final BuildScopeServices buildScopeServices = BuildScopeServices.singleSession(sharedServices, startParameter);
         return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
     }
 
@@ -91,8 +93,12 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
         // This should only be used for top-level builds
         assert tracker.getCurrentBuild() == null;
-        BuildScopeServicesFactory buildScopeServicesFactory = sharedServices.get(BuildScopeServicesFactory.class);
-        BuildScopeServices buildScopeServices = buildScopeServicesFactory.create(parentRegistry);
+
+        if (!(parentRegistry instanceof BuildSessionScopeServices)) {
+            throw new IllegalArgumentException("Service registry must be of build session scope");
+        }
+
+        BuildScopeServices buildScopeServices = BuildScopeServices.forSession((BuildSessionScopeServices) parentRegistry);
         DefaultGradleLauncher launcher = doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices);
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
         deploymentRegistry.onNewBuild(launcher.getGradle());

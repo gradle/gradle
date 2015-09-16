@@ -188,9 +188,4 @@ public class GlobalScopeServicesTest {
         assertThat(registry().get(ClassLoaderCache.class), instanceOf(DefaultClassLoaderCache.class));
     }
 
-    @Test
-    public void providesABuildScopeServicesFactory() throws Exception {
-        assertThat(registry().get(BuildScopeServicesFactory.class), instanceOf(BuildScopeServicesFactory.class));
-    }
-
 }

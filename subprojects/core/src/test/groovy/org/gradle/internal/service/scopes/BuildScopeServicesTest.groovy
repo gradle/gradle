@@ -39,7 +39,6 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.logging.ProgressLoggerFactory
@@ -54,37 +53,40 @@ import static org.junit.Assert.assertThat
 
 public class BuildScopeServicesTest extends Specification {
     StartParameter startParameter = new StartParameter()
-    ServiceRegistry parent = Stub()
+    BuildSessionScopeServices sessionServices = Mock()
     Factory<CacheFactory> cacheFactoryFactory = Mock()
     ClosableCacheFactory cacheFactory = Mock()
     ClassLoaderRegistry classLoaderRegistry = Mock()
 
-    BuildScopeServices registry = new BuildScopeServices(parent)
+    BuildScopeServices registry
 
     def setup() {
-        parent.getFactory(CacheFactory) >> cacheFactoryFactory
+        sessionServices.getFactory(CacheFactory) >> cacheFactoryFactory
         cacheFactoryFactory.create() >> cacheFactory
-        parent.get(ClassLoaderRegistry) >> classLoaderRegistry
-        parent.getFactory(LoggingManagerInternal) >> Stub(Factory)
-        parent.get(ModuleRegistry) >> new DefaultModuleRegistry()
-        parent.get(PluginModuleRegistry) >> Stub(PluginModuleRegistry)
-        parent.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
-        parent.get(Instantiator) >> ThreadGlobalInstantiator.getOrCreate()
-        parent.get(FileResolver) >> Stub(FileResolver)
-        parent.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)
-        parent.get(DocumentationRegistry) >> new DocumentationRegistry()
-        parent.get(FileLookup) >> Stub(FileLookup)
-        parent.get(PluginRequestApplicator) >> Mock(PluginRequestApplicator)
-        parent.get(BuildCancellationToken) >> Mock(BuildCancellationToken)
-        parent.get(ModelRuleSourceDetector) >> Mock(ModelRuleSourceDetector)
-        parent.get(ClassLoaderCache) >> Mock(ClassLoaderCache)
-        parent.get(ImportsReader) >> Mock(ImportsReader)
-        parent.get(StartParameter) >> startParameter
+        sessionServices.get(ClassLoaderRegistry) >> classLoaderRegistry
+        sessionServices.getFactory(LoggingManagerInternal) >> Stub(Factory)
+        sessionServices.get(ModuleRegistry) >> new DefaultModuleRegistry()
+        sessionServices.get(PluginModuleRegistry) >> Stub(PluginModuleRegistry)
+        sessionServices.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
+        sessionServices.get(Instantiator) >> ThreadGlobalInstantiator.getOrCreate()
+        sessionServices.get(FileResolver) >> Stub(FileResolver)
+        sessionServices.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)
+        sessionServices.get(DocumentationRegistry) >> new DocumentationRegistry()
+        sessionServices.get(FileLookup) >> Stub(FileLookup)
+        sessionServices.get(PluginRequestApplicator) >> Mock(PluginRequestApplicator)
+        sessionServices.get(BuildCancellationToken) >> Mock(BuildCancellationToken)
+        sessionServices.get(ModelRuleSourceDetector) >> Mock(ModelRuleSourceDetector)
+        sessionServices.get(ClassLoaderCache) >> Mock(ClassLoaderCache)
+        sessionServices.get(ImportsReader) >> Mock(ImportsReader)
+        sessionServices.get(StartParameter) >> startParameter
+        sessionServices.getAll(_) >> []
+
+        registry = new BuildScopeServices(sessionServices, false)
     }
 
     def delegatesToParentForUnknownService() {
         setup:
-        parent.get(String) >> "value"
+        sessionServices.get(String) >> "value"
 
         expect:
         registry.get(String) == "value"
@@ -95,10 +97,12 @@ public class BuildScopeServicesTest extends Specification {
         def plugin1 = Mock(PluginServiceRegistry)
 
         given:
-        parent.getAll(PluginServiceRegistry) >> [plugin1, plugin2]
+        def sessionServices = Mock(BuildSessionScopeServices) {
+            getAll(PluginServiceRegistry) >> [plugin1, plugin2]
+        }
 
         when:
-        new BuildScopeServices(parent)
+        new BuildScopeServices(sessionServices, false)
 
         then:
         1 * plugin1.registerBuildServices(_)
@@ -274,36 +278,30 @@ public class BuildScopeServicesTest extends Specification {
         operationLoggerFactory instanceof DefaultBuildOperationLoggerFactory
     }
 
-    def "closes all additional closeables when closed" () {
-        Closeable closeable1 = Mock(Closeable)
-        Closeable closeable2 = Mock(Closeable)
-
+    def "closes session when single use" () {
         when:
-        registry.getAdditionalCloseables().add(closeable1)
-        registry.getAdditionalCloseables().add(closeable2)
-        registry.close()
+        new BuildScopeServices(sessionServices, true).close()
 
         then:
-        1 * closeable1.close()
-        1 * closeable2.close()
+        1 * sessionServices.close()
     }
 
     private <T> T expectParentServiceLocated(Class<T> type) {
         T t = Mock(type)
-        parent.get(type) >> t
+        sessionServices.get(type) >> t
         t
     }
 
     private ListenerManager expectListenerManagerCreated() {
         final ListenerManager listenerManager = new DefaultListenerManager()
         final ListenerManager listenerManagerParent = Mock()
-        parent.get(ListenerManager) >> listenerManagerParent
+        sessionServices.get(ListenerManager) >> listenerManagerParent
         1 * listenerManagerParent.createChild() >> listenerManager
         listenerManager
     }
 
     private void allowGetGradleDistributionLocator() {
-        parent.get(GradleDistributionLocator) >> Mock(GradleDistributionLocator)
+        sessionServices.get(GradleDistributionLocator) >> Mock(GradleDistributionLocator)
     }
 
     public interface ClosableCacheFactory extends CacheFactory {
