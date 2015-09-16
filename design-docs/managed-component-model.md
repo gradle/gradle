@@ -321,12 +321,13 @@ Or:
 top level model elements. For this story, we only need to make this work for top level model elements.
     - All model elements are created using a `NodeInitializer`. 
     - Each type has 1 `NodeInitializer` implementation associated with it, that can be reused in any context where that type appears.
-- Allow a `ManagedImplModelSchema` to be located for `FunctionalSourceSet` from the `ModelSchemaStore`.
-- Extract validation from `NonTransformedModelDslBacking` and `TransformedModelDslBacking` into some shared location, probably on `ModelSchemaStore`. The idea here is to
-  have a single place where something outside the schema store can ask for a 'constructable' thing.
+- Allow a `NodeInitializer` to be located for `FunctionalSourceSet` from the `NodeInitializerRegistry`.
+- Extract validation from `NonTransformedModelDslBacking` and `TransformedModelDslBacking` into some shared location, probably to `NodeInitializerRegistry`. The idea here is to
+  have a single place where something outside the registry can ask for a 'constructable' thing.
+    - `NonTransformedModelDslBacking` and `TransformedModelDslBacking` no longer need to use the `ModelSchemaStore`.
     - Error message should include details of which types can be created. Keep in mind that this validation will need to be reused in the next story, for managed type properties and collection elements.
-    - Remove hardcoded list of supported types from `ModelSchemaExtractor`. Query the strategies instead. 
-    - Should distinguish between scalar and non-scalar types. Only non-scalar types can be created.
+    - Query the `NodeInitializerExtractionStrategy` instances for the list of types they support.
+- Change `NodeInitializerRegistry` so that strategies are pushed into it, rather than pulled, and change the `LanguageBasePlugin` to register a strategy.
 
 ## Story: Allow a managed type to have a property of type `FunctionalSourceSet`
 
@@ -352,10 +353,11 @@ For example:
 - Change validation for managed type properties and managed collection elements to allow any type for which a creation strategy is available.
     - Share (don't duplicate) the validation from the previous story that decides whether an instance of a given type can be created.
     - Error message should include the types available to be used.
+- Update user guide to list `FunctionalSourceSet` as a type that can be used in the model.    
 - Refactors to clean up implementation:
-    - Should share the same mechanism to expose the schema for `FunctionalSourceSet` and `JarBinarySpec`, to make it easier to later add more types.
+    - Should share the same mechanism to expose the initializer for `FunctionalSourceSet` and `JarBinarySpec`, to make it easier to later add more types.
       Ideally, this would mean registering some description of the types (eg here's a public type and here's an implementation type for it), rather than 
-      registering a `ModelSchemaExtractorStrategy` implementation.
+      registering an initializer strategy implementation.
     - Replace the various `ChildNodeInitializerStrategy` implementations with one that delegates to the schema.
 
 ## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
