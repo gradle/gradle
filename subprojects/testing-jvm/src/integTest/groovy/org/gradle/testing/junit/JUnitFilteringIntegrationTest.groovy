@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.JUnitCoverage
-import spock.lang.Ignore
+import spock.lang.Issue
 
 @TargetCoverage({ JUnitCoverage.LARGE_COVERAGE })
 public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
@@ -31,12 +31,12 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         imports = "org.junit.*"
     }
 
-    @Ignore
+    @Issue("GRADLE-3112")
     def "can filter parameterized junit tests"() {
         buildFile << """
             test {
               filter {
-                includeTestsMatching "ParameterizedFoo.pass"
+                includeTestsMatching "*ParameterizedFoo.pass*"
               }
             }
         """
@@ -74,6 +74,6 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("ParameterizedFoo")
-        result.testClass("ParameterizedFoo").assertTestsExecuted("pass")
+        result.testClass("ParameterizedFoo").assertTestsExecuted("pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
     }
 }
