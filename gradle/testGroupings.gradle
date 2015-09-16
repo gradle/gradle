@@ -10,7 +10,7 @@ ext.testGroupings = [
     "runtimeIntegTests": "integTest",
     "runtimeForkingIntegTests": "forkingIntegTest",
     "runtimeDaemonIntegTests": "daemonIntegTest",
-    "runtimeParallelIntegTest": "parallelIntegTest"
+    "runtimeParallelIntegTests": "parallelIntegTest"
 ]
 
 testGroupings.each { grouping, testTask ->
