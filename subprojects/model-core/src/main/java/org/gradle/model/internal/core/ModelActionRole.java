@@ -16,29 +16,33 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
-
 /**
  * A hard-coded sequence of model actions that can be applied to a model element.
  *
  * <p>This is pretty much a placeholder for something more descriptive.
  */
 public enum ModelActionRole {
-    DefineRules(ModelNode.State.RulesDefined), // Defines rules for an element. Does not use the subject as input
-    Defaults(ModelNode.State.DefaultsApplied), // Allows a mutation to setup default values for an element
-    Initialize(ModelNode.State.Initialized), // Mutation action provided when an element is defined
-    Mutate(ModelNode.State.Mutated), // Customisations
-    Finalize(ModelNode.State.Finalized), // Post customisation default values
-    Validate(ModelNode.State.SelfClosed); // Post mutation validations
+    DefineProjections(ModelNode.State.ProjectionsDefined, false), // Defines projections for an element.
+    DefineRules(ModelNode.State.RulesDefined, true), // Defines rules for an element. Does not use the subject as input
+    Defaults(ModelNode.State.DefaultsApplied, true), // Allows a mutation to setup default values for an element
+    Initialize(ModelNode.State.Initialized, true), // Mutation action provided when an element is defined
+    Mutate(ModelNode.State.Mutated, true), // Customisations
+    Finalize(ModelNode.State.Finalized, true), // Post customisation default values
+    Validate(ModelNode.State.SelfClosed, true); // Post mutation validations
 
     private final ModelNode.State target;
+    private final boolean subjectViewAvailable;
 
-    ModelActionRole(ModelNode.State target) {
+    ModelActionRole(ModelNode.State target, boolean subjectViewAvailable) {
         this.target = target;
+        this.subjectViewAvailable = subjectViewAvailable;
     }
 
-    @Nullable
     public ModelNode.State getTargetState() {
         return target;
+    }
+
+    public boolean isSubjectViewAvailable() {
+        return subjectViewAvailable;
     }
 }
