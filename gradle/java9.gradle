@@ -47,6 +47,9 @@ task java9IntegTest(type: Test) {
             'ScalaTestIntegrationTest', // scala compile broken
             'FunctionalReleaseNotesTest',
             'StaticReleaseNotesTest',
+            'M9JavaConfigurabilityCrossVersionSpec',
+            'ClientShutdownCrossVersionSpec',
+            'ToolingApiUnsupportedClientJvmCrossVersionSpec' // source compat 1.5 unsupported
     ].collect { "**/*${it}*" }
 }
 
