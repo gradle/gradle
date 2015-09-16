@@ -1240,6 +1240,9 @@
                         <para><literal>gradle test --tests *SomeSpecificTest</literal></para>
                     </listitem>
                     <listitem>
+                        <para><literal>gradle test --tests *SomeSpecificTestSuite</literal></para>
+                    </listitem>
+                    <listitem>
                         <para><literal>gradle test --tests all.in.specific.package*</literal></para>
                     </listitem>
                     <listitem>
@@ -1321,7 +1324,7 @@
                 <literal>scanForTestClasses</literal> to false. This will make the test task only use includes /
                 excludes to find test classes. If <literal>scanForTestClasses</literal> is false and no include
                 / exclude patterns are specified, the defaults are
-                “<literal>**/*Tests.class</literal>”, “<literal>**/*Test.class</literal>” and 
+                “<literal>**/*Tests.class</literal>”, “<literal>**/*Test.class</literal>” and
                 “<literal>**/Abstract*.class</literal>” for include and exclude, respectively.
             </para>
         </section>
