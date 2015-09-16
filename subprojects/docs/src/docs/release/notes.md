@@ -49,6 +49,10 @@ elements.
 
 - Can use a reference property as input for a rule.
 
+### Rule based model configuration
+Interoperability between legacy configuration space and new rule based model configuration has been improved. More specifically, the `tasks.withType(..)` construct allows legacy configuration tasks
+to depend on tasks created via the new rule based approach. See [this issue](https://issues.gradle.org/browse/GRADLE-3318) for details.
+
 ### Faster compilation for continuous builds
 
 Many Gradle compilers are spawned as separate daemons to accommodate special heap size settings, classpath configurations, etc.  These compiler daemons are started on use, and stopped at
