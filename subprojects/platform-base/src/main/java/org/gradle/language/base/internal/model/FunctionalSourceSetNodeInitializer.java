@@ -40,7 +40,7 @@ public class FunctionalSourceSetNodeInitializer implements NodeInitializer {
 
     @Override
     public List<? extends ModelProjection> getProjections() {
-        return Collections.singletonList(new FunctionalSourceSetProjection(ModelType.of(FunctionalSourceSet.class)));
+        return Collections.singletonList(new FunctionalSourceSetProjection<FunctionalSourceSet>(ModelType.of(FunctionalSourceSet.class)));
     }
 
     static class FunctionalSourceSetProjection<M> extends UnmanagedModelProjection<M> {
