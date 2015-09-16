@@ -72,7 +72,7 @@ public class ClasspathInferer {
             return;
         }
 
-        String resourceName = target.getName().replace(".", "/") + ".class";
+        String resourceName = target.getName().replace('.', '/') + ".class";
         URL resource = targetClassLoader.getResource(resourceName);
         try {
             if (resource == null) {

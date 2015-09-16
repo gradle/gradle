@@ -65,7 +65,7 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             if (findLoadedClass(detector.interfaceName) == null) {
                 // TODO:ADAM - need to do this earlier
                 ClassWriter emptyWriter = new ClassWriter(0);
-                emptyWriter.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC | Opcodes.ACC_INTERFACE, detector.interfaceName.replace(".", "/"), null, Type.getType(Object.class).getInternalName(), null);
+                emptyWriter.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC | Opcodes.ACC_INTERFACE, detector.interfaceName.replace('.', '/'), null, Type.getType(Object.class).getInternalName(), null);
                 emptyWriter.visitEnd();
                 byte[] emptyBytecode = emptyWriter.toByteArray();
                 defineClass(detector.interfaceName, emptyBytecode, 0, emptyBytecode.length);
@@ -113,7 +113,7 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 Set<String> allInterfaces = new LinkedHashSet<String>(Arrays.asList(interfaces));
-                allInterfaces.add(mixInInterface.replace(".", "/"));
+                allInterfaces.add(mixInInterface.replace('.', '/'));
                 super.visit(version, access, name, signature, superName, allInterfaces.toArray(new String[allInterfaces.size()]));
             }
         }

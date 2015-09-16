@@ -68,7 +68,7 @@ public class ClasspathUtil {
                     return new File(location);
                 }
             }
-            String resourceName = targetClass.getName().replace(".", "/") + ".class";
+            String resourceName = targetClass.getName().replace('.', '/') + ".class";
             URL resource = targetClass.getClassLoader().getResource(resourceName);
             if (resource != null) {
                 return getClasspathForResource(resource, resourceName);
