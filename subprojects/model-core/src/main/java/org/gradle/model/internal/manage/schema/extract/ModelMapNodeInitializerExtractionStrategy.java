@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.core.ModelProjection;
@@ -38,5 +39,10 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
             return new ProjectionOnlyNodeInitializer(projection);
         }
         return null;
+    }
+
+    @Override
+    public Iterable<ModelType<?>> supportedTypes() {
+        return ImmutableList.<ModelType<?>>of(MODEL_MAP_MODEL_TYPE);
     }
 }

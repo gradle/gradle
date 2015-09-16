@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.dsl.internal
+
 import org.gradle.api.Transformer
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
@@ -26,6 +27,7 @@ import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
+import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.type.ModelType
@@ -37,7 +39,7 @@ class TransformedModelDslBackingTest extends Specification {
     def referenceExtractor = Mock(Transformer)
     def locationExtractor = Mock(Transformer)
     def schemaStore = DefaultModelSchemaStore.instance
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)
+    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance, new DefaultConstructableTypesRegistry())
     def modelDsl = new TransformedModelDslBacking(getModelRegistry(), schemaStore, nodeInitializerRegistry, referenceExtractor, locationExtractor)
 
     void register(String pathString, Object element) {

@@ -28,12 +28,13 @@ import org.gradle.model.internal.inspect.AbstractAnnotationDrivenModelRuleExtrac
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors
 import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.inspect.ModelRuleExtractor
+import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import spock.lang.Specification
 
 class ScopedRuleTest extends Specification {
 
-    def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance(), new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance))
+    def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance(), new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance, new DefaultConstructableTypesRegistry()))
     def registry = new ModelRegistryHelper(new DefaultModelRegistry(new ModelRuleExtractor(extractors)))
 
     static class RuleSourceUsingRuleWithDependencies extends RuleSource {

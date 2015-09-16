@@ -19,7 +19,10 @@ package org.gradle.model.internal.manage.schema.extract;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.type.ModelType;
 
 public interface NodeInitializerExtractionStrategy {
     <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema, NodeInitializerRegistry nodeInitializerRegistry);
+
+    Iterable<ModelType<?>> supportedTypes();
 }

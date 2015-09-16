@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.model.ModelSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -39,6 +40,11 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
             return new ProjectionOnlyNodeInitializer(projection);
         }
         return null;
+    }
+
+    @Override
+    public Iterable<ModelType<?>> supportedTypes() {
+        return ImmutableList.<ModelType<?>>of(MODEL_SET_MODEL_TYPE);
     }
 
     private static class ModelSetModelViewFactory<T> implements ModelViewFactory<ModelSet<T>> {

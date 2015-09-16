@@ -33,7 +33,6 @@ import org.gradle.model.dsl.internal.transform.RulesBlock;
 import org.gradle.model.dsl.internal.transform.SourceLocation;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -85,10 +84,12 @@ public class TransformedModelDslBacking {
         ModelPath modelPath = ModelPath.path(modelPathString);
         ModelSchema<T> schema = schemaStore.getSchema(ModelType.of(type));
         ModelRuleDescriptor descriptor = toDescriptor(sourceLocation, modelPath);
-        if (!(schema instanceof ManagedImplModelSchema)) {
-            throw new InvalidModelRuleDeclarationException(descriptor, "Cannot create an element of type " + type.getName() + " as it is not a managed type");
+        NodeInitializer nodeInitializer = null;
+        try {
+            nodeInitializer = nodeInitializerRegistry.getNodeInitializer(schema);
+        } catch (ModelTypeInitializationException e) {
+            throw new InvalidModelRuleDeclarationException(descriptor, e);
         }
-        NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer((ManagedImplModelSchema<?>) schema);
         modelRegistry.create(ModelCreators.of(modelPath, nodeInitializer).descriptor(descriptor).build());
         registerAction(modelPath, type, descriptor, ModelActionRole.Initialize, closure);
     }

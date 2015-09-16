@@ -33,6 +33,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
+import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry;
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -59,7 +60,7 @@ public class ModelRegistryHelper implements ModelRegistry {
     private final ModelRegistry modelRegistry;
 
     public ModelRegistryHelper() {
-        this(new DefaultModelRegistry(new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance(), new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.getInstance())))));
+        this(new DefaultModelRegistry(new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance(), new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.getInstance(), new DefaultConstructableTypesRegistry())))));
     }
 
     public ModelRegistryHelper(ModelRegistryScope modelRegistryScope) {
@@ -599,15 +600,15 @@ public class ModelRegistryHelper implements ModelRegistry {
 
             ModelType<I> modelType = ModelType.of(itemType);
             return ModelCreators.of(
-                    ModelReference.of(path, instantiatorType),
-                    new Factory<RuleAwarePolymorphicNamedEntityInstantiator<I>>() {
-                        @Override
-                        public RuleAwarePolymorphicNamedEntityInstantiator<I> create() {
-                            return new DefaultRuleAwarePolymorphicNamedEntityInstantiator<I>(
-                                    new DefaultPolymorphicNamedEntityInstantiator<I>(itemType, "this collection")
-                            );
-                        }
+                ModelReference.of(path, instantiatorType),
+                new Factory<RuleAwarePolymorphicNamedEntityInstantiator<I>>() {
+                    @Override
+                    public RuleAwarePolymorphicNamedEntityInstantiator<I> create() {
+                        return new DefaultRuleAwarePolymorphicNamedEntityInstantiator<I>(
+                            new DefaultPolymorphicNamedEntityInstantiator<I>(itemType, "this collection")
+                        );
                     }
+                }
             )
                 .withProjection(PolymorphicModelMapProjection.of(modelType, NodeBackedModelMap.createUsingParentNode(modelType)))
                 .withProjection(UnmanagedModelProjection.of(instantiatorType))

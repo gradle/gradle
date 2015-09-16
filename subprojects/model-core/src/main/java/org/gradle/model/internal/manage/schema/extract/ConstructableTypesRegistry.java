@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal.model;
+package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.internal.manage.schema.AbstractModelSchema;
-import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
+import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
-public class FunctionalSourceSetSchema<T> extends AbstractModelSchema<T> implements ManagedImplModelSchema<T> {
-
-    protected FunctionalSourceSetSchema(ModelType<T> type) {
-        super(type);
-    }
+public interface ConstructableTypesRegistry extends NodeInitializerExtractionStrategy {
+    <T> void registerConstructableType(ModelType<T> type, NodeInitializer nodeInitializer);
 }

@@ -18,6 +18,7 @@ package org.gradle.model.internal.inspect
 import org.gradle.model.*
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
+import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.manage.schema.extract.ModelStoreTestUtils
@@ -33,7 +34,7 @@ import java.beans.Introspector
 
 class ModelRuleExtractorTest extends Specification {
     ModelRegistry registry = new DefaultModelRegistry(null)
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance, new DefaultConstructableTypesRegistry())))
 
     static class ModelThing {
         final String name
@@ -370,7 +371,9 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == 'ModelRuleExtractorTest.RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged#bar is not a valid model rule method: a void returning model element creation rule has to take an instance of a managed type as the first argument'
+        e.message == "Declaration of model rule ModelRuleExtractorTest.RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged#bar is invalid."
+        e.cause instanceof ModelTypeInitializationException
+        e.cause.message == "The model node of type: '$NonManaged.name' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"
     }
 
     static class RuleSourceCreatingAClassAnnotatedWithManaged extends RuleSource {

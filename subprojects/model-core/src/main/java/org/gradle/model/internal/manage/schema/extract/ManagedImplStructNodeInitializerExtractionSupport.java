@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
@@ -52,4 +53,9 @@ public abstract class ManagedImplStructNodeInitializerExtractionSupport implemen
     }
 
     protected abstract <T> NodeInitializer extractNodeInitializer(ModelManagedImplStructSchema<T> schema, NodeInitializerRegistry nodeInitializerRegistry);
+
+    @Override
+    public Iterable<ModelType<?>> supportedTypes() {
+        return ImmutableSet.<ModelType<?>>of().asList();
+    }
 }

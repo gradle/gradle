@@ -23,11 +23,9 @@ import groovy.lang.MissingPropertyException;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -75,10 +73,8 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
     private <T> void registerCreator(Class<T> type, Closure<?> closure) {
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("model." + modelPath);
         ModelSchema<T> schema = modelSchemaStore.getSchema(ModelType.of(type));
-        if (!(schema instanceof ManagedImplModelSchema)) {
-            throw new InvalidModelRuleDeclarationException(descriptor, "Cannot create an element of type " + type.getName() + " as it is not a managed type");
-        }
-        NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer((ManagedImplModelSchema<?>) schema);
+
+        NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(schema);
 
         modelRegistry.create(
             ModelCreators.of(modelPath, nodeInitializer)

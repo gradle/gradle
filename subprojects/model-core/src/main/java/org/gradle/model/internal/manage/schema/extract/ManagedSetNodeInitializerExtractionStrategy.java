@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -39,6 +40,11 @@ public class ManagedSetNodeInitializerExtractionStrategy extends CollectionNodeI
             return new ProjectionOnlyNodeInitializer(projection);
         }
         return null;
+    }
+
+    @Override
+    public Iterable<ModelType<?>> supportedTypes() {
+        return ImmutableList.<ModelType<?>>of(MANAGED_SET_MODEL_TYPE);
     }
 
     private static class ManagedSetModelViewFactory<T> implements ModelViewFactory<ManagedSet<T>> {

@@ -14,23 +14,35 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal.model;
+package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.language.base.FunctionalSourceSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.extract.NodeInitializerExtractionStrategy;
 import org.gradle.model.internal.type.ModelType;
 
-public class FunctionalSourceSetNodeInitializerExtractionStrategy implements NodeInitializerExtractionStrategy {
-    private static final ModelType<FunctionalSourceSet> FUNCTIONAL_SOURCE_SET_TYPE = ModelType.of(FunctionalSourceSet.class);
+import java.util.Map;
+
+import static com.google.common.collect.Maps.newHashMap;
+
+public class DefaultConstructableTypesRegistry implements ConstructableTypesRegistry {
+    private Map<ModelType<?>, NodeInitializer> mappings = newHashMap();
 
     @Override
     public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema, NodeInitializerRegistry nodeInitializerRegistry) {
-        if (FUNCTIONAL_SOURCE_SET_TYPE.isAssignableFrom(schema.getType())) {
-            return new FunctionalSourceSetNodeInitializer();
-        }
-        return null;
+        return mappings.get(schema.getType());
+    }
+
+    @Override
+    public Iterable<ModelType<?>> supportedTypes() {
+        return ImmutableList.<ModelType<?>>builder().addAll(mappings.keySet()).build();
+    }
+
+    @Override
+    public <T> void registerConstructableType(ModelType<T> type, NodeInitializer nodeInitializer) {
+
+
+        mappings.put(type, nodeInitializer);
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.model.*
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.UnmanagedModelProjection
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
+import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.report.AmbiguousBindingReporter
@@ -32,7 +33,7 @@ import spock.lang.Unroll
  * Test the binding of rules by the registry.
  */
 class ModelRuleBindingTest extends Specification {
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance, new DefaultConstructableTypesRegistry())))
     def modelRegistry = new DefaultModelRegistry(extractor)
 
     static class AmbiguousBindingsInOneSource extends RuleSource {
@@ -62,8 +63,8 @@ class ModelRuleBindingTest extends Specification {
         e.descriptor == MethodModelRuleDescriptor.of(AmbiguousBindingsInOneSource, "m").toString()
         def cause = e.cause as ModelRuleBindingException
         def message = new AmbiguousBindingReporter(String.name, "parameter 1", [
-                new AmbiguousBindingReporter.Provider("s2", MethodModelRuleDescriptor.of(AmbiguousBindingsInOneSource, "s2").toString()),
-                new AmbiguousBindingReporter.Provider("s1", MethodModelRuleDescriptor.of(AmbiguousBindingsInOneSource, "s1").toString()),
+            new AmbiguousBindingReporter.Provider("s2", MethodModelRuleDescriptor.of(AmbiguousBindingsInOneSource, "s2").toString()),
+            new AmbiguousBindingReporter.Provider("s1", MethodModelRuleDescriptor.of(AmbiguousBindingsInOneSource, "s1").toString()),
         ]).asString()
 
         cause.message == message
@@ -104,8 +105,8 @@ class ModelRuleBindingTest extends Specification {
 
         def cause = e.cause as ModelRuleBindingException
         def message = new AmbiguousBindingReporter(String.name, "parameter 1", [
-                new AmbiguousBindingReporter.Provider("s2", MethodModelRuleDescriptor.of(ProvidesStringTwo, "s2").toString()),
-                new AmbiguousBindingReporter.Provider("s1", MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString()),
+            new AmbiguousBindingReporter.Provider("s2", MethodModelRuleDescriptor.of(ProvidesStringTwo, "s2").toString()),
+            new AmbiguousBindingReporter.Provider("s1", MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString()),
         ]).asString()
 
         cause.message == message
@@ -135,12 +136,12 @@ class ModelRuleBindingTest extends Specification {
 
         def cause = e.cause as ModelRuleBindingException
         def message = new IncompatibleTypeReferenceReporter(
-                MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString(),
-                "s1",
-                Integer.name,
-                "parameter 1",
-                true,
-                [UnmanagedModelProjection.description(ModelType.of(String))]
+            MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString(),
+            "s1",
+            Integer.name,
+            "parameter 1",
+            true,
+            [UnmanagedModelProjection.description(ModelType.of(String))]
         ).asString()
 
         cause.message == message
@@ -170,12 +171,12 @@ class ModelRuleBindingTest extends Specification {
 
         def cause = e.cause as ModelRuleBindingException
         def message = new IncompatibleTypeReferenceReporter(
-                MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString(),
-                "s1",
-                Integer.name,
-                "parameter 2",
-                false,
-                [UnmanagedModelProjection.description(ModelType.of(String))]
+            MethodModelRuleDescriptor.of(ProvidesStringOne, "s1").toString(),
+            "s1",
+            Integer.name,
+            "parameter 2",
+            false,
+            [UnmanagedModelProjection.description(ModelType.of(String))]
         ).asString()
 
         cause.message == message

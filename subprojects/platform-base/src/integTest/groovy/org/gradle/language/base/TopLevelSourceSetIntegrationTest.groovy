@@ -15,11 +15,29 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TopLevelSourceSetIntegrationTest extends AbstractIntegrationSpec {
+
+    def "can not create a top level FSS when the language base plugin has not been applied"() {
+        buildFile.text = """
+        class Rules extends RuleSource {
+            @Model
+            void functionalSources(FunctionalSourceSet sources) {
+            }
+        }
+        apply plugin: Rules
+        """
+
+        when:
+        fails "model"
+
+        then:
+        failureCauseContains("Declaration of model rule Rules#functionalSources is invalid.")
+        failureCauseContains("The model node of type: 'org.gradle.language.base.FunctionalSourceSet' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]")
+    }
+
     def "can create a top level functional source set with a rule"() {
         buildFile << """
         apply plugin: 'language-base'

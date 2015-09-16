@@ -203,7 +203,8 @@ public class GlobalScopeServices {
         return new DefaultFileLookup(fileSystem);
     }
 
-    ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
+    ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore, NodeInitializerRegistry nodeInitializerRegistry
+    ) {
         List<MethodModelRuleExtractor> extractors = services.getAll(MethodModelRuleExtractor.class);
         List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore, nodeInitializerRegistry);
         return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors));
@@ -240,9 +241,13 @@ public class GlobalScopeServices {
         return new DefaultModelSchemaStore(modelSchemaExtractor);
     }
 
-    protected NodeInitializerRegistry createNodeInitializerRegistry(ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore, InstanceFactoryRegistry instanceFactoryRegistry) {
+    protected NodeInitializerRegistry createNodeInitializerRegistry(ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore, InstanceFactoryRegistry instanceFactoryRegistry, ConstructableTypesRegistry constructableTypesRegistry) {
         List<NodeInitializerExtractionStrategy> strategies = serviceRegistry.getAll(NodeInitializerExtractionStrategy.class);
-        return new DefaultNodeInitializerRegistry(schemaStore, instanceFactoryRegistry, strategies);
+        return new DefaultNodeInitializerRegistry(schemaStore, instanceFactoryRegistry, strategies, constructableTypesRegistry);
+    }
+
+    protected ConstructableTypesRegistry createConstructableTypesRegistry() {
+        return new DefaultConstructableTypesRegistry();
     }
 
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {

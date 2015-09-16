@@ -26,16 +26,19 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.text.TreeFormatter;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
+import org.gradle.language.base.internal.model.FunctionalSourceSetNodeInitializer;
 import org.gradle.model.*;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
@@ -59,14 +62,17 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final ModelRegistry modelRegistry;
+    private final ConstructableTypesRegistry constructableTypesRegistry;
 
     @Inject
-    public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
+    public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry, ConstructableTypesRegistry constructableTypesRegistry) {
         this.instantiator = instantiator;
         this.modelRegistry = modelRegistry;
+        this.constructableTypesRegistry = constructableTypesRegistry;
     }
 
     public void apply(final Project target) {
+        constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer());
         target.getPluginManager().apply(LifecycleBasePlugin.class);
         target.getExtensions().create("sources", DefaultProjectSourceSet.class);
 

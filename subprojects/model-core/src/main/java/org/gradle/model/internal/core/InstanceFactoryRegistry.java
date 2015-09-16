@@ -22,4 +22,6 @@ public interface InstanceFactoryRegistry {
     <T> ModelReference<InstanceFactory<? super T, String>> getFactory(ModelType<T> type);
 
     <T> void register(ModelType<T> type, ModelReference<? extends InstanceFactory<? super T, String>> factoryReference);
+
+    Iterable<ModelType<?>> supportedTypes();
 }

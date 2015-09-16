@@ -19,12 +19,9 @@ package org.gradle.model.dsl.internal
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
 import org.gradle.model.ModelSet
-import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
-import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
@@ -33,7 +30,7 @@ class NonTransformedModelDslBackingTest extends Specification {
 
     def modelRegistry = new ModelRegistryHelper()
     def schemaStore = DefaultModelSchemaStore.instance
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
+    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore, new DefaultConstructableTypesRegistry())
     def modelDsl = new NonTransformedModelDslBacking(getModelRegistry(), schemaStore, nodeInitializerRegistry)
 
     void register(String pathString, Object element) {
@@ -110,7 +107,7 @@ class NonTransformedModelDslBackingTest extends Specification {
         }
 
         then:
-        thrown InvalidModelRuleDeclarationException
+        thrown ModelTypeInitializationException
     }
 
     def "can use property accessors in DSL to build model object path"() {

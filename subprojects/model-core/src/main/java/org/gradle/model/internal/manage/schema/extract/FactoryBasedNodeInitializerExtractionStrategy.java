@@ -36,4 +36,9 @@ public class FactoryBasedNodeInitializerExtractionStrategy implements NodeInitia
         }
         return new FactoryBasedNodeInitializer<T, T>(factoryReference, type);
     }
+
+    @Override
+    public Iterable<ModelType<?>> supportedTypes() {
+        return instanceFactoryRegistry.supportedTypes();
+    }
 }

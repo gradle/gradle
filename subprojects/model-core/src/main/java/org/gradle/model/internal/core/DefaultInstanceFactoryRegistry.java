@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
@@ -33,5 +34,10 @@ public class DefaultInstanceFactoryRegistry implements InstanceFactoryRegistry {
     @Override
     public <T> void register(ModelType<T> type, ModelReference<? extends InstanceFactory<? super T, String>> factoryReference) {
         factoryReferences.put(type, factoryReference);
+    }
+
+    @Override
+    public Iterable<ModelType<?>> supportedTypes() {
+        return ImmutableList.<ModelType<?>>builder().addAll(factoryReferences.keySet()).build();
     }
 }

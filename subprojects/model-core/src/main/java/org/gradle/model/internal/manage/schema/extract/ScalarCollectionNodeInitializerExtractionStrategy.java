@@ -63,6 +63,11 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         return null;
     }
 
+    @Override
+    public Iterable<ModelType<?>> supportedTypes() {
+        return ImmutableList.<ModelType<?>>builder().addAll(TYPES).build();
+    }
+
     private static class ScalarCollectionModelProjection<E> extends TypedModelProjection<E> {
 
         public static <E, U extends Collection<E>> ScalarCollectionModelProjection<U> get(ModelType<U> type, ModelViewFactory<U> viewFactory) {

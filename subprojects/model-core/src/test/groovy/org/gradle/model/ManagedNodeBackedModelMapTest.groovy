@@ -20,6 +20,7 @@ import org.gradle.api.Named
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.UnboundModelRulesException
@@ -38,7 +39,8 @@ class ManagedNodeBackedModelMapTest extends Specification {
     def itemType = ModelType.of(NamedThingInterface)
     def modelMapType = ModelTypes.modelMap(itemType)
     def schemaStore = DefaultModelSchemaStore.instance
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
+    ConstructableTypesRegistry constructableTypesRegistry = Mock()
+    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore, constructableTypesRegistry)
 
     def setup() {
         registry.create(ModelCreators.of(path, nodeInitializerRegistry.getNodeInitializer(schemaStore.getSchema(modelMapType))).descriptor("creator").build())
