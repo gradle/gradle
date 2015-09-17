@@ -77,7 +77,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean configureOnDemand;
     private int maxWorkerCount;
     private boolean continuous;
-    private List<URI> classpath = new ArrayList<URI>();
+    private List<URI> classpath = Collections.emptyList();
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -135,6 +135,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.initScripts = new ArrayList<File>(initScripts);
         p.dryRun = dryRun;
         p.projectCacheDir = projectCacheDir;
+        p.classpath = new ArrayList<URI>(classpath);
         return p;
     }
 
@@ -162,7 +163,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.parallelProjectExecution = parallelProjectExecution;
         p.configureOnDemand = configureOnDemand;
         p.maxWorkerCount = maxWorkerCount;
-        p.classpath = classpath;
         return p;
     }
 
@@ -714,7 +714,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     @Incubating
     public List<URI> getClasspath() {
-        return classpath;
+        return Collections.unmodifiableList(classpath);
     }
 
     /**
@@ -725,6 +725,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     @Incubating
     public void setClasspath(List<URI> classpath) {
-        this.classpath = classpath;
+        this.classpath = new ArrayList<URI>(classpath);
     }
 }
