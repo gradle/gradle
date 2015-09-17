@@ -36,7 +36,7 @@ public class DefaultConstructableTypesRegistry implements ConstructableTypesRegi
 
     @Override
     public Iterable<ModelType<?>> supportedTypes() {
-        return ImmutableList.<ModelType<?>>builder().addAll(mappings.keySet()).build();
+        return ImmutableList.<ModelType<?>>builder().build();
     }
 
     @Override
