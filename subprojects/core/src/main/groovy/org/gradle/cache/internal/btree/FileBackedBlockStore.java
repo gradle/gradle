@@ -27,6 +27,7 @@ public class FileBackedBlockStore implements BlockStore {
     private final File cacheFile;
     private long nextBlock;
     private Factory factory;
+    private long currentFileSize;
 
     public FileBackedBlockStore(File cacheFile) {
         this.cacheFile = cacheFile;
@@ -42,8 +43,9 @@ public class FileBackedBlockStore implements BlockStore {
         try {
             cacheFile.getParentFile().mkdirs();
             file = new RandomAccessFile(cacheFile, "rw");
-            nextBlock = file.length();
-            if (file.length() == 0) {
+            currentFileSize = file.length();
+            nextBlock = currentFileSize;
+            if (currentFileSize == 0) {
                 runnable.run();
             }
         } catch (IOException e) {
@@ -62,6 +64,7 @@ public class FileBackedBlockStore implements BlockStore {
     public void clear() {
         try {
             file.setLength(0);
+            currentFileSize = 0;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -193,15 +196,16 @@ public class FileBackedBlockStore implements BlockStore {
             outputStream.close();
 
             // Pad
-            if (file.length() < finalSize) {
+            if (currentFileSize < finalSize) {
                 file.setLength(finalSize);
+                currentFileSize = finalSize;
             }
         }
 
         public void read() throws Exception {
             long pos = getPos().getPos();
             assert pos >= 0;
-            if (pos + HEADER_SIZE >= file.length()) {
+            if (pos + HEADER_SIZE >= currentFileSize) {
                 throw blockCorruptedException();
             }
             file.seek(pos);
@@ -224,7 +228,7 @@ public class FileBackedBlockStore implements BlockStore {
 
             // Read body
             payloadSize = inputStream.readInt();
-            if (pos + HEADER_SIZE + TAIL_SIZE + payloadSize > file.length()) {
+            if (pos + HEADER_SIZE + TAIL_SIZE + payloadSize > currentFileSize) {
                 throw blockCorruptedException();
             }
             payload.read(inputStream);
