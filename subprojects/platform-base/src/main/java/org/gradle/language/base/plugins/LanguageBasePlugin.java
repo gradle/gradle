@@ -72,10 +72,9 @@ public class LanguageBasePlugin implements Plugin<Project> {
     }
 
     public void apply(final Project target) {
-        constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer());
         target.getPluginManager().apply(LifecycleBasePlugin.class);
-        target.getExtensions().create("sources", DefaultProjectSourceSet.class);
-
+        DefaultProjectSourceSet sources = target.getExtensions().create("sources", DefaultProjectSourceSet.class);
+        constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer("functionalSourceSet", instantiator, sources));
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
         applyRules(modelRegistry, binaries);
     }

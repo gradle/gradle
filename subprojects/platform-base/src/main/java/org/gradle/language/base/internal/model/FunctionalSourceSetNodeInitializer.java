@@ -17,7 +17,9 @@
 package org.gradle.language.base.internal.model;
 
 import com.google.common.base.Optional;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
@@ -26,6 +28,15 @@ import java.util.Collections;
 import java.util.List;
 
 public class FunctionalSourceSetNodeInitializer implements NodeInitializer {
+    private final String name;
+    private final Instantiator instantiator;
+    private final ProjectSourceSet projectSourceSet;
+
+    public FunctionalSourceSetNodeInitializer(String name, Instantiator instantiator, final ProjectSourceSet projectSourceSet) {
+        this.name = name;
+        this.instantiator = instantiator;
+        this.projectSourceSet = projectSourceSet;
+    }
 
     @Override
     public List<? extends ModelReference<?>> getInputs() {
@@ -34,7 +45,7 @@ public class FunctionalSourceSetNodeInitializer implements NodeInitializer {
 
     @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-        DefaultFunctionalSourceSet defaultFunctionalSourceSet = new DefaultFunctionalSourceSet(null, null, null);
+        DefaultFunctionalSourceSet defaultFunctionalSourceSet = new DefaultFunctionalSourceSet(name, instantiator, projectSourceSet);
         modelNode.setPrivateData(DefaultFunctionalSourceSet.class, defaultFunctionalSourceSet);
     }
 

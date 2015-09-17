@@ -41,8 +41,6 @@ public class DefaultConstructableTypesRegistry implements ConstructableTypesRegi
 
     @Override
     public <T> void registerConstructableType(ModelType<T> type, NodeInitializer nodeInitializer) {
-
-
         mappings.put(type, nodeInitializer);
     }
 }

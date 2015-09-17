@@ -17,6 +17,7 @@
 package org.gradle.language.base
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
 
 class TopLevelSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -32,11 +33,15 @@ class TopLevelSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         fails "model"
+        new LanguageTypeModelRuleExtractor.DefaultLanguageTypeBuilder().setLanguageName('ruby')
 
         then:
         failureCauseContains("Declaration of model rule Rules#functionalSources is invalid.")
         failureCauseContains("The model node of type: 'org.gradle.language.base.FunctionalSourceSet' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]")
     }
+
+
+
 
     def "can create a top level functional source set with a rule"() {
         buildFile << """
@@ -45,13 +50,24 @@ class TopLevelSourceSetIntegrationTest extends AbstractIntegrationSpec {
         class Rules extends RuleSource {
             @Model
             void functionalSources(FunctionalSourceSet sources) {
+
             }
+
+            @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet sources) {
+                tasks.create("printTask") {
+                  doLast {
+                    println "FFS: \$sources"
+                  }
+              }
+            }
+
         }
         apply plugin: Rules
         """
 
         expect:
-        succeeds "components"
+        succeeds "printTask"
+        output.contains("FFS: []")
     }
 
     def "can create a top level functional source set via the model dsl"() {
