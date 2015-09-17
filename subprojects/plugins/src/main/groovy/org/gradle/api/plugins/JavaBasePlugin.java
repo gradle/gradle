@@ -93,39 +93,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
                 ConfigurationContainer configurations = project.getConfigurations();
 
-                Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
-                if (compileConfiguration == null) {
-                    compileConfiguration = configurations.create(sourceSet.getCompileConfigurationName());
-                }
-                compileConfiguration.setVisible(false);
-                compileConfiguration.setDescription(String.format("Compile classpath for %s.", sourceSet));
-
-                Configuration runtimeConfiguration = configurations.findByName(sourceSet.getRuntimeConfigurationName());
-                if (runtimeConfiguration == null) {
-                    runtimeConfiguration = configurations.create(sourceSet.getRuntimeConfigurationName());
-                }
-                runtimeConfiguration.setVisible(false);
-                runtimeConfiguration.extendsFrom(compileConfiguration);
-                runtimeConfiguration.setDescription(String.format("Runtime classpath for %s.", sourceSet));
-
-                sourceSet.setCompileClasspath(compileConfiguration);
-                sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
-
-                outputConventionMapping.map("classesDir", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        String classesDirName = String.format("classes/%s", sourceSet.getName());
-                        return new File(project.getBuildDir(), classesDirName);
-                    }
-                });
-                outputConventionMapping.map("resourcesDir", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        String classesDirName = String.format("resources/%s", sourceSet.getName());
-                        return new File(project.getBuildDir(), classesDirName);
-                    }
-                });
-
-                sourceSet.getJava().srcDir(String.format("src/%s/java", sourceSet.getName()));
-                sourceSet.getResources().srcDir(String.format("src/%s/resources", sourceSet.getName()));
+                defineConfigurationsForSourceSet(sourceSet, configurations);
+                definePathsForSourceSet(sourceSet, outputConventionMapping, project);
                 sourceSet.compiledBy(sourceSet.getClassesTaskName());
 
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
@@ -154,6 +123,44 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 binary.builtBy(sourceSet.getOutput().getDirs());
             }
         });
+    }
+
+    private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
+        outputConventionMapping.map("classesDir", new Callable<Object>() {
+            public Object call() throws Exception {
+                String classesDirName = String.format("classes/%s", sourceSet.getName());
+                return new File(project.getBuildDir(), classesDirName);
+            }
+        });
+        outputConventionMapping.map("resourcesDir", new Callable<Object>() {
+            public Object call() throws Exception {
+                String classesDirName = String.format("resources/%s", sourceSet.getName());
+                return new File(project.getBuildDir(), classesDirName);
+            }
+        });
+
+        sourceSet.getJava().srcDir(String.format("src/%s/java", sourceSet.getName()));
+        sourceSet.getResources().srcDir(String.format("src/%s/resources", sourceSet.getName()));
+    }
+
+    private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
+        Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
+        if (compileConfiguration == null) {
+            compileConfiguration = configurations.create(sourceSet.getCompileConfigurationName());
+        }
+        compileConfiguration.setVisible(false);
+        compileConfiguration.setDescription(String.format("Compile classpath for %s.", sourceSet));
+
+        Configuration runtimeConfiguration = configurations.findByName(sourceSet.getRuntimeConfigurationName());
+        if (runtimeConfiguration == null) {
+            runtimeConfiguration = configurations.create(sourceSet.getRuntimeConfigurationName());
+        }
+        runtimeConfiguration.setVisible(false);
+        runtimeConfiguration.extendsFrom(compileConfiguration);
+        runtimeConfiguration.setDescription(String.format("Runtime classpath for %s.", sourceSet));
+
+        sourceSet.setCompileClasspath(compileConfiguration);
+        sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
     }
 
     public void configureForSourceSet(final SourceSet sourceSet, AbstractCompile compile) {
