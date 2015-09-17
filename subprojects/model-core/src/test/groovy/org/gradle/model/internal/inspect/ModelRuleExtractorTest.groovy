@@ -15,13 +15,8 @@
  */
 
 package org.gradle.model.internal.inspect
-
 import org.gradle.model.*
-import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
-import org.gradle.model.internal.core.ExtractedModelRule
-import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
@@ -69,21 +64,27 @@ class ModelRuleExtractorTest extends Specification {
     void registerRules(Class<?> clazz) {
         def rules = extract(clazz)
         rules.each {
-            if (it.type == ExtractedModelRule.Type.CREATOR) {
-                registry.create(it.creator)
-            } else if (it.type == ExtractedModelRule.Type.ACTION) {
-                registry.configure(it.actionRole, it.action)
-            }
+            it.apply(registry, ModelPath.ROOT)
         }
     }
 
     def "can inspect class with simple model creation rule"() {
+        def mockRegistry = Mock(ModelRegistry)
+
         when:
         def rule = extract(SimpleModelCreationRuleInferredName).first()
 
         then:
-        rule.type == ExtractedModelRule.Type.CREATOR
-        rule.creator.path.toString() == "modelPath"
+        rule instanceof ExtractedModelCreator
+
+        when:
+        rule.apply(mockRegistry, ModelPath.ROOT)
+
+        then:
+        1 * mockRegistry.create(_) >> { ModelCreator creator ->
+            assert creator.path.toString() == "modelPath"
+        }
+        0 * _
     }
 
     static class ParameterizedModel extends RuleSource {

@@ -105,13 +105,15 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public ModelRegistry apply(Class<? extends RuleSource> rules) {
-        modelGraph.getRoot().applyToSelf(rules);
+    public <T> ModelRegistry configure(ModelActionRole role, ModelAction<T> action, ModelPath scope) {
+        bind(action.getSubject(), role, action, scope);
         return this;
     }
 
-    private <T> void bind(ModelActionRole role, ModelAction<T> mutator, ModelPath scope) {
-        bind(mutator.getSubject(), role, mutator, scope);
+    @Override
+    public ModelRegistry apply(Class<? extends RuleSource> rules) {
+        modelGraph.getRoot().applyToSelf(rules);
+        return this;
     }
 
     private <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<T> mutator, ModelPath scope) {
@@ -728,18 +730,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 if (!extractedRule.getRuleDependencies().isEmpty()) {
                     throw new IllegalStateException("Rule source " + rules + " cannot have plugin dependencies (introduced by rule " + extractedRule + ")");
                 }
-
-                if (extractedRule.getType().equals(ExtractedModelRule.Type.CREATOR)) {
-                    if (scope.equals(ModelPath.ROOT)) {
-                        DefaultModelRegistry.this.create(extractedRule.getCreator());
-                    } else {
-                        throw new InvalidModelRuleDeclarationException("Rule " + extractedRule.getCreator().getDescriptor() + " cannot be applied at the scope of model element " + scope + " as creation rules cannot be used when applying rule sources to particular elements");
-                    }
-                } else if (extractedRule.getType().equals(ExtractedModelRule.Type.ACTION)) {
-                    bind(extractedRule.getActionRole(), extractedRule.getAction(), scope);
-                } else {
-                    throw new IllegalStateException("unexpected extracted rule type: " + extractedRule.getType());
-                }
+                extractedRule.apply(DefaultModelRegistry.this, scope);
             }
         }
 

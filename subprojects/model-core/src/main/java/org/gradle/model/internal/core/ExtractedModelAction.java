@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
@@ -37,23 +38,8 @@ public class ExtractedModelAction implements ExtractedModelRule {
     }
 
     @Override
-    public Type getType() {
-        return Type.ACTION;
-    }
-
-    @Override
-    public ModelCreator getCreator() {
-        return null;
-    }
-
-    @Override
-    public ModelActionRole getActionRole() {
-        return role;
-    }
-
-    @Override
-    public ModelAction<?> getAction() {
-        return action;
+    public void apply(ModelRegistry modelRegistry, ModelPath scope) {
+        modelRegistry.configure(role, action, scope);
     }
 
     @Override

@@ -17,6 +17,8 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
@@ -29,23 +31,11 @@ public class ExtractedModelCreator implements ExtractedModelRule {
     }
 
     @Override
-    public Type getType() {
-        return Type.CREATOR;
-    }
-
-    @Override
-    public ModelCreator getCreator() {
-        return creator;
-    }
-
-    @Override
-    public ModelActionRole getActionRole() {
-        return null;
-    }
-
-    @Override
-    public ModelAction<?> getAction() {
-        return null;
+    public void apply(ModelRegistry modelRegistry, ModelPath scope) {
+        if (!scope.equals(ModelPath.ROOT)) {
+            throw new InvalidModelRuleDeclarationException(String.format("Rule %s cannot be applied at the scope of model element %s as creation rules cannot be used when applying rule sources to particular elements", creator.getDescriptor(), scope));
+        }
+        modelRegistry.create(creator);
     }
 
     @Override

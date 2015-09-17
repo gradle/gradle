@@ -174,6 +174,12 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     @Override
+    public <T> ModelRegistry configure(ModelActionRole role, ModelAction<T> action, ModelPath scope) {
+        modelRegistry.configure(role, action, scope);
+        return this;
+    }
+
+    @Override
     public ModelRegistry apply(Class<? extends RuleSource> rules) {
         return modelRegistry.apply(rules);
     }
