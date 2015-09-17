@@ -15,14 +15,14 @@
  */
 
 package org.gradle.language.base.internal
+
 import org.gradle.language.base.internal.testinterfaces.NotComponentSpec
 import org.gradle.language.base.internal.testinterfaces.SomeComponentSpec
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.core.ExtractedModelRule
-import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.*
 import org.gradle.platform.base.component.BaseComponentSpec
@@ -43,14 +43,24 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
     Class<?> ruleClass = Rules
 
     def "applies ComponentModelBasePlugin and creates component type rule"() {
+        def mockRegistry = Mock(ModelRegistry)
+
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
+        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
-        registration.type == ExtractedModelRule.Type.ACTION
-        registration.actionRole == ModelActionRole.Defaults
-        registration.action.subject == ModelReference.of(FACTORY_REGISTRY_TYPE)
+
+        when:
+        registration.apply(mockRegistry, ModelPath.ROOT)
+
+        then:
+        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->
+            assert role == ModelActionRole.Defaults
+            assert action.subject == ModelReference.of(FACTORY_REGISTRY_TYPE)
+        }
+        0 * _
     }
 
     def "applies ComponentModelBasePlugin only when implementation not set"() {
@@ -58,8 +68,8 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSet"))
 
         then:
+        registration instanceof DependencyOnlyExtractedModelRule
         registration.ruleDependencies == [ComponentModelBasePlugin]
-        registration.type == ExtractedModelRule.Type.DEPENDENCIES
     }
 
     @Unroll

@@ -21,13 +21,11 @@ import org.gradle.language.base.internal.testinterfaces.SomeBinarySpec
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
-import org.gradle.model.internal.core.ExtractedModelRule
-import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
-import org.gradle.model.internal.type.ModelType
+import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryType
 import org.gradle.platform.base.BinaryTypeBuilder
@@ -55,14 +53,24 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
     Class<?> ruleClass = Rules
 
     def "applies ComponentModelBasePlugin and creates binary type rule"() {
+        def mockRegistry = Mock(ModelRegistry)
+
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
+        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
-        registration.type == ExtractedModelRule.Type.ACTION
-        registration.actionRole == ModelActionRole.Defaults
-        registration.action.subject == ModelReference.of(ModelType.of(BinarySpecFactoryRegistry))
+
+        when:
+        registration.apply(mockRegistry, ModelPath.ROOT)
+
+        then:
+        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->
+            assert role == ModelActionRole.Defaults
+            assert action.subject == ModelReference.of(BinarySpecFactoryRegistry)
+        }
+        0 * _
     }
 
     def "applies ComponentModelBasePlugin only when implementation not set for unmanaged binary spec"() {
@@ -70,8 +78,8 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSetForUnmanagedBinarySpec"))
 
         then:
+        registration instanceof DependencyOnlyExtractedModelRule
         registration.ruleDependencies == [ComponentModelBasePlugin]
-        registration.type == ExtractedModelRule.Type.DEPENDENCIES
     }
 
     @Unroll
