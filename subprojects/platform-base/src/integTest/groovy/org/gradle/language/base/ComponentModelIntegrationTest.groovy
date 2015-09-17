@@ -15,12 +15,13 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 import spock.lang.Unroll
+
+import static org.gradle.util.Matchers.containsText
 
 class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
@@ -657,7 +658,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failureHasCause("The model node of type: 'DefaultCustomComponent' can not be constructed. The type must be managed (@Managed) or one of the following types [FunctionalSourceSet, CustomComponent, ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]")
+        failure.assertThatCause(containsText("The model node of type: 'DefaultCustomComponent' can not be constructed. The type must be managed (@Managed) or one of the following types [FunctionalSourceSet, CustomComponent, ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"))
     }
 
     def "reasonable error message when creating component with no implementation"() {
@@ -676,7 +677,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failureHasCause("The model node of type: 'AnotherCustomComponent' can not be constructed. The type must be managed (@Managed) or one of the following types [FunctionalSourceSet, CustomComponent, ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]")
+        failure.assertThatCause(containsText("The model node of type: 'AnotherCustomComponent' can not be constructed. The type must be managed (@Managed) or one of the following types [FunctionalSourceSet, CustomComponent, ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"))
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {
