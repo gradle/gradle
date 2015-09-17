@@ -65,12 +65,13 @@ class JavaBasePluginTest extends Specification {
         set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
         set.output.classesDir == new File(project.buildDir, 'classes/custom')
+        set.output.resourcesDir == new File(project.buildDir, 'resources/custom')
 
         def processResources = project.tasks['processCustomResources']
         processResources.description == "Processes JVM resources 'custom:resources'."
         processResources instanceof Copy
         TaskDependencyMatchers.dependsOn().matches(processResources)
-        processResources.destinationDir == project.sourceSets.custom.output.resourcesDir
+        processResources.destinationDir == new File(project.buildDir, 'resources/custom')
         def resources = processResources.source
         resources.files == project.sourceSets.custom.resources.files
 
@@ -79,7 +80,7 @@ class JavaBasePluginTest extends Specification {
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
-        compileJava.destinationDir == project.sourceSets.custom.output.classesDir
+        compileJava.destinationDir == new File(project.buildDir, 'classes/custom')
 
         def sources = compileJava.source
         sources.files == project.sourceSets.custom.java.files
