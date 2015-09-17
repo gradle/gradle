@@ -108,9 +108,6 @@ buildTypes {
     }
 }
 
-println "useIncomingDistributions: " + useIncomingDistributions
-println "testAllVersions: " + testAllVersions
-
 ext {
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
