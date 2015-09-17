@@ -75,19 +75,8 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
         binaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>() {
             public void execute(ClassDirectoryBinarySpecInternal binary) {
                 createBinaryLifecycleTask(binary, target);
-                setClassesDirConvention(binary, target);
                 createProcessResourcesTaskForBinary(binary, target);
                 createCompileJavaTaskForBinary(binary, target);
-            }
-        });
-    }
-
-    private void setClassesDirConvention(ClassDirectoryBinarySpecInternal binary, final Project target) {
-        final BinaryNamingScheme namingScheme = binary.getNamingScheme();
-        ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
-        conventionMapping.map("classesDir", new Callable<File>() {
-            public File call() throws Exception {
-                return new File(new File(target.getBuildDir(), "classes"), namingScheme.getOutputDirectoryBase());
             }
         });
     }

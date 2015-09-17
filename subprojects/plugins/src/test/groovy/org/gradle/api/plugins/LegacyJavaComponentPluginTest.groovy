@@ -44,12 +44,14 @@ class LegacyJavaComponentPluginTest extends Specification {
 
     def "adds a 'classes' task for every ClassDirectoryBinary added to the container"() {
         when:
-        def binary = project.binaries.create("prod", ClassDirectoryBinarySpec)
+        ClassDirectoryBinarySpec binary = project.binaries.create("prod", ClassDirectoryBinarySpec)
 
         then:
-        binary.classesDir == new File("$project.buildDir/classes/prod")
         def task = project.tasks.findByName("prodClasses")
         task != null
         task.description == "Assembles classes 'prod'."
+
+        and:
+        binary.buildTask == task
     }
 }
