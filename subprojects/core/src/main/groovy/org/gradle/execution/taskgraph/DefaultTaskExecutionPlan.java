@@ -654,14 +654,21 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private void enforceFinalizerTasks(TaskInfo taskInfo) {
         for (TaskInfo finalizerNode : taskInfo.getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
-                enforceWithDependencies(finalizerNode);
+                TreeSet<TaskInfo> enforcedTasks = new TreeSet<TaskInfo>();
+                enforceWithDependencies(finalizerNode, enforcedTasks);
             }
         }
     }
 
-    private void enforceWithDependencies(TaskInfo node) {
+    private void enforceWithDependencies(TaskInfo node, TreeSet<TaskInfo> enforcedTasks) {
+        if (enforcedTasks.contains(node)) {
+            return;
+        }
+
+        enforcedTasks.add(node);
+
         for (TaskInfo dependencyNode : node.getDependencySuccessors()) {
-            enforceWithDependencies(dependencyNode);
+            enforceWithDependencies(dependencyNode, enforcedTasks);
         }
         if (node.isMustNotRun() || node.isRequired()) {
             node.enforceRun();
