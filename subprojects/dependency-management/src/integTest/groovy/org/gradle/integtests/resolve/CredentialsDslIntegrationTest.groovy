@@ -30,10 +30,11 @@ class CredentialsDslIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         where:
-        scenario          | dsl
-        'simple'          | simplestDsl()
-        'awsCredentials'  | awsCredentials()
-        'ivyWithPassword' | ivyPasswordCredentials()
-        'passwordTyped'   | passwordCredentialsTyped()
+        scenario                | dsl
+        'simple'                | simplestDsl()
+        'awsCredentials'        | awsCredentials()
+        'awsSessionCredentials' | awsSessionCredentials()
+        'ivyWithPassword'       | ivyPasswordCredentials()
+        'passwordTyped'         | passwordCredentialsTyped()
     }
 }

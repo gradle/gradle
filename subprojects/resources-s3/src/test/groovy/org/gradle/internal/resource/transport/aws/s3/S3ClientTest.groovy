@@ -112,11 +112,14 @@ class S3ClientTest extends Specification {
         s3Properties.getEndpoint() >> someEndpoint
 
         when:
-        S3Client s3Client = new S3Client(credentials(), s3Properties)
+        S3Client s3Client = new S3Client(creds, s3Properties)
 
         then:
         s3Client.amazonS3Client.clientOptions.pathStyleAccess == true
         s3Client.amazonS3Client.endpoint == someEndpoint.get()
+
+        where:
+        creds << [credentials(), sessionCredentials()]
     }
 
     def "should configure HTTPS proxy"() {
@@ -126,13 +129,16 @@ class S3ClientTest extends Specification {
         s3Properties.getEndpoint() >> Optional.absent()
         s3Properties.getMaxErrorRetryCount() >> Optional.absent()
         when:
-        S3Client s3Client = new S3Client(credentials(), s3Properties)
+        S3Client s3Client = new S3Client(creds, s3Properties)
 
         then:
         s3Client.amazonS3Client.clientConfiguration.proxyHost == 'localhost'
         s3Client.amazonS3Client.clientConfiguration.proxyPort == 8080
         s3Client.amazonS3Client.clientConfiguration.proxyPassword == 'password'
         s3Client.amazonS3Client.clientConfiguration.proxyUsername == 'username'
+
+        where:
+        creds << [credentials(), sessionCredentials()]
     }
 
     @Ignore
@@ -146,7 +152,7 @@ class S3ClientTest extends Specification {
         s3Properties.getEndpoint() >> endpointOverride
         when:
 
-        S3Client s3Client = new S3Client(credentials(), s3Properties)
+        S3Client s3Client = new S3Client(creds, s3Properties)
         then:
         s3Client.amazonS3Client.clientConfiguration.proxyHost == null
         s3Client.amazonS3Client.clientConfiguration.proxyPort == -1
@@ -157,6 +163,8 @@ class S3ClientTest extends Specification {
         nonProxied                                               | endpointOverride
         com.amazonaws.services.s3.internal.Constants.S3_HOSTNAME | Optional.absent()
         "mydomain.com"                                           | Optional.absent()
+
+        creds << [credentials(), sessionCredentials()]
     }
 
     def "should include uri when meta-data not found"() {
@@ -205,6 +213,12 @@ class S3ClientTest extends Specification {
         def credentials = new DefaultAwsCredentials()
         credentials.setAccessKey("AKey")
         credentials.setSecretKey("ASecret")
+        credentials
+    }
+
+    def sessionCredentials() {
+        def credentials = credentials()
+        credentials.setSessionToken("ASessionToken")
         credentials
     }
 }

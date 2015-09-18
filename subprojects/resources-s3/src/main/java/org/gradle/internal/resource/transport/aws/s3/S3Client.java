@@ -21,6 +21,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.model.*;
@@ -53,7 +54,19 @@ public class S3Client {
 
     public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
-        AWSCredentials credentials = awsCredentials == null ? null : new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
+        AWSCredentials credentials = null;
+        if (awsCredentials != null) {
+            String accessKey = awsCredentials.getAccessKey();
+            String secretKey = awsCredentials.getSecretKey();
+            String sessionToken = awsCredentials.getSessionToken();
+            if (sessionToken != null) {
+                credentials = new BasicSessionCredentials(accessKey,
+                                                          secretKey,
+                                                          sessionToken);
+            } else {
+                credentials = new BasicAWSCredentials(accessKey, secretKey);
+            }
+        }
         amazonS3Client = createAmazonS3Client(credentials);
     }
 

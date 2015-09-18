@@ -44,4 +44,22 @@ public interface AwsCredentials extends Credentials {
      */
     void setSecretKey(String secretKey);
 
+    /**
+     * Returns the session token to use to authenticate with AWS.
+     *
+     * This will be normally null, unless one was retrieved as part of a call
+     * to the AWS Security Token Service (which will also return special values
+     * for accessKey and secretKey).
+     *
+     * @return the session token to use to authenticate with AWS.
+     */
+    String getSessionToken();
+
+    /**
+     * Sets the session token to use to authenticate with AWS.
+     *
+     * @param sessionToken the session token value received from a call to
+     *        the AWS Security Token Service.
+     */
+    void setSessionToken(String sessionToken);
 }
