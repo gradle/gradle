@@ -268,4 +268,24 @@ class JavaBasePluginTest extends Specification {
         binary.resourcesDir == project.file("resources")
         binary.inputs as Set == project.sources as Set
     }
+
+    def "adds a 'classes' task for for each source set"() {
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+
+        project.sourceSets {
+            custom {
+                output.classesDir = project.file("classes")
+                output.resourcesDir = project.file("resources")
+            }
+        }
+
+        then:
+        ClassDirectoryBinarySpec binary = project.binaries.findByName("customClasses")
+        def task = project.tasks.findByName("customClasses")
+        task.description == "Assembles classes 'custom'."
+        binary.buildTask == task
+        binary.tasks.contains(task)
+    }
+
 }

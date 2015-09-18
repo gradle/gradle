@@ -18,16 +18,11 @@ package org.gradle.api.plugins;
 import org.gradle.api.*;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
-import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.ClassDirectoryBinarySpec;
-import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
-import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.java.JavaSourceSet;
@@ -36,7 +31,6 @@ import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -50,28 +44,10 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 public class LegacyJavaComponentPlugin implements Plugin<Project> {
-
-    private final Instantiator instantiator;
-    private final JavaToolChain toolChain;
-    private final ITaskFactory taskFactory;
-
-    @Inject
-    public LegacyJavaComponentPlugin(Instantiator instantiator, JavaToolChain toolChain, ITaskFactory taskFactory) {
-        this.instantiator = instantiator;
-        this.toolChain = toolChain;
-        this.taskFactory = taskFactory;
-    }
-
     public void apply(final Project target) {
         target.getPluginManager().apply(LanguageBasePlugin.class);
 
         BinaryContainer binaryContainer = target.getExtensions().getByType(BinaryContainer.class);
-        binaryContainer.registerFactory(ClassDirectoryBinarySpec.class, new NamedDomainObjectFactory<ClassDirectoryBinarySpec>() {
-            public ClassDirectoryBinarySpec create(String name) {
-                return instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, name, toolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
-            }
-        });
-
         binaryContainer.withType(ClassDirectoryBinarySpecInternal.class).all(new Action<ClassDirectoryBinarySpecInternal>() {
             public void execute(ClassDirectoryBinarySpecInternal binary) {
                 createBinaryLifecycleTask(binary, target);
@@ -115,9 +91,9 @@ public class LegacyJavaComponentPlugin implements Plugin<Project> {
         Task binaryLifecycleTask = target.task(binary.getNamingScheme().getLifecycleTaskName());
         binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
         binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
+        binary.getTasks().add(binaryLifecycleTask);
         binary.setBuildTask(binaryLifecycleTask);
     }
-
 
     /**
      * Preconfigures the specified compile task based on the specified source set and class directory binary.

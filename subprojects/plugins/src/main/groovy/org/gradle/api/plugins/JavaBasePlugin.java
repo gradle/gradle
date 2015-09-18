@@ -24,8 +24,10 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.java.DefaultJavaSourceSet;
 import org.gradle.api.internal.java.DefaultJvmResourceSet;
 import org.gradle.api.internal.jvm.ClassDirectoryBinarySpecInternal;
+import org.gradle.api.internal.jvm.DefaultClassDirectoryBinarySpec;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.reporting.ReportingExtension;
@@ -35,8 +37,9 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.jvm.ClassDirectoryBinarySpec;
 import org.gradle.jvm.Classpath;
+import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
+import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
@@ -60,10 +63,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     public static final String DOCUMENTATION_GROUP = "documentation";
 
     private final Instantiator instantiator;
+    private final JavaToolChain javaToolChain;
+    private final ITaskFactory taskFactory;
 
     @Inject
-    public JavaBasePlugin(Instantiator instantiator) {
+    public JavaBasePlugin(Instantiator instantiator, JavaToolChain javaToolChain, ITaskFactory taskFactory) {
         this.instantiator = instantiator;
+        this.javaToolChain = javaToolChain;
+        this.taskFactory = taskFactory;
     }
 
     public void apply(ProjectInternal project) {
@@ -104,13 +111,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 projectSourceSet.add(resourceSet);
 
                 BinaryContainer binaryContainer = project.getExtensions().getByType(BinaryContainer.class);
-                ClassDirectoryBinarySpecInternal binary = (ClassDirectoryBinarySpecInternal) binaryContainer.create(String.format("%sClasses", sourceSet.getName()), ClassDirectoryBinarySpec.class);
+                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, String.format("%sClasses", sourceSet.getName()), javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
                     public File call() throws Exception {
                         return sourceSet.getOutput().getClassesDir();
                     }
                 });
+                binaryContainer.add(binary);
                 conventionMapping.map("resourcesDir", new Callable<File>() {
                     public File call() throws Exception {
                         return sourceSet.getOutput().getResourcesDir();
