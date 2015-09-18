@@ -189,30 +189,6 @@ public abstract class GradleRunner {
     public abstract GradleRunner withClasspath(List<URI> classpath);
 
     /**
-     * Indicates if test execution is debuggable from an IDE. Enabled debugging effectively executes the tests in same JVM process
-     * as the "main" Gradle process.
-     * <p>
-     * If tests are executed from an IDE, debugging is enabled by default. If tests are not executed from an IDE, debugging is disabled.
-     * <p>
-     * The debug flag can be set programmatically by invoking the method {@link #withDebug(boolean)} which takes precedence over
-     * the default debug value chosen based on the test execution environment.
-     *
-     * @return the debug flag
-     * @since 2.8
-     */
-    public abstract boolean isDebug();
-
-    /**
-     * Enables/disables test execution for debugging purposes.
-     *
-     * @param debug the debug flag
-     * @return this
-     * @see #isDebug()
-     * @since 2.8
-     */
-    public abstract GradleRunner withDebug(boolean debug);
-
-    /**
      * Executes a build, expecting it to complete without failure.
      *
      * @throws InvalidRunnerConfigurationException if the configuration of this runner is invalid (e.g. project directory not set)

@@ -117,12 +117,10 @@ public class DefaultGradleRunner extends GradleRunner {
         return this;
     }
 
-    @Override
     public boolean isDebug() {
         return debug;
     }
 
-    @Override
     public GradleRunner withDebug(boolean debug) {
         this.debug = debug;
         return this;
