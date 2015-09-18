@@ -31,6 +31,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -41,8 +42,11 @@ import org.gradle.jvm.Classpath;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.language.java.JavaSourceSet;
 import org.gradle.language.jvm.JvmResourceSet;
+import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.util.WrapUtil;
 
@@ -76,7 +80,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     public void apply(ProjectInternal project) {
         project.getPluginManager().apply(BasePlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
-        project.getPluginManager().apply(LegacyJavaComponentPlugin.class);
+        project.getPluginManager().apply(LanguageBasePlugin.class);
 
         JavaPluginConvention javaConvention = new JavaPluginConvention(project, instantiator);
         project.getConvention().getPlugins().put("java", javaConvention);
@@ -129,8 +133,53 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 binary.addSourceSet(resourceSet);
 
                 binary.builtBy(sourceSet.getOutput().getDirs());
+
+                createBinaryLifecycleTask(sourceSet, binary, project);
+                createProcessResourcesTaskForBinary(sourceSet, resourceSet, binary, project);
+                createCompileJavaTaskForBinary(sourceSet, javaSourceSet, binary, project);
             }
         });
+    }
+
+    private void createCompileJavaTaskForBinary(SourceSet sourceSet, final JavaSourceSet javaSourceSet, final ClassDirectoryBinarySpecInternal binary, Project target) {
+        JavaCompile compileTask = target.getTasks().create(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
+        compileTask.setDescription(String.format("Compiles %s.", javaSourceSet));
+        compileTask.setSource(javaSourceSet.getSource());
+        compileTask.dependsOn(javaSourceSet);
+        ConventionMapping conventionMapping = compileTask.getConventionMapping();
+        conventionMapping.map("classpath", new Callable<Object>() {
+            public Object call() throws Exception {
+                return javaSourceSet.getCompileClasspath().getFiles();
+            }
+        });
+        conventionMapping.map("destinationDir", new Callable<Object>() {
+            public Object call() throws Exception {
+                return binary.getClassesDir();
+            }
+        });
+        binary.getTasks().add(compileTask);
+        binary.builtBy(compileTask);
+    }
+
+    private void createProcessResourcesTaskForBinary(SourceSet sourceSet, JvmResourceSet resourceSet, final ClassDirectoryBinarySpecInternal binary, final Project target) {
+        Copy resourcesTask = target.getTasks().create(sourceSet.getProcessResourcesTaskName(), ProcessResources.class);
+        resourcesTask.setDescription(String.format("Processes %s.", resourceSet));
+        new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
+            public File call() throws Exception {
+                return binary.getResourcesDir();
+            }
+        });
+        binary.getTasks().add(resourcesTask);
+        binary.builtBy(resourcesTask);
+        resourcesTask.from(resourceSet.getSource());
+    }
+
+    private void createBinaryLifecycleTask(SourceSet sourceSet, ClassDirectoryBinarySpecInternal binary, Project target) {
+        Task binaryLifecycleTask = target.task(sourceSet.getClassesTaskName());
+        binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+        binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
+        binary.getTasks().add(binaryLifecycleTask);
+        binary.setBuildTask(binaryLifecycleTask);
     }
 
     private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {

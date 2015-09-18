@@ -26,6 +26,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.ClassDirectoryBinarySpec
+import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.java.JavaSourceSet
 import org.gradle.language.jvm.JvmResourceSet
 import org.gradle.test.fixtures.file.TestFile
@@ -49,11 +50,11 @@ class JavaBasePluginTest extends Specification {
         then:
         project.plugins.hasPlugin(ReportingBasePlugin)
         project.plugins.hasPlugin(BasePlugin)
-        project.plugins.hasPlugin(LegacyJavaComponentPlugin)
+        project.plugins.hasPlugin(LanguageBasePlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
     }
 
-    void createsTasksAndAppliesMappingsForNewSourceSet() {
+    void "creates tasks and applies mappings for source set"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
@@ -90,6 +91,31 @@ class JavaBasePluginTest extends Specification {
         classes instanceof DefaultTask
         TaskDependencyMatchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
         TaskDependencyMatchers.builtBy('customClasses').matches(project.sourceSets.custom.output)
+    }
+
+    void "creates tasks and applies mappings for main source set"() {
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+        project.sourceSets.create('main')
+
+        then:
+        SourceSet set = project.sourceSets.main
+        set.java.srcDirs == toLinkedSet(project.file('src/main/java'))
+        set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
+        set.output.classesDir == new File(project.buildDir, 'classes/main')
+        set.output.resourcesDir == new File(project.buildDir, 'resources/main')
+
+        def processResources = project.tasks.processResources
+        processResources.description == "Processes JVM resources 'main:resources'."
+        processResources instanceof Copy
+
+        def compileJava = project.tasks.compileJava
+        compileJava.description == "Compiles Java source 'main:java'."
+        compileJava instanceof JavaCompile
+
+        def classes = project.tasks.classes
+        classes.description == "Assembles classes 'main'."
+        TaskDependencyMatchers.dependsOn('processResources', 'compileJava').matches(classes)
     }
 
     void "wires generated resources task into classes task for sourceset"() {
