@@ -609,10 +609,10 @@ public class TestFile extends File {
         }
 
         public String toString() {
-            return "Snapshot{" +
-                "modTime=" + modTime +
-                ", hash=" + Arrays.toString(hash) +
-                '}';
+            return "Snapshot{"
+                + "modTime=" + modTime
+                + ", hash=" + Arrays.toString(hash)
+                + '}';
         }
     }
 }
