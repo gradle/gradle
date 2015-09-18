@@ -31,7 +31,7 @@ class NonTransformedModelDslBackingTest extends Specification {
     def modelRegistry = new ModelRegistryHelper()
     def schemaStore = DefaultModelSchemaStore.instance
     def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore, new DefaultConstructableTypesRegistry())
-    def modelDsl = new NonTransformedModelDslBacking(getModelRegistry(), schemaStore, nodeInitializerRegistry)
+    def modelDsl = new NonTransformedModelDslBacking(getModelRegistry(), nodeInitializerRegistry)
 
     void register(String pathString, Object element) {
         modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(pathString, element.class), element).descriptor("register").build())
