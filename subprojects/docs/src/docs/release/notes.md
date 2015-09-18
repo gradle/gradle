@@ -177,6 +177,11 @@ results in the following IDE project name mapping:
     \-bar
        \- bar-app
 
+### Changes to incubating integration between software model and the Java plugins  
+
+TBD - `ClassDirectoryBinarySpec.classesDir` no longer has a default value, for object of this type added directly to `binaries` container. The default still applied 
+for instances created by the Java plugins.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
