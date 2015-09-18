@@ -15,21 +15,28 @@
  */
 package org.gradle.api.plugins.quality
 
+
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.project.IsolatedAntBuilder
+import org.gradle.api.internal.project.AntBuilderDelegate
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
+import org.gradle.api.plugins.quality.internal.forking.AntExecutionSpec
+import org.gradle.api.plugins.quality.internal.forking.AntProcessBuilder
+import org.gradle.api.plugins.quality.internal.forking.AntSourceBuilder
+import org.gradle.api.plugins.quality.internal.forking.RootAntSourceBuilder
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
-import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
+import org.gradle.process.internal.WorkerProcessBuilder
 
 import javax.inject.Inject
+
 
 /**
  * Runs CodeNarc against some source files.
@@ -100,42 +107,33 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     }
 
     @Inject
-    IsolatedAntBuilder getAntBuilder() {
+    protected Factory<WorkerProcessBuilder> getWorkerProcessBuilderFactory() {
         throw new UnsupportedOperationException();
     }
 
     @TaskAction
     void run() {
         logging.captureStandardOutput(LogLevel.INFO)
-        def classpath = new DefaultClassPath(getCodenarcClasspath())
-        antBuilder.withClasspath(classpath.asFiles).execute {
-            ant.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask')
-            try {
-                ant.codenarc(ruleSetFiles: "file:${getConfigFile()}", maxPriority1Violations: getMaxPriority1Violations(), maxPriority2Violations: getMaxPriority2Violations(), maxPriority3Violations: getMaxPriority3Violations()) {
-                    reports.enabled.each { Report r ->
-                        report(type: r.name) {
-                            option(name: 'outputFile', value: r.destination)
-                        }
-                    }
+        def antResult = new AntProcessBuilder(project).withAntExecutionSpec(new CodenarcAntAction(this))
+            .withClasspath(getCodenarcClasspath())
+            .withWorkerProcessBuilderFactory(getWorkerProcessBuilderFactory())
+            .execute()
 
-                    source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+        if(antResult.errorCount != 0) {
+            if (antResult.throwable.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
+                def message = "CodeNarc rule violations were found."
+                def report = reports.firstEnabled
+                if (report) {
+                    def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
+                    message += " See the report at: $reportUrl"
                 }
-            } catch (Exception e) {
-                if (e.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
-                    def message = "CodeNarc rule violations were found."
-                    def report = reports.firstEnabled
-                    if (report) {
-                        def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
-                        message += " See the report at: $reportUrl"
-                    }
-                    if (getIgnoreFailures()) {
-                        logger.warn(message)
-                        return
-                    }
-                    throw new GradleException(message, e)
+                if (getIgnoreFailures()) {
+                    logger.warn(message)
+                    return
                 }
-                throw e
+                throw new GradleException(message, antResult.throwable)
             }
+            throw antResult.throwable
         }
     }
 
@@ -151,5 +149,41 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
      */
     CodeNarcReports reports(Closure closure) {
         reports.configure(closure)
+    }
+
+    private static class CodenarcAntAction implements AntExecutionSpec {
+
+        private final int maxPriority1Violations
+        private final int maxPriority2Violations
+        private final int maxPriority3Violations
+        private final String pathToConfigFile;
+        private final Map<String, String> reportMapping = [:]
+        private final AntSourceBuilder sources;
+
+
+        CodenarcAntAction(CodeNarc task) {
+            this.maxPriority1Violations = task.getMaxPriority1Violations()
+            this.maxPriority2Violations = task.getMaxPriority2Violations()
+            this.maxPriority3Violations = task.getMaxPriority3Violations()
+            this.pathToConfigFile = task.getConfigFile().getAbsolutePath()
+            task.reports.enabled.each { Report r ->
+                reportMapping.put(r.name, r.destination.getAbsolutePath())
+            }
+            sources = new RootAntSourceBuilder(task.getSource(), 'fileset', FileCollection.AntType.FileSet)
+        }
+
+        @Override
+        void execute(AntBuilderDelegate antBuilderDelegate) {
+            antBuilderDelegate.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask')
+            antBuilderDelegate.codenarc(ruleSetFiles: "file:${pathToConfigFile}", maxPriority1Violations: maxPriority1Violations, maxPriority2Violations: maxPriority2Violations, maxPriority3Violations: maxPriority3Violations) {
+                reportMapping.each { String name, String destination ->
+                    report(type: name) {
+                        option(name: 'outputFile', value: destination)
+                    }
+                }
+
+                sources.apply(antBuilderDelegate)
+            }
+        }
     }
 }

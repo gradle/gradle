@@ -40,8 +40,7 @@ public class AntWorkerManager {
         WorkerProcessBuilder builder = workerFactory.create();
         builder.setBaseName("Gradle Ant Worker");
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        javaCommand.classpath(spec.getClasspath());
-        javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
+        javaCommand.setMaxHeapSize(spec.getMaxHeapSize()); //TODO: Make this something reasonable / configurable
         javaCommand.setWorkingDir(spec.getWorkingDir());
         return builder.worker(new AntWorkerServer(spec)).build();
     }

@@ -16,11 +16,11 @@
 
 package org.gradle.api.plugins.quality.internal.forking;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.project.AntBuilderDelegate;
 
 import java.io.Serializable;
 
-public interface AntExecutionSpec extends Serializable {
-    void configure(AntBuilderDelegate antBuilder);
+public interface AntExecutionSpec extends Serializable, Action<AntBuilderDelegate> {
 }
 

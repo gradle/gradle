@@ -22,12 +22,12 @@ import java.util.Map;
 
 public class DefaultAntResult implements AntResult, Serializable {
     private final int errorCount;
-    private final Exception exception;
+    private final Throwable throwable;
     private final Map<String, Object> projectProperties;
 
-    public DefaultAntResult(int errorCount, Exception exception, Map<String, Object> antProperties) {
+    public DefaultAntResult(int errorCount, Throwable throwable, Map<String, Object> antProperties) {
         this.errorCount = errorCount;
-        this.exception = exception;
+        this.throwable = throwable;
         this.projectProperties = antProperties == null ? null : Collections.unmodifiableMap(antProperties);
     }
 
@@ -41,8 +41,8 @@ public class DefaultAntResult implements AntResult, Serializable {
     }
 
     @Override
-    public Exception getException() {
-        return exception;
+    public Throwable getThrowable() {
+        return throwable;
     }
 
     @Override

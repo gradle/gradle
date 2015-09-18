@@ -22,7 +22,7 @@ public interface AntResult {
 
     int getErrorCount();
 
-    Exception getException();
+    Throwable getThrowable();
 
     Map<String, Object> getProjectProperties();
 }
