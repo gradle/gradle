@@ -25,6 +25,7 @@ import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.projection.ManagedModelProjection;
 import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecFactory;
 
@@ -46,7 +47,7 @@ public class JarBinarySpecSpecializationModelInitializer<T> extends ManagedModel
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
         super.execute(modelNode, inputs);
         BinarySpecFactory binarySpecFactory = (BinarySpecFactory) inputs.get(0).getInstance();
-        DefaultJarBinarySpec jarBinarySpec = (DefaultJarBinarySpec) binarySpecFactory.create(JarBinarySpec.class, modelNode, modelNode.getPath().getName());
+        DefaultJarBinarySpec jarBinarySpec = (DefaultJarBinarySpec) binarySpecFactory.create(ModelType.of(JarBinarySpec.class), modelNode, modelNode.getPath().getName());
         jarBinarySpec.setPublicType(modelSchema.getType().getConcreteClass().asSubclass(BinarySpec.class));
         modelNode.setPrivateData(JarBinarySpecInternal.class, jarBinarySpec);
     }

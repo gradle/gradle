@@ -16,8 +16,10 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
@@ -25,6 +27,7 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 import java.util.List;
@@ -51,7 +54,7 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
     }
 
     @Override
-    public <S extends T> void register(Class<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, ? super P, ? super MutableModelNode> factory) {
+    public <S extends T> void registerFactory(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, ? super P, ? super MutableModelNode> factory) {
         Registration<S> registration = getRegistration(type);
         if (registration != null) {
             StringBuilder builder = new StringBuilder("Cannot register a factory for type ")
@@ -66,15 +69,15 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
             throw new GradleException(builder.toString());
         }
 
-        factories.put(type, new Registration<S>(sourceRule, factory));
+        factories.put(type.getConcreteClass(), new Registration<S>(sourceRule, factory));
     }
 
-    private <S extends T> Registration<S> getRegistration(Class<S> type) {
-        return Cast.uncheckedCast(factories.get(type));
+    private <S extends T> Registration<S> getRegistration(ModelType<S> type) {
+        return Cast.uncheckedCast(factories.get(type.getConcreteClass()));
     }
 
     @Override
-    public <S extends T> S create(Class<S> type, MutableModelNode modelNode, P payload) {
+    public <S extends T> S create(ModelType<S> type, MutableModelNode modelNode, P payload) {
         Registration<S> registration = getRegistration(type);
         if (registration == null) {
             throw new IllegalArgumentException(
@@ -84,8 +87,13 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
     }
 
     @Override
-    public Set<Class<? extends T>> getSupportedTypes() {
-        return ImmutableSet.copyOf(factories.keySet());
+    public Set<ModelType<? extends T>> getSupportedTypes() {
+        return ImmutableSet.copyOf(Iterables.transform(factories.keySet(), new Function<Class<? extends T>, ModelType<? extends T>>() {
+            @Override
+            public ModelType<? extends T> apply(@Nullable Class<? extends T> input) {
+                return ModelType.of(input);
+            }
+        }));
     }
 
     private String getSupportedTypeNames() {

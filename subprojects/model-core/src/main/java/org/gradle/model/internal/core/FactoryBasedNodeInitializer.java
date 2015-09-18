@@ -39,7 +39,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> implements NodeInitiali
     @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
         InstanceFactory<? super T, String> instantiator = Cast.uncheckedCast(inputs.get(0).getInstance());
-        S item = instantiator.create(type.getConcreteClass(), modelNode, modelNode.getPath().getName());
+        S item = instantiator.create(type, modelNode, modelNode.getPath().getName());
         modelNode.setPrivateData(type, item);
     }
 

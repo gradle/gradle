@@ -161,7 +161,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             binaryFactoryRegistry.copyInto(new NamedDomainObjectFactoryRegistry<BinarySpec>() {
                 @Override
                 public <U extends BinarySpec> void registerFactory(Class<U> type, final NamedDomainObjectFactory<? extends U> factory) {
-                    binarySpecFactory.register(type, null, new BiFunction<U, String, MutableModelNode>() {
+                    binarySpecFactory.registerFactory(ModelType.of(type), null, new BiFunction<U, String, MutableModelNode>() {
                         @Override
                         public U apply(String s, MutableModelNode modelNode) {
                             final U binarySpec = factory.create(s);
@@ -181,11 +181,11 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Model
         InstanceFactoryRegistry createInstanceFactoryRegistry(ServiceRegistry serviceRegistry, BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
             InstanceFactoryRegistry instanceFactoryRegistry = serviceRegistry.get(InstanceFactoryRegistry.class);
-            for (Class<? extends BinarySpec> type : binarySpecFactory.getSupportedTypes()) {
-                instanceFactoryRegistry.register(ModelType.of(type), ModelReference.of(BinarySpecFactory.class));
+            for (ModelType<? extends BinarySpec> type : binarySpecFactory.getSupportedTypes()) {
+                instanceFactoryRegistry.register(type, ModelReference.of(BinarySpecFactory.class));
             }
-            for (Class<? extends ComponentSpec> type : componentSpecFactory.getSupportedTypes()) {
-                instanceFactoryRegistry.register(ModelType.of(type), ModelReference.of(ComponentSpecFactory.class));
+            for (ModelType<? extends ComponentSpec> type : componentSpecFactory.getSupportedTypes()) {
+                instanceFactoryRegistry.register(type, ModelReference.of(ComponentSpecFactory.class));
             }
             return instanceFactoryRegistry;
         }

@@ -18,6 +18,7 @@ package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.util.BiFunction;
@@ -104,9 +105,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
             final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectIdentifier.class)).getInstance();
             final ProjectSourceSet projectSourceSet = ModelViews.assertType(inputs.get(2), ModelType.of(ProjectSourceSet.class)).getInstance();
             final NodeInitializerRegistry nodeInitializerRegistry = serviceRegistry.get(NodeInitializerRegistry.class);
-            @SuppressWarnings("unchecked")
-            Class<ComponentSpec> publicClass = (Class<ComponentSpec>) publicType.getConcreteClass();
-            components.register(publicClass, descriptor, new BiFunction<ComponentSpec, String, MutableModelNode>() {
+            components.registerFactory(Cast.<ModelType<ComponentSpec>>uncheckedCast(publicType), descriptor, new BiFunction<ComponentSpec, String, MutableModelNode>() {
                 @Override
                 public ComponentSpec apply(String name, MutableModelNode modelNode) {
                     ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
