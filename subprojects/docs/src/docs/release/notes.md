@@ -179,8 +179,10 @@ results in the following IDE project name mapping:
 
 ### Changes to incubating integration between software model and the Java plugins  
 
-TBD - `ClassDirectoryBinarySpec.classesDir` no longer has a default value, for object of this type added directly to `binaries` container. The default still applied 
-for instances created by the Java plugins.
+TBD
+
+- `ClassDirectoryBinarySpec` instances can no longer be created the `binaries` container. Instances are added to this container by the Java plugins for each source set, 
+however, additional instances cannot be added. This capability will be added again in a later release.
 
 ## External contributions
 
