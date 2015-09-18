@@ -28,7 +28,7 @@ class DaemonUsageSuggestionIntegrationTest extends AbstractIntegrationSpec {
     public static final String DAEMON_USAGE_SUGGESTION_MESSAGE = "This build could be faster, please consider using the Gradle Daemon"
 
     def setup() {
-        executer.withEnvironmentVars(["CI": ""])
+        executer.withEnvironmentVars("CI": false)
     }
 
     @IgnoreIf({ GradleContextualExecuter.longLivingProcess || WINDOWS.fulfilled })
