@@ -42,7 +42,7 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
         CACHE_CAPS.put("fileSnapshots", 10000);
         CACHE_CAPS.put("taskArtifacts", 2000);
         CACHE_CAPS.put("outputFileStates", 3000);
-        CACHE_CAPS.put("fileHashes", 140000);
+        CACHE_CAPS.put("fileHashes", 400000);
         CACHE_CAPS.put("compilationState", 1000);
 
         //In general, the in-memory cache must be capped at some level, otherwise it is reduces performance in truly gigantic builds
