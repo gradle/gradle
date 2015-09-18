@@ -114,7 +114,10 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", sourceSet.getName(), sourceSet.getResources());
                 projectSourceSet.add(resourceSet);
 
-                BinaryContainer binaryContainer = project.getExtensions().getByType(BinaryContainer.class);
+                createProcessResourcesTaskForBinary(sourceSet, resourceSet, project);
+                createCompileJavaTaskForBinary(sourceSet, javaSourceSet, project);
+                createBinaryLifecycleTask(sourceSet, project);
+
                 ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, String.format("%sClasses", sourceSet.getName()), javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
                 ConventionMapping conventionMapping = new DslObject(binary).getConventionMapping();
                 conventionMapping.map("classesDir", new Callable<File>() {
@@ -122,7 +125,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                         return sourceSet.getOutput().getClassesDir();
                     }
                 });
-                binaryContainer.add(binary);
                 conventionMapping.map("resourcesDir", new Callable<File>() {
                     public File call() throws Exception {
                         return sourceSet.getOutput().getResourcesDir();
@@ -132,16 +134,15 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 binary.addSourceSet(javaSourceSet);
                 binary.addSourceSet(resourceSet);
 
-                binary.builtBy(sourceSet.getOutput().getDirs());
+                BinaryContainer binaryContainer = project.getExtensions().getByType(BinaryContainer.class);
+                binaryContainer.add(binary);
 
-                createBinaryLifecycleTask(sourceSet, binary, project);
-                createProcessResourcesTaskForBinary(sourceSet, resourceSet, binary, project);
-                createCompileJavaTaskForBinary(sourceSet, javaSourceSet, binary, project);
+                attachTasksToBinary(binary, sourceSet, project);
             }
         });
     }
 
-    private void createCompileJavaTaskForBinary(SourceSet sourceSet, final JavaSourceSet javaSourceSet, final ClassDirectoryBinarySpecInternal binary, Project target) {
+    private void createCompileJavaTaskForBinary(final SourceSet sourceSet, final JavaSourceSet javaSourceSet, Project target) {
         JavaCompile compileTask = target.getTasks().create(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
         compileTask.setDescription(String.format("Compiles %s.", javaSourceSet));
         compileTask.setSource(javaSourceSet.getSource());
@@ -154,32 +155,39 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
         conventionMapping.map("destinationDir", new Callable<Object>() {
             public Object call() throws Exception {
-                return binary.getClassesDir();
+                return sourceSet.getOutput().getClassesDir();
             }
         });
-        binary.getTasks().add(compileTask);
-        binary.builtBy(compileTask);
     }
 
-    private void createProcessResourcesTaskForBinary(SourceSet sourceSet, JvmResourceSet resourceSet, final ClassDirectoryBinarySpecInternal binary, final Project target) {
+    private void createProcessResourcesTaskForBinary(final SourceSet sourceSet, JvmResourceSet resourceSet, final Project target) {
         Copy resourcesTask = target.getTasks().create(sourceSet.getProcessResourcesTaskName(), ProcessResources.class);
         resourcesTask.setDescription(String.format("Processes %s.", resourceSet));
         new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
             public File call() throws Exception {
-                return binary.getResourcesDir();
+                return sourceSet.getOutput().getResourcesDir();
             }
         });
-        binary.getTasks().add(resourcesTask);
-        binary.builtBy(resourcesTask);
         resourcesTask.from(resourceSet.getSource());
     }
 
-    private void createBinaryLifecycleTask(SourceSet sourceSet, ClassDirectoryBinarySpecInternal binary, Project target) {
+    private void createBinaryLifecycleTask(SourceSet sourceSet, Project target) {
         Task binaryLifecycleTask = target.task(sourceSet.getClassesTaskName());
         binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-        binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
-        binary.getTasks().add(binaryLifecycleTask);
-        binary.setBuildTask(binaryLifecycleTask);
+        binaryLifecycleTask.setDescription(String.format("Assembles %s.", sourceSet));
+        binaryLifecycleTask.dependsOn(sourceSet.getOutput().getDirs());
+        binaryLifecycleTask.dependsOn(sourceSet.getCompileJavaTaskName());
+        binaryLifecycleTask.dependsOn(sourceSet.getProcessResourcesTaskName());
+    }
+
+    private void attachTasksToBinary(ClassDirectoryBinarySpecInternal binary, SourceSet sourceSet, Project target) {
+        Task compileTask = target.getTasks().getByPath(sourceSet.getCompileJavaTaskName());
+        Task resourcesTask = target.getTasks().getByPath(sourceSet.getProcessResourcesTaskName());
+        Task classesTask = target.getTasks().getByPath(sourceSet.getClassesTaskName());
+        binary.getTasks().add(compileTask);
+        binary.getTasks().add(resourcesTask);
+        binary.getTasks().add(classesTask);
+        binary.setBuildTask(classesTask);
     }
 
     private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {

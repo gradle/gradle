@@ -87,7 +87,7 @@ class JavaBasePluginTest extends Specification {
         sources.files == project.sourceSets.custom.java.files
 
         def classes = project.tasks['customClasses']
-        classes.description == "Assembles classes 'custom'."
+        classes.description == "Assembles source set 'custom'."
         classes instanceof DefaultTask
         TaskDependencyMatchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
         TaskDependencyMatchers.builtBy('customClasses').matches(project.sourceSets.custom.output)
@@ -114,7 +114,7 @@ class JavaBasePluginTest extends Specification {
         compileJava instanceof JavaCompile
 
         def classes = project.tasks.classes
-        classes.description == "Assembles classes 'main'."
+        classes.description == "Assembles source set 'main'."
         TaskDependencyMatchers.dependsOn('processResources', 'compileJava').matches(classes)
     }
 
@@ -295,7 +295,7 @@ class JavaBasePluginTest extends Specification {
         binary.inputs as Set == project.sources as Set
     }
 
-    def "adds a 'classes' task for for each source set"() {
+    def "attaches tasks to binary associated with each source set"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
 
@@ -308,10 +308,11 @@ class JavaBasePluginTest extends Specification {
 
         then:
         ClassDirectoryBinarySpec binary = project.binaries.findByName("customClasses")
-        def task = project.tasks.findByName("customClasses")
-        task.description == "Assembles classes 'custom'."
-        binary.buildTask == task
-        binary.tasks.contains(task)
+        def classesTask = project.tasks.findByName("customClasses")
+        binary.buildTask == classesTask
+        binary.tasks.contains(classesTask)
+        binary.tasks.contains(project.tasks.findByName("compileCustomJava"))
+        binary.tasks.contains(project.tasks.findByName("processCustomResources"))
     }
 
 }
