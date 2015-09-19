@@ -42,12 +42,24 @@ class ClassDirectoryBinaryNamingSchemeTest extends Specification {
         def namer = new ClassDirectoryBinaryNamingScheme(baseName)
 
         expect:
-        namer.getLifecycleTaskName() == lifecycleName
-        namer.getOutputDirectoryBase() == outputDir
+        namer.lifecycleTaskName == lifecycleName
+        namer.outputDirectoryBase == outputDir
 
         where:
         baseName | lifecycleName | outputDir
         "main"   | "classes"     | "main"
         "test"   | "testClasses" | "test"
+    }
+
+    def "generates description"() {
+        def namer = new ClassDirectoryBinaryNamingScheme(baseName)
+
+        expect:
+        namer.description == description
+
+        where:
+        baseName | description
+        "main"   | "classes 'main'"
+        "test"   | "classes 'test'"
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.util.GUtil;
 import java.util.Collections;
 import java.util.List;
 
-class ClassDirectoryBinaryNamingScheme implements BinaryNamingScheme {
+public class ClassDirectoryBinaryNamingScheme implements BinaryNamingScheme {
     private final String baseName;
     private final String collapsedName;
 
