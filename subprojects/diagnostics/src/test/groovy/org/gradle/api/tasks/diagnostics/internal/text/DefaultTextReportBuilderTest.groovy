@@ -124,6 +124,15 @@ heading
 """
     }
 
+    def "formats item with title and iterable value"() {
+        when:
+        builder.item("the title", ["the value", "the value 2"])
+
+        then:
+        output.value == """    the title: the value, the value 2
+"""
+    }
+
     def "formats multiline item" () {
         when:
         builder.item("first line${eol}  second line${eol}  third line")

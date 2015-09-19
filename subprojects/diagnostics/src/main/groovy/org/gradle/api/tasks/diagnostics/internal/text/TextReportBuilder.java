@@ -35,6 +35,8 @@ public interface TextReportBuilder {
 
     void item(String title, String value);
 
+    void item(String title, Iterable<String> values);
+
     void item(String title, File value);
 
     void item(String value);

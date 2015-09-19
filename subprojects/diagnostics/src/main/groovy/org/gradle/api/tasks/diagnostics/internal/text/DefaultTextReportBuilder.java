@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.text;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.StyledTextOutput;
@@ -52,6 +53,11 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     public void item(String value) {
         StyledTextOutput itemOutput = new LinePrefixingStyledTextOutput(textOutput, "    ");
         itemOutput.append(value).println();
+    }
+
+    @Override
+    public void item(String title, Iterable<String> values) {
+        item(title, Joiner.on(", ").join(values));
     }
 
     public void item(File value) {
