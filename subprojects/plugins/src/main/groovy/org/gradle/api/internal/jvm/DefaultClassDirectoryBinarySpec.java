@@ -48,8 +48,6 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     private final JavaToolChain toolChain;
     private final JavaPlatform platform;
     private final DefaultJvmBinaryTasks tasks;
-    private File classesDir;
-    private File resourcesDir;
     private boolean buildable = true;
 
     public DefaultClassDirectoryBinarySpec(String name, SourceSet sourceSet, JavaToolChain toolChain, JavaPlatform platform, Instantiator instantiator, ITaskFactory taskFactory) {
@@ -114,19 +112,19 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableModelEleme
     }
 
     public File getClassesDir() {
-        return classesDir;
+        return sourceSet.getOutput().getClassesDir();
     }
 
     public void setClassesDir(File classesDir) {
-        this.classesDir = classesDir;
+        sourceSet.getOutput().setClassesDir(classesDir);
     }
 
     public File getResourcesDir() {
-        return resourcesDir;
+        return sourceSet.getOutput().getResourcesDir();
     }
 
     public void setResourcesDir(File resourcesDir) {
-        this.resourcesDir = resourcesDir;
+        sourceSet.getOutput().setResourcesDir(resourcesDir);
     }
 
     @Override
