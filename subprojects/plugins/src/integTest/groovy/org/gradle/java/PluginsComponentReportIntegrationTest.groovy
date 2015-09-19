@@ -41,8 +41,10 @@ Additional source sets
 ----------------------
 Java source 'main:java'
     srcDir: src/main/java
+    limit to: **/*.java
 Java source 'test:java'
     srcDir: src/test/java
+    limit to: **/*.java
 JVM resources 'main:resources'
     srcDir: src/main/resources
 JVM resources 'test:resources'
@@ -89,10 +91,13 @@ Additional source sets
 Java source 'custom:java'
     srcDir: src/custom
     srcDir: src/custom2
+    limit to: **/*.java
 Java source 'main:java'
     srcDir: src/main/java
+    limit to: **/*.java
 Java source 'test:java'
     srcDir: src/test/java
+    limit to: **/*.java
 JVM resources 'custom:resources'
     srcDir: src/custom/resources
 JVM resources 'main:resources'

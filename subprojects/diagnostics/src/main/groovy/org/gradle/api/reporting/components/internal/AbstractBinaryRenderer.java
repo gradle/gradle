@@ -44,8 +44,6 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
     }
 
     public void render(BinarySpec binary, TextReportBuilder builder) {
-        this.schemaStore = schemaStore;
-
         StyledTextOutput textOutput = builder.getOutput();
 
         textOutput.append(StringUtils.capitalize(binary.getDisplayName()));
