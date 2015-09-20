@@ -25,10 +25,24 @@ plugins {
     id 'java'
 }
 
+sourceSets.main.java.srcDirs = ['before1']
+sourceSets.main.resources.srcDirs = ['before1']
+
+afterEvaluate {
+    sourceSets.main.java.srcDir 'before2'
+    sourceSets.main.resources.srcDir 'before2'
+}
+
 model {
     binaries.mainClasses {
-        inputs.withType(JavaSourceSet) { source.srcDirs = ['src'] }
-        inputs.withType(JvmResourceSet) { source.srcDirs = ['res'] }
+        inputs.withType(JavaSourceSet) {
+            assert source.srcDirs.name == ['before1', 'before2']
+            source.srcDirs = ['src']
+        }
+        inputs.withType(JvmResourceSet) {
+            assert source.srcDirs.name == ['before1', 'before2']
+            source.srcDirs = ['res']
+        }
         classesDir = file('out/classes')
         resourcesDir = classesDir
     }
