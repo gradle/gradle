@@ -46,10 +46,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
 
         StyledTextOutput styledTextoutput = output.getOutput();
 
-        if (model.getPath().equals(ModelPath.ROOT)) {
-            styledTextoutput.withStyle(Identifier).format("+ %s", "model");
-            styledTextoutput.println();
-        } else {
+        if (!model.getPath().equals(ModelPath.ROOT)) {
             printNodeName(model, styledTextoutput);
             maybePrintType(model, styledTextoutput);
             maybePrintValue(model, styledTextoutput);

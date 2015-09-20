@@ -199,102 +199,101 @@ model {
 
         and:
         modelReportOutput.nodeContentEquals('''
-+ model
-    + nullCredentials
-          | Type:   \tPasswordCredentials
++ nullCredentials
+      | Type:   \tPasswordCredentials
+      | Creator: \tmodel.nullCredentials
+    + password
+          | Type:   \tjava.lang.String
           | Creator: \tmodel.nullCredentials
-        + password
-              | Type:   \tjava.lang.String
-              | Creator: \tmodel.nullCredentials
-        + username
-              | Type:   \tjava.lang.String
-              | Creator: \tmodel.nullCredentials
-    + numbers
-          | Type:   \tNumbers
+    + username
+          | Type:   \tjava.lang.String
+          | Creator: \tmodel.nullCredentials
++ numbers
+      | Type:   \tNumbers
+      | Creator: \tmodel.numbers
+    + threshold
+          | Type:   \tdouble
+          | Value:  \t0.8
           | Creator: \tmodel.numbers
-        + threshold
-              | Type:   \tdouble
-              | Value:  \t0.8
-              | Creator: \tmodel.numbers
-        + value
-              | Type:   \tjava.lang.Integer
-              | Value:  \t5
-              | Creator: \tmodel.numbers
-    + primaryCredentials
-          | Type:   \tPasswordCredentials
+    + value
+          | Type:   \tjava.lang.Integer
+          | Value:  \t5
+          | Creator: \tmodel.numbers
++ primaryCredentials
+      | Type:   \tPasswordCredentials
+      | Creator: \tmodel.primaryCredentials
+    + password
+          | Type:   \tjava.lang.String
+          | Value:  \thunter2
           | Creator: \tmodel.primaryCredentials
-        + password
-              | Type:   \tjava.lang.String
-              | Value:  \thunter2
-              | Creator: \tmodel.primaryCredentials
-        + username
-              | Type:   \tjava.lang.String
-              | Value:  \tuname
-              | Creator: \tmodel.primaryCredentials
+    + username
+          | Type:   \tjava.lang.String
+          | Value:  \tuname
+          | Creator: \tmodel.primaryCredentials
++ tasks
+      | Type:   \torg.gradle.model.ModelMap<org.gradle.api.Task>
+      | Creator: \tProject.<init>.tasks()
+    + components
+          | Type:   \torg.gradle.api.reporting.components.ComponentReport
+          | Value:  \ttask ':components'
+          | Creator: \ttasks.addPlaceholderAction(components)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + dependencies
+          | Type:   \torg.gradle.api.tasks.diagnostics.DependencyReportTask
+          | Value:  \ttask ':dependencies'
+          | Creator: \ttasks.addPlaceholderAction(dependencies)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + dependencyInsight
+          | Type:   \torg.gradle.api.tasks.diagnostics.DependencyInsightReportTask
+          | Value:  \ttask ':dependencyInsight'
+          | Creator: \ttasks.addPlaceholderAction(dependencyInsight)
+          | Rules:
+             ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration
+             ⤷ copyToTaskContainer
+    + help
+          | Type:   \torg.gradle.configuration.Help
+          | Value:  \ttask ':help'
+          | Creator: \ttasks.addPlaceholderAction(help)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + init
+          | Type:   \torg.gradle.buildinit.tasks.InitBuild
+          | Value:  \ttask ':init'
+          | Creator: \ttasks.addPlaceholderAction(init)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + model
+          | Type:   \torg.gradle.api.reporting.model.ModelReport
+          | Value:  \ttask ':model'
+          | Creator: \ttasks.addPlaceholderAction(model)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + projects
+          | Type:   \torg.gradle.api.tasks.diagnostics.ProjectReportTask
+          | Value:  \ttask ':projects'
+          | Creator: \ttasks.addPlaceholderAction(projects)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + properties
+          | Type:   \torg.gradle.api.tasks.diagnostics.PropertyReportTask
+          | Value:  \ttask ':properties'
+          | Creator: \ttasks.addPlaceholderAction(properties)
+          | Rules:
+             ⤷ copyToTaskContainer
     + tasks
-          | Type:   \torg.gradle.model.ModelMap<org.gradle.api.Task>
-          | Creator: \tProject.<init>.tasks()
-        + components
-              | Type:   \torg.gradle.api.reporting.components.ComponentReport
-              | Value:  \ttask ':components'
-              | Creator: \ttasks.addPlaceholderAction(components)
-              | Rules:
-                 ⤷ copyToTaskContainer
-        + dependencies
-              | Type:   \torg.gradle.api.tasks.diagnostics.DependencyReportTask
-              | Value:  \ttask ':dependencies'
-              | Creator: \ttasks.addPlaceholderAction(dependencies)
-              | Rules:
-                 ⤷ copyToTaskContainer
-        + dependencyInsight
-              | Type:   \torg.gradle.api.tasks.diagnostics.DependencyInsightReportTask
-              | Value:  \ttask ':dependencyInsight'
-              | Creator: \ttasks.addPlaceholderAction(dependencyInsight)
-              | Rules:
-                 ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration
-                 ⤷ copyToTaskContainer
-        + help
-              | Type:   \torg.gradle.configuration.Help
-              | Value:  \ttask ':help'
-              | Creator: \ttasks.addPlaceholderAction(help)
-              | Rules:
-                 ⤷ copyToTaskContainer
-        + init
-              | Type:   \torg.gradle.buildinit.tasks.InitBuild
-              | Value:  \ttask ':init'
-              | Creator: \ttasks.addPlaceholderAction(init)
-              | Rules:
-                 ⤷ copyToTaskContainer
-        + model
-              | Type:   \torg.gradle.api.reporting.model.ModelReport
-              | Value:  \ttask ':model'
-              | Creator: \ttasks.addPlaceholderAction(model)
-              | Rules:
-                 ⤷ copyToTaskContainer
-        + projects
-              | Type:   \torg.gradle.api.tasks.diagnostics.ProjectReportTask
-              | Value:  \ttask ':projects'
-              | Creator: \ttasks.addPlaceholderAction(projects)
-              | Rules:
-                 ⤷ copyToTaskContainer
-        + properties
-              | Type:   \torg.gradle.api.tasks.diagnostics.PropertyReportTask
-              | Value:  \ttask ':properties'
-              | Creator: \ttasks.addPlaceholderAction(properties)
-              | Rules:
-                 ⤷ copyToTaskContainer
-        + tasks
-              | Type:   \torg.gradle.api.tasks.diagnostics.TaskReportTask
-              | Value:  \ttask ':tasks'
-              | Creator: \ttasks.addPlaceholderAction(tasks)
-              | Rules:
-                 ⤷ copyToTaskContainer
-        + wrapper
-              | Type:   \torg.gradle.api.tasks.wrapper.Wrapper
-              | Value:  \ttask ':wrapper'
-              | Creator: \ttasks.addPlaceholderAction(wrapper)
-              | Rules:
-                 ⤷ copyToTaskContainer
+          | Type:   \torg.gradle.api.tasks.diagnostics.TaskReportTask
+          | Value:  \ttask ':tasks'
+          | Creator: \ttasks.addPlaceholderAction(tasks)
+          | Rules:
+             ⤷ copyToTaskContainer
+    + wrapper
+          | Type:   \torg.gradle.api.tasks.wrapper.Wrapper
+          | Value:  \ttask ':wrapper'
+          | Creator: \ttasks.addPlaceholderAction(wrapper)
+          | Rules:
+             ⤷ copyToTaskContainer
 ''')
     }
 

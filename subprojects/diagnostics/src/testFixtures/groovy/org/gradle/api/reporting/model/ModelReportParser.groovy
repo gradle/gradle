@@ -27,7 +27,6 @@ class ModelReportParser {
     public static final String NODE_LEFT_PADDING = '    '
     public static final String NODE_SYMBOL = '+'
     public static final String END_OF_REPORT_MARKER = 'BUILD SUCCESSFUL'
-    public static final String ROOT_NODE_MARKER = '+ model'
     public static final LinkedHashMap<String, String> NODE_ATTRIBUTES = ['Value': 'nodeValue', 'Type': 'type', 'Creator': 'creator']
 
     static ParsedModelReport parse(String text) {
@@ -48,7 +47,6 @@ class ModelReportParser {
         def reportLines = text.readLines()
         assert reportLines.size() > FIRST_NODE_LINE_NUMBER: "Should have at least ${FIRST_NODE_LINE_NUMBER + 1} lines"
         assert text.contains(END_OF_REPORT_MARKER): "Expected to find an end of report marker '${END_OF_REPORT_MARKER}'"
-        assert text.contains(ROOT_NODE_MARKER): "Expected to find the root node '${ROOT_NODE_MARKER}'"
     }
 
     private static String getTitle(List<String> reportLines) {
@@ -56,15 +54,11 @@ class ModelReportParser {
     }
 
     private static ReportNode parseNodes(List<String> nodeLines) {
-        ReportNode prev = null
-        ReportNode root = null
+        ReportNode root = new ReportNode("model")
+        root.depth = 0
+        ReportNode prev = root
         nodeLines.each { line ->
-            if (prev == null) {
-                assert line == ROOT_NODE_MARKER
-                root = new ReportNode(getNodeName(line))
-                root.setDepth(0)
-                prev = root
-            } else if (lineIsANode(line)) {
+            if (lineIsANode(line)) {
                 int depth = getNodeDepth(line)
                 if (depth > prev.getDepth()) {
                     ReportNode node = new ReportNode(prev, getNodeName(line))
@@ -113,7 +107,7 @@ class ModelReportParser {
     }
 
     private static int getNodeDepth(String line) {
-        return (line =~ /$NODE_LEFT_PADDING/).getCount()
+        return (line =~ /$NODE_LEFT_PADDING/).getCount() + 1
     }
 
     @VisibleForTesting
@@ -135,6 +129,9 @@ class ModelReportParser {
 
     private static List<String> nodeOnlyLines(List<String> nodeLines) {
         int successMarker = nodeLines.findIndexOf { line -> line == END_OF_REPORT_MARKER }
+        if (successMarker == 0) {
+            return []
+        }
         nodeLines.subList(0, successMarker - 1)
     }
 }
