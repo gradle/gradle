@@ -222,6 +222,35 @@ heading
 """
     }
 
+    def "formats top-level collection following another item"() {
+        def renderer = Mock(ReportRenderer)
+
+        given:
+        renderer.render(_, _) >> { Number number, TextReportBuilder builder ->
+            builder.heading("Item $number")
+            builder.item("value", number as String)
+        }
+
+        when:
+        builder.heading("heading")
+        builder.item("Item", "some value")
+        builder.collection("Things", [1, 2], renderer, "things")
+
+        then:
+        output.value == """
+{header}------------------------------------------------------------
+heading
+------------------------------------------------------------{normal}
+
+Item: some value
+Things:
+    Item 1
+        value: 1
+    Item 2
+        value: 2
+"""
+    }
+
     def "formats item with string value"() {
         when:
         builder.item("some value")

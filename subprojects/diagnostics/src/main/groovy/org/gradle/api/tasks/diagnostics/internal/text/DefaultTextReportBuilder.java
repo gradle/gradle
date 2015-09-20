@@ -35,6 +35,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     public static final String SEPARATOR = "------------------------------------------------------------";
     public static final String INDENT = "    ";
     private int depth;
+    private boolean hasTitledItems;
     private StyledTextOutput textOutput;
     private final FileResolver fileResolver;
 
@@ -44,6 +45,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     }
 
     public void item(String title, String value) {
+        hasTitledItems = true;
         StyledTextOutput itemOutput = new LinePrefixingStyledTextOutput(textOutput, INDENT, false);
         itemOutput.append(title).append(": ");
         itemOutput.append(value).println();
@@ -54,6 +56,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     }
 
     public void item(String value) {
+        hasTitledItems = true;
         textOutput.append(value).println();
     }
 
@@ -68,7 +71,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
 
     @Override
     public <T> void item(final T value, final ReportRenderer<T, TextReportBuilder> renderer) {
-        renderAndRestore(new Action<TextReportBuilder>() {
+        renderItem(new Action<TextReportBuilder>() {
             @Override
             public void execute(TextReportBuilder textReportBuilder) {
                 try {
@@ -113,9 +116,9 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     }
 
     public <T> void collection(String title, Collection<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
-        if (depth <= 1) {
+        if (depth <= 1 && !hasTitledItems) {
             writeSubheading(title);
-        } else if (depth == 2) {
+        } else if (depth == 2 && !hasTitledItems) {
             textOutput.println(title);
         } else {
             textOutput.append(title).println(":");
@@ -148,10 +151,11 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     }
 
     private void nested(final Action<TextReportBuilder> action) {
-        renderAndRestore(new Action<TextReportBuilder>() {
+        final boolean indent = depth > 1 || hasTitledItems;
+        renderItem(new Action<TextReportBuilder>() {
             @Override
             public void execute(TextReportBuilder textReportBuilder) {
-                if (depth > 1) {
+                if (indent) {
                     textOutput = new LinePrefixingStyledTextOutput(textOutput, INDENT);
                 }
                 depth++;
@@ -160,14 +164,17 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         });
     }
 
-    private void renderAndRestore(Action<TextReportBuilder> action) {
+    private void renderItem(Action<TextReportBuilder> action) {
         StyledTextOutput original = textOutput;
         int originalDepth = depth;
+        boolean originalItems = hasTitledItems;
         try {
+            hasTitledItems = false;
             action.execute(this);
         } finally {
             textOutput = original;
             depth = originalDepth;
+            hasTitledItems = originalItems;
         }
     }
 

@@ -124,11 +124,10 @@ srcDir: src/folder2
         output.value.contains("""
 srcDir: src/folder1
 srcDir: src/folder2
-{header}dependencies
-------------{normal}
-project 'a-project'
-library 'a-library'
-project 'some-project' library 'some-library'
+dependencies:
+    project 'a-project'
+    library 'a-library'
+    project 'some-project' library 'some-library'
 """)
     }
 
