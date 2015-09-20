@@ -82,7 +82,7 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         classFileSnapshot = classFile.snapshot()
 
         testBuild("newTask", "I am new", "--recompile-scripts", "-d")
-        classFile.assertHasChangedSince(classFileSnapshot)
+        classFile.assertContentsHaveNotChangedSince(classFileSnapshot)
     }
 
     @Test
