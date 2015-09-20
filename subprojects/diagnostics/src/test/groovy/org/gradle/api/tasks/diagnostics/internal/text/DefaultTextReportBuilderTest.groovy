@@ -52,7 +52,34 @@ heading
 """
     }
 
-    def "formats collection"() {
+    def "formats top-level item with structured value"() {
+        def renderer = Mock(ReportRenderer)
+
+        given:
+        renderer.render(_, _) >> { String value, TextReportBuilder builder ->
+            builder.heading("Thing")
+            builder.item("value", value)
+            builder.item("length", value.length() as String)
+        }
+
+        when:
+        builder.heading("heading")
+        builder.item("some thing", renderer)
+
+        then:
+        output.value == """
+{header}------------------------------------------------------------
+heading
+------------------------------------------------------------{normal}
+
+{header}Thing
+-----{normal}
+value: some thing
+length: 10
+"""
+    }
+
+    def "formats top-level collection of simple values"() {
         def renderer = Mock(ReportRenderer)
 
         given:
@@ -61,33 +88,146 @@ heading
         }
 
         when:
+        builder.heading("heading")
         builder.collection("Things", [1, 2], renderer, "things")
 
         then:
-        output.value == """Things
-    [1]
-    [2]
+        output.value == """
+{header}------------------------------------------------------------
+heading
+------------------------------------------------------------{normal}
+
+{header}Things
+------{normal}
+[1]
+[2]
 """
     }
 
-    def "formats empty collection"() {
+    def "formats top-level collection of structured values"() {
+        def renderer = Mock(ReportRenderer)
+
+        given:
+        renderer.render(_, _) >> { Number number, TextReportBuilder builder ->
+            builder.heading("Item $number")
+            builder.item("value", number as String)
+        }
+
+        when:
+        builder.heading("heading")
+        builder.collection("Things", [1, 2], renderer, "things")
+
+        then:
+        output.value == """
+{header}------------------------------------------------------------
+heading
+------------------------------------------------------------{normal}
+
+{header}Things
+------{normal}
+Item 1
+    value: 1
+Item 2
+    value: 2
+"""
+    }
+
+    def "formats second-level collection of structured values"() {
+        def renderer = Mock(ReportRenderer)
+        def itemRenderer = Mock(ReportRenderer)
+
+        given:
+        renderer.render(_, _) >> { List<Number> values, TextReportBuilder builder ->
+            builder.heading("Thing")
+            builder.collection("Values", values, itemRenderer, "things")
+        }
+        itemRenderer.render(_, _) >> { Number number, TextReportBuilder builder ->
+            builder.heading("Item $number")
+            builder.item("value", number as String)
+        }
+
+        when:
+        builder.heading("heading")
+        builder.item([1, 2], renderer)
+
+        then:
+        output.value == """
+{header}------------------------------------------------------------
+heading
+------------------------------------------------------------{normal}
+
+{header}Thing
+-----{normal}
+Values
+    Item 1
+        value: 1
+    Item 2
+        value: 2
+"""
+    }
+
+    def "formats top-level collection of collections"() {
+        def renderer = Mock(ReportRenderer)
+        def nestedRenderer = Mock(ReportRenderer)
+
+        given:
+        renderer.render(_, _) >> { Number number, TextReportBuilder builder ->
+            builder.heading("Item $number")
+            builder.collection("values", [number as String], nestedRenderer, "values")
+        }
+        nestedRenderer.render(_, _) >> { String value, TextReportBuilder builder ->
+            builder.heading("Item")
+            builder.item("value", value)
+        }
+
+        when:
+        builder.heading("heading")
+        builder.collection("Things", [1, 2], renderer, "things")
+
+        then:
+        output.value == """
+{header}------------------------------------------------------------
+heading
+------------------------------------------------------------{normal}
+
+{header}Things
+------{normal}
+Item 1
+    values:
+        Item
+            value: 1
+Item 2
+    values:
+        Item
+            value: 2
+"""
+    }
+
+    def "formats top-level empty collection"() {
         def renderer = Mock(ReportRenderer)
 
         when:
+        builder.heading("heading")
         builder.collection("Things", [], renderer, "things")
 
         then:
-        output.value == """Things
+        output.value == """
+{header}------------------------------------------------------------
+heading
+------------------------------------------------------------{normal}
+
+{header}Things
+------{normal}
     No things.
 """
     }
 
-    def "formats item"() {
+    def "formats item with string value"() {
         when:
         builder.item("some value")
 
         then:
-        output.value == """    some value
+        output.value == """some value
 """
     }
 
@@ -99,16 +239,16 @@ heading
         builder.item(file)
 
         then:
-        output.value == """    path/thing
+        output.value == """path/thing
 """
     }
 
-    def "formats item with title"() {
+    def "formats item with title and string value"() {
         when:
         builder.item("the title", "the value")
 
         then:
-        output.value == """    the title: the value
+        output.value == """the title: the value
 """
     }
 
@@ -120,7 +260,7 @@ heading
         builder.item("the title", file)
 
         then:
-        output.value == """    the title: path/thing
+        output.value == """the title: path/thing
 """
     }
 
@@ -129,27 +269,27 @@ heading
         builder.item("the title", ["the value", "the value 2"])
 
         then:
-        output.value == """    the title: the value, the value 2
+        output.value == """the title: the value, the value 2
 """
     }
 
-    def "formats multiline item" () {
+    def "formats item with multiline string value" () {
         when:
         builder.item("first line${eol}  second line${eol}  third line")
 
         then:
-        outputMatches """    first line
-      second line
-      third line
+        outputMatches """first line
+  second line
+  third line
 """
     }
 
-    def "formats multiline item with title" () {
+    def "formats item with title and multiline string value" () {
         when:
         builder.item("the title", "first line${eol}  second line${eol}  third line")
 
         then:
-        outputMatches """    the title: first line
+        outputMatches """the title: first line
       second line
       third line
 """

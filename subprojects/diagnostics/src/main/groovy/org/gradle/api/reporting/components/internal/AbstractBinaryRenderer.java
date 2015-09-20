@@ -21,7 +21,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.logging.StyledTextOutput;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -44,13 +43,11 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
     }
 
     public void render(BinarySpec binary, TextReportBuilder builder) {
-        StyledTextOutput textOutput = builder.getOutput();
-
-        textOutput.append(StringUtils.capitalize(binary.getDisplayName()));
+        String heading = StringUtils.capitalize(binary.getDisplayName());
         if (!binary.isBuildable()) {
-            textOutput.append(" (not buildable)");
+            heading += " (not buildable)";
         }
-        textOutput.println();
+        builder.heading(heading);
 
         builder.item("build using task", binary.getBuildTask().getPath());
 
@@ -115,7 +112,7 @@ public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends Repor
         ModelMap<LanguageSourceSet> sources = binary.getSources();
         if (!sources.isEmpty()) {
             SourceSetRenderer sourceSetRenderer = new SourceSetRenderer();
-            builder.itemCollection("source sets", sources.values(), sourceSetRenderer, "source sets");
+            builder.collection("source sets", sources.values(), sourceSetRenderer, "source sets");
         }
     }
 }

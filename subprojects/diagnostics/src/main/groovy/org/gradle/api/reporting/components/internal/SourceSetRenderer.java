@@ -23,7 +23,6 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
-import org.gradle.logging.StyledTextOutput;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
 import org.gradle.reporting.ReportRenderer;
@@ -44,8 +43,7 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
 
     @Override
     public void render(LanguageSourceSet sourceSet, TextReportBuilder builder) {
-        StyledTextOutput textOutput = builder.getOutput();
-        textOutput.println(StringUtils.capitalize(sourceSet.getDisplayName()));
+        builder.heading(StringUtils.capitalize(sourceSet.getDisplayName()));
         renderSourceSetDirectories(sourceSet, builder);
         renderSourceSetDependencies(sourceSet, builder);
     }
@@ -78,8 +76,7 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
         if (sourceSet instanceof DependentSourceSetInternal) {
             DependencySpecContainer dependencies = ((DependentSourceSetInternal) sourceSet).getDependencies();
             if (!dependencies.isEmpty()) {
-                builder.item("dependencies");
-                builder.collection(dependencies.getDependencies(), new ReportRenderer<DependencySpec, TextReportBuilder>() {
+                builder.collection("dependencies", dependencies.getDependencies(), new ReportRenderer<DependencySpec, TextReportBuilder>() {
                     @Override
                     public void render(DependencySpec model, TextReportBuilder output) throws IOException {
                         List<String> parts = Lists.newArrayList();
@@ -91,7 +88,7 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
                         }
                         output.item(Joiner.on(' ').join(parts));
                     }
-                });
+                }, "dependencies");
             }
         }
     }

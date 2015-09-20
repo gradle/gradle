@@ -47,8 +47,9 @@ class ComponentRendererTest extends Specification {
         renderer.render(component, builder)
 
         then:
-        output.value.startsWith("""{header}<component>
------------{normal}
+        output.value.contains("""{header}------------------------------------------------------------
+<component>
+------------------------------------------------------------{normal}
 """)
     }
 
@@ -86,11 +87,12 @@ class ComponentRendererTest extends Specification {
         renderer.render(component, builder)
 
         then:
-        output.value.contains("""Binaries
-    binary: aBinary
-    binary: bBinary
-    binary: cBinary
-    binary: dBinary
+        output.value.contains("""{header}Binaries
+--------{normal}
+binary: aBinary
+binary: bBinary
+binary: cBinary
+binary: dBinary
 """)
     }
 

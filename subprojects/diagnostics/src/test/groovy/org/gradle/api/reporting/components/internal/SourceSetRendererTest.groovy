@@ -59,10 +59,9 @@ class SourceSetRendererTest extends Specification {
         renderer.render(languageSourceSet, builder)
 
         then:
-        output.value.startsWith("Acme:sample")
         output.value.contains("""
-    srcDir: src/folder1
-    srcDir: src/folder2
+srcDir: src/folder1
+srcDir: src/folder2
 """)
     }
 
@@ -123,10 +122,13 @@ class SourceSetRendererTest extends Specification {
 
         then:
         output.value.contains("""
-    dependencies
-        project 'a-project'
-        library 'a-library'
-        project 'some-project' library 'some-library'
+srcDir: src/folder1
+srcDir: src/folder2
+{header}dependencies
+------------{normal}
+project 'a-project'
+library 'a-library'
+project 'some-project' library 'some-library'
 """)
     }
 

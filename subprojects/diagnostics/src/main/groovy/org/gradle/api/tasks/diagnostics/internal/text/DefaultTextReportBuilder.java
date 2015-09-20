@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.text;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.StyledTextOutput;
@@ -32,6 +33,8 @@ import static org.gradle.logging.StyledTextOutput.Style.Normal;
 
 public class DefaultTextReportBuilder implements TextReportBuilder {
     public static final String SEPARATOR = "------------------------------------------------------------";
+    public static final String INDENT = "    ";
+    private int depth;
     private StyledTextOutput textOutput;
     private final FileResolver fileResolver;
 
@@ -41,8 +44,8 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     }
 
     public void item(String title, String value) {
-        textOutput.append("    ").append(title).append(": ");
-        StyledTextOutput itemOutput = new LinePrefixingStyledTextOutput(textOutput, "    ", false);
+        StyledTextOutput itemOutput = new LinePrefixingStyledTextOutput(textOutput, INDENT, false);
+        itemOutput.append(title).append(": ");
         itemOutput.append(value).println();
     }
 
@@ -51,8 +54,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     }
 
     public void item(String value) {
-        StyledTextOutput itemOutput = new LinePrefixingStyledTextOutput(textOutput, "    ");
-        itemOutput.append(value).println();
+        textOutput.append(value).println();
     }
 
     @Override
@@ -64,16 +66,45 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         item(fileResolver.resolveAsRelativePath(value));
     }
 
+    @Override
+    public <T> void item(final T value, final ReportRenderer<T, TextReportBuilder> renderer) {
+        renderAndRestore(new Action<TextReportBuilder>() {
+            @Override
+            public void execute(TextReportBuilder textReportBuilder) {
+                try {
+                    renderer.render(value, textReportBuilder);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        });
+    }
+
     public void heading(String heading) {
-        textOutput.println().style(Header);
-        textOutput.println(SEPARATOR);
-        textOutput.println(heading);
-        textOutput.text(SEPARATOR);
-        textOutput.style(Normal);
-        textOutput.println().println();
+        if (depth == 0) {
+            textOutput.println().style(Header);
+            textOutput.println(SEPARATOR);
+            textOutput.println(heading);
+            textOutput.text(SEPARATOR);
+            textOutput.style(Normal);
+            textOutput.println().println();
+        } else if (depth == 1) {
+            writeSubheading(heading);
+        } else {
+            textOutput.println(heading);
+            textOutput = new LinePrefixingStyledTextOutput(textOutput, INDENT);
+        }
+        depth++;
     }
 
     public void subheading(String heading) {
+        writeSubheading(heading);
+        if (depth == 0) {
+            depth = 1;
+        }
+    }
+
+    private void writeSubheading(String heading) {
         textOutput.style(Header).println(heading);
         for (int i = 0; i < heading.length(); i++) {
             textOutput.text("-");
@@ -81,18 +112,14 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
         textOutput.style(Normal).println();
     }
 
-    public <T> void itemCollection(String title, Collection<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
-        StyledTextOutput original = textOutput;
-        try {
-            textOutput = new LinePrefixingStyledTextOutput(original, "    ");
-            collection(title + ":", items, renderer, elementsPlural);
-        } finally {
-            textOutput = original;
-        }
-    }
-
     public <T> void collection(String title, Collection<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer, String elementsPlural) {
-        textOutput.println(title);
+        if (depth <= 1) {
+            writeSubheading(title);
+        } else if (depth == 2) {
+            textOutput.println(title);
+        } else {
+            textOutput.append(title).println(":");
+        }
         if (items.isEmpty()) {
             textOutput.formatln("    No %s.", elementsPlural);
             return;
@@ -101,23 +128,47 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     }
 
     @Override
-    public <T> void collection(Iterable<? extends T> items, ReportRenderer<T, TextReportBuilder> renderer) {
-        StyledTextOutput original = textOutput;
-        try {
-            textOutput = new LinePrefixingStyledTextOutput(original, "    ");
-            for (T t : items) {
-                try {
-                    renderer.render(t, this);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+    public <T> void collection(final Iterable<? extends T> items, final ReportRenderer<T, TextReportBuilder> renderer) {
+        for (final T t : items) {
+            nested(new Action<TextReportBuilder>() {
+                @Override
+                public void execute(TextReportBuilder textReportBuilder) {
+                    try {
+                        renderer.render(t, textReportBuilder);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
                 }
-            }
-        } finally {
-            textOutput = original;
+            });
         }
     }
 
     public StyledTextOutput getOutput() {
         return textOutput;
     }
+
+    private void nested(final Action<TextReportBuilder> action) {
+        renderAndRestore(new Action<TextReportBuilder>() {
+            @Override
+            public void execute(TextReportBuilder textReportBuilder) {
+                if (depth > 1) {
+                    textOutput = new LinePrefixingStyledTextOutput(textOutput, INDENT);
+                }
+                depth++;
+                action.execute(textReportBuilder);
+            }
+        });
+    }
+
+    private void renderAndRestore(Action<TextReportBuilder> action) {
+        StyledTextOutput original = textOutput;
+        int originalDepth = depth;
+        try {
+            action.execute(this);
+        } finally {
+            textOutput = original;
+            depth = originalDepth;
+        }
+    }
+
 }
