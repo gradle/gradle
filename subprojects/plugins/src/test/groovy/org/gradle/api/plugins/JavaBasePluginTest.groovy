@@ -69,7 +69,7 @@ class JavaBasePluginTest extends Specification {
         set.output.resourcesDir == new File(project.buildDir, 'resources/custom')
 
         def processResources = project.tasks['processCustomResources']
-        processResources.description == "Processes JVM resources 'custom:resources'."
+        processResources.description == "Processes custom resources."
         processResources instanceof Copy
         TaskDependencyMatchers.dependsOn().matches(processResources)
         processResources.destinationDir == new File(project.buildDir, 'resources/custom')
@@ -77,7 +77,7 @@ class JavaBasePluginTest extends Specification {
         resources.files == project.sourceSets.custom.resources.files
 
         def compileJava = project.tasks['compileCustomJava']
-        compileJava.description == "Compiles Java source 'custom:java'."
+        compileJava.description == "Compiles custom Java source."
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
@@ -87,7 +87,7 @@ class JavaBasePluginTest extends Specification {
         sources.files == project.sourceSets.custom.java.files
 
         def classes = project.tasks['customClasses']
-        classes.description == "Assembles source set 'custom'."
+        classes.description == "Assembles custom classes."
         classes instanceof DefaultTask
         TaskDependencyMatchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
         TaskDependencyMatchers.builtBy('customClasses').matches(project.sourceSets.custom.output)
@@ -106,15 +106,15 @@ class JavaBasePluginTest extends Specification {
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
 
         def processResources = project.tasks.processResources
-        processResources.description == "Processes JVM resources 'main:resources'."
+        processResources.description == "Processes main resources."
         processResources instanceof Copy
 
         def compileJava = project.tasks.compileJava
-        compileJava.description == "Compiles Java source 'main:java'."
+        compileJava.description == "Compiles main Java source."
         compileJava instanceof JavaCompile
 
         def classes = project.tasks.classes
-        classes.description == "Assembles source set 'main'."
+        classes.description == "Assembles main classes."
         TaskDependencyMatchers.dependsOn('processResources', 'compileJava').matches(classes)
     }
 

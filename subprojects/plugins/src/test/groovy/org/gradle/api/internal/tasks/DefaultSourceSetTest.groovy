@@ -54,8 +54,8 @@ class DefaultSourceSetTest {
 
         assertThat(sourceSet.output.classesDir, nullValue())
         assertThat(sourceSet.output.files, isEmpty())
-        assertThat(sourceSet.output.displayName, equalTo('set name output'))
-        assertThat(sourceSet.output.toString(), equalTo('set name output'))
+        assertThat(sourceSet.output.displayName, equalTo('set name classes'))
+        assertThat(sourceSet.output.toString(), equalTo('set name classes'))
         assertThat(sourceSet.output.buildDependencies.getDependencies(null), isEmpty())
 
         assertThat(sourceSet.output.classesDir, nullValue())
