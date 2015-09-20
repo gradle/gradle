@@ -109,7 +109,14 @@ public class ChainingModelProjection implements ModelProjection {
 
     @Override
     public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
-        return Optional.absent();
+        Optional<String> valueDescription = Optional.absent();
+        for (ModelProjection projection : projections) {
+            valueDescription = projection.getValueDescription(modelNodeInternal);
+            if (valueDescription.isPresent()) {
+                break;
+            }
+        }
+        return valueDescription;
     }
 
     @Override

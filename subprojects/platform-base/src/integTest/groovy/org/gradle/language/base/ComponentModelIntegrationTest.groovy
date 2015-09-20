@@ -289,7 +289,6 @@ model {
                 }
             }
         """
-
         when:
         succeeds "model"
 
