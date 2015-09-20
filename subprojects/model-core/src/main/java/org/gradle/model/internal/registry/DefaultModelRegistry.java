@@ -941,6 +941,9 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         void attachToCycle(List<String> displayValue) {
         }
+
+        @Override
+        public abstract String toString();
     }
 
     /**
@@ -1102,6 +1105,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
             return true;
         }
+
+        @Override
+        public String toString() {
+            return "transition dependents " + input.path + ", target: " + input.state + ", state: " + state;
+        }
     }
 
     private class ApplyActions extends TransitionNodeToState {
@@ -1122,7 +1130,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
             return false;
         }
-
     }
 
     private class CloseGraph extends TransitionNodeToState {
@@ -1197,6 +1204,11 @@ public class DefaultModelRegistry implements ModelRegistry {
 
             return true;
         }
+
+        @Override
+        public String toString() {
+            return "try resolve path " + getPath() + ", state: " + state;
+        }
     }
 
     private class TryResolveReference extends ModelGoal {
@@ -1226,6 +1238,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             ModelReferenceNode childNode = new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT), parent);
             childNode.setTarget(childTarget);
             registerNode(childNode);
+        }
+
+        @Override
+        public String toString() {
+            return "try resolve reference " + path + ", state: " + state;
         }
     }
 
@@ -1257,6 +1274,11 @@ public class DefaultModelRegistry implements ModelRegistry {
                 dependencies.add(graph.nodeAtState(new NodeAtState(scope, SelfClosed)));
             }
             return true;
+        }
+
+        @Override
+        public String toString() {
+            return "try define scope " + scope + ", state: " + state;
         }
     }
 

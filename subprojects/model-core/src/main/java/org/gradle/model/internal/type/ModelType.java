@@ -216,6 +216,10 @@ public abstract class ModelType<T> {
         return wrapper.getRepresentation(false);
     }
 
+    public static String getSimpleName(ModelType<?> type) {
+        return type == null ? null : type.getSimpleName();
+    }
+
     public String toString() {
         return wrapper.getRepresentation(true);
     }

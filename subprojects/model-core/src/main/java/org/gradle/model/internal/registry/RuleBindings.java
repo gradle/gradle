@@ -34,8 +34,8 @@ class RuleBindings {
 
     public RuleBindings(ModelGraph graph) {
         this.modelGraph = graph;
-        rulesBySubject = new NodeIndex();
-        rulesByInput = new NodeIndex();
+        rulesBySubject = new NodeIndex("rulesBySubject");
+        rulesByInput = new NodeIndex("rulesByInput");
     }
 
     public void add(ModelNodeInternal node) {
@@ -145,6 +145,12 @@ class RuleBindings {
     private static class NodeIndex {
         private final Multimap<NodeAtState, RuleBinder> boundAtState = LinkedHashMultimap.create();
 
+        private final String name;
+
+        private NodeIndex(String name) {
+            this.name = name;
+        }
+
         public void nodeRemoved(ModelNodeInternal node) {
             // This could be more efficient; assume that removal happens much less often than addition
             for (ModelNode.State state : ModelNode.State.values()) {
@@ -169,6 +175,11 @@ class RuleBindings {
         public Collection<RuleBinder> get(NodeAtState nodeAtState) {
             Collection<RuleBinder> result = boundAtState.get(nodeAtState);
             return result == null ? Collections.<RuleBinder>emptyList() : result;
+        }
+
+        @Override
+        public String toString() {
+            return name;
         }
     }
 }
