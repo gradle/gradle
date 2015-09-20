@@ -80,7 +80,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         selfClose()
 
         then:
-        registry.state(path.child("foo")) == ModelNode.State.Known
+        registry.state(path.child("foo")) == ModelNode.State.ProjectionsDefined
 
         when:
         realize()
@@ -690,15 +690,15 @@ class ManagedNodeBackedModelMapTest extends Specification {
         }
 
         expect:
-        registry.node("s").state == ModelNode.State.Known
+        registry.node("s").state == ModelNode.State.ProjectionsDefined
 
         when:
         registry.atState("beans", ModelNode.State.SelfClosed)
 
         then:
-        registry.node("s").state == ModelNode.State.Known
+        registry.node("s").state == ModelNode.State.ProjectionsDefined
         registry.get("beans.b1", Bean).value != "changed"
-        registry.node("s").state == ModelNode.State.Known
+        registry.node("s").state == ModelNode.State.ProjectionsDefined
 
         when:
         def sb2 = registry.get("beans.sb2", SpecialBean)

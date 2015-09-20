@@ -219,6 +219,11 @@ class ModelReferenceNode extends ModelNodeInternal {
         return parent;
     }
 
+    @Override
+    public void addProjection(ModelProjection projection) {
+        throw new UnsupportedOperationException();
+    }
+
     private static class ModelViewWrapper<T> implements ModelView<T> {
         private final ModelView<? extends T> view;
         private final ModelPath path;

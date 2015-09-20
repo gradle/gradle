@@ -15,7 +15,6 @@
  */
 
 package org.gradle.model.internal.registry
-
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.internal.BiAction
@@ -323,7 +322,6 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry
             .create("foo", new Bean(), action)
-            .configure(ModelActionRole.DefineProjections, registry.action().path("foo").type(Bean).action(action))
             .configure(ModelActionRole.DefineRules, registry.action().path("foo").type(Bean).action(action))
             .configure(ModelActionRole.Defaults, registry.action().path("foo").type(Bean).action(action))
             .configure(ModelActionRole.Initialize, registry.action().path("foo").type(Bean).action(action))
@@ -338,9 +336,6 @@ class DefaultModelRegistryTest extends Specification {
         value == "create > rules > defaults > initialize > mutate > finalize"
 
         and:
-        1 * action.execute(_) >> { Bean bean ->
-            assert bean == null
-        }
         1 * action.execute(_) >> { Bean bean ->
             assert bean.value == null
             bean.value = "create"
@@ -720,9 +715,9 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.createInstance("thing", new Bean(value: "initial"))
             .configure(targetRole) {
-            it.path("thing").node { MutableModelNode node ->
+            it.path("thing").descriptor("outside").node { MutableModelNode node ->
                 registry.configure(targetRole) {
-                    it.path("thing").type(Bean).action("other", ModelType.of(Bean), action)
+                    it.path("thing").type(Bean).descriptor("inside").action("other", ModelType.of(Bean), action)
                 }
             }
         }
@@ -768,7 +763,7 @@ class DefaultModelRegistryTest extends Specification {
         noExceptionThrown()
 
         where:
-        [fromState, targetRole] << ModelNode.State.values().collectMany { fromState ->
+        [fromState, targetRole] << (ModelNode.State.values() - ModelNode.State.Known).collectMany { fromState ->
             return ModelActionRole.values().findAll { it.targetState.ordinal() > fromState.ordinal() }.collect { targetRole ->
                 [ fromState, targetRole ]
             }
@@ -794,7 +789,6 @@ class DefaultModelRegistryTest extends Specification {
 
         where:
         state                              | expected
-        ModelNode.State.Known              | null
         ModelNode.State.ProjectionsDefined | null
         ModelNode.State.Created            | "created"
         ModelNode.State.RulesDefined       | ModelActionRole.DefineRules.name()
@@ -806,13 +800,25 @@ class DefaultModelRegistryTest extends Specification {
         ModelNode.State.GraphClosed        | ModelActionRole.Validate.name()
     }
 
-    def "asking for element at known state does not invoke creator"() {
+
+    def "cannot get node at state Known"() {
+        registry.createInstance("thing", new Bean(value: "created"))
+
+        when:
+        registry.atState(ModelPath.path("thing"), ModelNode.State.Known)
+
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "Cannot lifecycle model node 'thing' to state Known as it is already at ProjectionsDefined"
+    }
+
+    def "asking for element at projections defined state does not invoke creator"() {
         given:
         def events = []
         registry.create("thing", new Bean(), { events << "created" })
 
         when:
-        registry.atState(ModelPath.path("thing"), ModelNode.State.Known)
+        registry.atState(ModelPath.path("thing"), ModelNode.State.ProjectionsDefined)
 
         then:
         events == []
@@ -897,7 +903,7 @@ class DefaultModelRegistryTest extends Specification {
         noExceptionThrown()
 
         where:
-        state << ModelNode.State.values()
+        state << ModelNode.State.values() - ModelNode.State.Known
     }
 
     @Unroll
@@ -915,7 +921,7 @@ class DefaultModelRegistryTest extends Specification {
         noExceptionThrown()
 
         where:
-        state << ModelNode.State.values()
+        state << ModelNode.State.values() - ModelNode.State.Known
     }
 
     @Unroll
@@ -1197,10 +1203,42 @@ foo
          \\- foo""")
     }
 
+    def "node can be viewed via projection registered via projector"() {
+        registry
+            .project("foo") { it.descriptor "internal projection" withProjection UnmanagedModelProjection.of(BeanInternal) build() }
+            .create("foo") { it.unmanaged(Bean, new AdvancedBean(name: "foo")) }
+            .mutate (BeanInternal) { bean ->
+                bean.internal = "internal"
+            }
+        expect:
+        def bean = registry.realize("foo")
+        assert bean instanceof AdvancedBean
+        bean.internal == "internal"
+    }
+
+    def "cannot register projection after node is registered"() {
+        given:
+        registry.create("foo") { it.unmanaged(Bean, new AdvancedBean(name: "foo")) }
+
+        when:
+        registry.project("foo") { it.descriptor "internal projection" withProjection UnmanagedModelProjection.of(BeanInternal) build() }
+
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "Cannot add projector 'internal projection' for model element 'foo' as this element is already at state ProjectionsDefined."
+    }
+
     class Bean {
         String name
         String value
     }
 
+    interface BeanInternal {
+        String getInternal()
+        void setInternal(String internal)
+    }
 
+    class AdvancedBean extends Bean implements BeanInternal {
+        String internal
+    }
 }

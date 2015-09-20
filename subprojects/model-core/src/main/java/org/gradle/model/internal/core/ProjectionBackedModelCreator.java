@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.BiAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -29,6 +30,7 @@ public class ProjectionBackedModelCreator implements ModelCreator {
     private final boolean ephemeral;
     private final boolean hidden;
     private final ModelProjection projection;
+    private final List<ModelProjection> projections;
     private final List<? extends ModelReference<?>> inputs;
     private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer;
 
@@ -38,14 +40,15 @@ public class ProjectionBackedModelCreator implements ModelCreator {
         boolean ephemeral,
         boolean hidden,
         List<? extends ModelReference<?>> inputs,
-        ModelProjection projection,
+        List<? extends ModelProjection> projections,
         BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer
     ) {
         this.path = path;
         this.descriptor = descriptor;
         this.ephemeral = ephemeral;
         this.hidden = hidden;
-        this.projection = projection;
+        this.projections = Lists.newArrayList(projections);
+        this.projection = new ChainingModelProjection(this.projections);
         this.inputs = inputs;
         this.initializer = initializer;
     }
@@ -59,6 +62,11 @@ public class ProjectionBackedModelCreator implements ModelCreator {
     }
 
     public ModelAdapter getAdapter() {
+        return projection;
+    }
+
+    @Override
+    public ModelProjection getProjection() {
         return projection;
     }
 
@@ -80,4 +88,8 @@ public class ProjectionBackedModelCreator implements ModelCreator {
         return descriptor;
     }
 
+    @Override
+    public void addProjection(ModelProjection projection) {
+        projections.add(projection);
+    }
 }

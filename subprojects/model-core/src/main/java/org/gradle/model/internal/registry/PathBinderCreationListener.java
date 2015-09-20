@@ -19,9 +19,11 @@ package org.gradle.model.internal.registry;
 import org.gradle.api.Action;
 import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelRuleBindingException;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPromise;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
+import org.gradle.model.internal.type.ModelType;
 
 class PathBinderCreationListener extends ModelBinding {
     private final Action<ModelBinding> bindAction;
@@ -31,11 +33,19 @@ class PathBinderCreationListener extends ModelBinding {
         this.bindAction = bindAction;
     }
 
+    @Override
+    public boolean canBindInState(ModelNode.State state) {
+        if (predicate.getType() == null || predicate.getType().equals(ModelType.UNTYPED)) {
+            return true;
+        }
+        return state.compareTo(ModelNode.State.ProjectionsDefined) >= 0;
+    }
+
     public void onCreate(ModelNodeInternal node) {
         if (boundTo != null) {
             throw new IllegalStateException(String.format("Reference %s for %s is already bound to %s.", predicate.getReference(), referrer, boundTo));
         }
-        ModelPromise promise = node.getPromise();
+        ModelPromise promise = node.getPromiseRegardlessOfState();
         if (isTypeCompatible(promise)) {
             boundTo = node;
             bindAction.execute(this);

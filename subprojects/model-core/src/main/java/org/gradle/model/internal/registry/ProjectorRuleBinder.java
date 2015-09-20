@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,40 +17,40 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Action;
-import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelProjector;
 
 import java.util.Collection;
 import java.util.List;
 
-class MutatorRuleBinder<T> extends RuleBinder {
-    private ModelBinding subjectBinding;
-    private final ModelAction<T> action;
+class ProjectorRuleBinder extends RuleBinder {
+    private final ModelProjector projector;
+    private final ModelBinding subjectBinding;
 
-    public MutatorRuleBinder(final BindingPredicate subjectReference, List<BindingPredicate> inputs, ModelAction<T> action, Collection<RuleBinder> binders) {
-        super(subjectReference, inputs, action.getDescriptor(), binders);
-        subjectBinding = binding(subjectReference, true, new Action<ModelBinding>() {
+    public ProjectorRuleBinder(ModelProjector projector, BindingPredicate subject, List<BindingPredicate> inputs, Collection<RuleBinder> binders) {
+        super(subject, inputs, projector.getDescriptor(), binders);
+        this.projector = projector;
+        this.subjectBinding = binding(subject, true, new Action<ModelBinding>() {
             @Override
             public void execute(ModelBinding modelBinding) {
                 ModelNodeInternal node = modelBinding.getNode();
-                BindingPredicate predicate = modelBinding.getPredicate();
-                if (predicate.getState() != null && node.isAtLeast(predicate.getState())) {
-                    throw new IllegalStateException(String.format("Cannot add rule %s for model element '%s' at state %s as this element is already at state %s.",
+                if (node.isAtLeast(ModelNode.State.ProjectionsDefined)) {
+                    throw new IllegalStateException(String.format("Cannot add projector '%s' for model element '%s' as this element is already at state %s.",
                         modelBinding.referrer,
                         node.getPath(),
-                        predicate.getState().previous(),
                         node.getState()
                     ));
                 }
                 maybeFire();
             }
         });
-        this.action = action;
     }
 
-    public ModelAction<T> getAction() {
-        return action;
+    public ModelProjector getProjector() {
+        return projector;
     }
 
+    @Override
     public ModelBinding getSubjectBinding() {
         return subjectBinding;
     }

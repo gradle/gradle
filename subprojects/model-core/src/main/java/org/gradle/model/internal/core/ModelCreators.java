@@ -167,8 +167,6 @@ abstract public class ModelCreators {
 
         @SuppressWarnings("unchecked")
         public ModelCreator build() {
-            ModelProjection projection = projections.size() == 1 ? projections.get(0) : new ChainingModelProjection(projections);
-
             BiAction<? super MutableModelNode, ? super List<ModelView<?>>> effectiveInitializer = initializer;
             if (!actions.isEmpty()) {
                 effectiveInitializer = BiActions.composite(initializer, new BiAction<MutableModelNode, List<ModelView<?>>>() {
@@ -180,7 +178,7 @@ abstract public class ModelCreators {
                     }
                 });
             }
-            return new ProjectionBackedModelCreator(path, modelRuleDescriptor, ephemeral, hidden, inputs, projection, effectiveInitializer);
+            return new ProjectionBackedModelCreator(path, modelRuleDescriptor, ephemeral, hidden, inputs, projections, effectiveInitializer);
         }
 
         public Builder withProjections(Iterable<? extends ModelProjection> projections) {

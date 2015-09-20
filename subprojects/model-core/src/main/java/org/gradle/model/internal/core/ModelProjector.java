@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.registry;
+package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelReference;
+import java.util.List;
+import java.util.Set;
 
-public class AnyStateBindingPredicate extends BindingPredicate {
-    public AnyStateBindingPredicate(ModelReference<?> reference) {
-        super(reference);
-    }
+public interface ModelProjector extends ModelRule {
+    ModelPath getPath();
 
-    @Nullable
-    @Override
-    public ModelNode.State getState() {
-        return null;
-    }
+    Set<? extends ModelProjection> getProjections();
+
+    List<ModelReference<?>> getInputs();
 }

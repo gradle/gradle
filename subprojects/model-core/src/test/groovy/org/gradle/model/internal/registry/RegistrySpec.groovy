@@ -198,6 +198,10 @@ class RegistrySpec extends Specification {
         MutableModelNode getParent() {
             return null
         }
+
+        @Override
+        void addProjection(ModelProjection projection) {
+        }
     }
 
     protected static class RuleBinderTestBuilder {
@@ -255,7 +259,7 @@ class RegistrySpec extends Specification {
         RuleBinder build() {
             def binder
             if (subjectReference == null) {
-                def action = new ProjectionBackedModelCreator(null, descriptor, false, false, [], null, null)
+                def action = new ProjectionBackedModelCreator(null, descriptor, false, false, [], [], null)
                 binder = new CreatorRuleBinder(action, new BindingPredicate(), inputReferences, [])
             } else {
                 def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})

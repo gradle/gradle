@@ -130,9 +130,13 @@ public interface MutableModelNode extends ModelNode {
 
     void ensureAtLeast(ModelNode.State state);
 
+    boolean isAtLeast(ModelNode.State state);
+
     void setHidden(boolean hidden);
 
     boolean isMutable();
 
     MutableModelNode getParent();
+
+    void addProjection(ModelProjection projection);
 }

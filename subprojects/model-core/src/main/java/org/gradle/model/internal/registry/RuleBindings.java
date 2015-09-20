@@ -38,20 +38,27 @@ class RuleBindings {
         rulesByInput = new NodeIndex("rulesByInput");
     }
 
-    public void add(ModelNodeInternal node) {
-        Collection<Reference> references = pathReferences.get(node.getPath());
-        for (Reference reference : references) {
-            bound(reference, node);
+    public void nodeCreated(ModelNodeInternal node) {
+        for (Reference reference : pathReferences.get(node.getPath())) {
+            if (reference.binding.canBindInState(node.getState())) {
+                bound(reference, node);
+            }
         }
-        references = scopeReferences.get(node.getPath());
-        addTypeMatches(node, references);
-        references = scopeReferences.get(node.getPath().getParent());
-        addTypeMatches(node, references);
+    }
+
+    public void nodeProjectionsDefined(ModelNodeInternal node) {
+        for (Reference reference : pathReferences.get(node.getPath())) {
+            if (!reference.binding.isBound()) {
+                bound(reference, node);
+            }
+        }
+        addTypeMatches(node, scopeReferences.get(node.getPath()));
+        addTypeMatches(node, scopeReferences.get(node.getPath().getParent()));
     }
 
     private void addTypeMatches(ModelNodeInternal node, Collection<Reference> references) {
         for (Reference reference : references) {
-            if (reference.binding.isTypeCompatible(node.getPromise())) {
+            if (reference.binding.isTypeCompatible(node.getPromiseRegardlessOfState())) {
                 bound(reference, node);
             }
         }
@@ -86,14 +93,18 @@ class RuleBindings {
                 throw new UnsupportedOperationException("Currently not implemented");
             }
             ModelNodeInternal node = modelGraph.find(predicate.getPath());
-            if (node != null) {
+            if (node != null && reference.binding.canBindInState(node.getState())) {
                 bound(reference, node);
             }
             // Need to continue to watch to deal with node removal
             pathReferences.put(predicate.getPath(), reference);
         } else if (predicate.getScope() != null) {
             for (ModelNodeInternal node : modelGraph.findAllInScope(predicate.getScope())) {
-                if (binding.isTypeCompatible(node.getPromise())) {
+                // Do not try to attach to nodes that are not in ProjectionsDefined yet
+                if (!node.isAtLeast(ModelNode.State.ProjectionsDefined)) {
+                    continue;
+                }
+                if (binding.isTypeCompatible(node.getPromiseRegardlessOfState())) {
                     bound(reference, node);
                 }
             }
@@ -110,6 +121,11 @@ class RuleBindings {
         }
         // Create a dummy binding. Could probably reorganise things to avoid this
         return new ModelBinding(ruleBinder.getDescriptor(), ruleBinder.getSubjectReference(), true) {
+            @Override
+            public boolean canBindInState(ModelNode.State state) {
+                return true;
+            }
+
             @Override
             public void onCreate(ModelNodeInternal node) {
             }

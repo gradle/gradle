@@ -29,9 +29,13 @@ public interface ModelCreator extends ModelRule {
 
     ModelAdapter getAdapter();
 
+    ModelProjection getProjection();
+
     void create(MutableModelNode node, List<ModelView<?>> inputs);
 
     boolean isEphemeral();
 
     List<? extends ModelReference<?>> getInputs();
+
+    void addProjection(ModelProjection projection);
 }

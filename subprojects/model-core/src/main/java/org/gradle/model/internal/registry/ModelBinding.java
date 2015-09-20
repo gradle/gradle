@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry;
 
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPromise;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
@@ -60,6 +61,8 @@ abstract class ModelBinding {
     public String toString() {
         return "ModelBinding{predicate=" + predicate + ", node=" + boundTo + '}';
     }
+
+    public abstract boolean canBindInState(ModelNode.State state);
 
     public abstract void onCreate(ModelNodeInternal node);
 

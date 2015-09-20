@@ -92,10 +92,19 @@ public class DefaultModelRegistry implements ModelRegistry {
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
 
-        ruleBindings.add(node);
+        ruleBindings.nodeCreated(node);
         modelGraph.add(node);
         ruleBindings.add(node.getCreatorBinder());
+        transition(node, ProjectionsDefined, false);
         return node;
+    }
+
+    @Override
+    public ModelRegistry project(ModelProjector projector) {
+        BindingPredicate mappedSubject = new BindingPredicate(ModelReference.of(projector.getPath()).atState(ModelNode.State.ProjectionsDefined));
+        List<BindingPredicate> mappedInputs = mapInputs(projector.getInputs(), ModelPath.ROOT);
+        ruleBindings.add(new ProjectorRuleBinder(projector, mappedSubject, mappedInputs, unboundRules));
+        return this;
     }
 
     @Override
@@ -402,6 +411,14 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
+    private ModelNodeInternal doProject(ModelNodeInternal node, ProjectorRuleBinder binder) {
+        ModelCreator creator = node.getCreatorBinder().getCreator();
+        for (ModelProjection projection : binder.getProjector().getProjections()) {
+            creator.addProjection(projection);
+        }
+        return node;
+    }
+
     private ModelNodeInternal doCreate(final ModelNodeInternal node, CreatorRuleBinder boundCreator) {
         final ModelCreator creator = boundCreator.getCreator();
         final List<ModelView<?>> views = toViews(boundCreator.getInputBindings(), boundCreator.getCreator());
@@ -507,11 +524,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         } else {
             mappedReference = subjectReference.withPath(scope.descendant(subjectReference.getPath()));
         }
-        if (role.getTargetState() != null) {
-            return new BindingPredicate(mappedReference.atState(role.getTargetState()));
-        } else {
-            return new AnyStateBindingPredicate(mappedReference);
-        }
+        return new BindingPredicate(mappedReference.atState(role.getTargetState()));
     }
 
     private List<BindingPredicate> mapInputs(List<? extends ModelReference<?>> inputs, ModelPath scope) {
@@ -812,7 +825,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
             ModelNodeInternal currentChild = links.get(childPath.getName());
             if (currentChild != null) {
-                if (currentChild.getState() == Known) {
+                if (!currentChild.isAtLeast(Created)) {
                     throw new DuplicateModelException(
                         String.format(
                             "Cannot create '%s' using creation rule '%s' as the rule '%s' is already registered to create this model element.",
@@ -867,6 +880,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             transition(this, state, true);
         }
 
+        @Override
+        public void addProjection(ModelProjection projection) {
+            transition(this, State.Known, false);
+            getCreatorBinder().getCreator().addProjection(projection);
+        }
     }
 
     private class GoalGraph {
@@ -878,6 +896,9 @@ public class DefaultModelRegistry implements ModelRegistry {
                 switch (goal.state) {
                     case Known:
                         node = new MakeKnown(goal.path);
+                        break;
+                    case ProjectionsDefined:
+                        node = new DefineProjections(goal);
                         break;
                     case Created:
                         node = new Create(goal);
@@ -1070,6 +1091,27 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
+    private class DefineProjections extends TransitionNodeToState {
+        private final Set<RuleBinder> seenRules = new HashSet<RuleBinder>();
+
+        public DefineProjections(NodeAtState target) {
+            super(target);
+        }
+
+        @Override
+        boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            // Must run each action
+            for (RuleBinder binder : ruleBindings.getRulesWithSubject(target)) {
+                if (seenRules.add(binder)) {
+                    ProjectorRuleBinder projector = Cast.uncheckedCast(binder);
+                    dependencies.add(new RunProjectorAction(getPath(), projector));
+                }
+            }
+            dependencies.add(new AddRulesMatchingProjections(getPath()));
+            return true;
+        }
+    }
+
     private class Create extends TransitionNodeToState {
         public Create(NodeAtState target) {
             super(target);
@@ -1173,8 +1215,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         protected boolean doIsAchieved() {
-            // Only called when node exists
-            return true;
+            return node.isAtLeast(ProjectionsDefined);
         }
 
         @Override
@@ -1233,11 +1274,12 @@ public class DefaultModelRegistry implements ModelRegistry {
             ModelNodeInternal childTarget = parentTarget.getLink(path.getName());
             ModelCreator creator = ModelCreators.of(path)
                 .descriptor(parent.getDescriptor())
-                .withProjection(UnmanagedModelProjection.of(Object.class))
+                .withProjection(childTarget.getCreatorBinder().getCreator().getProjection())
                 .build();
             ModelReferenceNode childNode = new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT), parent);
             childNode.setTarget(childTarget);
             registerNode(childNode);
+            ruleBindings.nodeProjectionsDefined(childNode);
         }
 
         @Override
@@ -1358,6 +1400,22 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
+    private class RunProjectorAction extends RunAction {
+        private final ProjectorRuleBinder binder;
+
+        public RunProjectorAction(ModelPath path, ProjectorRuleBinder binder) {
+            super(path, binder);
+            this.binder = binder;
+        }
+
+        @Override
+        void apply() {
+            LOGGER.debug("Running model element '{}' projector action {}", getPath(), binder.getDescriptor());
+            doProject(node, binder);
+            node.notifyFired(binder);
+        }
+    }
+
     private class RunCreatorAction extends RunAction {
         public RunCreatorAction(ModelPath path, CreatorRuleBinder binder) {
             super(path, binder);
@@ -1385,6 +1443,23 @@ public class DefaultModelRegistry implements ModelRegistry {
             LOGGER.debug("Running model element '{}' rule action {}", getPath(), binder.getDescriptor());
             fireMutation(binder);
             node.notifyFired(binder);
+        }
+    }
+
+    private class AddRulesMatchingProjections extends ModelNodeGoal {
+
+        protected AddRulesMatchingProjections(ModelPath target) {
+            super(target);
+        }
+
+        @Override
+        void apply() {
+            ruleBindings.nodeProjectionsDefined(node);
+        }
+
+        @Override
+        public String toString() {
+            return "add rules matching projections " + getPath() + ", state: " + state;
         }
     }
 }

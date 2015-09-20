@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.fixture;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Nullable;
@@ -161,10 +162,20 @@ public class ModelRegistryHelper implements ModelRegistry {
         return this;
     }
 
-
     @Override
     public ModelRegistryHelper createOrReplace(ModelCreator newCreator) {
         modelRegistry.createOrReplace(newCreator);
+        return this;
+    }
+
+    @Override
+    public ModelRegistryHelper project(ModelProjector projector) {
+        modelRegistry.project(projector);
+        return this;
+    }
+
+    public ModelRegistryHelper project(String path, Transformer<? extends ModelProjector, ? super ModelProjectorBuilder> def) {
+        modelRegistry.project(def.transform(projector(path)));
         return this;
     }
 
@@ -268,6 +279,14 @@ public class ModelRegistryHelper implements ModelRegistry {
 
     public ModelCreatorBuilder creator(ModelPath path) {
         return new ModelCreatorBuilder(path);
+    }
+
+    public ModelProjectorBuilder projector(String path) {
+        return projector(ModelPath.path(path));
+    }
+
+    public ModelProjectorBuilder projector(ModelPath path) {
+        return new ModelProjectorBuilder(path);
     }
 
     public ModelRegistryHelper configure(ModelActionRole role, Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<Object>> def) {
@@ -615,6 +634,34 @@ public class ModelRegistryHelper implements ModelRegistry {
                 .descriptor(descriptor)
                 .ephemeral(ephemeral)
                 .build();
+        }
+    }
+
+    public static class ModelProjectorBuilder {
+        private final ModelPath path;
+        private final Set<ModelProjection> projections = Sets.newLinkedHashSet();
+        private ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("tester");
+
+        public ModelProjectorBuilder(ModelPath path) {
+            this.path = path;
+        }
+
+        public ModelProjectorBuilder withProjection(ModelProjection projection) {
+            projections.add(projection);
+            return this;
+        }
+
+        public ModelProjectorBuilder descriptor(String descriptor) {
+            return descriptor(new SimpleModelRuleDescriptor(descriptor));
+        }
+
+        public ModelProjectorBuilder descriptor(ModelRuleDescriptor descriptor) {
+            this.descriptor = descriptor;
+            return this;
+        }
+
+        public ModelProjector build() {
+            return new DefaultModelProjector(path, descriptor, projections);
         }
     }
 

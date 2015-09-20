@@ -117,6 +117,8 @@ public interface ModelRegistry {
 
     ModelRegistry create(ModelCreator creator);
 
+    ModelRegistry project(ModelProjector projector);
+
     <T> ModelRegistry configure(ModelActionRole role, ModelAction<T> action);
 
     <T> ModelRegistry configure(ModelActionRole role, ModelAction<T> action, ModelPath scope);
