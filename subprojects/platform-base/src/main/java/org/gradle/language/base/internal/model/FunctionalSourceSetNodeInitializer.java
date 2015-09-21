@@ -16,7 +16,6 @@
 
 package org.gradle.language.base.internal.model;
 
-import com.google.common.base.Optional;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
@@ -28,40 +27,26 @@ import java.util.Collections;
 import java.util.List;
 
 public class FunctionalSourceSetNodeInitializer implements NodeInitializer {
-    private final String name;
     private final Instantiator instantiator;
-    private final ProjectSourceSet projectSourceSet;
 
-    public FunctionalSourceSetNodeInitializer(String name, Instantiator instantiator, final ProjectSourceSet projectSourceSet) {
-        this.name = name;
+    public FunctionalSourceSetNodeInitializer(Instantiator instantiator) {
         this.instantiator = instantiator;
-        this.projectSourceSet = projectSourceSet;
     }
 
     @Override
     public List<? extends ModelReference<?>> getInputs() {
-        return Collections.emptyList();
+        return Collections.singletonList(ModelReference.of(ProjectSourceSet.class));
     }
 
     @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-        DefaultFunctionalSourceSet defaultFunctionalSourceSet = new DefaultFunctionalSourceSet(name, instantiator, projectSourceSet);
+        ProjectSourceSet projectSourceSet = (ProjectSourceSet) inputs.get(0).getInstance();
+        DefaultFunctionalSourceSet defaultFunctionalSourceSet = new DefaultFunctionalSourceSet(modelNode.getPath().getName(), instantiator, projectSourceSet);
         modelNode.setPrivateData(DefaultFunctionalSourceSet.class, defaultFunctionalSourceSet);
     }
 
     @Override
     public List<? extends ModelProjection> getProjections() {
-        return Collections.singletonList(new FunctionalSourceSetProjection<FunctionalSourceSet>(ModelType.of(FunctionalSourceSet.class)));
-    }
-
-    static class FunctionalSourceSetProjection<M> extends UnmanagedModelProjection<M> {
-        public FunctionalSourceSetProjection(ModelType<M> type) {
-            super(type);
-        }
-
-        @Override
-        public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
-            return Optional.of(String.format("source set '%s'", modelNodeInternal.getPath().toString()));
-        }
+        return Collections.singletonList(new UnmanagedModelProjection<FunctionalSourceSet>(ModelType.of(FunctionalSourceSet.class)));
     }
 }

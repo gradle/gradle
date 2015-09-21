@@ -73,8 +73,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     public void apply(final Project target) {
         target.getPluginManager().apply(LifecycleBasePlugin.class);
-        DefaultProjectSourceSet sources = target.getExtensions().create("sources", DefaultProjectSourceSet.class);
-        constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer("functionalSourceSet", instantiator, sources));
+        target.getExtensions().create("sources", DefaultProjectSourceSet.class);
+        constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer(instantiator));
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
         applyRules(modelRegistry, binaries);
     }
@@ -117,7 +117,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         }));
 
-        modelRegistry.createOrReplace(ModelCreators.unmanagedInstance(ModelReference.of(ModelPath.path("__binarySpecFactoryRegistry"), ModelType.of(BinarySpecFactoryRegistry.class)), Factories.constant(new BinarySpecFactoryRegistry()))
+        modelRegistry.createOrReplace(ModelCreators.unmanagedInstance(ModelReference.of(ModelPath.path("binarySpecFactoryRegistry"), ModelType.of(BinarySpecFactoryRegistry.class)), Factories.constant(new BinarySpecFactoryRegistry()))
             .descriptor(ruleDescriptor)
             .ephemeral(true)
             .hidden(true)
