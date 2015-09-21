@@ -1429,10 +1429,14 @@ interface Managed${typeName} {
 
         then:
         InvalidManagedModelElementTypeException ex = thrown()
-        ex.message.contains "type ${collectionType.name}<java.lang.String> cannot be used for property 'items' as it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged)."
+        ex.message.contains "type ${collectionType.name}<java.lang.String> cannot be used for property 'items' as it is an unmanaged type (please either use the supported type '${suggestion.name}' or annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged)."
 
         where:
-        collectionType << [LinkedList, ArrayList, SortedSet, TreeSet]
+        collectionType | suggestion
+        LinkedList     | List
+        ArrayList      | List
+        SortedSet      | Set
+        TreeSet        | Set
     }
 
     @Unroll

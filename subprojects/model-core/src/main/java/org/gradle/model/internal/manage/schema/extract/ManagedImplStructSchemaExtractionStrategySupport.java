@@ -223,6 +223,15 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
                 }
 
                 if (!isAllowedPropertyTypeOfManagedType && !isDeclaredAsHavingUnmanagedType) {
+                    for (ModelType<?> type : ScalarCollectionStrategy.TYPES) {
+                        if (type.isAssignableFrom(property.getType())) {
+                            throw new InvalidManagedModelElementTypeException(parentContext, String.format(
+                                "type %s cannot be used for property '%s' as it is an unmanaged type (please "
+                                    + "either use the supported type '%s' or annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged).%n%s",
+                                property.getType(), property.getName(), type.getName(), ModelSchemaExtractor.getManageablePropertyTypesDescription()
+                            ));
+                        }
+                    }
                     throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                         "type %s cannot be used for property '%s' as it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged).%n%s",
                         property.getType(), property.getName(), ModelSchemaExtractor.getManageablePropertyTypesDescription()
