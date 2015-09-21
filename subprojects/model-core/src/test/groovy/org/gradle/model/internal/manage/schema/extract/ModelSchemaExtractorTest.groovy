@@ -1439,6 +1439,26 @@ interface Managed${typeName} {
         TreeSet        | Set
     }
 
+    def "displays a reasonable error message when getter and setter of a property of collection of scalar types do not use the same generic type"() {
+        given:
+        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            @Managed
+            interface CollectionType {
+                List<String> getItems()
+                void setItems(List<Integer> integers)
+            }
+        """
+
+        when:
+        extract(managedType)
+
+        then:
+        InvalidManagedModelElementTypeException ex = thrown()
+        ex.message.contains 'setter method param must be of exactly the same type as the getter returns (expected: java.util.List<java.lang.String>, found: java.util.List<java.lang.Integer>)'
+    }
+
     @Unroll
     def "throws an error if we use unsupported type #collectionType.simpleName as element type of a scalar collection"() {
         given:
