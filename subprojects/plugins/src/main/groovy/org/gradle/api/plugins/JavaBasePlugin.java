@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import com.beust.jcommander.internal.Lists;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -47,11 +48,17 @@ import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
+import org.gradle.model.internal.core.ModelCreators;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -69,12 +76,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator;
     private final JavaToolChain javaToolChain;
     private final ITaskFactory taskFactory;
+    private final ModelRegistry modelRegistry;
 
     @Inject
-    public JavaBasePlugin(Instantiator instantiator, JavaToolChain javaToolChain, ITaskFactory taskFactory) {
+    public JavaBasePlugin(Instantiator instantiator, JavaToolChain javaToolChain, ITaskFactory taskFactory, ModelRegistry modelRegistry) {
         this.instantiator = instantiator;
         this.javaToolChain = javaToolChain;
         this.taskFactory = taskFactory;
+        this.modelRegistry = modelRegistry;
     }
 
     public void apply(ProjectInternal project) {
@@ -86,7 +95,13 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         project.getConvention().getPlugins().put("java", javaConvention);
 
         configureCompileDefaults(project, javaConvention);
-        configureSourceSetDefaults(javaConvention);
+        BridgedBinaries binaries = configureSourceSetDefaults(javaConvention);
+
+        modelRegistry.createOrReplace(ModelCreators.bridgedInstance(ModelReference.of("bridgedJavaBinaries", BridgedBinaries.class), binaries)
+                .descriptor("JavaBasePlugin.apply()")
+                .ephemeral(true)
+                .hidden(true)
+                .build());
 
         configureJavaDoc(project, javaConvention);
         configureTest(project, javaConvention);
@@ -94,10 +109,9 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureBuildDependents(project);
     }
 
-    private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
+    private BridgedBinaries configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
         final Project project = pluginConvention.getProject();
-        final ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
-
+        final List<ClassDirectoryBinarySpecInternal> binaries = Lists.newArrayList();
         pluginConvention.getSourceSets().all(new Action<SourceSet>() {
             public void execute(final SourceSet sourceSet) {
                 ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
@@ -115,19 +129,16 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
                 DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, "java", sourceSet.getName(), sourceSet.getJava(), compileClasspath);
-                projectSourceSet.add(javaSourceSet);
                 JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", sourceSet.getName(), sourceSet.getResources());
-                projectSourceSet.add(resourceSet);
 
                 binary.addSourceSet(javaSourceSet);
                 binary.addSourceSet(resourceSet);
 
-                BinaryContainer binaryContainer = project.getExtensions().getByType(BinaryContainer.class);
-                binaryContainer.add(binary);
-
                 attachTasksToBinary(binary, sourceSet, project);
+                binaries.add(binary);
             }
         });
+        return new BridgedBinaries(binaries);
     }
 
     private void createCompileJavaTaskForBinary(final SourceSet sourceSet, SourceDirectorySet javaSourceSet, Project target) {
@@ -372,4 +383,25 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         test.workingDir(project.getProjectDir());
     }
 
+    static class BridgedBinaries {
+        final List<ClassDirectoryBinarySpecInternal> binaries;
+
+        public BridgedBinaries(List<ClassDirectoryBinarySpecInternal> binaries) {
+            this.binaries = binaries;
+        }
+    }
+
+    static class Rules extends RuleSource {
+        @Mutate
+        void attachBridgedSourceSets(ProjectSourceSet projectSourceSet, BridgedBinaries bridgedBinaries) {
+            for (ClassDirectoryBinarySpecInternal binary : bridgedBinaries.binaries) {
+                projectSourceSet.addAll(binary.getInputs());
+            }
+        }
+
+        @Mutate
+        void attachBridgedBinaries(BinaryContainer binaries, BridgedBinaries bridgedBinaries) {
+            binaries.addAll(bridgedBinaries.binaries);
+        }
+    }
 }

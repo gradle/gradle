@@ -17,9 +17,42 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 
 class JavaProjectModelBridgingIntegrationTest extends AbstractIntegrationSpec {
-    def "rule can configure source set input and output directories using the associated ClassDirectoryBinary"() {
+    def "Java plugin source sets are visible in the software model as binaries and source sets"() {
+        EnableModelDsl.enable(executer)
+
+        buildFile << '''
+plugins {
+    id 'java'
+}
+
+model {
+    tasks {
+        verify(Task) {
+            doLast {
+                def binaries = $('binaries')
+                assert binaries.size() == 2
+                assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
+                assert binaries.mainClasses.buildTask.name == 'classes'
+                assert binaries.testClasses instanceof ClassDirectoryBinarySpec
+                assert binaries.testClasses.buildTask.name == 'testClasses'
+                def sources = $('sources')
+                assert sources.size() == 4
+                assert sources.withType(JavaSourceSet).size() == 2
+                assert sources.withType(JvmResourceSet).size() == 2
+            }
+        }
+    }
+}
+'''
+
+        expect:
+        succeeds("verify")
+    }
+
+    def "rule can configure Java plugin source set input and output directories using the associated ClassDirectoryBinary"() {
         buildFile << """
 plugins {
     id 'java'
