@@ -42,6 +42,9 @@ Root project
     + mother
           | Type:   	Person
           | Creator: 	PersonRules#person
+    + userGroups
+          | Type:   	java.util.List<java.lang.String>
+          | Creator: 	PersonRules#person
 + tasks
       | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task>
       | Creator: 	Project.<init>.tasks()
