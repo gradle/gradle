@@ -15,12 +15,13 @@
  */
 package org.gradle.cache.internal.btree;
 
+import com.google.common.io.CountingInputStream;
+import com.google.common.io.CountingOutputStream;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.io.RandomAccessFileOutputStream;
 
 import java.io.*;
-import java.util.zip.CRC32;
 
 public class FileBackedBlockStore implements BlockStore {
     private RandomAccessFile file;
@@ -176,9 +177,9 @@ public class FileBackedBlockStore implements BlockStore {
             long pos = getPos().getPos();
             file.seek(pos);
 
-            Crc32OutputStream checkSumOutputStream = new Crc32OutputStream(new BufferedOutputStream(
-                    new RandomAccessFileOutputStream(file)));
-            DataOutputStream outputStream = new DataOutputStream(checkSumOutputStream);
+            CountingOutputStream countingOutputStream = new CountingOutputStream(new BufferedOutputStream(
+                new RandomAccessFileOutputStream(file)));
+            DataOutputStream outputStream = new DataOutputStream(countingOutputStream);
 
             BlockPayload payload = getPayload();
 
@@ -191,8 +192,8 @@ public class FileBackedBlockStore implements BlockStore {
             // Write body
             payload.write(outputStream);
 
-            // Write checksum
-            outputStream.writeLong(checkSumOutputStream.checksum.getValue());
+            // Write count
+            outputStream.writeLong(countingOutputStream.getCount());
             outputStream.close();
 
             // Pad
@@ -210,9 +211,9 @@ public class FileBackedBlockStore implements BlockStore {
             }
             file.seek(pos);
 
-            Crc32InputStream checkSumInputStream = new Crc32InputStream(new BufferedInputStream(
+            CountingInputStream countingInputStream = new CountingInputStream(new BufferedInputStream(
                     new RandomAccessFileInputStream(file)));
-            DataInputStream inputStream = new DataInputStream(checkSumInputStream);
+            DataInputStream inputStream = new DataInputStream(countingInputStream);
 
             BlockPayload payload = getPayload();
 
@@ -233,10 +234,10 @@ public class FileBackedBlockStore implements BlockStore {
             }
             payload.read(inputStream);
 
-            // Read and verify checksum
-            long actualChecksum = checkSumInputStream.checksum.getValue();
-            long checksum = inputStream.readLong();
-            if (actualChecksum != checksum) {
+            // Read and verify count
+            long actualCount = countingInputStream.getCount();
+            long count = inputStream.readLong();
+            if (actualCount != count) {
                 throw blockCorruptedException();
             }
             inputStream.close();
@@ -245,69 +246,6 @@ public class FileBackedBlockStore implements BlockStore {
         public RuntimeException blockCorruptedException() {
             return new CorruptedCacheException(String.format("Corrupted %s found in %s.", this,
                     FileBackedBlockStore.this));
-        }
-    }
-
-    private static class Crc32InputStream extends FilterInputStream {
-        private final CRC32 checksum;
-
-        private Crc32InputStream(InputStream inputStream) {
-            super(inputStream);
-            checksum = new CRC32();
-        }
-
-        @Override
-        public int read() throws IOException {
-            int b = in.read();
-            if (b >= 0) {
-                checksum.update(b);
-            }
-            return b;
-        }
-
-        @Override
-        public int read(byte[] bytes) throws IOException {
-            int count = in.read(bytes);
-            if (count > 0) {
-                checksum.update(bytes, 0, count);
-            }
-            return count;
-        }
-
-        @Override
-        public int read(byte[] bytes, int offset, int max) throws IOException {
-            int count = in.read(bytes, offset, max);
-            if (count > 0) {
-                checksum.update(bytes, offset, count);
-            }
-            return count;
-        }
-    }
-
-    private static class Crc32OutputStream extends FilterOutputStream {
-        private final CRC32 checksum;
-
-        private Crc32OutputStream(OutputStream outputStream) {
-            super(outputStream);
-            this.checksum = new CRC32();
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            checksum.update(b);
-            out.write(b);
-        }
-
-        @Override
-        public void write(byte[] bytes) throws IOException {
-            checksum.update(bytes);
-            out.write(bytes);
-        }
-
-        @Override
-        public void write(byte[] bytes, int offset, int count) throws IOException {
-            checksum.update(bytes, offset, count);
-            out.write(bytes, offset, count);
         }
     }
 }
