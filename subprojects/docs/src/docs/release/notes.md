@@ -181,8 +181,12 @@ results in the following IDE project name mapping:
 
 TBD
 
-- `ClassDirectoryBinarySpec` instances can no longer be created the `binaries` container. Instances are added to this container by the Java plugins for each source set, 
+The behaviour of `ClassDirectoryBinarySpec` instances has changed:
+
+- `ClassDirectoryBinarySpec` instances can no longer be created using the `binaries` container. Instances are added to this container by the Java plugins for each source set, 
 however, additional instances cannot be added. This capability will be added again in a later release.
+- Instances are not added to the `binaries` container eagerly by the Java plugins.
+- Source sets for these instances are not added to the `sources` container eagerly by the Java plugins. 
 
 ## External contributions
 
