@@ -22,10 +22,11 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 @ThreadSafe
-public class ScalarCollectionStrategy extends CollectionStrategy {
+public class ScalarCollectionStrategy implements ModelSchemaExtractionStrategy {
 
     public final static List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(
         ModelType.of(List.class),
@@ -36,12 +37,9 @@ public class ScalarCollectionStrategy extends CollectionStrategy {
         ModelType<T> type = extractionContext.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);
-        if (TYPES.contains(rawCollectionType)) {
+        if (TYPES.contains(rawCollectionType) && type.getTypeVariables().size()>0) {
             ModelType<?> elementType = type.getTypeVariables().get(0);
-            if (ScalarTypes.isScalarType(elementType)) {
-                validateType(rawCollectionType, extractionContext, type);
-                extractionContext.found(createSchema(type, elementType));
-            }
+            extractionContext.found(createSchema(type, elementType));
         }
     }
 

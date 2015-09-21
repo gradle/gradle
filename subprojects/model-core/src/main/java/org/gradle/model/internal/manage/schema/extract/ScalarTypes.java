@@ -15,6 +15,7 @@
  */
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import org.gradle.model.internal.type.ModelType;
 
@@ -57,5 +58,16 @@ public abstract class ScalarTypes {
             }
         }
         return false;
+    }
+
+    public static String getSupported() {
+        StringBuilder sb = new StringBuilder("- JDK value types: ");
+        sb.append(Joiner.on(", ").join(TYPES));
+        sb.append("\n");
+        sb.append("- Any subclass of ");
+        sb.append(Joiner.on(", ").join(NON_FINAL_TYPES));
+        sb.append("\n");
+        sb.append("- Enum types");
+        return sb.toString();
     }
 }

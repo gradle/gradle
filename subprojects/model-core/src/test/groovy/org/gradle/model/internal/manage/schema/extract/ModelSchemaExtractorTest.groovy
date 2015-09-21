@@ -30,6 +30,7 @@ import spock.lang.Unroll
 
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.regex.Pattern
 
 import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.*
@@ -1409,6 +1410,77 @@ interface Managed${typeName} {
 
         where:
         type << JDK_SCALAR_TYPES
+    }
+
+    @Unroll
+    def "throws an error if we use unsupported collection type #collectionType.simpleName"() {
+        given:
+        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            @Managed
+            interface CollectionType {
+                ${collectionType.name}<String> getItems()
+            }
+        """
+
+        when:
+        extract(managedType)
+
+        then:
+        InvalidManagedModelElementTypeException ex = thrown()
+        ex.message.contains "type ${collectionType.name}<java.lang.String> cannot be used for property 'items' as it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged)."
+
+        where:
+        collectionType << [LinkedList, ArrayList, SortedSet, TreeSet]
+    }
+
+    @Unroll
+    def "throws an error if we use unsupported type #collectionType.simpleName as element type of a scalar collection"() {
+        given:
+        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            @Managed
+            interface CollectionType {
+                List<${collectionType.name}> getItems()
+            }
+        """
+
+        when:
+        extract(managedType)
+
+        then:
+        InvalidManagedModelElementTypeException ex = thrown()
+        ex.message.contains "property 'items' cannot be a collection of type ${collectionType.name} as it is not a scalar type. Supported element types:"
+
+        where:
+        collectionType << [Date, AtomicInteger]
+    }
+
+    @Unroll
+    def "should not throw an error if if we use unsupported collection type #collectionType.simpleName on a non-managed type"() {
+        given:
+        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            interface CollectionType {
+                ${collectionType.name}<String> getItems()
+            }
+        """
+
+        when:
+        def schema = extract(managedType)
+
+        then:
+        assert schema instanceof ModelUnmanagedImplStructSchema
+        schema.properties*.name == ["items"]
+
+        schema.getProperty("items").stateManagementType == UNMANAGED
+        schema.getProperty("items").isWritable() == false
+
+        where:
+        collectionType << [LinkedList, ArrayList, SortedSet, TreeSet]
     }
 }
 

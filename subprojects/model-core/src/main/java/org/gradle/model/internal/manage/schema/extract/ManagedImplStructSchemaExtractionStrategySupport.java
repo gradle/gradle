@@ -253,7 +253,10 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
                     if (propertySchema instanceof ScalarCollectionSchema) {
                         if (!ScalarTypes.isScalarType(elementType)) {
                             throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                                "property '%s' cannot be a collection of type %s as it is not a scalar type.",
+                                "property '%s' cannot be a collection of type %s as it is not a scalar type. Supported element types: "
+                                    + "\n   - JDK value types: java.lang.String, java.lang.Boolean, java.lang.Character, java.lang.Byte, java.lang.Short, java.lang.Integer, java.lang.Float, java.lang.Long, java.lang.Double, java.math.BigInteger, java.math.BigDecimal, java.io.File"
+                                    + "\n   - Any subclass of java.math.BigInteger, java.math.BigDecimal"
+                                    + "\n   - Enum types",
                                 property.getName(), elementType));
                         }
                     } else {
