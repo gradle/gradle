@@ -29,4 +29,8 @@ public interface InstanceFactory<T, P> {
     Set<ModelType<? extends T>> getSupportedTypes();
 
     <S extends T> void registerFactory(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, ? super P, ? super MutableModelNode> factory);
+
+    <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type);
+
+    <S extends T, I> void registerInternalView(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<I> internalViewType);
 }

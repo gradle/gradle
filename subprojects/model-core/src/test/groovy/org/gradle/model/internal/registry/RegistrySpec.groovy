@@ -65,6 +65,10 @@ class RegistrySpec extends Specification {
         }
 
         @Override
+        void projectLink(ModelProjector projector) {
+        }
+
+        @Override
         void addLink(ModelCreator creator) {
 
         }

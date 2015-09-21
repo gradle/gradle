@@ -22,7 +22,7 @@ import java.util.Set;
 public interface ModelProjector extends ModelRule {
     ModelPath getPath();
 
-    Set<? extends ModelProjection> getProjections();
+    Set<? extends ModelProjection> getProjections(MutableModelNode node, List<ModelView<?>> inputs);
 
     List<ModelReference<?>> getInputs();
 }

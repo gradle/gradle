@@ -42,7 +42,7 @@ public class DefaultModelProjector implements ModelProjector {
     }
 
     @Override
-    public Set<? extends ModelProjection> getProjections() {
+    public Set<? extends ModelProjection> getProjections(MutableModelNode node, List<ModelView<?>> inputs) {
         return projections;
     }
 

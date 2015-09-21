@@ -16,28 +16,83 @@
 
 package org.gradle.language.base
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpec {
-
-    @NotYetImplemented
-    def "can filter for custom internal view with ComponentSpecContainer.withType()"() {
+    def setup() {
         buildFile << """
-        apply plugin: "jvm-component"
+            apply plugin: "jvm-component"
 
-        interface SampleLibrarySpec extends ComponentSpec {}
-
-        interface SampleLibrarySpecInternal {}
-
-        class DefaultSampleLibrarySpec extends BaseComponentSpec implements SampleLibrarySpec, SampleLibrarySpecInternal {}
-
-        class Rules extends RuleSource {
-            @ComponentType
-            void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
-                builder.defaultImplementation(DefaultSampleLibrarySpec)
+            interface SampleLibrarySpec extends ComponentSpec {
+                String getPublicData()
+                void setPublicData(String publicData)
             }
 
+            interface SampleLibrarySpecInternal extends ComponentSpec {
+                String getInternalData()
+                void setInternalData(String internalData)
+            }
+
+            class DefaultSampleLibrarySpec extends BaseComponentSpec implements SampleLibrarySpec, SampleLibrarySpecInternal {
+                String internalData
+                String publicData
+            }
+
+            class RegisterComponentRules extends RuleSource {
+                @ComponentType
+                void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
+                    builder.defaultImplementation(DefaultSampleLibrarySpec)
+                    builder.internalView(SampleLibrarySpecInternal)
+                }
+            }
+            apply plugin: RegisterComponentRules
+
+            model {
+                components {
+                    jar(JvmLibrarySpec) {}
+                    sampleLib(SampleLibrarySpec) {}
+                }
+            }
+        """
+    }
+
+    def "can target internal view with rules"() {
+        buildFile << """
+
+        class Rules extends RuleSource {
+            @Finalize
+            void mutateInternal(ModelMap<SampleLibrarySpecInternal> sampleLibs) {
+                sampleLibs.each { sampleLib ->
+                    sampleLib.internalData = "internal"
+                }
+            }
+
+            @Finalize
+            void mutatePublic(ModelMap<SampleLibrarySpec> sampleLibs) {
+                sampleLibs.each { sampleLib ->
+                    sampleLib.publicData = "public"
+                }
+            }
+
+            @Mutate
+            void createValidateTask(ModelMap<Task> tasks, ModelMap<SampleLibrarySpecInternal> sampleLibs) {
+                tasks.create("validate") {
+                    sampleLibs.each { sampleLib ->
+                        assert sampleLib.internalData == "internal"
+                        assert sampleLib.publicData == "public"
+                    }
+                }
+            }
+        }
+        apply plugin: Rules
+        """
+        expect:
+        succeeds "validate"
+    }
+
+    def "can filter for custom internal view with ComponentSpecContainer.withType()"() {
+        buildFile << """
+        class Rules extends RuleSource {
             @Mutate
             void createValidateTask(ModelMap<Task> tasks, ComponentSpecContainer components) {
                 tasks.create("validate") {
@@ -49,15 +104,7 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
                 }
             }
         }
-
         apply plugin: Rules
-
-        model {
-            components {
-                jar(JvmLibrarySpec) {}
-                sampleLib(SampleLibrarySpec) {}
-            }
-        }
         """
         expect:
         succeeds "validate"

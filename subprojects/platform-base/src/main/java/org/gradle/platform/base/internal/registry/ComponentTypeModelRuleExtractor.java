@@ -42,6 +42,7 @@ import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<ComponentType, ComponentSpec, BaseComponentSpec> {
     public ComponentTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
@@ -58,7 +59,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         List<Class<?>> dependencies = ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
         ModelType<? extends BaseComponentSpec> implementation = determineImplementationType(type, builder);
         if (implementation != null) {
-            ModelAction<?> mutator = new RegistrationAction(type, implementation, ruleDefinition.getDescriptor());
+            ModelAction<?> mutator = new RegistrationAction(type, implementation, builder.getInternalViews(), ruleDefinition.getDescriptor());
             return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
         }
         return new DependencyOnlyExtractedModelRule(dependencies);
@@ -73,12 +74,14 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     private static class RegistrationAction implements ModelAction<ComponentSpecFactory> {
         private final ModelType<? extends ComponentSpec> publicType;
         private final ModelType<? extends BaseComponentSpec> implementationType;
+        private final Set<Class<?>> internalViews;
         private final ModelRuleDescriptor descriptor;
         private final List<ModelReference<?>> inputs;
 
-        public RegistrationAction(ModelType<? extends ComponentSpec> publicType, ModelType<? extends BaseComponentSpec> implementationType, ModelRuleDescriptor descriptor) {
+        public RegistrationAction(ModelType<? extends ComponentSpec> publicType, ModelType<? extends BaseComponentSpec> implementationType, Set<Class<?>> internalViews, ModelRuleDescriptor descriptor) {
             this.publicType = publicType;
             this.implementationType = implementationType;
+            this.internalViews = internalViews;
             this.descriptor = descriptor;
             this.inputs = Arrays.<ModelReference<?>>asList(ModelReference.of(ServiceRegistry.class), ModelReference.of(ProjectIdentifier.class), ModelReference.of(ProjectSourceSet.class));
         }
@@ -112,6 +115,9 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
                     return BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode, projectSourceSet, instantiator, nodeInitializerRegistry);
                 }
             });
+            for (Class<?> internalView : internalViews) {
+                components.registerInternalView(publicType, descriptor, ModelType.of(internalView));
+            }
         }
     }
 }

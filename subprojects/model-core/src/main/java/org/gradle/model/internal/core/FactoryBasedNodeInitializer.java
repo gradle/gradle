@@ -16,11 +16,17 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class FactoryBasedNodeInitializer<T, S extends T> implements NodeInitializer {
     private final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference;
@@ -46,5 +52,42 @@ public class FactoryBasedNodeInitializer<T, S extends T> implements NodeInitiali
     @Override
     public List<? extends ModelProjection> getProjections() {
         return Collections.singletonList(UnmanagedModelProjection.of(type));
+    }
+
+    @Nullable
+    @Override
+    public ModelProjector getProjector(final ModelPath path, final ModelRuleDescriptor descriptor, final ModelType<?> typeToCreate) {
+        if (!type.isAssignableFrom(typeToCreate)) {
+            throw new IllegalArgumentException(String.format("Type %s is not a subtype of %s", typeToCreate, type));
+        }
+        final ModelType<? extends S> projectedType = Cast.uncheckedCast(typeToCreate);
+        return new ModelProjector() {
+            @Override
+            public ModelRuleDescriptor getDescriptor() {
+                return descriptor;
+            }
+
+            @Override
+            public ModelPath getPath() {
+                return path;
+            }
+
+            @Override
+            public Set<? extends ModelProjection> getProjections(MutableModelNode node, List<ModelView<?>> inputs) {
+                InstanceFactory<S, String> factory = Cast.uncheckedCast(inputs.get(0).getInstance());
+                Set<ModelType<?>> internalViews = factory.getInternalViews(projectedType);
+                return ImmutableSet.copyOf(Iterables.transform(internalViews, new Function<ModelType<?>, ModelProjection>() {
+                    @Override
+                    public ModelProjection apply(ModelType<?> internalView) {
+                        return UnmanagedModelProjection.of(internalView);
+                    }
+                }));
+            }
+
+            @Override
+            public List<ModelReference<?>> getInputs() {
+                return Collections.<ModelReference<?>>singletonList(factoryReference);
+            }
+        };
     }
 }

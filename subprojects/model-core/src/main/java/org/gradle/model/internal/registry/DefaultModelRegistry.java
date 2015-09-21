@@ -101,8 +101,14 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     @Override
     public ModelRegistry project(ModelProjector projector) {
+        project(projector, ModelPath.ROOT);
+        return this;
+    }
+
+    @Override
+    public ModelRegistry project(ModelProjector projector, ModelPath scope) {
         BindingPredicate mappedSubject = new BindingPredicate(ModelReference.of(projector.getPath()).atState(ModelNode.State.ProjectionsDefined));
-        List<BindingPredicate> mappedInputs = mapInputs(projector.getInputs(), ModelPath.ROOT);
+        List<BindingPredicate> mappedInputs = mapInputs(projector.getInputs(), scope);
         ruleBindings.add(new ProjectorRuleBinder(projector, mappedSubject, mappedInputs, unboundRules));
         return this;
     }
@@ -411,9 +417,12 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private ModelNodeInternal doProject(ModelNodeInternal node, ProjectorRuleBinder binder) {
+    private ModelNodeInternal doProject(ProjectorRuleBinder binder) {
+        final ModelNodeInternal node = binder.getSubjectBinding().getNode();
+        final List<ModelView<?>> inputs = toViews(binder.getInputBindings(), binder.getProjector());
+
         ModelCreator creator = node.getCreatorBinder().getCreator();
-        for (ModelProjection projection : binder.getProjector().getProjections()) {
+        for (ModelProjection projection : binder.getProjector().getProjections(node, inputs)) {
             creator.addProjection(projection);
         }
         return node;
@@ -804,6 +813,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public void addReference(ModelCreator creator) {
             addNode(new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT), this), creator);
+        }
+
+        @Override
+        public void projectLink(ModelProjector projector) {
+            project(projector, this.getPath());
         }
 
         @Override
@@ -1411,7 +1425,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         void apply() {
             LOGGER.debug("Running model element '{}' projector action {}", getPath(), binder.getDescriptor());
-            doProject(node, binder);
+            doProject(binder);
             node.notifyFired(binder);
         }
     }

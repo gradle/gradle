@@ -174,6 +174,12 @@ public class ModelRegistryHelper implements ModelRegistry {
         return this;
     }
 
+    @Override
+    public ModelRegistry project(ModelProjector projector, ModelPath scope) {
+        modelRegistry.project(projector, scope);
+        return this;
+    }
+
     public ModelRegistryHelper project(String path, Transformer<? extends ModelProjector, ? super ModelProjectorBuilder> def) {
         modelRegistry.project(def.transform(projector(path)));
         return this;

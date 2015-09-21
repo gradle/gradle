@@ -18,10 +18,7 @@ package org.gradle.model.internal.core;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
@@ -48,6 +45,7 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
 
     private final String displayName;
     private final Map<Class<? extends T>, Registration<?>> factories = Maps.newIdentityHashMap();
+    private final Map<Class<? extends T>, Set<ModelType<?>>> internalViews = Maps.newIdentityHashMap();
 
     public BaseInstanceFactory(String displayName) {
         this.displayName = displayName;
@@ -103,6 +101,25 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
         }
         Collections.sort(names);
         return names.isEmpty() ? "(None)" : Joiner.on(", ").join(names);
+    }
+
+    @Override
+    public <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type) {
+        Set<ModelType<?>> registeredViews = internalViews.get(type.getConcreteClass());
+        if (registeredViews == null) {
+            return ImmutableSet.of();
+        }
+        return ImmutableSet.copyOf(registeredViews);
+    }
+
+    @Override
+    public <S extends T, I> void registerInternalView(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<I> internalViewType) {
+        Set<ModelType<?>> registeredViews = internalViews.get(type.getConcreteClass());
+        if (registeredViews == null) {
+            registeredViews = Sets.newLinkedHashSet();
+            internalViews.put(type.getConcreteClass(), registeredViews);
+        }
+        registeredViews.add(internalViewType);
     }
 
     @Override

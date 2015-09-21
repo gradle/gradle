@@ -42,6 +42,8 @@ public interface MutableModelNode extends ModelNode {
      */
     void addReference(ModelCreator creator);
 
+    void projectLink(ModelProjector projector);
+
     /**
      * Adds a node to the graph, linked from this node. The given creator is used to initialize the node when required.
      *

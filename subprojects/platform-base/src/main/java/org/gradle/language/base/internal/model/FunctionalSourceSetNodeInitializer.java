@@ -16,11 +16,13 @@
 
 package org.gradle.language.base.internal.model;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
@@ -48,5 +50,11 @@ public class FunctionalSourceSetNodeInitializer implements NodeInitializer {
     @Override
     public List<? extends ModelProjection> getProjections() {
         return Collections.singletonList(new UnmanagedModelProjection<FunctionalSourceSet>(ModelType.of(FunctionalSourceSet.class)));
+    }
+
+    @Nullable
+    @Override
+    public ModelProjector getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate) {
+        return null;
     }
 }

@@ -102,6 +102,12 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
                     public List<? extends ModelProjection> getProjections() {
                         return Collections.singletonList(UnmanagedModelProjection.of(type));
                     }
+
+                    @Nullable
+                    @Override
+                    public ModelProjector getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate) {
+                        return null;
+                    }
                 };
             }
         };
@@ -196,6 +202,11 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "create(%s)", name);
 
         NodeInitializer nodeInitializer = creatorStrategy.initializer(type);
+
+        ModelProjector projector = nodeInitializer.getProjector(childPath, descriptor, type);
+        if (projector != null) {
+            modelNode.projectLink(projector);
+        }
 
         ModelCreator creator = ModelCreators.of(childPath, nodeInitializer)
             .descriptor(descriptor)
