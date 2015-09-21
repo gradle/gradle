@@ -200,10 +200,10 @@ TBD
 
 The behaviour of `ClassDirectoryBinarySpec` instances has changed:
 
-- `ClassDirectoryBinarySpec` instances can no longer be created using the `binaries` container. Instances are added to this container by the Java plugins for each source set,
+- `sources` container is no longer added as a project extension. It is visible only as part of the software model.
+- `ClassDirectoryBinarySpec` instances can no longer be created using the `binaries` container. Instances are added to this container by the Java plugins for each source set, 
 however, additional instances cannot be added. This capability will be added again in a later release.
 - Instances are not added to the `binaries` container eagerly by the Java plugins.
-- Source sets for these instances are not added to the `sources` container eagerly by the Java plugins.
 
 ## External contributions
 
