@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.*;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.CacheDecorator;
@@ -151,10 +151,43 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
             } else {
                 Integer maxSize = CACHE_CAPS.get(cacheName);
                 assert maxSize != null : "Unknown cache.";
-                theData = CacheBuilder.newBuilder().maximumSize(maxSize).build();
+                LOG.info("Creating In-memory cache of {}: MaxSize{{}}", cacheId, maxSize);
+                LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
+                theData = CacheBuilder.newBuilder().maximumSize(maxSize).removalListener(evictionListener).build();
+                evictionListener.setCache(theData);
                 this.cache.put(cacheId, theData);
             }
         }
         return theData;
+    }
+
+    private static class LoggingEvictionListener implements RemovalListener<Object, Object> {
+        private static Logger logger = Logging.getLogger(LoggingEvictionListener.class);
+        private static final String EVICTION_MITIGATION_MESSAGE = "\nPerformance may suffer from in-memory cache misses. Increase max heap size of daemon process when applicable since cache max sizes are proportional to max heap size.";
+        volatile int evictionCounter;
+        private final String cacheId;
+        private Cache<Object, Object> cache;
+        private final int maxSize;
+        private final int logInterval;
+
+        private LoggingEvictionListener(String cacheId, int maxSize) {
+            this.cacheId = cacheId;
+            this.maxSize = maxSize;
+            this.logInterval = maxSize / 10;
+        }
+
+        public void setCache(Cache<Object, Object> cache) {
+            this.cache = cache;
+        }
+
+        @Override
+        public void onRemoval(RemovalNotification<Object, Object> notification) {
+            if (notification.getCause() == RemovalCause.SIZE) {
+                if (evictionCounter % logInterval == 0) {
+                    logger.log(LogLevel.INFO, "Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
+                }
+                evictionCounter++;
+            }
+        }
     }
 }
