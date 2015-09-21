@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
 import spock.lang.Ignore
 
-class TopLevelSourceSetIntegrationTest extends AbstractIntegrationSpec {
+class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     //Adding state to DefaultNodeInitializerRegistry which is a global service
     @Ignore
