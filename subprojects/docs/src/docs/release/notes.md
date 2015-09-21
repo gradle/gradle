@@ -216,7 +216,8 @@ We would like to thank the following community members for making contributions 
 * [Brian Johnson](https://github.com/john3300) - Fix AIX support for GRADLE-2799
 * [Alex Muthmann](https://github.com/deveth0) - Documentation fix
 * [Adam Roberts](https://github.com/AdamRoberts) - Specify minimum priority for PMD task
-* [John Wass](https://github.com/jw3) - Documentation fix
+* [Sebastian Schuberth](https://github.com/sschuberth) - Documentation improvements
+* [John Wass](https://github.com/jw3) - Documentation improvements
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
