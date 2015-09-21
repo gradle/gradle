@@ -25,17 +25,18 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.File;
 
 public class CachingFileSnapshotter implements FileSnapshotter {
-    private final PersistentIndexedCache<File, FileInfo> cache;
+    private final PersistentIndexedCache<String, FileInfo> cache;
     private final Hasher hasher;
     private final FileInfoSerializer serializer = new FileInfoSerializer();
 
     public CachingFileSnapshotter(Hasher hasher, PersistentStore store) {
         this.hasher = hasher;
-        this.cache = store.createCache("fileHashes", File.class, serializer);
+        this.cache = store.createCache("fileHashes", String.class, serializer);
     }
 
     public FileInfo snapshot(File file) {
-        FileInfo info = cache.get(file);
+        String absolutePath = file.getAbsolutePath();
+        FileInfo info = cache.get(absolutePath);
 
         long length = file.length();
         long timestamp = file.lastModified();
@@ -45,7 +46,7 @@ public class CachingFileSnapshotter implements FileSnapshotter {
 
         byte[] hash = hasher.hash(file);
         info = new FileInfo(hash, length, timestamp);
-        cache.put(file, info);
+        cache.put(absolutePath, info);
         return info;
     }
 
