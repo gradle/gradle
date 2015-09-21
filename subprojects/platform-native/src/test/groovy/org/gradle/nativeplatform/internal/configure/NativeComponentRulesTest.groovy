@@ -52,6 +52,7 @@ class NativeComponentRulesTest extends Specification {
     def component
 
     def setup() {
+        modelRegistry.createInstance("__binarySpecFactory", new BinarySpecFactory("test"))
         def instanceFactoryRegistry = new DefaultInstanceFactoryRegistry()
         [StaticLibraryBinarySpec, SharedLibraryBinarySpec, NativeExecutableBinarySpec].each { type ->
             instanceFactoryRegistry.register(ModelType.of(type), ModelReference.of(BinarySpecFactory))

@@ -54,7 +54,7 @@ class TaskNameResolverTest extends Specification {
 
         then:
         registry.state(path("tasks")) == SelfClosed
-        registry.state(path("tasks.task")) == Known
+        registry.state(path("tasks.task")) == ProjectionsDefined
 
         and:
         asTasks(candidates).size() == 1
@@ -123,13 +123,13 @@ class TaskNameResolverTest extends Specification {
 
         then:
         registry.state(path("tasks")) == SelfClosed
-        childRegistry.state(path("tasks")) == Known
+        childRegistry.state(path("tasks")) == ProjectionsDefined
         registry.state(path("tasks.task")) == GraphClosed
 
         and:
         asTasks(results)*.description == ["root"]
         registry.state(path("tasks")) == SelfClosed
-        childRegistry.state(path("tasks")) == Known
+        childRegistry.state(path("tasks")) == ProjectionsDefined
         registry.state(path("tasks.task")) == GraphClosed
     }
 
@@ -170,8 +170,8 @@ class TaskNameResolverTest extends Specification {
 
         then:
         resolver.selectAll(project, false).keySet() == ["task1", "task2"].toSet()
-        registry.state(path("tasks.task1")) == Known
-        registry.state(path("tasks.task2")) == Known
+        registry.state(path("tasks.task1")) == ProjectionsDefined
+        registry.state(path("tasks.task2")) == ProjectionsDefined
     }
 
     def "lazily locates all tasks for multiple projects"() {
@@ -198,21 +198,21 @@ class TaskNameResolverTest extends Specification {
         registry.state(path("tasks")) == SelfClosed
         childRegistry.state(path("tasks")) == SelfClosed
 
-        registry.state(path("tasks.name1")) == Known
-        registry.state(path("tasks.name2")) == Known
-        childRegistry.state(path("tasks.name1")) == Known
-        childRegistry.state(path("tasks.name3")) == Known
+        registry.state(path("tasks.name1")) == ProjectionsDefined
+        registry.state(path("tasks.name2")) == ProjectionsDefined
+        childRegistry.state(path("tasks.name1")) == ProjectionsDefined
+        childRegistry.state(path("tasks.name3")) == ProjectionsDefined
 
         and:
         asTasks(candidates.get('name1'))*.description == ["root", "child"]
         registry.state(path("tasks.name1")) == GraphClosed
         childRegistry.state(path("tasks.name1")) == GraphClosed
-        registry.state(path("tasks.name2")) == Known
-        childRegistry.state(path("tasks.name3")) == Known
+        registry.state(path("tasks.name2")) == ProjectionsDefined
+        childRegistry.state(path("tasks.name3")) == ProjectionsDefined
 
         asTasks(candidates.get('name2'))*.description == ["root"]
         registry.state(path("tasks.name2")) == GraphClosed
-        childRegistry.state(path("tasks.name3")) == Known
+        childRegistry.state(path("tasks.name3")) == ProjectionsDefined
 
         asTasks(candidates.get('name3'))*.description == ["child"]
         childRegistry.state(path("tasks.name3")) == GraphClosed
@@ -242,17 +242,17 @@ class TaskNameResolverTest extends Specification {
         registry.state(path("tasks")) == SelfClosed
         childRegistry.state(path("tasks")) == SelfClosed
 
-        registry.state(path("tasks.name1")) == Known
-        registry.state(path("tasks.name2")) == Known
-        childRegistry.state(path("tasks.name1")) == Known
-        childRegistry.state(path("tasks.name3")) == Known
+        registry.state(path("tasks.name1")) == ProjectionsDefined
+        registry.state(path("tasks.name2")) == ProjectionsDefined
+        childRegistry.state(path("tasks.name1")) == ProjectionsDefined
+        childRegistry.state(path("tasks.name3")) == ProjectionsDefined
 
         and:
         asTasks(candidates.get('name1'))*.description == ["root"]
         registry.state(path("tasks.name1")) == GraphClosed
-        childRegistry.state(path("tasks.name1")) == Known
-        registry.state(path("tasks.name2")) == Known
-        childRegistry.state(path("tasks.name3")) == Known
+        childRegistry.state(path("tasks.name1")) == ProjectionsDefined
+        registry.state(path("tasks.name2")) == ProjectionsDefined
+        childRegistry.state(path("tasks.name3")) == ProjectionsDefined
     }
 
     def task(String name, String description = "") {
