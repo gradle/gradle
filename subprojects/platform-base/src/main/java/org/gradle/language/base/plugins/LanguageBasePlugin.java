@@ -19,12 +19,12 @@ import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
@@ -73,7 +73,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     public void apply(final Project target) {
         target.getPluginManager().apply(LifecycleBasePlugin.class);
-        target.getExtensions().create("sources", DefaultProjectSourceSet.class);
         constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer(instantiator));
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
         applyRules(modelRegistry, binaries);
@@ -134,8 +133,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
 
         @Model
-        ProjectSourceSet sources(ExtensionContainer extensions) {
-            return extensions.getByType(ProjectSourceSet.class);
+        ProjectSourceSet sources(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(Instantiator.class).newInstance(DefaultProjectSourceSet.class);
         }
 
         @Mutate
