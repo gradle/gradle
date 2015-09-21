@@ -136,6 +136,25 @@ See discussion about parameters.  Uses cpp software model plugins.
 
 - Performance test that runs against 2.6 and latest release
 
+
+## Story: Improve File metadata lookup in task input/output snapshotting
+
+File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are hotspots in task input/output snapshotting. 
+The Java nio2 directory walking method java.nio.file.Files.walkFileTree can pass the file metadata used for directory scanning to "visiting" the file tree so that metadata (BasicFileAttributes) doesn't have to be re-read.
+
+### Test coverage
+
+TBD
+
+## Story: Add caching to Specs returned from PatternSet.getAsSpecs()
+
+Evaluating patterns is a hotspot in directory scanning. The default excludes patterns contains 28 entries. Checking all rules for each file sums up in a lot of operations. Adding caching will improve performance of subsequent incremental builds.
+
+### Test coverage
+
+TBD
+
+
 ## Story: TBD
 
 TBD
