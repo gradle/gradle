@@ -114,4 +114,9 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
         result = 31 * result + (canBeViewedAsWritable ? 1 : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "[" + type + "]";
+    }
 }

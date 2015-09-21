@@ -156,6 +156,11 @@ class RuleBindings {
             this.index = index;
             this.binding = binding;
         }
+
+        @Override
+        public String toString() {
+            return binding + " in " + index.name;
+        }
     }
 
     private static class NodeIndex {
