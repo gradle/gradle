@@ -31,22 +31,56 @@ import java.util.Map;
 public class InMemoryTaskArtifactCache implements CacheDecorator {
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
     private final static Object NULL = new Object();
+    private static final Map<String, Integer> CACHE_CAPS = new CacheCapSizer().calculateCaps();
 
-    private static final Map<String, Integer> CACHE_CAPS = new HashMap<String, Integer>();
+    static class CacheCapSizer {
+        private static final Map<String, Integer> DEFAULT_CAP_SIZES = new HashMap<String, Integer>();
 
-    static {
-        //it's the simplest implementation, not very nice
-        //at very least, the max size should be provided at creation, by the creator of the cache
-        //however, max size is a bit awkward in general and we should look into other options,
-        //like using the Weighter and relate the cache size to the available heap, etc.
-        CACHE_CAPS.put("fileSnapshots", 10000);
-        CACHE_CAPS.put("taskArtifacts", 2000);
-        CACHE_CAPS.put("outputFileStates", 3000);
-        CACHE_CAPS.put("fileHashes", 400000);
-        CACHE_CAPS.put("compilationState", 1000);
+        private static final int DEFAULT_SIZES_MAX_HEAP_MB = 910; // when -Xmx1024m, Runtime.maxMemory() returns about 910
+        private static final int ASSUMED_USED_HEAP = 150; // assume that Gradle itself uses about 150MB heap
 
-        //In general, the in-memory cache must be capped at some level, otherwise it is reduces performance in truly gigantic builds
+        private static final double MIN_RATIO = 0.2d;
+
+        static {
+            DEFAULT_CAP_SIZES.put("fileSnapshots", 10000);
+            DEFAULT_CAP_SIZES.put("taskArtifacts", 2000);
+            DEFAULT_CAP_SIZES.put("outputFileStates", 3000);
+            DEFAULT_CAP_SIZES.put("fileHashes", 400000);
+            DEFAULT_CAP_SIZES.put("compilationState", 1000);
+        }
+
+        private final int maxHeapMB;
+
+        CacheCapSizer(int maxHeapMB) {
+            this.maxHeapMB = maxHeapMB;
+        }
+
+        CacheCapSizer() {
+            this(calculateMaxHeapMB());
+        }
+
+        private static int calculateMaxHeapMB() {
+            return (int) (Runtime.getRuntime().maxMemory() / (1024 * 1024));
+        }
+
+        public Map<String, Integer> calculateCaps() {
+            double ratio = calculateRatio();
+            Map<String, Integer> capSizes = new HashMap<String, Integer>();
+            for (Map.Entry<String, Integer> entry : DEFAULT_CAP_SIZES.entrySet()) {
+                capSizes.put(entry.getKey(), calculateNewSize(entry.getValue(), ratio));
+            }
+            return capSizes;
+        }
+
+        private int calculateNewSize(int oldvalue, double ratio) {
+            return (int) ((double) oldvalue * ratio) / 100 * 100;
+        }
+
+        private double calculateRatio() {
+            return Math.max((double) (maxHeapMB - ASSUMED_USED_HEAP) / (double) (DEFAULT_SIZES_MAX_HEAP_MB - ASSUMED_USED_HEAP), MIN_RATIO);
+        }
     }
+
 
     private final Object lock = new Object();
     private final Cache<String, Cache<Object, Object>> cache = CacheBuilder.newBuilder()
