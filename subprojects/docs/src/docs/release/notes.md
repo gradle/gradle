@@ -44,6 +44,23 @@ Gradle now automatically adds the compile dependencies of each analyzed source s
 
 ### Managed model improvements
 
+The managed model now supports collections of scalar types as properties. This means that it is possible to use a JDK Number type (`Integer`, `Double`, ...), a `Boolean`, a `String`, a
+ `File` or an `enum` as element type of a `Set` or a `List`:
+
+    @Managed
+    interface User {
+        Set<String> getGroups();
+    }
+
+Properties of scalar types are available as read-only properties, in which case they default to an empty collection, or as read-write properties, in which case they default to `null`. A
+read-only (non nullable) property is created by defining only a setter, while a read-write property is created by defining both a setter and a getter:
+
+    @Managed
+    interface User {
+        Set<String> getGroups();
+        void setGroups(Set<String> groups);
+    }
+
 TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with references between different model
 elements.
 
@@ -177,16 +194,16 @@ results in the following IDE project name mapping:
     \-bar
        \- bar-app
 
-### Changes to incubating integration between software model and the Java plugins  
+### Changes to incubating integration between software model and the Java plugins
 
 TBD
 
 The behaviour of `ClassDirectoryBinarySpec` instances has changed:
 
-- `ClassDirectoryBinarySpec` instances can no longer be created using the `binaries` container. Instances are added to this container by the Java plugins for each source set, 
+- `ClassDirectoryBinarySpec` instances can no longer be created using the `binaries` container. Instances are added to this container by the Java plugins for each source set,
 however, additional instances cannot be added. This capability will be added again in a later release.
 - Instances are not added to the `binaries` container eagerly by the Java plugins.
-- Source sets for these instances are not added to the `sources` container eagerly by the Java plugins. 
+- Source sets for these instances are not added to the `sources` container eagerly by the Java plugins.
 
 ## External contributions
 
