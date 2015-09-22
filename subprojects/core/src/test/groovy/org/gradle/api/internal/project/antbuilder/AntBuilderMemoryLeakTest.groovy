@@ -24,6 +24,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -60,6 +61,7 @@ class AntBuilderMemoryLeakTest extends Specification {
         builder.classLoaderCache.isEmpty()
     }
 
+    @Ignore("Test doesn't fail fast enough")
     def "should release cache under memory pressure"() {
         given:
         def builder = new DefaultIsolatedAntBuilder(registry, classLoaderFactory)
