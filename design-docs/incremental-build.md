@@ -150,6 +150,14 @@ See discussion about parameters.  Uses cpp software model plugins.
 
 - Performance test that runs against 2.6 and latest release
 
+## Story: Profile Java representative build with parallel execution mode
+
+- Record profile findings
+
+### Test coverage
+
+- Test with --parallel --max-workers=4
+- add test scenario to NewJavaPluginPerformanceTest for parallel execution to existing test
 
 ## Story: Improve File metadata lookup in task input/output snapshotting
 
@@ -167,7 +175,6 @@ Evaluating patterns is a hotspot in directory scanning. The default excludes pat
 ### Test coverage
 
 TBD
-
 
 ## Story: TBD
 
