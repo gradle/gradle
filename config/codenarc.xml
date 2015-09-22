@@ -43,5 +43,6 @@
         </rule-config>
         <exclude name="ConfusingMethodName"/>
         <exclude name="FactoryMethodName"/>
+        <exclude name="ClassNameSameAsSuperclass"/>
     </ruleset-ref>
 </ruleset>

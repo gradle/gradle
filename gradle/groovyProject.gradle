@@ -51,6 +51,9 @@ testTasks.all { task ->
             println "maxParallelForks for '$task.path' is $task.maxParallelForks"
         }
     }
+    if (javaVersion.java6 || javaVersion.java7) {
+        task.jvmArgs '-XX:+CMSClassUnloadingEnabled'
+    }
 }
 
 jarTasks.all { jar ->

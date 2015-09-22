@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.project.*
+import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.configuration.*

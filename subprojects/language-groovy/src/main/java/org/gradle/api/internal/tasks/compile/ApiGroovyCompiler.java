@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
@@ -30,6 +31,7 @@ import org.codehaus.groovy.tools.javac.JavaCompiler;
 import org.codehaus.groovy.tools.javac.JavaCompilerFactory;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.classloading.MemoryLeakPrevention;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
@@ -44,8 +46,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.*;
 
 public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
@@ -56,6 +58,12 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     }
 
     public WorkResult execute(final GroovyJavaJointCompileSpec spec) {
+        ClassLoader apiCompilerClassLoader = this.getClass().getClassLoader();
+        MemoryLeakPrevention prevention = new MemoryLeakPrevention(
+            "API Groovy Compiler",
+            apiCompilerClassLoader,
+            null);
+        prevention.prepare();
         CompilerConfiguration configuration = new CompilerConfiguration();
         configuration.setVerbose(spec.getGroovyCompileOptions().isVerbose());
         configuration.setSourceEncoding(spec.getGroovyCompileOptions().getEncoding());
@@ -75,7 +83,20 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         jointCompilationOptions.put("keepStubs", spec.getGroovyCompileOptions().isKeepStubs());
         configuration.setJointCompilationOptions(jointCompilationOptions);
 
-        URLClassLoader classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), new DefaultClassPath(spec.getClasspath()));
+        ClassLoader classPathLoader;
+        VersionNumber version = parseGroovyVersion();
+        if (version.compareTo(VersionNumber.parse("2.0")) < 0) {
+            // using a transforming classloader is only required for older buggy Groovy versions
+            classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), new DefaultClassPath(spec.getClasspath()));
+        } else {
+            classPathLoader = new DefaultClassLoaderFactory().createIsolatedClassLoader(
+                Iterables.transform(spec.getClasspath(), new Function<File, URI>() {
+                    @Override
+                    public URI apply(File input) {
+                        return input.toURI();
+                    }
+                }));
+        }
         GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
 
         FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
@@ -95,7 +116,14 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         for (File file : spec.getClasspath()) {
             astTransformClassLoader.addClasspath(file.getPath());
         }
-
+        MemoryLeakPrevention groovyCompilerLeakPrevention = new MemoryLeakPrevention(
+            "Groovy compile classpath classloader", compileClasspathClassLoader, null
+        );
+        MemoryLeakPrevention astxformsLeakPrevention = new MemoryLeakPrevention(
+            "Groovy AST xforms classloader", astTransformClassLoader, null
+        );
+        groovyCompilerLeakPrevention.prepare();
+        astxformsLeakPrevention.prepare();
         JavaAwareCompilationUnit unit = new JavaAwareCompilationUnit(configuration, compileClasspathClassLoader) {
             @Override
             public GroovyClassLoader getTransformLoader() {
@@ -110,7 +138,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             // All java files are just passed to the compile method of the JavaCompiler and aren't processed internally by the Groovy Compiler.
             // Since we're maintaining our own list of Java files independent what's passed by the Groovy compiler, adding a non-existant java file
             // to the sources won't cause any issues.
-            unit.addSources(new File[] {new File("ForceStubGeneration.java")});
+            unit.addSources(new File[]{new File("ForceStubGeneration.java")});
         }
 
         unit.addSources(Iterables.toArray(spec.getSource(), File.class));
@@ -153,6 +181,10 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         } catch (org.codehaus.groovy.control.CompilationFailedException e) {
             System.err.println(e.getMessage());
             throw new CompilationFailedException();
+        } finally {
+            prevention.dispose(getExtClassLoader(), astTransformClassLoader, compileClasspathClassLoader);
+            groovyCompilerLeakPrevention.dispose(getExtClassLoader(), apiCompilerClassLoader, astTransformClassLoader);
+            astxformsLeakPrevention.dispose(getExtClassLoader(), apiCompilerClassLoader, compileClasspathClassLoader);
         }
 
         return new SimpleWorkResult(true);
