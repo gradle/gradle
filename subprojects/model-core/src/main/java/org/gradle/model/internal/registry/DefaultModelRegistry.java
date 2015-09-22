@@ -101,12 +101,14 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     @Override
     public ModelRegistry project(ModelProjector projector) {
-        project(projector, ModelPath.ROOT);
-        return this;
+        return project(projector, ModelPath.ROOT);
     }
 
     @Override
     public ModelRegistry project(ModelProjector projector, ModelPath scope) {
+        if (reset) {
+            return this;
+        }
         BindingPredicate mappedSubject = new BindingPredicate(ModelReference.of(projector.getPath()).atState(ModelNode.State.ProjectionsDefined));
         List<BindingPredicate> mappedInputs = mapInputs(projector.getInputs(), scope);
         ruleBindings.add(new ProjectorRuleBinder(projector, mappedSubject, mappedInputs, unboundRules));

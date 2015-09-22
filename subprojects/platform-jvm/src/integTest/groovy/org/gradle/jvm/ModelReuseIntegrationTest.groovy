@@ -19,7 +19,6 @@ package org.gradle.jvm
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.model.internal.persist.ReusingModelRegistryStore
-import spock.lang.Ignore
 
 // Requires daemon because reuse right now doesn't handle the build actually changing
 class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
@@ -32,7 +31,6 @@ class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
         }
     }
 
-    @Ignore("lptr needs to fix this")
     def "can enable reuse with the component model"() {
         when:
         buildScript """
