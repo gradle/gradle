@@ -361,6 +361,19 @@ For example:
       registering an initializer strategy implementation.
     - Replace the various `ChildNodeInitializerStrategy` implementations with one that delegates to the schema.
 
+### Test cases
+- read-only property of a `@Managed` type.
+- a mutable property of a `@Managed` type.
+- element of managed collections `ModelSet`.
+- element of managed collections `ModelMap`.
+- Attempting to define a managed type with a non-supported type on any of the above cases should report an error with the supported types including:
+    - FunctionalSourceSet
+    - ModelMap<FunctionalSourceSet>
+    - ModelSet<FunctionalSourceSet>
+- Cannot define a property or managed element of a type which extends FunctionalSourceSet
+- A property or managed element of type `FunctionalSourceSet` cannot be applied when the `LanguageBasePlugin` has not been applied.
+- Model report shows something reasonable for a managed property or collections of type FunctionalSourceSet.
+
 ## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
 
 - All registered `LanguageSourceSet` types are available to be added.
