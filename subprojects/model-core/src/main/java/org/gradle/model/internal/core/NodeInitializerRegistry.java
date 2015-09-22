@@ -20,7 +20,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
 public interface NodeInitializerRegistry {
-    <T> NodeInitializer getNodeInitializer(ModelType<T> type) throws ModelTypeInitializationException;
+    <T> NodeInitializer getNodeInitializer(ModelType<T> type);
 
-    <T> NodeInitializer getNodeInitializer(ModelSchema<T> schema) throws ModelTypeInitializationException;
+    <T> NodeInitializer getNodeInitializer(ModelSchema<T> schema);
 }

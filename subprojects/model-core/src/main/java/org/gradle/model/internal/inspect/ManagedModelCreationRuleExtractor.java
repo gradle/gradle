@@ -72,7 +72,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         if (modelSchema instanceof ModelValueSchema) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.");
         }
-        NodeInitializer nodeInitializer = null;
+        NodeInitializer nodeInitializer;
         try {
             nodeInitializer = nodeInitializerRegistry.getNodeInitializer(modelSchema);
         } catch (ModelTypeInitializationException e) {

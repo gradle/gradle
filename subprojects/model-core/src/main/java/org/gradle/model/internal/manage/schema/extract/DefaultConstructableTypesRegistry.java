@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -24,10 +25,8 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Map;
 
-import static com.google.common.collect.Maps.newHashMap;
-
 public class DefaultConstructableTypesRegistry implements ConstructableTypesRegistry {
-    private Map<ModelType<?>, NodeInitializer> mappings = newHashMap();
+    private Map<ModelType<?>, NodeInitializer> mappings = Maps.newLinkedHashMap();
 
     @Override
     public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema, NodeInitializerRegistry nodeInitializerRegistry) {
@@ -36,7 +35,9 @@ public class DefaultConstructableTypesRegistry implements ConstructableTypesRegi
 
     @Override
     public Iterable<ModelType<?>> supportedTypes() {
-        return ImmutableList.<ModelType<?>>builder().build();
+        //Returning an empty for now because this class `DefaultConstructableTypesRegistry` is shared for the duration of a gradle process (GlobalScopeServices)
+        //and tests which verify the supported types cannot rely on this.
+        return ImmutableList.of();
     }
 
     @Override

@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class ManagedNamedTest extends Specification {
 
-    ConstructableTypesRegistry constructableTypesRegistry = Mock()
+    def constructableTypesRegistry = Mock(ConstructableTypesRegistry)
     def r = new ModelRegistryHelper()
     def schemaStore = DefaultModelSchemaStore.getInstance()
     def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore, constructableTypesRegistry)

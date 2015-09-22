@@ -56,6 +56,6 @@ public abstract class ManagedImplStructNodeInitializerExtractionSupport implemen
 
     @Override
     public Iterable<ModelType<?>> supportedTypes() {
-        return ImmutableSet.<ModelType<?>>of().asList();
+        return ImmutableSet.of();
     }
 }

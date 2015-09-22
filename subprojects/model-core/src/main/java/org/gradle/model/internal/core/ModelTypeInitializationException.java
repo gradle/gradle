@@ -21,19 +21,17 @@ import org.gradle.api.Incubating;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.TypeCollectionDescriptor;
 
-import java.util.List;
-
 /**
  * Thrown when a NodeInitializer can not be found for a given type or when the type is not managed and can not be constructed.
  */
 @Incubating
 public class ModelTypeInitializationException extends GradleException {
 
-    public ModelTypeInitializationException(ModelType<?> type, List<ModelType<?>> candidates) {
+    public ModelTypeInitializationException(ModelType<?> type, Iterable<ModelType<?>> candidates) {
         super(toMessage(type, candidates));
     }
 
-    private static String toMessage(ModelType<?> type, List<ModelType<?>> types) {
+    private static String toMessage(ModelType<?> type, Iterable<ModelType<?>> types) {
         TypeCollectionDescriptor supportedTypesDescriptor = new TypeCollectionDescriptor(types);
         return String.format("The model node of type: '%s' can not be constructed. The type must be managed (@Managed) or one of the following types [%s]", type, supportedTypesDescriptor.toString());
     }

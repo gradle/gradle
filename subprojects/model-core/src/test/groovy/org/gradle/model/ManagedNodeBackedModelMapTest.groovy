@@ -39,7 +39,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
     def itemType = ModelType.of(NamedThingInterface)
     def modelMapType = ModelTypes.modelMap(itemType)
     def schemaStore = DefaultModelSchemaStore.instance
-    ConstructableTypesRegistry constructableTypesRegistry = Mock()
+    def constructableTypesRegistry = Mock(ConstructableTypesRegistry)
     def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore, constructableTypesRegistry)
 
     def setup() {

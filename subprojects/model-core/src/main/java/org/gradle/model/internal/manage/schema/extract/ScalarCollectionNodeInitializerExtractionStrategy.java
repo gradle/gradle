@@ -65,7 +65,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
 
     @Override
     public Iterable<ModelType<?>> supportedTypes() {
-        return ImmutableList.<ModelType<?>>builder().addAll(TYPES).build();
+        return ImmutableList.copyOf(TYPES);
     }
 
     private static class ScalarCollectionModelProjection<E> extends TypedModelProjection<E> {

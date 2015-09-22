@@ -38,6 +38,6 @@ public class DefaultInstanceFactoryRegistry implements InstanceFactoryRegistry {
 
     @Override
     public Iterable<ModelType<?>> supportedTypes() {
-        return ImmutableSet.<ModelType<?>>of().asList();
+        return ImmutableSet.of();
     }
 }
