@@ -19,7 +19,7 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 - TBD, whatever makes sense (this should touch test infrastructure only)
 
-## Story: Compare tasks using IncrementalTaskInputs with "regular" tasks
+## ~~Story: Compare tasks using IncrementalTaskInputs with "regular" tasks~~
 
 - Vary number of inputs
 - If difference between calculating up-to-date checks is identical or within an order of magnitude, remove this as a variable in future plans.
@@ -31,7 +31,11 @@ This spec defines some improvements to improve incremental build and task up-to-
 - Compare time to perform up-to-date checks for otherwise identical tasks at
    - 1, 10, 100, 1000 and 10000 inputs
 
-## Story: Compare "one change" and "no change" cases
+### Result
+
+No meaningful difference (see detailed numbers in Google sheet).
+
+## ~~Story: Compare "one change" and "no change" cases~~
 
 - Vary number of inputs
 - Compare no input change case with one input change case
@@ -45,7 +49,11 @@ This spec defines some improvements to improve incremental build and task up-to-
 - Collect time to perform up-to-date checks at
    - 1, 10, 100, 1000 and 10000 inputs
 
-## Story: Find breaking point for input and output sizes
+### Result
+
+No meaningful difference (see detailed numbers in Google sheet).
+
+## ~~Story: Find breaking point for input and output sizes~~
 
 ### Scenario 1: vary inputs
 
@@ -77,6 +85,12 @@ This spec defines some improvements to improve incremental build and task up-to-
 - Collect time to perform up-to-date checks for 100 outputs at
    - 1MB, 10MB, 50MB, 100MB outputs (smaller if impractical)
 
+### Result
+
+- It depends on the heap size. With 10000 tasks of 10000 input files, it runs out of memory with a 4GB max heap size.
+- With 1GB heap, 1000 tasks with 1000 input files is successful (total of 1 million inputs), but 1000 tasks with 2000 input files fails.
+Because of task execution history, the file hashes from the previous build are kept in memory. There was about 2.5 million FileHashSnapshot
+instances in memory when the OOM occured.
 
 ## Story: Update performance generator to create representative Java project
 
@@ -139,7 +153,7 @@ See discussion about parameters.  Uses cpp software model plugins.
 
 ## Story: Improve File metadata lookup in task input/output snapshotting
 
-File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are hotspots in task input/output snapshotting. 
+File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are hotspots in task input/output snapshotting.
 The Java nio2 directory walking method java.nio.file.Files.walkFileTree can pass the file metadata used for directory scanning to "visiting" the file tree so that metadata (BasicFileAttributes) doesn't have to be re-read.
 
 ### Test coverage
