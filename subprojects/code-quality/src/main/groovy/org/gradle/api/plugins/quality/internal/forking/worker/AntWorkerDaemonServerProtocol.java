@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality.internal.forking;
+package org.gradle.api.plugins.quality.internal.forking.worker;
 
-public interface AntWorkerClientProtocol {
+import org.gradle.api.plugins.quality.internal.forking.AntWorkerSpec;
+import org.gradle.internal.concurrent.Stoppable;
 
-    void executed(AntResult antResult);
+
+public interface AntWorkerDaemonServerProtocol extends Stoppable {
+    <T extends AntWorkerSpec> void executeSpec(T spec);
 }

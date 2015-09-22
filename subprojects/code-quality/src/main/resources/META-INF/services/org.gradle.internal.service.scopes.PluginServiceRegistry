@@ -1,1 +1,1 @@
-org.gradle.api.plugins.quality.internal.forking.next.AntWorkerServiceRegistry
+org.gradle.api.plugins.quality.internal.forking.worker.AntWorkerServiceRegistry

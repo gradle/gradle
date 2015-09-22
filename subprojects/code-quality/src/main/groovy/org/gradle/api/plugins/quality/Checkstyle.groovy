@@ -21,26 +21,18 @@ import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.AntFileCollectionBuilder
 import org.gradle.api.internal.project.AntBuilderDelegate
-import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl
 import org.gradle.api.plugins.quality.internal.forking.AntExecutionSpec
-import org.gradle.api.plugins.quality.internal.forking.AntProcessBuilder
-import org.gradle.api.plugins.quality.internal.forking.AntResult
 import org.gradle.api.plugins.quality.internal.forking.AntSourceBuilder
-import org.gradle.api.plugins.quality.internal.forking.AntWorkerManager
 import org.gradle.api.plugins.quality.internal.forking.AntWorkerSpec
 import org.gradle.api.plugins.quality.internal.forking.RootAntSourceBuilder
-import org.gradle.api.plugins.quality.internal.forking.next.AntWorkerClientsManager
-import org.gradle.api.plugins.quality.internal.forking.next.AntWorkerDaemon
-import org.gradle.api.plugins.quality.internal.forking.next.AntWorkerDaemonManager
+import org.gradle.api.plugins.quality.internal.forking.worker.AntWorkerDaemonManager
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
-import org.gradle.internal.Factory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.logging.ConsoleRenderer
-import org.gradle.process.internal.WorkerProcessBuilder
 import org.gradle.util.GUtil
 
 import javax.inject.Inject

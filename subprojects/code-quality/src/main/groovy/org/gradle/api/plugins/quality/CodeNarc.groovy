@@ -20,12 +20,14 @@ import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.AntBuilderDelegate
+import org.gradle.api.internal.tasks.compile.daemon.DaemonForkOptions
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
 import org.gradle.api.plugins.quality.internal.forking.AntExecutionSpec
-import org.gradle.api.plugins.quality.internal.forking.AntProcessBuilder
 import org.gradle.api.plugins.quality.internal.forking.AntSourceBuilder
+import org.gradle.api.plugins.quality.internal.forking.AntWorkerSpec
 import org.gradle.api.plugins.quality.internal.forking.RootAntSourceBuilder
+import org.gradle.api.plugins.quality.internal.forking.worker.AntWorkerDaemonManager
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
@@ -114,10 +116,10 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     @TaskAction
     void run() {
         logging.captureStandardOutput(LogLevel.INFO)
-        def antResult = new AntProcessBuilder(project).withAntExecutionSpec(new CodenarcAntAction(this))
-            .withClasspath(getCodenarcClasspath())
-            .withWorkerProcessBuilderFactory(getWorkerProcessBuilderFactory())
-            .execute()
+        AntWorkerDaemonManager antWorkerManager = getServices().get(AntWorkerDaemonManager.class);
+        def daemon = antWorkerManager.getDaemon(project.getProjectDir(), new DaemonForkOptions("1g", "1g", []))
+        def spec = new AntWorkerSpec(project.getProjectDir(), getCodenarcClasspath(), new CodenarcAntAction(this))
+        def antResult = daemon.execute(spec)
 
         if(antResult.errorCount != 0) {
             if (antResult.throwable.message.matches('Exceeded maximum number of priority \\d* violations.*')) {

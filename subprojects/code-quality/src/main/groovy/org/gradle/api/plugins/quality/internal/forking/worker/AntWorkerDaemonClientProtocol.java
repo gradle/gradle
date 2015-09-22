@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality.internal.forking;
+package org.gradle.api.plugins.quality.internal.forking.worker;
 
-public class AntWorkerClient implements AntWorkerClientProtocol {
-    private AntResult antResult;
+import org.gradle.api.plugins.quality.internal.forking.AntResult;
 
-    @Override
-    public void executed(AntResult antResult) {
-        this.antResult = antResult;
-    }
 
-    public AntResult getResult() {
-        return antResult;
-    }
+public interface AntWorkerDaemonClientProtocol {
+    void executed(AntResult result);
 }
