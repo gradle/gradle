@@ -55,6 +55,9 @@ public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
 
     @Override
     public TypeBuilder<T> internalView(Class<?> internalView) {
+        if (internalViews.contains(internalView)) {
+            throw new InvalidModelException(String.format("Internal view '%s' must not be specified multiple times.", internalView.getName()));
+        }
         internalViews.add(internalView);
         return this;
     }
