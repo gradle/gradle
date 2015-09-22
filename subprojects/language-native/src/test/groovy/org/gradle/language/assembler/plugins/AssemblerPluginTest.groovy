@@ -20,8 +20,10 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.tasks.Assemble
+import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.*
 import org.gradle.platform.base.ComponentSpec
@@ -34,6 +36,10 @@ class AssemblerPluginTest extends Specification {
 
     ModelMap<ComponentSpec> realizeComponents() {
         project.modelRegistry.realize(ModelPath.path("components"), ModelTypes.modelMap(ComponentSpec))
+    }
+
+    ProjectSourceSet realizeSourceSets() {
+        project.modelRegistry.find(ModelPath.path("sources"), ModelType.of(ProjectSourceSet))
     }
 
     def "creates asm source set with conventional locations for components"() {
@@ -56,7 +62,8 @@ class AssemblerPluginTest extends Specification {
         exe.sources.asm.source.srcDirs == [project.file("src/exe/asm")] as Set
 
         and:
-        project.sources as Set == exe.sources as Set
+        def sources = realizeSourceSets()
+        sources as Set == exe.sources as Set
     }
 
     def "can configure source set locations"() {

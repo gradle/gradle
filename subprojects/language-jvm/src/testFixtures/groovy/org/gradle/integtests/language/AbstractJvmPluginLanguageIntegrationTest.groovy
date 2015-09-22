@@ -55,8 +55,10 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
             myLib(JvmLibrarySpec)
         }
         tasks {
-            create("validate") {
+            validate(Task) {
                 def components = \$("components")
+                def sources = \$("sources")
+                def binaries = \$("binaries")
                 doLast {
                     def myLib = components.myLib
                     assert myLib instanceof JvmLibrarySpec
@@ -65,9 +67,9 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
                     assert myLib.sources.${languageName} instanceof ${sourceSetTypeName}
                     assert myLib.sources.resources instanceof JvmResourceSet
 
-                    assert project.sources as Set == myLib.sources as Set
+                    assert sources as Set == myLib.sources as Set
 
-                    project.binaries.withType(JarBinarySpec) { jvmBinary ->
+                    binaries.withType(JarBinarySpec).each { jvmBinary ->
                         assert jvmBinary.inputs.toList() == myLib.sources.values().toList()
                     }
                 }
@@ -95,8 +97,10 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
             }
         }
         tasks {
-            create("validate") {
+            validate(Task) {
                 def components = \$("components")
+                def sources = \$("sources")
+                def binaries = \$("binaries")
                 doLast {
                     def myLib = components.myLib
                     assert myLib instanceof JvmLibrarySpec
@@ -107,9 +111,9 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
                     assert myLib.sources.resources instanceof JvmResourceSet
                     assert myLib.sources.extraResources instanceof JvmResourceSet
 
-                    assert project.sources as Set == myLib.sources as Set
+                    assert sources as Set == myLib.sources as Set
 
-                    project.binaries.withType(JarBinarySpec) { jvmBinary ->
+                    binaries.withType(JarBinarySpec).each { jvmBinary ->
                         assert jvmBinary.inputs.toList() == myLib.sources.values().toList()
                     }
                 }
