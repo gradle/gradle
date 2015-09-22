@@ -28,9 +28,13 @@ class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['last']
+        runner.targetVersions = ['2.7', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/tmp"]
+        if (parallelWorkers) {
+            runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
+            runner.displayNameClosure = { String version -> "$version max-workers=$parallelWorkers".toString() }
+        }
         runner.runs = 1
         runner.warmUpRuns = 1
 
@@ -41,8 +45,10 @@ class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                | maxExecutionTimeRegression
-        "smallNewMultiprojectJava" | millis(1000)
-        "largeNewMultiprojectJava" | millis(5000)
+        testProject                | maxExecutionTimeRegression | parallelWorkers
+        "smallNewMultiprojectJava" | millis(1000)               | 0
+        "smallNewMultiprojectJava" | millis(1000)               | 4
+        "largeNewMultiprojectJava" | millis(5000)               | 0
+        "largeNewMultiprojectJava" | millis(5000)               | 4
     }
 }
