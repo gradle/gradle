@@ -31,6 +31,7 @@ import java.lang.reflect.Proxy
 
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class AntBuilderMemoryLeakTest extends Specification {
+
     @Shared
     private ModuleRegistry moduleRegistry = new DefaultModuleRegistry()
 
@@ -62,7 +63,7 @@ class AntBuilderMemoryLeakTest extends Specification {
     def "should release cache under memory pressure"() {
         given:
         def builder = new DefaultIsolatedAntBuilder(registry, classLoaderFactory)
-        def classes = []
+        Class[] classes = new Class[1]
 
         when:
         int i = 0
@@ -73,7 +74,15 @@ class AntBuilderMemoryLeakTest extends Specification {
                 builder.withClasspath([new File("foo$i")]).execute {
 
                 }
-                classes << Proxy.getProxyClass(classLoaderFactory.createIsolatedClassLoader([]), Serializable)
+
+                classes[classes.length-1] = Proxy.getProxyClass(classLoaderFactory.createIsolatedClassLoader([]), Serializable)
+                4.times {
+                    // exponential grow to make it fail faster
+                    Class[] dup = new Class[classes.length*2]
+                    System.arraycopy(classes, 0, dup, 0, classes.length)
+                    System.arraycopy(classes, 0, dup, classes.length, classes.length)
+                    classes = dup
+                }
                 i++
             }
         } catch (OutOfMemoryError e) {
@@ -81,8 +90,8 @@ class AntBuilderMemoryLeakTest extends Specification {
         }
 
         then:
-        assert i>0
-        assert classes.empty
-        builder.classLoaderCache.size() < i-1
+        assert i>1
+        assert classes.length == 0
+        builder.classLoaderCache.empty || builder.classLoaderCache.size() < i-1
     }
 }
