@@ -62,15 +62,6 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         0 * _
     }
 
-    def "applies ComponentModelBasePlugin only when implementation not set"() {
-        when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSet"))
-
-        then:
-        registration instanceof DependencyOnlyExtractedModelRule
-        registration.ruleDependencies == [ComponentModelBasePlugin]
-    }
-
     @Unroll
     def "decent error message for #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
