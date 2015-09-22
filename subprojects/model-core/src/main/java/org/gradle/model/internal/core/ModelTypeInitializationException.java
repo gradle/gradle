@@ -16,10 +16,13 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.TypeCollectionDescriptor;
 
 /**
  * Thrown when a NodeInitializer can not be found for a given type or when the type is not managed and can not be constructed.
@@ -32,8 +35,16 @@ public class ModelTypeInitializationException extends GradleException {
     }
 
     private static String toMessage(ModelType<?> type, Iterable<ModelType<?>> types) {
-        TypeCollectionDescriptor supportedTypesDescriptor = new TypeCollectionDescriptor(types);
-        return String.format("The model node of type: '%s' can not be constructed. The type must be managed (@Managed) or one of the following types [%s]", type, supportedTypesDescriptor.toString());
+        return String.format("The model node of type: '%s' can not be constructed. The type must be managed (@Managed) or one of the following types [%s]", type, describe(types));
+    }
+
+    private static String describe(Iterable<ModelType<?>> types) {
+        return Joiner.on(", ").join(ImmutableSet.copyOf(Iterables.transform(types, new Function<ModelType<?>, String>() {
+            @Override
+            public String apply(ModelType<?> input) {
+                return input.getSimpleName();
+            }
+        })));
     }
 }
 
