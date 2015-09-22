@@ -298,9 +298,20 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
     }
 
+    /**
+     * This custom class node resolver is responsible for quickly discarding class lookups
+     * based on the class name, in order to increase the performance of compilation of Groovy scripts:
+     * the Groovy compiler, for each thing that may be a class reference in a script, performs *lots*
+     * of attempts to load a class using different fully qualified class names. In some situations,
+     * we are able to tell that this will fail, for example when we see something that starts with
+     * java.lang$java$lang$.
+     * This shortcut makes dramatic differences in compilation times.
+     */
     private static class ShortcutClassNodeResolver extends ClassNodeResolver {
         @Override
         public LookupResult findClassNode(String name, CompilationUnit compilationUnit) {
+            // todo: ideally, we should use a precompiled DFA here, in order to choose whether to perform a lookup
+            // in linear time
             if (name.startsWith("org$gradle$")) {
                 return null;
             }
