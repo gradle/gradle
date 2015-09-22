@@ -23,6 +23,7 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -142,7 +143,7 @@ class BuildActionsFactory implements CommandLineAction {
                 System.getenv(),
                 SystemProperties.getInstance().getCurrentDir(),
                 startParameter.getLogLevel(),
-                daemonParameters.getDaemonUsage(), startParameter.isContinuous(), daemonParameters.isInteractive(), startParameter.getClasspath());
+                daemonParameters.getDaemonUsage(), startParameter.isContinuous(), daemonParameters.isInteractive(), new DefaultClassPath(startParameter.getClasspath()));
         return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters, sharedServices);
     }
 

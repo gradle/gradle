@@ -16,11 +16,9 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
-
-import java.net.URI;
-import java.util.List;
 
 public class DefaultBuildLauncherInternal extends DefaultBuildLauncher {
     public DefaultBuildLauncherInternal(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
@@ -34,7 +32,7 @@ public class DefaultBuildLauncherInternal extends DefaultBuildLauncher {
      * @return this
      * @since 2.8
      */
-    public BuildLauncher withClasspath(List<URI> classpath) {
+    public BuildLauncher withClasspath(ClassPath classpath) {
         operationParamsBuilder.setClasspath(classpath);
         return this;
     }

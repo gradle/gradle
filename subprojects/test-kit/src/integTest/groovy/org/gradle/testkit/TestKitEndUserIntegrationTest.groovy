@@ -447,13 +447,13 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             class BuildLogicFunctionalTest extends Specification {
                 @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
                 File buildFile
-                List<URI> pluginClasspath
+                List<File> pluginClasspath
 
                 def setup() {
                     buildFile = testProjectDir.newFile('build.gradle')
                     pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
                       .readLines()
-                      .collect { new File(it).toURI() }
+                      .collect { new File(it) }
                 }
 
                 def "execute helloWorld task"() {

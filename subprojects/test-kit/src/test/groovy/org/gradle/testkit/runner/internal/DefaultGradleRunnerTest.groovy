@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner.internal
 
 import org.gradle.api.GradleException
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
@@ -27,7 +28,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultGradleRunnerTest extends Specification {
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
+    @Rule
+    SetSystemProperties sysProp = new SetSystemProperties()
     File gradleHome = Mock(File)
     GradleExecutor gradleExecutor = Mock(GradleExecutor)
     TestKitDirProvider testKitDirProvider = Mock(TestKitDirProvider)
@@ -131,8 +133,8 @@ class DefaultGradleRunnerTest extends Specification {
         given:
         def originalArguments = ['arg1', 'arg2']
         def originalJvmArguments = ['arg3', 'arg4']
-        def originalClasspath = [new URI('file:///Users/foo/bar/test.jar')]
-        DefaultGradleRunner defaultGradleRunner = createRunner()
+        def originalClasspath = [new File('/Users/foo/bar/test.jar')]
+        def defaultGradleRunner = createRunner()
 
         when:
         defaultGradleRunner.withArguments(originalArguments)
@@ -147,12 +149,12 @@ class DefaultGradleRunnerTest extends Specification {
         when:
         originalArguments << 'arg5'
         originalJvmArguments << 'arg6'
-        originalClasspath << new URI('file:///Users/foo/bar/other.jar')
+        originalClasspath << new File('file:///Users/foo/bar/other.jar')
 
         then:
         defaultGradleRunner.arguments == ['arg1', 'arg2']
         defaultGradleRunner.jvmArguments == ['arg3', 'arg4']
-        defaultGradleRunner.classpath == [new URI('file:///Users/foo/bar/test.jar')]
+        defaultGradleRunner.classpath == [new File('/Users/foo/bar/test.jar')]
     }
 
     def "throws exception if working directory is not provided when build is requested"() {
@@ -219,7 +221,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], [], false) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
     }
 
     def "temporary working space directory is not created if Gradle user home directory is not provided by user when build and fail is requested"() {
@@ -232,7 +234,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], [], false) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
     }
 
     def "debug flag is passed on to executor"() {
@@ -245,7 +247,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], [], debug) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, debug) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
 
         where:
         debug << [true, false]

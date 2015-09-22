@@ -19,6 +19,8 @@ import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
@@ -32,7 +34,7 @@ import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
-import java.net.URI;
+import java.io.File;
 import java.util.Collections;
 
 public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
@@ -49,8 +51,9 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         if (continuous && !doesConsumerSupportCancellation(buildRequestContext)) {
             throw new UnsupportedVersionException("Continuous build requires Tooling API client version 2.1 or later.");
         }
+        ClassPath classPath = DefaultClassPath.of(parameters.getClasspath(Collections.<File>emptyList()));
         BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
-            System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false, parameters.getClasspath(Collections.<URI>emptyList()));
+            System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.getDaemonUsage(), continuous, false, classPath);
         try {
             return executer.execute(action, buildRequestContext, actionParameters, contextServices);
         } catch (ReportedException e) {

@@ -25,6 +25,7 @@ import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
@@ -37,7 +38,6 @@ import org.gradle.util.DeprecationLogger;
 import org.gradle.util.TextUtil;
 
 import java.io.*;
-import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -110,7 +110,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
     protected boolean interactive;
-    protected List<URI> classpath = new ArrayList<URI>();
+    protected ClassPath classpath = ClassPath.EMPTY;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
@@ -149,7 +149,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
-        classpath.clear();
+        classpath = ClassPath.EMPTY;
         return this;
     }
 
@@ -872,7 +872,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
-    public GradleExecuter withClasspath(List<URI> classpath) {
+    public GradleExecuter withClasspath(ClassPath classpath) {
         this.classpath = classpath;
         return this;
     }

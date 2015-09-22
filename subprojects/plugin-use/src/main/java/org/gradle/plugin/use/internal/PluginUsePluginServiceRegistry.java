@@ -35,6 +35,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
@@ -112,7 +113,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
         }
 
         InjectedClassPathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, StartParameter startParameter) {
-            return new InjectedClassPathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, startParameter.getClasspath());
+            return new InjectedClassPathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, new DefaultClassPath(startParameter.getClasspath()));
         }
     }
 }

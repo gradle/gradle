@@ -39,7 +39,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
 
         when:
         GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withClasspath([] as List<URI>)
+        gradleRunner.withClasspath([])
         BuildResult result = gradleRunner.buildAndFail()
 
         then:
@@ -58,7 +58,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
     def "unresolvable plugin for provided classpath fails build and indicates searched classpath"() {
         given:
         buildFile << pluginDeclaration()
-        List<URI> pluginClasspath = [file('plugin/classes').toURI(), file('plugin/resources').toURI()]
+        List<File> pluginClasspath = [file('plugin/classes'), file('plugin/resources')]
 
         when:
         GradleRunner gradleRunner = runner('helloWorld')
@@ -67,7 +67,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
 
         then:
         noExceptionThrown()
-        List<File> expectedClasspath = pluginClasspath.collect { new File(it) }
+        List<File> expectedClasspath = pluginClasspath
         result.standardError.contains("Plugin with id 'com.company.helloworld' not found. Searched classpath: $expectedClasspath")
         result.tasks.collect { it.path } == []
         result.taskPaths(SUCCESS).empty
@@ -354,7 +354,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
         pluginProjectDir.file(path)
     }
 
-    private List<URI> getPluginClasspath() {
-        [pluginProjectDir.file('build/classes/main').toURI(), pluginProjectDir.file('build/resources/main').toURI()]
+    private List<File> getPluginClasspath() {
+        [pluginProjectDir.file('build/classes/main'), pluginProjectDir.file('build/resources/main')]
     }
 }

@@ -16,14 +16,13 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.Serializable;
-import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class DefaultBuildActionParameters implements BuildActionParameters, Serializable {
@@ -34,10 +33,10 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final DaemonUsage daemonUsage;
     private final boolean continuous;
     private final boolean interactive;
-    private final List<URI> classpath;
+    private final ClassPath classpath;
 
     public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean continuous, boolean interactive,
-                                        List<URI> classpath) {
+                                        ClassPath classpath) {
         this.currentDir = currentDir;
         this.logLevel = logLevel;
         this.continuous = continuous;
@@ -70,15 +69,15 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     @Override
     public String toString() {
         return "DefaultBuildActionParameters{"
-                + ", currentDir=" + currentDir
-                + ", systemProperties size=" + systemProperties.size()
-                + ", envVariables size=" + envVariables.size()
-                + ", logLevel=" + logLevel
-                + ", daemonUsage=" + daemonUsage
-                + ", continuous=" + continuous
-                + ", interactive=" + interactive
-                + ", classpath=" + classpath
-                + '}';
+            + ", currentDir=" + currentDir
+            + ", systemProperties size=" + systemProperties.size()
+            + ", envVariables size=" + envVariables.size()
+            + ", logLevel=" + logLevel
+            + ", daemonUsage=" + daemonUsage
+            + ", continuous=" + continuous
+            + ", interactive=" + interactive
+            + ", classpath=" + classpath
+            + '}';
     }
 
     @Override
@@ -94,7 +93,7 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         return interactive;
     }
 
-    public List<URI> getClasspath() {
+    public ClassPath getClasspath() {
         return classpath;
     }
 }

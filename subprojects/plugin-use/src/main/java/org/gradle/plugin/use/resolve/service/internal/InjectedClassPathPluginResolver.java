@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
@@ -24,7 +23,6 @@ import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
@@ -32,20 +30,15 @@ import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
-import org.gradle.util.CollectionUtils;
-
-import java.io.File;
-import java.net.URI;
-import java.util.List;
 
 public class InjectedClassPathPluginResolver implements PluginResolver {
     private final ClassLoaderScope parentScope;
     private final ClassPath classPath;
     private final PluginRegistry pluginRegistry;
 
-    public InjectedClassPathPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, List<URI> injectedClasspath) {
+    public InjectedClassPathPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, ClassPath injectedClasspath) {
         this.parentScope = parentScope;
-        classPath = new DefaultClassPath(transformClasspathFiles(injectedClasspath));
+        classPath = injectedClasspath;
         pluginRegistry = new DefaultPluginRegistry(pluginInspector, createClassLoaderScope());
     }
 
@@ -54,14 +47,6 @@ public class InjectedClassPathPluginResolver implements PluginResolver {
         loaderScope.local(classPath);
         loaderScope.lock();
         return loaderScope;
-    }
-
-    private List<File> transformClasspathFiles(List<URI> classpath) {
-        return CollectionUtils.collect(classpath, new Transformer<File, URI>() {
-            public File transform(URI uri) {
-                return new File(uri);
-            }
-        });
     }
 
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {

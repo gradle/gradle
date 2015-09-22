@@ -18,12 +18,12 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
 import java.io.PipedOutputStream;
-import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -145,8 +145,8 @@ public interface GradleExecuter {
     GradleHandle start();
 
     /**
-     * Adds JVM args that should be used to start any command-line `gradle` executable used to run the build. Note that this may be different to the build JVM,
-     * for example the build may run in a daemon process. You should prefer using {@link #withBuildJvmOpts(String...)} over this method.
+     * Adds JVM args that should be used to start any command-line `gradle` executable used to run the build. Note that this may be different to the build JVM, for example the build may run in a
+     * daemon process. You should prefer using {@link #withBuildJvmOpts(String...)} over this method.
      */
     GradleExecuter withCommandLineGradleOpts(String... jvmOpts);
 
@@ -156,8 +156,8 @@ public interface GradleExecuter {
     GradleExecuter withCommandLineGradleOpts(Iterable<String> jvmOpts);
 
     /**
-     * Adds JVM args that should be used by the build JVM. Does not necessarily imply that the build will be run in a separate process, or that a new build JVM will
-     * be started, only that the build will run in a JVM that was started with the specified args.
+     * Adds JVM args that should be used by the build JVM. Does not necessarily imply that the build will be run in a separate process, or that a new build JVM will be started, only that the build
+     * will run in a JVM that was started with the specified args.
      *
      * @param jvmOpts the JVM opts
      * @return this executer
@@ -170,8 +170,8 @@ public interface GradleExecuter {
     GradleExecuter withBuildJvmOpts(Iterable<String> jvmOpts);
 
     /**
-     * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)}
-     * (where appropriate) for the build JVM and not attempt to provide any others.
+     * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
+     * the build JVM and not attempt to provide any others.
      */
     GradleExecuter useDefaultBuildJvmArgs();
 
@@ -282,8 +282,8 @@ public interface GradleExecuter {
     /**
      * Requires that there is a gradle home for the execution, which in process execution does not.
      *
-     * <p>Note: try to avoid using this method. It has some major drawbacks when it comes to development: 1. It requires a Gradle distribution or installation, and this will
-     * need to be rebuilt after each change in order to use the test, and 2. it requires that the build run in a different JVM, which makes it very difficult to debug.</p>
+     * <p>Note: try to avoid using this method. It has some major drawbacks when it comes to development: 1. It requires a Gradle distribution or installation, and this will need to be rebuilt after
+     * each change in order to use the test, and 2. it requires that the build run in a different JVM, which makes it very difficult to debug.</p>
      */
     GradleExecuter requireGradleHome();
 
@@ -342,7 +342,7 @@ public interface GradleExecuter {
     /**
      * Injects additional classpath URIs used to search for classes.
      */
-    GradleExecuter withClasspath(List<URI> classpath);
+    GradleExecuter withClasspath(ClassPath classpath);
 
     boolean isDebug();
 

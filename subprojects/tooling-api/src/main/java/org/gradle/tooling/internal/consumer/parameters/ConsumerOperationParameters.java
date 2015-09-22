@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.parameters;
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -31,7 +32,6 @@ import org.gradle.tooling.model.Task;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -61,7 +61,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<String> arguments;
         private List<String> tasks;
         private List<InternalLaunchable> launchables;
-        private List<URI> classpath;
+        private ClassPath classpath;
 
         private Builder() {
         }
@@ -141,7 +141,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
-        public Builder setClasspath(List<URI> classpath) {
+        public Builder setClasspath(ClassPath classpath) {
             this.classpath = classpath;
             return this;
         }
@@ -176,9 +176,9 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
             ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.legacyProgressListeners);
             FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter = new FailsafeBuildProgressListenerAdapter(
-                    new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
+                new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
             return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, classpath,
-                    progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
+                progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
         }
     }
 
@@ -199,10 +199,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<String> arguments;
     private final List<String> tasks;
     private final List<InternalLaunchable> launchables;
-    private final List<URI> classpath;
+    private final ClassPath classpath;
 
     private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
-                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, List<URI> classpath,
+                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath classpath,
                                         ProgressListenerAdapter progressListener, FailsafeBuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
@@ -306,8 +306,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return launchables;
     }
 
-    public List<URI> getClasspath() {
-        return classpath;
+    public List<File> getClasspath() {
+        return classpath.getAsFiles();
     }
 
     public ProgressListenerVersion1 getProgressListener() {

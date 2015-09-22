@@ -26,6 +26,9 @@ import java.util.List;
  * An immutable classpath.
  */
 public interface ClassPath {
+
+    ClassPath EMPTY = new DefaultClassPath();
+
     boolean isEmpty();
 
     List<URI> getAsURIs();
@@ -37,6 +40,6 @@ public interface ClassPath {
     URL[] getAsURLArray();
 
     ClassPath plus(Collection<File> classPath);
-    
+
     ClassPath plus(ClassPath classPath);
 }
