@@ -204,6 +204,11 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             }
         }
 
+        @Validate
+        void validateComponentSpecInternalViews(ComponentSpecFactory componentSpecFactory) {
+            componentSpecFactory.validateRegistrations();
+        }
+
         // TODO:LPTR This should be done on the binary itself when transitive rules don't fire multiple times anymore
         @Finalize
         void addSourceSetsOwnedByBinariesToTheirInputs(BinaryContainer binarySpecs) {

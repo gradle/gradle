@@ -33,5 +33,5 @@ public interface TypeBuilder<C> {
      */
     TypeBuilder<C> defaultImplementation(Class<? extends C> implementation);
 
-    TypeBuilder<C> internalView(Class<?> internalView);
+    TypeBuilder<C> internalView(Class<? extends C> internalView);
 }

@@ -23,5 +23,5 @@ import java.util.Set;
 public interface TypeBuilderInternal<T> extends TypeBuilder<T> {
     Class<? extends T> getDefaultImplementation();
 
-    Set<Class<?>> getInternalViews();
+    Set<Class<? extends T>> getInternalViews();
 }

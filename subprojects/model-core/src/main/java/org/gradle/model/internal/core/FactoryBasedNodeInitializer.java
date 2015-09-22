@@ -75,7 +75,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> implements NodeInitiali
             @Override
             public Set<? extends ModelProjection> getProjections(MutableModelNode node, List<ModelView<?>> inputs) {
                 InstanceFactory<S, String> factory = Cast.uncheckedCast(inputs.get(0).getInstance());
-                Set<ModelType<?>> internalViews = factory.getInternalViews(projectedType);
+                Set<ModelType<? extends S>> internalViews = factory.getInternalViews(projectedType);
                 return ImmutableSet.copyOf(Iterables.transform(internalViews, new Function<ModelType<?>, ModelProjection>() {
                     @Override
                     public ModelProjection apply(ModelType<?> internalView) {

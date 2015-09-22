@@ -58,11 +58,8 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
         List<Class<?>> dependencies = ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
         ModelType<? extends BaseComponentSpec> implementation = determineImplementationType(type, builder);
-        if (implementation != null) {
-            ModelAction<?> mutator = new RegistrationAction(type, implementation, builder.getInternalViews(), ruleDefinition.getDescriptor());
-            return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
-        }
-        return new DependencyOnlyExtractedModelRule(dependencies);
+        ModelAction<?> mutator = new RegistrationAction(type, implementation, builder.getInternalViews(), ruleDefinition.getDescriptor());
+        return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
     }
 
     public static class DefaultComponentTypeBuilder extends AbstractTypeBuilder<ComponentSpec> implements ComponentTypeBuilder<ComponentSpec> {
@@ -74,11 +71,11 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     private static class RegistrationAction implements ModelAction<ComponentSpecFactory> {
         private final ModelType<? extends ComponentSpec> publicType;
         private final ModelType<? extends BaseComponentSpec> implementationType;
-        private final Set<Class<?>> internalViews;
+        private final Set<Class<? extends ComponentSpec>> internalViews;
         private final ModelRuleDescriptor descriptor;
         private final List<ModelReference<?>> inputs;
 
-        public RegistrationAction(ModelType<? extends ComponentSpec> publicType, ModelType<? extends BaseComponentSpec> implementationType, Set<Class<?>> internalViews, ModelRuleDescriptor descriptor) {
+        public RegistrationAction(ModelType<? extends ComponentSpec> publicType, ModelType<? extends BaseComponentSpec> implementationType, Set<Class<? extends ComponentSpec>> internalViews, ModelRuleDescriptor descriptor) {
             this.publicType = publicType;
             this.implementationType = implementationType;
             this.internalViews = internalViews;
@@ -103,6 +100,15 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
 
         @Override
         public void execute(MutableModelNode modelNode, ComponentSpecFactory components, List<ModelView<?>> inputs) {
+            if (implementationType != null) {
+                registerImplementation(components, inputs);
+            }
+            for (Class<? extends ComponentSpec> internalView : internalViews) {
+                components.registerInternalView(publicType, descriptor, ModelType.of(internalView));
+            }
+        }
+
+        private <T extends ComponentSpec> void registerImplementation(ComponentSpecFactory components, List<ModelView<?>> inputs) {
             ServiceRegistry serviceRegistry = ModelViews.assertType(inputs.get(0), ModelType.of(ServiceRegistry.class)).getInstance();
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectIdentifier.class)).getInstance();
@@ -115,9 +121,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
                     return BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode, projectSourceSet, instantiator, nodeInitializerRegistry);
                 }
             });
-            for (Class<?> internalView : internalViews) {
-                components.registerInternalView(publicType, descriptor, ModelType.of(internalView));
-            }
+            components.registerImplementation(Cast.<ModelType<T>>uncheckedCast(publicType), descriptor, Cast.<ModelType<? extends T>>uncheckedCast(implementationType));
         }
     }
 }
