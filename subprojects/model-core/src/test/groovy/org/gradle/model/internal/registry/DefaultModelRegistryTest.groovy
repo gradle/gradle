@@ -1228,17 +1228,12 @@ foo
         ex.message == "Cannot add projector 'internal projection' for model element 'foo' as this element is already at state ProjectionsDefined."
     }
 
-    class Bean {
+    static class Bean {
         String name
         String value
     }
 
-    interface BeanInternal {
-        String getInternal()
-        void setInternal(String internal)
-    }
-
-    class AdvancedBean extends Bean implements BeanInternal {
+    static class AdvancedBean extends Bean implements BeanInternal {
         String internal
     }
 }
