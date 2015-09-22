@@ -169,7 +169,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     NodeInitializer initializer = nodeInitializerRegistry.getNodeInitializer(propertySchema);
                     List<? extends ModelProjection> projections = initializer.getProjections();
                     for (ModelProjection projection : projections) {
-                        ModelView<? extends T> modelView = projection.asWritable(propertyType, propertyNode, ruleDescriptor, null);
+                        ModelView<? extends T> modelView = projection.asMutable(propertyType, propertyNode, ruleDescriptor, null);
                         if (modelView != null) {
                             Collection<E> instance = Cast.uncheckedCast(modelView.getInstance());
                             instance.addAll(value);

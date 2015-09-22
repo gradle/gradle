@@ -36,7 +36,7 @@ class UnmanagedModelProjectionTest extends Specification {
     def "has no writable types available when read-only"() {
         expect:
         def projection = new UnmanagedModelProjection(ModelType.of(String), true, false)
-        !projection.canBeViewedAsWritable(ModelType.of(String))
+        !projection.canBeViewedAsMutable(ModelType.of(String))
         projection.getWritableTypeDescriptions(Stub(MutableModelNode)).empty
     }
 }

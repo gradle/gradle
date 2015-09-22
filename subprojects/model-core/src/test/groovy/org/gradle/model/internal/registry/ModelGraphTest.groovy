@@ -380,7 +380,7 @@ class ModelGraphTest extends Specification {
         return Stub(ModelNodeInternal) {
             getPath() >> ModelPath.path(path)
             getPromise() >> Stub(ModelPromise) {
-                canBeViewedAsWritable(_) >> { ModelType t -> return t.concreteClass == type }
+                canBeViewedAsMutable(_) >> { ModelType t -> return t.concreteClass == type }
             }
             toString() >> "node $path"
         }

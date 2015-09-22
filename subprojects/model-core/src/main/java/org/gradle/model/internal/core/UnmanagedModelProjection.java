@@ -50,7 +50,7 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
 
     @Override
     public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
-        ModelView<?> modelView = this.asReadOnly(ModelType.untyped(), modelNodeInternal, null);
+        ModelView<?> modelView = this.asImmutable(ModelType.untyped(), modelNodeInternal, null);
         Object instance = modelView.getInstance();
         if (null != instance && !JavaReflectionUtil.hasDefaultToString(instance)) {
             return Optional.fromNullable(instance.toString());

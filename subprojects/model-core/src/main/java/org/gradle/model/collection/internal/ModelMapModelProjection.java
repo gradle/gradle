@@ -112,19 +112,19 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         return null;
     }
 
-    public <T> boolean canBeViewedAsWritable(ModelType<T> targetType) {
+    public <T> boolean canBeViewedAsMutable(ModelType<T> targetType) {
         return itemType(targetType) != null;
     }
 
-    public <T> boolean canBeViewedAsReadOnly(ModelType<T> type) {
-        return canBeViewedAsWritable(type);
+    public <T> boolean canBeViewedAsImmutable(ModelType<T> type) {
+        return canBeViewedAsMutable(type);
     }
 
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode modelNode, @Nullable ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode modelNode, @Nullable ModelRuleDescriptor ruleDescriptor) {
         return doAs(type, modelNode, ruleDescriptor, false);
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
+    public <T> ModelView<? extends T> asMutable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
         return doAs(targetType, node, ruleDescriptor, true);
     }
 

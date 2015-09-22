@@ -569,7 +569,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
-            ModelView<? extends T> modelView = getAdapter().asReadOnly(type, this, ruleDescriptor);
+            ModelView<? extends T> modelView = getAdapter().asImmutable(type, this, ruleDescriptor);
             if (modelView == null) {
                 throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a read-only view of type " + type);
             }
@@ -578,7 +578,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
-            ModelView<? extends T> modelView = getAdapter().asWritable(type, this, ruleDescriptor, inputs);
+            ModelView<? extends T> modelView = getAdapter().asMutable(type, this, ruleDescriptor, inputs);
             if (modelView == null) {
                 throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
             }
@@ -636,7 +636,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         public int getLinkCount(ModelType<?> type) {
             int count = 0;
             for (ModelNodeInternal linked : links.values()) {
-                if (linked.getPromise().canBeViewedAsWritable(type)) {
+                if (linked.getPromise().canBeViewedAsMutable(type)) {
                     count++;
                 }
             }
@@ -647,7 +647,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         public Set<String> getLinkNames(ModelType<?> type) {
             Set<String> names = Sets.newLinkedHashSet();
             for (Map.Entry<String, ModelNodeInternal> entry : links.entrySet()) {
-                if (entry.getValue().getPromise().canBeViewedAsWritable(type)) {
+                if (entry.getValue().getPromise().canBeViewedAsMutable(type)) {
                     names.add(entry.getKey());
                 }
             }
@@ -659,7 +659,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             return Iterables.filter(links.values(), new Predicate<ModelNodeInternal>() {
                 @Override
                 public boolean apply(ModelNodeInternal input) {
-                    return input.getPromise().canBeViewedAsWritable(type);
+                    return input.getPromise().canBeViewedAsMutable(type);
                 }
             });
         }
@@ -672,7 +672,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public boolean hasLink(String name, ModelType<?> type) {
             ModelNodeInternal linked = getLink(name);
-            return linked != null && linked.getPromise().canBeViewedAsWritable(type);
+            return linked != null && linked.getPromise().canBeViewedAsMutable(type);
         }
 
         @Override

@@ -26,10 +26,10 @@ import java.util.List;
 public interface ModelAdapter {
 
     @Nullable
-    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor);
+    <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor);
 
     @Nullable
-    <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies);
+    <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies);
 
     @Override
         // must implement logical equality

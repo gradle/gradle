@@ -34,18 +34,18 @@ public class ChainingModelProjection implements ModelProjection {
         this.projections = projections;
     }
 
-    public <B> boolean canBeViewedAsWritable(final ModelType<B> type) {
+    public <B> boolean canBeViewedAsMutable(final ModelType<B> type) {
         return CollectionUtils.any(projections, new Spec<ModelProjection>() {
             public boolean isSatisfiedBy(ModelProjection projection) {
-                return projection.canBeViewedAsWritable(type);
+                return projection.canBeViewedAsMutable(type);
             }
         });
     }
 
-    public <B> boolean canBeViewedAsReadOnly(final ModelType<B> type) {
+    public <B> boolean canBeViewedAsImmutable(final ModelType<B> type) {
         return CollectionUtils.any(projections, new Spec<ModelProjection>() {
             public boolean isSatisfiedBy(ModelProjection projection) {
-                return projection.canBeViewedAsReadOnly(type);
+                return projection.canBeViewedAsImmutable(type);
             }
         });
     }
@@ -71,9 +71,9 @@ public class ChainingModelProjection implements ModelProjection {
     }
 
     @Nullable
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor) {
         for (ModelProjection projection : projections) {
-            ModelView<? extends T> view = projection.asReadOnly(type, node, ruleDescriptor);
+            ModelView<? extends T> view = projection.asImmutable(type, node, ruleDescriptor);
             if (view != null) {
                 return view;
             }
@@ -83,9 +83,9 @@ public class ChainingModelProjection implements ModelProjection {
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
+    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
         for (ModelProjection projection : projections) {
-            ModelView<? extends T> view = projection.asWritable(type, node, ruleDescriptor, inputs);
+            ModelView<? extends T> view = projection.asMutable(type, node, ruleDescriptor, inputs);
             if (view != null) {
                 return view;
             }

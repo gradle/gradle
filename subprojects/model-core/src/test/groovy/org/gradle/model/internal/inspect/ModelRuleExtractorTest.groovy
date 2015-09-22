@@ -115,10 +115,10 @@ class ModelRuleExtractorTest extends Specification {
         registerRules(ParameterizedModel)
 
         then:
-        registry.realizeNode(ModelPath.path("strings")).promise.canBeViewedAsReadOnly(new ModelType<List<String>>() {})
-        registry.realizeNode(ModelPath.path("superStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? super String>>() {})
-        registry.realizeNode(ModelPath.path("extendsStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? extends String>>() {})
-        registry.realizeNode(ModelPath.path("wildcard")).promise.canBeViewedAsReadOnly(new ModelType<List<?>>() {})
+        registry.realizeNode(ModelPath.path("strings")).promise.canBeViewedAsImmutable(new ModelType<List<String>>() {})
+        registry.realizeNode(ModelPath.path("superStrings")).promise.canBeViewedAsImmutable(new ModelType<List<? super String>>() {})
+        registry.realizeNode(ModelPath.path("extendsStrings")).promise.canBeViewedAsImmutable(new ModelType<List<? extends String>>() {})
+        registry.realizeNode(ModelPath.path("wildcard")).promise.canBeViewedAsImmutable(new ModelType<List<?>>() {})
     }
 
     static class HasGenericModelRule extends RuleSource {
@@ -165,7 +165,7 @@ class ModelRuleExtractorTest extends Specification {
         when:
         registerRules(ConcreteGenericModelType)
         def node = registry.realizeNode(new ModelPath("strings"))
-        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
+        def type = node.adapter.asImmutable(new ModelType<List<String>>() {}, node, null).type
 
         then:
         type.parameterized
@@ -183,7 +183,7 @@ class ModelRuleExtractorTest extends Specification {
         when:
         registerRules(ConcreteGenericModelTypeImplementingGenericInterface)
         def node = registry.realizeNode(new ModelPath("strings"))
-        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
+        def type = node.adapter.asImmutable(new ModelType<List<String>>() {}, node, null).type
 
         then:
         type.parameterized
@@ -289,7 +289,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         def node = registry.realizeNode(path)
-        node.adapter.asReadOnly(type, node, null).instance.sort() == ["1", "2"]
+        node.adapter.asImmutable(type, node, null).instance.sort() == ["1", "2"]
     }
 
     static class MutationAndFinalizeRules extends RuleSource {
@@ -324,7 +324,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         def node = registry.realizeNode(path)
-        node.adapter.asReadOnly(type, node, null).instance == ["1", "2"]
+        node.adapter.asImmutable(type, node, null).instance == ["1", "2"]
     }
 
     def "methods are processed ordered by their to string representation"() {

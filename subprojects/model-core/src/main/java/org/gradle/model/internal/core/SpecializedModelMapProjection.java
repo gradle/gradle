@@ -57,8 +57,8 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
-        if (canBeViewedAsReadOnly(type)) {
+    public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
+        if (canBeViewedAsImmutable(type)) {
             return Cast.uncheckedCast(toView(node, ruleDescriptor, false));
         } else {
             return null;
@@ -67,8 +67,8 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
-        if (canBeViewedAsWritable(type)) {
+    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
+        if (canBeViewedAsMutable(type)) {
             return Cast.uncheckedCast(toView(node, ruleDescriptor, true));
         } else {
             return null;
@@ -108,13 +108,13 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     }
 
     @Override
-    public <T> boolean canBeViewedAsWritable(ModelType<T> targetType) {
+    public <T> boolean canBeViewedAsMutable(ModelType<T> targetType) {
         return targetType.equals(publicType) || targetType.equals(ModelType.of(Object.class));
     }
 
     @Override
-    public <T> boolean canBeViewedAsReadOnly(ModelType<T> targetType) {
-        return canBeViewedAsWritable(targetType);
+    public <T> boolean canBeViewedAsImmutable(ModelType<T> targetType) {
+        return canBeViewedAsMutable(targetType);
     }
 
     @Override

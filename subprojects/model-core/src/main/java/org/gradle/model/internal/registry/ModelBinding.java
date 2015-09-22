@@ -54,7 +54,7 @@ abstract class ModelBinding {
     }
 
     boolean isTypeCompatible(ModelPromise promise) {
-        return promise.canBeViewedAsWritable(predicate.getType()) || promise.canBeViewedAsReadOnly(predicate.getType());
+        return promise.canBeViewedAsMutable(predicate.getType()) || promise.canBeViewedAsImmutable(predicate.getType());
     }
 
     @Override
