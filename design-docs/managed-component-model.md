@@ -225,7 +225,7 @@ Non-goal is to provide this as a general capability for arbitrary types.
 ### Backlog
 
 - Improve error message when input or subject cannot be bound due to a null reference.
-- Deal with case where by-path binding points to a null reference or null scalar value. Currently we supply a null value to the rule, should probably fail. 
+- Deal with case where by-path binding points to a null reference or null scalar value. Currently we supply a null value to the rule, should probably fail.
 - Deal with by-type binding to a non-null reference.
 - Currently an input or subject reachable via a reference can be viewed only as the types from the reference definition. Instead, should be able to view the target
 using any type that the view supports.
@@ -245,7 +245,7 @@ using any type that the view supports.
 
 ### Backlog
 
-- A reference is almost always set via a rule on the parent or an ancestor. This is not captured, so that in the report the reference does not appear to be 
+- A reference is almost always set via a rule on the parent or an ancestor. This is not captured, so that in the report the reference does not appear to be
 configured by any rule.
 
 ## Referenced element can be used as subject for a rule
@@ -272,7 +272,7 @@ only to implement the top level containers.
 
 ## Run only those rules that define cross-cutting configuration
 
-- Don't need to discover the elements of a top-level container in order to apply cross-cutting rules. However, the approach so 
+- Don't need to discover the elements of a top-level container in order to apply cross-cutting rules. However, the approach so
 far forces all elements to be discovered.
 
 ## Backlog
@@ -298,17 +298,17 @@ For example:
     model {
         sources(FunctionalSourceSet)
     }
-    
-Or:    
+
+Or:
 
     @Model
     void sources(FunctionalSourceSet sources) {
     }
-    
+
 
 - Out-of-scope: Making the state of `FunctionalSourceSet` managed. This means, for example, the children of the source set will not be visible in the `model` report, and that
   immutability will not be enforced.
-- Out-of-scope: Adding any children to the source set. This is a later story. A plugin can add children by first attaching a factory using `registerFactory()`.  
+- Out-of-scope: Adding any children to the source set. This is a later story. A plugin can add children by first attaching a factory using `registerFactory()`.
 
 ### Test cases
 
@@ -318,9 +318,9 @@ Or:
 
 ### Implementation
 
-- Continue to converge on `NodeInitializer` as the strategy for creating all model elements, including the children of a managed type, the elements of a model collection and 
+- Continue to converge on `NodeInitializer` as the strategy for creating all model elements, including the children of a managed type, the elements of a model collection and
 top level model elements. For this story, we only need to make this work for top level model elements.
-    - All model elements are created using a `NodeInitializer`. 
+    - All model elements are created using a `NodeInitializer`.
     - Each type has 1 `NodeInitializer` implementation associated with it, that can be reused in any context where that type appears.
 - Allow a `NodeInitializer` to be located for `FunctionalSourceSet` from the `NodeInitializerRegistry`.
 - Extract validation from `NonTransformedModelDslBacking` and `TransformedModelDslBacking` into some shared location, probably to `NodeInitializerRegistry`. The idea here is to
@@ -341,10 +341,10 @@ For example:
     @Managed
     interface BuildType {
         FunctionalSourceSet getSources()
-        
+
         FunctionalSourceSet getInputs()
         void setInputs(FunctionalSourceSet sources)
-        
+
         ModelMap<FunctionalSourceSet> getComponentSources()
     }
 
@@ -354,10 +354,10 @@ For example:
 - Change validation for managed type properties and managed collection elements to allow any type for which a creation strategy is available.
     - Share (don't duplicate) the validation from the previous story that decides whether an instance of a given type can be created.
     - Error message should include the types available to be used.
-- Update user guide to list `FunctionalSourceSet` as a type that can be used in the model.    
+- Update user guide to list `FunctionalSourceSet` as a type that can be used in the model.
 - Refactors to clean up implementation:
     - Should share the same mechanism to expose the initializer for `FunctionalSourceSet` and `JarBinarySpec`, to make it easier to later add more types.
-      Ideally, this would mean registering some description of the types (eg here's a public type and here's an implementation type for it), rather than 
+      Ideally, this would mean registering some description of the types (eg here's a public type and here's an implementation type for it), rather than
       registering an initializer strategy implementation.
     - Replace the various `ChildNodeInitializerStrategy` implementations with one that delegates to the schema.
 
@@ -371,7 +371,7 @@ For example:
 ### Implementation
 
 - TBD: Currently rules push language registrations into various well known instances. Should change this to work with all instances, ideally by pull rather than push.
-- TBD: Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has 
+- TBD: Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has
 no knowledge of where its elements end up being referenced.
 
 ## Story: Allow `LanguageSourceSet` instances to be attached to a managed type
@@ -397,22 +397,22 @@ no knowledge of where its elements end up being referenced.
 ### Implementation
 
 - Use the same approach as used to make `ComponentSpec.sources` visible to rules.
-    - Will need to make `BaseBinarySpec` node backed, similar to `BaseComponentSpec`.   
+    - Will need to make `BaseBinarySpec` node backed, similar to `BaseComponentSpec`.
     - Should refactor to simplify both cases.
 
 - TBD: Currently `CUnitPlugin` uses methods on `FunctionalSourceSet` that are not available on `ModelMap`.
 - TBD: Reuse `FunctionalSourceSet` for `ComponentSpec.sources` and `BinarySpec.sources`.
 
-## Story: Elements of project `sources` container are visible to rules 
+## Story: Elements of project `sources` container are visible to rules
 
 - TBD: Change `ProjectSourceSet` so that it is bridged in the same way as the `binaries` container, alternatively move `sources` completely into model space.
 - TBD: Currently `JavaBasePlugin` contributes source sets to `sources` container.
 
-## Story: Build logic applies cross cutting configuration to all `LanguageSourceSet` instances 
+## Story: Build logic applies cross cutting configuration to all `LanguageSourceSet` instances
 
 - All `LanguageSourceSet` instances are visible through `sources` container
-- Depends on improvements to reference handling define in previous feature. 
-- TBD: Need to traverse schema to determine where source sets may be found in the model. Ensure only those model elements that are required are realized. 
+- Depends on improvements to reference handling define in previous feature.
+- TBD: Need to traverse schema to determine where source sets may be found in the model. Ensure only those model elements that are required are realized.
 - TBD: Need to split this up into several stories.
 
 # Later features
