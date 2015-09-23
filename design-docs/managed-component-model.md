@@ -368,13 +368,12 @@ For example:
 - element of managed collections `ModelMap`.
 - Attempting to define a managed type with a non-supported type on any of the above cases should report an error with the supported types including:
     - FunctionalSourceSet
-    - ModelMap<FunctionalSourceSet>
-    - ModelSet<FunctionalSourceSet>
+    - ModelMap<T> for any supported T
+    - ModelSet<T> for any supported T
 - Cannot define a property or managed element of a type which extends FunctionalSourceSet
 - A property or managed element of type `FunctionalSourceSet` cannot be applied when the `LanguageBasePlugin` has not been applied.
 - Model report shows something reasonable for a managed property or collections of type FunctionalSourceSet.
-- Attempting to mutate a `FunctionalSourceSet` when it is an input of a rule should throw an error.
-- A read-only FFS property is initialized with a default implementation of `FunctionalSourceSet`
+- A read-only `FunctionalSourceSet` property is initialized with a default implementation of `FunctionalSourceSet`
 
 ## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
 

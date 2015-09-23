@@ -56,7 +56,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
             @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet sources) {
                 tasks.create("printTask") {
                   doLast {
-                    println "FFS: \$sources"
+                    println "FunctionalSourceSet: \$sources"
                   }
               }
             }
@@ -67,7 +67,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "printTask"
-        output.contains("FFS: []")
+        output.contains("FunctionalSourceSet: []")
     }
 
     def "can create a top level functional source set via the model dsl"() {
