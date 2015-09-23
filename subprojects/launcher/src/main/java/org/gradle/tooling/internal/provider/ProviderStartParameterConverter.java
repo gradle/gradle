@@ -20,14 +20,11 @@ import org.gradle.TaskExecutionRequest;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.internal.DefaultTaskExecutionRequest;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -96,9 +93,6 @@ class ProviderStartParameterConverter {
         if (parameters.getBuildLogLevel() != null) {
             startParameter.setLogLevel(parameters.getBuildLogLevel());
         }
-
-        ClassPath classpath = DefaultClassPath.of(parameters.getClasspath(Collections.<File>emptyList()));
-        startParameter.setClasspath(classpath.getAsFiles());
 
         return startParameter;
     }

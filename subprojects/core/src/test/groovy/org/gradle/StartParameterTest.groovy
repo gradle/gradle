@@ -49,7 +49,6 @@ class StartParameterTest extends Specification {
         parameter.refreshDependencies = true
         parameter.recompileScripts = true
         parameter.configureOnDemand = true
-        parameter.classpath = [new URI('file://User/foo/bar/lib1.jar'), new URI('file://User/foo/bar/lib2.jar')]
 
         when:
         def newInstance = parameter.newInstance()
@@ -71,7 +70,6 @@ class StartParameterTest extends Specification {
         parameter.projectProperties = [a: 'a']
         parameter.systemPropertiesArgs = [b: 'b']
         parameter.initScripts = [new File('init script'), new File("/path/to/another init script")]
-        parameter.classpath = [new URI('file://User/foo/bar/lib1.jar'), new URI('file://User/foo/bar/lib2.jar')]
 
         when:
         def newInstance = parameter.newInstance()
@@ -82,7 +80,6 @@ class StartParameterTest extends Specification {
         !parameter.excludedTaskNames.is(newInstance.excludedTaskNames)
         !parameter.projectProperties.is(newInstance.projectProperties)
         !parameter.systemPropertiesArgs.is(newInstance.systemPropertiesArgs)
-        !parameter.classpath.is(newInstance.classpath)
 
         and:
         parameter.initScripts == newInstance.initScripts
@@ -90,7 +87,6 @@ class StartParameterTest extends Specification {
         parameter.excludedTaskNames == newInstance.excludedTaskNames
         parameter.projectProperties == newInstance.projectProperties
         parameter.systemPropertiesArgs == newInstance.systemPropertiesArgs
-        parameter.classpath == newInstance.classpath
     }
 
     void "default values"() {
@@ -110,7 +106,6 @@ class StartParameterTest extends Specification {
         parameter.excludedTaskNames.empty
         parameter.projectProperties.isEmpty()
         parameter.systemPropertiesArgs.isEmpty()
-        parameter.classpath.empty
         !parameter.dryRun
         !parameter.continueOnFailure
         !parameter.rerunTasks
@@ -276,7 +271,6 @@ class StartParameterTest extends Specification {
         parameter.recompileScripts = true
         parameter.rerunTasks = true
         parameter.refreshDependencies = true
-        parameter.classpath = [new URI('file://User/foo/bar/lib1.jar'), new URI('file://User/foo/bar/lib2.jar')]
 
         assertThat(parameter, isSerializable())
 
@@ -299,7 +293,6 @@ class StartParameterTest extends Specification {
         newParameter.taskRequests.empty
         newParameter.taskNames.empty
         newParameter.excludedTaskNames.empty
-        newParameter.classpath.empty
         newParameter.currentDir == new File(System.getProperty("user.dir")).getCanonicalFile()
         !newParameter.dryRun
         assertThat(newParameter, isSerializable())

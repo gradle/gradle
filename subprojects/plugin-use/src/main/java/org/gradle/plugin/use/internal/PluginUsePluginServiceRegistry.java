@@ -35,7 +35,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
@@ -72,14 +71,14 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(Collections.<Authentication>emptySet()));
             HttpResourceAccessor accessor = new HttpResourceAccessor(http);
             PluginResolutionServiceClient httpClient = startParameter.isOffline()
-                    ? new OfflinePluginResolutionServiceClient()
-                    : new HttpPluginResolutionServiceClient(accessor);
+                ? new OfflinePluginResolutionServiceClient()
+                : new HttpPluginResolutionServiceClient(accessor);
 
             PersistentCache cache = cacheRepository
-                    .cache(CACHE_NAME)
-                    .withDisplayName("Plugin Resolution Cache")
-                    .withLockOptions(mode(FileLockManager.LockMode.None))
-                    .open();
+                .cache(CACHE_NAME)
+                .withDisplayName("Plugin Resolution Cache")
+                .withLockOptions(mode(FileLockManager.LockMode.None))
+                .open();
 
             PluginResolutionServiceClient persistentCachingClient = new PersistentCachingPluginResolutionServiceClient(httpClient, cache);
             PluginResolutionServiceClient inMemoryCachingClient = new InMemoryCachingPluginResolutionServiceClient(persistentCachingClient);
@@ -112,8 +111,8 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory.create());
         }
 
-        InjectedClassPathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, StartParameter startParameter) {
-            return new InjectedClassPathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, new DefaultClassPath(startParameter.getClasspath()));
+        InjectedClassPathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, InjectedPluginClassPath injectedPluginClassPath) {
+            return new InjectedClassPathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClassPath.getClassPath());
         }
     }
 }

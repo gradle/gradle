@@ -76,7 +76,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean configureOnDemand;
     private int maxWorkerCount;
     private boolean continuous;
-    private List<File> classpath = Collections.emptyList();
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -134,7 +133,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.initScripts = new ArrayList<File>(initScripts);
         p.dryRun = dryRun;
         p.projectCacheDir = projectCacheDir;
-        p.classpath = new ArrayList<File>(classpath);
         return p;
     }
 
@@ -676,7 +674,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
             + ", parallelProjectExecution=" + parallelProjectExecution
             + ", configureOnDemand=" + configureOnDemand
             + ", maxWorkerCount=" + maxWorkerCount
-            + ", classpath=" + classpath
             + '}';
     }
 
@@ -702,24 +699,4 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.continuous = enabled;
     }
 
-    /**
-     * Returns the injected classpath URIs used for loading classes.
-     *
-     * @return Classpath URIs
-     */
-    @Incubating
-    public List<File> getClasspath() {
-        return Collections.unmodifiableList(classpath);
-    }
-
-    /**
-     * Specifies classpath used for loading user-defined classes. This list is in addition to the default classpath.
-     *
-     * @param classpath Classpath URIs
-     * @see #getClasspath()
-     */
-    @Incubating
-    public void setClasspath(List<File> classpath) {
-        this.classpath = new ArrayList<File>(classpath);
-    }
 }

@@ -61,6 +61,7 @@ import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
@@ -103,7 +104,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected BuildScopeServices(ServiceRegistry parent, StartParameter startParameter) {
-        this(new BuildSessionScopeServices(parent, startParameter), true);
+        this(new BuildSessionScopeServices(parent, startParameter, ClassPath.EMPTY), true);
     }
 
     @VisibleForTesting

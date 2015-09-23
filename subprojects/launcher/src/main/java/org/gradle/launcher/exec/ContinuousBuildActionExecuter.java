@@ -69,7 +69,7 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
 
     @Override
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(contextServices, action.getStartParameter());
+        ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(contextServices, action.getStartParameter(), actionParameters.getClasspath());
         try {
             if (actionParameters.isContinuous()) {
                 return executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices);
