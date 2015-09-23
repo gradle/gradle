@@ -45,8 +45,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
-    Closure<String> displayNameClosure = { String version -> version }
-
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter) {
         this.reporter = reporter
         this.experimentRunner = experimentRunner
@@ -103,7 +101,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
         def builder = BuildExperimentSpec.builder()
                 .projectName(testId)
-                .displayName(displayNameClosure(dist.version.version))
+                .displayName(dist.version.version)
                 .warmUpCount(warmUpRuns)
                 .invocationCount(runs)
                 .invocation {

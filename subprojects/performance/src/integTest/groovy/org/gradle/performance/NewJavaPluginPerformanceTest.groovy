@@ -24,16 +24,15 @@ class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' measuring incremental build speed")
     def "build new java project"() {
         given:
-        runner.testId = "build new java project $testProject"
+        runner.testId = "build new java project $testProject" + (parallelWorkers ? " (parallel)" : "")
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.7', 'last']
+        runner.targetVersions = ['2.4', '2.7', '2.8', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/tmp"]
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
-            runner.displayNameClosure = { String version -> "$version max-workers=$parallelWorkers".toString() }
         }
         runner.runs = 1
         runner.warmUpRuns = 1
