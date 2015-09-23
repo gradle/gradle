@@ -1,4 +1,5 @@
-apply from: 'src/dependency_generator.groovy'
+import org.gradle.performance.generator.DependencyGenerator
+
 apply from: 'src/generator.groovy'
 apply plugin: 'javascript-base'
 

@@ -23,13 +23,7 @@ class DependencyGeneratorTest extends Specification {
 
     def "should generate project dependencies"() {
         given:
-        def gcl = new GroovyClassLoader(this.getClass().getClassLoader())
-        def srcFile = new File("src/dependency_generator.groovy")
-        if(!srcFile.exists()) {
-            srcFile = new File("subprojects/performance/src/dependency_generator.groovy")
-        }
-        gcl.parseClass(srcFile)
-        def dependencyGenerator = gcl.loadClass("DependencyGenerator").newInstance()
+        def dependencyGenerator = new DependencyGenerator()
         def numberOfProjects = 150
         dependencyGenerator.numberOfProjects = numberOfProjects
         when:
