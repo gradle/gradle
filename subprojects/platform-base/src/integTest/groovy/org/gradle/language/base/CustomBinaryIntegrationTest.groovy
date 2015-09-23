@@ -16,10 +16,12 @@
 
 package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 
 class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
+        EnableModelDsl.enable(executer)
         buildFile << """
 interface SampleBinary extends BinarySpec {
     String getVersion()
@@ -34,15 +36,23 @@ class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {
     def "custom binary type can be registered and created"() {
         when:
         buildWithCustomBinaryPlugin()
+
         and:
-        buildFile << """
-task checkModel << {
-    assert project.binaries.size() == 1
-    def sampleBinary = project.binaries.sampleBinary
-    assert sampleBinary instanceof SampleBinary
-    assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
+        buildFile << '''
+model {
+    tasks {
+        checkModel(Task) {
+            doLast {
+                def binaries = $('binaries')
+                assert binaries.size() == 1
+                def sampleBinary = binaries.sampleBinary
+                assert sampleBinary instanceof SampleBinary
+                assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
+            }
+        }
+    }
 }
-"""
+'''
         then:
         succeeds "checkModel"
     }
@@ -53,12 +63,19 @@ task checkModel << {
 
         and:
         buildFile << """
-task checkModel << {
-    assert project.binaries.size() == 1
-    def sampleBinary = project.binaries.sampleBinary
-    assert sampleBinary instanceof SampleBinary
-    assert sampleBinary.version == '1.2'
-    assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
+model {
+    tasks {
+        checkModel(Task) {
+            doLast {
+                def binaries = \$('binaries')
+                assert binaries.size() == 1
+                def sampleBinary = binaries.sampleBinary
+                assert sampleBinary instanceof SampleBinary
+                assert sampleBinary.version == '1.2'
+                assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
+            }
+        }
+    }
 }
 
 model {
@@ -96,8 +113,15 @@ model {
 
         apply plugin:MySamplePlugin
 
-        task checkModel << {
-            assert project.binaries.size() == 0
+        model {
+            tasks {
+                checkModel(Task) {
+                    doLast {
+                        def binaries = \$('binaries')
+                        assert binaries.size() == 0
+                    }
+                }
+            }
         }
 """
 
@@ -135,11 +159,18 @@ model {
 
         apply plugin:MyBinaryCreationPlugin
 
-        task checkModel << {
-            assert project.binaries.size() == 1
-            def sampleBinary = project.binaries.sampleBinary
-            assert sampleBinary instanceof SampleBinary
-            assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
+        model {
+            tasks {
+                checkModel(Task) {
+                    doLast {
+                        def binaries = \$('binaries')
+                        assert binaries.size() == 1
+                        def sampleBinary = binaries.sampleBinary
+                        assert sampleBinary instanceof SampleBinary
+                        assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
+                    }
+                }
+            }
         }
 """
         then:
@@ -180,15 +211,22 @@ model {
 
         apply plugin:MySamplePlugin
 
-        task checkModel << {
-            assert project.binaries.size() == 2
-            def sampleBinary = project.binaries.sampleBinary
-            assert sampleBinary instanceof SampleBinary
-            assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
+        model {
+            tasks {
+                checkModel(Task) {
+                    doLast {
+                        def binaries = \$('binaries')
+                        assert binaries.size() == 2
+                        def sampleBinary = binaries.sampleBinary
+                        assert sampleBinary instanceof SampleBinary
+                        assert sampleBinary.displayName == "DefaultSampleBinary 'sampleBinary'"
 
-            def anotherSampleBinary = project.binaries.anotherSampleBinary
-            assert anotherSampleBinary instanceof AnotherSampleBinary
-            assert anotherSampleBinary.displayName == "DefaultAnotherSampleBinary 'anotherSampleBinary'"
+                        def anotherSampleBinary = binaries.anotherSampleBinary
+                        assert anotherSampleBinary instanceof AnotherSampleBinary
+                        assert anotherSampleBinary.displayName == "DefaultAnotherSampleBinary 'anotherSampleBinary'"
+                    }
+                }
+            }
         }
 """
         then:
