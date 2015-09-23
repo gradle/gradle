@@ -84,10 +84,17 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
     }
 
     void mutate(@DelegatesTo(ModelMap) Closure<? super ModelMap<NamedThing>> action) {
-        def mutator = Stub(ModelAction)
-        mutator.subject >> ModelReference.of(containerPath, new ModelType<ModelMap<NamedThing>>() {})
-        mutator.descriptor >> new SimpleModelRuleDescriptor("foo")
-        mutator.execute(*_) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
+        def mutator = new AbstractModelActionWithView<ModelMap<NamedThing>>(
+            ModelReference.of(
+                containerPath,
+                ModelTypes.modelMap(NamedThing)
+            ),
+            new SimpleModelRuleDescriptor("foo")) {
+                @Override
+                protected void execute(MutableModelNode modelNode, ModelMap<NamedThing> view, List<ModelView<?>> inputs) {
+                    new ClosureBackedAction<? super ModelMap<NamedThing>>(action).execute(view)
+                }
+        }
 
         registry.configure(ModelActionRole.Mutate, mutator)
     }

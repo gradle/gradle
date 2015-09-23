@@ -24,14 +24,14 @@ import java.util.List;
 public class ExtractedModelAction implements ExtractedModelRule {
 
     private final ModelActionRole role;
-    private final ModelAction<?> action;
+    private final ModelAction action;
     private final List<? extends Class<?>> dependencies;
 
-    public ExtractedModelAction(ModelActionRole role, ModelAction<?> action) {
+    public ExtractedModelAction(ModelActionRole role, ModelAction action) {
         this(role, ImmutableList.<Class<?>>of(), action);
     }
 
-    public ExtractedModelAction(ModelActionRole role, List<? extends Class<?>> dependencies, ModelAction<?> action) {
+    public ExtractedModelAction(ModelActionRole role, List<? extends Class<?>> dependencies, ModelAction action) {
         this.role = role;
         this.action = action;
         this.dependencies = dependencies;

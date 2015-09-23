@@ -102,7 +102,7 @@ abstract public class ModelCreators {
         private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer;
         private final ModelPath path;
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
-        private final List<Pair<? extends ModelActionRole, ? extends ModelAction<?>>> actions = Lists.newArrayList();
+        private final List<Pair<? extends ModelActionRole, ? extends ModelAction>> actions = Lists.newArrayList();
         private boolean ephemeral;
         private boolean hidden;
 
@@ -134,7 +134,7 @@ abstract public class ModelCreators {
             return this;
         }
 
-        public Builder action(ModelActionRole role, ModelAction<?> action) {
+        public Builder action(ModelActionRole role, ModelAction action) {
             this.actions.add(Pair.of(role, action));
             return this;
         }
@@ -172,7 +172,7 @@ abstract public class ModelCreators {
                 effectiveInitializer = BiActions.composite(initializer, new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     @Override
                     public void execute(MutableModelNode modelNode, List<ModelView<?>> modelViews) {
-                        for (Pair<? extends ModelActionRole, ? extends ModelAction<?>> action : actions) {
+                        for (Pair<? extends ModelActionRole, ? extends ModelAction> action : actions) {
                             modelNode.applyToSelf(action.getLeft(), action.getRight());
                         }
                     }

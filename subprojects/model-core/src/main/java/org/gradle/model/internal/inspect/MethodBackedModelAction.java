@@ -16,18 +16,12 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.internal.core.ModelAction;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.ModelView;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
-class MethodBackedModelAction<T> implements ModelAction<T> {
-    private final ModelRuleDescriptor descriptor;
-    private final ModelReference<T> subject;
-    private final List<ModelReference<?>> inputs;
+class MethodBackedModelAction<T> extends AbstractModelActionWithView<T> {
     private final ModelRuleInvoker<?> ruleInvoker;
 
     public MethodBackedModelAction(MethodRuleDefinition<?, T> ruleDefinition) {
@@ -35,26 +29,12 @@ class MethodBackedModelAction<T> implements ModelAction<T> {
     }
 
     public MethodBackedModelAction(ModelRuleInvoker<?> ruleInvoker, ModelRuleDescriptor descriptor, ModelReference<T> subject, List<ModelReference<?>> inputs) {
+        super(subject, descriptor, inputs);
         this.ruleInvoker = ruleInvoker;
-        this.subject = subject;
-        this.inputs = inputs;
-        this.descriptor = descriptor;
-    }
-
-    public ModelRuleDescriptor getDescriptor() {
-        return descriptor;
-    }
-
-    public ModelReference<T> getSubject() {
-        return subject;
-    }
-
-    public List<ModelReference<?>> getInputs() {
-        return inputs;
     }
 
     @Override
-    public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
+    protected void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
         Object[] args = new Object[1 + this.inputs.size()];
         args[0] = object;
         for (int i = 0; i < this.inputs.size(); ++i) {

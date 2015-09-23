@@ -121,9 +121,9 @@ public interface ModelRegistry {
 
     ModelRegistry project(ModelProjector projector, ModelPath scope);
 
-    <T> ModelRegistry configure(ModelActionRole role, ModelAction<T> action);
+    ModelRegistry configure(ModelActionRole role, ModelAction action);
 
-    <T> ModelRegistry configure(ModelActionRole role, ModelAction<T> action, ModelPath scope);
+    ModelRegistry configure(ModelActionRole role, ModelAction action, ModelPath scope);
 
     ModelRegistry apply(Class<? extends RuleSource> rules);
 

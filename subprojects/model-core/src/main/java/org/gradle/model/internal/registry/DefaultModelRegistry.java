@@ -116,13 +116,13 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     @Override
-    public <T> DefaultModelRegistry configure(ModelActionRole role, ModelAction<T> action) {
+    public DefaultModelRegistry configure(ModelActionRole role, ModelAction action) {
         bind(action.getSubject(), role, action, ModelPath.ROOT);
         return this;
     }
 
     @Override
-    public <T> ModelRegistry configure(ModelActionRole role, ModelAction<T> action, ModelPath scope) {
+    public ModelRegistry configure(ModelActionRole role, ModelAction action, ModelPath scope) {
         bind(action.getSubject(), role, action, scope);
         return this;
     }
@@ -133,13 +133,13 @@ public class DefaultModelRegistry implements ModelRegistry {
         return this;
     }
 
-    private <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<T> mutator, ModelPath scope) {
+    private <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction mutator, ModelPath scope) {
         if (reset) {
             return;
         }
         BindingPredicate mappedSubject = mapSubject(subject, role, scope);
         List<BindingPredicate> mappedInputs = mapInputs(mutator.getInputs(), scope);
-        MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(mappedSubject, mappedInputs, mutator, unboundRules);
+        MutatorRuleBinder binder = new MutatorRuleBinder(mappedSubject, mappedInputs, mutator, unboundRules);
         ruleBindings.add(binder);
     }
 
@@ -451,30 +451,20 @@ public class DefaultModelRegistry implements ModelRegistry {
         return node;
     }
 
-    private <T> void fireMutation(MutatorRuleBinder<T> boundMutator) {
+    private <T> void fireMutation(MutatorRuleBinder boundMutator) {
         final List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction());
-
         final ModelNodeInternal node = boundMutator.getSubjectBinding().getNode();
-        final ModelAction<T> mutator = boundMutator.getAction();
+        final ModelAction mutator = boundMutator.getAction();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
 
-        LOGGER.debug("Mutating {} using {}", node.getPath(), mutator.getDescriptor());
+        LOGGER.debug("Mutating {} using {}", node.getPath(), descriptor);
 
-        ModelReference<T> reference = Cast.uncheckedCast(boundMutator.getSubjectReference().getReference());
-        final ModelView<? extends T> view = assertView(node, reference, descriptor, inputs);
-        try {
-            RuleContext.run(descriptor, new Runnable() {
-                @Override
-                public void run() {
-                    mutator.execute(node, view.getInstance(), inputs);
-                }
-            });
-        } catch (Exception e) {
-            // TODO some representation of state of the inputs
-            throw new ModelRuleExecutionException(descriptor, e);
-        } finally {
-            view.close();
-        }
+        RuleContext.run(descriptor, new Runnable() {
+            @Override
+            public void run() {
+                mutator.execute(node, inputs);
+            }
+        });
     }
 
     private List<ModelView<?>> toViews(List<ModelBinding> bindings, ModelRule modelRule) {
@@ -678,7 +668,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void applyToSelf(ModelActionRole type, ModelAction<T> action) {
+        public void applyToSelf(ModelActionRole type, ModelAction action) {
             if (!getPath().equals(action.getSubject().getPath())) {
                 throw new IllegalArgumentException(String.format("Element action reference has path (%s) which does not reference this node (%s).", action.getSubject().getPath(), getPath()));
             }
@@ -686,7 +676,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+        public void applyToLink(ModelActionRole type, ModelAction action) {
             if (!getPath().isDirectChild(action.getSubject().getPath())) {
                 throw new IllegalArgumentException(String.format("Linked element action reference has a path (%s) which is not a child of this node (%s).", action.getSubject().getPath(), getPath()));
             }
@@ -759,7 +749,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void applyToAllLinks(final ModelActionRole type, final ModelAction<T> action) {
+        public void applyToAllLinks(final ModelActionRole type, final ModelAction action) {
             if (action.getSubject().getPath() != null) {
                 throw new IllegalArgumentException("Linked element action reference must have null path.");
             }
@@ -786,7 +776,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void applyToAllLinksTransitive(final ModelActionRole type, final ModelAction<T> action) {
+        public void applyToAllLinksTransitive(final ModelActionRole type, final ModelAction action) {
             if (action.getSubject().getPath() != null) {
                 throw new IllegalArgumentException("Linked element action reference must have null path.");
             }
@@ -1182,7 +1172,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             // Must run each action
             for (RuleBinder binder : ruleBindings.getRulesWithSubject(target)) {
                 if (seenRules.add(binder)) {
-                    MutatorRuleBinder<?> mutator = Cast.uncheckedCast(binder);
+                    MutatorRuleBinder mutator = Cast.uncheckedCast(binder);
                     dependencies.add(new RunModelAction(getPath(), mutator));
                 }
             }
@@ -1447,9 +1437,9 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private class RunModelAction extends RunAction {
-        private final MutatorRuleBinder<?> binder;
+        private final MutatorRuleBinder binder;
 
-        public RunModelAction(ModelPath path, MutatorRuleBinder<?> binder) {
+        public RunModelAction(ModelPath path, MutatorRuleBinder binder) {
             super(path, binder);
             this.binder = binder;
         }

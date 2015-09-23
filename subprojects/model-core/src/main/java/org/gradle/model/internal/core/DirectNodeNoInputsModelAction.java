@@ -23,48 +23,30 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import java.util.Collections;
 import java.util.List;
 
-public class DirectNodeNoInputsModelAction<T> implements ModelAction<T> {
+public class DirectNodeNoInputsModelAction<T> extends AbstractModelActionWithView<T> {
 
-    private final ModelReference<T> subjectReference;
     private final BiAction<? super MutableModelNode, ? super T> action;
-    private final ModelRuleDescriptor descriptor;
 
     private DirectNodeNoInputsModelAction(ModelReference<T> subjectReference, ModelRuleDescriptor descriptor, BiAction<? super MutableModelNode, ? super T> action) {
-        this.subjectReference = subjectReference;
+        super(subjectReference, descriptor, Collections.<ModelReference<?>>emptyList());
         this.action = action;
-        this.descriptor = descriptor;
     }
 
-    public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, final Action<? super MutableModelNode> action) {
-        return new DirectNodeNoInputsModelAction<T>(reference, descriptor, new BiAction<MutableModelNode, T>() {
+    public static <T> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, final Action<? super MutableModelNode> action) {
+        return new AbstractModelAction<T>(reference, descriptor, Collections.<ModelReference<?>>emptyList()) {
             @Override
-            public void execute(MutableModelNode modelNode, T t) {
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
                 action.execute(modelNode);
             }
-        });
+        };
     }
 
-    public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, BiAction<? super MutableModelNode, ? super T> action) {
+    public static <T> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, BiAction<? super MutableModelNode, ? super T> action) {
         return new DirectNodeNoInputsModelAction<T>(reference, descriptor, action);
-    }
-
-    @Override
-    public ModelReference<T> getSubject() {
-        return subjectReference;
     }
 
     @Override
     public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
         action.execute(modelNode, object);
-    }
-
-    @Override
-    public List<ModelReference<?>> getInputs() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public ModelRuleDescriptor getDescriptor() {
-        return descriptor;
     }
 }

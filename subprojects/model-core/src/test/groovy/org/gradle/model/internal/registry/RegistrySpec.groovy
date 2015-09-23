@@ -79,22 +79,22 @@ class RegistrySpec extends Specification {
         }
 
         @Override
-        def <T> void applyToSelf(ModelActionRole type, ModelAction<T> action) {
+        def void applyToSelf(ModelActionRole type, ModelAction action) {
 
         }
 
         @Override
-        def <T> void applyToAllLinks(ModelActionRole type, ModelAction<T> action) {
+        def void applyToAllLinks(ModelActionRole type, ModelAction action) {
 
         }
 
         @Override
-        def <T> void applyToAllLinksTransitive(ModelActionRole type, ModelAction<T> action) {
+        def void applyToAllLinksTransitive(ModelActionRole type, ModelAction action) {
 
         }
 
         @Override
-        def <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+        def void applyToLink(ModelActionRole type, ModelAction action) {
 
         }
 
@@ -267,7 +267,7 @@ class RegistrySpec extends Specification {
                 binder = new CreatorRuleBinder(action, new BindingPredicate(), inputReferences, [])
             } else {
                 def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})
-                binder = new MutatorRuleBinder<?>(subjectReference, inputReferences, action, [])
+                binder = new MutatorRuleBinder(subjectReference, inputReferences, action, [])
             }
             if (subjectReferenceBindingPath) {
                 binder.subjectBinding.boundTo = new TestNode(subjectReferenceBindingPath, Object)

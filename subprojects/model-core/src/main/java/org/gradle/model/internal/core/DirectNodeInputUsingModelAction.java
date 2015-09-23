@@ -21,42 +21,22 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
-public class DirectNodeInputUsingModelAction<T> implements ModelAction<T> {
-    private final ModelReference<T> subject;
-    private final ModelRuleDescriptor descriptor;
-    private final List<ModelReference<?>> inputs;
+public class DirectNodeInputUsingModelAction<T> extends AbstractModelActionWithView<T> {
     private final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action;
 
-    public DirectNodeInputUsingModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs,
+    public DirectNodeInputUsingModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs,
                                            TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
-        this.subject = subject;
-        this.descriptor = descriptor;
-        this.inputs = inputs;
+        super(subject, descriptor, inputs);
         this.action = action;
     }
 
-    public static <T> DirectNodeInputUsingModelAction<T> of(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs,
+    public static <T> DirectNodeInputUsingModelAction<T> of(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs,
                                                       TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
         return new DirectNodeInputUsingModelAction<T>(modelReference, descriptor, inputs, action);
     }
 
     @Override
-    public ModelReference<T> getSubject() {
-        return subject;
-    }
-
-    @Override
     public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
         action.execute(modelNode, object, inputs);
-    }
-
-    @Override
-    public List<ModelReference<?>> getInputs() {
-        return inputs;
-    }
-
-    @Override
-    public ModelRuleDescriptor getDescriptor() {
-        return descriptor;
     }
 }

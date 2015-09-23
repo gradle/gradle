@@ -186,13 +186,13 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     @Override
-    public <T> ModelRegistryHelper configure(ModelActionRole role, ModelAction<T> action) {
+    public ModelRegistryHelper configure(ModelActionRole role, ModelAction action) {
         modelRegistry.configure(role, action);
         return this;
     }
 
     @Override
-    public <T> ModelRegistry configure(ModelActionRole role, ModelAction<T> action, ModelPath scope) {
+    public ModelRegistry configure(ModelActionRole role, ModelAction action, ModelPath scope) {
         modelRegistry.configure(role, action, scope);
         return this;
     }
@@ -267,9 +267,9 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     public <I> ModelRegistryHelper mutateModelMap(final String path, final Class<I> itemType, final Action<? super ModelMap<I>> action) {
-        return mutate(new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
+        return mutate(new Transformer<ModelAction, ModelActionBuilder<Object>>() {
             @Override
-            public ModelAction<?> transform(ModelActionBuilder<Object> builder) {
+            public ModelAction transform(ModelActionBuilder<Object> builder) {
                 return builder.path(path).type(ModelTypes.modelMap(itemType)).action(action);
             }
         });
@@ -295,11 +295,11 @@ public class ModelRegistryHelper implements ModelRegistry {
         return new ModelProjectorBuilder(path);
     }
 
-    public ModelRegistryHelper configure(ModelActionRole role, Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<Object>> def) {
+    public ModelRegistryHelper configure(ModelActionRole role, Transformer<? extends ModelAction, ? super ModelActionBuilder<Object>> def) {
         return configure(role, def.transform(ModelActionBuilder.of()));
     }
 
-    public ModelRegistryHelper mutate(Transformer<? extends ModelAction<?>, ? super ModelActionBuilder<Object>> def) {
+    public ModelRegistryHelper mutate(Transformer<? extends ModelAction, ? super ModelActionBuilder<Object>> def) {
         return configure(Mutate, def);
     }
 
@@ -316,9 +316,9 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     public ModelRegistryHelper mutate(final String path, final Action<? super MutableModelNode> action) {
-        return configure(Mutate, new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
+        return configure(Mutate, new Transformer<ModelAction, ModelActionBuilder<Object>>() {
             @Override
-            public ModelAction<?> transform(ModelActionBuilder<Object> objectModelActionBuilder) {
+            public ModelAction transform(ModelActionBuilder<Object> objectModelActionBuilder) {
                 return objectModelActionBuilder.path(path).node(action);
             }
         });
@@ -342,9 +342,9 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     private <T> ModelRegistryHelper configure(ModelActionRole role, final ModelReference<T> reference, final Action<? super T> action) {
-        return configure(role, new Transformer<ModelAction<?>, ModelActionBuilder<Object>>() {
+        return configure(role, new Transformer<ModelAction, ModelActionBuilder<Object>>() {
             @Override
-            public ModelAction<?> transform(ModelActionBuilder<Object> objectModelActionBuilder) {
+            public ModelAction transform(ModelActionBuilder<Object> objectModelActionBuilder) {
                 return objectModelActionBuilder.path(reference.getPath()).type(reference.getType()).action(action);
             }
         });
@@ -439,7 +439,7 @@ public class ModelRegistryHelper implements ModelRegistry {
             return copy(type);
         }
 
-        public ModelAction<T> action(final Action<? super T> action) {
+        public ModelAction action(final Action<? super T> action) {
             return build(NO_REFS, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode, T t, List<ModelView<?>> inputs) {
@@ -448,7 +448,7 @@ public class ModelRegistryHelper implements ModelRegistry {
             });
         }
 
-        public ModelAction<T> node(final Action<? super MutableModelNode> action) {
+        public ModelAction node(final Action<? super MutableModelNode> action) {
             return build(NO_REFS, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode, T t, List<ModelView<?>> inputs) {
@@ -457,19 +457,19 @@ public class ModelRegistryHelper implements ModelRegistry {
             });
         }
 
-        public <I> ModelAction<T> action(ModelPath modelPath, ModelType<I> inputType, BiAction<? super T, ? super I> action) {
+        public <I> ModelAction action(ModelPath modelPath, ModelType<I> inputType, BiAction<? super T, ? super I> action) {
             return action(modelPath, inputType, inputType.toString(), action);
         }
 
-        public <I> ModelAction<T> action(String modelPath, ModelType<I> inputType, BiAction<? super T, ? super I> action) {
+        public <I> ModelAction action(String modelPath, ModelType<I> inputType, BiAction<? super T, ? super I> action) {
             return action(modelPath, inputType, modelPath, action);
         }
 
-        public <I> ModelAction<T> action(final ModelPath modelPath, final ModelType<I> inputType, String referenceDescription, final BiAction<? super T, ? super I> action) {
+        public <I> ModelAction action(final ModelPath modelPath, final ModelType<I> inputType, String referenceDescription, final BiAction<? super T, ? super I> action) {
             return action(ModelReference.of(modelPath, inputType, referenceDescription), action);
         }
 
-        public <I> ModelAction<T> action(final ModelReference<I> inputReference, final BiAction<? super T, ? super I> action) {
+        public <I> ModelAction action(final ModelReference<I> inputReference, final BiAction<? super T, ? super I> action) {
             return build(refs(inputReference), new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode, T t, List<ModelView<?>> inputs) {
@@ -478,23 +478,23 @@ public class ModelRegistryHelper implements ModelRegistry {
             });
         }
 
-        public <I> ModelAction<T> action(final String modelPath, final ModelType<I> inputType, String referenceDescription, final BiAction<? super T, ? super I> action) {
+        public <I> ModelAction action(final String modelPath, final ModelType<I> inputType, String referenceDescription, final BiAction<? super T, ? super I> action) {
             return action(ModelPath.path(modelPath), inputType, referenceDescription, action);
         }
 
-        public <I> ModelAction<T> action(final ModelType<I> inputType, final BiAction<? super T, ? super I> action) {
+        public <I> ModelAction action(final ModelType<I> inputType, final BiAction<? super T, ? super I> action) {
             return action((ModelPath) null, inputType, action);
         }
 
-        public <I> ModelAction<T> action(final Class<I> inputType, final BiAction<? super T, ? super I> action) {
+        public <I> ModelAction action(final Class<I> inputType, final BiAction<? super T, ? super I> action) {
             return action(ModelType.of(inputType), action);
         }
 
-        private ModelAction<T> build(List<ModelReference<?>> references, TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
+        private ModelAction build(List<ModelReference<?>> references, TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
             return toAction(references, action, path, type, descriptor);
         }
 
-        private static <T> ModelAction<T> toAction(final List<ModelReference<?>> references, final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
+        private static <T> ModelAction toAction(final List<ModelReference<?>> references, final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
             return DirectNodeInputUsingModelAction.of(ModelReference.of(path, type), descriptor, references, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode modelNode, T t, List<ModelView<?>> inputs) {

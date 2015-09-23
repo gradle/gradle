@@ -56,7 +56,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         registration.apply(mockRegistry, ModelPath.ROOT)
 
         then:
-        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction<?> action, ModelPath scope ->
+        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction action, ModelPath scope ->
             assert role == ModelActionRole.Finalize
             assert action.subject == ModelReference.of("components", ComponentSpecContainer)
         }

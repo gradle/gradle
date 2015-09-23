@@ -40,7 +40,6 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -58,7 +57,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     protected <R, S> ExtractedModelRule createRegistration(MethodRuleDefinition<R, S> ruleDefinition, ModelType<? extends ComponentSpec> type, TypeBuilderInternal<ComponentSpec> builder) {
         List<Class<?>> dependencies = ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
         ModelType<? extends BaseComponentSpec> implementation = determineImplementationType(type, builder);
-        ModelAction<?> mutator = new RegistrationAction(type, implementation, builder.getInternalViews(), ruleDefinition.getDescriptor());
+        ModelAction mutator = new RegistrationAction(type, implementation, builder.getInternalViews(), ruleDefinition.getDescriptor());
         return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
     }
 
@@ -68,38 +67,20 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         }
     }
 
-    private static class RegistrationAction implements ModelAction<ComponentSpecFactory> {
+    private static class RegistrationAction extends AbstractModelActionWithView<ComponentSpecFactory> {
         private final ModelType<? extends ComponentSpec> publicType;
         private final ModelType<? extends BaseComponentSpec> implementationType;
         private final Set<Class<? extends ComponentSpec>> internalViews;
-        private final ModelRuleDescriptor descriptor;
-        private final List<ModelReference<?>> inputs;
 
         public RegistrationAction(ModelType<? extends ComponentSpec> publicType, ModelType<? extends BaseComponentSpec> implementationType, Set<Class<? extends ComponentSpec>> internalViews, ModelRuleDescriptor descriptor) {
+            super(ModelReference.of(ComponentSpecFactory.class), descriptor, ModelReference.of(ServiceRegistry.class), ModelReference.of(ProjectIdentifier.class), ModelReference.of(ProjectSourceSet.class));
             this.publicType = publicType;
             this.implementationType = implementationType;
             this.internalViews = internalViews;
-            this.descriptor = descriptor;
-            this.inputs = Arrays.<ModelReference<?>>asList(ModelReference.of(ServiceRegistry.class), ModelReference.of(ProjectIdentifier.class), ModelReference.of(ProjectSourceSet.class));
         }
 
         @Override
-        public ModelReference<ComponentSpecFactory> getSubject() {
-            return ModelReference.of(ComponentSpecFactory.class);
-        }
-
-        @Override
-        public ModelRuleDescriptor getDescriptor() {
-            return descriptor;
-        }
-
-        @Override
-        public List<ModelReference<?>> getInputs() {
-            return inputs;
-        }
-
-        @Override
-        public void execute(MutableModelNode modelNode, ComponentSpecFactory components, List<ModelView<?>> inputs) {
+        protected void execute(MutableModelNode modelNode, ComponentSpecFactory components, List<ModelView<?>> inputs) {
             if (implementationType != null) {
                 registerImplementation(components, inputs);
             }

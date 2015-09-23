@@ -100,22 +100,22 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public <T> void applyToSelf(ModelActionRole type, ModelAction<T> action) {
+    public void applyToSelf(ModelActionRole type, ModelAction action) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> void applyToAllLinks(ModelActionRole type, ModelAction<T> action) {
+    public void applyToAllLinks(ModelActionRole type, ModelAction action) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> void applyToAllLinksTransitive(ModelActionRole type, ModelAction<T> action) {
+    public void applyToAllLinksTransitive(ModelActionRole type, ModelAction action) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+    public void applyToLink(ModelActionRole type, ModelAction action) {
         throw new UnsupportedOperationException();
     }
 

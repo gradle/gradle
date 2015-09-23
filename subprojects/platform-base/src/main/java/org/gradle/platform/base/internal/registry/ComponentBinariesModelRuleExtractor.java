@@ -67,7 +67,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
             this.binaryType = binaryType;
         }
 
-        public void execute(final MutableModelNode modelNode, final ComponentSpecContainer componentSpecs, final List<ModelView<?>> modelMapRuleInputs) {
+        protected  void execute(final MutableModelNode modelNode, final ComponentSpecContainer componentSpecs, final List<ModelView<?>> modelMapRuleInputs) {
             modelNode.applyToAllLinks(ModelActionRole.Mutate, DirectNodeInputUsingModelAction.of(
                 ModelReference.of(ModelType.of(componentType)),
                 getDescriptor(),

@@ -59,7 +59,7 @@ public interface MutableModelNode extends ModelNode {
     /**
      * Applies an action to this node.
      */
-    <T> void applyToSelf(ModelActionRole type, ModelAction<T> action);
+    void applyToSelf(ModelActionRole type, ModelAction action);
 
     /**
      * Applies an action to all nodes linked from this node.
@@ -67,7 +67,7 @@ public interface MutableModelNode extends ModelNode {
      * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
      * requested type available.
      */
-    <T> void applyToAllLinks(ModelActionRole type, ModelAction<T> action);
+    void applyToAllLinks(ModelActionRole type, ModelAction action);
 
     /**
      * Applies an action to all nodes linked from this node, including all nodes transitively linked from this node.
@@ -75,14 +75,14 @@ public interface MutableModelNode extends ModelNode {
      * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
      * requested type available.
      */
-    <T> void applyToAllLinksTransitive(ModelActionRole type, ModelAction<T> action);
+    void applyToAllLinksTransitive(ModelActionRole type, ModelAction action);
 
     /**
      * Applies an action to a linked node.
      *
      * The path returned by {@link ModelAction#getSubject()} is used to select the link to apply the action to.
      */
-    <T> void applyToLink(ModelActionRole type, ModelAction<T> action);
+    void applyToLink(ModelActionRole type, ModelAction action);
 
     /**
      * Applies the given rules to a node linked from this node.
