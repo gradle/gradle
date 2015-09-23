@@ -67,6 +67,7 @@ elements.
 - Can use a reference property as input for a rule.
 
 ### Rule based model configuration
+
 Interoperability between legacy configuration space and new rule based model configuration has been improved. More specifically, the `tasks.withType(..)` construct allows legacy configuration tasks
 to depend on tasks created via the new rule based approach. See [this issue](https://issues.gradle.org/browse/GRADLE-3318) for details.
 
@@ -156,7 +157,9 @@ not a part of the public API, some users may be utilizing it and should plan to 
 
 ## Potential breaking changes
 
-Upgraded to Groovy 2.4.4. This should be transparent to the majority of users, however it can imply some minor breaking changes.
+### Upgraded to Groovy 2.4.4
+
+The Gradle API now uses Groovy 2.4.4. Previously it was using Groovy 2.3.10. This change should be transparent to the majority of users, however it can imply some minor breaking changes.
 Please refer to the [Groovy language changelogs](http://groovy-lang.org/changelogs.html) for further details.
 
 ### Support for PMD versions <5.0
