@@ -381,18 +381,17 @@ task bigOldJavaMoreSource(type: ProjectGeneratorTask) {
     testDependencies = files()
 }
 
-task generateSmallNewMultiprojectJava(type: ProjectGeneratorTask) {
+task smallNewMultiprojectJava(type: ProjectGeneratorTask) {
     projects = 10
     sourceFiles = 100
 }
 
-task generateLargeNewMultiprojectJava(type: ProjectGeneratorTask) {
+task largeNewMultiprojectJava(type: ProjectGeneratorTask) {
     projects = 100
     sourceFiles = 1000
 }
 
-configure([generateSmallNewMultiprojectJava, generateLargeNewMultiprojectJava]) {
-    destDir = file("$buildDir/${java.beans.Introspector.decapitalize(name - ~/^generate/)}")
+configure([smallNewMultiprojectJava, largeNewMultiprojectJava]) {
     linesOfCodePerSourceFile = 50
     filesPerPackage = 10
     useSubProjectNumberInSourceFileNames = true
@@ -428,7 +427,7 @@ task prepareSamples(dependsOn: [bigEmpty, small, multi, lotDependencies, withJUn
                                 smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
                                 variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
                                 smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
-                                bigOldJavaMoreSource, lotProjectDependencies, generateSmallNewMultiprojectJava, generateLargeNewMultiprojectJava])
+                                bigOldJavaMoreSource, lotProjectDependencies, smallNewMultiprojectJava, largeNewMultiprojectJava])
 
 task report {
     def reportDir = new File(buildDir, "performance-tests/report")
@@ -465,8 +464,7 @@ task performanceExperiments(type: Test) {
     }
 }
 
-task generateCompareTaskInputs(type: ProjectGeneratorTask) {
-    destDir = file("$buildDir/compareTaskInputs")
+task compareTaskInputs(type: ProjectGeneratorTask) {
     projects = 1
     subProjectTemplates = ['empty']
     templateArgs = [original: file("src/testProjects/compareTaskInputs/build.gradle").text]
@@ -532,7 +530,7 @@ task generateCompareTaskInputs(type: ProjectGeneratorTask) {
     }
 }
 
-task prepareManualSamples(dependsOn: [generateCompareTaskInputs])
+task prepareManualSamples(dependsOn: [compareTaskInputs])
 
 task manualPerformanceTest(type: Test) {
     dependsOn prepareManualSamples
