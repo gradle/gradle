@@ -174,6 +174,14 @@ and we have removed any integration test coverage for these versions.
 PMD can perform additional analysis for some rules (see above), therefore new violations may be found in existing projects.  Previously, these rules were unable to detect problems
 because classes outside of your project were not available during analysis.
 
+### Updated to CodeNarc 0.24.1
+
+The default version of CodeNarc has been updated from 0.23 to 0.24.1. Should you want to stay on older version, it is possible to downgrade it using the `codenarc` configuration:
+
+    dependencies {
+       codenarc 'org.codenarc:CodeNarc:0.17'
+    }
+
 ### Improved IDE project naming deduplication
 
 To ensure unique project names in the IDE, Gradle applies a deduplication logic when generating IDE metadata for Eclipse and Idea projects.
@@ -204,7 +212,7 @@ TBD
 The behaviour of `ClassDirectoryBinarySpec` instances has changed:
 
 - `sources` container is no longer added as a project extension. It is visible only as part of the software model.
-- `ClassDirectoryBinarySpec` instances can no longer be created using the `binaries` container. Instances are added to this container by the Java plugins for each source set, 
+- `ClassDirectoryBinarySpec` instances can no longer be created using the `binaries` container. Instances are added to this container by the Java plugins for each source set,
 however, additional instances cannot be added. This capability will be added again in a later release.
 - Instances are not added to the `binaries` container eagerly by the Java plugins.
 
