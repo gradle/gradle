@@ -275,16 +275,22 @@ class LoggingServiceRegistryTest extends Specification {
         outputs.stdErr == ''
     }
 
-    def doesNotMessWithSystemOutputAndErrorWhenEmbedded() {
+    def routesSystemOutAndErrToListenersWhenWhenEmbedded() {
+        StandardOutputListener listener = Mock()
+
         when:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
         loggingManager.level = LogLevel.WARN
+        loggingManager.addStandardOutputListener(listener)
+        loggingManager.addStandardErrorListener(listener)
         loggingManager.start()
+        System.out.println("info")
+        System.err.println("error")
 
         then:
-        System.out == outputs.stdOutPrintStream
-        System.err == outputs.stdErrPrintStream
+        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("info\n"))
+        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("error\n"))
     }
 
     def doesNotMessWithJavaUtilLoggingWhenNested() {
