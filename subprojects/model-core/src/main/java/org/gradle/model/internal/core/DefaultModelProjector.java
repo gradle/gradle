@@ -20,39 +20,22 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultModelProjector implements ModelProjector {
+public class DefaultModelProjector extends AbstractModelAction<Object> {
 
-    private final ModelPath path;
-    private final ModelRuleDescriptor descriptor;
     private final Set<ModelProjection> projections;
 
     public DefaultModelProjector(ModelPath path, ModelRuleDescriptor descriptor, Collection<ModelProjection> projections) {
-        this.path = path;
-        this.descriptor = descriptor;
+        super(ModelReference.of(path), descriptor);
         this.projections = ImmutableSet.copyOf(projections);
     }
 
     @Override
-    public ModelPath getPath() {
-        return path;
-    }
-
-    @Override
-    public Set<? extends ModelProjection> getProjections(MutableModelNode node, List<ModelView<?>> inputs) {
-        return projections;
-    }
-
-    @Override
-    public List<ModelReference<?>> getInputs() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public ModelRuleDescriptor getDescriptor() {
-        return descriptor;
+    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+        for (ModelProjection projection : projections) {
+            modelNode.addProjection(projection);
+        }
     }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.internal.BiAction;
+import org.gradle.internal.Cast;
 import org.gradle.internal.TriAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
@@ -33,6 +35,15 @@ public class DirectNodeInputUsingModelAction<T> extends AbstractModelActionWithV
     public static <T> DirectNodeInputUsingModelAction<T> of(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs,
                                                       TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
         return new DirectNodeInputUsingModelAction<T>(modelReference, descriptor, inputs, action);
+    }
+
+    public static <T, I> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, ModelReference<I> input, final BiAction<? super MutableModelNode, ? super I> action) {
+        return new AbstractModelAction<T>(reference, descriptor, input) {
+            @Override
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                action.execute(modelNode, Cast.<I>uncheckedCast(inputs.get(0).getInstance()));
+            }
+        };
     }
 
     @Override

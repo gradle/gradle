@@ -80,11 +80,6 @@ class ModelReferenceNode extends ModelNodeInternal {
     }
 
     @Override
-    public void projectLink(ModelProjector projector) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void addLink(ModelCreator creator) {
         throw new UnsupportedOperationException();
     }

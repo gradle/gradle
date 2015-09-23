@@ -64,9 +64,6 @@ class RegistrySpec extends Specification {
 
         }
 
-        @Override
-        void projectLink(ModelProjector projector) {
-        }
 
         @Override
         void addLink(ModelCreator creator) {
@@ -267,7 +264,7 @@ class RegistrySpec extends Specification {
                 binder = new CreatorRuleBinder(action, new BindingPredicate(), inputReferences, [])
             } else {
                 def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})
-                binder = new MutatorRuleBinder(subjectReference, inputReferences, action, [])
+                binder = new ModelActionBinder(subjectReference, inputReferences, action, [])
             }
             if (subjectReferenceBindingPath) {
                 binder.subjectBinding.boundTo = new TestNode(subjectReferenceBindingPath, Object)

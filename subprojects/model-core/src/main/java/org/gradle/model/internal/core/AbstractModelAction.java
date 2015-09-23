@@ -18,12 +18,17 @@ package org.gradle.model.internal.core;
 
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class AbstractModelAction<T> implements ModelAction {
     protected final ModelReference<T> subject;
     protected final ModelRuleDescriptor descriptor;
     protected final List<? extends ModelReference<?>> inputs;
+
+    protected AbstractModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, ModelReference<?>... inputs) {
+        this(subject, descriptor, Arrays.asList(inputs));
+    }
 
     protected AbstractModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs) {
         this.subject = subject;

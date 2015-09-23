@@ -169,23 +169,6 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     @Override
-    public ModelRegistryHelper project(ModelProjector projector) {
-        modelRegistry.project(projector);
-        return this;
-    }
-
-    @Override
-    public ModelRegistry project(ModelProjector projector, ModelPath scope) {
-        modelRegistry.project(projector, scope);
-        return this;
-    }
-
-    public ModelRegistryHelper project(String path, Transformer<? extends ModelProjector, ? super ModelProjectorBuilder> def) {
-        modelRegistry.project(def.transform(projector(path)));
-        return this;
-    }
-
-    @Override
     public ModelRegistryHelper configure(ModelActionRole role, ModelAction action) {
         modelRegistry.configure(role, action);
         return this;
@@ -449,12 +432,7 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         public ModelAction node(final Action<? super MutableModelNode> action) {
-            return build(NO_REFS, new TriAction<MutableModelNode, T, List<ModelView<?>>>() {
-                @Override
-                public void execute(MutableModelNode mutableModelNode, T t, List<ModelView<?>> inputs) {
-                    action.execute(mutableModelNode);
-                }
-            });
+            return toAction(action, path, type, descriptor);
         }
 
         public <I> ModelAction action(ModelPath modelPath, ModelType<I> inputType, BiAction<? super T, ? super I> action) {
@@ -501,6 +479,10 @@ public class ModelRegistryHelper implements ModelRegistry {
                     action.execute(modelNode, t, inputs);
                 }
             });
+        }
+
+        private static <T> ModelAction toAction(Action<? super MutableModelNode> action, final ModelPath path, final ModelType<T> type, final ModelRuleDescriptor descriptor) {
+            return DirectNodeNoInputsModelAction.of(ModelReference.of(path, type), descriptor, action);
         }
     }
 
@@ -666,7 +648,7 @@ public class ModelRegistryHelper implements ModelRegistry {
             return this;
         }
 
-        public ModelProjector build() {
+        public ModelAction build() {
             return new DefaultModelProjector(path, descriptor, projections);
         }
     }

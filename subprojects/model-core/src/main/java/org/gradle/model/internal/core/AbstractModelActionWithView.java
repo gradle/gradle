@@ -33,6 +33,9 @@ public abstract class AbstractModelActionWithView<T> extends AbstractModelAction
 
     @Override
     final public void execute(MutableModelNode node, List<ModelView<?>> inputs) {
+        if (!node.isAtLeast(ModelNode.State.Created)) {
+            throw new IllegalStateException("Cannot get view for node " + node.getPath() + " in state " + node.getState());
+        }
         ModelType<T> type = getSubject().getType();
         ModelView<? extends T> view = node.asWritable(type, getDescriptor(), inputs);
         if (view == null) {
@@ -41,9 +44,6 @@ public abstract class AbstractModelActionWithView<T> extends AbstractModelAction
         }
         try {
             execute(node, view.getInstance(), inputs);
-        } catch (Exception e) {
-            // TODO some representation of state of the inputs
-            throw new ModelRuleExecutionException(getDescriptor(), e);
         } finally {
             view.close();
         }

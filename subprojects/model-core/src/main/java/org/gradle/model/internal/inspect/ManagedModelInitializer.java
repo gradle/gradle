@@ -72,7 +72,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
 
     @Nullable
     @Override
-    public ModelProjector getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate) {
+    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate) {
         return null;
     }
 

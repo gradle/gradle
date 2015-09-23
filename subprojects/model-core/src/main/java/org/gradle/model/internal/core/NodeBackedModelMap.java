@@ -104,7 +104,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
                     @Nullable
                     @Override
-                    public ModelProjector getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate) {
+                    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate) {
                         return null;
                     }
                 };
@@ -202,9 +202,9 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
         NodeInitializer nodeInitializer = creatorStrategy.initializer(type);
 
-        ModelProjector projector = nodeInitializer.getProjector(childPath, descriptor, type);
+        ModelAction projector = nodeInitializer.getProjector(childPath, descriptor, type);
         if (projector != null) {
-            modelNode.projectLink(projector);
+            modelNode.applyToLink(ModelActionRole.DefineProjections, projector);
         }
 
         ModelCreator creator = ModelCreators.of(childPath, nodeInitializer)

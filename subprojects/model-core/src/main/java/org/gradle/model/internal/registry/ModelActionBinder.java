@@ -22,11 +22,11 @@ import org.gradle.model.internal.core.ModelAction;
 import java.util.Collection;
 import java.util.List;
 
-class MutatorRuleBinder extends RuleBinder {
+class ModelActionBinder extends RuleBinder {
     private ModelBinding subjectBinding;
     private final ModelAction action;
 
-    public MutatorRuleBinder(final BindingPredicate subjectReference, List<BindingPredicate> inputs, ModelAction action, Collection<RuleBinder> binders) {
+    public ModelActionBinder(final BindingPredicate subjectReference, List<BindingPredicate> inputs, ModelAction action, Collection<RuleBinder> binders) {
         super(subjectReference, inputs, action.getDescriptor(), binders);
         subjectBinding = binding(subjectReference, true, new Action<ModelBinding>() {
             @Override

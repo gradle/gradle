@@ -39,6 +39,6 @@ public interface NodeInitializer {
     List<? extends ModelProjection> getProjections();
 
     @Nullable
-    ModelProjector getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate);
+    ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate);
 
 }
