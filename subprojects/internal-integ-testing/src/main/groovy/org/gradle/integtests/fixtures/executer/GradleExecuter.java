@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures.executer;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 
@@ -338,11 +337,6 @@ public interface GradleExecuter {
      * Forces Gradle to consider the build to be interactive
      */
     GradleExecuter withForceInteractive(boolean flag);
-
-    /**
-     * Injects additional classpath URIs used to search for classes.
-     */
-    GradleExecuter withClasspath(ClassPath classpath);
 
     boolean isDebug();
 

@@ -33,6 +33,7 @@ import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.invocation.BuildAction;
@@ -204,7 +205,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
                 DaemonUsage.EXPLICITLY_DISABLED,
                 startParameter.isContinuous(),
                 interactive,
-                classpath
+                ClassPath.EMPTY
             );
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(
                 new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),

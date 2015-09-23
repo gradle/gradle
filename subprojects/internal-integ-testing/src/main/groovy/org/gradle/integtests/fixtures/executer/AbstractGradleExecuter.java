@@ -25,7 +25,6 @@ import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
@@ -110,7 +109,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
     protected boolean interactive;
-    protected ClassPath classpath = ClassPath.EMPTY;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
@@ -149,7 +147,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
-        classpath = ClassPath.EMPTY;
         return this;
     }
 
@@ -269,7 +266,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         executer.withDebug(debug);
         executer.withProfiler(profiler);
         executer.withForceInteractive(interactive);
-        executer.withClasspath(classpath);
         return executer;
     }
 
@@ -868,12 +864,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withForceInteractive(boolean flag) {
         interactive = flag;
-        return this;
-    }
-
-    @Override
-    public GradleExecuter withClasspath(ClassPath classpath) {
-        this.classpath = classpath;
         return this;
     }
 
