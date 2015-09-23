@@ -555,8 +555,6 @@ public class TestFile extends File {
 
     public void assertHasChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        System.out.println("Provided snapshot: " + snapshot);
-        System.out.println("Now snapshot: " + now);
         assertTrue(now.modTime != snapshot.modTime || !Arrays.equals(now.hash, snapshot.hash));
     }
 
@@ -606,13 +604,6 @@ public class TestFile extends File {
         public Snapshot(long modTime, byte[] hash) {
             this.modTime = modTime;
             this.hash = hash;
-        }
-
-        public String toString() {
-            return "Snapshot{"
-                + "modTime=" + modTime
-                + ", hash=" + Arrays.toString(hash)
-                + '}';
         }
     }
 }
