@@ -31,20 +31,20 @@ import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
-public class InjectedClassPathPluginResolver implements PluginResolver {
+public class InjectedClasspathPluginResolver implements PluginResolver {
     private final ClassLoaderScope parentScope;
-    private final ClassPath classPath;
+    private final ClassPath classpath;
     private final PluginRegistry pluginRegistry;
 
-    public InjectedClassPathPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, ClassPath injectedClasspath) {
+    public InjectedClasspathPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, ClassPath injectedClasspath) {
         this.parentScope = parentScope;
-        classPath = injectedClasspath;
-        pluginRegistry = new DefaultPluginRegistry(pluginInspector, createClassLoaderScope());
+        this.classpath = injectedClasspath;
+        this.pluginRegistry = new DefaultPluginRegistry(pluginInspector, createClassLoaderScope());
     }
 
     private ClassLoaderScope createClassLoaderScope() {
         ClassLoaderScope loaderScope = parentScope.createChild("injected-plugin");
-        loaderScope.local(classPath);
+        loaderScope.local(classpath);
         loaderScope.lock();
         return loaderScope;
     }
@@ -53,10 +53,10 @@ public class InjectedClassPathPluginResolver implements PluginResolver {
         PluginImplementation<?> plugin = pluginRegistry.lookup(pluginRequest.getId());
 
         if (plugin != null) {
-            PluginResolution resolution = new InjectedClassPathPluginResolution(plugin);
+            PluginResolution resolution = new InjectedClasspathPluginResolution(plugin);
             result.found(getDescription(), resolution);
         } else {
-            throw new UnknownPluginException("Plugin with id '" + pluginRequest.getId() + "' not found. Searched classpath: " + classPath.getAsFiles());
+            throw new UnknownPluginException("Plugin with id '" + pluginRequest.getId() + "' not found. Searched classpath: " + classpath.getAsFiles());
         }
     }
 
@@ -65,13 +65,13 @@ public class InjectedClassPathPluginResolver implements PluginResolver {
     }
 
     public boolean isClasspathEmpty() {
-        return classPath.isEmpty();
+        return classpath.isEmpty();
     }
 
-    private class InjectedClassPathPluginResolution implements PluginResolution {
+    private class InjectedClasspathPluginResolution implements PluginResolution {
         private final PluginImplementation<?> plugin;
 
-        public InjectedClassPathPluginResolution(PluginImplementation<?> plugin) {
+        public InjectedClasspathPluginResolution(PluginImplementation<?> plugin) {
             this.plugin = plugin;
         }
 
@@ -81,7 +81,7 @@ public class InjectedClassPathPluginResolver implements PluginResolver {
 
         public void execute(PluginResolveContext pluginResolveContext) {
             pluginResolveContext.add(plugin);
-            pluginResolveContext.addClassPath(classPath);
+            pluginResolveContext.addClassPath(classpath);
         }
     }
 }

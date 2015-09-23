@@ -37,5 +37,5 @@ public interface BuildActionParameters {
 
     boolean isInteractive();
 
-    ClassPath getClasspath();
+    ClassPath getInjectedPluginClasspath();
 }

@@ -54,7 +54,7 @@ public class TestKitGradleExecutor implements GradleExecutor {
         }));
     }
 
-    public GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, ClassPath classpath, boolean debug) {
+    public GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, ClassPath injectedClassPath, boolean debug) {
         final ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
         final ByteArrayOutputStream standardError = new ByteArrayOutputStream();
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
@@ -72,7 +72,7 @@ public class TestKitGradleExecutor implements GradleExecutor {
             launcher.withArguments(buildArgs.toArray(new String[buildArgs.size()]));
             launcher.setJvmArguments(jvmArgs.toArray(new String[jvmArgs.size()]));
 
-            launcher.withClasspath(classpath);
+            launcher.withInjectedClassPath(injectedClassPath);
 
             launcher.run();
         } catch (BuildException t) {

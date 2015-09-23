@@ -36,7 +36,7 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.plugin.use.internal.InjectedPluginClassPath;
+import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
@@ -58,7 +58,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
-        add(InjectedPluginClassPath.class, new InjectedPluginClassPath(injectedPluginClassPath));
+        add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
     }
 
     DeploymentRegistry createDeploymentRegistry() {

@@ -35,12 +35,12 @@ class ConsumerOperationParametersTest extends Specification {
 
         when:
         builder.tasks = tasks
-        builder.classpath = classpath
+        builder.injectedPluginClasspath = classpath
         def params = builder.build()
 
         then:
         params.tasks == tasks
-        params.classpath == classpath.asFiles
+        params.injectedPluginClasspath == classpath.asFiles
         params.launchables == null
     }
 

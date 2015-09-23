@@ -74,5 +74,5 @@ public interface ProviderOperationParameters {
 
     List<InternalLaunchable> getLaunchables(List<InternalLaunchable> defaultLaunchables);
 
-    List<File> getClasspath(List<File> classpath);
+    List<File> getInjectedPluginClasspath(List<File> classpath);
 }

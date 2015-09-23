@@ -32,8 +32,8 @@ public class DefaultBuildLauncherInternal extends DefaultBuildLauncher {
      * @return this
      * @since 2.8
      */
-    public BuildLauncher withClasspath(ClassPath classpath) {
-        operationParamsBuilder.setClasspath(classpath);
+    public BuildLauncher withInjectedClassPath(ClassPath classpath) {
+        operationParamsBuilder.setInjectedPluginClasspath(classpath);
         return this;
     }
 }

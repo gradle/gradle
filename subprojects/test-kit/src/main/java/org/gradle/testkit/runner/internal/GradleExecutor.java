@@ -22,5 +22,5 @@ import java.io.File;
 import java.util.List;
 
 public interface GradleExecutor {
-    GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, ClassPath classpath, boolean debug);
+    GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, ClassPath injectedClassPath, boolean debug);
 }

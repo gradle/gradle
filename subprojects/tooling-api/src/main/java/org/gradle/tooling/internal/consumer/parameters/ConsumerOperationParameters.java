@@ -61,7 +61,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<String> arguments;
         private List<String> tasks;
         private List<InternalLaunchable> launchables;
-        private ClassPath classpath;
+        private ClassPath injectedPluginClasspath = ClassPath.EMPTY;
 
         private Builder() {
         }
@@ -141,8 +141,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
-        public Builder setClasspath(ClassPath classpath) {
-            this.classpath = classpath;
+        public Builder setInjectedPluginClasspath(ClassPath classPath) {
+            this.injectedPluginClasspath = classPath;
             return this;
         }
 
@@ -177,7 +177,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.legacyProgressListeners);
             FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter = new FailsafeBuildProgressListenerAdapter(
                 new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
-            return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, classpath,
+            return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, injectedPluginClasspath,
                 progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
         }
     }
@@ -199,10 +199,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<String> arguments;
     private final List<String> tasks;
     private final List<InternalLaunchable> launchables;
-    private final ClassPath classpath;
+    private final ClassPath injectedPluginClasspath;
 
     private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
-                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath classpath,
+                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
                                         ProgressListenerAdapter progressListener, FailsafeBuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
@@ -215,7 +215,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.arguments = arguments;
         this.tasks = tasks;
         this.launchables = launchables;
-        this.classpath = classpath;
+        this.injectedPluginClasspath = injectedPluginClasspath;
         this.progressListener = progressListener;
         this.buildProgressListener = buildProgressListener;
         this.cancellationToken = cancellationToken;
@@ -306,8 +306,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return launchables;
     }
 
-    public List<File> getClasspath() {
-        return classpath.getAsFiles();
+    public List<File> getInjectedPluginClasspath() {
+        return injectedPluginClasspath.getAsFiles();
     }
 
     public ProgressListenerVersion1 getProgressListener() {

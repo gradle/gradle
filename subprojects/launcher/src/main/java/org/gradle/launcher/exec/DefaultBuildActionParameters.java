@@ -33,10 +33,10 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
     private final DaemonUsage daemonUsage;
     private final boolean continuous;
     private final boolean interactive;
-    private final ClassPath classpath;
+    private final ClassPath injectedPluginClasspath;
 
     public DefaultBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean continuous, boolean interactive,
-                                        ClassPath classpath) {
+                                        ClassPath injectedPluginClasspath) {
         this.currentDir = currentDir;
         this.logLevel = logLevel;
         this.continuous = continuous;
@@ -47,7 +47,7 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         this.envVariables = new HashMap<String, String>(envVariables);
         this.daemonUsage = daemonUsage;
         this.interactive = interactive;
-        this.classpath = classpath;
+        this.injectedPluginClasspath = injectedPluginClasspath;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -76,7 +76,7 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
             + ", daemonUsage=" + daemonUsage
             + ", continuous=" + continuous
             + ", interactive=" + interactive
-            + ", classpath=" + classpath
+            + ", injectedPluginClasspath=" + injectedPluginClasspath
             + '}';
     }
 
@@ -93,7 +93,7 @@ public class DefaultBuildActionParameters implements BuildActionParameters, Seri
         return interactive;
     }
 
-    public ClassPath getClasspath() {
-        return classpath;
+    public ClassPath getInjectedPluginClasspath() {
+        return injectedPluginClasspath;
     }
 }
