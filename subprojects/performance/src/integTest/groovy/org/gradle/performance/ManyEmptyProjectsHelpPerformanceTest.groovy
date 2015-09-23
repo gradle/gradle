@@ -29,7 +29,7 @@ class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerforman
         runner.tasksToRun = ['help']
         runner.maxExecutionTimeRegression = millis(2000)
         runner.maxMemoryRegression = DataAmount.mbytes(200)
-        runner.targetVersions = ['1.0', '2.0', '2.2.1', '2.4', 'last']
+        runner.targetVersions = ['1.0', '2.0', '2.7', 'last']
 
         when:
         def result = runner.run()
