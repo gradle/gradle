@@ -22,12 +22,14 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
@@ -268,5 +270,43 @@ allprojects {
         }
 
         handle.waitForFinish()
+    }
+
+    @Unroll
+    def "can consume standard output and error if run in #runMode mode"() {
+        given:
+        projectDir.file('build.gradle') << """
+            task helloWorld {
+                doLast {
+                    println 'Hello world!'
+                    System.err.println 'Some error'
+                }
+            }
+        """
+
+        when:
+        ByteArrayOutputStream standardOutput = new ByteArrayOutputStream()
+        ByteArrayOutputStream standardError = new ByteArrayOutputStream()
+
+        if (!embedded) {
+            toolingApi.requireDaemons()
+        }
+
+        toolingApi.withConnection { connection ->
+            BuildLauncher launcher = connection.newBuild().forTasks('helloWorld')
+            launcher.standardOutput = standardOutput
+            launcher.standardError = standardError
+            launcher.run()
+        }
+
+        then:
+        toolingApi.embedded == embedded
+        standardOutput.toString().contains('Hello world!')
+        standardError.toString().contains('Some error')
+
+        where:
+        runMode    | embedded
+        'daemon'   | false
+        'embedded' | true
     }
 }

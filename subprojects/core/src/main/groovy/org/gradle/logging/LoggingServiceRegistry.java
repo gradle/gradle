@@ -140,13 +140,15 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     private static class EmbeddedLogging extends LoggingServiceRegistry {
         protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
             OutputEventRenderer renderer = get(OutputEventRenderer.class);
-            // Configure slf4j only
+            // Configure slf4j only and capture stdout and stderr
+            LoggingSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
+            LoggingSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
             return new DefaultLoggingManagerFactory(
                     new DefaultLoggingConfigurer(renderer,
                             new Slf4jLoggingConfigurer(renderer)),
                     renderer,
-                    new NoOpLoggingSystem(),
-                    new NoOpLoggingSystem());
+                    stdout,
+                    stderr);
         }
     }
 
