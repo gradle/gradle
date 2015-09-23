@@ -551,6 +551,12 @@ if (project.hasProperty('org.gradle.performance.use_yourkit')) {
     }
 }
 
+if (project.hasProperty('performanceTest.verbose')) {
+    configure([performanceTest, performanceExperiments]) {
+        testLogging.showStandardStreams = true
+    }
+}
+
 integTest {
     options {
         excludeCategories 'org.gradle.performance.PerformanceTest'
