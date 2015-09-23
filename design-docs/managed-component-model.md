@@ -373,7 +373,6 @@ For example:
 - Cannot define a property or managed element of a type which extends FunctionalSourceSet
 - A property or managed element of type `FunctionalSourceSet` cannot be applied when the `LanguageBasePlugin` has not been applied.
 - Model report shows something reasonable for a managed property or collections of type FunctionalSourceSet.
-- A read-only `FunctionalSourceSet` property is initialized with a default implementation of `FunctionalSourceSet`
 
 ## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
 
