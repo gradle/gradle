@@ -162,13 +162,6 @@ not a part of the public API, some users may be utilizing it and should plan to 
 The Gradle API now uses Groovy 2.4.4. Previously it was using Groovy 2.3.10. This change should be transparent to the majority of users, however it can imply some minor breaking changes.
 Please refer to the [Groovy language changelogs](http://groovy-lang.org/changelogs.html) for further details.
 
-### Support for PMD versions <5.0
-
-Investigation of our PMD support revealed that newer PMD plugin features do not work with PMD 4.3,
-and the PMD check task does not fail when finding violations.
-Because of this, we do not recommend the use Gradle with PMD versions earlier than 5.0,
-and we have removed any integration test coverage for these versions.
-
 ### New PMD violations due to type resolution changes
 
 PMD can perform additional analysis for some rules (see above), therefore new violations may be found in existing projects.  Previously, these rules were unable to detect problems
