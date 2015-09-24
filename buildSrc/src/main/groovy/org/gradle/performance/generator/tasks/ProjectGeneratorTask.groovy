@@ -14,33 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.generator
+package org.gradle.performance.generator.tasks
 
 import org.gradle.api.GradleException
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.file.FileCollection
 
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 
-class ProjectGeneratorTask extends DefaultTask {
+import org.gradle.performance.generator.*
+
+abstract class ProjectGeneratorTask extends DefaultTask {
     @OutputDirectory
     File destDir
 
-    boolean groovyProject
-    boolean scalaProject
-    boolean nativeProject
     int sourceFiles = 1
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
     int filesPerPackage = 100
     boolean useSubProjectNumberInSourceFileNames = false
-
-    @InputFiles
-    FileCollection testDependencies
 
     final List<TestProject> projects = []
     List<String> rootProjectTemplates = ['root-project']
@@ -149,9 +143,6 @@ class ProjectGeneratorTask extends DefaultTask {
         project.copy {
             from "src/templates/init.gradle"
             into(getDestDir())
-            into('lib/test') {
-                from testDependencies
-            }
         }
     }
 
@@ -168,29 +159,23 @@ class ProjectGeneratorTask extends DefaultTask {
         files.addAll(args.files)
         files.addAll(['build.gradle', 'pom.xml', 'build.xml'])
 
-        args += [projectName  : testProject.name, subprojectNumber: testProject.subprojectNumber, groovyProject: groovyProject, scalaProject: scalaProject,
-                 propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)), repository: testProject.repository, dependencies: testProject.dependencies,
-                 testProject  : testProject
-        ]
+        args += [projectName  : testProject.name, 
+                 subprojectNumber: testProject.subprojectNumber, 
+                 propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)), 
+                 repository: testProject.repository, 
+                 dependencies: testProject.dependencies,
+                 testProject  : testProject ]
 
         args += templateArgs
+
+        addTaskArgs(args)
 
         files.each { String name ->
             generateWithTemplate(projectDir, name, name, args)
         }
 
         if (args.includeSource) {
-            if (nativeProject) {
-                generateNativeProjectSource(projectDir, testProject, args)
-            } else {
-                generateJvmProjectSource(projectDir, "java", testProject, args)
-                if (groovyProject) {
-                    generateJvmProjectSource(projectDir, "groovy", testProject, args)
-                }
-                if (scalaProject) {
-                    generateJvmProjectSource(projectDir, "scala", testProject, args)
-                }
-            }
+            generateProjectSource(projectDir, testProject, args)
         }
     }
 
@@ -219,57 +204,6 @@ class ProjectGeneratorTask extends DefaultTask {
         }
     }
 
-    void generateNativeProjectSource(File projectDir, TestProject testProject, Map args) {
-        args.moduleCount.times { m ->
-            Map classArgs = args + [componentName: "lib${m + 1}"]
-            generateWithTemplate(projectDir, "src/${classArgs.componentName}/headers/pch.h", 'pch.h', classArgs)
-        }
-        testProject.sourceFiles.times { s ->
-            args.moduleCount.times { m ->
-                Map classArgs = args + [componentName: "lib${m + 1}", functionName: "lib${s + 1}"]
-                generateWithTemplate(projectDir, "src/${classArgs.componentName}/c/${classArgs.functionName}.c", 'lib.c', classArgs)
-            }
-        }
-    }
-
-    void generateJvmProjectSource(File projectDir, String sourceLang, TestProject testProject, Map args) {
-        def classFilePrefix
-        def classFileTemplate
-        def testFilePrefix
-        def testFileTemplate
-
-        if (sourceLang == "groovy") {
-            classFilePrefix = "ProductionGroovy"
-            classFileTemplate = "Production.groovy"
-            testFilePrefix = "TestGroovy"
-            testFileTemplate = "Test.groovy"
-        } else if (sourceLang == "scala") {
-            classFilePrefix = "ProductionScala"
-            classFileTemplate = "Production.scala"
-            testFilePrefix = "TestScala"
-            testFileTemplate = "Test.scala"
-        } else {
-            classFilePrefix = "Production"
-            classFileTemplate = "Production.java"
-            testFilePrefix = "Test"
-            testFileTemplate = "Test.java"
-        }
-
-        def createPackageName = { fileNumber -> "org.gradle.test.performance${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${(int) (fileNumber / filesPerPackage) + 1}".toString() }
-        def createFileName = { prefix, fileNumber -> "${prefix}${useSubProjectNumberInSourceFileNames ? "${testProject.subprojectNumber}_" : ''}${fileNumber + 1}".toString() }
-
-        testProject.sourceFiles.times {
-            String packageName = createPackageName(it)
-            Map classArgs = args + [packageName: packageName, productionClassName: createFileName(classFilePrefix, it)]
-            generateWithTemplate(projectDir, "src/main/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.productionClassName}.${sourceLang}", classFileTemplate, classArgs)
-        }
-        testProject.testSourceFiles.times {
-            String packageName = createPackageName(it)
-            Map classArgs = args + [packageName: packageName, productionClassName: createFileName(classFilePrefix, it), testClassName: createFileName(testFilePrefix, it)]
-            generateWithTemplate(projectDir, "src/test/${sourceLang}/${packageName.replace('.', '/')}/${classArgs.testClassName}.${sourceLang}", testFileTemplate, classArgs)
-        }
-    }
-
     def getTemplate(File srcTemplate) {
         def template = templates[srcTemplate]
         if (!template) {
@@ -282,4 +216,7 @@ class ProjectGeneratorTask extends DefaultTask {
         }
         return template
     }
+
+    abstract void addTaskArgs(Map args);
+    abstract void generateProjectSource(File projectDir, TestProject testProject, Map args);
 }
