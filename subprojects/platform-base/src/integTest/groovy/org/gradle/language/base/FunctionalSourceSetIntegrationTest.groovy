@@ -18,12 +18,9 @@ package org.gradle.language.base
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
-import spock.lang.Ignore
 
 class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
-    //Adding state to DefaultNodeInitializerRegistry which is a global service
-    @Ignore
     def "can not create a top level FSS when the language base plugin has not been applied"() {
         buildFile.text = """
         class Rules extends RuleSource {

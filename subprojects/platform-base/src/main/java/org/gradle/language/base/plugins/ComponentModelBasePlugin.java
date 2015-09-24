@@ -96,9 +96,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, InstanceFactoryRegistry instanceFactoryRegistry, ConstructableTypesRegistry constructableTypesRegistry) {
+        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, InstanceFactoryRegistry instanceFactoryRegistry) {
             nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry));
-            nodeInitializerRegistry.registerStrategy(constructableTypesRegistry);
         }
 
         @Model

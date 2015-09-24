@@ -149,6 +149,11 @@ public class LanguageBasePlugin implements Plugin<Project> {
             constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer(instantiator));
         }
 
+        @Mutate
+        void registerNodeInitializerExtractionStrategies(NodeInitializerRegistry nodeInitializerRegistry, ConstructableTypesRegistry constructableTypesRegistry) {
+            nodeInitializerRegistry.registerStrategy(constructableTypesRegistry);
+        }
+
         @Model
         ProjectSourceSet sources(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(Instantiator.class).newInstance(DefaultProjectSourceSet.class);
