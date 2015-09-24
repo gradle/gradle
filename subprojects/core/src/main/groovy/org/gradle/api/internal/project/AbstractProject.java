@@ -128,8 +128,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private TaskContainerInternal taskContainer;
 
-    private final NodeInitializerRegistry nodeInitializerRegistry;
-
     private DependencyHandler dependencyHandler;
 
     private ConfigurationContainer configurationContainer;
@@ -175,9 +173,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.newInstance(TaskContainerInternal.class);
 
-        ModelSchemaStore schemaStore = services.get(ModelSchemaStore.class);
-        nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore);
-
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {
             extensibleDynamicObject.setParent(parent.getInheritedScope());
@@ -207,8 +202,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 .build()
         );
 
+        ModelSchemaStore schemaStore = services.get(ModelSchemaStore.class);
+        NodeInitializerRegistry nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore);
         modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class), nodeInitializerRegistry)
+            ModelCreators.bridgedInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry)
                 .descriptor("Project.<init>.nodeInitializerRegistry()")
                 .ephemeral(true)
                 .hidden(true)
@@ -975,9 +972,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     public void model(Closure<?> modelRules) {
         ModelRegistry modelRegistry = getModelRegistry();
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
-            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, nodeInitializerRegistry, this.getRootProject().getFileResolver()), modelRules);
+            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, this.getRootProject().getFileResolver()), modelRules);
         } else {
-            new NonTransformedModelDslBacking(modelRegistry, nodeInitializerRegistry).configure(modelRules);
+            new NonTransformedModelDslBacking(modelRegistry).configure(modelRules);
         }
     }
 

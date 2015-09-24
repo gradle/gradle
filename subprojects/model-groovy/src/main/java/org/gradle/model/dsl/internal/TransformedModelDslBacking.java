@@ -53,17 +53,15 @@ public class TransformedModelDslBacking {
     };
 
     private final ModelRegistry modelRegistry;
-    private final NodeInitializerRegistry nodeInitializerRegistry;
     private final Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor;
     private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
 
-    public TransformedModelDslBacking(ModelRegistry modelRegistry, NodeInitializerRegistry nodeInitializerRegistry, RelativeFilePathResolver relativeFilePathResolver) {
-        this(modelRegistry, nodeInitializerRegistry, INPUT_PATHS_EXTRACTOR, new RelativePathSourceLocationTransformer(relativeFilePathResolver));
+    public TransformedModelDslBacking(ModelRegistry modelRegistry, RelativeFilePathResolver relativeFilePathResolver) {
+        this(modelRegistry, INPUT_PATHS_EXTRACTOR, new RelativePathSourceLocationTransformer(relativeFilePathResolver));
     }
 
-    TransformedModelDslBacking(ModelRegistry modelRegistry, NodeInitializerRegistry nodeInitializerRegistry, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor, Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
+    TransformedModelDslBacking(ModelRegistry modelRegistry, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor, Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
         this.modelRegistry = modelRegistry;
-        this.nodeInitializerRegistry = nodeInitializerRegistry;
         this.inputPathsExtractor = inputPathsExtractor;
         this.ruleLocationExtractor = ruleLocationExtractor;
     }
@@ -80,6 +78,7 @@ public class TransformedModelDslBacking {
         ModelPath modelPath = ModelPath.path(modelPathString);
         ModelRuleDescriptor descriptor = toDescriptor(sourceLocation, modelPath);
         try {
+            NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getType());
             NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(ModelType.of(type));
             modelRegistry.create(ModelCreators.of(modelPath, nodeInitializer).descriptor(descriptor).build());
         } catch (ModelTypeInitializationException e) {

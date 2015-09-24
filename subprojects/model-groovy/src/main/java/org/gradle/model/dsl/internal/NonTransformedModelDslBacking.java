@@ -39,23 +39,21 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
 
     private final ModelPath modelPath;
     private final ModelRegistry modelRegistry;
-    private final NodeInitializerRegistry nodeInitializerRegistry;
     private AtomicBoolean executingDsl;
 
-    public NonTransformedModelDslBacking(ModelRegistry modelRegistry, NodeInitializerRegistry nodeInitializerRegistry) {
-        this(new AtomicBoolean(), null, modelRegistry, nodeInitializerRegistry);
+    public NonTransformedModelDslBacking(ModelRegistry modelRegistry) {
+        this(new AtomicBoolean(), null, modelRegistry);
     }
 
-    private NonTransformedModelDslBacking(AtomicBoolean executingDsl, ModelPath modelPath, ModelRegistry modelRegistry, NodeInitializerRegistry nodeInitializerRegistry) {
+    private NonTransformedModelDslBacking(AtomicBoolean executingDsl, ModelPath modelPath, ModelRegistry modelRegistry) {
         this.executingDsl = executingDsl;
         this.modelPath = modelPath;
         this.modelRegistry = modelRegistry;
-        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     private NonTransformedModelDslBacking getChildPath(String name) {
         ModelPath path = modelPath == null ? ModelPath.path(name) : modelPath.child(name);
-        return new NonTransformedModelDslBacking(executingDsl, path, modelRegistry, nodeInitializerRegistry);
+        return new NonTransformedModelDslBacking(executingDsl, path, modelRegistry);
     }
 
     private void registerConfigurationAction(final Closure<?> action) {
@@ -68,6 +66,7 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
 
     private <T> void registerCreator(Class<T> type, Closure<?> closure) {
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("model." + modelPath);
+        NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getType());
         NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(ModelType.of(type));
         modelRegistry.create(
             ModelCreators.of(modelPath, nodeInitializer)
