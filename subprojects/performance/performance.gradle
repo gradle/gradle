@@ -397,7 +397,7 @@ configure([smallNewMultiprojectJava, largeNewMultiprojectJava]) {
     subProjectTemplates = ['java-source', 'new-java-project', 'with-junit']
 
     def dependencyGenerator = DependencyGenerator.newInstance(numberOfProjects: it.projectCount)
-    boolean smallProjectType = (name == 'generateSmallNewMultiprojectJava')
+    boolean smallProjectType = (name == 'smallNewMultiprojectJava')
     dependencyGenerator.numberOfDependencies = smallProjectType ? 3 : 10
     dependencyGenerator.numberOfLayers = smallProjectType ? 3 : 5
     dependencyGenerator.layerRatio = smallProjectType ? 1 : 2
