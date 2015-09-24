@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.nativeintegration.services.NativeServices
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
@@ -84,8 +83,5 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
 
     def cleanup() {
         daemons().killAll()
-        if (OperatingSystem.current().isWindows()) {
-            sleep 1000 // wait for process to release files
-        }
     }
 }

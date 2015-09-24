@@ -22,6 +22,7 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import java.io.IOException;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -87,7 +88,13 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
 
             try {
                 if (cleanup && dir != null && dir.exists()) {
-                    FileUtils.forceDelete(dir);
+                    try {
+                        FileUtils.forceDelete(dir);
+                    } catch (IOException e) {
+                        // Some releases are async, wait then try again
+                        Thread.sleep(1000);
+                        FileUtils.forceDelete(dir);
+                    }
                 }
             } catch (Exception e) {
                 if (suppressCleanupErrors) {
