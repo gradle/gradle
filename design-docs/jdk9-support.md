@@ -3,16 +3,19 @@ This spec describes changes to Gradle to support and take advantage of the major
 # Milestone 1: Assist teams migrating to a modular architecture
 
 The Java module system is a deep, disruptive change to the Java ecosystem. The following Gradle features will help  
-teams migrate to a modular architecture running on the modular JVM, in a controlled and incremental way.
+teams migrate to a modular architecture running on the modular JVM, so that the migration can be made in a controlled and 
+incremental way.
 
 # Feature: Java library author declares library API
 
-Given a description of the API of a library, Gradle will enforce at compile time that consumers of the library reference only the
-classes of the API. This is intended to help teams materialize and describe the APIs of the various components of their software
+Given a description of the API of a library, Gradle will prevent at compile time the consumers of a library from using classes that are not 
+part of the API of the library. 
+This is intended to help teams materialize and describe the APIs of and dependencies between the various components of their software
 stack, and enforce the boundaries between them, ready for the Java module system.
 
-No runtime enforcement will be done - this is the job of the modular JVM. In this way, Gradle will approximate the behaviour of the 
-modular JVM, but in a way that should be sufficient for many teams to make significant progress towards a modular architecture.
+No runtime enforcement will be done - this is the job of the modular JVM. Gradle will simply approximate the behaviour of the 
+modular JVM at compile time, but in a way that should be sufficient for many teams to make significant progress towards a modular 
+architecture.
 
 ## Story: Java library author declares packages that make up the API of the library
 
@@ -95,9 +98,9 @@ TBD - Add a dependency set at the component level, to be used as the default for
 - Generate stub API jar for Groovy and Scala libraries, use for compilation.
 - Discovery of annotation processor implementations.
 
-## Feature: Java library migrates to Java 9 
+## Feature: Development team migrates Java library to Java 9 
 
-Allow a Java library to build for Java 9, and produce both modular and non-modular variants for different consumers.
+Allow a Java library to build for Java 9, and produce both modular and non-modular variants that can be used by different consumers.
 
 ## Story: Build author declares installed Java toolchain
 
