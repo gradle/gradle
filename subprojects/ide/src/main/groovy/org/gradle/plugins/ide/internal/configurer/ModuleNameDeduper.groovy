@@ -47,11 +47,15 @@ class ModuleNameDeduper {
     }
 
     boolean hasDuplicates(List<String> projectNames) {
-        projectNames.groupBy { it }.any { key, value -> value.size() > 1 }
+        projectNames.size() != (projectNames as Set).size()
+    }
+
+    Set<String> duplicates(List<String> projectNames) {
+        return projectNames.groupBy { it }.findAll { key, value -> value.size() > 1 }.keySet()
     }
 
     def doDedup(Collection<DeduplicationTarget> targets, Map<Project, Project> prefixMap) {
-        def duplicateProjectNames = targets.collect { it.moduleName }.groupBy { it }.findAll { key, value -> value.size() > 1 }.keySet()
+        def duplicateProjectNames = duplicates(targets.collect { it.moduleName })
         duplicateProjectNames.each { duplicateProjectName ->
 
             def targetsToDeduplicate = targets.findAll { it.moduleName == duplicateProjectName }
