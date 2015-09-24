@@ -165,7 +165,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get((Type) ScriptHandlerFactory); will(returnValue([toString: { -> "script plugin factory" }] as ScriptHandlerFactory))
             allowing(serviceRegistryMock).get((Type) ProjectConfigurationActionContainer); will(returnValue(configureActions))
             allowing(serviceRegistryMock).get((Type) PluginManagerInternal); will(returnValue(pluginManager))
-            allowing(serviceRegistryMock).get((Type) NodeInitializerRegistry); will(returnValue(nodeInitializerRegistry))
+            allowing(serviceRegistryMock).get(NodeInitializerRegistry); will(returnValue(nodeInitializerRegistry))
             allowing(pluginManager).getPluginContainer(); will(returnValue(pluginContainer))
 
             allowing(serviceRegistryMock).get((Type) DeferredProjectConfiguration); will(returnValue(context.mock(DeferredProjectConfiguration)))

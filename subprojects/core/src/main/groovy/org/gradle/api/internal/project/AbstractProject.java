@@ -909,12 +909,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         throw new UnsupportedOperationException();
     }
 
-    @Inject
-    protected NodeInitializerRegistry getNodeInitializerRegistry() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
         return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getBaseClassLoaderScope(), this);
@@ -975,7 +969,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     // Not part of the public API
     public void model(Closure<?> modelRules) {
         ModelRegistry modelRegistry = getModelRegistry();
-        NodeInitializerRegistry nodeInitializerRegistry = getNodeInitializerRegistry();
+        NodeInitializerRegistry nodeInitializerRegistry = getServices().get(NodeInitializerRegistry.class);
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
             ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, nodeInitializerRegistry, this.getRootProject().getFileResolver()), modelRules);
         } else {
