@@ -58,7 +58,8 @@ class NativeComponentRulesTest extends Specification {
         }
         def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)
         nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry))
-        component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, modelRegistry, id, Stub(ProjectSourceSet), instantiator, nodeInitializerRegistry)
+        modelRegistry.createInstance("__nodeInitializerRegistry", nodeInitializerRegistry)
+        component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, modelRegistry, id, Stub(ProjectSourceSet), instantiator)
     }
 
     def "does not use variant dimension names for single valued dimensions"() {

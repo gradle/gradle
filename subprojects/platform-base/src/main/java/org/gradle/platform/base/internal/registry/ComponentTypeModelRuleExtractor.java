@@ -94,12 +94,11 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
             final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectIdentifier.class)).getInstance();
             final ProjectSourceSet projectSourceSet = ModelViews.assertType(inputs.get(2), ModelType.of(ProjectSourceSet.class)).getInstance();
-            final NodeInitializerRegistry nodeInitializerRegistry = serviceRegistry.get(NodeInitializerRegistry.class);
             components.registerFactory(Cast.<ModelType<ComponentSpec>>uncheckedCast(publicType), descriptor, new BiFunction<ComponentSpec, String, MutableModelNode>() {
                 @Override
                 public ComponentSpec apply(String name, MutableModelNode modelNode) {
                     ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                    return BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode, projectSourceSet, instantiator, nodeInitializerRegistry);
+                    return BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode, projectSourceSet, instantiator);
                 }
             });
             components.registerImplementation(Cast.<ModelType<T>>uncheckedCast(publicType), descriptor, Cast.<ModelType<? extends T>>uncheckedCast(implementationType));
