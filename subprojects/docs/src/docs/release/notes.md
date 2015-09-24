@@ -10,6 +10,10 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Performance Improvements for large projects
+
+TBD
+
 ### Zip file name encoding
 
 Gradle will use the default character encoding for file names when creating Zip archives.  Depending on where the archive will be extracted, this may not be the best possible encoding
