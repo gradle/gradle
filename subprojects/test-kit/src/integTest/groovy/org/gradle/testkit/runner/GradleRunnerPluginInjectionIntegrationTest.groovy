@@ -28,7 +28,7 @@ import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
-class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrationTest {
+class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     @Rule
     TestNameTestDirectoryProvider pluginProjectDir = new TestNameTestDirectoryProvider()
@@ -68,7 +68,12 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
         then:
         noExceptionThrown()
         List<File> expectedClasspath = pluginClasspath
-        result.standardError.contains("Plugin with id 'com.company.helloworld' not found. Searched classpath: $expectedClasspath")
+        TextUtil.normaliseLineSeparators(result.standardError).contains("""Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
+
+- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+- Gradle TestKit (classpath: ${expectedClasspath*.absolutePath.join(File.pathSeparator)})
+- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)""")
+
         result.tasks.collect { it.path } == []
         result.taskPaths(SUCCESS).empty
         result.taskPaths(SKIPPED).empty

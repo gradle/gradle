@@ -16,12 +16,14 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
@@ -30,6 +32,8 @@ import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+
+import java.io.File;
 
 public class InjectedClasspathPluginResolver implements PluginResolver {
 
@@ -47,17 +51,22 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
 
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         PluginImplementation<?> plugin = pluginRegistry.lookup(pluginRequest.getId());
-
-        if (plugin != null) {
-            PluginResolution resolution = new InjectedClasspathPluginResolution(plugin);
-            result.found(getDescription(), resolution);
+        if (plugin == null) {
+            String classpathStr = Joiner.on(File.pathSeparator).join(Iterables.transform(injectedClasspath.getAsFiles(), new Function<File, String>() {
+                @Override
+                public String apply(File input) {
+                    return input.getAbsolutePath();
+                }
+            }));
+            result.notFound(getDescription(), "classpath: " + classpathStr);
         } else {
-            throw new UnknownPluginException("Plugin with id '" + pluginRequest.getId() + "' not found. Searched classpath: " + injectedClasspath.getAsFiles());
+            result.found(getDescription(), new InjectedClasspathPluginResolution(plugin));
         }
     }
 
     public String getDescription() {
-        return "Injected classpath";
+        // It's true right now that this is always coming from the TestKit, but might not be in the future.
+        return "Gradle TestKit";
     }
 
     public boolean isClasspathEmpty() {
