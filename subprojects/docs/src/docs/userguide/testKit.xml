@@ -113,7 +113,7 @@
                 <sourcefile file="plugin/build.gradle" snippet="test-logic-classpath"/>
             </sample>
             <para>
-                The tests can then read this value, and inject the classpath into the test build by using the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withClasspath"/>.
+                The tests can then read this value, and inject the classpath into the test build by using the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/>.
                 This classpath is then available to use to locate plugins in a test build via the plugins DSL (see <xref linkend="plugins"/>). Applying plugins with the plugins DSL requires the
                 definition of a plugin identifier.
                 The following is an example (in Groovy) of doing this from within a Spock Framework <literal>setup()</literal> method, which is analogous to a JUnit <literal>@Before</literal> method.

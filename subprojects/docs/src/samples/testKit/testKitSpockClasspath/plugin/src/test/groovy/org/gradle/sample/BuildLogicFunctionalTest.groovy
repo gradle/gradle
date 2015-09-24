@@ -54,7 +54,7 @@ class BuildLogicFunctionalTest extends Specification {
         def result = GradleRunner.create()
             .withProjectDir(testProjectDir.root)
             .withArguments('helloWorld')
-            .withClasspath(pluginClasspath)
+            .withPluginClasspath(pluginClasspath)
             .build()
 
         then:

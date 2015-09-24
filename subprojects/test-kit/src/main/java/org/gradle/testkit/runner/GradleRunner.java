@@ -140,8 +140,8 @@ public abstract class GradleRunner {
      * <p>
      * Effectively, the command line arguments to Gradle.
      * This includes all tasks, flags, properties etc.
-     *
-     * The returned list is an unmodifiable view of items.
+     * <p>
+     * The returned list is immutable.
      *
      * @return the build arguments
      */
@@ -166,27 +166,28 @@ public abstract class GradleRunner {
     public abstract GradleRunner withArguments(String... arguments);
 
     /**
-     * The injected classpath for the build e.g. classes under test, external libraries.
+     * The injected plugin classpath for the build.
      * <p>
-     * The returned list is an unmodifiable view of items.
-     * Returns an empty list if no classpath was provided with {@link #withClasspath(Iterable)}.
+     * The returned list is immutable.
+     * Returns an empty list if no classpath was provided with {@link #withPluginClasspath(Iterable)}.
      *
-     * @return the classpath URIs
+     * @return the classpath of plugins to make available to the build under test
      * @since 2.8
      */
-    public abstract List<? extends File> getClasspath();
+    public abstract List<? extends File> getPluginClasspath();
 
     /**
-     * Sets the injected classpath for the build.
+     * Sets the injected plugin classpath for the build.
      * <p>
-     * The provided list of URIs is additive to the default classpath.
+     * Plugins from the given classpath are able to be resolved using the <code>plugins { }</code> syntax in the build under test.
+     * Please consult the “Test Kit” Gradle User Guide chapter for more information and usage examples.
      *
-     * @param classpath the classpath URIs
+     * @param classpath the classpath of plugins to make available to the build under test
      * @return this
-     * @see #getClasspath()
+     * @see #getPluginClasspath()
      * @since 2.8
      */
-    public abstract GradleRunner withClasspath(Iterable<? extends File> classpath);
+    public abstract GradleRunner withPluginClasspath(Iterable<? extends File> classpath);
 
     /**
      * Executes a build, expecting it to complete without failure.

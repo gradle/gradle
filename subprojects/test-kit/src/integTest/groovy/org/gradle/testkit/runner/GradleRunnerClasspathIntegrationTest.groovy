@@ -39,7 +39,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
 
         when:
         GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withClasspath([])
+        gradleRunner.withPluginClasspath([])
         BuildResult result = gradleRunner.buildAndFail()
 
         then:
@@ -62,7 +62,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
 
         when:
         GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withClasspath(pluginClasspath)
+        gradleRunner.withPluginClasspath(pluginClasspath)
         BuildResult result = gradleRunner.buildAndFail()
 
         then:
@@ -83,7 +83,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
 
         when:
         GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withClasspath(getPluginClasspath())
+        gradleRunner.withPluginClasspath(getPluginClasspath())
         BuildResult result = gradleRunner.build()
 
         then:
@@ -109,7 +109,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
 
         when:
         GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withClasspath(getPluginClasspath())
+        gradleRunner.withPluginClasspath(getPluginClasspath())
         BuildResult result = gradleRunner.build()
 
         then:
@@ -167,7 +167,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
 
         when:
         GradleRunner gradleRunner = runner('helloMessage', 'byeMessage')
-        gradleRunner.withClasspath(getPluginClasspath())
+        gradleRunner.withPluginClasspath(getPluginClasspath())
         BuildResult result = gradleRunner.build()
 
         then:
@@ -212,7 +212,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
 
         when:
         GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withClasspath(getPluginClasspath())
+        gradleRunner.withPluginClasspath(getPluginClasspath())
         BuildResult result = gradleRunner.build()
 
         then:
@@ -242,7 +242,7 @@ class GradleRunnerClasspathIntegrationTest extends AbstractGradleRunnerIntegrati
 
         when:
         GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withClasspath(getPluginClasspath())
+        gradleRunner.withPluginClasspath(getPluginClasspath())
         BuildResult result = gradleRunner.buildAndFail()
 
         then:

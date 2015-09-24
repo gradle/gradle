@@ -108,12 +108,12 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
-    public List<? extends File> getClasspath() {
+    public List<? extends File> getPluginClasspath() {
         return classpath.getAsFiles();
     }
 
     @Override
-    public GradleRunner withClasspath(Iterable<? extends File> classpath) {
+    public GradleRunner withPluginClasspath(Iterable<? extends File> classpath) {
         List<File> f = new ArrayList<File>();
         for (File file : classpath) {
             // These objects are going across the wire.

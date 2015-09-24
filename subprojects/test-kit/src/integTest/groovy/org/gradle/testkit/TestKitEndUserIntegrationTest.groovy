@@ -472,7 +472,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld', 'byeWorld')
-                        .withClasspath(pluginClasspath)
+                        .withPluginClasspath(pluginClasspath)
                         .build()
 
                     then:

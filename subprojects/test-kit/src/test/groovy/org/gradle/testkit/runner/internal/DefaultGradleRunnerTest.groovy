@@ -44,7 +44,7 @@ class DefaultGradleRunnerTest extends Specification {
         then:
         defaultGradleRunner.projectDir == workingDir
         defaultGradleRunner.arguments == arguments
-        defaultGradleRunner.classpath == []
+        defaultGradleRunner.pluginClasspath == []
         !defaultGradleRunner.debug
         0 * testKitDirProvider.getDir()
     }
@@ -123,7 +123,7 @@ class DefaultGradleRunnerTest extends Specification {
 
     def "returned classpath is unmodifiable"() {
         when:
-        createRunner().classpath << new URI('file:///Users/foo/bar/test.jar')
+        createRunner().pluginClasspath << new URI('file:///Users/foo/bar/test.jar')
 
         then:
         thrown(UnsupportedOperationException)
@@ -139,12 +139,12 @@ class DefaultGradleRunnerTest extends Specification {
         when:
         defaultGradleRunner.withArguments(originalArguments)
         defaultGradleRunner.withJvmArguments(originalJvmArguments)
-        defaultGradleRunner.withClasspath(originalClasspath)
+        defaultGradleRunner.withPluginClasspath(originalClasspath)
 
         then:
         defaultGradleRunner.arguments == originalArguments
         defaultGradleRunner.jvmArguments == originalJvmArguments
-        defaultGradleRunner.classpath == originalClasspath
+        defaultGradleRunner.pluginClasspath == originalClasspath
 
         when:
         originalArguments << 'arg5'
@@ -154,7 +154,7 @@ class DefaultGradleRunnerTest extends Specification {
         then:
         defaultGradleRunner.arguments == ['arg1', 'arg2']
         defaultGradleRunner.jvmArguments == ['arg3', 'arg4']
-        defaultGradleRunner.classpath == [new File('/Users/foo/bar/test.jar')]
+        defaultGradleRunner.pluginClasspath == [new File('/Users/foo/bar/test.jar')]
     }
 
     def "throws exception if working directory is not provided when build is requested"() {
