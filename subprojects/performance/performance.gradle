@@ -1,6 +1,5 @@
-import org.gradle.performance.generator.DependencyGenerator
+import org.gradle.performance.generator.*
 
-apply from: 'src/generator.groovy'
 apply plugin: 'javascript-base'
 
 configurations {
@@ -129,7 +128,7 @@ task manyProjects(type: ProjectGeneratorTask) {
     sourceFiles = 0
 }
 
-def generators = tasks.withType(ProjectGeneratorTask) {
+tasks.withType(ProjectGeneratorTask) {
     group = 'Project setup'
     testDependencies = configurations.junit
 }
@@ -420,14 +419,22 @@ configure([smallNewMultiprojectJava, largeNewMultiprojectJava]) {
 }
 
 
-task all(dependsOn: generators)
+task all {
+    dependsOn tasks.withType(ProjectGeneratorTask)
+    group = "Project Setup"
+    description = "Generates all samples"
+}
 
-task prepareSamples(dependsOn: [bigEmpty, small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
-                                smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
-                                smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
-                                variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
-                                smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
-                                bigOldJavaMoreSource, lotProjectDependencies, smallNewMultiprojectJava, largeNewMultiprojectJava])
+task prepareSamples {
+    dependsOn bigEmpty, small, multi, lotDependencies, withJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
+        smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
+        smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
+        variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
+        smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
+        bigOldJavaMoreSource, lotProjectDependencies, smallNewMultiprojectJava, largeNewMultiprojectJava
+    group = "Project Setup"
+    description = "Generates all sample projects for automated performance tests"
+}
 
 task report {
     def reportDir = new File(buildDir, "performance-tests/report")
@@ -530,7 +537,11 @@ task compareTaskInputs(type: ProjectGeneratorTask) {
     }
 }
 
-task prepareManualSamples(dependsOn: [compareTaskInputs])
+task prepareManualSamples {
+    dependsOn compareTaskInputs
+    group = "Project Setup"
+    description = "Generates all sample projects for manual performance tests"
+}
 
 task manualPerformanceTest(type: Test) {
     dependsOn prepareManualSamples
