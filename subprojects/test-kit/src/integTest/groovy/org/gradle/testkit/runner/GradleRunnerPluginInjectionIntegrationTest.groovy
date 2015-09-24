@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
-import static org.gradle.testkit.runner.TaskOutcome.*
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
@@ -258,7 +258,6 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         compilePluginProjectSources(1)
         compilePluginProjectSources(2)
 
-
         when:
         buildFile << pluginDeclaration(1)
         def result = runner("helloWorld1")
@@ -294,6 +293,56 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
 
         then:
         execFailure(result).assertHasDescription("Plugin [id: 'com.company.helloworld1'] was not found in any of the following sources:")
+    }
+
+    def "injected classes are not affected by buildSrc"() {
+        compilePluginProjectSources()
+        def buildSrcSrcDir = file("buildSrc/src/main/groovy/org/gradle/test")
+
+        // these class names intentionally clash with what we are injecting
+
+        buildSrcSrcDir.file("HelloWorldPlugin1.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            class HelloWorldPlugin1 implements Plugin<Project> {
+                void apply(Project project) {
+                    project.task('helloWorldBuildSrc', type: HelloWorld1)
+                }
+            }
+        """
+
+        buildSrcSrcDir.file("HelloWorld1.groovy") << """
+            package org.gradle.test
+
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.tasks.TaskAction
+
+            class HelloWorld1 extends DefaultTask {
+                @TaskAction
+                void doSomething() {
+                    println 'Hello world! (buildSrc)'
+                }
+            }
+        """
+
+        buildFile << pluginDeclaration() << """
+            assert tasks.helloWorld1.getClass().classLoader != org.gradle.test.HelloWorldPlugin1.classLoader
+            apply plugin: org.gradle.test.HelloWorldPlugin1 // should be from buildSrc
+        """
+
+        when:
+        def result = runner("helloWorld1", "helloWorldBuildSrc")
+            .withPluginClasspath(getPluginClasspath())
+            .build()
+
+        then:
+        result.task(":helloWorld1").outcome == SUCCESS
+        result.task(":helloWorldBuildSrc").outcome == SUCCESS
+        result.standardOutput.contains "Hello world! (1)"
+        result.standardOutput.contains "Hello world! (buildSrc)"
     }
 
     static String echoClassNameTask(int counter = 1) {
@@ -360,14 +409,6 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
                 void doSomething() {
                     println 'Hello world! (${counter})'
                 }
-            }
-        """
-
-        pluginProjectFile(counter, "src/main/groovy/org/gradle/test/Support${counter}.groovy") << """
-            package org.gradle.test
-
-            class Support {
-                public static String MSG = 'Bye world! (${counter})'
             }
         """
 
