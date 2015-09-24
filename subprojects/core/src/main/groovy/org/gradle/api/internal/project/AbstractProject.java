@@ -128,6 +128,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private TaskContainerInternal taskContainer;
 
+    private final NodeInitializerRegistry nodeInitializerRegistry;
+
     private DependencyHandler dependencyHandler;
 
     private ConfigurationContainer configurationContainer;
@@ -173,6 +175,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.newInstance(TaskContainerInternal.class);
 
+        ModelSchemaStore schemaStore = services.get(ModelSchemaStore.class);
+        nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore);
+
         extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
         if (parent != null) {
             extensibleDynamicObject.setParent(parent.getInheritedScope());
@@ -203,7 +208,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         );
 
         modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class), services.get(NodeInitializerRegistry.class))
+            ModelCreators.bridgedInstance(ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class), nodeInitializerRegistry)
                 .descriptor("Project.<init>.nodeInitializerRegistry()")
                 .ephemeral(true)
                 .hidden(true)
@@ -969,7 +974,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     // Not part of the public API
     public void model(Closure<?> modelRules) {
         ModelRegistry modelRegistry = getModelRegistry();
-        NodeInitializerRegistry nodeInitializerRegistry = getServices().get(NodeInitializerRegistry.class);
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
             ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, nodeInitializerRegistry, this.getRootProject().getFileResolver()), modelRules);
         } else {

@@ -55,8 +55,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
-import org.gradle.model.internal.core.DefaultNodeInitializerRegistry;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -232,10 +230,6 @@ public class GlobalScopeServices {
 
     protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {
         return new DefaultModelSchemaStore(modelSchemaExtractor);
-    }
-
-    protected NodeInitializerRegistry createNodeInitializerRegistry(ModelSchemaStore schemaStore) {
-        return new DefaultNodeInitializerRegistry(schemaStore);
     }
 
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {
