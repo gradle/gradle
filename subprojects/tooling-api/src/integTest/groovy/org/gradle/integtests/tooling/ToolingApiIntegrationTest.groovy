@@ -16,6 +16,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -28,6 +29,7 @@ import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -272,6 +274,7 @@ allprojects {
         handle.waitForFinish()
     }
 
+    @IgnoreIf({ !GradleContextualExecuter.embedded })
     @Unroll
     def "can consume standard output and error if run in #runMode mode"() {
         given:
