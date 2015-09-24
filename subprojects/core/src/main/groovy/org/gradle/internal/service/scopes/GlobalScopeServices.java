@@ -255,12 +255,12 @@ public class GlobalScopeServices {
     }
 
     protected ModelRegistryStore createModelRegistryStore(GradleBuildEnvironment buildEnvironment, ModelRuleExtractor ruleExtractor) {
+        ModelRegistryStore registryStore = new AlwaysNewModelRegistryStore(ruleExtractor);
         if (buildEnvironment.isLongLivingProcess() && Boolean.getBoolean(ReusingModelRegistryStore.TOGGLE)) {
             LOGGER.warn(ReusingModelRegistryStore.BANNER);
-            return new ReusingModelRegistryStore(ruleExtractor);
-        } else {
-            return new AlwaysNewModelRegistryStore(ruleExtractor);
+            registryStore = new ReusingModelRegistryStore(registryStore);
         }
+        return registryStore;
     }
 
     protected ImportsReader createImportsReader() {
