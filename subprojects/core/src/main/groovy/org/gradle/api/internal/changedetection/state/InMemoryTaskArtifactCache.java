@@ -153,7 +153,7 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
                 assert maxSize != null : "Unknown cache.";
                 LOG.info("Creating In-memory cache of {}: MaxSize{{}}", cacheId, maxSize);
                 LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
-                theData = CacheBuilder.newBuilder().maximumSize(maxSize).removalListener(evictionListener).build();
+                theData = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener).build();
                 evictionListener.setCache(theData);
                 this.cache.put(cacheId, theData);
             }
