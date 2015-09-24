@@ -136,8 +136,8 @@ class DefaultProjectTest {
 
         projectRegistry = new DefaultProjectRegistry()
 
-        projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, 'parent')
-        serviceRegistryMock = context.mock(ServiceRegistry.class, 'project')
+        projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, 'serviceRegistryFactory')
+        serviceRegistryMock = context.mock(ServiceRegistry.class, 'serviceRegistry')
 
         context.checking {
             allowing(projectServiceRegistryFactoryMock).createFor(withParam(notNullValue())); will(returnValue(serviceRegistryMock))
