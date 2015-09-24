@@ -601,6 +601,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (isUseDaemon()) {
             allArgs.add("--daemon");
         }
+        allArgs.add("--stacktrace");
         if (taskList) {
             allArgs.add("tasks");
         }

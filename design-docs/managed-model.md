@@ -147,6 +147,9 @@ Support read-write collection properties defined using both a getter and a sette
     - `CharSequence` to `File` conversion relative to project directory, as per `Project.file()`.
     - Any scalar type to `String`.
 - Update user guide, Javadocs and sample
+
+#### Implementation
+
 - Implementation must reuse `NotationConverter` infrastructure.
 
 #### Test cases
@@ -163,7 +166,6 @@ TBD: make some kind of 'project layout' or 'file resolver' service available as 
 - TBD: convert input values? eg add String values to a List<File>?
 - Update user guide, Javadocs and samples
 
-
 #### Test cases
 
 - Nice error message when configuring a property that does not exist, for each supported pattern.
@@ -173,7 +175,7 @@ TBD: make some kind of 'project layout' or 'file resolver' service available as 
 
 - support the 'setter method' pattern from legacy domain types. For a simple type, the 'setter method' is equivalent to calling `set` or using `=`(equals) in the DSL:
 
-<!-- -->=
+<!-- -->
 
     model {
         thing {

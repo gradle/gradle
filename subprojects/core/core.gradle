@@ -73,7 +73,7 @@ useTestFixtures(project: ":messaging")
 useTestFixtures(project: ":modelCore")
 
 test {
-    forkEvery = 200
+    forkEvery = 100
 }
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')

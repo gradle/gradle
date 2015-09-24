@@ -10,7 +10,7 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Performance Improvements for large projects
+### Incremental build improvements
 
 TBD
 
@@ -64,6 +64,8 @@ read-only (non nullable) property is created by defining only a setter, while a 
         Set<String> getGroups();
         void setGroups(Set<String> groups);
     }
+
+TBD: FunctionalSourceSet
 
 TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with references between different model
 elements.
