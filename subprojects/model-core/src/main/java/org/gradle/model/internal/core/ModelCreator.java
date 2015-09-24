@@ -16,9 +16,10 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.collect.ListMultimap;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
-import java.util.List;
+import java.util.Set;
 
 public interface ModelCreator extends ModelRule {
     ModelRuleDescriptor getDescriptor();
@@ -31,11 +32,14 @@ public interface ModelCreator extends ModelRule {
 
     ModelProjection getProjection();
 
-    void create(MutableModelNode node, List<ModelView<?>> inputs);
+    /**
+     * Actions that need to be registered when the node is registered.
+     */
+    ListMultimap<ModelActionRole, ? extends ModelAction> getActions();
+
+    Set<? extends ModelReference<?>> getInputs();
 
     boolean isEphemeral();
-
-    List<? extends ModelReference<?>> getInputs();
 
     void addProjection(ModelProjection projection);
 }

@@ -203,6 +203,14 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         );
 
         modelRegistry.createOrReplace(
+            ModelCreators.bridgedInstance(ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class), services.get(NodeInitializerRegistry.class))
+                .descriptor("Project.<init>.nodeInitializerRegistry()")
+                .ephemeral(true)
+                .hidden(true)
+                .build()
+        );
+
+        modelRegistry.createOrReplace(
             ModelCreators.unmanagedInstance(ModelReference.of("buildDir", File.class), new Factory<File>() {
                 public File create() {
                     return getBuildDir();

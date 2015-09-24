@@ -18,7 +18,6 @@ package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Named;
 import org.gradle.api.Nullable;
-import org.gradle.internal.BiActions;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -103,16 +102,15 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
                 } else {
                     ModelManagedImplStructSchema<P> structSchema = (ModelManagedImplStructSchema<P>) propertySchema;
                     ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, nodeInitializerRegistry, ManagedProxyFactory.INSTANCE);
-                    ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
+                    ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()))
                         .withProjection(projection)
                         .descriptor(descriptor).build();
                     modelNode.addReference(creator);
                 }
-
             }
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
-            ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), BiActions.doNothing())
+            ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()))
                 .withProjection(projection)
                 .descriptor(descriptor).build();
             modelNode.addLink(creator);

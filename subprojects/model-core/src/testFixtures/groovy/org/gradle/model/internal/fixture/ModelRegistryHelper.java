@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.fixture;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Nullable;
@@ -28,13 +27,13 @@ import org.gradle.api.internal.rules.RuleAwarePolymorphicNamedEntityInstantiator
 import org.gradle.internal.*;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
-import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry;
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -61,7 +60,7 @@ public class ModelRegistryHelper implements ModelRegistry {
     private final ModelRegistry modelRegistry;
 
     public ModelRegistryHelper() {
-        this(new DefaultModelRegistry(new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance(), new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.getInstance(), new DefaultConstructableTypesRegistry())))));
+        this(new DefaultModelRegistry(new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.getInstance()))));
     }
 
     public ModelRegistryHelper(ModelRegistryScope modelRegistryScope) {
@@ -270,14 +269,6 @@ public class ModelRegistryHelper implements ModelRegistry {
         return new ModelCreatorBuilder(path);
     }
 
-    public ModelProjectorBuilder projector(String path) {
-        return projector(ModelPath.path(path));
-    }
-
-    public ModelProjectorBuilder projector(ModelPath path) {
-        return new ModelProjectorBuilder(path);
-    }
-
     public ModelRegistryHelper configure(ModelActionRole role, Transformer<? extends ModelAction, ? super ModelActionBuilder<Object>> def) {
         return configure(role, def.transform(ModelActionBuilder.of()));
     }
@@ -358,13 +349,13 @@ public class ModelRegistryHelper implements ModelRegistry {
     }
 
     public static <C> ModelCreator creator(String path, final ModelType<C> modelType, String inputPath, final Transformer<? extends C, Object> action) {
-        return ModelCreators.of(ModelPath.path(path), new BiAction<MutableModelNode, List<ModelView<?>>>() {
-            @Override
-            public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
-                mutableModelNode.setPrivateData(modelType, action.transform(inputs.get(0).getInstance()));
-            }
-        }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
-            .inputs(refs(ModelReference.of(inputPath)))
+        return ModelCreators.of(ModelPath.path(path), ModelReference.of(inputPath), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                @Override
+                public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
+                    mutableModelNode.setPrivateData(modelType, action.transform(inputs.get(0).getInstance()));
+                }
+            })
+            .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
             .descriptor("create " + path)
             .build();
     }
@@ -523,13 +514,13 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         public <C> ModelCreator unmanaged(final ModelType<C> modelType, String inputPath, String inputDescriptor, final Transformer<? extends C, Object> action) {
-            return ModelCreators.of(path, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+            return ModelCreators.of(path, ModelReference.of(inputPath, ModelType.UNTYPED, inputDescriptor), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
                     mutableModelNode.setPrivateData(modelType, action.transform(inputs.get(0).getInstance()));
                 }
-            }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
-                .inputs(ModelReference.of(inputPath, ModelType.UNTYPED, inputDescriptor))
+            })
+                .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
                 .descriptor(descriptor)
                 .ephemeral(ephemeral)
                 .build();
@@ -540,13 +531,12 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         public <C, I> ModelCreator unmanaged(final ModelType<C> modelType, final ModelType<I> inputModelType, final Transformer<? extends C, ? super I> action) {
-            return ModelCreators.of(path, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+            return ModelCreators.of(path, ModelReference.of(inputModelType), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
                     mutableModelNode.setPrivateData(modelType, action.transform(ModelViews.assertType(inputs.get(0), inputModelType).getInstance()));
                 }
             }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
-                .inputs(ModelReference.of(inputModelType))
                 .ephemeral(ephemeral)
                 .descriptor(descriptor)
                 .build();
@@ -561,12 +551,13 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         private <C> ModelCreator unmanaged(final ModelType<C> modelType, final Factory<? extends C> initializer) {
-            return ModelCreators.of(path, new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                @Override
-                public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
-                    mutableModelNode.setPrivateData(modelType, initializer.create());
-                }
-            }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
+            return ModelCreators.of(path, new Action<MutableModelNode>() {
+                    @Override
+                    public void execute(MutableModelNode mutableModelNode) {
+                        mutableModelNode.setPrivateData(modelType, initializer.create());
+                    }
+                })
+                .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
                 .descriptor(descriptor)
                 .ephemeral(ephemeral)
                 .build();
@@ -577,12 +568,13 @@ public class ModelRegistryHelper implements ModelRegistry {
         }
 
         public <C> ModelCreator unmanagedNode(ModelType<C> modelType, final Action<? super MutableModelNode> action) {
-            return ModelCreators.of(path, new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                @Override
-                public void execute(MutableModelNode mutableModelNode, List<ModelView<?>> inputs) {
-                    action.execute(mutableModelNode);
-                }
-            }).withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
+            return ModelCreators.of(path, new Action<MutableModelNode>() {
+                    @Override
+                    public void execute(MutableModelNode mutableModelNode) {
+                        action.execute(mutableModelNode);
+                    }
+                })
+                .withProjection(new UnmanagedModelProjection<C>(modelType, true, true))
                 .descriptor(descriptor)
                 .ephemeral(ephemeral)
                 .build();
@@ -617,39 +609,14 @@ public class ModelRegistryHelper implements ModelRegistry {
                     }
                 }
             )
-                .withProjection(PolymorphicModelMapProjection.of(modelType, NodeBackedModelMap.createUsingParentNode(modelType)))
+                .withProjection(PolymorphicModelMapProjection.of(
+                    modelType,
+                    ChildNodeInitializerStrategyAccessors.constant(NodeBackedModelMap.createUsingParentNode(modelType)))
+                )
                 .withProjection(UnmanagedModelProjection.of(instantiatorType))
                 .descriptor(descriptor)
                 .ephemeral(ephemeral)
                 .build();
-        }
-    }
-
-    public static class ModelProjectorBuilder {
-        private final ModelPath path;
-        private final Set<ModelProjection> projections = Sets.newLinkedHashSet();
-        private ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("tester");
-
-        public ModelProjectorBuilder(ModelPath path) {
-            this.path = path;
-        }
-
-        public ModelProjectorBuilder withProjection(ModelProjection projection) {
-            projections.add(projection);
-            return this;
-        }
-
-        public ModelProjectorBuilder descriptor(String descriptor) {
-            return descriptor(new SimpleModelRuleDescriptor(descriptor));
-        }
-
-        public ModelProjectorBuilder descriptor(ModelRuleDescriptor descriptor) {
-            this.descriptor = descriptor;
-            return this;
-        }
-
-        public ModelAction build() {
-            return new DefaultModelProjector(path, descriptor, projections);
         }
     }
 

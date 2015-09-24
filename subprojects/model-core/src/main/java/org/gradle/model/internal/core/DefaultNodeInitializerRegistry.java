@@ -16,39 +16,30 @@
 
 package org.gradle.model.internal.core;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
 
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
+    private final List<NodeInitializerExtractionStrategy> strategies;
     private final ModelSchemaStore schemaStore;
-    private final ImmutableList<NodeInitializerExtractionStrategy> strategies;
 
-    public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore, ConstructableTypesRegistry constructableTypesRegistry) {
-        this(schemaStore, new DefaultInstanceFactoryRegistry(), Collections.<NodeInitializerExtractionStrategy>emptyList(), constructableTypesRegistry);
-    }
-
-    public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore, InstanceFactoryRegistry instanceFactoryRegistry,
-                                          List<NodeInitializerExtractionStrategy> strategies, ConstructableTypesRegistry constructableTypesRegistry) {
+    public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore) {
         this.schemaStore = schemaStore;
-        this.strategies = ImmutableList.<NodeInitializerExtractionStrategy>builder()
-            .addAll(strategies)
-            .add(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry))
-            .add(new ModelSetNodeInitializerExtractionStrategy())
-            .add(new ManagedSetNodeInitializerExtractionStrategy())
-            .add(new ModelMapNodeInitializerExtractionStrategy())
-            .add(new ScalarCollectionNodeInitializerExtractionStrategy())
-            .add(new ManagedImplStructNodeInitializerExtractionStrategy(schemaStore))
-            .add(constructableTypesRegistry)
-            .build();
+        this.strategies = Lists.newArrayList(
+            new ModelSetNodeInitializerExtractionStrategy(),
+            new ManagedSetNodeInitializerExtractionStrategy(),
+            new ModelMapNodeInitializerExtractionStrategy(),
+            new ScalarCollectionNodeInitializerExtractionStrategy(),
+            new ManagedImplStructNodeInitializerExtractionStrategy(schemaStore)
+        );
     }
 
     @Override
@@ -70,5 +61,10 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     public <T> NodeInitializer getNodeInitializer(ModelType<T> type) {
         ModelSchema<T> schema = schemaStore.getSchema(type);
         return getNodeInitializer(schema);
+    }
+
+    @Override
+    public void registerStrategy(NodeInitializerExtractionStrategy strategy) {
+        strategies.add(0, strategy);
     }
 }

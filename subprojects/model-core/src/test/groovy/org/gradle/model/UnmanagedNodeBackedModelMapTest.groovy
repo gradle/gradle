@@ -24,6 +24,7 @@ import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
@@ -78,7 +79,10 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
                 { name, type -> DirectInstantiator.instantiate(type, name) } as NamedEntityInstantiator
             )
                 .descriptor("container")
-                .withProjection(PolymorphicModelMapProjection.of(itemType, NodeBackedModelMap.createUsingParentNode(itemType)))
+                .withProjection(PolymorphicModelMapProjection.of(
+                    itemType,
+                    ChildNodeInitializerStrategyAccessors.constant(NodeBackedModelMap.createUsingParentNode(itemType)))
+                )
                 .build()
         )
     }

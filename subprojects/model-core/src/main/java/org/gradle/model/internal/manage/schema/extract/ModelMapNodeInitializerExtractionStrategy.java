@@ -18,6 +18,7 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.model.ModelMap;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
 import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.core.ModelProjection;
 import org.gradle.model.internal.core.NodeInitializer;
@@ -35,7 +36,7 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
     protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema, NodeInitializerRegistry nodeInitializerRegistry) {
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(schema.getType())) {
             ManagedChildNodeCreatorStrategy<E> childCreator = new ManagedChildNodeCreatorStrategy<E>(nodeInitializerRegistry);
-            ModelProjection projection = ModelMapModelProjection.managed(schema.getElementType(), childCreator);
+            ModelProjection projection = ModelMapModelProjection.managed(schema.getElementType(), ChildNodeInitializerStrategyAccessors.constant(childCreator));
             return new ProjectionOnlyNodeInitializer(projection);
         }
         return null;

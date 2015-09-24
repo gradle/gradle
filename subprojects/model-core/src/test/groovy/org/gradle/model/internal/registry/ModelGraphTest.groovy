@@ -189,13 +189,28 @@ class ModelGraphTest extends Specification {
         when:
         graph.add(a)
         graph.add(b)
+
+        then:
+        0 * listener.onCreate(_)
+
+        when:
         graph.addListener(listener)
-        graph.add(c)
-        graph.add(d)
 
         then:
         1 * listener.onCreate(b)
+        0 * listener.onCreate(_)
+
+        when:
+        graph.add(c)
+
+        then:
         1 * listener.onCreate(c)
+        0 * listener.onCreate(_)
+
+        when:
+        graph.add(d)
+
+        then:
         0 * listener.onCreate(_)
     }
 
@@ -379,7 +394,7 @@ class ModelGraphTest extends Specification {
     def node(String path, Class<?> type = String) {
         return Stub(ModelNodeInternal) {
             getPath() >> ModelPath.path(path)
-            getPromise() >> Stub(ModelPromise) {
+            getPromiseRegardlessOfState() >> Stub(ModelPromise) {
                 canBeViewedAsMutable(_) >> { ModelType t -> return t.concreteClass == type }
             }
             toString() >> "node $path"

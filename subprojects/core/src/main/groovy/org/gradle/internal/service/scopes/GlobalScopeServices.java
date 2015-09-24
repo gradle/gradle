@@ -55,9 +55,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
-import org.gradle.model.internal.core.DefaultInstanceFactoryRegistry;
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry;
-import org.gradle.model.internal.core.InstanceFactoryRegistry;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
@@ -203,10 +201,9 @@ public class GlobalScopeServices {
         return new DefaultFileLookup(fileSystem);
     }
 
-    ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore, NodeInitializerRegistry nodeInitializerRegistry
-    ) {
+    ModelRuleExtractor createModelRuleInspector(ServiceRegistry services, ModelSchemaStore modelSchemaStore) {
         List<MethodModelRuleExtractor> extractors = services.getAll(MethodModelRuleExtractor.class);
-        List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore, nodeInitializerRegistry);
+        List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore);
         return new ModelRuleExtractor(Iterables.concat(coreExtractors, extractors));
     }
 
@@ -233,21 +230,12 @@ public class GlobalScopeServices {
         return new ModelSchemaExtractor(strategies, aspectExtractor);
     }
 
-    protected InstanceFactoryRegistry createInstanceFactoryRegistry() {
-        return new DefaultInstanceFactoryRegistry();
-    }
-
     protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {
         return new DefaultModelSchemaStore(modelSchemaExtractor);
     }
 
-    protected NodeInitializerRegistry createNodeInitializerRegistry(ServiceRegistry serviceRegistry, ModelSchemaStore schemaStore, InstanceFactoryRegistry instanceFactoryRegistry, ConstructableTypesRegistry constructableTypesRegistry) {
-        List<NodeInitializerExtractionStrategy> strategies = serviceRegistry.getAll(NodeInitializerExtractionStrategy.class);
-        return new DefaultNodeInitializerRegistry(schemaStore, instanceFactoryRegistry, strategies, constructableTypesRegistry);
-    }
-
-    protected ConstructableTypesRegistry createConstructableTypesRegistry() {
-        return new DefaultConstructableTypesRegistry();
+    protected NodeInitializerRegistry createNodeInitializerRegistry(ModelSchemaStore schemaStore) {
+        return new DefaultNodeInitializerRegistry(schemaStore);
     }
 
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {

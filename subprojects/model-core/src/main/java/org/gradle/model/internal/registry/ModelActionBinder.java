@@ -59,4 +59,9 @@ class ModelActionBinder extends RuleBinder {
     public boolean isBound() {
         return subjectBinding != null && subjectBinding.isBound() && super.isBound();
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s[%s - %s]", getClass().getSimpleName(), subjectBinding, action.getDescriptor());
+    }
 }

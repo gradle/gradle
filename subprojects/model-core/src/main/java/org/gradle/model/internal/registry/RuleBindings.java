@@ -78,6 +78,11 @@ class RuleBindings {
         rulesByInput.nodeRemoved(node);
     }
 
+    public void remove(ModelNodeInternal node, RuleBinder ruleBinder) {
+        rulesBySubject.remove(node, ruleBinder);
+        rulesByInput.remove(node, ruleBinder);
+    }
+
     public void add(RuleBinder ruleBinder) {
         addRule(ruleBinder, rulesBySubject, subject(ruleBinder));
         for (ModelBinding binding : ruleBinder.getInputBindings()) {
@@ -132,6 +137,15 @@ class RuleBindings {
         };
     }
 
+    private static void unbind(RuleBinder rule, ModelNodeInternal node) {
+        if (rule.getSubjectBinding() != null) {
+            rule.getSubjectBinding().onRemove(node);
+        }
+        for (ModelBinding binding : rule.getInputBindings()) {
+            binding.onRemove(node);
+        }
+    }
+
     /**
      * Returns the set of rules with the given target as their subject.
      */
@@ -176,12 +190,7 @@ class RuleBindings {
             // This could be more efficient; assume that removal happens much less often than addition
             for (ModelNode.State state : ModelNode.State.values()) {
                 for (RuleBinder rule : boundAtState.removeAll(new NodeAtState(node.getPath(), state))) {
-                    if (rule.getSubjectBinding() != null) {
-                        rule.getSubjectBinding().onRemove(node);
-                    }
-                    for (ModelBinding binding : rule.getInputBindings()) {
-                        binding.onRemove(node);
-                    }
+                    unbind(rule, node);
                 }
             }
         }
@@ -196,6 +205,11 @@ class RuleBindings {
         public Collection<RuleBinder> get(NodeAtState nodeAtState) {
             Collection<RuleBinder> result = boundAtState.get(nodeAtState);
             return result == null ? Collections.<RuleBinder>emptyList() : result;
+        }
+
+        public void remove(ModelNodeInternal node, RuleBinder ruleBinder) {
+            unbind(ruleBinder, node);
+            boundAtState.values().remove(ruleBinder);
         }
 
         @Override

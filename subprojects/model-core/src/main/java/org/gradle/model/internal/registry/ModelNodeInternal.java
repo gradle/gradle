@@ -40,6 +40,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private ModelNode.State state = ModelNode.State.Known;
     private boolean hidden;
     private final List<ModelRuleDescriptor> executedRules = Lists.newArrayList();
+    private final List<ModelActionBinder> initializerRuleBinders = Lists.newArrayList();
 
     public ModelNodeInternal(CreatorRuleBinder creatorBinder) {
         this.creatorBinder = creatorBinder;
@@ -69,6 +70,14 @@ abstract class ModelNodeInternal implements MutableModelNode {
         }
 
         this.creatorBinder = newCreatorBinder;
+    }
+
+    public List<ModelActionBinder> getInitializerRuleBinders() {
+        return initializerRuleBinders;
+    }
+
+    public void addInitializerRuleBinder(ModelActionBinder binder) {
+        initializerRuleBinders.add(binder);
     }
 
     @Override
@@ -166,7 +175,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
     public void reset() {
         if (isAtLeast(State.Created)) {
             setState(State.ProjectionsDefined);
-            setPrivateData(ModelType.untyped(), null);
+            resetPrivateData();
 
             for (ModelNodeInternal dependent : dependents) {
                 if (LOGGER.isInfoEnabled()) {
@@ -184,6 +193,8 @@ abstract class ModelNodeInternal implements MutableModelNode {
             }
         }
     }
+
+    protected abstract void resetPrivateData();
 
     @Override
     public Optional<String> getValueDescription() {

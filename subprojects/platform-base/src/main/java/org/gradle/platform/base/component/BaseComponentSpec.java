@@ -29,9 +29,7 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.model.ModelMap;
-import org.gradle.model.collection.internal.BridgedCollections;
-import org.gradle.model.collection.internal.ModelMapModelProjection;
-import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
+import org.gradle.model.collection.internal.*;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
@@ -124,7 +122,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
                 .withProjection(
                     ModelMapModelProjection.unmanaged(
                         BinarySpec.class,
-                        NodeBackedModelMap.createUsingRegistry(ModelType.of(BinarySpec.class), info.nodeInitializerRegistry)
+                        ChildNodeInitializerStrategyAccessors.constant(NodeBackedModelMap.createUsingRegistry(ModelType.of(BinarySpec.class), info.nodeInitializerRegistry))
                     )
                 )
                 .build()
@@ -146,7 +144,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
                 .withProjection(
                     PolymorphicModelMapProjection.ofEager(
                         LanguageSourceSetInternal.PUBLIC_MODEL_TYPE,
-                        NodeBackedModelMap.createUsingParentNode(SOURCE_SET_CREATOR)
+                        ChildNodeInitializerStrategyAccessors.constant(NodeBackedModelMap.createUsingParentNode(SOURCE_SET_CREATOR))
                     )
                 )
                 .withProjection(UnmanagedModelProjection.of(FunctionalSourceSet.class))

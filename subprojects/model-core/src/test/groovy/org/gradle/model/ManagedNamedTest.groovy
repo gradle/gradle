@@ -15,22 +15,19 @@
  */
 
 package org.gradle.model
-
 import org.gradle.api.Named
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import spock.lang.Specification
 
 class ManagedNamedTest extends Specification {
 
-    def constructableTypesRegistry = Mock(ConstructableTypesRegistry)
     def r = new ModelRegistryHelper()
     def schemaStore = DefaultModelSchemaStore.getInstance()
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore, constructableTypesRegistry)
+    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
 
     def "named struct has name name property populated"() {
         when:

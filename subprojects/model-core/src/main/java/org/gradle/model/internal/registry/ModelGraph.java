@@ -184,7 +184,7 @@ class ModelGraph {
     }
 
     private boolean maybeNotify(ModelNodeInternal node, ModelCreationListener listener) {
-        if (listener.getType() != null && !node.getPromise().canBeViewedAsMutable(listener.getType()) && !node.getPromise().canBeViewedAsImmutable(listener.getType())) {
+        if (listener.getType() != null && !node.getPromiseRegardlessOfState().canBeViewedAsMutable(listener.getType()) && !node.getPromiseRegardlessOfState().canBeViewedAsImmutable(listener.getType())) {
             return false;
         }
         return listener.onCreate(node);

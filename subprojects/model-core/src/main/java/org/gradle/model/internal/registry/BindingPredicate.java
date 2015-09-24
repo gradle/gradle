@@ -51,6 +51,11 @@ public class BindingPredicate extends ModelPredicate {
         return reference.getType();
     }
 
+    @Override
+    public boolean isUntyped() {
+        return reference.isUntyped();
+    }
+
     @Nullable
     public ModelPath getScope() {
         return reference.getScope();

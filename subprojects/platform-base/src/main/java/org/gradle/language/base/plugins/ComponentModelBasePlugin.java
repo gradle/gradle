@@ -39,6 +39,7 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
+import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
@@ -80,7 +81,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             ComponentSpec.class,
             ComponentSpecContainer.class,
             schema.getImplementationType().asSubclass(ComponentSpecContainer.class),
-            nodeInitializerRegistry,
             descriptor
         );
         modelRegistry.create(componentsCreator);
@@ -93,6 +93,12 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Model
         ComponentSpecFactory componentSpecFactory() {
             return new ComponentSpecFactory("this collection");
+        }
+
+        @Mutate
+        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, InstanceFactoryRegistry instanceFactoryRegistry, ConstructableTypesRegistry constructableTypesRegistry) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry));
+            nodeInitializerRegistry.registerStrategy(constructableTypesRegistry);
         }
 
         @Model
@@ -180,7 +186,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         @Model
         InstanceFactoryRegistry instanceFactoryRegistry(ServiceRegistry serviceRegistry, BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
-            InstanceFactoryRegistry instanceFactoryRegistry = serviceRegistry.get(InstanceFactoryRegistry.class);
+            InstanceFactoryRegistry instanceFactoryRegistry = new DefaultInstanceFactoryRegistry();
             for (ModelType<? extends BinarySpec> type : binarySpecFactory.getSupportedTypes()) {
                 instanceFactoryRegistry.register(type, ModelReference.of(BinarySpecFactory.class));
             }
@@ -188,11 +194,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                 instanceFactoryRegistry.register(type, ModelReference.of(ComponentSpecFactory.class));
             }
             return instanceFactoryRegistry;
-        }
-
-        @Model
-        NodeInitializerRegistry nodeInitializerRegistry(ServiceRegistry serviceRegistry, InstanceFactoryRegistry instanceFactoryRegistry) {
-            return serviceRegistry.get(NodeInitializerRegistry.class);
         }
 
         @Defaults

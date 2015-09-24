@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core;
+package org.gradle.model.collection.internal;
 
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.extract.NodeInitializerExtractionStrategy;
-import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.core.ChildNodeInitializerStrategy;
+import org.gradle.model.internal.core.MutableModelNode;
 
-public interface NodeInitializerRegistry {
-    <T> NodeInitializer getNodeInitializer(ModelType<T> type);
-
-    <T> NodeInitializer getNodeInitializer(ModelSchema<T> schema);
-
-    void registerStrategy(NodeInitializerExtractionStrategy strategy);
+public interface ChildNodeInitializerStrategyAccessor<T> {
+    ChildNodeInitializerStrategy<T> getStrategy(MutableModelNode node);
 }

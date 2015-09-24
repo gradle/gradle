@@ -25,6 +25,7 @@ import org.gradle.internal.BiAction;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.collection.internal.BridgedCollections;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
 import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -64,12 +65,12 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
 
         modelRegistry.createOrReplace(
             creatorBuilder
-                .withProjection(ModelMapModelProjection.unmanaged(Task.class, NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>, MutableModelNode>() {
+                .withProjection(ModelMapModelProjection.unmanaged(Task.class, ChildNodeInitializerStrategyAccessors.constant(NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>, MutableModelNode>() {
                     @Override
                     public NamedEntityInstantiator<Task> transform(MutableModelNode modelNode) {
                         return modelNode.getPrivateData(ModelType.of(DefaultTaskContainer.class)).getEntityInstantiator();
                     }
-                })))
+                }))))
                 .withProjection(UnmanagedModelProjection.of(TaskContainer.class))
                 .build()
         );

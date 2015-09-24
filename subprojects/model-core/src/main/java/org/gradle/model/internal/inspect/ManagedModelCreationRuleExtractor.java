@@ -18,6 +18,7 @@ package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.BiAction;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -32,11 +33,9 @@ import java.util.List;
 @NotThreadSafe
 public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
     private final ModelSchemaStore schemaStore;
-    private final NodeInitializerRegistry nodeInitializerRegistry;
 
-    public ManagedModelCreationRuleExtractor(ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
+    public ManagedModelCreationRuleExtractor(ModelSchemaStore schemaStore) {
         this.schemaStore = schemaStore;
-        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     public String getDescription() {
@@ -66,31 +65,51 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         return new ExtractedModelCreator(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
     }
 
-    private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, ModelPath modelPath) {
-        ModelSchema<T> modelSchema = getModelSchema(managedType, ruleDefinition);
+    private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, final ModelPath modelPath) {
+        final ModelSchema<T> modelSchema = getModelSchema(managedType, ruleDefinition);
 
         if (modelSchema instanceof ModelValueSchema) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule cannot take a value type as the first parameter, which is the element being created. Return the value from the method.");
         }
-        NodeInitializer nodeInitializer;
-        try {
-            nodeInitializer = nodeInitializerRegistry.getNodeInitializer(modelSchema);
-        } catch (ModelTypeInitializationException e) {
-            throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), e);
-        }
 
         List<ModelReference<?>> bindings = ruleDefinition.getReferences();
         List<ModelReference<?>> inputs = bindings.subList(1, bindings.size());
-        ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
+        final ModelRuleDescriptor descriptor = ruleDefinition.getDescriptor();
 
         final ModelReference<T> reference = ModelReference.of(modelPath, managedType);
-        return ModelCreators.of(modelPath, nodeInitializer)
+        return ModelCreators.of(modelPath)
             .descriptor(descriptor)
+            .action(ModelActionRole.DefineProjections, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                @Override
+                public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
+                    NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
+                    NodeInitializer initializer = getNodeInitializer(descriptor, modelSchema, nodeInitializerRegistry);
+                    for (ModelProjection projection : initializer.getProjections()) {
+                        node.addProjection(projection);
+                    }
+                }
+            })
+            .action(ModelActionRole.Create, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                @Override
+                public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
+                    NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
+                    NodeInitializer initializer = getNodeInitializer(descriptor, modelSchema, nodeInitializerRegistry);
+                    node.applyToSelf(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(ModelReference.of(modelPath), descriptor, initializer.getInputs(), initializer));
+                }
+            })
             .action(ModelActionRole.Initialize, InputUsingModelAction.of(
                     reference, descriptor, inputs, new RuleMethodBackedMutationAction<T>(ruleDefinition.getRuleInvoker())
                 )
             )
             .build();
+    }
+
+    private static NodeInitializer getNodeInitializer(ModelRuleDescriptor descriptor, ModelSchema<?> modelSchema, NodeInitializerRegistry nodeInitializerRegistry) {
+        try {
+            return nodeInitializerRegistry.getNodeInitializer(modelSchema);
+        } catch (ModelTypeInitializationException e) {
+            throw new InvalidModelRuleDeclarationException(descriptor, e);
+        }
     }
 
     private <T> ModelSchema<T> getModelSchema(ModelType<T> managedType, MethodRuleDefinition<?, ?> ruleDefinition) {

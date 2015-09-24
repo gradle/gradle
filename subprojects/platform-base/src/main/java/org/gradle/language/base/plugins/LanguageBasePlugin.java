@@ -34,11 +34,14 @@ import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.model.FunctionalSourceSetNodeInitializer;
 import org.gradle.model.*;
 import org.gradle.model.collection.internal.BridgedCollections;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistry;
+import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
@@ -62,18 +65,15 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     private final Instantiator instantiator;
     private final ModelRegistry modelRegistry;
-    private final ConstructableTypesRegistry constructableTypesRegistry;
 
     @Inject
-    public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry, ConstructableTypesRegistry constructableTypesRegistry) {
+    public LanguageBasePlugin(Instantiator instantiator, ModelRegistry modelRegistry) {
         this.instantiator = instantiator;
         this.modelRegistry = modelRegistry;
-        this.constructableTypesRegistry = constructableTypesRegistry;
     }
 
     public void apply(final Project target) {
         target.getPluginManager().apply(LifecycleBasePlugin.class);
-        constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer(instantiator));
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
         applyRules(modelRegistry, binaries);
     }
@@ -94,7 +94,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
             )
                 .descriptor(descriptor)
                 .ephemeral(true)
-                .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType, NodeBackedModelMap.createUsingParentNode(binarySpecModelType)))
+                .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType,
+                    ChildNodeInitializerStrategyAccessors.constant(NodeBackedModelMap.createUsingParentNode(binarySpecModelType))))
                 .withProjection(UnmanagedModelProjection.of(DefaultBinaryContainer.class))
                 .build()
         );
@@ -131,6 +132,22 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
+
+        @Model
+        ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ModelSchemaStore.class);
+        }
+
+        @Model
+        ConstructableTypesRegistry constructableTypesRegistry() {
+            return new DefaultConstructableTypesRegistry();
+        }
+
+        @Mutate
+        void registerFunctionalSourceSetNodeInitializer(ConstructableTypesRegistry constructableTypesRegistry, ServiceRegistry serviceRegistry) {
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer(instantiator));
+        }
 
         @Model
         ProjectSourceSet sources(ServiceRegistry serviceRegistry) {

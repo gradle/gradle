@@ -27,7 +27,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.internal.DefaultJavaPlatformVariantDimensionSelector;
 import org.gradle.jvm.internal.JarBinaryRenderer;
-import org.gradle.jvm.internal.model.JarBinarySpecSpecializationNodeInitializerExtractionStrategy;
 import org.gradle.jvm.internal.model.JarBinarySpecSpecializationSchemaExtractionStrategy;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.model.DefaultVariantDimensionSelectorFactory;
@@ -40,7 +39,6 @@ public class PlatformJvmServices implements PluginServiceRegistry {
         registration.add(JarBinaryRenderer.class);
         registration.add(JarBinarySpecSpecializationSchemaExtractionStrategy.class);
         registration.add(VariantDimensionSelectorFactory.class, DefaultVariantDimensionSelectorFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantDimensionSelector()));
-        registration.addProvider(new GlobalScopeServices());
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {
@@ -83,12 +81,6 @@ public class PlatformJvmServices implements PluginServiceRegistry {
                 registry.getAll(VariantDimensionSelectorFactory.class),
                 registry.get(ModelSchemaStore.class));
             return DelegatingComponentResolvers.of(delegate);
-        }
-    }
-
-    private static class GlobalScopeServices {
-        JarBinarySpecSpecializationNodeInitializerExtractionStrategy createJarBinarySpecSpecializationNodeInitializerExtractionStrategy(ModelSchemaStore schemaStore) {
-            return new JarBinarySpecSpecializationNodeInitializerExtractionStrategy(schemaStore);
         }
     }
 }

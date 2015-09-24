@@ -18,6 +18,7 @@ package org.gradle.model.internal.registry;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.report.unbound.UnboundRule;
@@ -44,10 +45,13 @@ class UnboundRulesProcessor {
         for (RuleBinder binder : binders) {
             UnboundRule.Builder builder = UnboundRule.descriptor(binder.getDescriptor().toString());
 
-            if (binder.getSubjectBinding() != null) {
-                ModelBinding binding = binder.getSubjectBinding();
-                UnboundRuleInput.Builder inputBuilder = toInputBuilder(binding);
-                builder.mutableInput(inputBuilder);
+            ModelBinding subjectBinding = binder.getSubjectBinding();
+            if (subjectBinding != null) {
+                // Only report subject binding if target state is after node creation
+                if (subjectBinding.getPredicate().getState().compareTo(ModelNode.State.Created) > 0) {
+                    UnboundRuleInput.Builder inputBuilder = toInputBuilder(subjectBinding);
+                    builder.mutableInput(inputBuilder);
+                }
             }
 
             for (int i = 0; i < binder.getInputBindings().size(); ++i) {

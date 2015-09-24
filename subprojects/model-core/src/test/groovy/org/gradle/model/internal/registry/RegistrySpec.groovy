@@ -16,8 +16,8 @@
 
 package org.gradle.model.internal.registry
 
+import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.Nullable
-import org.gradle.internal.BiActions
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
@@ -38,7 +38,7 @@ class RegistrySpec extends Specification {
         }
 
         private static CreatorRuleBinder toBinder(String creationPath, Class<?> type) {
-            def creator = ModelCreators.of(ModelPath.path(creationPath), BiActions.doNothing()).descriptor("test").withProjection(new UnmanagedModelProjection(ModelType.of(type))).build()
+            def creator = ModelCreators.of(ModelPath.path(creationPath)).descriptor("test").withProjection(new UnmanagedModelProjection(ModelType.of(type))).build()
             def subject = new BindingPredicate()
             def binder = new CreatorRuleBinder(creator, subject, [], [])
             binder
@@ -161,6 +161,11 @@ class RegistrySpec extends Specification {
         }
 
         @Override
+        protected void resetPrivateData() {
+
+        }
+
+        @Override
         def <T> T getPrivateData(ModelType<T> type) {
             return null
         }
@@ -260,7 +265,7 @@ class RegistrySpec extends Specification {
         RuleBinder build() {
             def binder
             if (subjectReference == null) {
-                def action = new ProjectionBackedModelCreator(null, descriptor, false, false, [], [], null)
+                def action = new ProjectionBackedModelCreator(null, descriptor, false, false, [], ImmutableMultimap.of())
                 binder = new CreatorRuleBinder(action, new BindingPredicate(), inputReferences, [])
             } else {
                 def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})

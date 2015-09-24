@@ -15,7 +15,6 @@
  */
 
 package org.gradle.model.internal.manage.projection
-
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.Managed
 import org.gradle.model.ModelSet
@@ -23,7 +22,6 @@ import org.gradle.model.ModelViewClosedException
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.manage.schema.ManagedImplModelSchema
-import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
@@ -44,7 +42,7 @@ class ModelSetModelProjectionTest extends Specification {
     def collectionPath = ModelPath.path("collection")
     def collectionType = new ModelType<ModelSet<NamedThing>>() {}
     def schemaStore = DefaultModelSchemaStore.instance
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore, new DefaultConstructableTypesRegistry())
+    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
     def registry = new ModelRegistryHelper()
     private ModelReference<ModelSet<NamedThing>> reference = ModelReference.of(collectionPath, new ModelType<ModelSet<NamedThing>>() {})
 

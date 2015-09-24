@@ -110,10 +110,12 @@ class ModelRegistryEphemeralNodeTest extends Specification {
 
     def "creator inputs for replaced ephemeral nodes are bound"() {
         when:
-        registry.createOrReplace(registry.creator("foo") { it.ephemeral(true).unmanaged(List, ["old"])})
+        registry.createOrReplace(registry.creator("foo") { it.ephemeral(true).unmanaged(List, {
+            ["old"]
+        } as Factory)})
         registry.createOrReplace(registry.creator("bar") { it.ephemeral(true).unmanaged(StringBuilder, List) { List l -> new StringBuilder(l[0]) }})
-        registry.mutate(List) {
-            it.add "2"
+        registry.mutate(List) { List list ->
+            list.add "2"
         }
         registry.mutate {
             it.path("bar").type(StringBuilder).action(List) { bar, foo ->
@@ -129,7 +131,9 @@ class ModelRegistryEphemeralNodeTest extends Specification {
 
         when:
         registry.prepareForReuse()
-        registry.createOrReplace(registry.creator("foo") { it.ephemeral(true).unmanaged(List, ["new"])})
+        registry.createOrReplace(registry.creator("foo") { it.ephemeral(true).unmanaged(List, {
+            ["new"]
+        } as Factory)})
         registry.createOrReplace(registry.creator("bar") { it.ephemeral(true).unmanaged(StringBuilder, List) { List l -> new StringBuilder(l[0]) }})
 
         then:

@@ -21,6 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.ModelMap;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
@@ -36,13 +37,13 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     private final ModelType<E> elementType;
 
     private final Class<? extends P> viewImpl;
-    private final ChildNodeInitializerStrategy<E> creatorStrategy;
+    private final ChildNodeInitializerStrategyAccessor<? super E> creatorStrategyAccessor;
 
-    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, Class<? extends P> viewImpl, ChildNodeInitializerStrategy<E> creatorStrategy) {
+    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, Class<? extends P> viewImpl, ChildNodeInitializerStrategyAccessor<? super E> creatorStrategyAccessor) {
         this.publicType = publicType;
         this.elementType = elementType;
         this.viewImpl = viewImpl;
-        this.creatorStrategy = creatorStrategy;
+        this.creatorStrategyAccessor = creatorStrategyAccessor;
     }
 
     @Override
@@ -76,6 +77,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     }
 
     private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
+        ChildNodeInitializerStrategy<? super E> creatorStrategy = creatorStrategyAccessor.getStrategy(modelNode);
         DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor, mutable, true);
         String description = publicType.getSimpleName() + " '" + modelNode.getPath() + "'";
         ModelMap<E> rawView = new NodeBackedModelMap<E>(description, elementType, ruleDescriptor, modelNode, false, state, creatorStrategy);
