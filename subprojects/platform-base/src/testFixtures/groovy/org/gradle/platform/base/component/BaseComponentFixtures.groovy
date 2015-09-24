@@ -15,12 +15,10 @@
  */
 
 package org.gradle.platform.base.component
-
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.platform.base.ComponentSpecIdentifier
 
@@ -28,7 +26,7 @@ class BaseComponentFixtures {
 
     static <T extends BaseComponentSpec> T create(Class<T> type, ModelRegistryHelper modelRegistry, ComponentSpecIdentifier componentId, ProjectSourceSet allSourceSets, Instantiator instantiator, NodeInitializerRegistry nodeInitializerRegistry = null) {
         if (nodeInitializerRegistry == null) {
-            nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance, new DefaultConstructableTypesRegistry())
+            nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)
         }
         try {
             modelRegistry.create(
