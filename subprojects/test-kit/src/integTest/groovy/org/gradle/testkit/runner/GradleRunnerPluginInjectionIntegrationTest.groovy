@@ -16,8 +16,6 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.integtests.fixtures.daemon.DaemonFixture
-import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.TestFile
@@ -101,9 +99,6 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         result.taskPaths(SKIPPED).empty
         result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
-
-        cleanup:
-        killUserDaemon()
     }
 
     def "can use plugin classes for declared plugin in provided classpath"() {
@@ -127,9 +122,6 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         result.taskPaths(SKIPPED).empty
         result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
-
-        cleanup:
-        killUserDaemon()
     }
 
     def "can create enhanced tasks for custom task types in plugin for provided classpath"() {
@@ -187,9 +179,6 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         result.taskPaths(SKIPPED).empty
         result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
-
-        cleanup:
-        killUserDaemon()
     }
 
     @Unroll
@@ -231,9 +220,6 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
 
-        cleanup:
-        killUserDaemon()
-
         where:
         type         | notation
         'class type' | 'HelloWorldPlugin'
@@ -258,23 +244,9 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         result.taskPaths(SKIPPED).empty
         result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
-
-        cleanup:
-        killUserDaemon()
     }
 
-    private void killUserDaemon() {
-        DaemonsFixture userDaemonFixture = daemons(testKitWorkspace)
-        onlyDaemon(userDaemonFixture).kill()
-    }
-
-    private DaemonFixture onlyDaemon(DaemonsFixture daemons) {
-        List<DaemonFixture> userDaemons = daemons.visible
-        assert userDaemons.size() == 1
-        userDaemons[0]
-    }
-
-    private String pluginDeclaration(String pluginIdentifier = 'com.company.helloworld') {
+    static String pluginDeclaration(String pluginIdentifier = 'com.company.helloworld') {
         """
         plugins {
             id '$pluginIdentifier'
@@ -282,7 +254,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         """
     }
 
-    private String pluginClassUsage() {
+    static String pluginClassUsage() {
         """
         import org.gradle.test.Support
 
