@@ -1,6 +1,159 @@
-This spec collects issues that prevent Gradle from working well, or at all, with JDK 9.
+This spec describes changes to Gradle to support and take advantage of the major features introduced by Java 9.
 
-# Feature: Run all Gradle tests against Java 9
+# Milestone 1: Assist teams migrating to a modular architecture
+
+The Java module system is a deep, disruptive change to the Java ecosystem. The following Gradle features will help  
+teams migrate to a modular architecture running on the modular JVM, in a controlled and incremental way.
+
+# Feature: Java library author declares library API
+
+Given a description of the API of a library, Gradle will enforce at compile time that consumers of the library reference only the
+classes of the API. This is intended to help teams materialize and describe the APIs of the various components of their software
+stack, and enforce the boundaries between them, ready for the Java module system.
+
+No runtime enforcement will be done - this is the job of the modular JVM. In this way, Gradle will approximate the behaviour of the 
+modular JVM, but in a way that should be sufficient for many teams to make significant progress towards a modular architecture.
+
+## Story: Java library author declares packages that make up the API of the library
+
+- Add a DSL to declare packages of the API.
+- Default to all packages.
+- Model the API jar as a buildable element produced by the library.
+- Build a jar containing those packages from compiled classes for each variant of the library.
+- Not used yet by consumers, this story is simply to add the DSL and produce the API artifact.
+
+TBD - May need some supporting stories to allow API jar to be modelled as a buildable element.
+
+### Test cases
+
+- API jar can be built for each variant of the library and contains only API classes.
+- `assemble` task builds the API jar and implementation jar for each buildable variant.
+
+## Story: Implementation classes of library are not visible when compiling consuming Java source
+
+- When compiling Java source against a library use the API jar of the selected variant.
+- Applies to local libraries only. A later story adds support for libraries from a binary repository.
+
+### Test cases
+
+- Compilation fails when consuming source references an implementation class.
+- Consuming source is not recompiled when implementation class does not change.
+- Consuming source is recompiled when API class is changed.
+
+## Story: Consuming Java source is not recompiled when API of library has not changed
+
+AKA API classes can reference implementation classes of the same library. 
+
+- Generate stub classes in the API jar.
+- A stub class contains only the public members of the source class required at compile time:
+    - Only public or protected elements
+    - Only public super types
+    - Empty method bodies
+    - No debug attributes
+    - No source annotations
+- Generate stub API jar for all libraries, regardless of whether the library declares its API or not (a library always has an API).
+- Generation task should be incremental.
+
+TBD - split up stub generation into several stories?
+TBD - fail or warn when API class references implementation class in some way that cannot be stubbed, 
+eg extends implementation class or throws checked implementation exception or referenced from public method signature?
+
+### Test cases
+
+- A method body in an API class can reference implementation classes of the same library.
+- A private method signature can reference implementation classes of the same library.
+- Consuming source is not recompiled when API method body of is changed.
+- Consuming source is not recompiled when package private class is added to API.
+- Consuming source is not recompiled when comment is changed in API source file.
+- Consuming source is recompiled when signature of public API method is changed.
+
+## Story: Java library API references the APIs of other libraries
+
+- Extend dependency DSL to allow a dependency of a library to be exported.
+- When library A is exported by library B, then the API of B includes the API of A, and so the API of both A and B is visible to consumers at compile time.
+- Resolve compile time graph transitively.
+- A library may have no API classes of its own, and may simply export other libraries. For example, some library that implements an API defined somewhere else.
+- A library must have a non-empty API (otherwise it is not a library - it is some other kind of component)
+
+TBD - Add a dependency set at the component level, to be used as the default for all its source sets.
+
+### Test cases
+
+- Consuming source can use API class that is transitively included in the compile time dependency graph.
+- Consuming source cannot use implementation class of library that is transitively included in the compile time dependency graph.
+- A library may include no API classes.
+
+## Story: Dependencies report shows compile time dependency graph of a Java library
+
+- Dependency report shows all JVM components for the project, and the resolved compile time graphs for each variant.
+
+## Backlog
+
+- Validate dependencies of API classes at build time to verify all API dependencies are exported.
+- Complain about exported dependencies that are not referenced by the API.
+- Show details of API binary in component report.
+- Generate stub API jar for Groovy and Scala libraries, use for compilation.
+- Discovery of annotation processor implementations.
+
+## Feature: Java library migrates to Java 9 
+
+Allow a Java library to build for Java 9, and produce both modular and non-modular variants for different consumers.
+
+## Story: Build author declares installed Java toolchain
+
+- Add mechanism to declare Java toolchain resolvers.
+- Add resolver that uses an specified install dir to locate toolchain.
+- Resolver probes the version of the installed toolchain (reusing existing logic to do this).
+- Implementation forks `javac`
+- To compile Java source, select the closest compatible toolchain to compile the variant.
+
+TBD - alternatively, select the toolchain with the highest version and use bootstrap classpath or `-release` to cross compile.
+TBD - fail or warn when source code is not compiled against exactly the target Java API. Currently, toolchain selection is lenient. 
+
+## Story: Modular Java library is compiled using modular Java 9
+
+- Install modular Java 9 on CI build VMs.
+- Sample and test coverage for building modular library.
+
+## Story: Modular consumer is compiled against Java library modular Jar
+
+- When building for Java 9, produce a single modular Jar artifact instead of separate API and implementation jars. 
+- Use this when compiling consuming modular source.
+
+## Story: Build non-modular variant of Java library
+
+- Include `module-info.jar` when building for modular Java 9, exclude when not.
+- Add conventional source sets or naming scheme for version specific source files.
+
+### Test cases
+
+- Java 9 specific source files in conventional location are not compiled when building for Java 8.
+- Modular consumer compiles against modular Jar.
+- Non-modular consumer should use non-modular API Jar.
+
+## Backlog
+
+- Generate the module descriptor from the Gradle model.
+- Use Java 9 `-release` flag for compiling against older versions. 
+- Use bootstrap classpath for cross compilation against older versions.
+- Add a toolchain resolve that reuses JVM discovery code from test fixtures to locate installed JVMs.
+
+# Feature: Java library is compiled against the API of Java libraries in binary repository
+
+Add support for external dependencies.
+
+- Extend the dependency DSL to reference external libraries.
+- Reuse legacy repositories DSL for this feature, or perhaps bridge into model land.
+- Resolve external libraries from repository and include in compile time dependency graph.
+- Use jar + compile scope dependencies for a Maven module.
+- Use artifacts and dependencies from some conventional configuration (eg `compile`, or `default` if not present) an for Ivy module.
+- Generate API stub for external Jar and use this for compilation. Cache the generated API jar.
+- Verify library is not recompiled when API of external library has not changed (eg method body change, add private element). 
+- Dependencies report shows external libraries in compile time dependency graph.
+
+# Milestone 2: Gradle is self hosted on Java 9
+
+# Feature: Run all Gradle tests against non modular Java 9
 
 Goal: Successfully run all Gradle tests in a CI build on Java 8, running tests against Java 9. At completion, Gradle will be fully working on Java 9.
 At this stage, however, there will be no special support for Java 9 specific features.
@@ -66,7 +219,7 @@ Goal: Run a coverage CI build on Java 9. At completion, it will be possible to b
 [gradle/java9.gradle](gradle/java9.gradle) adds both unit and integration test tasks executing on JDK 9.
  Once JDK 9 has been fully supported, jdk9 specific test tasks should be removed along with `[gradle/java9.gradle]`
 
-# Feature: Support Java 9 language and runtime features
+# Milestone: Support Java 9 language and runtime features
 
 Goal: full support of the Java 9 module system, and its build and runtime features
 
