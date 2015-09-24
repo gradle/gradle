@@ -127,14 +127,15 @@ class DefaultIsolatedAntBuilderTest {
     @Test
     public void reusesClassloaderForImplementation() {
         ClassLoader loader1 = null
+        ClassLoader loader2 = null
         def classpath = [new File("no-existo.jar")]
         builder.withClasspath(classpath).execute {
             loader1 = delegate.antlibClassLoader
+            owner.builder.withClasspath(classpath).execute {
+                loader2 = delegate.antlibClassLoader
+            }
         }
-        ClassLoader loader2 = null
-        builder.withClasspath(classpath).execute {
-            loader2 = delegate.antlibClassLoader
-        }
+
 
         assertThat(loader1, sameInstance(loader2))
 
