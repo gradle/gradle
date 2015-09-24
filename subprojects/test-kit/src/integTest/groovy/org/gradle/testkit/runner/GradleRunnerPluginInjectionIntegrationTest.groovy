@@ -16,67 +16,47 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
+import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TextUtil
-import org.junit.Rule
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
-    @Rule
-    TestNameTestDirectoryProvider pluginProjectDir = new TestNameTestDirectoryProvider()
-
     def "unresolvable plugin for provided empty classpath fails build and indicates searched locations"() {
-        given:
-        buildFile << pluginDeclaration()
-
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withPluginClasspath([])
-        BuildResult result = gradleRunner.buildAndFail()
+        buildFile << pluginDeclaration()
+        def result = runner()
+            .withPluginClasspath([])
+            .buildAndFail()
 
         then:
-        noExceptionThrown()
-        TextUtil.normaliseLineSeparators(result.standardError).contains("""Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
-
-- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)""")
-        result.tasks.collect { it.path } == []
-        result.taskPaths(SUCCESS).empty
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        execFailure(result).assertHasDescription("""
+            |Plugin [id: 'com.company.helloworld1'] was not found in any of the following sources:
+            |
+            |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+            |- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)
+        """.stripMargin().trim())
     }
 
     def "unresolvable plugin for provided classpath fails build and indicates searched classpath"() {
-        given:
-        buildFile << pluginDeclaration()
-        List<File> pluginClasspath = [file('plugin/classes'), file('plugin/resources')]
-
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withPluginClasspath(pluginClasspath)
-        BuildResult result = gradleRunner.buildAndFail()
+        buildFile << pluginDeclaration()
+        def expectedClasspath = [file("blah1"), file("blah2")]
+        def result = runner()
+            .withPluginClasspath(expectedClasspath)
+            .buildAndFail()
 
         then:
-        noExceptionThrown()
-        List<File> expectedClasspath = pluginClasspath
-        TextUtil.normaliseLineSeparators(result.standardError).contains("""Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
-
-- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-- Gradle TestKit (classpath: ${expectedClasspath*.absolutePath.join(File.pathSeparator)})
-- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)""")
-
-        result.tasks.collect { it.path } == []
-        result.taskPaths(SUCCESS).empty
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        execFailure(result).assertHasDescription("""
+            |Plugin [id: 'com.company.helloworld1'] was not found in any of the following sources:
+            |
+            |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+            |- Gradle TestKit (classpath: ${expectedClasspath*.absolutePath.join(File.pathSeparator)})
+            |- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)
+        """.stripMargin().trim())
     }
 
     def "can resolve plugin for provided classpath"() {
@@ -85,100 +65,118 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         buildFile << pluginDeclaration()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withPluginClasspath(getPluginClasspath())
-        BuildResult result = gradleRunner.build()
+        def result = runner('helloWorld1')
+            .withPluginClasspath(getPluginClasspath())
+            .build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
-        result.tasks.collect { it.path } == [':helloWorld']
-        result.taskPaths(SUCCESS) == [':helloWorld']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        result.task(":helloWorld1").outcome == SUCCESS
+        result.standardOutput.contains('Hello world! (1)')
     }
 
-    def "can use plugin classes for declared plugin in provided classpath"() {
+    def "injected classes are visible in root build script when applied to root"() {
         given:
         compilePluginProjectSources()
-        buildFile << pluginDeclaration()
-        buildFile << pluginClassUsage()
+        buildFile << pluginDeclaration() << echoClassNameTask()
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withPluginClasspath(getPluginClasspath())
-        BuildResult result = gradleRunner.build()
+        def result = runner("echo1")
+            .withPluginClasspath(getPluginClasspath())
+            .build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
-        result.tasks.collect { it.path } == [':helloWorld']
-        result.taskPaths(SUCCESS) == [':helloWorld']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
     }
 
-    def "can create enhanced tasks for custom task types in plugin for provided classpath"() {
+    def "injected classes are not visible in root script when plugin is not applied"() {
         given:
-        pluginProjectFile('src/main/groovy/org/gradle/test/Messenger.groovy') << """
-            package org.gradle.test
-
-            import org.gradle.api.DefaultTask
-            import org.gradle.api.tasks.TaskAction
-            import org.gradle.api.tasks.Input
-
-            class Messenger extends DefaultTask {
-                @Input
-                String message
-
-                @TaskAction
-                void doSomething() {
-                    println message
-                }
-            }
-        """
-
         compilePluginProjectSources()
+        buildFile << echoClassNameTask()
+
+        when:
+        def result = runner('echo1')
+            .withPluginClasspath(getPluginClasspath())
+            .buildAndFail()
+
+        then:
+        // This is how the class not being visible will manifest
+        execFailure(result).assertHasCause("Could not find property 'org' on task ':echo1'.")
+    }
+
+    def "injected classes are visible in child build script when applied to root"() {
+        given:
+        compilePluginProjectSources()
+        file("settings.gradle") << "include 'child'"
         buildFile << pluginDeclaration()
+        file("child/build.gradle") << echoClassNameTask()
+
+        when:
+        def result = runner("child:echo1")
+            .withPluginClasspath(getPluginClasspath())
+            .build()
+
+        then:
+        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+    }
+
+    def "injected classes are not visible in root build script at compile time when applied to child"() {
+        given:
+        compilePluginProjectSources()
+        file("settings.gradle") << "include 'child'"
+        buildFile << echoClassNameTask()
+        file("child/build.gradle") << pluginDeclaration() << echoClassNameTask()
+
+        when:
+        def result = runner("child:echo1").withPluginClasspath(getPluginClasspath()).build()
+
+        then:
+        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+
+        when:
+        result = runner("echo1").withPluginClasspath(getPluginClasspath()).buildAndFail()
+
+        then:
+        // This is how the class not being visible will manifest
+        execFailure(result).assertHasCause("Could not find property 'org' on task ':echo1'.")
+    }
+
+    def "injected classes are not visible in root build script at run time when applied to child"() {
+        given:
+        compilePluginProjectSources()
+        file("settings.gradle") << "include 'child'"
+        buildFile << echoClassNameTaskRuntime()
+        file("child/build.gradle") << pluginDeclaration() << echoClassNameTask()
+
+        when:
+        def result = runner("child:echo1").withPluginClasspath(getPluginClasspath()).build()
+
+        then:
+        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+
+        when:
+        result = runner("echo1").withPluginClasspath(getPluginClasspath()).buildAndFail()
+
+        then:
+        execFailure(result).assertHasCause("failed to load class org.gradle.test.HelloWorld1")
+    }
+
+    def "injected classes are loaded only once"() {
+        given:
+        compilePluginProjectSources()
+        file("settings.gradle") << "include 'child1', 'child2'"
+        file("child1/build.gradle") << pluginDeclaration()
+        file("child2/build.gradle") << pluginDeclaration()
         buildFile << """
-            import org.gradle.test.Messenger
-
-            task helloMessage(type: Messenger) {
-                message = 'Hello message'
-            }
-
-            model {
-                tasks {
-                    byeMessage(Messenger) {
-                        message = 'Bye message'
-                    }
-                }
+            task compare << {
+              project("child1").tasks.helloWorld1.getClass() == project("child2").tasks.helloWorld1.getClass()
             }
         """
 
         when:
-        GradleRunner gradleRunner = runner('helloMessage', 'byeMessage')
-        gradleRunner.withPluginClasspath(getPluginClasspath())
-        BuildResult result = gradleRunner.build()
+        def result = runner("compare").withPluginClasspath(getPluginClasspath()).build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':helloMessage')
-        result.standardOutput.contains(':byeMessage')
-        result.standardOutput.contains('Hello message')
-        result.standardOutput.contains('Bye message')
-        !result.standardError
-        result.tasks.collect { it.path } == [':helloMessage', ':byeMessage']
-        result.taskPaths(SUCCESS) == [':helloMessage', ':byeMessage']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        result.task(":compare").outcome == SUCCESS
     }
 
     @Unroll
@@ -202,122 +200,182 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         """
 
         compilePluginProjectSources()
-        buildFile << pluginDeclaration('com.company.composite')
+        buildFile << """
+            plugins {
+                id "com.company.composite"
+            }
+        """
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withPluginClasspath(getPluginClasspath())
-        BuildResult result = gradleRunner.build()
+        def result = runner('helloWorld1')
+            .withPluginClasspath(getPluginClasspath())
+            .build()
 
         then:
-        noExceptionThrown()
-        result.standardOutput.contains(':helloWorld')
-        result.standardOutput.contains('Hello world!')
-        !result.standardError
-        result.tasks.collect { it.path } == [':helloWorld']
-        result.taskPaths(SUCCESS) == [':helloWorld']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        result.task(":helloWorld1").outcome == SUCCESS
 
         where:
         type         | notation
-        'class type' | 'HelloWorldPlugin'
-        'identifier' | "'com.company.helloworld'"
+        'class type' | 'HelloWorldPlugin1'
+        'identifier' | "'com.company.helloworld1'"
     }
 
-    def "cannot use plugin classes for undeclared plugin in provided classpath"() {
+    def "can apply single plugin from injected classpath containing multiple"() {
         given:
-        compilePluginProjectSources()
-        buildFile << pluginClassUsage()
+        compilePluginProjectSources(1)
+        compilePluginProjectSources(2)
+        buildFile << pluginDeclaration(2) << echoClassNameTask(1)
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withPluginClasspath(getPluginClasspath())
-        BuildResult result = gradleRunner.buildAndFail()
+        def result = runner("echo1")
+            .withPluginClasspath(getPluginClasspath(1) + getPluginClasspath(2))
+            .build()
 
         then:
-        noExceptionThrown()
-        result.standardError.contains('unable to resolve class org.gradle.test.Support')
-        result.tasks.collect { it.path } == []
-        result.taskPaths(SUCCESS).empty
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        // plugin 1 class is visible, as the classpath is loaded in one loader
+        result.standardOutput.contains("class name: org.gradle.test.HelloWorld1")
+
+        when:
+        result = runner("helloWorld1")
+            .withPluginClasspath(getPluginClasspath(1) + getPluginClasspath(2))
+            .buildAndFail()
+
+        then:
+        // only plugin 2 was actually applied though
+        execFailure(result).assertHasDescription("Task 'helloWorld1' not found in root project")
+
+        when:
+        result = runner("helloWorld2")
+            .withPluginClasspath(getPluginClasspath(1) + getPluginClasspath(2))
+            .build()
+
+        then:
+        result.task(":helloWorld2").outcome == SUCCESS
     }
 
-    static String pluginDeclaration(String pluginIdentifier = 'com.company.helloworld') {
+    def "injected class path can change between invocations"() {
+        given:
+        compilePluginProjectSources(1)
+        compilePluginProjectSources(2)
+
+
+        when:
+        buildFile << pluginDeclaration(1)
+        def result = runner("helloWorld1")
+            .withPluginClasspath(getPluginClasspath(1))
+            .build()
+
+        then:
+        result.task(":helloWorld1").outcome == SUCCESS
+
+        when:
+        buildFile.text = pluginDeclaration(2)
+        result = runner("helloWorld2")
+            .withPluginClasspath(getPluginClasspath(1))
+            .buildAndFail()
+
+        then:
+        execFailure(result).assertHasDescription("Plugin [id: 'com.company.helloworld2'] was not found in any of the following sources:")
+
+        when:
+        buildFile.text = pluginDeclaration(2)
+        result = runner("helloWorld2")
+            .withPluginClasspath(getPluginClasspath(2))
+            .build()
+
+        then:
+        result.task(":helloWorld2").outcome == SUCCESS
+
+        when:
+        buildFile.text = pluginDeclaration(1)
+        result = runner("helloWorld1")
+            .withPluginClasspath(getPluginClasspath(2))
+            .buildAndFail()
+
+        then:
+        execFailure(result).assertHasDescription("Plugin [id: 'com.company.helloworld1'] was not found in any of the following sources:")
+    }
+
+    static String echoClassNameTask(int counter = 1) {
+        """
+            task echo$counter << {
+                println "class name: " + org.gradle.test.HelloWorld${counter}.name
+            }
+        """
+    }
+
+    static String echoClassNameTaskRuntime(int counter = 1) {
+        """
+            def loader = getClass().classLoader
+            task echo$counter << {
+                try {
+                  println "class name: " + loader.loadClass("org.gradle.test.HelloWorld${counter}").name
+                } catch (ClassNotFoundException e) {
+                  throw new RuntimeException("failed to load class org.gradle.test.HelloWorld${counter}")
+                }
+            }
+        """
+    }
+
+    static String pluginDeclaration(int counter = 1) {
         """
         plugins {
-            id '$pluginIdentifier'
+            id 'com.company.helloworld$counter'
         }
         """
     }
 
-    static String pluginClassUsage() {
-        """
-        import org.gradle.test.Support
-
-        task byeWorld {
-            doLast {
-                println Support.MSG
-            }
-        }
-        """
-    }
-
-    private void compilePluginProjectSources() {
-        createPluginProjectSourceFiles()
-
-        new DaemonGradleExecuter(new UnderDevelopmentGradleDistribution(), pluginProjectDir)
-            .usingProjectDirectory(pluginProjectDir.testDirectory)
+    private void compilePluginProjectSources(int counter = 1) {
+        createPluginProjectSourceFiles(counter)
+        new ForkingGradleExecuter(new UnderDevelopmentGradleDistribution(), testProjectDir)
+            .usingProjectDirectory(file(counter.toString()))
             .withGradleUserHomeDir(testKitWorkspace)
             .withDaemonBaseDir(testKitWorkspace.file('daemon'))
             .withArguments('classes')
             .run()
     }
 
-    private void createPluginProjectSourceFiles() {
-        pluginProjectFile('src/main/groovy/org/gradle/test/HelloWorldPlugin.groovy') << """
+    private void createPluginProjectSourceFiles(int counter = 1) {
+        pluginProjectFile(counter, "src/main/groovy/org/gradle/test/HelloWorldPlugin${counter}.groovy") << """
             package org.gradle.test
 
             import org.gradle.api.Plugin
             import org.gradle.api.Project
 
-            class HelloWorldPlugin implements Plugin<Project> {
+            class HelloWorldPlugin${counter} implements Plugin<Project> {
                 void apply(Project project) {
-                    project.task('helloWorld', type: HelloWorld)
+                    project.task('helloWorld${counter}', type: HelloWorld${counter})
                 }
             }
         """
 
-        pluginProjectFile('src/main/groovy/org/gradle/test/HelloWorld.groovy') << """
+        pluginProjectFile(counter, "src/main/groovy/org/gradle/test/HelloWorld${counter}.groovy") << """
             package org.gradle.test
 
             import org.gradle.api.DefaultTask
             import org.gradle.api.tasks.TaskAction
 
-            class HelloWorld extends DefaultTask {
+            class HelloWorld${counter} extends DefaultTask {
                 @TaskAction
                 void doSomething() {
-                    println 'Hello world!'
+                    println 'Hello world! (${counter})'
                 }
             }
         """
 
-        pluginProjectFile('src/main/groovy/org/gradle/test/Support.groovy') << """
+        pluginProjectFile(counter, "src/main/groovy/org/gradle/test/Support${counter}.groovy") << """
             package org.gradle.test
 
             class Support {
-                public static String MSG = 'Bye world!'
+                public static String MSG = 'Bye world! (${counter})'
             }
         """
 
-        pluginProjectFile('src/main/resources/META-INF/gradle-plugins/com.company.helloworld.properties') << """
-            implementation-class=org.gradle.test.HelloWorldPlugin
+        pluginProjectFile(counter, "src/main/resources/META-INF/gradle-plugins/com.company.helloworld${counter}.properties") << """
+            implementation-class=org.gradle.test.HelloWorldPlugin${counter}
         """
 
-        pluginProjectFile('build.gradle') << """
+        pluginProjectFile(counter, 'build.gradle') << """
             apply plugin: 'groovy'
 
             dependencies {
@@ -327,11 +385,11 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         """
     }
 
-    private TestFile pluginProjectFile(String path) {
-        pluginProjectDir.file(path)
+    private TestFile pluginProjectFile(int counter = 1, String path) {
+        testProjectDir.file(counter.toString()).file(path)
     }
 
-    private List<File> getPluginClasspath() {
-        [pluginProjectDir.file('build/classes/main'), pluginProjectDir.file('build/resources/main')]
+    private List<File> getPluginClasspath(int counter = 1) {
+        [pluginProjectFile(counter, "build/classes/main"), pluginProjectFile(counter, 'build/resources/main')]
     }
 }

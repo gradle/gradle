@@ -18,7 +18,7 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -83,5 +83,13 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
 
     def cleanup() {
         daemons().killAll()
+    }
+
+    ExecutionResult execResult(BuildResult buildResult) {
+        new OutputScrapingExecutionResult(buildResult.standardOutput, buildResult.standardError)
+    }
+
+    ExecutionFailure execFailure(BuildResult buildResult) {
+        new OutputScrapingExecutionFailure(buildResult.standardOutput, buildResult.standardError)
     }
 }
