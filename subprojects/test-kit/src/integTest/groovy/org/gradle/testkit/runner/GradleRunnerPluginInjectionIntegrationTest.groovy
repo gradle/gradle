@@ -345,6 +345,27 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         result.standardOutput.contains "Hello world! (buildSrc)"
     }
 
+    static class FileSubclass extends File {
+        FileSubclass(File var1) {
+            super(var1.absolutePath)
+        }
+    }
+
+    def "can use File subclass as part of classpath"() {
+        given:
+        compilePluginProjectSources()
+        buildFile << pluginDeclaration()
+
+        when:
+        def result = runner('helloWorld1')
+            .withPluginClasspath(getPluginClasspath().collect { new FileSubclass(it) })
+            .build()
+
+        then:
+        result.task(":helloWorld1").outcome == SUCCESS
+        result.standardOutput.contains('Hello world! (1)')
+    }
+
     static String echoClassNameTask(int counter = 1) {
         """
             task echo$counter << {
