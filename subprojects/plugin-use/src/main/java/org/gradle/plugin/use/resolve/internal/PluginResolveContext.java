@@ -25,5 +25,5 @@ public interface PluginResolveContext {
 
     void add(PluginImplementation<?> plugin);
 
-    void addClassPath(ClassPath classPath);
+    void addFromDifferentLoader(PluginImplementation<?> plugin);
 }

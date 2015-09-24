@@ -32,21 +32,17 @@ import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 public class InjectedClasspathPluginResolver implements PluginResolver {
-    private final ClassLoaderScope parentScope;
-    private final ClassPath classpath;
+
+    private final ClassPath injectedClasspath;
     private final PluginRegistry pluginRegistry;
 
     public InjectedClasspathPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, ClassPath injectedClasspath) {
-        this.parentScope = parentScope;
-        this.classpath = injectedClasspath;
-        this.pluginRegistry = new DefaultPluginRegistry(pluginInspector, createClassLoaderScope());
-    }
-
-    private ClassLoaderScope createClassLoaderScope() {
-        ClassLoaderScope loaderScope = parentScope.createChild("injected-plugin");
-        loaderScope.local(classpath);
-        loaderScope.lock();
-        return loaderScope;
+        this.injectedClasspath = injectedClasspath;
+        this.pluginRegistry = new DefaultPluginRegistry(pluginInspector,
+            parentScope.createChild("injected-plugin")
+                .local(injectedClasspath)
+                .lock()
+        );
     }
 
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
@@ -56,7 +52,7 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
             PluginResolution resolution = new InjectedClasspathPluginResolution(plugin);
             result.found(getDescription(), resolution);
         } else {
-            throw new UnknownPluginException("Plugin with id '" + pluginRequest.getId() + "' not found. Searched classpath: " + classpath.getAsFiles());
+            throw new UnknownPluginException("Plugin with id '" + pluginRequest.getId() + "' not found. Searched classpath: " + injectedClasspath.getAsFiles());
         }
     }
 
@@ -65,7 +61,7 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
     }
 
     public boolean isClasspathEmpty() {
-        return classpath.isEmpty();
+        return injectedClasspath.isEmpty();
     }
 
     private class InjectedClasspathPluginResolution implements PluginResolution {
@@ -80,8 +76,7 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
         }
 
         public void execute(PluginResolveContext pluginResolveContext) {
-            pluginResolveContext.add(plugin);
-            pluginResolveContext.addClassPath(classpath);
+            pluginResolveContext.addFromDifferentLoader(plugin);
         }
     }
 }
