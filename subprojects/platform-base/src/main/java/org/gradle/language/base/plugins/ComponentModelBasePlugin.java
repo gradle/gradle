@@ -60,13 +60,11 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     private final ModelRegistry modelRegistry;
     private final ModelSchemaStore schemaStore;
-    private final NodeInitializerRegistry nodeInitializerRegistry;
 
     @Inject
-    public ComponentModelBasePlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
+    public ComponentModelBasePlugin(ModelRegistry modelRegistry, ModelSchemaStore schemaStore) {
         this.modelRegistry = modelRegistry;
         this.schemaStore = schemaStore;
-        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     public void apply(final ProjectInternal project) {
