@@ -76,7 +76,7 @@ registered when the component type is registered:
         builder.internalView(MyInternalThing.class);
     }
 
-- Each internal view must be an interface. The interface does not need to extend the public type, but it must extend `ComponentSpec`.
+- Each internal view must be an interface. The interface does not need to extend the public type.
 - For this story, the default implementation must implement each of the internal view types. Fail at registration if this is not the case.
 - Model report shows elements as public view type. Internal views and properties defined in them are not shown in the report for this story.
 - Internal view type can be used with `ComponentSpecContainer` methods that filter components by type, eg can do `components { withType(MyTypeInternal) { ... } }`.
@@ -93,7 +93,6 @@ registered when the component type is registered:
 - Model report shows only public view type properties.
 - Error cases:
     - Non-interface internal view raises error during rule execution time.
-    - Internal view type that does not extend `ComponentSpec` raises error.
     - Default implementation type that does not implement public view type raises error.
     - Default implementation type that does not implement all internal view types raises error.
     - Specifying the same internal view twice raises an error.

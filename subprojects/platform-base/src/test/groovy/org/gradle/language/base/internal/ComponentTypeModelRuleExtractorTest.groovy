@@ -92,14 +92,13 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         "notExtendingDefaultSampleLibrary" | "Component implementation '${NotExtendingBaseComponentSpec.name}' must extend '${BaseComponentSpec.name}'."                                | "implementation not extending BaseComponentSpec"
         "noDefaultConstructor"             | "Component implementation '${NoDefaultConstructor.name}' must have public default constructor."                                            | "implementation with no public default constructor"
         "internalViewNotInterface"         | "Internal view '${NonInterfaceInternalView.name}' must be an interface."                                                                   | "non-interface internal view"
-        "internalViewNotComponentSpec"     | "Internal view '${BareInternalView.name}' must extend '${ComponentSpec.name}'."                                                            | "internal view not extending ComponentSpec"
         "notExtendingInternalView"         | "Component implementation '${SomeComponentSpecImpl.name}' must implement internal view '${NotImplementedComponentSpecInternalView.name}'." | "implementation not extending internal view"
         "repeatedInternalView"             | "Internal view '${ComponentSpecInternalView.name}' must not be specified multiple times."                                                  | "internal view specified multiple times"
     }
 
 
 
-    static class SomeComponentSpecImpl extends BaseComponentSpec implements SomeComponentSpec, ComponentSpecInternalView {}
+    static class SomeComponentSpecImpl extends BaseComponentSpec implements SomeComponentSpec, ComponentSpecInternalView, BareInternalView {}
 
     static class SomeComponentSpecOtherImpl extends SomeComponentSpecImpl {}
 
@@ -119,6 +118,7 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         static void validTypeRule(ComponentTypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(SomeComponentSpecImpl)
             builder.internalView(ComponentSpecInternalView)
+            builder.internalView(BareInternalView)
         }
 
         @ComponentType
@@ -192,11 +192,6 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         static void notExtendingInternalView(ComponentTypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(SomeComponentSpecImpl)
             builder.internalView(NotImplementedComponentSpecInternalView)
-        }
-
-        @ComponentType
-        static void internalViewNotComponentSpec(ComponentTypeBuilder<SomeComponentSpec> builder) {
-            builder.internalView(BareInternalView)
         }
 
         @ComponentType

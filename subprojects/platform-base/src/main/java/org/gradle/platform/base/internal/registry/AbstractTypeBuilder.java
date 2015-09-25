@@ -29,7 +29,7 @@ public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
     private final Class<?> markerAnnotation;
     private final ModelSchema<? extends T> schema;
     private Class<? extends T> implementation;
-    private Set<Class<? extends T>> internalViews = Sets.newLinkedHashSet();
+    private Set<Class<?>> internalViews = Sets.newLinkedHashSet();
 
     public AbstractTypeBuilder(Class<?> markerAnnotation, ModelSchema<? extends T> schema) {
         this.markerAnnotation = markerAnnotation;
@@ -54,7 +54,7 @@ public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
     }
 
     @Override
-    public TypeBuilder<T> internalView(Class<? extends T> internalView) {
+    public TypeBuilder<T> internalView(Class<?> internalView) {
         if (internalViews.contains(internalView)) {
             throw new InvalidModelException(String.format("Internal view '%s' must not be specified multiple times.", internalView.getName()));
         }
@@ -63,7 +63,7 @@ public abstract class AbstractTypeBuilder<T> implements TypeBuilderInternal<T> {
     }
 
     @Override
-    public Set<Class<? extends T>> getInternalViews() {
+    public Set<Class<?>> getInternalViews() {
         return internalViews;
     }
 }

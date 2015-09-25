@@ -70,9 +70,9 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
     private static class RegistrationAction extends AbstractModelActionWithView<ComponentSpecFactory> {
         private final ModelType<? extends ComponentSpec> publicType;
         private final ModelType<? extends BaseComponentSpec> implementationType;
-        private final Set<Class<? extends ComponentSpec>> internalViews;
+        private final Set<Class<?>> internalViews;
 
-        public RegistrationAction(ModelType<? extends ComponentSpec> publicType, ModelType<? extends BaseComponentSpec> implementationType, Set<Class<? extends ComponentSpec>> internalViews, ModelRuleDescriptor descriptor) {
+        public RegistrationAction(ModelType<? extends ComponentSpec> publicType, ModelType<? extends BaseComponentSpec> implementationType, Set<Class<?>> internalViews, ModelRuleDescriptor descriptor) {
             super(ModelReference.of(ComponentSpecFactory.class), descriptor, ModelReference.of(ServiceRegistry.class), ModelReference.of(ProjectIdentifier.class), ModelReference.of(ProjectSourceSet.class));
             this.publicType = publicType;
             this.implementationType = implementationType;
@@ -84,7 +84,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
             if (implementationType != null) {
                 registerImplementation(components, inputs);
             }
-            for (Class<? extends ComponentSpec> internalView : internalViews) {
+            for (Class<?> internalView : internalViews) {
                 components.registerInternalView(publicType, descriptor, ModelType.of(internalView));
             }
         }

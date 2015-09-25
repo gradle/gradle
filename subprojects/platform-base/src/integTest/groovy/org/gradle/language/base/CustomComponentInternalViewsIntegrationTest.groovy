@@ -28,13 +28,19 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
                 void setPublicData(String publicData)
             }
 
+            interface BareInternalView {
+                String getBareData()
+                void setBareData(String bareData)
+            }
+
             interface SampleLibrarySpecInternal extends ComponentSpec {
                 String getInternalData()
                 void setInternalData(String internalData)
             }
 
-            class DefaultSampleLibrarySpec extends BaseComponentSpec implements SampleLibrarySpec, SampleLibrarySpecInternal {
+            class DefaultSampleLibrarySpec extends BaseComponentSpec implements SampleLibrarySpec, SampleLibrarySpecInternal, BareInternalView {
                 String internalData
+                String bareData
                 String publicData
             }
         """
@@ -47,6 +53,7 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
                 void register(ComponentTypeBuilder<SampleLibrarySpec> builder) {
                     builder.defaultImplementation(DefaultSampleLibrarySpec)
                     builder.internalView(SampleLibrarySpecInternal)
+                    builder.internalView(BareInternalView)
                 }
             }
             apply plugin: RegisterComponentRules
@@ -75,6 +82,7 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
                     assert components.withType(JvmLibrarySpec)*.name == ["jar"]
                     assert components.withType(SampleLibrarySpec)*.name == ["sampleLib"]
                     assert components.withType(SampleLibrarySpecInternal)*.name == ["sampleLib"]
+                    assert components.withType(BareInternalView)*.name == ["sampleLib"]
                 }
             }
         }
@@ -101,6 +109,9 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
                 sampleLibs.each { sampleLib ->
                     sampleLib.publicData = "public"
                 }
+                sampleLibs.withType(BareInternalView).all { sampleLib ->
+                    sampleLib.bareData = "bare"
+                }
             }
 
             @Mutate
@@ -108,6 +119,7 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
                 tasks.create("validate") {
                     sampleLibs.each { sampleLib ->
                         assert sampleLib.internalData == "internal"
+                        assert sampleLib.bareData == "bare"
                         assert sampleLib.publicData == "public"
                     }
                 }
@@ -139,6 +151,7 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
                 @ComponentType
                 void registerInternalView(ComponentTypeBuilder<SampleLibrarySpec> builder) {
                     builder.internalView(SampleLibrarySpecInternal)
+                    builder.internalView(BareInternalView)
                 }
             }
             apply plugin: RegisterComponentRules

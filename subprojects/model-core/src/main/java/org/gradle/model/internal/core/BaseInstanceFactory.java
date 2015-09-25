@@ -55,9 +55,9 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
 
     private class InternalViewRegistration {
         private final ModelRuleDescriptor source;
-        private final ModelType<? extends T> internalView;
+        private final ModelType<?> internalView;
 
-        private InternalViewRegistration(@Nullable ModelRuleDescriptor source, ModelType<? extends T> internalView) {
+        private InternalViewRegistration(@Nullable ModelRuleDescriptor source, ModelType<?> internalView) {
             this.source = source;
             this.internalView = internalView;
         }
@@ -91,7 +91,7 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
     }
 
     @Override
-    public <S extends T, I extends T> void registerInternalView(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<I> internalViewType) {
+    public <S extends T> void registerInternalView(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<?> internalViewType) {
         List<InternalViewRegistration> internalViewRegistrations = getInternalViewRegistrations(type);
         if (internalViewRegistrations == null) {
             internalViewRegistrations = Lists.newArrayList();
@@ -154,14 +154,14 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
     }
 
     @Override
-    public <S extends T> Set<ModelType<? extends T>> getInternalViews(ModelType<S> type) {
+    public <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type) {
         List<InternalViewRegistration> internalViewRegistrations = internalViews.get(type.getConcreteClass());
         if (internalViewRegistrations == null) {
             return ImmutableSet.of();
         }
-        return ImmutableSet.copyOf(Iterables.transform(internalViewRegistrations, new Function<InternalViewRegistration, ModelType<? extends T>>() {
+        return ImmutableSet.copyOf(Iterables.transform(internalViewRegistrations, new Function<InternalViewRegistration, ModelType<?>>() {
             @Override
-            public ModelType<? extends T> apply(InternalViewRegistration registration) {
+            public ModelType<?> apply(InternalViewRegistration registration) {
                 return registration.internalView;
             }
         }));
@@ -183,8 +183,8 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
         }
         ModelType<? extends S> implementation = implementationTypeRegistration.implementationType;
         for (InternalViewRegistration internalViewRegistration : internalViewRegistrations) {
-            ModelType<? extends T> internalView = internalViewRegistration.internalView;
-            ModelType<? extends T> asSubclass = internalView.asSubclass(implementation);
+            ModelType<?> internalView = internalViewRegistration.internalView;
+            ModelType<?> asSubclass = internalView.asSubclass(implementation);
             if (asSubclass == null) {
                 StringBuilder builder = new StringBuilder();
 

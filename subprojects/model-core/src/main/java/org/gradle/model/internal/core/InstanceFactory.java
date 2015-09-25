@@ -30,11 +30,11 @@ public interface InstanceFactory<T, P> {
 
     <S extends T> void registerFactory(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, ? super P, ? super MutableModelNode> factory);
 
-    <S extends T> Set<ModelType<? extends T>> getInternalViews(ModelType<S> type);
+    <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type);
 
     <S extends T, I extends S> void registerImplementation(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<I> implementationViewType);
 
-    <S extends T, I extends T> void registerInternalView(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<I> internalViewType);
+    <S extends T> void registerInternalView(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<?> internalViewType);
 
     void validateRegistrations();
 }

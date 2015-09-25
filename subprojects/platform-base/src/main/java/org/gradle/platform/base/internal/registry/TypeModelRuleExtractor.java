@@ -103,11 +103,6 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
             if (!internalView.isInterface()) {
                 throw new InvalidModelException(String.format("Internal view '%s' must be an interface.", internalView.getName()));
             }
-            ModelType<?> internalViewType = ModelType.of(internalView);
-            ModelType<? extends T> asSubclass = baseInterface.asSubclass(internalViewType);
-            if (asSubclass == null) {
-                throw new InvalidModelException(String.format("Internal view '%s' must extend '%s'.", internalView.getName(), baseInterface));
-            }
         }
 
         Class<? extends T> implementation = builder.getDefaultImplementation();
