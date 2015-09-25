@@ -1473,7 +1473,7 @@ interface Managed${typeName} {
     }
 
     @Unroll
-    def "should not throw an error if if we use unsupported collection type #collectionType.simpleName on a non-managed type"() {
+    def "should not throw an error if we use unsupported collection type #collectionType.simpleName on a non-managed type"() {
         given:
         def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
             import org.gradle.model.Managed
