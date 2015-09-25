@@ -15,9 +15,9 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
-
 import com.google.common.base.Optional
 import com.google.common.collect.ImmutableMap
+import org.gradle.model.Unmanaged
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.instance.ModelElementState
@@ -433,8 +433,9 @@ class ManagedProxyClassGeneratorTest extends Specification {
         } catch (ignore) {
             setterContext = null
         }
+
         return new ModelPropertyExtractionResult<?>(
-            ModelProperty.of(type, name, stateManagementType, setterContext != null, Collections.emptySet(), getterRefs),
+            ModelProperty.of(type, name, stateManagementType, setterContext != null, Collections.emptySet(), getterRefs, getterContext.getAnnotation(Unmanaged) != null),
             getterContext, setterContext)
     }
 

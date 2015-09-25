@@ -18,7 +18,7 @@ package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
+class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
     def "provides a useful error message when setting an incompatible type on a managed instance in Groovy"() {
         when:
@@ -168,10 +168,9 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec{
         '''
 
         then:
-        fails "tasks"
+        fails "model"
 
         and:
-        failure.assertHasCause("Declaration of model rule RulePlugin#createPerson is invalid")
-        failure.assertHasCause("Invalid managed model type Person: read only property 'name' has non managed type java.lang.String, only managed types can be used")
+        failure.assertHasCause("Invalid managed model type 'Person': read only property 'name' has non managed type java.lang.String, only managed types can be used")
     }
 }

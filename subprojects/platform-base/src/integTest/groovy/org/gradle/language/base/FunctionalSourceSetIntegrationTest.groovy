@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
@@ -97,5 +98,59 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         modelNode.functionalSources.@creator[0] == "model.functionalSources"
         modelNode.functionalSources.@type[0] == "org.gradle.language.base.FunctionalSourceSet"
         modelNode.functionalSources.@nodeValue[0] == "source set 'functionalSources'"
+    }
+
+    def "can define a FunctionalSourceSet as a property and managed collection element"() {
+        buildFile << """
+        apply plugin: 'language-base'
+
+        @Managed
+        interface BuildType {
+            FunctionalSourceSet getSources()
+
+            FunctionalSourceSet getInputs()
+            void setInputs(FunctionalSourceSet sources)
+
+            ModelMap<FunctionalSourceSet> getComponentSources()
+            ModelSet<FunctionalSourceSet> getTestSources()
+        }
+
+        class Rules extends RuleSource {
+            @Model
+            void buildType(BuildType buildType) { }
+
+            @Mutate
+            void addSources(BuildType buildType){
+                buildType.componentSources.create("componentA")
+                buildType.testSources.create({})
+            }
+        }
+
+        apply plugin: Rules
+        """
+
+        expect:
+        succeeds "model"
+        def buildType = ModelReportOutput.from(output).modelNode.buildType
+
+        buildType.inputs.@type[0] == 'org.gradle.language.base.FunctionalSourceSet'
+        buildType.inputs.@nodeValue[0] == "source set 'inputs'"
+        buildType.inputs.@creator[0] == 'Rules#buildType'
+
+        buildType.inputs.@type[0] == 'org.gradle.language.base.FunctionalSourceSet'
+        buildType.inputs.@nodeValue[0] == "source set 'inputs'"
+        buildType.inputs.@creator[0] == 'Rules#buildType'
+
+        buildType.componentSources.@type[0] == 'org.gradle.model.ModelMap<org.gradle.language.base.FunctionalSourceSet>'
+        buildType.componentSources.@creator[0] == 'Rules#buildType'
+        buildType.componentSources.componentA.@type[0] == 'org.gradle.language.base.FunctionalSourceSet'
+        buildType.componentSources.componentA.@nodeValue[0] == "source set 'componentA'"
+        buildType.componentSources.componentA.@creator[0] == 'Rules#addSources > create(componentA)'
+
+        buildType.testSources.@type[0] == 'org.gradle.model.ModelSet<org.gradle.language.base.FunctionalSourceSet>'
+        buildType.testSources.@creator[0] == 'Rules#buildType'
+        buildType.testSources."0".@type[0] == 'org.gradle.language.base.FunctionalSourceSet'
+        buildType.testSources."0".@nodeValue[0] == "source set '0'"
+        buildType.testSources."0".@creator[0] == 'Rules#addSources > create()'
     }
 }

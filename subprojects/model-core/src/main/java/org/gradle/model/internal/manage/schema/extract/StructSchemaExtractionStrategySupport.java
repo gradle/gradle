@@ -23,6 +23,7 @@ import com.google.common.collect.*;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -193,8 +194,10 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
                 return WeaklyTypeReferencingMethod.of(extractionContext.getType(), returnType, getter);
             }
         }));
+
+        boolean declaredAsHavingUnmanagedType = getterContext.getAnnotation(Unmanaged.class) != null;
         return new ModelPropertyExtractionResult<R>(
-            ModelProperty.of(returnType, propertyName, stateManagementType, writable, declaringClasses, getterRefs),
+            ModelProperty.of(returnType, propertyName, stateManagementType, writable, declaringClasses, getterRefs, declaredAsHavingUnmanagedType),
             getterContext,
             setterContext
         );

@@ -59,7 +59,7 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
         }
         return implementedInterface == null
             || (!type.getRawClass().equals(implementedInterface)
-                && implementedInterface.isAssignableFrom(type.getRawClass()));
+            && implementedInterface.isAssignableFrom(type.getRawClass()));
     }
 
     @Override
@@ -222,22 +222,6 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
                     ));
                 }
 
-                if (!isAllowedPropertyTypeOfManagedType && !isDeclaredAsHavingUnmanagedType) {
-                    for (ModelType<?> type : ScalarCollectionStrategy.TYPES) {
-                        if (type.isAssignableFrom(property.getType())) {
-                            throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                                "type %s cannot be used for property '%s' as it is an unmanaged type (please "
-                                    + "either use the supported type '%s' or annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged).%n%s",
-                                property.getType(), property.getName(), type.getName(), ModelSchemaExtractor.getManageablePropertyTypesDescription()
-                            ));
-                        }
-                    }
-                    throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                        "type %s cannot be used for property '%s' as it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged).%n%s",
-                        property.getType(), property.getName(), ModelSchemaExtractor.getManageablePropertyTypesDescription()
-                    ));
-                }
-
                 if (!property.isWritable()) {
                     if (isDeclaredAsHavingUnmanagedType) {
                         throw new InvalidManagedModelElementTypeException(parentContext, String.format(
@@ -245,19 +229,12 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
                             property.getName())
                         );
                     }
-
-                    if (!(propertySchema instanceof ManagedImplModelSchema)) {
-                        throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                            "read only property '%s' has non managed type %s, only managed types can be used",
-                            property.getName(), property.getType()));
-                    }
                 }
 
                 if (propertySchema instanceof ModelCollectionSchema) {
                     ModelCollectionSchema<P, ?> propertyCollectionsSchema = (ModelCollectionSchema<P, ?>) propertySchema;
 
                     ModelType<?> elementType = propertyCollectionsSchema.getElementType();
-                    ModelSchema<?> elementTypeSchema = modelSchemaStore.getSchema(elementType);
 
                     if (propertySchema instanceof ScalarCollectionSchema) {
                         if (!ScalarTypes.isScalarType(elementType)) {
@@ -273,12 +250,6 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
                             throw new InvalidManagedModelElementTypeException(parentContext, String.format(
                                 "property '%s' cannot have a setter (%s properties must be read only).",
                                 property.getName(), property.getType().toString()));
-                        }
-                        if (!(elementTypeSchema instanceof ManagedImplModelSchema)) {
-                            throw new InvalidManagedModelElementTypeException(parentContext, String.format(
-                                "property '%s' cannot be a model map of type %s as it is not a %s type.",
-                                property.getName(), elementType, Managed.class.getName()
-                            ));
                         }
                     }
                 }

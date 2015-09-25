@@ -61,8 +61,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
 
     @Override
     public <T> NodeInitializer getNodeInitializer(ModelType<T> type) {
-        ModelSchema<T> schema = schemaStore.getSchema(type);
-        return getNodeInitializer(schema);
+        return getNodeInitializer(schemaStore.getSchema(type));
     }
 
     @Override
