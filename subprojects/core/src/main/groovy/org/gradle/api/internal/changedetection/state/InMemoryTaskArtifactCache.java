@@ -163,7 +163,7 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
 
     private static class LoggingEvictionListener implements RemovalListener<Object, Object> {
         private static Logger logger = Logging.getLogger(LoggingEvictionListener.class);
-        private static final String EVICTION_MITIGATION_MESSAGE = "\nPerformance may suffer from in-memory cache misses. Increase max heap size of daemon process when applicable since cache max sizes are proportional to max heap size.";
+        private static final String EVICTION_MITIGATION_MESSAGE = "\nPerformance may suffer from in-memory cache misses. Increase max heap size of Gradle build process to reduce cache misses.";
         volatile int evictionCounter;
         private final String cacheId;
         private Cache<Object, Object> cache;
