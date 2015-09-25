@@ -133,7 +133,7 @@ class DefaultGradleRunnerTest extends Specification {
         given:
         def originalArguments = ['arg1', 'arg2']
         def originalJvmArguments = ['arg3', 'arg4']
-        def originalClasspath = [new File('/Users/foo/bar/test.jar')]
+        def originalClasspath = [new File('/Users/foo/bar/test.jar').absoluteFile]
         def defaultGradleRunner = createRunner()
 
         when:
