@@ -23,7 +23,6 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class FactoryBasedNodeInitializer<T, S extends T> implements NodeInitializer {
     private final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference;
