@@ -38,17 +38,7 @@ import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagem
 @SuppressWarnings("GroovyPointlessBoolean")
 class ModelSchemaExtractorTest extends Specification {
 
-    private static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = [
-        String,
-        Boolean,
-        Character,
-        Integer,
-        Long,
-        Double,
-        BigInteger,
-        BigDecimal,
-        File
-    ]
+    private static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
     def classLoader = new GroovyClassLoader(getClass().classLoader)
     @Shared
