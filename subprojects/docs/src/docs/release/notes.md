@@ -98,19 +98,20 @@ be used for those compilers when in continuous mode.
 Previous releases of Gradle required the end user to provide classes under test (e.g. plugin and custom task implementations) to the TestKit by assigning them to the buildscript's classpath.
 
 This release makes it more convenient to inject classes under test through the `GradleRunner` API with the method
-[withClasspath(java.util.List)](javadoc/org/gradle/testkit/runner/GradleRunner.html#withClasspath(java.util.List)). This classpath is then available to use to locate plugins in a test build via the
+[withPluginClasspath(Iterable<File>)](javadoc/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath(java.util.Iterable)).
+This classpath is then available to use to locate plugins in a test build via the
 [plugins DSL](userguide/plugins.html#sec:plugins_block). The following code example demonstrates the use of the new TestKit API in a test class based on the test framework Spock:
 
     class BuildLogicFunctionalTest extends Specification {
         @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
         File buildFile
-        List<URI> pluginClasspath
+        List<File> pluginClasspath
 
         def setup() {
             buildFile = testProjectDir.newFile('build.gradle')
             pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
               .readLines()
-              .collect { new File(it).toURI() }
+              .collect { new File(it) }
         }
 
         def "execute helloWorld task"() {
@@ -125,7 +126,7 @@ This release makes it more convenient to inject classes under test through the `
             def result = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
                 .withArguments('helloWorld')
-                .withClasspath(pluginClasspath)
+                .withPluginClasspath(pluginClasspath)
                 .build()
 
             then:
