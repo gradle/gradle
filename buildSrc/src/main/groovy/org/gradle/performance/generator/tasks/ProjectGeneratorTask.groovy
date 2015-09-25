@@ -135,10 +135,12 @@ abstract class ProjectGeneratorTask extends DefaultTask {
         if (!templates.empty) {
             templates.addAll(['build-event-timestamps', 'heap-capture'])
         }
-        generateProject rootProject, subprojects: subprojectNames, projectDir: destDir,
-                files: subprojectNames.empty ? [] : ['settings.gradle', 'checkstyle.xml'],
-                templates: templates,
-                includeSource: subprojectNames.empty
+        generateProject(rootProject, 
+            subprojects: subprojectNames, 
+            projectDir: destDir,
+            files: subprojectNames.empty ? [] : ['settings.gradle', 'checkstyle.xml'],
+            templates: templates,
+            includeSource: subprojectNames.empty)
 
         project.copy {
             from "src/templates/init.gradle"
@@ -147,8 +149,12 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     }
 
     def generateSubProject(TestProject testProject) {
-        generateProject testProject, subprojects: [], projectDir: new File(destDir, testProject.name), files: [],
-                templates: subProjectTemplates, includeSource: true
+        generateProject(testProject, 
+            subprojects: [], 
+            projectDir: new File(destDir, testProject.name), 
+            files: [],
+            templates: subProjectTemplates, 
+            includeSource: true)
     }
 
     def generateProject(Map args, TestProject testProject) {
@@ -158,13 +164,15 @@ abstract class ProjectGeneratorTask extends DefaultTask {
         def files = []
         files.addAll(args.files)
         files.addAll(['build.gradle', 'pom.xml', 'build.xml'])
+        // TODO: 
+        files.addAll(['common.gradle', 'prebuilt.gradle', 'components.gradle'])
 
         args += [projectName  : testProject.name, 
                  subprojectNumber: testProject.subprojectNumber, 
                  propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)), 
                  repository: testProject.repository, 
                  dependencies: testProject.dependencies,
-                 testProject  : testProject ]
+                 testProject: testProject ]
 
         args += templateArgs
 

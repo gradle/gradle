@@ -411,6 +411,26 @@ configure([smallNewMultiprojectJava, largeNewMultiprojectJava]) {
     numberOfExternalDependencies = smallProjectType ? 5 : 50
 }
 
+task nativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
+    projects = 10
+    // number of source files to generate in each project of each type
+    // this generates 50 C, 50 C++, 50 headers and 100 unused C/C++ files
+    sourceFiles = 50
+    templateArgs = [
+            // number of functions created in each source file
+            functionCount: 50,
+            // number of prebuilt libraries to generate
+            prebuiltLibraries: 30,
+            // number of files included in each source set
+            includedSourceCount: 50,
+            // number of headers each source file includes
+            includedHeaderCount: 10,
+            // number of 'common' headers each source file includes
+            includedCommonHeaderCount: 10,
+    ]
+    rootProjectTemplates = [ 'native-monolithic' ]
+    subProjectTemplates = [ ]
+}
 
 task all {
     dependsOn tasks.withType(ProjectGeneratorTask)

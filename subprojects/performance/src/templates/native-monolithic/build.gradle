@@ -1,0 +1,5 @@
+subprojects {
+    apply from: rootProject.file("common.gradle")
+    apply from: rootProject.file("prebuilt.gradle")
+    apply from: rootProject.file("components.gradle")
+}
