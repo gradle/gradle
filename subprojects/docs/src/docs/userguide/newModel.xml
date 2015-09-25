@@ -178,8 +178,15 @@
             will enforce semantics such as immutability when a node of the model is not the subject of a rule. Therefore, this example declares a property
             named <emphasis>name</emphasis> on the managed type <emphasis>Person</emphasis>. This property will only be writeable when the view is mutable,
             that is to say when the <emphasis>Person</emphasis> is the subject of a <literal>Rule</literal> (see below the explanation for rules).</para>
-            <para>Properties can be of any scalar type. A scalar type is either a primitive type (e.g. <literal>int</literal>), boxed type (e.g <literal>Integer</literal>),
-                <literal>String</literal>, <literal>File</literal> or enumeration. In addition, properties can also be of any type which is itself managed:</para>
+            <para>Properties can be of any scalar type. A scalar type is either:
+                <itemizedlist>
+                    <listitem>a primitive type (e.g. <literal>int</literal>) or its boxed type (e.g <literal>Integer</literal>)</listitem>
+                    <listitem>a <literal>BigInteger</literal> or <literal>BigDecimal</literal></listitem>
+                    <listitem>a <literal>String</literal></listitem>
+                    <listitem>a <literal>File</literal></listitem>
+                    <listitem>an enumeration type</listitem>
+                </itemizedlist>
+                In addition, properties can also be of any type which is itself managed:</para>
             <table>
                 <thead>
                     <td>Property type</td><td>Nullable</td><td>Example</td>

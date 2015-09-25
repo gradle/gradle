@@ -50,16 +50,25 @@ Gradle now automatically adds the compile dependencies of each analyzed source s
 
 #### Scalar collections
 
-The managed model now supports collections of scalar types as properties. This means that it is possible to use a JDK Number type (`Integer`, `Double`, ...), a `Boolean`, a `String`, a
- `File` or an `enum` as element type of a `Set` or a `List`:
+The managed model now supports collections of scalar types as properties. This means that it is possible to use as element type of a `Set` or a `List`:
+
+ - a JDK Number type (`Integer`, `Double`, ...)
+ - a `Boolean`
+ - a `String`
+ - a `File`
+ - or an enumeration type
+
 
     @Managed
     interface User {
         Set<String> getGroups();
     }
 
-Properties of scalar types are available as read-only properties, in which case they default to an empty collection, or as read-write properties, in which case they default to `null`. A
-read-only (non nullable) property is created by defining only a setter, while a read-write property is created by defining both a setter and a getter:
+Properties of scalar types are available as read-only properties, in which case they default to an empty collection, or as read-write properties, in which case they default to `null`.
+Read-only properties are similar to final values: they can be mutated as long as they are the subject of a rule. Read-write properties can also be mutated, but they are not final: the
+collection can be overwritten during a mutation phase.
+
+A read-only (non nullable) property is created by defining only a setter, while a read-write property is created by defining both a setter and a getter:
 
     @Managed
     interface User {
