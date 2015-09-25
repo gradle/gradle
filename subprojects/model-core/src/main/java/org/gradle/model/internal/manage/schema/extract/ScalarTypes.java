@@ -60,14 +60,10 @@ public abstract class ScalarTypes {
         return false;
     }
 
-    public static String getSupported() {
-        StringBuilder sb = new StringBuilder("- JDK value types: ");
-        sb.append(Joiner.on(", ").join(TYPES));
-        sb.append("\n");
-        sb.append("- Any subclass of ");
-        sb.append(Joiner.on(", ").join(NON_FINAL_TYPES));
-        sb.append("\n");
-        sb.append("- Enum types");
-        return sb.toString();
+    public static List<String> getSupported() {
+        return ImmutableList.of(
+            "JDK value types: " + Joiner.on(", ").join(TYPES),
+            "Any subclass of " + Joiner.on(", ").join(NON_FINAL_TYPES),
+            "Enum types");
     }
 }

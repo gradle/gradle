@@ -32,7 +32,6 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
@@ -126,17 +125,12 @@ public class ModelSchemaExtractor {
     }
 
     private static Iterable<String> getSupportedTypes() {
-        return Arrays.asList(
-            "interfaces and abstract classes annotated with " + Managed.class.getName(),
-            "JDK value types: " + Joiner.on(", ").join(Iterables.transform(ScalarTypes.TYPES, new Function<ModelType<?>, Object>() {
-                public Object apply(ModelType<?> input) {
-                    return input.getRawClass().getSimpleName();
-                }
-            })),
-            "Enum types",
-            ModelMap.class.getName() + " of a managed type",
-            ModelSet.class.getName() + " of a managed type"
-        );
+        return ImmutableList.<String>builder()
+            .add(String.format("interfaces and abstract classes annotated with %s", Managed.class.getName()))
+            .addAll(ScalarTypes.getSupported())
+            .add(String.format("%s of a managed type", ModelMap.class.getName()))
+            .add(String.format("%s of a managed type", ModelSet.class.getName()))
+            .build();
     }
 
 }
