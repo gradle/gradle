@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
 import org.gradle.api.internal.AbstractTask;
@@ -293,7 +294,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 attachActions(parent, superclass);
             }
 
-            Field[] fields = type.getDeclaredFields();
+            Map<String, Field> fields = getFields(type);
             for (Method method : type.getDeclaredMethods()) {
                 if (!isGetter(method)) {
                     continue;
@@ -306,7 +307,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                 if (parent != null) {
                     propertyName = parent.getName() + '.' + propertyName;
                 }
-                Field field = findField(fields, fieldName);
+                Field field = fields.get(fieldName);
 
                 PropertyInfo propertyInfo = new PropertyInfo(type, this, parent, propertyName, method, field);
 
@@ -318,21 +319,19 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             }
         }
 
+        private Map<String, Field> getFields(Class<?> type) {
+            Map<String, Field> fields = Maps.newHashMap();
+            for (Field field : type.getDeclaredFields()) {
+                fields.put(field.getName(), field);
+            }
+            return fields;
+        }
+
         private void attachValidationActions(PropertyInfo propertyInfo, String fieldName, Field field) {
             final Method method = propertyInfo.method;
             for (PropertyAnnotationHandler handler : handlers) {
                 attachValidationAction(handler, propertyInfo, fieldName, method, field);
             }
-        }
-
-        @Nullable
-        private Field findField(Field[] fields, String fieldName) {
-            for (Field field : fields) {
-                if (field.getName().equals(fieldName)) {
-                    return field;
-                }
-            }
-            return null;
         }
 
         private void attachValidationAction(PropertyAnnotationHandler handler, PropertyInfo propertyInfo, String fieldName, Method method, Field field) {
