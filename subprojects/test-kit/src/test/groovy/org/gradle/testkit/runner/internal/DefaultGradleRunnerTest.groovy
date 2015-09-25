@@ -154,7 +154,7 @@ class DefaultGradleRunnerTest extends Specification {
         then:
         defaultGradleRunner.arguments == ['arg1', 'arg2']
         defaultGradleRunner.jvmArguments == ['arg3', 'arg4']
-        defaultGradleRunner.pluginClasspath == [new File('/Users/foo/bar/test.jar')]
+        defaultGradleRunner.pluginClasspath == [new File('/Users/foo/bar/test.jar').absoluteFile]
     }
 
     def "throws exception if working directory is not provided when build is requested"() {
