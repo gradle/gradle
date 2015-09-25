@@ -81,6 +81,7 @@ registered when the component type is registered:
 - Model report shows elements as public view type. Internal views and properties defined in them are not shown in the report for this story.
 - Internal view type can be used with `ComponentSpecContainer` methods that filter components by type, eg can do `components { withType(MyTypeInternal) { ... } }`.
 - Rule subjects of type `ModelMap<>` can be used to refer to nodes by an internal view.
+- Each component spec should have the internal view `ComponentSpecInternal` configured by default.
 
 ### Test cases
 

@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.platform.base.internal.ComponentSpecInternal
 
 class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -79,6 +80,7 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
                 tasks.create("validate") {
                     assert components*.name == ["jar", "sampleLib"]
                     assert components.withType(ComponentSpec)*.name == ["jar", "sampleLib"]
+                    assert components.withType($ComponentSpecInternal.name)*.name == ["jar", "sampleLib"]
                     assert components.withType(JvmLibrarySpec)*.name == ["jar"]
                     assert components.withType(SampleLibrarySpec)*.name == ["sampleLib"]
                     assert components.withType(SampleLibrarySpecInternal)*.name == ["sampleLib"]
@@ -105,6 +107,15 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
             }
 
             @Finalize
+            void mutateComponentSpecInternal(ModelMap<$ComponentSpecInternal.name> sampleLibs) {
+                sampleLibs.each { sampleLib ->
+                    sampleLib.binaries {
+                        sampleBin(JarBinarySpec)
+                    }
+                }
+            }
+
+            @Finalize
             void mutatePublic(ModelMap<SampleLibrarySpec> sampleLibs) {
                 sampleLibs.each { sampleLib ->
                     sampleLib.publicData = "public"
@@ -121,6 +132,7 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
                         assert sampleLib.internalData == "internal"
                         assert sampleLib.bareData == "bare"
                         assert sampleLib.publicData == "public"
+                        assert sampleLib.binaries*.name == ["sampleBin"]
                     }
                 }
             }
