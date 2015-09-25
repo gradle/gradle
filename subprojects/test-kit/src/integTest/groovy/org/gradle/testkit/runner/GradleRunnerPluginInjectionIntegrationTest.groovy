@@ -388,10 +388,12 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         def orig = new File("")
         def result = null
         try {
-            assert NativeServicesTestFixture.instance.get(ProcessEnvironment).maybeSetProcessDir(file("changed"))
+            if (!NativeServicesTestFixture.instance.get(ProcessEnvironment).maybeSetProcessDir(file("changed"))) {
+                return
+            }
             result = runner.build()
         } finally {
-            assert NativeServicesTestFixture.instance.get(ProcessEnvironment).maybeSetProcessDir(orig)
+            NativeServicesTestFixture.instance.get(ProcessEnvironment).maybeSetProcessDir(orig)
         }
 
         then:
