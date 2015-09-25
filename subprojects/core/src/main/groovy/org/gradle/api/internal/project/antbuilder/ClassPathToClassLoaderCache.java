@@ -17,6 +17,7 @@ package org.gradle.api.internal.project.antbuilder;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.classloading.MemoryLeakPrevention;
 import org.gradle.api.logging.Logger;
@@ -25,6 +26,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -42,6 +44,7 @@ public class ClassPathToClassLoaderCache {
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final Map<ClassPath, CacheEntry> cacheEntries = Maps.newConcurrentMap();
     private final FinalizerThread finalizerThread;
+    private final Set<CachedClassLoader> inUseClassLoaders = Sets.newHashSet();
 
     public ClassPathToClassLoaderCache() {
         this.finalizerThread = new FinalizerThread(cacheEntries, lock);
@@ -124,7 +127,22 @@ public class ClassPathToClassLoaderCache {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Consumer %s uses cached classloader: %s", action.toString(), libClasspath.getAsURIs()));
         }
-        action.execute(cachedClassLoader);
+
+        // in order to make sure that the CacheEntry is not collected
+        // while the cached class loader is still in use, we need to keep a strong reference onto
+        // the cached class loader as long as the action is executed
+        lock.writeLock().lock();
+        inUseClassLoaders.add(cachedClassLoader);
+        lock.writeLock().unlock();
+
+        try {
+            action.execute(cachedClassLoader);
+        } finally {
+            lock.writeLock().lock();
+            inUseClassLoaders.remove(cachedClassLoader);
+            lock.writeLock().unlock();
+        }
+
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("End of usage of cached classloader: %s by consumer %s", libClasspath.getAsURIs(), action.toString()));
         }

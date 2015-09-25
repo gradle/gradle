@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.project.antbuilder
-
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
@@ -89,6 +88,8 @@ class AntBuilderMemoryLeakTest extends Specification {
             }
         } catch (OutOfMemoryError e) {
             classes = []
+            // we need to give some time for the GC to complete
+            sleep(1000)
         }
 
         then:
