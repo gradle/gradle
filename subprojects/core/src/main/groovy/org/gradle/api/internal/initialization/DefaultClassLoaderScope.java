@@ -79,11 +79,14 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
     }
 
     private MultiParentClassLoader buildMultiLoader(ClassLoaderId id, ClassPath classPath, List<ClassLoader> loaders) {
-        List<ClassLoader> parents = new ArrayList<ClassLoader>(
-            1
-                + (loaders == null ? 0 : loaders.size())
-                + (classPath.isEmpty() ? 1 : 0)
-        );
+        int numParents = 1;
+        if (loaders != null) {
+            numParents += loaders.size();
+        }
+        if (!classPath.isEmpty()) {
+            numParents += 1;
+        }
+        List<ClassLoader> parents = new ArrayList<ClassLoader>(numParents);
         parents.add(parent.getExportClassLoader());
         if (loaders != null) {
             parents.addAll(loaders);
