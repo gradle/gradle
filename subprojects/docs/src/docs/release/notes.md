@@ -48,6 +48,8 @@ Gradle now automatically adds the compile dependencies of each analyzed source s
 
 ### Managed model improvements
 
+#### Scalar collections
+
 The managed model now supports collections of scalar types as properties. This means that it is possible to use a JDK Number type (`Integer`, `Double`, ...), a `Boolean`, a `String`, a
  `File` or an `enum` as element type of a `Set` or a `List`:
 
@@ -71,6 +73,47 @@ TBD: Currently, managed model works well for defining a tree of objects. This re
 elements.
 
 - Can use a reference property as input for a rule.
+
+#### Internal views for components
+
+It is now possible to attach internal information to an unmanaged `ComponentSpec`. This way a plugin can make some data about its components exposed to build logic via a public component type,
+while hiding the rest of the data behind the internal view type. The default implementation of the component must implement all internal views declared for the component.
+
+    interface SampleLibrarySpec extends ComponentSpec {
+        String getPublicData()
+        void setPublicData(String publicData)
+    }
+
+    interface SampleLibrarySpecInternal extends ComponentSpec {
+        String getInternalData()
+        void setInternalData(String internalData)
+    }
+
+    class DefaultSampleLibrarySpec extends BaseComponentSpec implements SampleLibrarySpec, SampleLibrarySpecInternal {
+        String internalData
+        String publicData
+    }
+
+Components can be targeted by rules via their internal types when those internal types extend `ComponentSpec`:
+
+    class Rules extends RuleSource {
+        @Finalize
+        void mutateInternal(ModelMap<SampleLibrarySpecInternal> sampleLibs) {
+            sampleLibs.each { sampleLib ->
+                sampleLib.internalData = "internal"
+            }
+        }
+    }
+
+For internal view types that do not not extend `ComponentSpec`, targeting components can be achieved via `ComponentSpecContainer.withType()`:
+
+    @Finalize
+    void finalize(ModelMap<SampleLibrarySpec> sampleLibs) {
+        sampleLibs.withType(SomeInternalView).all { sampleLib ->
+            // ...
+        }
+    }
+
 
 ### Rule based model configuration
 
