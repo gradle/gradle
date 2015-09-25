@@ -117,12 +117,9 @@ public class DefaultGradleRunner extends GradleRunner {
         List<File> f = new ArrayList<File>();
         for (File file : classpath) {
             // These objects are going across the wire.
-            // Convert any subclasses back to File in case the subclass isn't available in Gradle.
-            if (file.getClass() == File.class) {
-                f.add(file);
-            } else {
-                f.add(new File(file.getAbsolutePath()));
-            }
+            // 1. Convert any subclasses back to File in case the subclass isn't available in Gradle.
+            // 2. Make them absolute here to deal with a different root at the server
+            f.add(new File(file.getAbsolutePath()));
         }
         if (!f.isEmpty()) {
             this.classpath = new DefaultClassPath(f);

@@ -18,11 +18,15 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@UsesNativeServices
 class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     def "unresolvable plugin for provided empty classpath fails build and indicates searched locations"() {
@@ -360,6 +364,35 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
         def result = runner('helloWorld1')
             .withPluginClasspath(getPluginClasspath().collect { new FileSubclass(it) })
             .build()
+
+        then:
+        result.task(":helloWorld1").outcome == SUCCESS
+        result.standardOutput.contains('Hello world! (1)')
+    }
+
+
+    def "can use relative files as part of classpath"() {
+        given:
+        compilePluginProjectSources()
+        file("changed/build.gradle") << pluginDeclaration()
+        def relClasspath = getPluginClasspath().collect {
+            def path = new File("").toURI().relativize(it.toURI()).getPath()
+            new File(path)
+        }
+
+        def runner = runner('helloWorld1')
+            .withProjectDir(file("changed"))
+            .withPluginClasspath(relClasspath)
+
+        when:
+        def orig = new File("")
+        def result = null
+        try {
+            assert NativeServicesTestFixture.instance.get(ProcessEnvironment).maybeSetProcessDir(file("changed"))
+            result = runner.build()
+        } finally {
+            assert NativeServicesTestFixture.instance.get(ProcessEnvironment).maybeSetProcessDir(orig)
+        }
 
         then:
         result.task(":helloWorld1").outcome == SUCCESS
