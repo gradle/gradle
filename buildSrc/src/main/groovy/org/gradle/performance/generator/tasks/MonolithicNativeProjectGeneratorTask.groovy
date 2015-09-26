@@ -19,9 +19,6 @@ package org.gradle.performance.generator.tasks
 import org.gradle.performance.generator.*
 
 class MonolithicNativeProjectGeneratorTask extends ProjectGeneratorTask {
-    void addTaskArgs(Map args) {
-        // nothing
-    }
 
     def generateRootProject() {
         super.generateRootProject()

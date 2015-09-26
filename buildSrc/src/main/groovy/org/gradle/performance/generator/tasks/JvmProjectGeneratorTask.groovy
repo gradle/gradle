@@ -28,8 +28,8 @@ class JvmProjectGeneratorTask extends ProjectGeneratorTask {
     @InputFiles
     FileCollection testDependencies
 
-    void addTaskArgs(Map args) {
-        args += [ groovyProject: groovyProject, scalaProject: scalaProject ]
+    Map getTaskArgs() {
+        [ groovyProject: groovyProject, scalaProject: scalaProject ]
     }
 
     def generateRootProject() {

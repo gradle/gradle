@@ -19,9 +19,6 @@ package org.gradle.performance.generator.tasks
 import org.gradle.performance.generator.*
 
 class NativeProjectGeneratorTask extends ProjectGeneratorTask {
-    void addTaskArgs(Map args) {
-        // nothing
-    }
 
     void generateProjectSource(File projectDir, TestProject testProject, Map args) {
         generateProjectSource(projectDir, "c", testProject, args)

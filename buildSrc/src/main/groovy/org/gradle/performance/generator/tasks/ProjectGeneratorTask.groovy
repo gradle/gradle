@@ -176,7 +176,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
 
         args += templateArgs
 
-        addTaskArgs(args)
+        args += taskArgs
 
         files.each { String name ->
             generateWithTemplate(projectDir, name, name, args)
@@ -225,6 +225,9 @@ abstract class ProjectGeneratorTask extends DefaultTask {
         return template
     }
 
-    abstract void addTaskArgs(Map args);
+    Map getTaskArgs() {
+        [:]
+    }
+
     abstract void generateProjectSource(File projectDir, TestProject testProject, Map args);
 }
