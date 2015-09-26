@@ -24,9 +24,7 @@ to create the archive. A mismatch between encodings will manifest itself as "cor
 option only affects the file name and comment fields of the archive (not the _content_ of the files in the archive). The default behavior has not been changed, so no changes
 should be necessary for existing builds.
 
-### PMD Improvements (i)
-
-#### PMD 'rulePriority' configuration
+### PMD 'rulePriority' configuration (i)
 
 By default, the PMD plugin will report all rule violations and fail if any violations are found.  This means the only way to disable low priority violations was to create a custom ruleset.
 
@@ -35,11 +33,11 @@ Gradle now supports configuring a "rule priority" threshold.  The PMD report wil
 You configure the threshold via the [PmdExtension](dsl/org.gradle.api.plugins.quality.PmdExtension.html).  You can also configure the property on a per-task level through
 [Pmd](dsl/org.gradle.api.plugins.quality.Pmd.html).
 
-   pmd {
-       rulePriority = 3
-   }
+    pmd {
+        rulePriority = 3
+    }
 
-#### Better PMD analysis with type resolution
+### Better PMD analysis with type resolution (i)
 
 Some PMD rules require access to the dependencies of your project to perform type resolution. If the dependencies are available on PMD's auxclasspath,
 [additional problems can be detected](http://pmd.sourceforge.net/pmd-5.3.2/pmd-java/rules/java/android.html).
