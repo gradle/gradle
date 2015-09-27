@@ -212,6 +212,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 The class `org.gradle.util.AvailablePortFinder` has been deprecated and will be removed in the next version of Gradle.  Although this class is an internal class and
 not a part of the public API, some users may be utilizing it and should plan to implement an alternative.
 
+### Setting Eclipse project name in beforeMerged or whenMerged hook
+
+Setting the Eclipse project name in `eclipse.project.file.beforeMerged` or `eclipse.project.file.whenMerged` hook provided by the
+`Eclipse` plugin has been deprecated.
+
 ## Potential breaking changes
 
 ### Upgraded to Groovy 2.4.4
