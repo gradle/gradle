@@ -74,7 +74,37 @@ A read-only (non nullable) property is created by defining only a setter, while 
         void setGroups(Set<String> groups);
     }
 
-TBD: FunctionalSourceSet
+#### Support for managed FunctionalSourceSet's
+This release facilitates adding source sets (`LanguageSourceSet`) to arbitrary locations in the model space through the use of the `language-base` plugin and `FunctionalSourceSet`'s.
+Having direct support for `FunctionalSourceSet`'s as both top level model elements and as properties of managed types allows build and plugin authors to strongly model things that use `LanguageSourceSet`'s.
+This kind of strongly typed modelling also allows build and plugin authors to access `LanguageSourceSet`'s in a controlled and consistent way using Rules.
+
+Adding a top level FunctionalSourceSet is a simple as:
+
+```groovy
+model {
+    sources(FunctionalSourceSet)
+}
+```
+
+or from a `RuleSource`
+
+```groovy
+@Model
+void sources(FunctionalSourceSet sources) { .. }
+```
+
+
+Here's an example of creating a managed type with `FunctionalSourceSet` properties.
+
+```groovy
+@Managed
+interface BuildType {
+    FunctionalSourceSet getSources()
+    FunctionalSourceSet getInputs()
+    ModelMap<FunctionalSourceSet> getComponentSources()
+}
+```
 
 TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with references between different model
 elements.
