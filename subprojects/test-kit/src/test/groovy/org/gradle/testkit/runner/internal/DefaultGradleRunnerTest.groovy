@@ -19,7 +19,6 @@ package org.gradle.testkit.runner.internal
 import org.gradle.api.GradleException
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
@@ -256,7 +255,7 @@ $expectedReason
     @Unroll
     def "debug flag is #description for system property value '#systemPropertyValue'"() {
         given:
-        System.properties[GradleRunner.DEBUG_SYS_PROP] = systemPropertyValue
+        System.properties[DefaultGradleRunner.DEBUG_SYS_PROP] = systemPropertyValue
 
         when:
         DefaultGradleRunner defaultGradleRunner = createRunner()
