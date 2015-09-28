@@ -234,6 +234,9 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return entryPointName;
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public long getStartTime() {
         return startTime;
     }
@@ -242,42 +245,72 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return parameters.getVerboseLogging();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public File getGradleUserHomeDir() {
         return parameters.getGradleUserHomeDir();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public File getProjectDir() {
         return parameters.getProjectDir();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public Boolean isSearchUpwards() {
         return parameters.isSearchUpwards();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public Boolean isEmbedded() {
         return parameters.isEmbedded();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public TimeUnit getDaemonMaxIdleTimeUnits() {
         return parameters.getDaemonMaxIdleTimeUnits();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public Integer getDaemonMaxIdleTimeValue() {
         return parameters.getDaemonMaxIdleTimeValue();
     }
 
+    /**
+     * @since 2.2-rc-1
+     */
     public File getDaemonBaseDir() {
         return parameters.getDaemonBaseDir();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public OutputStream getStandardOutput() {
         return stdout;
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public OutputStream getStandardError() {
         return stderr;
     }
 
+    /**
+     * @since 2.3-rc-1
+     */
     public Boolean isColorOutput() {
         return colorOutput;
     }
@@ -302,18 +335,30 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return tasks;
     }
 
+    /**
+     * @since 1.12-rc-1
+     */
     public List<InternalLaunchable> getLaunchables() {
         return launchables;
     }
 
+    /**
+     * @since 2.8-rc-1
+     */
     public List<File> getInjectedPluginClasspath() {
         return injectedPluginClasspath.getAsFiles();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public ProgressListenerVersion1 getProgressListener() {
         return progressListener;
     }
 
+    /**
+     * @since 2.4-rc-1
+     */
     public FailsafeBuildProgressListenerAdapter getBuildProgressListener() {
         return buildProgressListener;
     }
