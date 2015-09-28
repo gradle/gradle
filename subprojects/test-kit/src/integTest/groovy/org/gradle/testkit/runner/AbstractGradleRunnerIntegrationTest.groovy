@@ -78,10 +78,6 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
         """
     }
 
-    static boolean isDebug() {
-        gradleRunner.debug
-    }
-
     DaemonsFixture daemons(File gradleUserHomeDir, String daemonDir = 'daemon') {
         DaemonLogsAnalyzer.newAnalyzer(new File(gradleUserHomeDir, daemonDir), buildContext.version.version)
     }
