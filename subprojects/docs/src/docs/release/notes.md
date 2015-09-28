@@ -10,7 +10,7 @@ Add-->
 ### Example new and noteworthy
 -->
 
-# Faster incremental builds
+### Faster incremental builds
 
 One of Gradle's key features is the ability to perform “incremental builds”.
 This allows Gradle to avoid doing redundant work, by detecting that it can
@@ -27,7 +27,7 @@ date (i.e. many previously created files were reused).
 
 Highly incremental builds of projects with greater than 140,000 files have been
 measured at 35-50% faster with Gradle 2.8. Very large projects (greater than
-140,000 files) are also significantly faster again, if there is ample memory
+400,000 files) are also significantly faster again, if there is ample memory
 available to the build process (see [“The Build
 Environment”](https://docs.gradle.org/current/userguide/build_environment.html)
 in the Gradle User Guide for how to control memory allocation). Smaller projects
