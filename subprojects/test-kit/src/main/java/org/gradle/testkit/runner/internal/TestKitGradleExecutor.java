@@ -25,7 +25,7 @@ import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.task.*;
-import org.gradle.tooling.internal.consumer.DefaultBuildLauncherInternal;
+import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
 import java.io.ByteArrayOutputStream;
@@ -64,7 +64,7 @@ public class TestKitGradleExecutor implements GradleExecutor {
 
         try {
             connection = gradleConnector.connect();
-            DefaultBuildLauncherInternal launcher = (DefaultBuildLauncherInternal) connection.newBuild();
+            DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
             launcher.setStandardOutput(standardOutput);
             launcher.setStandardError(standardError);
             launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
