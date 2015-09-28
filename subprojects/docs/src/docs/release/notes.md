@@ -277,9 +277,21 @@ in the next major Gradle version (Gradle 3.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
 
-### AvailablePortFinder
+### Deprecated classes and constants
 
-The class `org.gradle.util.AvailablePortFinder` has been deprecated and will be removed in the next version of Gradle.  Although this class is an internal class and
+The following classes have been deprecated and will be removed in Gradle 3.0:
+
+- `org.gradle.api.artifacts.ConflictResolution`.
+- `org.gradle.api.artifacts.Module`.
+- `org.gradle.api.tasks.javadoc.AntGroovydoc`.
+- `org.gradle.api.tasks.scala.AntScalaDoc`.
+- `org.gradle.BuildExceptionReporter`.
+- `org.gradle.BuildLogger`.
+- `org.gradle.BuildResultLogger`.
+- `org.gradle.TaskExecutionLogger`.
+- `org.gradle.plugins.ide.eclipse.model.EclipseDomainModel`.
+- `org.gradle.api.logging.Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`. This constant is intended to be used only by the Gradle internals, and will be removed from the Gradle API.
+- `org.gradle.util.AvailablePortFinder`.  Although this class is an internal class and
 not a part of the public API, some users may be utilizing it and should plan to implement an alternative.
 
 ### Setting Eclipse project name in beforeMerged or whenMerged hook
