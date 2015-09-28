@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Nullable;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProgressListener;
@@ -145,6 +146,18 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
     @Override
     public T withCancellationToken(CancellationToken cancellationToken) {
         operationParamsBuilder.setCancellationToken(Preconditions.checkNotNull(cancellationToken));
+        return getThis();
+    }
+
+    /**
+     * Specifies classpath URIs used for loading user-defined classes. This list is in addition to the default classpath.
+     *
+     * @param classpath Classpath URIs
+     * @return this
+     * @since 2.8
+     */
+    public T withInjectedClassPath(ClassPath classpath) {
+        operationParamsBuilder.setInjectedPluginClasspath(classpath);
         return getThis();
     }
 }

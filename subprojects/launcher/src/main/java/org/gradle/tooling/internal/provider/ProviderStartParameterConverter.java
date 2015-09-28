@@ -26,7 +26,6 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -69,7 +68,7 @@ class ProviderStartParameterConverter {
 
         new PropertiesToStartParameterConverter().convert(properties, startParameter);
 
-        List<String> arguments = parameters.getArguments(Collections.<String>emptyList());
+        List<String> arguments = parameters.getArguments();
         if (arguments != null) {
             DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
             try {

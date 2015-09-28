@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.measure.DataAmount
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
@@ -34,6 +35,7 @@ class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
         }
+        runner.maxMemoryRegression = DataAmount.mbytes(50)
 
         when:
         def result = runner.run()

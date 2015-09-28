@@ -31,11 +31,6 @@ public class ManagedChildNodeCreatorStrategy<T> implements ChildNodeInitializerS
 
     @Override
     public <S extends T> NodeInitializer initializer(ModelType<S> type) {
-        NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(type);
-        if (nodeInitializer == null) {
-            throw new IllegalArgumentException("Type is not managed: " + type);
-        }
-        return nodeInitializer;
+        return nodeInitializerRegistry.getNodeInitializer(type);
     }
-
 }

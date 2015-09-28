@@ -52,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -148,7 +149,8 @@ public class ProviderConnection {
         } else {
             loggingServices = LoggingServiceRegistry.newNestedLogging();
             loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
-            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(loggingServices.get(OutputEventListener.class), params.daemonParams, operationParameters.getStandardInput(SafeStreams.emptyInput()));
+            InputStream standardInput = operationParameters.getStandardInput();
+            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(loggingServices.get(OutputEventListener.class), params.daemonParams, standardInput == null ? SafeStreams.emptyInput() : standardInput);
             executer = clientServices.get(DaemonClient.class);
         }
         Factory<LoggingManagerInternal> loggingManagerFactory = loggingServices.getFactory(LoggingManagerInternal.class);
@@ -173,11 +175,11 @@ public class ProviderConnection {
         }
 
         //override the params with the explicit settings provided by the tooling api
-        List<String> jvmArguments = operationParameters.getJvmArguments(null);
+        List<String> jvmArguments = operationParameters.getJvmArguments();
         if (jvmArguments != null) {
             daemonParams.setJvmArgs(jvmArguments);
         }
-        File javaHome = operationParameters.getJavaHome(null);
+        File javaHome = operationParameters.getJavaHome();
         if (javaHome != null) {
             daemonParams.setJvm(Jvm.forHome(javaHome));
         }

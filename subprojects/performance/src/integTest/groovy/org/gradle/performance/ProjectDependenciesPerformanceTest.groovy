@@ -16,6 +16,8 @@
 
 package org.gradle.performance
 
+import static org.gradle.performance.measure.Duration.millis
+
 class ProjectDependenciesPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "resolving dependencies"() {
@@ -25,6 +27,7 @@ class ProjectDependenciesPerformanceTest extends AbstractCrossVersionPerformance
         runner.tasksToRun = ['resolveDependencies']
         runner.useDaemon = true
         runner.targetVersions = ['2.2.1', '2.4', '2.8', 'last']
+        runner.maxExecutionTimeRegression = millis(1000)
 
         when:
         def result = runner.run()

@@ -146,6 +146,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         run ideName
 
         then:
+        projectName(".") == "myproject"
         projectName("myproject-app") == "myproject-app"
         projectName("myproject-bar") == "myproject-bar"
         projectName("myproject-bar/myproject-app") == "myproject-bar-app"
@@ -170,6 +171,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         run ideName
 
         then:
+        projectName(".") == "root"
         projectName("bar/services") == "bar-services"
         projectName("bar/services/rest") == "bar-services-rest"
         projectName("foo/services") == "foo-services"
@@ -195,6 +197,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         run ideName
 
         then:
+        projectName(".") == "root"
         projectName("bar/services") == "bar-services"
         projectName("bar/services/rest") == "bar-services-rest"
         projectName("foo/services") == "foo-services"
