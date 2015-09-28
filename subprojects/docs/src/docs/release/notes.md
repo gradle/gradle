@@ -17,6 +17,11 @@ The default cache size for file hashes has been increased from 140000 to 400000 
 Some bottlenecks were identified in the persistent cache writing and reading. The previous versions of Gradle used CRC32 checksums to ensure cache integrity. This was replaced with a byte counter which also ensures integrity. In addition, the persistent cache writing and reading was optimized by removing some unnecessary calls to RandomAccessFile.length(). These improvements speed up persistent cache writing and reading so that they aren't shown as hotspots or bottlenecks in the performance tests we have been profiling.
 Since the persistent cache storage format changed, the metadata cache version has been updated. This means that Gradle 2.8 will create a new cache directory called `~/.gradle/caches/modules-2/metadata-2.16`.
 
+### Script compilation performance improvements
+
+Performance of the compilation of Gradle build scripts has been improved by 30%. This should be in particular noticeable when a build script is not found in cache, which is the case when
+you upgrade your Gradle installation or that a build script is updated.
+
 ### Zip file name encoding
 
 Gradle will use the default character encoding for file names when creating Zip archives.  Depending on where the archive will be extracted, this may not be the best possible encoding
