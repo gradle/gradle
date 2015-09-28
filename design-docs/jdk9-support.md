@@ -2,19 +2,25 @@ This spec describes changes to Gradle to support and take advantage of the major
 
 # Milestone 1: Assist teams migrating to a modular architecture
 
-The Java module system is a deep, disruptive change to the Java ecosystem. The following Gradle features will help  
-teams migrate to a modular architecture running on the modular JVM, so that the migration can be made in a controlled and 
+The Java module system is a deep, disruptive change to the Java ecosystem. The following Gradle features will help
+teams migrate to a modular architecture running on the modular JVM, so that the migration can be made in a controlled and
 incremental way.
+
+Useful links:
+
+- [Jigsaw overview](http://openjdk.java.net/projects/jigsaw/doc/quickstart.html)
+- [Explanation of source layout for Jigsaw](http://openjdk.java.net/projects/jigsaw/doc/ModulesAndJavac.pdf)
+- [The module descriptor syntax](http://openjdk.java.net/projects/jigsaw/doc/lang-vm.html#jigsaw-1)
 
 # Feature: Java library author declares library API
 
-Given a description of the API of a library, Gradle will prevent at compile time the consumers of a library from using classes that are not 
-part of the API of the library. 
+Given a description of the API of a library, Gradle will prevent at compile time the consumers of a library from using classes that are not
+part of the API of the library.
 This is intended to help teams materialize and describe the APIs of and dependencies between the various components of their software
 stack, and enforce the boundaries between them, ready for the Java module system.
 
-No runtime enforcement will be done - this is the job of the modular JVM. Gradle will simply approximate the behaviour of the 
-modular JVM at compile time, but in a way that should be sufficient for many teams to make significant progress towards a modular 
+No runtime enforcement will be done - this is the job of the modular JVM. Gradle will simply approximate the behaviour of the
+modular JVM at compile time, but in a way that should be sufficient for many teams to make significant progress towards a modular
 architecture.
 
 ## Story: Java library author declares packages that make up the API of the library
@@ -42,23 +48,24 @@ TBD - May need some supporting stories to allow API jar to be modelled as a buil
 - Compilation fails when consuming source references an implementation class.
 - Consuming source is not recompiled when implementation class does not change.
 - Consuming source is recompiled when API class is changed.
+- Consuming source is not recompiled when implementation class changes in an incompatible way.
 
 ## Story: Consuming Java source is not recompiled when API of library has not changed
 
-AKA API classes can reference implementation classes of the same library. 
+AKA API classes can reference implementation classes of the same library.
 
 - Generate stub classes in the API jar.
 - A stub class contains only the public members of the source class required at compile time:
     - Only public or protected elements
     - Only public super types
-    - Empty method bodies
+    - Method bodies should throw an `UnsupportedOperationException`
     - No debug attributes
     - No source annotations
 - Generate stub API jar for all libraries, regardless of whether the library declares its API or not (a library always has an API).
 - Generation task should be incremental.
 
 TBD - split up stub generation into several stories?
-TBD - fail or warn when API class references implementation class in some way that cannot be stubbed, 
+TBD - fail or warn when API class references implementation class in some way that cannot be stubbed,
 eg extends implementation class or throws checked implementation exception or referenced from public method signature?
 
 ### Test cases
@@ -69,6 +76,7 @@ eg extends implementation class or throws checked implementation exception or re
 - Consuming source is not recompiled when package private class is added to API.
 - Consuming source is not recompiled when comment is changed in API source file.
 - Consuming source is recompiled when signature of public API method is changed.
+- Trying to use the API jar at runtime throws `UnsupportedOperationException`
 
 ## Story: Java library API references the APIs of other libraries
 
@@ -98,7 +106,7 @@ TBD - Add a dependency set at the component level, to be used as the default for
 - Generate stub API jar for Groovy and Scala libraries, use for compilation.
 - Discovery of annotation processor implementations.
 
-## Feature: Development team migrates Java library to Java 9 
+## Feature: Development team migrates Java library to Java 9
 
 Allow a Java library to build for Java 9, and produce both modular and non-modular variants that can be used by different consumers.
 
@@ -111,7 +119,7 @@ Allow a Java library to build for Java 9, and produce both modular and non-modul
 - To compile Java source, select the closest compatible toolchain to compile the variant.
 
 TBD - alternatively, select the toolchain with the highest version and use bootstrap classpath or `-release` to cross compile.
-TBD - fail or warn when source code is not compiled against exactly the target Java API. Currently, toolchain selection is lenient. 
+TBD - fail or warn when source code is not compiled against exactly the target Java API. Currently, toolchain selection is lenient.
 
 ## Story: Modular Java library is compiled using modular Java 9
 
@@ -120,7 +128,7 @@ TBD - fail or warn when source code is not compiled against exactly the target J
 
 ## Story: Modular consumer is compiled against Java library modular Jar
 
-- When building for Java 9, produce a single modular Jar artifact instead of separate API and implementation jars. 
+- When building for Java 9, produce a single modular Jar artifact instead of separate API and implementation jars.
 - Use this when compiling consuming modular source.
 
 ## Story: Build non-modular variant of Java library
@@ -137,7 +145,7 @@ TBD - fail or warn when source code is not compiled against exactly the target J
 ## Backlog
 
 - Generate the module descriptor from the Gradle model.
-- Use Java 9 `-release` flag for compiling against older versions. 
+- Use Java 9 `-release` flag for compiling against older versions.
 - Use bootstrap classpath for cross compilation against older versions.
 - Add a toolchain resolve that reuses JVM discovery code from test fixtures to locate installed JVMs.
 
@@ -151,7 +159,7 @@ Add support for external dependencies.
 - Use jar + compile scope dependencies for a Maven module.
 - Use artifacts and dependencies from some conventional configuration (eg `compile`, or `default` if not present) an for Ivy module.
 - Generate API stub for external Jar and use this for compilation. Cache the generated API jar.
-- Verify library is not recompiled when API of external library has not changed (eg method body change, add private element). 
+- Verify library is not recompiled when API of external library has not changed (eg method body change, add private element).
 - Dependencies report shows external libraries in compile time dependency graph.
 
 # Milestone 2: Gradle is self hosted on Java 9
@@ -170,7 +178,7 @@ See:
 - https://issues.gradle.org/browse/GRADLE-3287
 - http://download.java.net/jdk9/docs/api/index.html
 
-As of b80, an `@argsfile` command-line option is available for the `java` command, change the worker process launcher to use this on Java 9.  
+As of b80, an `@argsfile` command-line option is available for the `java` command, change the worker process launcher to use this on Java 9.
 Reuse handling for `javac` from java compiler infrastructure.
 
 ## Fix test fixtures and test assumptions
@@ -230,11 +238,11 @@ Goal: full support of the Java 9 module system, and its build and runtime featur
 
 In no particular order:
 
-- Make further use of `@argfile` when supported 
+- Make further use of `@argfile` when supported
     - `JavaExec` task
     - daemon launcher
     - generated application start scripts
-- Use `-release` javac flag for JVM binary that target older Java platform versions 
+- Use `-release` javac flag for JVM binary that target older Java platform versions
 - Extract or validate module dependencies declared in `module-info.java`
     - Infer API and runtime requirements based on required and exported modules
 - Extract or validate platform dependencies declared in `module-info.java`
@@ -258,7 +266,7 @@ In no particular order:
     - Operating specific formats
 - Build multiple variants of a Java component
     - Any combination of (modular) jar, multi-version jar, runtime image
-- Publish multiple variants of a Java component 
+- Publish multiple variants of a Java component
 - Capture module identifier and dependencies in publication meta-data
 - Improve JVM platform definition and toolchains to understand and invoke modular JVMs
 - Use module layers rather than filtering when running under Java 9 to enforce isolation.
