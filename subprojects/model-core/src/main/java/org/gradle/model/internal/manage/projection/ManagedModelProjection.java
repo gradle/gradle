@@ -110,12 +110,12 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         }
                     }
                     if (writable) {
-                        modelView = propertyNode.asWritable(propertyType, ruleDescriptor, null);
+                        modelView = propertyNode.asMutable(propertyType, ruleDescriptor, null);
                         if (closed) {
                             modelView.close();
                         }
                     } else {
-                        modelView = propertyNode.asReadOnly(propertyType, ruleDescriptor);
+                        modelView = propertyNode.asImmutable(propertyType, ruleDescriptor);
                     }
                     return modelView.getInstance();
                 }

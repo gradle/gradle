@@ -196,7 +196,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
         sources.ensureUsable();
-        return sources.asWritable(
+        return sources.asMutable(
             ModelTypes.modelMap(LanguageSourceSet.class),
             RuleContext.nest(modelNode.toString() + ".getSources()"),
             Collections.<ModelView<?>>emptyList()
@@ -211,7 +211,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
     @Override
     public ModelMap<BinarySpec> getBinaries() {
         binaries.ensureUsable();
-        return binaries.asWritable(
+        return binaries.asMutable(
             ModelTypes.modelMap(BinarySpecInternal.PUBLIC_MODEL_TYPE),
             RuleContext.nest(identifier.toString() + ".getBinaries()"),
             Collections.<ModelView<?>>emptyList()

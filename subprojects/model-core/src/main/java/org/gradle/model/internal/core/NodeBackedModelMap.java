@@ -245,9 +245,9 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         }
         link.ensureUsable();
         if (viewState.isCanMutate()) {
-            return link.asWritable(elementType, sourceDescriptor, null).getInstance();
+            return link.asMutable(elementType, sourceDescriptor, null).getInstance();
         } else {
-            return link.asReadOnly(elementType, sourceDescriptor).getInstance();
+            return link.asImmutable(elementType, sourceDescriptor).getInstance();
         }
     }
 
