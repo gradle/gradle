@@ -10,7 +10,7 @@ Useful links:
 
 - [Jigsaw overview](http://openjdk.java.net/projects/jigsaw/doc/quickstart.html)
 - [Explanation of source layout for Jigsaw](http://openjdk.java.net/projects/jigsaw/doc/ModulesAndJavac.pdf)
-- [The module descriptor syntax](http://openjdk.java.net/projects/jigsaw/doc/lang-vm.html#jigsaw-1)
+- [The module descriptor syntax](http://cr.openjdk.java.net/~mr/jigsaw/spec/lang-vm.html)
 
 # Feature: Java library author declares library API
 
