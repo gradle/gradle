@@ -10,18 +10,31 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Performance Improvements for large projects
+# Faster incremental builds
 
-The default cache size for file hashes has been increased from 140000 to 400000
-entries. This cache is used in the Gradle Daemon to skip hash calculation for
-files that have not been modified since the previous hash calculation. The cache
-size will now scale proportionally to the maximum heap size of the Gradle
-daemon. Gradle 2.8 Daemon will consume more heap memory because of this change.
-For a 1GB heap, the increase is less than 40 MB. This change will only speed up
-sub-sequent incremental builds of large projects with more than 140000 files in
-total because there will be less cache misses in incremental builds. In our
-tests we saw incremental build times drop to 35-50% of the original incremental
-build time with such projects.
+One of Gradle's key features is the ability to perform “incremental builds”.
+This allows Gradle to avoid doing redundant work, by detecting that it can
+safely reuse files created by a previous build. For example, the “class files”
+created by the Java compiler can be reused if there were no changes to source
+code or compiler settings since the previous build. This is a [generic
+capability available to all kinds of work performed by
+Gradle](https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks).
+
+This feature relies on checksumming files in order to detect changes. In this
+Gradle release, improvements have been made to the management of file checksums
+resulting in significantly improved build times when the build is mostly up to
+date (i.e. many previously created files were reused).
+
+Highly incremental builds of projects with greater than 140,000 files have been
+measured at 35-50% faster with Gradle 2.8. Very large projects (greater than
+140,000 files) are also significantly faster again, if there is ample memory
+available to the build process (see [“The Build
+Environment”](https://docs.gradle.org/current/userguide/build_environment.html)
+in the Gradle User Guide for how to control memory allocation). Smaller projects
+also benefit from these changes.
+
+No build script or configuration changes, beyond upgrading to Gradle 2.8, are
+required to leverage these performance improvements.
 
 ### Performance Improvements in persistent cache
 
