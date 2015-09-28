@@ -16,6 +16,8 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.testkit.runner.fixtures.GradleRunnerCoverage
+import org.gradle.testkit.runner.fixtures.IgnoreTarget
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GFileUtils
 import org.gradle.util.TextUtil
@@ -107,13 +109,14 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         !message.contains(':helloWorld')
     }
 
+    @IgnoreTarget({ GradleRunnerCoverage.DEBUG })
     def "build execution with invalid JVM arguments"() {
         given:
         GFileUtils.writeFile('org.gradle.jvmargs=-unknown', testProjectDir.file('gradle.properties'))
         buildFile << helloWorldTask()
 
         when:
-        runner().build()
+        runner('helloWorld').build()
 
         then:
         thrown GradleConnectionException

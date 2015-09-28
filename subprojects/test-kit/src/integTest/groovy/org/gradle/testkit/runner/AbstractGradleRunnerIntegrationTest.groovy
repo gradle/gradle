@@ -22,13 +22,16 @@ import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testkit.runner.fixtures.MultiGradleRunnerSpecRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.TestKitGradleExecutor
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import org.junit.runner.RunWith
 import spock.lang.Shared
 import spock.lang.Specification
 
+@RunWith(MultiGradleRunnerSpecRunner)
 abstract class AbstractGradleRunnerIntegrationTest extends Specification {
 
     @Shared
@@ -39,6 +42,8 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
 
     @Rule
     SetSystemProperties setSystemProperties = new SetSystemProperties((NativeServices.NATIVE_DIR_OVERRIDE): buildContext.gradleUserHomeDir.file("native").absolutePath)
+
+    static GradleRunner gradleRunner
 
     TestFile getTestKitWorkspace() {
         testProjectDir.file("test-kit-workspace")
@@ -57,10 +62,10 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     }
 
     DefaultGradleRunner runner(String... arguments) {
-        new DefaultGradleRunner(buildContext.gradleHomeDir)
-            .withTestKitDir(testKitWorkspace)
-            .withProjectDir(testProjectDir.testDirectory)
-            .withArguments(arguments)
+        gradleRunner
+        .withTestKitDir(testKitWorkspace)
+        .withProjectDir(testProjectDir.testDirectory)
+        .withArguments(arguments)
     }
 
     static String helloWorldTask() {
@@ -71,6 +76,10 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
             }
         }
         """
+    }
+
+    static boolean isDebug() {
+        gradleRunner.debug
     }
 
     DaemonsFixture daemons(File gradleUserHomeDir, String daemonDir = 'daemon') {
