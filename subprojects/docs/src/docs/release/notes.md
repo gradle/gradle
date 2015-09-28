@@ -14,6 +14,8 @@ Add-->
 
 The default cache size for file hashes has been increased from 140000 to 400000 entries. This cache is used in the Gradle Daemon to skip hash calculation for files that have not been modified since the previous hash calculation. The cache size will now scale proportionally to the maximum heap size of the Gradle daemon. Gradle 2.8 Daemon will consume more heap memory because of this change. For a 1GB heap, the increase is less than 40 MB. This change will only speed up sub-sequent incremental builds of large projects with more than 140000 files in total because there will be less cache misses in incremental builds. In our tests we saw incremental build times drop to 35-50% of the original incremental build time with such projects.
 
+### Performance Improvements in persistent cache
+
 Some bottlenecks were identified in the persistent cache writing and reading. The previous versions of Gradle used CRC32 checksums to ensure cache integrity. This was replaced with a byte counter which also ensures integrity. In addition, the persistent cache writing and reading was optimized by removing some unnecessary calls to RandomAccessFile.length(). These improvements speed up persistent cache writing and reading so that they aren't shown as hotspots or bottlenecks in the performance tests we have been profiling.
 Since the persistent cache storage format changed, the metadata cache version has been updated. This means that Gradle 2.8 will create a new cache directory called `~/.gradle/caches/modules-2/metadata-2.16`.
 
