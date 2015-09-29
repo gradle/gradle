@@ -18,8 +18,6 @@ package org.gradle.testkit.runner.fixtures
 
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
 
 class MultiGradleRunnerSpecRunner extends AbstractMultiTestRunner {
     MultiGradleRunnerSpecRunner(Class<?> target) {
@@ -45,7 +43,6 @@ class MultiGradleRunnerSpecRunner extends AbstractMultiTestRunner {
     }
 
     private static class GradleRunnerExecution extends AbstractMultiTestRunner.Execution {
-        private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
         private final GradleRunnerType gradleRunnerType
 
         GradleRunnerExecution(GradleRunnerType gradleRunnerType) {
@@ -59,12 +56,7 @@ class MultiGradleRunnerSpecRunner extends AbstractMultiTestRunner {
 
         @Override
         protected void before() {
-            target.gradleRunner = createGradleRunner(gradleRunnerType)
-        }
-
-        private DefaultGradleRunner createGradleRunner(GradleRunnerType gradleRunnerType) {
-            new DefaultGradleRunner(buildContext.gradleHomeDir)
-                .withDebug(gradleRunnerType.debug)
+            target.gradleRunnerType = gradleRunnerType
         }
 
         @Override

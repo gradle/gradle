@@ -23,19 +23,24 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.fixtures.GradleRunnerCoverage
+import org.gradle.testkit.runner.fixtures.GradleRunnerType
+import org.gradle.testkit.runner.fixtures.IgnoreTarget
+import org.gradle.testkit.runner.fixtures.MultiGradleRunnerSpecRunner
 import org.gradle.testkit.runner.internal.TempTestKitDirProvider
 import org.gradle.util.GFileUtils
-import spock.lang.Unroll
+import org.junit.runner.RunWith
 
+@RunWith(MultiGradleRunnerSpecRunner)
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
+
+    static GradleRunnerType gradleRunnerType
 
     def setup() {
         executer.requireGradleHome().withStackTraceChecksDisabled()
         buildFile << buildFileForGroovyProject()
     }
 
-    @Unroll
-    def "use of GradleRunner API in test class without declaring test-kit dependency causes compilation error [#gradleRunnerType.displayName]"() {
+    def "use of GradleRunner API in test class without declaring test-kit dependency causes compilation error"() {
         given:
         writeTest(buildLogicFunctionalTestCreatingGradleRunner(gradleRunnerType.debug))
 
@@ -46,17 +51,13 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':compileTestGroovy')
         failureHasCause('Compilation failed; see the compiler error output for details.')
         failure.error.contains("unable to resolve class $GradleRunner.name")
-
-        where:
-        gradleRunnerType << GradleRunnerCoverage.ALL
     }
 
     private TestFile writeTest(String content, String className = 'BuildLogicFunctionalTest') {
         testDirectoryProvider.file("src/test/groovy/org/gradle/test/${className}.groovy") << content
     }
 
-    @Unroll
-    def "use of GradleRunner API in test class by depending on external test-kit dependency causes compilation error [#gradleRunnerType.displayName]"() {
+    def "use of GradleRunner API in test class by depending on external test-kit dependency causes compilation error"() {
         File gradleDistPluginsDir = new File(distribution.gradleHomeDir, 'lib/plugins')
         File[] gradleTestKitLibs = gradleDistPluginsDir.listFiles(new GradleTestKitJarFilenameFilter())
         assert gradleTestKitLibs.length == 1
@@ -73,13 +74,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(':compileTestGroovy')
         failure.error.contains("Unable to load class $GradleRunner.name due to missing dependency")
-
-        where:
-        gradleRunnerType << GradleRunnerCoverage.ALL
     }
 
-    @Unroll
-    def "creating GradleRunner instance by depending on Gradle libraries outside of Gradle distribution throws exception [#gradleRunnerType.displayName]"() {
+    def "creating GradleRunner instance by depending on Gradle libraries outside of Gradle distribution throws exception"() {
         File gradleDistLibDir = new File(distribution.gradleHomeDir, 'lib')
         File gradleDistPluginsDir = new File(gradleDistLibDir, 'plugins')
         File[] gradleCoreLibs = gradleDistLibDir.listFiles(new GradleCoreJarFilenameFilter())
@@ -102,13 +99,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(':test')
         failure.output.contains('java.lang.IllegalStateException: Could not create a GradleRunner, as the GradleRunner class was not loaded from a Gradle distribution')
-
-        where:
-        gradleRunnerType << GradleRunnerCoverage.ALL
     }
 
-    @Unroll
-    def "successfully execute functional test and verify expected result [#gradleRunnerType.displayName]"() {
+    def "successfully execute functional test and verify expected result"() {
         buildFile << gradleTestKitDependency()
         writeTest successfulSpockTest('BuildLogicFunctionalTest', gradleRunnerType.debug)
 
@@ -118,13 +111,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":test", ":build")
         assertDaemonsAreStopping()
-
-        where:
-        gradleRunnerType << GradleRunnerCoverage.ALL
     }
 
-    @Unroll
-    def "successfully execute functional tests with parallel forks [#gradleRunnerType.displayName]"() {
+    def "successfully execute functional tests with parallel forks"() {
         buildFile << gradleTestKitDependency()
         buildFile << """
             test {
@@ -153,13 +142,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         }
 
         assertDaemonsAreStopping()
-
-        where:
-        gradleRunnerType << GradleRunnerCoverage.ALL
     }
 
-    @Unroll
-    def "successfully execute functional test with custom Gradle user home directory [#gradleRunnerType.displayName]"() {
+    def "successfully execute functional test with custom Gradle user home directory"() {
         buildFile << gradleTestKitDependency()
         writeTest """
             package org.gradle.test
@@ -215,11 +200,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":test", ":build")
         assertDaemonsAreStopping()
-
-        where:
-        gradleRunnerType << GradleRunnerCoverage.ALL
     }
 
+    @IgnoreTarget({ GradleRunnerCoverage.DEBUG })
     def "functional test fails due to invalid JVM parameter for test execution"() {
         buildFile << gradleTestKitDependency()
         writeTest """
@@ -269,9 +252,8 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         assertDaemonsAreStopping()
     }
 
-    @Unroll
     @LeaksFileHandles
-    def "can test plugin and custom task as external files by adding them to the build script's classpath [#gradleRunnerType.displayName]"() {
+    def "can test plugin and custom task as external files by adding them to the build script's classpath"() {
         file("settings.gradle") << "include 'sub'"
         file("sub/build.gradle") << "apply plugin: 'groovy'; dependencies { compile localGroovy() }"
         file("sub/src/main/groovy/org/gradle/test/lib/Support.groovy") << "package org.gradle.test.lib; class Support { static String MSG = 'Hello world!' }"
@@ -387,13 +369,9 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(':test')
         assertDaemonsAreStopping()
-
-        where:
-        gradleRunnerType << GradleRunnerCoverage.ALL
     }
 
-    @Unroll
-    def "can test plugin and custom task as external files by providing them as classpath through GradleRunner API [#gradleRunnerType.displayName]"() {
+    def "can test plugin and custom task as external files by providing them as classpath through GradleRunner API"() {
         file("settings.gradle") << "include 'sub'"
         file("sub/build.gradle") << "apply plugin: 'groovy'; dependencies { compile localGroovy() }"
         file("sub/src/main/groovy/org/gradle/test/lib/Support.groovy") << "package org.gradle.test.lib; class Support { static String MSG = 'Hello world!' }"
@@ -528,17 +506,13 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(':test')
         assertDaemonsAreStopping()
-
-        where:
-        gradleRunnerType << GradleRunnerCoverage.ALL
     }
 
-    @Unroll
     def "can control debug mode through system property set to #debug"() {
         buildFile << gradleTestKitDependency()
         buildFile << """
             test {
-                systemProperty '$GradleRunner.DEBUG_SYS_PROP', '$debug'
+                systemProperty '$GradleRunner.DEBUG_SYS_PROP', '$gradleRunnerType.debug'
             }
         """
         writeTest """
@@ -575,7 +549,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     def result = gradleRunner.build()
 
                     then:
-                    gradleRunner.debug == $debug
+                    gradleRunner.debug == $gradleRunnerType.debug
                     result.standardOutput.contains('Hello world!')
                     result.standardError == ''
                     result.taskPaths(SUCCESS) == [':helloWorld']
@@ -592,9 +566,6 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(":test", ":build")
         assertDaemonsAreStopping()
-
-        where:
-        debug << [false, true]
     }
 
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
