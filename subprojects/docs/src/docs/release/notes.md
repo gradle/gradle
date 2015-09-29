@@ -13,28 +13,20 @@ Add-->
 ### Faster incremental builds
 
 One of Gradle's key features is the ability to perform “incremental builds”.
-This allows Gradle to avoid doing redundant work, by detecting that it can
-safely reuse files created by a previous build. For example, the “class files”
-created by the Java compiler can be reused if there were no changes to source
-code or compiler settings since the previous build. This is a [generic
-capability available to all kinds of work performed by
-Gradle](https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks).
+This allows Gradle to avoid doing redundant work, by detecting that it can safely reuse files created by a previous build.
+For example, the “class files” created by the Java compiler can be reused if there were no changes to source code or compiler settings since the previous build.
+This is a [generic capability available to all kinds of work performed by Gradle](https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks).
 
-This feature relies on checksumming files in order to detect changes. In this
-Gradle release, improvements have been made to the management of file checksums
-resulting in significantly improved build times when the build is mostly up to
-date (i.e. many previously created files were reused).
+This feature relies on tracking checksums of files in order to detect changes.
+In this Gradle release, improvements have been made to the management of file checksums,
+resulting in significantly improved build times when the build is mostly up to date (i.e. many previously created files were able to be reused).
 
-Highly incremental builds of projects with greater than 140,000 files have been
-measured at 35-50% faster with Gradle 2.8. Very large projects (greater than
-400,000 files) are also significantly faster again, if there is ample memory
-available to the build process (see [“The Build
-Environment”](https://docs.gradle.org/current/userguide/build_environment.html)
-in the Gradle User Guide for how to control memory allocation). Smaller projects
-also benefit from these changes.
+Highly incremental builds of projects with greater than 140,000 files have been measured at 35-50% faster with Gradle 2.8.
+Very large projects (greater than 400,000 files) are also significantly faster again, if there is ample memory available to the build process
+(see [“The Build Environment”](https://docs.gradle.org/current/userguide/build_environment.html) in the Gradle User Guide for how to control memory allocation).
+Smaller projects also benefit from these changes.
 
-No build script or configuration changes, beyond upgrading to Gradle 2.8, are
-required to leverage these performance improvements.
+No build script or configuration changes, beyond upgrading to Gradle 2.8, are required to leverage these performance improvements.
 
 ### Performance Improvements in persistent cache
 
