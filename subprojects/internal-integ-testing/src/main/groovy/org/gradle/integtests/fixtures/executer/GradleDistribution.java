@@ -55,11 +55,6 @@ public interface GradleDistribution {
     boolean worksWith(OperatingSystem os);
 
     /**
-     * Returns true if the daemon is supported by this distribution.
-     */
-    boolean isDaemonSupported();
-
-    /**
      * Returns true if the configuring daemon idle timeout feature is supported by this distribution.
      */
     boolean isDaemonIdleTimeoutConfigurable();
@@ -78,6 +73,11 @@ public interface GradleDistribution {
      * Returns true if the tooling API of this distribution correctly handles non-ASCII characters in logging output.
      */
     boolean isToolingApiNonAsciiOutputSupported();
+
+    /**
+     * Returns true if the tooling API of this distribution correctly handles logging in embedded mode.
+     */
+    boolean isToolingApiLoggingInEmbeddedModeSupported();
 
     /**
      * Returns true if the tooling API of this distribution supports specifying the daemon base dir.

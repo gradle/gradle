@@ -82,21 +82,6 @@ public class DefaultGradleDistribution implements GradleDistribution {
         }
     }
 
-    public boolean isDaemonSupported() {
-        // Milestone 7 was broken on the IBM jvm
-        if (Jvm.current().isIbmJvm() && isVersion("1.0-milestone-7")) {
-            return false;
-        }
-
-        if (OperatingSystem.current().isWindows()) {
-            // On windows, daemon is ok for anything > 1.0-milestone-3
-            return isSameOrNewer("1.0-milestone-4");
-        } else {
-            // Daemon is ok for anything >= 0.9
-            return isSameOrNewer("0.9");
-        }
-    }
-
     public boolean isDaemonIdleTimeoutConfigurable() {
         return isSameOrNewer("1.0-milestone-7");
     }
@@ -143,6 +128,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
     @Override
     public boolean isToolingApiEventsInEmbeddedModeSupported() {
         return isSameOrNewer("2.6-rc-1");
+    }
+
+    @Override
+    public boolean isToolingApiLoggingInEmbeddedModeSupported() {
+        return isSameOrNewer("2.8-rc-1");
     }
 
     public VersionNumber getArtifactCacheLayoutVersion() {

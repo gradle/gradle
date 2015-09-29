@@ -15,16 +15,10 @@
  */
 package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.tooling.model.GradleProject
 
-class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiSpecification {
-
-    def setup() {
-        //because embedded tooling api should not replace system out / err
-        //we will run below tests only for forked mode
-        toolingApi.requireDaemons()
-    }
+class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiLoggingSpecification {
 
     def "receives standard streams while the build is executing"() {
         file('build.gradle') << '''
