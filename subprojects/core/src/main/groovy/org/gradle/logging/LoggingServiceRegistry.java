@@ -50,24 +50,26 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <p>Does nothing until started.</p>
      *
-     * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachProcessConsole(boolean,boolean)} to enable this.</p>
+     * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachProcessConsole(ConsoleOutput)} to enable this.</p>
      */
     public static LoggingServiceRegistry newCommandLineProcessLogging() {
-        return new CommandLineLogging();
+        CommandLineLogging loggingServices = new CommandLineLogging();
+        loggingServices.get(OutputEventRenderer.class).attachSystemOutAndErr();
+        return loggingServices;
     }
 
     /**
      * Creates a set of logging services which are suitable to use embedded in another application. In particular:
      *
      * <ul>
-     *     <li>Routes logging output to the original System.out and System.err as per {@link LoggingManagerInternal#attachSystemOutAndErr()}.</li>
+     *     <li>Replaces System.out and System.err to capture output written to these destinations.</li>
      *     <li>Configures slf4j and log4j to route log messages through the logging system.</li>
      * </ul>
      *
      * <p>Does not:</p>
      *
      * <ul>
-     *     <li>Replace System.out and System.err to capture output written to these destinations.</li>
+     *     <li>Route logging output to the original System.out and System.err.</li>
      *     <li>Configure java util logging.</li>
      * </ul>
      *
@@ -110,9 +112,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected abstract Factory<LoggingManagerInternal> createLoggingManagerFactory();
 
     protected OutputEventRenderer createOutputEventRenderer() {
-        OutputEventRenderer renderer = new OutputEventRenderer(Actions.doNothing());
-        renderer.attachSystemOutAndErr();
-        return renderer;
+        return new OutputEventRenderer(Actions.doNothing());
     }
 
     private static class CommandLineLogging extends LoggingServiceRegistry {
@@ -131,9 +131,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         }
 
         protected OutputEventRenderer createOutputEventRenderer() {
-            OutputEventRenderer renderer = new OutputEventRenderer(new ConsoleConfigureAction());
-            renderer.attachSystemOutAndErr();
-            return renderer;
+            return new OutputEventRenderer(new ConsoleConfigureAction());
         }
     }
 
@@ -160,10 +158,6 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
                     renderer,
                     new NoOpLoggingSystem(),
                     new NoOpLoggingSystem());
-        }
-
-        protected OutputEventRenderer createOutputEventRenderer() {
-            return new OutputEventRenderer(Actions.doNothing());
         }
     }
 }
