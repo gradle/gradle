@@ -25,11 +25,22 @@ architecture.
 
 ## Story: Java library author declares packages that make up the API of the library
 
-- Add a DSL to declare packages of the API.
-- Default to all packages.
+- Add a DSL to declare packages of the API. Proposed DSL:
+
+    model {
+        main(JvmLibrarySpec) {
+            api {
+                exports 'com.acme'
+            }
+        }
+    }
+
+- Default to all packages: if no `api` section is found, we assume that all public elements of the library are exported.
+- All JVM libraries should produce an API and an implementation jar.
 - Model the API jar as a buildable element produced by the library.
 - Build a jar containing those packages from compiled classes for each variant of the library.
 - Not used yet by consumers, this story is simply to add the DSL and produce the API artifact.
+
 
 TBD - May need some supporting stories to allow API jar to be modelled as a buildable element.
 
@@ -37,6 +48,15 @@ TBD - May need some supporting stories to allow API jar to be modelled as a buil
 
 - API jar can be built for each variant of the library and contains only API classes.
 - `assemble` task builds the API jar and implementation jar for each buildable variant.
+- API jar contains exported packages
+- API jar does not contain non exported packages
+- If no API section is declared, API jar and implementation jars are identical (same contents)
+- Building the API jar should trigger compilation of classes
+- Building the API jar should not depend on the implementation jar
+- Changes to the specification of the public APIs should not trigger recompilation of the classes
+- Changes to the specification of the public APIs should not trigger repackaging of the implementation jar
+- Changes to the specification of the public APIs should trigger regeneration of the API jar
+- If the specification of the public APIs do not change, API jar is not rebuilt
 
 ## Story: Implementation classes of library are not visible when compiling consuming Java source
 
