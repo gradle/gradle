@@ -16,8 +16,6 @@
 
 package org.gradle.sonar.runner;
 
-import org.gradle.api.Incubating;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -30,8 +28,10 @@ import java.util.Map;
  * <li>{@code Iterable}s are recursively converted and joined into a comma-separated String.</li>
  * <li>All other values are converted to Strings by calling their {@code toString()} method.</li>
  * </ul>
+ *
+ * @deprecated The 'sonar-runner' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
-@Incubating
+@Deprecated
 public class SonarProperties {
 
     public SonarProperties(Map<String, Object> properties) {

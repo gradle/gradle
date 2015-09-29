@@ -37,7 +37,10 @@ import org.gradle.process.JavaForkOptions;
  *   }
  * }
  * </pre>
+ *
+ * @deprecated The 'sonar-runner' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
+@Deprecated
 public class SonarRunnerRootExtension extends SonarRunnerExtension {
 
     /**

@@ -20,7 +20,10 @@ import org.gradle.api.file.FileCollection
 
 /**
  * Base interface for Sonar models on analysis roots and their subprojects.
+ *
+ * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
+@Deprecated
 interface SonarModel {
     /**
      * Returns per-project configuration options.
@@ -39,7 +42,10 @@ interface SonarModel {
 
 /**
  * Configuration options for a project that has the <tt>sonar</tt> plugin applied.
+ *
+ * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
+@Deprecated
 class SonarRootModel implements SonarModel {
     /**
      * Configuration options related to the Sonar server.
@@ -161,7 +167,10 @@ class SonarRootModel implements SonarModel {
 
 /**
  * Configuration options for subprojects of a project that has the <tt>sonar</tt> plugin applied.
+ *
+ * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
+@Deprecated
 class SonarProjectModel implements SonarModel {
     /**
      * Per-project configuration options.
@@ -187,7 +196,10 @@ class SonarProjectModel implements SonarModel {
 /**
  * Configuration options for the Sonar web server. Defaults match the defaults
  * for a locally running server.
+ *
+ * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
+@Deprecated
 class SonarServer {
     /**
      * The URL for the Sonar web server. Defaults to <tt>http://localhost:9000</tt>.
@@ -199,7 +211,10 @@ class SonarServer {
 /**
  * Configuration options for the Sonar database. Defaults match the defaults for
  * a locally running server (with embedded database).
+ *
+ * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
+@Deprecated
 class SonarDatabase {
     /**
      * The JDBC URL for the Sonar database. Defaults to <tt>jdbc:derby://localhost:1527/sonar</tt>.
@@ -226,7 +241,10 @@ class SonarDatabase {
 
 /**
  * Per-project configuration options.
+ *
+ * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
+@Deprecated
 class SonarProject {
     /**
      * The identifier for the project. Defaults to <tt>$project.group:$project.name</tt>.
@@ -434,7 +452,10 @@ class SonarProject {
 
 /**
  * Java-related configuration options for the project to be analyzed.
+ *
+ * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
+@Deprecated
 class SonarJavaSettings {
     /**
      * The source compatibility of the Java code. Defaults to
