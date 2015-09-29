@@ -100,7 +100,46 @@ registered when the component type is registered:
 
 ## Plugin author declares internal view for custom non-managed binary types
 
-Generalise the previous story to also work with non-managed `BinarySpec` subtypes that provide a default implementation.
+Given a `BinarySpec` subtype with default implementation extending `BaseBinarySpec`, allow one or more internal views to be
+registered when the binary type is registered:
+
+    @BinaryType
+    public void registerMyType(BinaryTypeBuilder<MyType> builder) {
+        builder.defaultImplementation(MyTypeImpl.class);
+        builder.internalView(MyTypeInternal.class);
+        builder.internalView(MyInternalThing.class);
+    }
+
+- Each internal view must be an interface. The interface does not need to extend the public type.
+- For this story, the default implementation must implement each of the internal view types. Fail at registration if this is not the case.
+- Internal view type can be used with `BinarySpecContainer` methods that filter components by type, eg can do:
+
+    components {
+        myComponent {
+            binaries.withType(MyTypeInternal) { ... }
+        }
+    }
+
+- Internal view type can be used top-level `BinaryContainer`, eg can do `binaries { withType(MyTypeInternal) { ... } }`.
+- Rule subjects of type `ModelMap<>` can be used to refer to child nodes of `binaries` by an internal view.
+- Each binary spec should have the internal view `BinarySpecInternal` configured by default.
+
+### Test cases
+
+- Internal view type can be used with `BinarySpecContainer.withType()`.
+    - a) if internal view extends public view
+    - b) if internal view does not extend public view
+- Internal view type can be used with `BinaryContainer.withType()`.
+    - a) if internal view extends public view
+    - b) if internal view does not extend public view
+- Internal view type can be used with rule subjects like `ModelMap<InternalView>`.
+    - a) if internal view extends public view
+    - b) if internal view does not extend public view
+- Error cases:
+    - Non-interface internal view raises error during rule execution time.
+    - Default implementation type that does not implement public view type raises error.
+    - Default implementation type that does not implement all internal view types raises error.
+    - Specifying the same internal view twice raises an error.
 
 ### Implementation
 
