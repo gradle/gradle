@@ -38,11 +38,73 @@ This is due to Gradle caching the compiled form of the build scripts.
 The reduction in compilation time per script is dependent on the size and complexity of script.
 Additionally, the reduction for the entire build is dependent on the number of build scripts that need to be compiled.
 
-### General build time improvements
+### Faster compilation for continuous builds
+
+In many cases Gradle will spawn a daemon process to host a compiler tool. This is done for performance reasons,
+as well as to accommodate special heap size settings, classpath configurations, etc.
+A compiler daemon is started on first use, and stopped at the end of the build.
+
+With Gradle 2.8, compiler daemons are kept running throughout the lifetime of a continuous build session and will only be stopped when the continuous build is cancelled.
+This improves the performance of continuous builds, since the cost of re-spawning these compilers is avoided for subsequent builds.
+This change has no impact on non-continuous builds: in this case each compiler daemon will be stopped at the end of the build.
+
+The following compilers are forked and should demonstrate improved performance with continuous builds:
+
+- Java compiler - when options.fork = true (default is false)
+- Scala compiler - when used with the `scala` plugin and `scalaCompileOptions.useAnt = false` (default is true)
+- Groovy compiler - when options.fork = true (default is true)
+- Scala compiler - when used with the `play` plugin
+- Play Routes compiler, Twirl compiler and Javascript compiler
+
+### General performance improvements
 
 This release also contains various other performance improvements that are generally applicable to most builds.
 These improvements are due to the use of more efficient data structures and smarter caching.
 Build time reductions vary depending on the size and nature of the build.
+
+### Convenient injection of classes under test via TestKit API
+
+Previous releases of Gradle required the end user to provide classes under test (e.g. plugin and custom task implementations) to the TestKit by assigning them to the buildscript's classpath.
+
+This release makes it more convenient to inject classes under test through the `GradleRunner` API with the method
+<a href="javadoc/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath(java.util.Iterable)">withPluginClasspath(Iterable&lt;File&gt;)</a>.
+This classpath is then available to use to locate plugins in a test build via the
+[plugins DSL](userguide/plugins.html#sec:plugins_block). The following code example demonstrates the use of the new TestKit API in a test class based on the test framework Spock:
+
+    class BuildLogicFunctionalTest extends Specification {
+        @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+        File buildFile
+        List<File> pluginClasspath
+
+        def setup() {
+            buildFile = testProjectDir.newFile('build.gradle')
+            pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
+              .readLines()
+              .collect { new File(it) }
+        }
+
+        def "execute helloWorld task"() {
+            given:
+            buildFile << """
+                plugins {
+                    id 'com.company.helloworld'
+                }
+            """
+
+            when:
+            def result = GradleRunner.create()
+                .withProjectDir(testProjectDir.root)
+                .withArguments('helloWorld')
+                .withPluginClasspath(pluginClasspath)
+                .build()
+
+            then:
+            result.standardOutput.contains('Hello world!')
+            result.taskPaths(SUCCESS) == [':helloWorld']
+        }
+    }
+
+Future versions of Gradle will aim for automatically injecting the classpath without additional configuration from the end user.
 
 ### Zip file name encoding
 
@@ -50,18 +112,21 @@ Gradle will use the default character encoding for file names when creating Zip 
 to use due to the way various operating systems and archive tools interpret file names in the archive.  Some tools assume the extracting platform character encoding is the same encoding used
 to create the archive. A mismatch between encodings will manifest itself as "corrupted" or "mangled" file names.
 
-[Zip](dsl/org.gradle.api.tasks.bundling.Zip.html) tasks can now be configured with an explicit encoding to handle cases where the default character encoding is inappropriate.  This configuration
-option only affects the file name and comment fields of the archive (not the _content_ of the files in the archive). The default behavior has not been changed, so no changes
-should be necessary for existing builds.
+[Zip](dsl/org.gradle.api.tasks.bundling.Zip.html) tasks can now be configured with an explicit character encoding to use for file names and comment
+fields in the archive. (This option does not affect the _content_ of the files in the archive.)
+The default behavior has not been changed, so no changes should be necessary for existing builds.
 
-### PMD 'rulePriority' configuration (i)
+### Configuration of the rule priority threshold for PMD (i)
 
-By default, the PMD plugin will report all rule violations and fail if any violations are found.  This means the only way to disable low priority violations was to create a custom ruleset.
+By default, the PMD plugin will report all rule violations and fail the build if any violations are found.
+This means the only way to ignore low priority violations was to create a custom ruleset.
 
-Gradle now supports configuring a "rule priority" threshold.  The PMD report will contain only violations higher than or equal to the priority configured.
+Gradle now supports configuring a "rule priority" threshold.
+The PMD report will contain only violations higher than or equal to the priority configured, and the build will only fail if one of
+these "priority" violations is discovered.
 
-You configure the threshold via the [PmdExtension](dsl/org.gradle.api.plugins.quality.PmdExtension.html).  You can also configure the property on a per-task level through
-[Pmd](dsl/org.gradle.api.plugins.quality.Pmd.html).
+You configure the rule priority threshold via the [PmdExtension](dsl/org.gradle.api.plugins.quality.PmdExtension.html).
+You can also configure the property on a per-task level through the [Pmd](dsl/org.gradle.api.plugins.quality.Pmd.html) task.
 
     pmd {
         rulePriority = 3
@@ -75,6 +140,13 @@ Some PMD rules require access to the dependencies of your project to perform typ
 Gradle now automatically adds the compile dependencies of each analyzed source set to PMD's auxclasspath.  No additional configuration should be necessary to enable this in existing builds.
 
 ### Managed model improvements
+
+
+ADAM: TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with references between different model
+elements.
+
+- Can use a reference property as input for a rule.
+
 
 #### Scalar collections
 
@@ -105,6 +177,7 @@ A read-only (non nullable) property is created by defining only a setter, while 
     }
 
 #### Support for FunctionalSourceSet's
+
 This release facilitates adding source sets (`LanguageSourceSet`) to arbitrary locations in the model space through the use of the `language-base` plugin and `FunctionalSourceSet`'s.
 Having direct support for `FunctionalSourceSet`'s as both top level model elements and as properties of managed types allows build and plugin authors to strongly model things that use `LanguageSourceSet`'s.
 This kind of strongly typed modelling also allows build and plugin authors to access `LanguageSourceSet`'s in a controlled and consistent way using Rules.
@@ -137,11 +210,6 @@ Here's an example of creating a managed type with `FunctionalSourceSet` properti
         ModelMap<FunctionalSourceSet> getComponentSources()
     }
 
-
-TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with references between different model
-elements.
-
-- Can use a reference property as input for a rule.
 
 #### Internal views for components
 
@@ -188,66 +256,6 @@ For internal view types that do not not extend `ComponentSpec`, targeting compon
 
 Interoperability between legacy configuration space and new rule based model configuration has been improved. More specifically, the `tasks.withType(..)` construct allows legacy configuration tasks
 to depend on tasks created via the new rule based approach. See [this issue](https://issues.gradle.org/browse/GRADLE-3318) for details.
-
-### Faster compilation for continuous builds
-
-Many Gradle compilers are spawned as separate daemons to accommodate special heap size settings, classpath configurations, etc.  These compiler daemons are started on use, and stopped at
-the end of the build.  With Gradle 2.8, these compiler daemons are kept running during the lifetime of a continuous build session and only stopped when the continuous build is canceled.
-This improves the performance of continuous builds as the cost of re-spawning these compilers is avoided in between builds.
-
-Note that this improvement reduces the overhead of running forked compilers in continuous mode.  This means that it is not relevant for non-continuous builds or builds where the compiler
-is run in-process.  In practical terms, this means this improvement affects the following scenarios:
-
-- Java compiler - when options.fork = true (default is false)
-- Scala compiler - when scalaCompileOptions.useAnt = false (default is true)
-- Groovy compiler - when options.fork = true (default is true)
-
-The Play Routes compiler, Twirl compiler, Javascript compiler, and Scala compiler always run as forked daemons, so compiler reuse will always
-be used for those compilers when in continuous mode.
-
-### TestKit API exposes method for injecting classes under test
-
-Previous releases of Gradle required the end user to provide classes under test (e.g. plugin and custom task implementations) to the TestKit by assigning them to the buildscript's classpath.
-
-This release makes it more convenient to inject classes under test through the `GradleRunner` API with the method
-<a href="javadoc/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath(java.util.Iterable)">withPluginClasspath(Iterable&lt;File&gt;)</a>.
-This classpath is then available to use to locate plugins in a test build via the
-[plugins DSL](userguide/plugins.html#sec:plugins_block). The following code example demonstrates the use of the new TestKit API in a test class based on the test framework Spock:
-
-    class BuildLogicFunctionalTest extends Specification {
-        @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
-        File buildFile
-        List<File> pluginClasspath
-
-        def setup() {
-            buildFile = testProjectDir.newFile('build.gradle')
-            pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
-              .readLines()
-              .collect { new File(it) }
-        }
-
-        def "execute helloWorld task"() {
-            given:
-            buildFile << """
-                plugins {
-                    id 'com.company.helloworld'
-                }
-            """
-
-            when:
-            def result = GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
-                .withArguments('helloWorld')
-                .withPluginClasspath(pluginClasspath)
-                .build()
-
-            then:
-            result.standardOutput.contains('Hello world!')
-            result.taskPaths(SUCCESS) == [':helloWorld']
-        }
-    }
-
-Future versions of Gradle will aim for automatically injecting the classpath without additional configuration from the end user.
 
 ## Promoted features
 
@@ -344,7 +352,7 @@ results in the following IDE project name mapping:
 
 ### Changes to incubating integration between software model and the Java plugins
 
-TBD
+ADAM:TBD
 
 The behaviour of `ClassDirectoryBinarySpec` instances has changed:
 
