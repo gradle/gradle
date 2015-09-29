@@ -10,6 +10,22 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Debugging of tests executed with TestKit API from an IDE
+
+Identifying the root cause of a failing functional test can be tricky. Debugging test execution from an IDE can help to discover problems
+by stepping through the code line by line. By default TestKit executes functional tests in a forked daemon process. Setting up remote debugging for a daemon process
+is inconvenient and cumbersome.
+
+This release makes it more convenient for the end user to debug tests from an IDE. By setting the system property `org.gradle.testkit.debug` to `true` in the IDE run configuration,
+a user can execute the functional tests in the same JVM process as the spawning Gradle process.
+
+The following screenshot shows a JUnit run configuration in IntelliJ:
+
+![IntelliJ JUnit run configuration](content/idea-run-config.jpg)
+
+Alternatively, debugging behavior can also be set programmatically through the `GradleRunner` API with the method
+<a href="javadoc/org/gradle/testkit/runner/GradleRunner.html#withDebug(boolean)">withDebug(boolean)</a>.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
