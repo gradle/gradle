@@ -28,6 +28,16 @@ Smaller projects also benefit from these changes.
 
 No build script or configuration changes, beyond upgrading to Gradle 2.8, are required to leverage these performance improvements.
 
+### Faster build script compilation
+
+Build script compilation times have been reduced by up to 30% in this version of Gradle.
+
+This improvement is noticeable when building a project for the first time with a certain version of Gradle, or after making changes to build scripts.
+This is due to Gradle caching the compiled form of the build scripts.
+
+The reduction in compilation time per script is dependent on the size and complexity of script.
+Additionally, the reduction for the entire build is dependent on the number of build scripts that need to be compiled.
+
 ### Performance Improvements in persistent cache
 
 Some bottlenecks were identified in the persistent cache writing and reading.
@@ -40,11 +50,6 @@ bottlenecks in the performance tests we have been profiling. Since the
 persistent cache storage format changed, the metadata cache version has been
 updated. This means that Gradle 2.8 will create a new cache directory called
 `~/.gradle/caches/modules-2/metadata-2.16`.
-
-### Script compilation performance improvements
-
-Performance of the compilation of Gradle build scripts has been improved by 30%. This should be in particular noticeable when a build script is not found in cache, which is the case when
-you upgrade your Gradle installation or that a build script is updated.
 
 ### Zip file name encoding
 
