@@ -21,9 +21,6 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 
-import static org.gradle.testkit.runner.fixtures.GradleRunnerType.DAEMON
-import static org.gradle.testkit.runner.fixtures.GradleRunnerType.EMBEDDED
-
 class MultiGradleRunnerSpecRunner extends AbstractMultiTestRunner {
     MultiGradleRunnerSpecRunner(Class<?> target) {
         super(target)
@@ -65,15 +62,9 @@ class MultiGradleRunnerSpecRunner extends AbstractMultiTestRunner {
             target.gradleRunner = createGradleRunner(gradleRunnerType)
         }
 
-        private DefaultGradleRunner createGradleRunner(GradleRunnerType type) {
-            switch (type) {
-                case DAEMON: return createGradleRunner()
-                case EMBEDDED: return createGradleRunner().withDebug(true)
-            }
-        }
-
-        private DefaultGradleRunner createGradleRunner() {
+        private DefaultGradleRunner createGradleRunner(GradleRunnerType gradleRunnerType) {
             new DefaultGradleRunner(buildContext.gradleHomeDir)
+                .withDebug(gradleRunnerType.debug)
         }
 
         @Override
