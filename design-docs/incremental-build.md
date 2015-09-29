@@ -176,6 +176,49 @@ Evaluating patterns is a hotspot in directory scanning. The default excludes pat
 
 TBD
 
+## Story: Inline the data from the file hash cache into the task history cache
+
+Change `DefaultFileCollectionSnapshotter` to store (length, last-modified, hash)
+in the `FileCollectionSnapshot` implementation it creates. This is referenced by
+the task history cache.
+
+When deciding whether something has changed, iterate over the elements of the
+`FileCollectionSnapshot` and use the (length, last-modified, hash) from the
+snapshot. Do not fetch this information from the file hash cache. If something
+has changed, hash it, and add the (length, last-modified, hash) tuple to the
+file hash cache. Also make a copy of the snapshot and update it with this new
+entry. This copy will be used as the new snapshot in the task history.
+
+What this means is that file hash cache is used only for new and modified files,
+which means there’s no point caching these entries in-memory (except perhaps for
+the duration of a build). For unmodified files, there’s never a cache miss. When
+nothing has changed for a snapshot, we also don’t need to hold a lock on the
+cache, which means less work and better concurrency when most snapshots are
+unmodified.
+
+### Test coverage
+
+TBD
+
+
+## Story: Reduce the in-memory size of the task history cache
+
+1. Discard history that will never be used, eg for tasks that no longer exist,
+or that is unlikely to be used, eg for tasks in builds other than the current.
+2. Keep a hash of the file snapshots in memory rather than the file snapshots
+themselves. It’s only when we need to know exactly which files have changed that
+we would need to load up the snapshot.
+3. Do something similar for the task properties as well.
+4. Reduce the cost of a cache miss, by improving the efficiency of serialisation
+to the file system, and reducing the cache size.
+5. Reduce the cost of a cache miss, by spooling to an efficient transient second
+level cache, and reducing the cache size.
+
+### Test coverage
+
+TBD
+
+
 ## Story: TBD
 
 TBD
