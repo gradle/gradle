@@ -21,8 +21,8 @@ package org.gradle.integtests.tooling.fixture
  */
 abstract class ToolingApiLoggingSpecification extends ToolingApiSpecification {
     def setup() {
-        if (!targetDist.toolingApiLoggingInEmbeddedModeSupported) {
+//        if (!targetDist.toolingApiLoggingInEmbeddedModeSupported) {
             toolingApi.requireDaemons()
-        }
+//        }
     }
 }

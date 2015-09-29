@@ -305,13 +305,13 @@ class LoggingServiceRegistryTest extends Specification {
         outputs.stdErr == ''
     }
 
-    def routesSystemOutAndErrToListenersWhenWhenEmbedded() {
-        StandardOutputListener listener = Mock()
+    def doesNotRouteSystemOutAndErrToListenersWhenWhenEmbedded() {
+        def listener = Mock(StandardOutputListener)
 
         when:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
-        loggingManager.level = LogLevel.WARN
+        loggingManager.level = LogLevel.INFO
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.start()
@@ -319,8 +319,7 @@ class LoggingServiceRegistryTest extends Specification {
         System.err.println("error")
 
         then:
-        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("info\n"))
-        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("error\n"))
+        0 * listener._
     }
 
     def doesNotRouteSlf4jToListenersWhenNested() {

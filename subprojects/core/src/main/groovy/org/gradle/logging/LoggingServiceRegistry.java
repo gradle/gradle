@@ -62,7 +62,6 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      * Creates a set of logging services which are suitable to use embedded in another application. In particular:
      *
      * <ul>
-     *     <li>Replaces System.out and System.err to capture output written to these destinations.</li>
      *     <li>Configures slf4j and log4j to route log messages through the logging system.</li>
      * </ul>
      *
@@ -70,6 +69,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <ul>
      *     <li>Route logging output to the original System.out and System.err.</li>
+     *     <li>Replace System.out and System.err to capture output written to these destinations.</li>
      *     <li>Configure java util logging.</li>
      * </ul>
      *
@@ -138,15 +138,13 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
     private static class EmbeddedLogging extends LoggingServiceRegistry {
         protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
             OutputEventRenderer renderer = get(OutputEventRenderer.class);
-            // Configure slf4j only and capture stdout and stderr
-            LoggingSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
-            LoggingSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
+            // Configure slf4j only
             return new DefaultLoggingManagerFactory(
                     new DefaultLoggingConfigurer(renderer,
                             new Slf4jLoggingConfigurer(renderer)),
                     renderer,
-                    stdout,
-                    stderr);
+                    new NoOpLoggingSystem(),
+                    new NoOpLoggingSystem());
         }
     }
 
