@@ -80,26 +80,13 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
         if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
             return;
         }
-
         ModelType<P> propertyType = property.getType();
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
+        validateProperty(propertySchema, property);
 
         final ModelRuleDescriptor descriptor = modelNode.getDescriptor();
         if (propertySchema instanceof ManagedImplModelSchema) {
-            if (propertySchema instanceof ModelCollectionSchema) {
-                ModelCollectionSchema<P, ?> propertyCollectionsSchema = (ModelCollectionSchema<P, ?>) propertySchema;
-                ModelType<?> elementType = propertyCollectionsSchema.getElementType();
-                if (!(propertySchema instanceof ScalarCollectionSchema)) {
-                    if (!property.isWritable()) {
-                        nodeInitializerRegistry.getNodeInitializer(elementType);
-                    }
-                }
-            }
             if (!property.isWritable()) {
-                if (property.isDeclaredAsHavingUnmanagedType()) {
-                    throw new UnmanagedPropertyMissingSetterException(property);
-                }
-
                 ManagedImplModelSchema<P> managedPropertySchema = (ManagedImplModelSchema<P>) propertySchema;
                 ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), nodeInitializerRegistry.getNodeInitializer(managedPropertySchema))
                     .descriptor(descriptor)
@@ -128,12 +115,31 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
                 .descriptor(descriptor);
             if (shouldHaveANodeInitializer(property, propertySchema)) {
                 creatorBuilder.action(ModelActionRole.Create, nodeInitializerRegistry.getNodeInitializer(propertyType));
-            } else if (isAModelValueSchema(propertySchema)
-                && !property.isWritable()
-                && !isNamePropertyOfANamedType(property)) {
-                throw new ReadonlyImmutableManagedPropertyException(modelSchema.getType(), property.getName(), property.getType());
             }
             modelNode.addLink(creatorBuilder.build());
+        }
+    }
+
+    private <P> void validateProperty(ModelSchema<P> propertySchema, ModelProperty<P> property) {
+        if (propertySchema instanceof ManagedImplModelSchema) {
+            if (propertySchema instanceof ModelCollectionSchema) {
+                ModelCollectionSchema<P, ?> propertyCollectionsSchema = (ModelCollectionSchema<P, ?>) propertySchema;
+                ModelType<?> elementType = propertyCollectionsSchema.getElementType();
+                if (!(propertySchema instanceof ScalarCollectionSchema)) {
+                    if (!property.isWritable()) {
+                        nodeInitializerRegistry.getNodeInitializer(elementType);
+                    }
+                }
+            }
+            if (!property.isWritable()) {
+                if (property.isDeclaredAsHavingUnmanagedType()) {
+                    throw new UnmanagedPropertyMissingSetterException(property);
+                }
+            }
+        } else if (!shouldHaveANodeInitializer(property, propertySchema) && isAModelValueSchema(propertySchema)
+            && !property.isWritable()
+            && !isNamePropertyOfANamedType(property)) {
+            throw new ReadonlyImmutableManagedPropertyException(modelSchema.getType(), property.getName(), property.getType());
         }
     }
 
