@@ -19,10 +19,6 @@ is inconvenient and cumbersome.
 This release makes it more convenient for the end user to debug tests from an IDE. By setting the system property `org.gradle.testkit.debug` to `true` in the IDE run configuration,
 a user can execute the functional tests in the same JVM process as the spawning Gradle process.
 
-The following screenshot shows a JUnit run configuration in IntelliJ:
-
-![IntelliJ JUnit run configuration](content/idea-run-config.jpg)
-
 Alternatively, debugging behavior can also be set programmatically through the `GradleRunner` API with the method
 <a href="javadoc/org/gradle/testkit/runner/GradleRunner.html#withDebug(boolean)">withDebug(boolean)</a>.
 

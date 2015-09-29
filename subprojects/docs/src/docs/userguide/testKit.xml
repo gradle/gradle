@@ -174,8 +174,25 @@
                 Any breakpoints set in your IDE will be not be tripped by the code being exercised by the test build.
             </para>
             <para>
-                At this time, there is no way to effectively debug the build logic under test.
-                This, highly desirable, feature will be available in future versions of the test kit.
+                The TestKit provides two different ways to enable the debug mode:
+                <itemizedlist>
+                    <listitem>By setting a system property;</listitem>
+                    <listitem>By enabling it programmatically through the <literal>GradleRunner</literal> API.</listitem>
+                </itemizedlist>
+            </para>
+            <para>
+                By setting the system property <literal>org.gradle.testkit.debug</literal> to <literal>true</literal>
+                in the IDE run configuration, a user can execute the functional tests in the same JVM process as the spawning Gradle process.
+                Future versions of Gradle will provide a way to predetermine this setting based on the runtime environment.
+            </para>
+            <para>
+                The following screenshot shows the use of the system property in a IntelliJ run configuration:
+            </para>
+            <imageobject>
+                <imagedata fileref="img/testkit-idea-run-config.png" width="989px" depth="464px"/>
+            </imageobject>
+            <para>
+                Alternatively, the debug mode can also be activated through the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withDebug"/>.
             </para>
         </section>
     </section>
