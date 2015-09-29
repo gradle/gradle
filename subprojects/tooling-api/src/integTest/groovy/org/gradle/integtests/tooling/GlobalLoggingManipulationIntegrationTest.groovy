@@ -31,6 +31,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         given:
         def outInstance = System.out
         def errInstance = System.err
+        def inInstance = System.in
 
         buildFile << "task hey"
 
@@ -41,6 +42,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         model.tasks.find { it.name == 'hey' }
         !System.out.is(outInstance)
         !System.err.is(errInstance)
+        System.in.is(inInstance)
     }
 
     static class FailingInputStream extends InputStream implements GroovyInterceptable {
