@@ -38,18 +38,11 @@ This is due to Gradle caching the compiled form of the build scripts.
 The reduction in compilation time per script is dependent on the size and complexity of script.
 Additionally, the reduction for the entire build is dependent on the number of build scripts that need to be compiled.
 
-### Performance Improvements in persistent cache
+### General build time improvements
 
-Some bottlenecks were identified in the persistent cache writing and reading.
-The previous versions of Gradle used CRC32 checksums to ensure cache integrity.
-This was replaced with a byte counter which also ensures integrity. In addition,
-the persistent cache writing and reading was optimized by removing some
-unnecessary calls to RandomAccessFile.length(). These improvements speed up
-persistent cache writing and reading so that they aren't shown as hotspots or
-bottlenecks in the performance tests we have been profiling. Since the
-persistent cache storage format changed, the metadata cache version has been
-updated. This means that Gradle 2.8 will create a new cache directory called
-`~/.gradle/caches/modules-2/metadata-2.16`.
+This release also contains various other performance improvements that are generally applicable to most builds.
+These improvements are due to the use of more efficient data structures and smarter caching.
+Build time reductions vary depending on the size and nature of the build.
 
 ### Zip file name encoding
 
