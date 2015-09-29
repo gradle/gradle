@@ -412,7 +412,7 @@ configure([smallNewMultiprojectJava, largeNewMultiprojectJava]) {
 }
 
 task nativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
-    projects = 500
+    projects = 100
     // number of source files to generate in each project of each type
     // this generates 200 C, 200 C++, 200 headers and 400 unused C/C++ files
     sourceFiles = 200
