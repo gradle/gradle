@@ -112,13 +112,13 @@ registered when the binary type is registered:
 
 - Each internal view must be an interface. The interface does not need to extend the public type.
 - For this story, the default implementation must implement each of the internal view types. Fail at registration if this is not the case.
-- Internal view type can be used with `BinarySpecContainer` methods that filter components by type, eg can do:
+- Internal view type can be used with `BinarySpecContainer` methods that filter binaries by type, eg can do:
 
-    components {
-        myComponent {
-            binaries.withType(MyTypeInternal) { ... }
+        components {
+            myComponent {
+                binaries.withType(MyTypeInternal) { ... }
+            }
         }
-    }
 
 - Internal view type can be used top-level `BinaryContainer`, eg can do `binaries { withType(MyTypeInternal) { ... } }`.
 - Rule subjects of type `ModelMap<>` can be used to refer to child nodes of `binaries` by an internal view.
