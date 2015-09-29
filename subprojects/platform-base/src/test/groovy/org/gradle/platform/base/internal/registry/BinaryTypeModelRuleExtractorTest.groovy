@@ -16,8 +16,7 @@
 
 package org.gradle.platform.base.internal.registry
 import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry
-import org.gradle.language.base.internal.testinterfaces.NotBinarySpec
-import org.gradle.language.base.internal.testinterfaces.SomeBinarySpec
+import org.gradle.language.base.internal.testinterfaces.*
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
@@ -26,11 +25,10 @@ import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.platform.base.BinarySpec
-import org.gradle.platform.base.BinaryType
-import org.gradle.platform.base.BinaryTypeBuilder
-import org.gradle.platform.base.InvalidModelException
+import org.gradle.platform.base.*
 import org.gradle.platform.base.binary.BaseBinarySpec
+import org.gradle.platform.base.internal.testinterfaces.BinarySpecInternalView
+import org.gradle.platform.base.internal.testinterfaces.NotImplementedBinarySpecInternalView
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -73,15 +71,6 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         0 * _
     }
 
-    def "applies ComponentModelBasePlugin only when implementation not set for unmanaged binary spec"() {
-        when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSetForUnmanagedBinarySpec"))
-
-        then:
-        registration instanceof DependencyOnlyExtractedModelRule
-        registration.ruleDependencies == [ComponentModelBasePlugin]
-    }
-
     @Unroll
     def "decent error message for #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
@@ -97,30 +86,35 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         ex.cause.message == expectedMessage
 
         where:
-        methodName                         | expectedMessage                                                                                                        | descr
-        "extraParameter"                   | "Method annotated with @BinaryType must have a single parameter of type '${BinaryTypeBuilder.name}'."                  | "additional rule parameter"
-        "returnValue"                      | "Method annotated with @BinaryType must not have a return value."                                                      | "method with return type"
-        "implementationSetMultipleTimes"   | "Method annotated with @BinaryType cannot set default implementation multiple times."                                  | "implementation set multiple times"
-        "implementationSetForManagedType"  | "Method annotated with @BinaryType cannot set default implementation for managed type ${ManagedBinarySpec.name}."      | "implementation set for managed type"
-        "noTypeParam"                      | "Parameter of type '${BinaryTypeBuilder.name}' must declare a type parameter."                                         | "missing type parameter"
-        "notBinarySpec"                    | "Binary type '${NotBinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                        | "type not extending BinarySpec"
-        "notCustomBinary"                  | "Binary type '${BinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                           | "type is BinarySpec"
-        "wildcardType"                     | "Binary type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                                 | "wildcard type parameter"
-        "extendsType"                      | "Binary type '? extends ${BinarySpec.getName()}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)." | "extends type parameter"
-        "superType"                        | "Binary type '? super ${BinarySpec.getName()}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."   | "super type parameter"
-        "notImplementingBinaryType"        | "Binary implementation '${NotImplementingCustomBinary.name}' must implement '${SomeBinarySpec.name}'."                 | "implementation not implementing type class"
-        "notExtendingDefaultSampleLibrary" | "Binary implementation '${NotExtendingBaseBinarySpec.name}' must extend '${BaseBinarySpec.name}'."                     | "implementation not extending BaseBinarySpec"
-        "noDefaultConstructor"             | "Binary implementation '${NoDefaultConstructor.name}' must have public default constructor."                           | "implementation with no public default constructor"
+        methodName                         | expectedMessage                                                                                                                      | descr
+        "extraParameter"                   | "Method annotated with @BinaryType must have a single parameter of type '${BinaryTypeBuilder.name}'."                                | "additional rule parameter"
+        "returnValue"                      | "Method annotated with @BinaryType must not have a return value."                                                                    | "method with return type"
+        "implementationSetMultipleTimes"   | "Method annotated with @BinaryType cannot set default implementation multiple times."                                                | "implementation set multiple times"
+        "implementationSetForManagedType"  | "Method annotated with @BinaryType cannot set default implementation for managed type ${ManagedBinarySpec.name}."                    | "implementation set for managed type"
+        "noTypeParam"                      | "Parameter of type '${BinaryTypeBuilder.name}' must declare a type parameter."                                                       | "missing type parameter"
+        "notBinarySpec"                    | "Binary type '${NotBinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                                      | "type not extending BinarySpec"
+        "notCustomBinary"                  | "Binary type '${BinarySpec.name}' is not a subtype of '${BinarySpec.name}'."                                                         | "type is BinarySpec"
+        "wildcardType"                     | "Binary type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                                               | "wildcard type parameter"
+        "extendsType"                      | "Binary type '? extends ${BinarySpec.getName()}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."               | "extends type parameter"
+        "superType"                        | "Binary type '? super ${BinarySpec.getName()}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                 | "super type parameter"
+        "notImplementingBinaryType"        | "Binary implementation '${NotImplementingCustomBinary.name}' must implement '${SomeBinarySpec.name}'."                               | "implementation not implementing type class"
+        "notExtendingDefaultSampleLibrary" | "Binary implementation '${NotExtendingBaseBinarySpec.name}' must extend '${BaseBinarySpec.name}'."                                   | "implementation not extending BaseBinarySpec"
+        "noDefaultConstructor"             | "Binary implementation '${NoDefaultConstructor.name}' must have public default constructor."                                         | "implementation with no public default constructor"
+        "internalViewNotInterface"         | "Internal view '${NonInterfaceInternalView.name}' must be an interface."                                                             | "non-interface internal view"
+        "notExtendingInternalView"         | "Binary implementation '${SomeBinarySpecImpl.name}' must implement internal view '${NotImplementedBinarySpecInternalView.name}'."    | "implementation not extending internal view"
+        "repeatedInternalView"             | "Internal view '${BinarySpecInternalView.name}' must not be specified multiple times."                                               | "internal view specified multiple times"
     }
 
 
-    static class SomeBinarySpecImpl extends BaseBinarySpec implements SomeBinarySpec {}
+    static class SomeBinarySpecImpl extends BaseBinarySpec implements SomeBinarySpec, BinarySpecInternalView, BareInternalView {}
 
     static class SomeBinarySpecOtherImpl extends SomeBinarySpecImpl {}
 
     static class NotImplementingCustomBinary extends BaseBinarySpec implements BinarySpec {}
 
     abstract static class NotExtendingBaseBinarySpec implements SomeBinarySpec {}
+
+    abstract static class NonInterfaceInternalView implements BinarySpec {}
 
     static class NoDefaultConstructor extends BaseBinarySpec implements SomeBinarySpec {
         NoDefaultConstructor(String arg) {
@@ -134,6 +128,8 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         @BinaryType
         static void validTypeRule(BinaryTypeBuilder<SomeBinarySpec> builder) {
             builder.defaultImplementation(SomeBinarySpecImpl)
+            builder.internalView(BinarySpecInternalView)
+            builder.internalView(BareInternalView)
         }
 
         @BinaryType
@@ -196,6 +192,25 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         @BinaryType
         static void noDefaultConstructor(BinaryTypeBuilder<SomeBinarySpec> builder) {
             builder.defaultImplementation(NoDefaultConstructor)
+        }
+
+        @BinaryType
+        static void internalViewNotInterface(BinaryTypeBuilder<SomeBinarySpec> builder) {
+            builder.defaultImplementation(SomeBinarySpecImpl)
+            builder.internalView(NonInterfaceInternalView)
+        }
+
+        @BinaryType
+        static void notExtendingInternalView(BinaryTypeBuilder<SomeBinarySpec> builder) {
+            builder.defaultImplementation(SomeBinarySpecImpl)
+            builder.internalView(NotImplementedBinarySpecInternalView)
+        }
+
+        @BinaryType
+        static void repeatedInternalView(BinaryTypeBuilder<SomeBinarySpec> builder) {
+            builder.defaultImplementation(SomeBinarySpecImpl)
+            builder.internalView(BinarySpecInternalView)
+            builder.internalView(BinarySpecInternalView)
         }
     }
 }

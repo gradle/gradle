@@ -24,6 +24,7 @@ import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.util.BiFunction;
@@ -46,6 +47,9 @@ import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
 
 import javax.inject.Inject;
+
+import java.util.List;
+import java.util.Map;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -172,12 +176,23 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                             if (parentObject instanceof ComponentSpec && binarySpec instanceof ComponentSpecAware) {
                                 ((ComponentSpecAware) binarySpec).setComponent((ComponentSpec) parentObject);
                             }
-
                             return binarySpec;
                         }
                     });
                 }
             });
+            for (Map.Entry<Class<? extends BinarySpec>, ModelType<? extends BinarySpec>> entry : binaryFactoryRegistry.getImplementationTypes().entrySet()) {
+                ModelType<BinarySpec> publicType = Cast.uncheckedCast(ModelType.of(entry.getKey()));
+                ModelType<BinarySpec> implementationType = Cast.uncheckedCast(entry.getValue());
+                binarySpecFactory.registerImplementation(publicType, null, implementationType);
+            }
+            Map<Class<? extends BinarySpec>, List<ModelType<?>>> internalViews = binaryFactoryRegistry.getInternalViews();
+            for (Map.Entry<Class<? extends BinarySpec>, List<ModelType<?>>> entry : internalViews.entrySet()) {
+                ModelType<? extends BinarySpec> publicType = ModelType.of(entry.getKey());
+                for (ModelType<?> internalView : entry.getValue()) {
+                    binarySpecFactory.registerInternalView(publicType, null, internalView);
+                }
+            }
             return binarySpecFactory;
         }
 
@@ -203,8 +218,13 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Validate
-        void validateComponentSpecInternalViews(ComponentSpecFactory componentSpecFactory) {
-            componentSpecFactory.validateRegistrations();
+        void validateComponentSpecInternalViews(ComponentSpecFactory instanceFactory) {
+            instanceFactory.validateRegistrations();
+        }
+
+        @Validate
+        void validateBinarySpecInternalViews(BinarySpecFactory instanceFactory) {
+            instanceFactory.validateRegistrations();
         }
 
         // TODO:LPTR This should be done on the binary itself when transitive rules don't fire multiple times anymore
