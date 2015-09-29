@@ -374,6 +374,13 @@ For example:
 - A property or managed element of type `FunctionalSourceSet` cannot be applied when the `LanguageBasePlugin` has not been applied.
 - Model report shows something reasonable for a managed property or collections of type FunctionalSourceSet.
 
+## Story: Validate model types more eagerly
+TBD:
+One option is to do so in `ModelRegistry.bindAllReferences()` (which might be renamed to `validateRules()`). It could just transition everything currently known to ‘projections defined'
+that should shake out a bunch of errors without closing the universe. The idea isn’t necessarily to catch every possible failure that might happen, just to be a reasonable trade off between
+coverage and the cost of the coverage
+
+
 ## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
 
 - All registered `LanguageSourceSet` types are available to be added.
