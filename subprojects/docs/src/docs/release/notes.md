@@ -291,6 +291,14 @@ not a part of the public API, some users may be utilizing it and should plan to 
 Setting the Eclipse project name in `eclipse.project.file.beforeMerged` or `eclipse.project.file.whenMerged` hook provided by the
 `Eclipse` plugin has been deprecated.
 
+### The `sonar-runner` plugin has been superseded by an external plugin from SonarQube
+
+SonarQube is an open platform to manage code quality, and in previous versions of Gradle the 'sonar-runner' plugin has provided integration
+with this analysis tool. An improved plugin is now available directly from the developers of SonarQube. This new plugin supersedes the 'sonar-runner' plugin
+that is part of the Gradle distribution; the 'sonar-runner' plugin is now deprecated.
+
+See [the official documentation from SonarQube](http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle) for more details.
+
 ## Potential breaking changes
 
 ### Upgraded to Groovy 2.4.4
