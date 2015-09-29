@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal
+package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.SystemProperties
