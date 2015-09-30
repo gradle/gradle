@@ -36,7 +36,7 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
     protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema, NodeInitializerRegistry nodeInitializerRegistry) {
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(schema.getType())) {
             ManagedChildNodeCreatorStrategy<E> childCreator = new ManagedChildNodeCreatorStrategy<E>(nodeInitializerRegistry);
-            ModelProjection projection = ModelMapModelProjection.managed(schema.getElementType(), ChildNodeInitializerStrategyAccessors.constant(childCreator));
+            ModelProjection projection = ModelMapModelProjection.managed(schema.getElementType(), ChildNodeInitializerStrategyAccessors.of(childCreator));
             return new ProjectionOnlyNodeInitializer(projection);
         }
         return null;

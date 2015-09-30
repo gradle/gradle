@@ -155,7 +155,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
                 .withProjection(
                     PolymorphicModelMapProjection.ofEager(
                         LanguageSourceSetInternal.PUBLIC_MODEL_TYPE,
-                        ChildNodeInitializerStrategyAccessors.constant(NodeBackedModelMap.createUsingParentNode(SOURCE_SET_CREATOR))
+                        ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(SOURCE_SET_CREATOR))
                     )
                 )
                 .withProjection(UnmanagedModelProjection.of(FunctionalSourceSet.class))

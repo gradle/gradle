@@ -31,7 +31,7 @@ public class ChildNodeInitializerStrategyAccessors {
         };
     }
 
-    public static <T> ChildNodeInitializerStrategyAccessor<T> constant(final ChildNodeInitializerStrategy<T> strategy) {
+    public static <T> ChildNodeInitializerStrategyAccessor<T> of(final ChildNodeInitializerStrategy<T> strategy) {
         return new ChildNodeInitializerStrategyAccessor<T>() {
             @Override
             public ChildNodeInitializerStrategy<T> getStrategy(MutableModelNode node) {

@@ -611,7 +611,7 @@ public class ModelRegistryHelper implements ModelRegistry {
             )
                 .withProjection(PolymorphicModelMapProjection.of(
                     modelType,
-                    ChildNodeInitializerStrategyAccessors.constant(NodeBackedModelMap.createUsingParentNode(modelType)))
+                    ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(modelType)))
                 )
                 .withProjection(UnmanagedModelProjection.of(instantiatorType))
                 .descriptor(descriptor)

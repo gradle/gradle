@@ -81,7 +81,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
                 .descriptor("container")
                 .withProjection(PolymorphicModelMapProjection.of(
                     itemType,
-                    ChildNodeInitializerStrategyAccessors.constant(NodeBackedModelMap.createUsingParentNode(itemType)))
+                    ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(itemType)))
                 )
                 .build()
         )
