@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 class ModelActionBinder extends RuleBinder {
-    private ModelBinding subjectBinding;
+    private final ModelBinding subjectBinding;
     private final ModelAction action;
 
     public ModelActionBinder(final BindingPredicate subjectReference, List<BindingPredicate> inputs, ModelAction action, Collection<RuleBinder> binders) {
