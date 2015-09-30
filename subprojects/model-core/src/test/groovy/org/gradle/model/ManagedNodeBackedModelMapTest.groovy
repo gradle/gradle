@@ -76,7 +76,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
         selfClose()
 
         then:
-        registry.state(path.child("foo")) == ModelNode.State.ProjectionsDefined
+        registry.state(path.child("foo")) == ModelNode.State.Known
 
         when:
         realize()
@@ -306,10 +306,9 @@ class ManagedNodeBackedModelMapTest extends Specification {
         realize()
 
         then:
-        ModelRuleExecutionException e = thrown()
-        e.cause instanceof InvalidModelRuleException
-        e.cause.cause instanceof ModelRuleBindingException
-        e.cause.cause.message.startsWith("Model reference to element '${path.child('foo')}' with type java.lang.String is invalid due to incompatible types.")
+        InvalidModelRuleException e = thrown()
+        e.cause instanceof ModelRuleBindingException
+        e.cause.message.startsWith("Model reference to element '${path.child('foo')}' with type java.lang.String is invalid due to incompatible types.")
     }
 
     static class SetOtherToName extends RuleSource {
@@ -686,15 +685,15 @@ class ManagedNodeBackedModelMapTest extends Specification {
         }
 
         expect:
-        registry.node("s").state == ModelNode.State.ProjectionsDefined
+        registry.node("s").state == ModelNode.State.Known
 
         when:
         registry.atState("beans", ModelNode.State.SelfClosed)
 
         then:
-        registry.node("s").state == ModelNode.State.ProjectionsDefined
+        registry.node("s").state == ModelNode.State.Known
         registry.get("beans.b1", Bean).value != "changed"
-        registry.node("s").state == ModelNode.State.ProjectionsDefined
+        registry.node("s").state == ModelNode.State.Known
 
         when:
         def sb2 = registry.get("beans.sb2", SpecialBean)
