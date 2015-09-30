@@ -50,9 +50,9 @@ This change has no impact on non-continuous builds: in this case each compiler d
 
 The following compilers are forked and should demonstrate improved performance with continuous builds:
 
-- Java compiler - when options.fork = true (default is false)
-- Scala compiler - when used with the `scala` plugin and `scalaCompileOptions.useAnt = false` (default is true)
-- Groovy compiler - when options.fork = true (default is true)
+- Java compiler - when `options.fork = true` (default is `false`)
+- Scala compiler - when used with the `scala` plugin and `scalaCompileOptions.useAnt = false` (default is `true`)
+- Groovy compiler - when `options.fork = true` (default is `true`)
 - Scala compiler - when used with the `play` plugin
 - Play Routes compiler, Twirl compiler and Javascript compiler
 
@@ -176,11 +176,11 @@ A read-only (non nullable) property is created by defining only a setter, while 
         void setGroups(Set<String> groups);
     }
 
-#### Support for FunctionalSourceSet's
+#### Support for `FunctionalSourceSet`s
 
 This release facilitates adding source sets (`LanguageSourceSet`) to arbitrary locations in the model space through the use of the `language-base` plugin and `FunctionalSourceSet`'s.
 Having direct support for `FunctionalSourceSet`'s as both top level model elements and as properties of managed types allows build and plugin authors to strongly model things that use `LanguageSourceSet`'s.
-This kind of strongly typed modelling also allows build and plugin authors to access `LanguageSourceSet`'s in a controlled and consistent way using Rules.
+This kind of strongly typed modelling also allows build and plugin authors to access `LanguageSourceSet`'s in a controlled and consistent way using rules.
 
 Adding a top level FunctionalSourceSet is a simple as:
 
@@ -297,13 +297,13 @@ not a part of the public API, some users may be utilizing it and should plan to 
 ### Setting Eclipse project name in beforeMerged or whenMerged hook
 
 Setting the Eclipse project name in `eclipse.project.file.beforeMerged` or `eclipse.project.file.whenMerged` hook provided by the
-`Eclipse` plugin has been deprecated.
+`Eclipse` plugin has been deprecated. Support for this will be removed in Gradle 3.0
 
-### The `sonar-runner` plugin has been superseded by an external plugin from SonarQube
+### The `sonar` and `sonar-runner` plugins have been superseded by an external plugin from SonarQube
 
-SonarQube is an open platform to manage code quality, and in previous versions of Gradle the 'sonar-runner' plugin has provided integration
-with this analysis tool. An improved plugin is now available directly from the developers of SonarQube. This new plugin supersedes the 'sonar-runner' plugin
-that is part of the Gradle distribution; the 'sonar-runner' plugin is now deprecated.
+SonarQube is an open platform to manage code quality, and in previous versions of Gradle the `sonar` and `sonar-runner` plugin has provided integration
+with this analysis tool. An improved plugin is now available directly from the developers of SonarQube. This new plugin supersedes the `sonar` and `sonar-runner` plugins
+that are part of the Gradle distribution; the `sonar` and `sonar-runner` plugin are now deprecated and will be removed in Gradle 3.0.
 
 See [the official documentation from SonarQube](http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle) for more details.
 
