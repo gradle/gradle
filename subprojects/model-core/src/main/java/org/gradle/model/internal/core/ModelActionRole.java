@@ -43,6 +43,9 @@ public enum ModelActionRole {
         return target;
     }
 
+    /**
+     * Returns whether the private data of the subject node can be viewed as a Java object by a rule in this role.
+     */
     public boolean isSubjectViewAvailable() {
         return subjectViewAvailable;
     }
