@@ -19,14 +19,22 @@ package org.gradle.testkit.runner;
 import org.gradle.api.Incubating;
 
 /**
- * Thrown when executing a build that was expected to fail, but succeeded.
+ * Thrown when executing a build that failed unexpectedly.
+ * Provides a build result for further inspection or making assertions about the build outcome (e.g. standard output).
  *
- * @since 2.6
- * @see GradleRunner#buildAndFail()
+ * @since 2.9
+ * @see BuildResult
  */
 @Incubating
-public class UnexpectedBuildSuccess extends UnexpectedBuildException {
-    public UnexpectedBuildSuccess(String message, BuildResult buildResult) {
-        super(message, buildResult);
+public abstract class UnexpectedBuildException extends RuntimeException {
+    private final BuildResult buildResult;
+
+    public UnexpectedBuildException(String message, BuildResult buildResult) {
+        super(message);
+        this.buildResult = buildResult;
+    }
+
+    public BuildResult getBuildResult() {
+        return buildResult;
     }
 }

@@ -143,7 +143,7 @@ public class DefaultGradleRunner extends GradleRunner {
         return run(new Action<GradleExecutionResult>() {
             public void execute(GradleExecutionResult gradleExecutionResult) {
                 if (!gradleExecutionResult.isSuccessful()) {
-                    throw new UnexpectedBuildFailure(createDiagnosticsMessage("Unexpected build execution failure", gradleExecutionResult));
+                    throw new UnexpectedBuildFailure(createDiagnosticsMessage("Unexpected build execution failure", gradleExecutionResult), createBuildResult(gradleExecutionResult));
                 }
             }
         });
@@ -154,7 +154,7 @@ public class DefaultGradleRunner extends GradleRunner {
         return run(new Action<GradleExecutionResult>() {
             public void execute(GradleExecutionResult gradleExecutionResult) {
                 if (gradleExecutionResult.isSuccessful()) {
-                    throw new UnexpectedBuildSuccess(createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult));
+                    throw new UnexpectedBuildSuccess(createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult), createBuildResult(gradleExecutionResult));
                 }
             }
         });
@@ -215,7 +215,10 @@ public class DefaultGradleRunner extends GradleRunner {
         );
 
         resultVerification.execute(execResult);
+        return createBuildResult(execResult);
+    }
 
+    private BuildResult createBuildResult(GradleExecutionResult execResult) {
         return new DefaultBuildResult(
             execResult.getStandardOutput(),
             execResult.getStandardError(),
