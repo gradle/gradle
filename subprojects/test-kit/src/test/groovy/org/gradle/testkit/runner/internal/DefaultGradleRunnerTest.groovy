@@ -220,7 +220,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(new GradleExecutionParameters(gradleHome, gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
     }
 
     def "temporary working space directory is not created if Gradle user home directory is not provided by user when build and fail is requested"() {
@@ -233,7 +233,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(new GradleExecutionParameters(gradleHome, gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
     }
 
     def "debug flag is passed on to executor"() {
@@ -246,7 +246,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, debug) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(new GradleExecutionParameters(gradleHome, gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, debug)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
 
         where:
         debug << [true, false]

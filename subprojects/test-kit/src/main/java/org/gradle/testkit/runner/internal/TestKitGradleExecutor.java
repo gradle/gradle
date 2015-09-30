@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.tooling.BuildException;
@@ -54,12 +53,12 @@ public class TestKitGradleExecutor implements GradleExecutor {
         }));
     }
 
-    public GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, ClassPath injectedClassPath, boolean debug) {
+    public GradleExecutionResult run(GradleExecutionParameters parameters) {
         final ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
         final ByteArrayOutputStream standardError = new ByteArrayOutputStream();
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
 
-        GradleConnector gradleConnector = buildConnector(gradleHome, gradleUserHome, projectDir, debug);
+        GradleConnector gradleConnector = buildConnector(parameters.getGradleHome(), parameters.getGradleUserHome(), parameters.getProjectDir(), parameters.isDebug());
         ProjectConnection connection = null;
 
         try {
@@ -69,10 +68,10 @@ public class TestKitGradleExecutor implements GradleExecutor {
             launcher.setStandardError(standardError);
             launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
 
-            launcher.withArguments(buildArgs.toArray(new String[buildArgs.size()]));
-            launcher.setJvmArguments(jvmArgs.toArray(new String[jvmArgs.size()]));
+            launcher.withArguments(parameters.getBuildArgs().toArray(new String[parameters.getBuildArgs().size()]));
+            launcher.setJvmArguments(parameters.getJvmArgs().toArray(new String[parameters.getJvmArgs().size()]));
 
-            launcher.withInjectedClassPath(injectedClassPath);
+            launcher.withInjectedClassPath(parameters.getInjectedClassPath());
 
             launcher.run();
         } catch (BuildException t) {

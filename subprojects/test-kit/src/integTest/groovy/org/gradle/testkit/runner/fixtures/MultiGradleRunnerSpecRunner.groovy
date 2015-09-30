@@ -26,8 +26,8 @@ class MultiGradleRunnerSpecRunner extends AbstractMultiTestRunner {
 
     @Override
     protected void createExecutions() {
-        def coverage = target.getAnnotation(TargetCoverage)
-        def coverageTargets = determineCoverageTargets(coverage)
+        TargetCoverage coverage = target.getAnnotation(TargetCoverage)
+        EnumSet coverageTargets = determineCoverageTargets(coverage)
 
         coverageTargets.each { GradleRunnerType coverageTarget ->
             add(new GradleRunnerExecution(coverageTarget))

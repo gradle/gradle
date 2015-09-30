@@ -197,7 +197,7 @@ public abstract class GradleRunner {
      * <code>true</code> in the IDE run configuration.
      * <p>
      * Alternatively, the debug flag can be set programmatically by invoking the method {@link #withDebug(boolean)} which takes precedence over
-     * the default debug value chosen based on the test execution environment.
+     * the default debug mode. By default the debug mode is disabled.
      *
      * @return the debug flag
      * @since 2.9

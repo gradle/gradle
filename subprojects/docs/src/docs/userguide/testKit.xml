@@ -181,7 +181,7 @@
                 </itemizedlist>
             </para>
             <para>
-                By setting the system property <literal>org.gradle.testkit.debug</literal> to <literal>true</literal>
+                By setting the system proGradleRunnerMechanicalFailureIntegrationTestperty <literal>org.gradle.testkit.debug</literal> to <literal>true</literal>
                 in the IDE run configuration, a user can execute the functional tests in the same JVM process as the spawning Gradle process.
                 Future versions of Gradle will provide a way to predetermine this setting based on the runtime environment.
             </para>
@@ -189,7 +189,7 @@
                 The following screenshot shows the use of the system property in a IntelliJ run configuration:
             </para>
             <imageobject>
-                <imagedata fileref="img/testkit-idea-run-config.png" width="989px" depth="464px"/>
+                <imagedata fileref="img/testkit-idea-run-config.jpg" width="989px" depth="464px"/>
             </imageobject>
             <para>
                 Alternatively, the debug mode can also be activated through the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withDebug"/>.
