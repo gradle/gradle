@@ -1,26 +1,19 @@
-Gradle 2.8 delivers another round of important performance improvements. Large builds with many source files should see major improvements in 
-incremental build speed. And there are improvements that all Gradle users can enjoy, with faster build script compilation, 
+Gradle 2.8 delivers another round of important performance improvements.
+Large builds with many source files should see major improvements in incremental build speed.
+And there are improvements that all Gradle users can enjoy, with faster build script compilation,
 faster source compilation when using the new continuous mode, and general performance improvements.
 
-This version of Gradle also contains incremental improvements to the new Gradle TestKit, making it easier for plugin authors to write automated tests for their 
-plugin implementations.
+This version of Gradle also contains incremental improvements to the new Gradle TestKit,
+making it easier for plugin authors to write automated tests for their plugin implementations.
 
 Work continues on the new "managed model".
 
-A Gradle release would not be complete without contributions from the wonderful Gradle community. This release provides support for file name encoding in Zip files, support for more PMD features and
-other fixes from community pull requests.
+A Gradle release would not be complete without contributions from the wonderful Gradle community.
+This release provides support for file name encoding in Zip files, support for more PMD features and other fixes from community pull requests.
 
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
-
-<!--
-IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
-Add-->
-
-<!--
-### Example new and noteworthy
--->
 
 ### Faster incremental builds
 
@@ -153,7 +146,7 @@ Gradle now automatically adds the compile dependencies of each analyzed source s
 
 ### Managed model improvements
 
-A number of improvements have been made to the experimental [managed model](userguide/new_model.html) feature. This feature is currently used by the native and Play plugins and will evolve into a 
+A number of improvements have been made to the experimental [managed model](userguide/new_model.html) feature. This feature is currently used by the native and Play plugins and will evolve into a
 general purpose feature for describing Gradle builds.
 
 #### Support for `Set` and `List` of scalar types
@@ -166,7 +159,7 @@ The managed model now supports collections of scalar types. This means that it i
  - a `File`
  - or an enumeration type
 
-A collection of a scalar type can be attached to any `@Managed` type as a property, or used for the elements of a `ModelSet` or `ModelMap`, or as a top level element. For example: 
+A collection of a scalar type can be attached to any `@Managed` type as a property, or used for the elements of a `ModelSet` or `ModelMap`, or as a top level element. For example:
 
     @Managed
     interface User {
@@ -188,7 +181,7 @@ A read-only (non nullable) property is created by defining only a setter, while 
 #### Support for `FunctionalSourceSet`
 
 This release facilitates adding source sets (`LanguageSourceSet`) to arbitrary locations in the model space through the use of the `language-base` plugin and `FunctionalSourceSet`.
-A `FunctionalSourceSet` can be attached to any `@Managed` type as a property, or used for the elements of a `ModelSet` or `ModelMap`, or as a top level element. 
+A `FunctionalSourceSet` can be attached to any `@Managed` type as a property, or used for the elements of a `ModelSet` or `ModelMap`, or as a top level element.
 
 Using `FunctionalSourceSet` allows build and plugin authors to strongly model things that use collections of source as `LanguageSourceSet`s.
 This kind of strongly typed modelling also allows build and plugin authors to access `LanguageSourceSet`s in a controlled and consistent way using rules.
@@ -270,21 +263,9 @@ to depend on tasks created via the new rule based approach. See [this issue](htt
 
 #### References between model elements
 
-Currently, the managed model works well for defining a tree of objects. This release improves support for a graph of objects, with better support for references between 
-different model elements. In particular, the inputs for a rule can traverse a "reference" property, which is simply a read-write property on a `@Managed` type that refers 
+Currently, the managed model works well for defining a tree of objects. This release improves support for a graph of objects, with better support for references between
+different model elements. In particular, the inputs for a rule can traverse a "reference" property, which is simply a read-write property on a `@Managed` type that refers
 to some other model element.
-
-
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
