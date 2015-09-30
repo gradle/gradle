@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.logging;
+package org.gradle.integtests.tooling.fixture
 
-import org.gradle.api.logging.StandardOutputListener;
-
-public interface StandardOutputRedirector extends StandardOutputCapture {
-    void redirectStandardOutputTo(StandardOutputListener stdOutDestination);
-
-    void redirectStandardErrorTo(StandardOutputListener stdErrDestination);
+/**
+ * A base class for all logging tooling API tests
+ */
+abstract class ToolingApiLoggingSpecification extends ToolingApiSpecification {
+    def setup() {
+//        if (!targetDist.toolingApiLoggingInEmbeddedModeSupported) {
+            toolingApi.requireDaemons()
+//        }
+    }
 }

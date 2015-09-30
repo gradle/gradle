@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.provider.connection;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
@@ -36,10 +37,22 @@ public interface ProviderOperationParameters {
 
     LogLevel getBuildLogLevel();
 
+    /**
+     * @return When null, assume empty stdin (rather than consume from the current process' stdin).
+     */
+    @Nullable
     InputStream getStandardInput();
 
+    /**
+     * @return When null, use the provider's default Java home.
+     */
+    @Nullable
     File getJavaHome();
 
+    /**
+     * @return When null, use the provider's default JVM arguments. When empty, use no JVM arguments.
+     */
+    @Nullable
     List<String> getJvmArguments();
 
     /**
@@ -48,8 +61,10 @@ public interface ProviderOperationParameters {
     long getStartTime();
 
     /**
+     * @return When null, use the provider's default Gradle user home dir.
      * @since 1.0-milestone-3
      */
+    @Nullable
     File getGradleUserHomeDir();
 
     /**
@@ -58,43 +73,59 @@ public interface ProviderOperationParameters {
     File getProjectDir();
 
     /**
+     * @return When null, use the provider's default value for search upwards.
      * @since 1.0-milestone-3
      */
+    @Nullable
     Boolean isSearchUpwards();
 
     /**
+     * @return When null, use the provider's default value for embedded.
      * @since 1.0-milestone-3
      */
+    @Nullable
     Boolean isEmbedded();
 
     /**
+     * @return When null, use the provider's default value for color output.
      * @since 2.3-rc-1
      */
+    @Nullable
     Boolean isColorOutput(Boolean defaultValue);
 
     /**
+     * @return When null, discard the stdout (rather than forward to the current process' stdout)
      * @since 1.0-milestone-3
      */
+    @Nullable
     OutputStream getStandardOutput();
 
     /**
+     * @return When null, discard the stderr (rather than forward to the current process' stdout)
      * @since 1.0-milestone-3
      */
+    @Nullable
     OutputStream getStandardError();
 
     /**
+     * @return When null, use the provider's default daemon idle timeout
      * @since 1.0-milestone-3
      */
+    @Nullable
     Integer getDaemonMaxIdleTimeValue();
 
     /**
+     * @return Must not return null when {@link #getDaemonMaxIdleTimeValue()} returns a non-null value. Otherwise, unspecified.
      * @since 1.0-milestone-3
      */
+    @Nullable
     TimeUnit getDaemonMaxIdleTimeUnits();
 
     /**
+     * @return When null, use the provider's default daemon base dir.
      * @since 2.2-rc-1
      */
+    @Nullable
     File getDaemonBaseDir(File defaultDaemonBaseDir);
 
     /**
@@ -103,12 +134,22 @@ public interface ProviderOperationParameters {
     ProgressListenerVersion1 getProgressListener();
 
     /**
+     * @return When null, do not forward any build progress events.
      * @since 2.4-rc-1
      */
+    @Nullable
     InternalBuildProgressListener getBuildProgressListener(InternalBuildProgressListener defaultListener);
 
+    /**
+     * @return When null, assume no arguments.
+     */
+    @Nullable
     List<String> getArguments();
 
+    /**
+     * @return When null, no tasks should be run. When empty, use the default tasks
+     */
+    @Nullable
     List<String> getTasks();
 
     /**
@@ -117,6 +158,7 @@ public interface ProviderOperationParameters {
     List<InternalLaunchable> getLaunchables(List<InternalLaunchable> defaultLaunchables);
 
     /**
+     * @return When empty, do not inject a plugin classpath.
      * @since 2.8-rc-1
      */
     List<File> getInjectedPluginClasspath(List<File> defaultClasspath);

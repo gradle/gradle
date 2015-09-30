@@ -39,6 +39,7 @@ import java.util.Set;
 /**
  * Generates groovy doc using Ant.
  */
+@Deprecated
 public class AntGroovydoc {
 
     private final IsolatedAntBuilder ant;

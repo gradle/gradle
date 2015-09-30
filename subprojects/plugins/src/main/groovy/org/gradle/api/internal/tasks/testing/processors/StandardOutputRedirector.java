@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.sonar.model
 
-import java.lang.annotation.*
+package org.gradle.api.internal.tasks.testing.processors;
 
-/**
- * Maps a model property to the corresponding Sonar property.
- *
- * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-@Documented
-public @interface SonarProperty {
-    String value()
+import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.logging.StandardOutputCapture;
+
+public interface StandardOutputRedirector extends StandardOutputCapture {
+    void redirectStandardOutputTo(StandardOutputListener stdOutDestination);
+
+    void redirectStandardErrorTo(StandardOutputListener stdErrDestination);
 }

@@ -31,6 +31,7 @@ import java.util.List;
 /**
  * A {@link org.gradle.BuildListener} which logs the build progress.
  */
+@Deprecated
 public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
     private final Logger logger;
     private final List<BuildListener> resultLoggers = new ArrayList<BuildListener>();

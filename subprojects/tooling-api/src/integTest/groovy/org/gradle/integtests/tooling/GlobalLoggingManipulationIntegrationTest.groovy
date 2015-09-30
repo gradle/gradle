@@ -27,10 +27,11 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
     @Rule RedirectStdIn stdIn
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
-    def "tooling api replaces standard streams"() {
+    def "tooling api does not replace standard streams"() {
         given:
         def outInstance = System.out
         def errInstance = System.err
+        def inInstance = System.in
 
         buildFile << "task hey"
 
@@ -39,8 +40,9 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         model.tasks.find { it.name == 'hey' }
-        !System.out.is(outInstance)
-        !System.err.is(errInstance)
+        System.out.is(outInstance)
+        System.err.is(errInstance)
+        System.in.is(inInstance)
     }
 
     static class FailingInputStream extends InputStream implements GroovyInterceptable {

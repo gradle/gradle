@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.logging.internal;
+package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.io.TextStream;
 import org.gradle.logging.StandardOutputCapture;
-import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.LinePerThreadBufferingOutputStream;
 
 import java.io.PrintStream;

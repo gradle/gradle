@@ -18,8 +18,8 @@
 
     <note>
         <para>
-            You may wish to use the new <link linkend="sonar_runner_plugin">Sonar Runner Plugin</link> instead of this plugin.
-            In particular, only the Sonar Runner plugin supports Sonar 3.4 and higher.
+            This plugin has been deprecated and superseded by the <ulink url="http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle">official plugin from SonarQube</ulink>.
+            This plugin will be removed in Gradle 3.0.
         </para>
     </note>
 

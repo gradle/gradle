@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.logging.StandardOutputRedirector;
 
 class TestOutputRedirector {
     private final StandardOutputRedirector redirector;

@@ -16,10 +16,12 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.measure.DataAmount
+import org.junit.experimental.categories.Category
 
+import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
+@Category(Experiment)
 class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def run() {
@@ -28,8 +30,9 @@ class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = "bigEmpty"
         runner.tasksToRun = ['help']
         // TODO: Tighten this threshold, once 1.0 is no longer the fastest ever
-        runner.maxExecutionTimeRegression = millis(3000)
-        runner.maxMemoryRegression = DataAmount.mbytes(200)
+        runner.maxExecutionTimeRegression = millis(3500)
+        // TODO: Tighten this threshold, once we reduce the base memory used per project
+        runner.maxMemoryRegression = mbytes(300)
         runner.targetVersions = ['1.0', '2.0', '2.7', 'last']
 
         when:

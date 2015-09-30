@@ -17,14 +17,12 @@
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.junit.Assume
 
-class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiLoggingCrossVersionSpec extends ToolingApiLoggingSpecification {
 
     def setup() {
-        //for embedded tests we don't mess with global logging. Run with forks only.
-        toolingApi.requireDaemons()
         reset()
     }
 

@@ -41,35 +41,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A {@link MinimalFileTree} which is composed using a mapping from relative path to file source.
  */
 public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
-    public enum FileCreationMode {
-        OVERWRITE,
-        KEEP_EXISTING
-    }
     private final Map<RelativePath, Action<OutputStream>> elements = new LinkedHashMap<RelativePath, Action<OutputStream>>();
     private final Factory<File> tmpDirSource;
     private final Chmod chmod;
-    private final FileCreationMode fileCreationMode;
 
     public MapFileTree(final File tmpDir, Chmod chmod) {
-        this(tmpDir, chmod, FileCreationMode.OVERWRITE);
-    }
-
-    public MapFileTree(final File tmpDir, Chmod chmod, FileCreationMode fileCreationMode) {
         this(new Factory<File>() {
                 public File create() {
                     return tmpDir;
                 }
-        }, chmod, fileCreationMode);
+        }, chmod);
     }
 
     public MapFileTree(Factory<File> tmpDirSource, Chmod chmod) {
-        this(tmpDirSource, chmod, FileCreationMode.OVERWRITE);
-    }
-
-    public MapFileTree(Factory<File> tmpDirSource, Chmod chmod, FileCreationMode fileCreationMode) {
         this.tmpDirSource = tmpDirSource;
         this.chmod = chmod;
-        this.fileCreationMode = fileCreationMode;
     }
 
     private File getTmpDir() {
@@ -151,7 +137,7 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
     private class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
         private final RelativePath path;
         private final Action<OutputStream> generator;
-        private long lastModified;
+        private final long lastModified;
         private final AtomicBoolean stopFlag;
         private File file;
 
@@ -160,6 +146,8 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
             this.path = path;
             this.generator = generator;
             this.stopFlag = stopFlag;
+            // round to nearest second
+            lastModified = System.currentTimeMillis() / 1000 * 1000;
         }
 
         public String getDisplayName() {
@@ -173,12 +161,7 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         public File getFile() {
             if (file == null) {
                 file = createFileInstance(path);
-                if(fileCreationMode == FileCreationMode.OVERWRITE || !file.exists()) {
-                    copyTo(file);
-                } else {
-                    // round to nearest second
-                    lastModified = file.lastModified() / 1000 * 1000;
-                }
+                copyTo(file);
             }
             return file;
         }
@@ -188,7 +171,6 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         public long getLastModified() {
-            getFile();
             return lastModified;
         }
 
@@ -197,8 +179,6 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         }
 
         public void copyTo(OutputStream outstr) {
-            // round to nearest second
-            lastModified = System.currentTimeMillis() / 1000 * 1000;
             generator.execute(outstr);
         }
 

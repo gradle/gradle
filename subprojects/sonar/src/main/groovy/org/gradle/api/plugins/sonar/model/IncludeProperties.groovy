@@ -20,6 +20,8 @@ import java.lang.annotation.*
 /**
  * Indicates that the annotated property holds an object with nested
  * Sonar properties.
+ *
+ * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

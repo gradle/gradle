@@ -52,6 +52,7 @@ public class Logging {
         return (Logger) LoggerFactory.getLogger(name);
     }
 
+    @Deprecated
     public static final Map<Integer, LogLevel> ANT_IVY_2_SLF4J_LEVEL_MAPPER = new HashMap<Integer, LogLevel>() {
         {
             put(Project.MSG_ERR, LogLevel.ERROR);
