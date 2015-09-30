@@ -26,11 +26,16 @@ import org.gradle.api.Incubating;
  * @see BuildResult
  */
 @Incubating
-public abstract class UnexpectedBuildException extends RuntimeException {
+public class UnexpectedBuildException extends RuntimeException {
     private final BuildResult buildResult;
 
     public UnexpectedBuildException(String message, BuildResult buildResult) {
         super(message);
+        this.buildResult = buildResult;
+    }
+
+    public UnexpectedBuildException(Throwable t, BuildResult buildResult) {
+        super(t);
         this.buildResult = buildResult;
     }
 

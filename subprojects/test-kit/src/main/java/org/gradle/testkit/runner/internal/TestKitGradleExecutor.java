@@ -18,6 +18,7 @@ package org.gradle.testkit.runner.internal;
 
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskOutcome;
+import org.gradle.testkit.runner.UnexpectedBuildException;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -76,6 +77,8 @@ public class TestKitGradleExecutor implements GradleExecutor {
             launcher.run();
         } catch (BuildException t) {
             return new GradleExecutionResult(standardOutput, standardError, tasks, t);
+        } catch(Throwable t) {
+            throw new UnexpectedBuildException(t, new DefaultBuildResult(standardOutput.toString(), standardError.toString(), tasks));
         } finally {
             if (connection != null) {
                 connection.close();

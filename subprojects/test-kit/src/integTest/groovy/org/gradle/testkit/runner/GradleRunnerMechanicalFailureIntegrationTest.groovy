@@ -18,7 +18,6 @@ package org.gradle.testkit.runner
 
 import org.gradle.testkit.runner.fixtures.GradleRunnerCoverage
 import org.gradle.testkit.runner.fixtures.IgnoreTarget
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GFileUtils
 import org.gradle.util.TextUtil
 
@@ -89,6 +88,15 @@ class GradleRunnerMechanicalFailureIntegrationTest extends AbstractGradleRunnerI
         message.contains("""Reason:
 Unknown command-line option '--unknown'.""")
         message.contains('Problem configuring task :helloWorld from command line.')
+        BuildResult result = t.buildResult
+        result.standardOutput.contains('BUILD FAILED')
+        result.standardError.contains("Unknown command-line option '--unknown'.")
+        result.standardError.contains("Problem configuring task :helloWorld from command line.")
+        result.tasks.empty
+        result.taskPaths(SUCCESS).empty
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UP_TO_DATE).empty
+        result.taskPaths(FAILED).empty
     }
 
     def "build execution with non-existent working directory"() {
@@ -107,6 +115,14 @@ Unknown command-line option '--unknown'.""")
         message.contains("""Reason:
 Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         !message.contains(':helloWorld')
+        BuildResult result = t.buildResult
+        result.standardOutput.contains('BUILD FAILED')
+        result.standardError.contains("Project directory '$nonExistentWorkingDir.absolutePath' does not exist.")
+        result.tasks.empty
+        result.taskPaths(SUCCESS).empty
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UP_TO_DATE).empty
+        result.taskPaths(FAILED).empty
     }
 
     @IgnoreTarget({ GradleRunnerCoverage.DEBUG })
@@ -119,7 +135,15 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         runner('helloWorld').build()
 
         then:
-        thrown GradleConnectionException
+        UnexpectedBuildException t = thrown UnexpectedBuildException
+        BuildResult result = t.buildResult
+        !result.standardOutput
+        !result.standardError
+        result.tasks.empty
+        result.taskPaths(SUCCESS).empty
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UP_TO_DATE).empty
+        result.taskPaths(FAILED).empty
     }
 
     def "daemon dies during build execution"() {
@@ -139,6 +163,14 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         gradleRunner.build()
 
         then:
-        thrown GradleConnectionException
+        UnexpectedBuildException t = thrown UnexpectedBuildException
+        BuildResult result = t.buildResult
+        result.standardOutput.contains(':helloWorld')
+        result.standardOutput.contains('Hello world!')
+        !result.standardOutput.contains('Bye world!')
+        !result.standardError
+        // TaskStartEvent is fired, task is still null when daemon JVM is shut down
+        result.tasks.size() == 1
+        !result.tasks[0]
     }
 }
