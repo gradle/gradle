@@ -19,9 +19,9 @@ dependencies {
 
     compile project(':core')
     compile project(':plugins')
-    compile libraries.slf4j_api
 
-    compile module('biz.aQute.bnd:bndlib:2.1.0')
+    compile libraries.slf4j_api
+    compile libraries.bndlib
 }
 
 useTestFixtures()
