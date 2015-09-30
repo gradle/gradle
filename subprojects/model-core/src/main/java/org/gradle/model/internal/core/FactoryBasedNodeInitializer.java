@@ -25,10 +25,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class FactoryBasedNodeInitializer<T, S extends T> implements NodeInitializer {
-    private final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference;
+    private final ModelReference<? extends InstanceFactory<? super T>> factoryReference;
     private final ModelType<S> type;
 
-    public FactoryBasedNodeInitializer(ModelReference<? extends InstanceFactory<? super T, String>> factoryReference, ModelType<S> type) {
+    public FactoryBasedNodeInitializer(ModelReference<? extends InstanceFactory<? super T>> factoryReference, ModelType<S> type) {
         this.factoryReference = factoryReference;
         this.type = type;
     }
@@ -40,7 +40,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> implements NodeInitiali
 
     @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-        InstanceFactory<? super T, String> instantiator = Cast.uncheckedCast(inputs.get(0).getInstance());
+        InstanceFactory<? super T> instantiator = Cast.uncheckedCast(inputs.get(0).getInstance());
         S item = instantiator.create(type, modelNode, modelNode.getPath().getName());
         modelNode.setPrivateData(type, item);
     }
@@ -60,7 +60,7 @@ public class FactoryBasedNodeInitializer<T, S extends T> implements NodeInitiali
         return new AbstractModelAction<Object>(ModelReference.of(path), descriptor, factoryReference) {
             @Override
             public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                InstanceFactory<S, String> factory = Cast.uncheckedCast(inputs.get(0).getInstance());
+                InstanceFactory<S> factory = Cast.uncheckedCast(inputs.get(0).getInstance());
                 for (ModelType<?> internalView : factory.getInternalViews(projectedType)) {
                     modelNode.addProjection(UnmanagedModelProjection.of(internalView));
                 }

@@ -19,9 +19,9 @@ package org.gradle.model.internal.core;
 import org.gradle.model.internal.type.ModelType;
 
 public interface InstanceFactoryRegistry {
-    <T> ModelReference<InstanceFactory<? super T, String>> getFactory(ModelType<T> type);
+    <T> ModelReference<InstanceFactory<? super T>> getFactory(ModelType<T> type);
 
-    <T> void register(ModelType<T> type, ModelReference<? extends InstanceFactory<? super T, String>> factoryReference);
+    <T> void register(ModelType<T> type, ModelReference<? extends InstanceFactory<? super T>> factoryReference);
 
     Iterable<ModelType<?>> supportedTypes();
 }

@@ -23,12 +23,12 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Set;
 
-public interface InstanceFactory<T, P> {
-    <S extends T> S create(ModelType<S> type, MutableModelNode modelNode, P payload);
+public interface InstanceFactory<T> {
+    <S extends T> S create(ModelType<S> type, MutableModelNode modelNode, String name);
 
     Set<ModelType<? extends T>> getSupportedTypes();
 
-    <S extends T> void registerFactory(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, ? super P, ? super MutableModelNode> factory);
+    <S extends T> void registerFactory(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, String, ? super MutableModelNode> factory);
 
     <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type);
 

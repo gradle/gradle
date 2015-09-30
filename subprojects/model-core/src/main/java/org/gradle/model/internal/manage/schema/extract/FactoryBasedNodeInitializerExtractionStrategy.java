@@ -30,7 +30,7 @@ public class FactoryBasedNodeInitializerExtractionStrategy implements NodeInitia
     @Override
     public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema, NodeInitializerRegistry nodeInitializerRegistry) {
         ModelType<T> type = schema.getType();
-        ModelReference<InstanceFactory<? super T, String>> factoryReference = instanceFactoryRegistry.getFactory(type);
+        ModelReference<InstanceFactory<? super T>> factoryReference = instanceFactoryRegistry.getFactory(type);
         if (factoryReference == null) {
             return null;
         }

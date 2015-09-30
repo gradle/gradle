@@ -24,15 +24,15 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Map;
 
 public class DefaultInstanceFactoryRegistry implements InstanceFactoryRegistry {
-    private final Map<ModelType<?>, ModelReference<? extends InstanceFactory<?, String>>> factoryReferences = Maps.newLinkedHashMap();
+    private final Map<ModelType<?>, ModelReference<? extends InstanceFactory<?>>> factoryReferences = Maps.newLinkedHashMap();
 
     @Override
-    public <T> ModelReference<InstanceFactory<? super T, String>> getFactory(ModelType<T> type) {
+    public <T> ModelReference<InstanceFactory<? super T>> getFactory(ModelType<T> type) {
         return Cast.uncheckedCast(factoryReferences.get(type));
     }
 
     @Override
-    public <T> void register(ModelType<T> type, ModelReference<? extends InstanceFactory<? super T, String>> factoryReference) {
+    public <T> void register(ModelType<T> type, ModelReference<? extends InstanceFactory<? super T>> factoryReference) {
         factoryReferences.put(type, factoryReference);
     }
 

@@ -31,13 +31,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
+public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
     private class FactoryRegistration<S extends T> {
         private final ModelRuleDescriptor source;
-        private final BiFunction<? extends S, ? super P, ? super MutableModelNode> factory;
+        private final BiFunction<? extends S, String, ? super MutableModelNode> factory;
 
-        public FactoryRegistration(@Nullable ModelRuleDescriptor source, BiFunction<? extends S, ? super P, ? super MutableModelNode> factory) {
+        public FactoryRegistration(@Nullable ModelRuleDescriptor source, BiFunction<? extends S, String, ? super MutableModelNode> factory) {
             this.source = source;
             this.factory = factory;
         }
@@ -73,7 +73,7 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
     }
 
     @Override
-    public <S extends T> void registerFactory(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, ? super P, ? super MutableModelNode> factory) {
+    public <S extends T> void registerFactory(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, String, ? super MutableModelNode> factory) {
         FactoryRegistration<S> factoryRegistration = getFactoryRegistration(type);
         if (factoryRegistration != null) {
             throw new GradleException(getDuplicateRegistrationMessage("a factory", type, factoryRegistration.source));
@@ -125,13 +125,13 @@ public class BaseInstanceFactory<T, P> implements InstanceFactory<T, P> {
     }
 
     @Override
-    public <S extends T> S create(ModelType<S> type, MutableModelNode modelNode, P payload) {
+    public <S extends T> S create(ModelType<S> type, MutableModelNode modelNode, String name) {
         FactoryRegistration<S> factoryRegistration = getFactoryRegistration(type);
         if (factoryRegistration == null) {
             throw new IllegalArgumentException(
                 String.format("Cannot create a %s because this type is not known to %s. Known types are: %s", type.getSimpleName(), displayName, getSupportedTypeNames()));
         }
-        return factoryRegistration.factory.apply(payload, modelNode);
+        return factoryRegistration.factory.apply(name, modelNode);
     }
 
     @Override
