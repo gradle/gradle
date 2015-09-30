@@ -120,7 +120,7 @@ registered when the binary type is registered:
             }
         }
 
-- Internal view type can be used top-level `BinaryContainer`, eg can do `binaries { withType(MyTypeInternal) { ... } }`.
+- Internal view type can be used with top-level `BinaryContainer`, eg can do `binaries { withType(MyTypeInternal) { ... } }`.
 - Rule subjects of type `ModelMap<>` can be used to refer to child nodes of `binaries` by an internal view.
 - Each binary spec should have the internal view `BinarySpecInternal` configured by default.
 
