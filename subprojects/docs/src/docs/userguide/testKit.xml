@@ -181,7 +181,7 @@
                 </itemizedlist>
             </para>
             <para>
-                By setting the system proGradleRunnerMechanicalFailureIntegrationTestperty <literal>org.gradle.testkit.debug</literal> to <literal>true</literal>
+                By setting the system property <literal>org.gradle.testkit.debug</literal> to <literal>true</literal>
                 in the IDE run configuration, a user can execute the functional tests in the same JVM process as the spawning Gradle process.
                 Future versions of Gradle will provide a way to predetermine this setting based on the runtime environment.
             </para>
