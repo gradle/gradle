@@ -27,10 +27,6 @@ import org.gradle.model.internal.core.ModelPath;
 import java.util.*;
 
 class ModelGraph {
-    private static enum PendingState {
-        ADD, NOTIFY;
-    }
-
     private final ModelNodeInternal root;
     private final Map<ModelPath, ModelNodeInternal> flattened = Maps.newTreeMap();
     private final SetMultimap<ModelPath, ModelCreationListener> pathListeners = LinkedHashMultimap.create();
@@ -39,7 +35,7 @@ class ModelGraph {
     private final Set<ModelCreationListener> listeners = new LinkedHashSet<ModelCreationListener>();
     private boolean notifying;
     private final List<ModelCreationListener> pendingListeners = new ArrayList<ModelCreationListener>();
-    private final Map<ModelNodeInternal, PendingState> pendingNodes = Maps.newLinkedHashMap();
+    private final List<ModelNodeInternal> pendingNodes = new ArrayList<ModelNodeInternal>();
 
     public ModelGraph(ModelNodeInternal rootNode) {
         this.root = rootNode;
@@ -56,7 +52,7 @@ class ModelGraph {
 
     public void add(ModelNodeInternal node) {
         if (notifying) {
-            pendingNodes.put(node, PendingState.ADD);
+            pendingNodes.add(node);
             return;
         }
 
@@ -64,26 +60,8 @@ class ModelGraph {
         flush();
     }
 
-    public void nodeProjectionsDefined(ModelNodeInternal node) {
-        if (notifying) {
-            if (!pendingNodes.containsKey(node)) {
-                pendingNodes.put(node, PendingState.NOTIFY);
-            }
-            return;
-        }
-
-        doNotify(node);
-        flush();
-    }
-
     private void doAdd(ModelNodeInternal node) {
         flattened.put(node.getPath(), node);
-        if (node.isAtLeast(ModelNode.State.ProjectionsDefined)) {
-            doNotify(node);
-        }
-    }
-
-    private void doNotify(ModelNodeInternal node) {
         notifying = true;
         try {
             notifyListeners(node, pathListeners.get(node.getPath()));
@@ -151,7 +129,7 @@ class ModelGraph {
     }
 
     private void addAncestorListener(ModelCreationListener listener) {
-        if (ModelPath.ROOT.equals(listener.getAncestor())) {
+        if (listener.getAncestor().equals(ModelPath.ROOT)) {
             // Don't need to match on path
             addEverythingListener(listener);
             return;
@@ -201,29 +179,13 @@ class ModelGraph {
             doAddListener(pendingListeners.remove(0));
         }
         while (!pendingNodes.isEmpty()) {
-            Iterator<Map.Entry<ModelNodeInternal, PendingState>> iPendingNodes = pendingNodes.entrySet().iterator();
-            Map.Entry<ModelNodeInternal, PendingState> entry = iPendingNodes.next();
-            iPendingNodes.remove();
-            ModelNodeInternal pendingNode = entry.getKey();
-            switch (entry.getValue()) {
-                case ADD:
-                    doAdd(pendingNode);
-                    break;
-                case NOTIFY:
-                    doNotify(pendingNode);
-                    break;
-            }
+            doAdd(pendingNodes.remove(0));
         }
     }
 
     private boolean maybeNotify(ModelNodeInternal node, ModelCreationListener listener) {
-        if (listener.getType() != null) {
-            if (!node.isAtLeast(ModelNode.State.ProjectionsDefined)) {
-                return false;
-            }
-            if (!node.getPromise().canBeViewedAsMutable(listener.getType()) && !node.getPromise().canBeViewedAsImmutable(listener.getType())) {
-                return false;
-            }
+        if (listener.getType() != null && !node.getPromiseRegardlessOfState().canBeViewedAsMutable(listener.getType()) && !node.getPromiseRegardlessOfState().canBeViewedAsImmutable(listener.getType())) {
+            return false;
         }
         return listener.onCreate(node);
     }

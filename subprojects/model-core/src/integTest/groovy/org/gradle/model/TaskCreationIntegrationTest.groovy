@@ -291,7 +291,7 @@ class TaskCreationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains "foo message: task foo with message!"
-        output.contains "bar message: [task bar] with message!"
+        output.contains "bar message: [task bar with] message!"
     }
 
     def "can use rule DSL to apply rules to all tasks"() {

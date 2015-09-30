@@ -211,8 +211,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 .hidden(true)
                 .build()
         );
-        // Make sure this is discoverable when `DefineProjections` actions are looking for it by type
-        modelRegistry.atStateOrLater(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), ModelNode.State.ProjectionsDefined);
 
         modelRegistry.createOrReplace(
             ModelCreators.unmanagedInstance(ModelReference.of("buildDir", File.class), new Factory<File>() {

@@ -80,7 +80,7 @@ class MutationRuleExecutionOrderTest extends Specification {
         modelRegistry.apply(MixedRules)
 
         then:
-        modelRegistry.get("recorder", MutationRecorder).mutations == ["b", "a"]
+        modelRegistry.get("recorder", MutationRecorder).mutations == ["a", "b"]
     }
 
     static class MutationRulesWithInputs extends RuleSource {

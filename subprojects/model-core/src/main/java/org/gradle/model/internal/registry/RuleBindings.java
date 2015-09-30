@@ -24,7 +24,6 @@ import org.gradle.model.internal.core.ModelPath;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 
 class RuleBindings {
     private final ModelGraph modelGraph;
@@ -59,7 +58,7 @@ class RuleBindings {
 
     private void addTypeMatches(ModelNodeInternal node, Collection<Reference> references) {
         for (Reference reference : references) {
-            if (reference.binding.isTypeCompatible(node.getPromise())) {
+            if (reference.binding.isTypeCompatible(node.getPromiseRegardlessOfState())) {
                 bound(reference, node);
             }
         }
@@ -82,18 +81,6 @@ class RuleBindings {
     public void remove(ModelNodeInternal node, RuleBinder ruleBinder) {
         rulesBySubject.remove(node, ruleBinder);
         rulesByInput.remove(node, ruleBinder);
-        removeReferences(node, ruleBinder, pathReferences);
-        removeReferences(node, ruleBinder, scopeReferences);
-    }
-
-    private void removeReferences(ModelNodeInternal node, RuleBinder ruleBinder, Multimap<ModelPath, Reference> references) {
-        Iterator<Reference> iterator = references.get(node.getPath()).iterator();
-        while (iterator.hasNext()) {
-            Reference reference = iterator.next();
-            if (reference.owner.equals(ruleBinder)) {
-                iterator.remove();
-            }
-        }
     }
 
     public void add(RuleBinder ruleBinder) {
@@ -122,7 +109,7 @@ class RuleBindings {
                 if (!node.isAtLeast(ModelNode.State.ProjectionsDefined)) {
                     continue;
                 }
-                if (binding.isTypeCompatible(node.getPromise())) {
+                if (binding.isTypeCompatible(node.getPromiseRegardlessOfState())) {
                     bound(reference, node);
                 }
             }

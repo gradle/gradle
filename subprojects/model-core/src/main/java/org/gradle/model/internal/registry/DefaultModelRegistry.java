@@ -95,6 +95,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         addRuleBindings(node);
         modelGraph.add(node);
         ruleBindings.nodeCreated(node);
+        transition(node, ProjectionsDefined, false);
         return node;
     }
 
@@ -243,7 +244,8 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         replace = true;
         try {
-            boolean wasProjectionsDefined = node.isAtLeast(ProjectionsDefined);
+            // Will internally verify that this is valid
+            node.replaceCreatorRuleBinder(toCreatorBinder(newCreator));
 
             ruleBindings.remove(node, node.getCreatorBinder());
             for (RuleBinder ruleBinder : node.getInitializerRuleBinders()) {
@@ -251,13 +253,9 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
             node.getInitializerRuleBinders().clear();
 
-            // Will internally verify that this is valid
-            node.replaceCreatorRuleBinder(toCreatorBinder(newCreator));
-            node.setState(Known);
+            node.setState(ModelNode.State.Known);
             addRuleBindings(node);
-            if (wasProjectionsDefined) {
-                transition(node, ProjectionsDefined, false);
-            }
+            transition(node, ModelNode.State.ProjectionsDefined, false);
         } finally {
             replace = false;
         }
@@ -634,7 +632,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         public int getLinkCount(ModelType<?> type) {
             int count = 0;
             for (ModelNodeInternal linked : links.values()) {
-                linked.ensureAtLeast(ProjectionsDefined);
                 if (linked.getPromise().canBeViewedAsMutable(type)) {
                     count++;
                 }
@@ -646,9 +643,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         public Set<String> getLinkNames(ModelType<?> type) {
             Set<String> names = Sets.newLinkedHashSet();
             for (Map.Entry<String, ModelNodeInternal> entry : links.entrySet()) {
-                ModelNodeInternal link = entry.getValue();
-                link.ensureAtLeast(ProjectionsDefined);
-                if (link.getPromise().canBeViewedAsMutable(type)) {
+                if (entry.getValue().getPromise().canBeViewedAsMutable(type)) {
                     names.add(entry.getKey());
                 }
             }
@@ -659,9 +654,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         public Iterable<? extends MutableModelNode> getLinks(final ModelType<?> type) {
             return Iterables.filter(links.values(), new Predicate<ModelNodeInternal>() {
                 @Override
-                public boolean apply(ModelNodeInternal link) {
-                    link.ensureAtLeast(ProjectionsDefined);
-                    return link.getPromise().canBeViewedAsMutable(type);
+                public boolean apply(ModelNodeInternal input) {
+                    return input.getPromise().canBeViewedAsMutable(type);
                 }
             });
         }
@@ -674,11 +668,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public boolean hasLink(String name, ModelType<?> type) {
             ModelNodeInternal linked = getLink(name);
-            if (linked == null) {
-                return false;
-            }
-            linked.ensureAtLeast(ProjectionsDefined);
-            return linked.getPromise().canBeViewedAsMutable(type);
+            return linked != null && linked.getPromise().canBeViewedAsMutable(type);
         }
 
         @Override
@@ -911,7 +901,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                         node = new MakeKnown(goal.path);
                         break;
                     case ProjectionsDefined:
-                        node = new DefineProjections(goal.path);
+                        node = new DefineProjections(goal);
                         break;
                     case GraphClosed:
                         node = new CloseGraph(goal);
@@ -1101,26 +1091,19 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class DefineProjections extends ModelNodeGoal {
-        public DefineProjections(ModelPath path) {
-            super(path);
+    private class DefineProjections extends ApplyActions {
+        public DefineProjections(NodeAtState target) {
+            super(target);
         }
 
         @Override
-        public boolean doIsAchieved() {
-            return node.isAtLeast(ProjectionsDefined);
-        }
-
-        @Override
-        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            dependencies.add(new ApplyActions(new NodeAtState(getPath(), ProjectionsDefined)));
-            dependencies.add(new NotifyProjectionsDefined(getPath()));
+        boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            boolean noActionsAdded = super.doCalculateDependencies(graph, dependencies);
+            if (!noActionsAdded) {
+                return false;
+            }
+            dependencies.add(new AddRulesMatchingProjections(getPath()));
             return true;
-        }
-
-        @Override
-        public String toString() {
-            return "define projections for " + getPath() + ", state: " + state;
         }
     }
 
@@ -1150,39 +1133,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public String toString() {
             return "transition dependents " + input.path + ", target: " + input.state + ", state: " + state;
-        }
-    }
-
-    private class TransitionChildrenOrReference extends ModelNodeGoal {
-
-        private final ModelNode.State targetState;
-
-        protected TransitionChildrenOrReference(ModelPath target, ModelNode.State targetState) {
-            super(target);
-            this.targetState = targetState;
-        }
-
-        @Override
-        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            if (node instanceof ModelReferenceNode) {
-                ModelReferenceNode referenceNode = (ModelReferenceNode) node;
-                ModelNodeInternal target = referenceNode.getTarget();
-                if (target == null || target.getPath().isDescendant(node.getPath())) {
-                    // No target, or target is an ancestor of this node, so is already being handled
-                    return true;
-                }
-                dependencies.add(graph.nodeAtState(new NodeAtState(target.getPath(), targetState)));
-            } else {
-                for (ModelNodeInternal child : node.getLinks()) {
-                    dependencies.add(graph.nodeAtState(new NodeAtState(child.getPath(), targetState)));
-                }
-            }
-            return true;
-        }
-
-        @Override
-        public String toString() {
-            return "transition children of " + getPath() + " to " + targetState + ", state: " + state;
         }
     }
 
@@ -1216,9 +1166,24 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            dependencies.add(new TransitionChildrenOrReference(getPath(), GraphClosed));
+            if (node instanceof ModelReferenceNode) {
+                // Graph close the target of the reference
+                ModelReferenceNode referenceNode = (ModelReferenceNode) node;
+                ModelNodeInternal target = referenceNode.getTarget();
+                if (target == null || target.getPath().isDescendant(getPath())) {
+                    // No target, or target is an ancestor of this node, so is already being closed
+                    return true;
+                }
+                dependencies.add(graph.nodeAtState(new NodeAtState(target.getPath(), GraphClosed)));
+            } else {
+                // Must graph-close each child first
+                for (ModelNodeInternal child : node.getLinks()) {
+                    dependencies.add(graph.nodeAtState(new NodeAtState(child.getPath(), GraphClosed)));
+                }
+            }
             return true;
         }
+
     }
 
     /**
@@ -1235,8 +1200,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         protected boolean doIsAchieved() {
-            // Only called when node exists
-            return true;
+            return node.isAtLeast(ProjectionsDefined);
         }
 
         @Override
@@ -1273,35 +1237,6 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class TryResolveAndDefineProjectionsForPath extends TryResolvePath {
-
-        private boolean attemptedPath;
-
-        public TryResolveAndDefineProjectionsForPath(ModelPath path) {
-            super(path);
-        }
-
-        @Override
-        protected boolean doIsAchieved() {
-            return node.isAtLeast(ProjectionsDefined);
-        }
-
-        @Override
-        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            if (modelGraph.find(getPath()) == null) {
-                if (!attemptedPath) {
-                    attemptedPath = super.calculateDependencies(graph, dependencies);
-                    return false;
-                } else {
-                    // Didn't find node at path
-                    return true;
-                }
-            }
-            dependencies.add(graph.nodeAtState(new NodeAtState(getPath(), ProjectionsDefined)));
-            return true;
-        }
-    }
-
     private class TryResolveReference extends ModelGoal {
         private final ModelReferenceNode parent;
         private final ModelPath path;
@@ -1313,7 +1248,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            dependencies.add(new TryResolveAndDefineProjectionsForPath(parent.getTarget().getPath().child(path.getName())));
+            dependencies.add(new TryResolvePath(parent.getTarget().getPath().child(path.getName())));
             return true;
         }
 
@@ -1355,15 +1290,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public boolean isAchieved() {
             ModelNodeInternal node = modelGraph.find(scope);
-            if (node == null || !node.isAtLeast(SelfClosed)) {
-                return false;
-            }
-            for (ModelNodeInternal child : node.getLinks()) {
-                if (!child.isAtLeast(ProjectionsDefined)) {
-                    return false;
-                }
-            }
-            return true;
+            return node != null && node.getState().compareTo(SelfClosed) >= 0;
         }
 
         @Override
@@ -1375,7 +1302,6 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
             if (modelGraph.find(scope) != null) {
                 dependencies.add(graph.nodeAtState(new NodeAtState(scope, SelfClosed)));
-                dependencies.add(new TransitionChildrenOrReference(scope, ProjectionsDefined));
             }
             return true;
         }
@@ -1416,7 +1342,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         private void maybeBind(ModelBinding binding, Collection<ModelGoal> dependencies) {
             if (!binding.isBound()) {
                 if (binding.getPredicate().getPath() != null) {
-                    dependencies.add(new TryResolveAndDefineProjectionsForPath(binding.getPredicate().getPath()));
+                    dependencies.add(new TryResolvePath(binding.getPredicate().getPath()));
                 } else {
                     dependencies.add(new TryDefineScope(binding.getPredicate().getScope()));
                 }
@@ -1478,9 +1404,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class NotifyProjectionsDefined extends ModelNodeGoal {
+    private class AddRulesMatchingProjections extends ModelNodeGoal {
 
-        protected NotifyProjectionsDefined(ModelPath target) {
+        protected AddRulesMatchingProjections(ModelPath target) {
             super(target);
         }
 
@@ -1490,12 +1416,11 @@ public class DefaultModelRegistry implements ModelRegistry {
                 return;
             }
             ruleBindings.nodeProjectionsDefined(node);
-            modelGraph.nodeProjectionsDefined(node);
         }
 
         @Override
         public String toString() {
-            return "notify projections defined for " + getPath() + ", state: " + state;
+            return "add rules matching projections " + getPath() + ", state: " + state;
         }
     }
 }

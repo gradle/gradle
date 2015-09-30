@@ -137,17 +137,26 @@ abstract class ModelNodeInternal implements MutableModelNode {
     @Override
     public abstract ModelNodeInternal getLink(String name);
 
-    public ModelPromise getPromise() {
-        if (!state.isAtLeast(State.ProjectionsDefined)) {
-            throw new IllegalStateException(String.format("Cannot get promise for %s in state %s when projections are not yet defined", getPath(), state));
-        }
+    /**
+     * Returns promise even if node is not in the {@link State#ProjectionsDefined} state.
+     */
+    public ModelPromise getPromiseRegardlessOfState() {
         return creatorBinder.getCreator().getPromise();
     }
 
+    /**
+     * Returns promise after ensuring that node is at least in {@link State#ProjectionsDefined} state.
+     */
+    public ModelPromise getPromise() {
+        ensureAtLeast(State.ProjectionsDefined);
+        return getPromiseRegardlessOfState();
+    }
+
+    /**
+     * Returns adapter after ensuring that node is at least in {@link State#ProjectionsDefined} state.
+     */
     public ModelAdapter getAdapter() {
-        if (!state.isAtLeast(State.Created)) {
-            throw new IllegalStateException(String.format("Cannot get adapter for %s in state %s when node is not created", getPath(), state));
-        }
+        ensureAtLeast(State.ProjectionsDefined);
         return creatorBinder.getCreator().getAdapter();
     }
 

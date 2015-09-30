@@ -34,7 +34,7 @@ class OneOfTypeBinderCreationListener extends ModelBinding {
 
     @Override
     public boolean canBindInState(ModelNode.State state) {
-        return state.isAtLeast(ModelNode.State.ProjectionsDefined);
+        return state.compareTo(ModelNode.State.ProjectionsDefined) >= 0;
     }
 
     public void onCreate(ModelNodeInternal node) {
