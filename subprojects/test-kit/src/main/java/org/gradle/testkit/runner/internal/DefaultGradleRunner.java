@@ -32,7 +32,6 @@ import java.util.List;
 public class DefaultGradleRunner extends GradleRunner {
 
     public static final String DIAGNOSTICS_MESSAGE_SEPARATOR = "-----";
-    public static final String DEBUG_SYS_PROP = "org.gradle.testkit.debug";
     private final File gradleHome;
     private final GradleExecutor gradleExecutor;
 
