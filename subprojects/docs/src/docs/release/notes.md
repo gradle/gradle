@@ -1,13 +1,13 @@
-Gradle 2.8 delivers performance improvements and a collection of general fixes and enhancments.
+Gradle 2.8 delivers performance improvements and a collection of general fixes and enhancements.
 
 Large builds with many source files should see major improvements in incremental build speed.
-This release also brings faster build script compilation, faster source compilation when using the new continuous mode,
+This release also brings faster build script compilation, faster source compilation when using continuous build,
 and general performance improvements that apply to all builds.
 
-Building upon the recent releases, this release brings more improvements to the new Gradle TestKit.
+Building upon the recent releases, this release brings more improvements to the [Gradle TestKit](userguide/test_kit.html).
 It is now easier to inject plugins under test into test builds.
 
-Work continues on the new "managed model".
+Work continues on the new [managed model](userguide/new_model.html).
 This release brings richer modelling capabilities along with interoperability improvements when dynamically depending on rule based tasks.
 
 A Gradle release would not be complete without contributions from the wonderful Gradle community.
@@ -22,7 +22,7 @@ Here are the new features introduced in this Gradle release.
 One of Gradle's key features is the ability to perform “incremental builds”.
 This allows Gradle to avoid doing redundant work, by detecting that it can safely reuse files created by a previous build.
 For example, the “class files” created by the Java compiler can be reused if there were no changes to source code or compiler settings since the previous build.
-This is a [generic capability available to all kinds of work performed by Gradle](https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks).
+This is a [generic capability available to all kinds of work performed by Gradle](userguide/more_about_tasks.html#sec:up_to_date_checks).
 
 This feature relies on tracking checksums of files in order to detect changes.
 In this Gradle release, improvements have been made to the management of file checksums,
@@ -30,7 +30,7 @@ resulting in significantly improved build times when the build is mostly up to d
 
 Highly incremental builds of projects with greater than 140,000 files have been measured at 35-50% faster with Gradle 2.8.
 Very large projects (greater than 400,000 files) are also significantly faster again, if there is ample memory available to the build process
-(see [“The Build Environment”](https://docs.gradle.org/current/userguide/build_environment.html) in the Gradle User Guide for how to control memory allocation).
+(see [“The Build Environment”](userguide/build_environment.html) in the Gradle User Guide for how to control memory allocation).
 Smaller projects also benefit from these changes.
 
 No build script or configuration changes, beyond upgrading to Gradle 2.8, are required to leverage these performance improvements.
@@ -312,7 +312,7 @@ Setting the Eclipse project name in `eclipse.project.file.beforeMerged` or `ecli
 
 ### Upgraded to Groovy 2.4.4
 
-The Gradle API now uses Groovy 2.4.4. Previously it was using Groovy 2.3.10. This change should be transparent to the majority of users, however it can imply some minor breaking changes.
+The Gradle API now uses Groovy 2.4.4. Previously, it was using Groovy 2.3.10. This change should be transparent to the majority of users; however, it can imply some minor breaking changes.
 Please refer to the [Groovy language changelogs](http://groovy-lang.org/changelogs.html) for further details.
 
 ### New PMD violations due to type resolution changes
