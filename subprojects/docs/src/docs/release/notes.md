@@ -141,25 +141,29 @@ Gradle now automatically adds the compile dependencies of each analyzed source s
 
 ### Managed model improvements
 
-#### Scalar collections
+A number of improvements have been made to the experimental [managed model](userguide/new_model.html) feature. This feature is currently used by the native and Play plugins and will evolve into a 
+general purpose feature for describing Gradle builds.
 
-The managed model now supports collections of scalar types as properties. This means that it is possible to use as element type of a `Set` or a `List`:
+#### Support for `Set` and `List` of scalar types
 
- - a JDK Number type (`Integer`, `Double`, ...)
+The managed model now supports collections of scalar types. This means that it is possible to use a `Set` or a `List` with element type:
+
+ - a JDK `Number` type (`Integer`, `Double`, ...)
  - a `Boolean`
  - a `String`
  - a `File`
  - or an enumeration type
 
+A collection of a scalar type can be attached to any `@Managed` type as a property, or used for the elements of a `ModelSet` or `ModelMap`, or as a top level element. For example: 
 
     @Managed
     interface User {
         Set<String> getGroups();
     }
 
-Properties of scalar types are available as read-only properties, in which case they default to an empty collection, or as read-write properties, in which case they default to `null`.
+Collections of scalar types are available as read-only properties, in which case they default to an empty collection, or as read-write properties, in which case they default to `null`.
 Read-only properties are similar to final values: they can be mutated as long as they are the subject of a rule. Read-write properties can also be mutated, but they are not final: the
-collection can be overwritten during a mutation phase.
+collection can be overwritten by a configuration rule.
 
 A read-only (non nullable) property is created by defining only a setter, while a read-write property is created by defining both a setter and a getter:
 
@@ -169,11 +173,13 @@ A read-only (non nullable) property is created by defining only a setter, while 
         void setGroups(Set<String> groups);
     }
 
-#### Support for `FunctionalSourceSet`s
+#### Support for `FunctionalSourceSet`
 
-This release facilitates adding source sets (`LanguageSourceSet`) to arbitrary locations in the model space through the use of the `language-base` plugin and `FunctionalSourceSet`'s.
-Having direct support for `FunctionalSourceSet`'s as both top level model elements and as properties of managed types allows build and plugin authors to strongly model things that use `LanguageSourceSet`'s.
-This kind of strongly typed modelling also allows build and plugin authors to access `LanguageSourceSet`'s in a controlled and consistent way using rules.
+This release facilitates adding source sets (`LanguageSourceSet`) to arbitrary locations in the model space through the use of the `language-base` plugin and `FunctionalSourceSet`.
+A `FunctionalSourceSet` can be attached to any `@Managed` type as a property, or used for the elements of a `ModelSet` or `ModelMap`, or as a top level element. 
+
+Using `FunctionalSourceSet` allows build and plugin authors to strongly model things that use collections of source as `LanguageSourceSet`s.
+This kind of strongly typed modelling also allows build and plugin authors to access `LanguageSourceSet`s in a controlled and consistent way using rules.
 
 Adding a top level FunctionalSourceSet is a simple as:
 
@@ -206,7 +212,7 @@ Here's an example of creating a managed type with `FunctionalSourceSet` properti
 
 #### Internal views for components
 
-It is now possible to attach internal information to an unmanaged `ComponentSpec`. This way a plugin can make some data about its components exposed to build logic via a public component type,
+It is now possible to attach internal information to an unmanaged `ComponentSpec`. This way a plugin can make some data about its components visible to build logic via a public component type,
 while hiding the rest of the data behind the internal view type. The default implementation of the component must implement all internal views declared for the component.
 
     interface SampleLibrarySpec extends ComponentSpec {
@@ -227,7 +233,7 @@ while hiding the rest of the data behind the internal view type. The default imp
 Components can be targeted by rules via their internal types when those internal types extend `ComponentSpec`:
 
     class Rules extends RuleSource {
-        @Finalize
+        @Mutate
         void mutateInternal(ModelMap<SampleLibrarySpecInternal> sampleLibs) {
             sampleLibs.each { sampleLib ->
                 sampleLib.internalData = "internal"
@@ -237,7 +243,7 @@ Components can be targeted by rules via their internal types when those internal
 
 For internal view types that do not not extend `ComponentSpec`, targeting components can be achieved via `ComponentSpecContainer.withType()`:
 
-    @Finalize
+    @Defaults
     void finalize(ModelMap<SampleLibrarySpec> sampleLibs) {
         sampleLibs.withType(SomeInternalView).all { sampleLib ->
             // ...
@@ -247,15 +253,14 @@ For internal view types that do not not extend `ComponentSpec`, targeting compon
 
 #### Rule based model configuration
 
-Interoperability between legacy configuration space and new rule based model configuration has been improved. More specifically, the `tasks.withType(..)` construct allows legacy configuration tasks
+Interoperability between legacy configuration space and new rule based model configuration space has been improved. More specifically, the `tasks.withType(..)` construct allows legacy configuration tasks
 to depend on tasks created via the new rule based approach. See [this issue](https://issues.gradle.org/browse/GRADLE-3318) for details.
 
 #### References between model elements
 
-ADAM: TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with references between different model
-elements.
-
-- Can use a reference property as input for a rule.
+Currently, the managed model works well for defining a tree of objects. This release improves support for a graph of objects, with better support for references between 
+different model elements. In particular, the inputs for a rule can traverse a "reference" property, which is simply a read-write property on a `@Managed` type that refers 
+to some other model element.
 
 
 ## Promoted features
