@@ -10,7 +10,11 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Debugging of tests executed with TestKit API from an IDE
+### TestKit improvements
+
+This release provide significant improvements to for consumers of the TestKit.
+
+#### Debugging of tests executed with TestKit API from an IDE
 
 Identifying the root cause of a failing functional test can be tricky. Debugging test execution from an IDE can help to discover problems
 by stepping through the code line by line. By default TestKit executes functional tests in a forked daemon process. Setting up remote debugging for a daemon process
@@ -21,6 +25,51 @@ a user can execute the functional tests in the same JVM process as the spawning 
 
 Alternatively, debugging behavior can also be set programmatically through the `GradleRunner` API with the method
 <a href="javadoc/org/gradle/testkit/runner/GradleRunner.html#withDebug(boolean)">withDebug(boolean)</a>.
+
+#### Unexpected build failure provide access to the build result
+
+With previous versions of Gradle, any unexpected failure during functional test executions resulted in throwing a
+<a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildSuccess.html">UnexpectedBuildSuccess</a> or a
+<a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildFailure.html">UnexpectedBuildFailure</a>.
+These types provide basic diagnostics about the root cause of the failure in textual form assigned to the exception `message` field. Suffice to say that a String is not very
+convenient for further inspections or assertions of the build outcome.
+
+This release also provides the `BuildResult` with the method <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildException.html#getBuildResult()">UnexpectedBuildException.getBuildResult()</a>.
+`UnexpectedBuildException` is the parent class of the exceptions `UnexpectedBuildSuccess` and `UnexpectedBuildFailure`. The following code example demonstrates the use of build result from
+fo an unexpected build failure:
+
+    class BuildLogicFunctionalTest extends Specification {
+        @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+
+        def "can inspect build result for unexpected failure"() {
+            given:
+            buildFile << """
+                task helloWorld {
+                    doLast {
+                        println 'Hello world!'
+                    }
+                }
+            """
+
+            when:
+            def result = GradleRunner.create()
+                .withProjectDir(testProjectDir.root)
+                .withArguments('helloWorld')
+                .buildAndFail()
+
+            then:
+            UnexpectedBuildSuccess t = thrown(UnexpectedBuildSuccess)
+            BuildResult result = t.buildResult
+            result.standardOutput.contains(':helloWorld')
+            result.standardOutput.contains('Hello world!')
+            !result.standardError
+            result.tasks.collect { it.path } == [':helloWorld']
+            result.taskPaths(SUCCESS) == [':helloWorld']
+            result.taskPaths(SKIPPED).empty
+            result.taskPaths(UP_TO_DATE).empty
+            result.taskPaths(FAILED).empty
+        }
+    }
 
 ## Promoted features
 

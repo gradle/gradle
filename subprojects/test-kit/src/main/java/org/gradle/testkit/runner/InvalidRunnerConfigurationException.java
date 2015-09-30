@@ -30,8 +30,4 @@ public class InvalidRunnerConfigurationException extends IllegalStateException {
     public InvalidRunnerConfigurationException(String s) {
         super(s);
     }
-
-    public InvalidRunnerConfigurationException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }
