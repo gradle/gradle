@@ -359,12 +359,13 @@ results in the following IDE project name mapping:
 ### Changes to the incubating integration between the managed model and the Java plugins
 
 The Java plugins make some details about the project source sets visible in the managed model, to allow integration between rules based plugins and
-the existing plugins. This integration has changed in the Gradle release, to move more of this integration into the managed model:
+the stable Java plugins. This integration has changed in this Gradle release, to move more of the integration into the managed model:
 
-- `sources` container is no longer added as a project extension. It is now visible only to rules as part of the managed model.
-- `ClassDirectoryBinarySpec` instances can no longer be created using the `binaries` container. Instances are added to this container by the Java plugins for each source set,
-however, additional instances cannot be added. This capability will be added again in a later release.
-- Instances are not added to the `binaries` container by the Java plugins until they are required by rules.
+- The `sources` container is no longer added as a project extension. It is now visible only to rules, as part of the managed model.
+- `ClassDirectoryBinarySpec` instances can no longer be added to the `binaries` container. Instances are still added to this container by the Java plugins for each source set,
+however, additional instances cannot be added. This capability will be added again in a later release, to allow rules based plugins to define arbitrary class directory binaries.
+- The Java plugins do not add instances to the `binaries` container until they are required by rules. Previously, the plugins would add these instances eagerly when the
+source set was defined.
 
 ## External contributions
 
