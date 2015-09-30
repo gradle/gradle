@@ -52,6 +52,10 @@ public interface ModelNode {
         public State previous() {
             return ModelNode.State.values()[ordinal() - 1];
         }
+
+        public boolean isAtLeast(State state) {
+            return this.ordinal() >= state.ordinal();
+        }
     }
 
     boolean isEphemeral();

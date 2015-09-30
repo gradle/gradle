@@ -20,10 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.internal.core.ModelNode;
-import org.gradle.model.internal.core.ModelPromise;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
-import org.gradle.model.internal.type.ModelType;
 
 class PathBinderCreationListener extends ModelBinding {
     private final Action<ModelBinding> bindAction;
@@ -35,23 +33,19 @@ class PathBinderCreationListener extends ModelBinding {
 
     @Override
     public boolean canBindInState(ModelNode.State state) {
-        if (predicate.getType() == null || predicate.getType().equals(ModelType.UNTYPED)) {
-            return true;
-        }
-        return state.compareTo(ModelNode.State.ProjectionsDefined) >= 0;
+        return predicate.isUntyped() || state.isAtLeast(ModelNode.State.ProjectionsDefined);
     }
 
     public void onCreate(ModelNodeInternal node) {
         if (boundTo != null) {
             throw new IllegalStateException(String.format("Reference %s for %s is already bound to %s.", predicate.getReference(), referrer, boundTo));
         }
-        ModelPromise promise = node.getPromiseRegardlessOfState();
-        if (isTypeCompatible(promise)) {
+        if (predicate.isUntyped() || isTypeCompatible(node.getPromise())) {
             boundTo = node;
             bindAction.execute(this);
         } else {
             throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
-                IncompatibleTypeReferenceReporter.of(node, promise, predicate.getReference(), writable).asString()
+                IncompatibleTypeReferenceReporter.of(node, node.getPromise(), predicate.getReference(), writable).asString()
             ));
         }
     }

@@ -133,7 +133,7 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         selfClose()
 
         then:
-        registry.state("container.foo") == ModelNode.State.ProjectionsDefined
+        registry.state("container.foo") == ModelNode.State.Known
 
         when:
         realize()
@@ -379,10 +379,9 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         realize()
 
         then:
-        ModelRuleExecutionException e = thrown()
-        e.cause instanceof InvalidModelRuleException
-        e.cause.cause instanceof ModelRuleBindingException
-        e.cause.cause.message.startsWith("Model reference to element 'container.foo' with type java.lang.String is invalid due to incompatible types.")
+        InvalidModelRuleException e = thrown()
+        e.cause instanceof ModelRuleBindingException
+        e.cause.message.startsWith("Model reference to element 'container.foo' with type java.lang.String is invalid due to incompatible types.")
     }
 
     static class SetOtherToName extends RuleSource {
@@ -759,15 +758,15 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         }
 
         expect:
-        registry.node("s").state == ModelNode.State.ProjectionsDefined
+        registry.node("s").state == ModelNode.State.Known
 
         when:
         registry.atState("beans", ModelNode.State.SelfClosed)
 
         then:
-        registry.node("s").state == ModelNode.State.ProjectionsDefined
+        registry.node("s").state == ModelNode.State.Known
         registry.get("beans.b1", Bean).value != "changed"
-        registry.node("s").state == ModelNode.State.ProjectionsDefined
+        registry.node("s").state == ModelNode.State.Known
 
         when:
         def sb2 = registry.get("beans.sb2", SpecialBean)
