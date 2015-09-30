@@ -1,3 +1,15 @@
+Gradle 2.8 delivers another round of important performance improvements. Large builds with many source files should see major improvements in 
+incremental build speed. And there are improvements that all Gradle users can enjoy, with faster build script compilation, 
+faster source compilation when using the new continuous mode, and general performance improvements.
+
+This version of Gradle also contains incremental improvements to the new Gradle TestKit, making it easier for plugin authors to write automated tests for their 
+plugin implementations.
+
+Work continues on the new "managed model".
+
+A Gradle release would not be complete without contributions from the wonderful Gradle community. This release provides support for file name encoding in Zip files, support for more PMD features and
+other fixes from community pull requests.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
