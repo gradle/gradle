@@ -141,13 +141,6 @@ Gradle now automatically adds the compile dependencies of each analyzed source s
 
 ### Managed model improvements
 
-
-ADAM: TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with references between different model
-elements.
-
-- Can use a reference property as input for a rule.
-
-
 #### Scalar collections
 
 The managed model now supports collections of scalar types as properties. This means that it is possible to use as element type of a `Set` or a `List`:
@@ -252,10 +245,18 @@ For internal view types that do not not extend `ComponentSpec`, targeting compon
     }
 
 
-### Rule based model configuration
+#### Rule based model configuration
 
 Interoperability between legacy configuration space and new rule based model configuration has been improved. More specifically, the `tasks.withType(..)` construct allows legacy configuration tasks
 to depend on tasks created via the new rule based approach. See [this issue](https://issues.gradle.org/browse/GRADLE-3318) for details.
+
+#### References between model elements
+
+ADAM: TBD: Currently, managed model works well for defining a tree of objects. This release improves support for a graph of objects, with references between different model
+elements.
+
+- Can use a reference property as input for a rule.
+
 
 ## Promoted features
 
@@ -276,6 +277,14 @@ Features that have become superseded or irrelevant due to the natural evolution 
 in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
+
+### The `sonar` and `sonar-runner` plugins have been superseded by an external plugin from SonarQube
+
+SonarQube is an open platform to manage code quality, and in previous versions of Gradle the `sonar` and `sonar-runner` plugin has provided integration
+with this analysis tool. An improved plugin is now available directly from the developers of SonarQube. This new plugin supersedes the `sonar` and `sonar-runner` plugins
+that are part of the Gradle distribution; the `sonar` and `sonar-runner` plugin are now deprecated and will be removed in Gradle 3.0.
+
+See [the official documentation from SonarQube](http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle) for more details.
 
 ### Deprecated classes and constants
 
@@ -298,14 +307,6 @@ not a part of the public API, some users may be utilizing it and should plan to 
 
 Setting the Eclipse project name in `eclipse.project.file.beforeMerged` or `eclipse.project.file.whenMerged` hook provided by the
 `Eclipse` plugin has been deprecated. Support for this will be removed in Gradle 3.0
-
-### The `sonar` and `sonar-runner` plugins have been superseded by an external plugin from SonarQube
-
-SonarQube is an open platform to manage code quality, and in previous versions of Gradle the `sonar` and `sonar-runner` plugin has provided integration
-with this analysis tool. An improved plugin is now available directly from the developers of SonarQube. This new plugin supersedes the `sonar` and `sonar-runner` plugins
-that are part of the Gradle distribution; the `sonar` and `sonar-runner` plugin are now deprecated and will be removed in Gradle 3.0.
-
-See [the official documentation from SonarQube](http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle) for more details.
 
 ## Potential breaking changes
 
