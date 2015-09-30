@@ -155,6 +155,19 @@ TBD - Add a dependency set at the component level, to be used as the default for
 - Generate stub API jar for Groovy and Scala libraries, use for compilation.
 - Discovery of annotation processor implementations.
 
+# Feature: Java library is compiled against the API of Java libraries in binary repository
+
+Add support for external dependencies.
+
+- Extend the dependency DSL to reference external libraries.
+- Reuse legacy repositories DSL for this feature, or perhaps bridge into model land.
+- Resolve external libraries from repository and include in compile time dependency graph.
+- Use jar + compile scope dependencies for a Maven module.
+- Use artifacts and dependencies from some conventional configuration (eg `compile`, or `default` if not present) an for Ivy module.
+- Generate API stub for external Jar and use this for compilation. Cache the generated API jar.
+- Verify library is not recompiled when API of external library has not changed (eg method body change, add private element).
+- Dependencies report shows external libraries in compile time dependency graph.
+
 ## Feature: Development team migrates Java library to Java 9
 
 Allow a Java library to build for Java 9, and produce both modular and non-modular variants that can be used by different consumers.
@@ -197,19 +210,6 @@ TBD - fail or warn when source code is not compiled against exactly the target J
 - Use Java 9 `-release` flag for compiling against older versions.
 - Use bootstrap classpath for cross compilation against older versions.
 - Add a toolchain resolve that reuses JVM discovery code from test fixtures to locate installed JVMs.
-
-# Feature: Java library is compiled against the API of Java libraries in binary repository
-
-Add support for external dependencies.
-
-- Extend the dependency DSL to reference external libraries.
-- Reuse legacy repositories DSL for this feature, or perhaps bridge into model land.
-- Resolve external libraries from repository and include in compile time dependency graph.
-- Use jar + compile scope dependencies for a Maven module.
-- Use artifacts and dependencies from some conventional configuration (eg `compile`, or `default` if not present) an for Ivy module.
-- Generate API stub for external Jar and use this for compilation. Cache the generated API jar.
-- Verify library is not recompiled when API of external library has not changed (eg method body change, add private element).
-- Dependencies report shows external libraries in compile time dependency graph.
 
 # Milestone 2: Gradle is self hosted on Java 9
 
