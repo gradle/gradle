@@ -37,13 +37,27 @@ architecture.
     }
 
 - Default to all packages: if no `api` section is found, we assume that all public elements of the library are exported.
+- This story is about implementing the DSL, not use it.
+- It is not expected to see the public API as part of the model report.
+
+### Test cases
+
+- Can have several `exports` clauses
+- Multiple `exports` clauses do not overwrite themselves
+- Can omit the `api` section
+- Validates that the package string is valid with regards to the JVM specs
+
+## Story: Generate an API jar using the public API declaration
+
 - All JVM libraries should produce an API and an implementation jar.
-- Model the API jar as a buildable element produced by the library.
 - Build a jar containing those packages from compiled classes for each variant of the library.
-- Not used yet by consumers, this story is simply to add the DSL and produce the API artifact.
+- Not used yet by consumers, this story is simply to produce the API artifact.
 
+### Implementation details
 
-TBD - May need some supporting stories to allow API jar to be modelled as a buildable element.
+For this story, it is expected that the API jar is built after the implementation jar. It is not
+in the scope of this story to make the API jar buildable without building the implementation jar.
+Therefore, it is acceptable that the API jar task depends on the implementation jar if it helps.
 
 ### Test cases
 
@@ -53,11 +67,25 @@ TBD - May need some supporting stories to allow API jar to be modelled as a buil
 - API jar does not contain non exported packages
 - If no API section is declared, API jar and implementation jars are identical (same contents)
 - Building the API jar should trigger compilation of classes
-- Building the API jar should not depend on the implementation jar
 - Changes to the specification of the public APIs should not trigger recompilation of the classes
 - Changes to the specification of the public APIs should not trigger repackaging of the implementation jar
 - Changes to the specification of the public APIs should trigger regeneration of the API jar
 - If the specification of the public APIs do not change, API jar is not rebuilt
+
+## Story: Model the API jar as a buildable element produced by the library
+
+Decouple the generation of the API jar from the generation of the implementation jar.
+A new binary spec type should likely be introduced, supporting only classes found in a directory.
+Replace the configuration of compile tasks from `JarBinarySpec` to the new binary type.
+Compose `JarBinarySpec` with that new specification.
+
+TBD: More clarification needed about how to properly separate the two.
+
+### Test cases
+
+- Building the API jar should not depend on the implementation jar
+- Building the implementation jar should not depend on the API jar
+- Building the implementation jar and the API jar should depend on the same compilation tasks
 
 ## Story: Implementation classes of library are not visible when compiling consuming Java source
 
