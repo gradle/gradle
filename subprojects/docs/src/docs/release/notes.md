@@ -328,6 +328,10 @@ The default version of CodeNarc has been updated from 0.23 to 0.24.1. Should you
        codenarc 'org.codenarc:CodeNarc:0.17'
     }
 
+### Updated to bndlib 2.4.0
+
+The built-in [OSGi plugin](userguide/osgi_plugin.html) uses the [bndlib](https://github.com/bndtools/bnd) library internally. The library has been updated from 2.1.0 to [2.4.0](https://github.com/bndtools/bndtools/wiki/Changes-in-2.4.0). 
+
 ### Improved IDE project naming deduplication
 
 To ensure unique project names in the IDE, Gradle applies a deduplication logic when generating IDE metadata for Eclipse and Idea projects.
