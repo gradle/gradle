@@ -15,8 +15,10 @@
  */
 
 package org.gradle.platform.base.internal.registry
-import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry
-import org.gradle.language.base.internal.testinterfaces.*
+
+import org.gradle.language.base.internal.testinterfaces.BareInternalView
+import org.gradle.language.base.internal.testinterfaces.NotBinarySpec
+import org.gradle.language.base.internal.testinterfaces.SomeBinarySpec
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
@@ -25,8 +27,12 @@ import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.platform.base.*
+import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.BinaryType
+import org.gradle.platform.base.BinaryTypeBuilder
+import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.binary.BaseBinarySpec
+import org.gradle.platform.base.internal.BinarySpecFactory
 import org.gradle.platform.base.internal.testinterfaces.BinarySpecInternalView
 import org.gradle.platform.base.internal.testinterfaces.NotImplementedBinarySpecInternalView
 import spock.lang.Unroll
@@ -66,7 +72,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         then:
         1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction action, ModelPath scope ->
             assert role == ModelActionRole.Defaults
-            assert action.subject == ModelReference.of(BinarySpecFactoryRegistry)
+            assert action.subject == ModelReference.of(BinarySpecFactory)
         }
         0 * _
     }

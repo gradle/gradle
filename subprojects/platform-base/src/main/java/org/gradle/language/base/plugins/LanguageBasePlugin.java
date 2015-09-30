@@ -21,7 +21,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.Factories;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -29,10 +28,12 @@ import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.model.FunctionalSourceSetNodeInitializer;
-import org.gradle.model.*;
+import org.gradle.model.Model;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
@@ -117,12 +118,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         }));
 
-        modelRegistry.createOrReplace(ModelCreators.unmanagedInstance(ModelReference.of(ModelPath.path("binarySpecFactoryRegistry"), ModelType.of(BinarySpecFactoryRegistry.class)), Factories.constant(new BinarySpecFactoryRegistry()))
-            .descriptor(ruleDescriptor)
-            .ephemeral(true)
-            .hidden(true)
-            .build());
-
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
             DirectNodeNoInputsModelAction.of(
                 ModelReference.of(BinarySpec.class),
@@ -187,11 +182,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
             if (!hasBuildableBinaries && !notBuildable.isEmpty()) {
                 assemble.doFirst(new CheckForNotBuildableBinariesAction(notBuildable));
             }
-        }
-
-        @Defaults
-        void registerBinaryFactories(BinaryContainer binaries, BinarySpecFactoryRegistry binaryFactoryRegistry) {
-            binaryFactoryRegistry.copyInto(binaries);
         }
 
         private static class CheckForNotBuildableBinariesAction implements Action<Task> {

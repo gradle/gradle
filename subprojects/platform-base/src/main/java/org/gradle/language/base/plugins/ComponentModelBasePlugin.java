@@ -16,22 +16,17 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.rules.ModelMapCreators;
-import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.internal.model.ComponentBinaryRules;
 import org.gradle.language.base.internal.model.ComponentRules;
 import org.gradle.language.base.internal.registry.*;
@@ -40,16 +35,13 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
-import org.gradle.model.internal.manage.schema.extract.*;
+import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
 
 import javax.inject.Inject;
-
-import java.util.List;
-import java.util.Map;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -94,7 +86,12 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     static class Rules extends RuleSource {
         @Model
         ComponentSpecFactory componentSpecFactory() {
-            return new ComponentSpecFactory("this collection");
+            return new ComponentSpecFactory("components");
+        }
+
+        @Model
+        BinarySpecFactory binarySpecFactory() {
+            return new BinarySpecFactory("binaries");
         }
 
         @Mutate
@@ -159,41 +156,11 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             extensions.add("platforms", platforms);
         }
 
-        @Model
-        BinarySpecFactory binarySpecFactory(final BinarySpecFactoryRegistry binaryFactoryRegistry) {
-            // BinarySpecFactoryRegistry is used by the BinaryContainer API, which we still need for the time being.
+        @Mutate
+        void registerLegacyBinaryFactories(BinaryContainer binaries, BinarySpecFactory binarySpecFactory) {
+            // This is used by the BinaryContainer API, which we still need for the time being.
             // We are adapting it to BinarySpecFactory here so it can be used by component.binaries model maps
-
-            final BinarySpecFactory binarySpecFactory = new BinarySpecFactory("this collection");
-            binaryFactoryRegistry.copyInto(new NamedDomainObjectFactoryRegistry<BinarySpec>() {
-                @Override
-                public <U extends BinarySpec> void registerFactory(Class<U> type, final NamedDomainObjectFactory<? extends U> factory) {
-                    binarySpecFactory.registerFactory(ModelType.of(type), null, new BiFunction<U, String, MutableModelNode>() {
-                        @Override
-                        public U apply(String s, MutableModelNode modelNode) {
-                            final U binarySpec = factory.create(s);
-                            final Object parentObject = modelNode.getParent().getParent().getPrivateData();
-                            if (parentObject instanceof ComponentSpec && binarySpec instanceof ComponentSpecAware) {
-                                ((ComponentSpecAware) binarySpec).setComponent((ComponentSpec) parentObject);
-                            }
-                            return binarySpec;
-                        }
-                    });
-                }
-            });
-            for (Map.Entry<Class<? extends BinarySpec>, ModelType<? extends BinarySpec>> entry : binaryFactoryRegistry.getImplementationTypes().entrySet()) {
-                ModelType<BinarySpec> publicType = Cast.uncheckedCast(ModelType.of(entry.getKey()));
-                ModelType<BinarySpec> implementationType = Cast.uncheckedCast(entry.getValue());
-                binarySpecFactory.registerImplementation(publicType, null, implementationType);
-            }
-            Map<Class<? extends BinarySpec>, List<ModelType<?>>> internalViews = binaryFactoryRegistry.getInternalViews();
-            for (Map.Entry<Class<? extends BinarySpec>, List<ModelType<?>>> entry : internalViews.entrySet()) {
-                ModelType<? extends BinarySpec> publicType = ModelType.of(entry.getKey());
-                for (ModelType<?> internalView : entry.getValue()) {
-                    binarySpecFactory.registerInternalView(publicType, null, internalView);
-                }
-            }
-            return binarySpecFactory;
+            binarySpecFactory.copyDomainObjectFactoriesInto(binaries);
         }
 
         @Model
