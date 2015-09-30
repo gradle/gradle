@@ -34,9 +34,9 @@ class MethodBackedModelAction<T> extends AbstractModelActionWithView<T> {
     }
 
     @Override
-    protected void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
+    protected void execute(MutableModelNode modelNode, T view, List<ModelView<?>> inputs) {
         Object[] args = new Object[1 + this.inputs.size()];
-        args[0] = object;
+        args[0] = view;
         for (int i = 0; i < this.inputs.size(); ++i) {
             args[i + 1] = inputs.get(i).getInstance();
         }

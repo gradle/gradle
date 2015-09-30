@@ -35,7 +35,7 @@ public class NoInputsModelAction<T> extends AbstractModelActionWithView<T> {
     }
 
     @Override
-    public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
-        configAction.execute(object);
+    public void execute(MutableModelNode modelNode, T view, List<ModelView<?>> inputs) {
+        configAction.execute(view);
     }
 }

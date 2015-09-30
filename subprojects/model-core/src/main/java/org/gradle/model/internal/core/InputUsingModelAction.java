@@ -44,7 +44,7 @@ public class InputUsingModelAction<T> extends AbstractModelActionWithView<T> {
     }
 
     @Override
-    protected void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
-        action.execute(object, inputs);
+    protected void execute(MutableModelNode modelNode, T view, List<ModelView<?>> inputs) {
+        action.execute(view, inputs);
     }
 }

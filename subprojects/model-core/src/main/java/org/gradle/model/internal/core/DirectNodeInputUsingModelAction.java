@@ -56,7 +56,7 @@ public class DirectNodeInputUsingModelAction<T> extends AbstractModelActionWithV
     }
 
     @Override
-    public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
-        action.execute(modelNode, object, inputs);
+    public void execute(MutableModelNode modelNode, T view, List<ModelView<?>> inputs) {
+        action.execute(modelNode, view, inputs);
     }
 }
