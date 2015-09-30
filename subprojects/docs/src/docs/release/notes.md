@@ -356,16 +356,15 @@ results in the following IDE project name mapping:
     \-bar
        \- bar-app
 
-### Changes to incubating integration between software model and the Java plugins
+### Changes to the incubating integration between the managed model and the Java plugins
 
-ADAM:TBD
+The Java plugins make some details about the project source sets visible in the managed model, to allow integration between rules based plugins and
+the existing plugins. This integration has changed in the Gradle release, to move more of this integration into the managed model:
 
-The behaviour of `ClassDirectoryBinarySpec` instances has changed:
-
-- `sources` container is no longer added as a project extension. It is visible only as part of the software model.
+- `sources` container is no longer added as a project extension. It is now visible only to rules as part of the managed model.
 - `ClassDirectoryBinarySpec` instances can no longer be created using the `binaries` container. Instances are added to this container by the Java plugins for each source set,
 however, additional instances cannot be added. This capability will be added again in a later release.
-- Instances are not added to the `binaries` container eagerly by the Java plugins.
+- Instances are not added to the `binaries` container by the Java plugins until they are required by rules.
 
 ## External contributions
 
