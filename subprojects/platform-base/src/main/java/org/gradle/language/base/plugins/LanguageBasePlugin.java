@@ -144,13 +144,15 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void registerFunctionalSourceSetNodeInitializer(ConstructableTypesRegistry constructableTypesRegistry, ServiceRegistry serviceRegistry) {
+        // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
+        void registerFunctionalSourceSetNodeInitializer(ConstructableTypesRegistry constructableTypesRegistry, @Path("serviceRegistry") ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer(instantiator));
         }
 
         @Mutate
-        void registerNodeInitializerExtractionStrategies(NodeInitializerRegistry nodeInitializerRegistry, ConstructableTypesRegistry constructableTypesRegistry) {
+        // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
+        void registerNodeInitializerExtractionStrategies(NodeInitializerRegistry nodeInitializerRegistry, @Path("constructableTypesRegistry") ConstructableTypesRegistry constructableTypesRegistry) {
             nodeInitializerRegistry.registerStrategy(constructableTypesRegistry);
         }
 
