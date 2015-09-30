@@ -305,7 +305,7 @@ class LoggingServiceRegistryTest extends Specification {
         outputs.stdErr == ''
     }
 
-    def doesNotRouteSystemOutAndErrToListenersWhenWhenEmbedded() {
+    def routesSystemOutAndErrToListenersWhenWhenEmbedded() {
         def listener = Mock(StandardOutputListener)
 
         when:
@@ -319,6 +319,8 @@ class LoggingServiceRegistryTest extends Specification {
         System.err.println("error")
 
         then:
+        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("info\n"))
+        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("error\n"))
         0 * listener._
     }
 

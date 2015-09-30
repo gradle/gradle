@@ -63,20 +63,20 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <ul>
      *     <li>Configures slf4j and log4j to route log messages through the logging system.</li>
+     *     <li>Replace System.out and System.err to capture output written to these destinations.</li>
+     *     <li>Configure java util logging.</li>
      * </ul>
      *
      * <p>Does not:</p>
      *
      * <ul>
      *     <li>Route logging output to the original System.out and System.err.</li>
-     *     <li>Replace System.out and System.err to capture output written to these destinations.</li>
-     *     <li>Configure java util logging.</li>
      * </ul>
      *
      * <p>Does nothing until started.</p>
      */
     public static LoggingServiceRegistry newEmbeddableLogging() {
-        return new EmbeddedLogging();
+        return new CommandLineLogging();
     }
 
     /**
@@ -132,19 +132,6 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
         protected OutputEventRenderer createOutputEventRenderer() {
             return new OutputEventRenderer(new ConsoleConfigureAction());
-        }
-    }
-
-    private static class EmbeddedLogging extends LoggingServiceRegistry {
-        protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
-            OutputEventRenderer renderer = get(OutputEventRenderer.class);
-            // Configure slf4j only
-            return new DefaultLoggingManagerFactory(
-                    new DefaultLoggingConfigurer(renderer,
-                            new Slf4jLoggingConfigurer(renderer)),
-                    renderer,
-                    new NoOpLoggingSystem(),
-                    new NoOpLoggingSystem());
         }
     }
 
