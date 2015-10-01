@@ -75,6 +75,16 @@ public interface ClassLoaderScope {
     ClassLoaderScope export(ClassPath classPath);
 
     /**
+     * Makes the provided classes visible to this scope and its children. The classes are loaded in their own ClassLoader whose parent is the export ClassLoader
+     * of the parent scope.
+     *
+     * <p>Can not be called after being locked.
+     *
+     * @return this
+     */
+    ClassLoaderScope export(ClassLoader classLoader);
+
+    /**
      * Creates a scope with this scope as parent.
      *
      * @param id an identifier for the child loader

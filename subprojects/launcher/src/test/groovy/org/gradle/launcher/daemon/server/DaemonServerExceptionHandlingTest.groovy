@@ -20,6 +20,7 @@ import org.gradle.StartParameter
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.initialization.BuildRequestContext
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.nativeintegration.ProcessEnvironment
@@ -49,7 +50,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
     def buildRequestContext = Stub(BuildRequestContext) {
         getClient() >> new GradleLauncherMetaData()
     }
-    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, IMPLICITLY_DISABLED, false, false, [])
+    def parameters = new DefaultBuildActionParameters(new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR, IMPLICITLY_DISABLED, false, false, ClassPath.EMPTY)
     def contextServices = Stub(ServiceRegistry)
 
     static class DummyLauncherAction implements BuildAction, Serializable {

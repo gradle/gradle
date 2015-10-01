@@ -204,7 +204,9 @@ must not be used. Often, build users are not particularly opinionated regarding 
 ## Candidate Stories
 
 * Implement an authentication scheme to facilitate authenticating with S3 repositories using AWS EC2 Instance Metadata.
-* Implement an authentication scheme to facilitate preemptive basic authentication with HTTP repositories.
+* Implement an authentication scheme to facilitate authenticating with S3 repositories using [temporary credentials](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html).
+* Implement an authentication scheme to facilitate authenticating with S3 no credentials (publicly accessible buckets)
+~~* Implement an authentication scheme to facilitate preemptive basic authentication with HTTP repositories.~~
 * Implement an authentication scheme to facilitate public key authentication with SFTP repositories.
 * Add a `CredentialsContainer` to `org.gradle.api.internal.project.AbstractProject` similar to `org.gradle.api.artifacts.ConfigurationContainer`
 * Credentials, for the most part, should represent where the credentials data lives e.g. 'the private key is located at ~/.ssh/id_rsa'

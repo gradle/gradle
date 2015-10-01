@@ -18,7 +18,7 @@ package org.gradle.play.integtest.basic
 
 import org.gradle.play.integtest.PlayBinaryApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
-import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.integtest.fixtures.PlayApp
 
 class PlayBinaryBasicAppIntegrationTest extends PlayBinaryApplicationIntegrationTest {
     @Override

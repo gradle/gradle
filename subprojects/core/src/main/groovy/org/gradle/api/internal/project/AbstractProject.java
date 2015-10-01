@@ -63,10 +63,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelCreators;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
@@ -204,6 +201,18 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 .hidden(true)
                 .build()
         );
+
+        ModelSchemaStore schemaStore = services.get(ModelSchemaStore.class);
+        NodeInitializerRegistry nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore);
+        modelRegistry.createOrReplace(
+            ModelCreators.bridgedInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry)
+                .descriptor("Project.<init>.nodeInitializerRegistry()")
+                .ephemeral(true)
+                .hidden(true)
+                .build()
+        );
+        // Make sure this is discoverable when `DefineProjections` actions are looking for it by type
+        modelRegistry.atStateOrLater(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), ModelNode.State.ProjectionsDefined);
 
         modelRegistry.createOrReplace(
             ModelCreators.unmanagedInstance(ModelReference.of("buildDir", File.class), new Factory<File>() {
@@ -964,11 +973,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     // Not part of the public API
     public void model(Closure<?> modelRules) {
         ModelRegistry modelRegistry = getModelRegistry();
-        ModelSchemaStore modelSchemaStore = getModelSchemaStore();
         if (TransformedModelDslBacking.isTransformedBlock(modelRules)) {
-            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, modelSchemaStore, this.getRootProject().getFileResolver()), modelRules);
+            ClosureBackedAction.execute(new TransformedModelDslBacking(modelRegistry, this.getRootProject().getFileResolver()), modelRules);
         } else {
-            new NonTransformedModelDslBacking(modelRegistry, modelSchemaStore).configure(modelRules);
+            new NonTransformedModelDslBacking(modelRegistry).configure(modelRules);
         }
     }
 

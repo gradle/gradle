@@ -62,7 +62,11 @@ splits.eachWithIndex { List<Project> bucket, int i ->
             testTask.dependsOn(checkTask)
         }
     }
-    project.getExtensions().buildTypes."prBuild${index}"("startHeartBeat", testTask.name, "stopHeartBeat")
+    buildTypes {
+        "prBuild${index}" {
+            tasks "startHeartBeat", testTask.name, "stopHeartBeat"
+        }
+    }
 }
 
 gradle.taskGraph.whenReady { graph ->

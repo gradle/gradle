@@ -16,47 +16,47 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.internal.BiAction;
+import org.gradle.internal.Cast;
 import org.gradle.internal.TriAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
 
-public class DirectNodeInputUsingModelAction<T> implements ModelAction<T> {
-    private final ModelReference<T> subject;
-    private final ModelRuleDescriptor descriptor;
-    private final List<ModelReference<?>> inputs;
+public class DirectNodeInputUsingModelAction<T> extends AbstractModelActionWithView<T> {
     private final TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action;
 
-    public DirectNodeInputUsingModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs,
+    public DirectNodeInputUsingModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs,
                                            TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
-        this.subject = subject;
-        this.descriptor = descriptor;
-        this.inputs = inputs;
+        super(subject, descriptor, inputs);
         this.action = action;
     }
 
-    public static <T> DirectNodeInputUsingModelAction<T> of(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs,
+    public static <T> DirectNodeInputUsingModelAction<T> of(ModelReference<T> modelReference, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> inputs,
                                                       TriAction<? super MutableModelNode, ? super T, ? super List<ModelView<?>>> action) {
         return new DirectNodeInputUsingModelAction<T>(modelReference, descriptor, inputs, action);
     }
 
-    @Override
-    public ModelReference<T> getSubject() {
-        return subject;
+    public static <T> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, List<? extends ModelReference<?>> input, final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> action) {
+        return new AbstractModelAction<T>(reference, descriptor, input) {
+            @Override
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                action.execute(modelNode, inputs);
+            }
+        };
+    }
+
+    public static <T, I> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, ModelReference<I> input, final BiAction<? super MutableModelNode, ? super I> action) {
+        return new AbstractModelAction<T>(reference, descriptor, input) {
+            @Override
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                action.execute(modelNode, Cast.<I>uncheckedCast(inputs.get(0).getInstance()));
+            }
+        };
     }
 
     @Override
-    public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
-        action.execute(modelNode, object, inputs);
-    }
-
-    @Override
-    public List<ModelReference<?>> getInputs() {
-        return inputs;
-    }
-
-    @Override
-    public ModelRuleDescriptor getDescriptor() {
-        return descriptor;
+    public void execute(MutableModelNode modelNode, T view, List<ModelView<?>> inputs) {
+        action.execute(modelNode, view, inputs);
     }
 }

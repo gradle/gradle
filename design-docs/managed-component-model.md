@@ -81,6 +81,7 @@ registered when the component type is registered:
 - Model report shows elements as public view type. Internal views and properties defined in them are not shown in the report for this story.
 - Internal view type can be used with `ComponentSpecContainer` methods that filter components by type, eg can do `components { withType(MyTypeInternal) { ... } }`.
 - Rule subjects of type `ModelMap<>` can be used to refer to nodes by an internal view.
+- Each component spec should have the internal view `ComponentSpecInternal` configured by default.
 
 ### Test cases
 
@@ -97,19 +98,61 @@ registered when the component type is registered:
     - Default implementation type that does not implement all internal view types raises error.
     - Specifying the same internal view twice raises an error.
 
+## Plugin author declares internal view for custom non-managed binary types
 
-## Plugin author declares internal view for custom binary and source set types
+Given a `BinarySpec` subtype with default implementation extending `BaseBinarySpec`, allow one or more internal views to be
+registered when the binary type is registered:
 
-Generalise the previous story to also work with `BinarySpec` and `LanguageSourceSet` subtypes that provide a default implementation.
+    @BinaryType
+    public void registerMyType(BinaryTypeBuilder<MyType> builder) {
+        builder.defaultImplementation(MyTypeImpl.class);
+        builder.internalView(MyTypeInternal.class);
+        builder.internalView(MyInternalThing.class);
+    }
+
+- Each internal view must be an interface. The interface does not need to extend the public type.
+- For this story, the default implementation must implement each of the internal view types. Fail at registration if this is not the case.
+- Internal view type can be used with `BinarySpecContainer` methods that filter binaries by type, eg can do:
+
+        components {
+            myComponent {
+                binaries.withType(MyTypeInternal) { ... }
+            }
+        }
+
+- Internal view type can be used with top-level `BinaryContainer`, eg can do `binaries { withType(MyTypeInternal) { ... } }`.
+- Rule subjects of type `ModelMap<>` can be used to refer to child nodes of `binaries` by an internal view.
+- Each binary spec should have the internal view `BinarySpecInternal` configured by default.
+
+### Test cases
+
+- Internal view type can be used with `BinarySpecContainer.withType()`.
+    - a) if internal view extends public view
+    - b) if internal view does not extend public view
+- Internal view type can be used with `BinaryContainer.withType()`.
+    - a) if internal view extends public view
+    - b) if internal view does not extend public view
+- Internal view type can be used with rule subjects like `ModelMap<InternalView>`.
+    - a) if internal view extends public view
+    - b) if internal view does not extend public view
+- Error cases:
+    - Non-interface internal view raises error during rule execution time.
+    - Default implementation type that does not implement public view type raises error.
+    - Default implementation type that does not implement all internal view types raises error.
+    - Specifying the same internal view twice raises an error.
 
 ### Implementation
 
 - Should start to unify the type registration infrastructure, so that registration for all types are treated the same way and there are few or no differences
 between the implementation of component, binary and source set type registration rules. This will be required for the next stories.
 
+## Plugin author declares internal views for custom managed binary type
+
+TBD
+
 ## Plugin author declares internal views for any extensible type
 
-Given a plugin defines a general purpose type that is then extended by another plugin, allow internal views to be declared for the general type as well as the
+Given a plugin defines a general purpose type that is then extended by another plugin, allow internal views to be declared for the general super type as well as the
 specialized type. For example:
 
     class BasePlugin extends RuleSource {
@@ -163,7 +206,11 @@ This default implementation is then used as the super class for all `@Managed` s
 - Change core plugins to declare default implementations for `ComponentSpec`, `BinarySpec` and `LanguageSourceSet`. This will allow `@Managed` subtypes of each
 of these types.
 
-## Plugin author declares internal views for custom managed component type
+## Plugin author declares internal view for custom non-managed source set types
+
+Add support for `LanguageSourceSet` and `FunctionalSourceSet`.
+
+## Plugin author declares internal views for custom managed type
 
 Given a plugin defines a `@Managed` subtype of a general type, allow the plugin to define internal views for that type.
 
@@ -218,47 +265,15 @@ applied to them regardless of their location in the model.
 
 Non-goal is to provide this as a general capability for arbitrary types.
 
-## Referenced element can be used as input for a rule
-
-For example:
-
-    @Managed
-    interface Person {
-        Address getAddress()
-        void setAddress(Address address)
-    }
-
-    model {
-        person(Person) {
-            address = $(...)
-        }
-        delivery {
-            sendTo = $(person.address)
-            destinationCity = $(person.address.city)
-        }
-    }
-
-- When binding a path for input, need to realize enough of each element to finalize references so that references can be traversed.
-- Need to handle paths that traverse a `null` reference.
-- Error messages on binding failures.
-- Reference value can be changed while mutation is allowed. Treat reference change as remove and add.
-- Can't remove an element when it is the target of a reference.
-
-### Test cases
-
-- Can bind to target element via reference path.
-- Nice error message when reference is `null`. Should indicate where the `null` reference is.
-- Nice error message when binding to unknown child element.
-- Can bind to child of target element via reference path.
-- When reference is attached in `@Defaults` rule, configuration rules are applied to target element.
-- Can bind element via path that contains several references.
-- Can reference to ancestor.
-- Can mutate reference.
-
 ### Backlog
 
-- Deal with case where by-path binding points to a null reference or null scala value, rather than traverses a null reference. 
+- Improve error message when input or subject cannot be bound due to a null reference.
+- Deal with case where by-path binding points to a null reference or null scalar value. Currently we supply a null value to the rule, should probably fail.
 - Deal with by-type binding to a non-null reference.
+- Currently an input or subject reachable via a reference can be viewed only as the types from the reference definition. Instead, should be able to view the target
+using any type that the view supports.
+- The target of a reference value can be changed while mutation is allowed. Treat reference change as remove and add.
+- Can't remove an element when it is the target of a reference.
 
 ## Model report shows references between elements
 
@@ -270,6 +285,11 @@ For example:
 - Reference is not `null`.
 - Can mutate reference value during configuration.
 - Cycle from child to parent.
+
+### Backlog
+
+- A reference is almost always set via a rule on the parent or an ancestor. This is not captured, so that in the report the reference does not appear to be
+configured by any rule.
 
 ## Referenced element can be used as subject for a rule
 
@@ -293,10 +313,16 @@ only to implement the top level containers.
 - Change `BinarySpec` implementations so that they are node backed.
 - Apply the above capabilities to the `binaries` top level container.
 
+## Run only those rules that define cross-cutting configuration
+
+- Don't need to discover the elements of a top-level container in order to apply cross-cutting rules. However, the approach so
+far forces all elements to be discovered.
+
 ## Backlog
 
 - Apply to `ComponentSpec`, `Task`, etc.
-- Conveniences to apply rules to any thing of a given type.
+- Apply cross-cutting defaults, finalization, validation.
+- Allow rules to be applied to any thing of a given type, relative to any model element.
 
 # Feature 8: Plugin author attaches source sets to managed type
 
@@ -305,24 +331,110 @@ build types and flavors each with an associated source set.
 
 It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpec.sources` model backed containers.
 
-## Story: Allow `FunctionalSourceSet` instances to be attached to a managed type
+## Story: Allow top level model elements of type `FunctionalSourceSet` to created
 
-- Allow a `FunctionalSourceSet` to be used as:
-    - A read-only property of a `@Managed` type
-    - An element of managed collections `ModelSet` and `ModelMap`
-    - A top level element.
+- Allow a `FunctionalSourceSet` to be used as a top level model element.
 - Empty by default.
 
-- Out-of-scope: Making `FunctionalSourceSet` managed.
-- Out-of-scope: Adding any children. This is the next story. Children can be added by first attaching a factory using `registerFactory`.  
+For example:
+
+    model {
+        sources(FunctionalSourceSet)
+    }
+
+Or:
+
+    @Model
+    void sources(FunctionalSourceSet sources) {
+    }
+
+
+- Out-of-scope: Making the state of `FunctionalSourceSet` managed. This means, for example, the children of the source set will not be visible in the `model` report, and that
+  immutability will not be enforced.
+- Out-of-scope: Adding any children to the source set. This is a later story. A plugin can add children by first attaching a factory using `registerFactory()`.
+
+### Test cases
+
+- Instance can be defined as above, when the `LanguageBasePlugin` plugin has been applied.
+- Instance can not be defined when `LanguageBasePlugin` has not been applied. Error message should include details of which types are available.
+- Model report shows something reasonable for source set instance.
 
 ### Implementation
 
-- Converge on `NodeInitializer` as the strategy for creating the children of a managed type, the elements of a model collection and top level elements:
-    - Replace the various `ChildNodeInitializerStrategy` implementation with one that delegates to the schema.
-    - Add some way to register a `NodeInitializer` for an unmanaged or partially managed type.
+- Continue to converge on `NodeInitializer` as the strategy for creating all model elements, including the children of a managed type, the elements of a model collection and
+top level model elements. For this story, we only need to make this work for top level model elements.
+    - All model elements are created using a `NodeInitializer`.
+    - Each type has 1 `NodeInitializer` implementation associated with it, that can be reused in any context where that type appears.
+- Allow a `NodeInitializer` to be located for `FunctionalSourceSet` from the `NodeInitializerRegistry`.
+- Extract validation from `NonTransformedModelDslBacking` and `TransformedModelDslBacking` into some shared location, probably to `NodeInitializerRegistry`. The idea here is to
+  have a single place where something outside the registry can ask for a 'constructable' thing.
+    - `NonTransformedModelDslBacking` and `TransformedModelDslBacking` no longer need to use the `ModelSchemaStore`.
+    - Error message should include details of which types can be created. Keep in mind that this validation will need to be reused in the next story, for managed type properties and collection elements.
+    - Query the `NodeInitializerExtractionStrategy` instances for the list of types they support.
+- Change `NodeInitializerRegistry` so that strategies are pushed into it, rather than pulled, and change the `LanguageBasePlugin` to register a strategy.
+
+## Story: Allow a managed type to have a property of type `FunctionalSourceSet`
+
+- Allow a `FunctionalSourceSet` to be used as:
+    - A read-only property or a mutable property of a `@Managed` type
+    - An element of managed collections `ModelSet` and `ModelMap`
+
+For example:
+
+    @Managed
+    interface BuildType {
+        FunctionalSourceSet getSources()
+
+        FunctionalSourceSet getInputs()
+        void setInputs(FunctionalSourceSet sources)
+
+        ModelMap<FunctionalSourceSet> getComponentSources()
+    }
+
+### Implementation
+
+- Continue to converge on `NodeInitializer` as the strategy for creating the children of a managed type, the elements of a model collection and top level elements.
 - Change validation for managed type properties and managed collection elements to allow any type for which a creation strategy is available.
-- Add a creation strategy for `FunctionalSourceSet`
+    - Share (don't duplicate) the validation from the previous story that decides whether an instance of a given type can be created.
+    - Error message should include the types available to be used.
+- Update user guide to list `FunctionalSourceSet` as a type that can be used in the model.
+- Refactors to clean up implementation:
+    - Should share the same mechanism to expose the initializer for `FunctionalSourceSet` and `JarBinarySpec`, to make it easier to later add more types.
+      Ideally, this would mean registering some description of the types (eg here's a public type and here's an implementation type for it), rather than
+      registering an initializer strategy implementation.
+    - Replace the various `ChildNodeInitializerStrategy` implementations with one that delegates to the schema.
+
+### Test cases
+- read-only property of a `@Managed` type.
+- a mutable property of a `@Managed` type.
+- element of managed collections `ModelSet`.
+- element of managed collections `ModelMap`.
+- Attempting to define a managed type with a non-supported type on any of the above cases should report an error with the supported types including:
+    - FunctionalSourceSet
+    - ModelMap<T> for any supported T
+    - ModelSet<T> for any supported T
+- Cannot define a property or managed element of a type which extends FunctionalSourceSet
+- A property or managed element of type `FunctionalSourceSet` cannot be applied when the `LanguageBasePlugin` has not been applied.
+- Model report shows something reasonable for a managed property or collections of type FunctionalSourceSet.
+
+## Story: Validate model types more eagerly
+
+- Validate the type of all top level elements, regardless of whether they are used or not in the current build.
+- Do this at the same time as `ModelRegistry.bindAllReferences()` is used.
+- Do not validate projects that are not used in the build current build.
+- Validate elements added via DSL and rules.
+- Validate the following top level element types (check for existing test coverage, some of this may already exist):
+    - ModelMap<T> and ModelSet<T> where T is not constructable.
+    - List<T> and Set<T> where T is not a scalar type.
+    - A `@Managed` type with a property of type T where T is not scalar and not constructable.
+    - Any T where T is not constructable. 
+- Ensure a consistent error message for each failure, should describe the available T for each case.
+- Other elements should be validated as they are realized.
+
+TBD:
+One option is to do so in `ModelRegistry.bindAllReferences()` (which might be renamed to `validateRules()`). It could just transition everything currently known to ‘projections defined'
+that should shake out a bunch of errors without closing the universe. The idea isn’t necessarily to catch every possible failure that might happen, just to be a reasonable trade off between
+coverage and the cost of the coverage
 
 ## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
 
@@ -334,7 +446,7 @@ It is also a goal of this feature to make `ComponentSpec.sources` and `BinarySpe
 ### Implementation
 
 - TBD: Currently rules push language registrations into various well known instances. Should change this to work with all instances, ideally by pull rather than push.
-- TBD: Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has 
+- TBD: Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has
 no knowledge of where its elements end up being referenced.
 
 ## Story: Allow `LanguageSourceSet` instances to be attached to a managed type
@@ -360,22 +472,22 @@ no knowledge of where its elements end up being referenced.
 ### Implementation
 
 - Use the same approach as used to make `ComponentSpec.sources` visible to rules.
-    - Will need to make `BaseBinarySpec` node backed, similar to `BaseComponentSpec`.   
+    - Will need to make `BaseBinarySpec` node backed, similar to `BaseComponentSpec`.
     - Should refactor to simplify both cases.
 
 - TBD: Currently `CUnitPlugin` uses methods on `FunctionalSourceSet` that are not available on `ModelMap`.
 - TBD: Reuse `FunctionalSourceSet` for `ComponentSpec.sources` and `BinarySpec.sources`.
 
-## Story: Elements of project `sources` container are visible to rules 
+## Story: Elements of project `sources` container are visible to rules
 
 - TBD: Change `ProjectSourceSet` so that it is bridged in the same way as the `binaries` container, alternatively move `sources` completely into model space.
 - TBD: Currently `JavaBasePlugin` contributes source sets to `sources` container.
 
-## Story: Build logic applies cross cutting configuration to all `LanguageSourceSet` instances 
+## Story: Build logic applies cross cutting configuration to all `LanguageSourceSet` instances
 
 - All `LanguageSourceSet` instances are visible through `sources` container
-- Depends on improvements to reference handling define in previous feature. 
-- TBD: Need to traverse schema to determine where source sets may be found in the model. Ensure only those model elements that are required are realized. 
+- Depends on improvements to reference handling define in previous feature.
+- TBD: Need to traverse schema to determine where source sets may be found in the model. Ensure only those model elements that are required are realized.
 - TBD: Need to split this up into several stories.
 
 # Later features

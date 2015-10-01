@@ -228,3 +228,37 @@ It is not a requirement that `ModelMap` is structurally compatible with NamedDom
 ### Open questions
 
 - Implications for FunctionalSourceSet and project level source set container?
+
+## Referenced element can be used as input for a rule
+
+For example:
+
+    @Managed
+    interface Person {
+        Address getAddress()
+        void setAddress(Address address)
+    }
+
+    model {
+        person(Person) {
+            address = $(...)
+        }
+        delivery {
+            sendTo = $(person.address)
+            destinationCity = $(person.address.city)
+        }
+    }
+
+- When binding a path for input, need to realize enough of each element to finalize references so that references can be traversed.
+- Need to handle paths that traverse a `null` reference.
+- Error messages on binding failures.
+
+### Test cases
+
+- Can bind to target element via reference path.
+- Nice error message when reference is `null`.
+- Can bind to child of target element via reference path.
+- When reference is attached in `@Defaults` rule, configuration rules are applied to target element.
+- Can bind element via path that contains several references.
+- Can reference to ancestor.
+- Can mutate reference.

@@ -19,23 +19,31 @@ import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.BiAction;
-import org.gradle.internal.Factories;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
+import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
-import org.gradle.model.*;
+import org.gradle.language.base.internal.model.FunctionalSourceSetNodeInitializer;
+import org.gradle.model.Model;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.model.collection.internal.BridgedCollections;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
+import org.gradle.model.internal.Internal;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistry;
+import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinaryContainer;
@@ -68,8 +76,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     public void apply(final Project target) {
         target.getPluginManager().apply(LifecycleBasePlugin.class);
-        target.getExtensions().create("sources", DefaultProjectSourceSet.class);
-
         DefaultBinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
         applyRules(modelRegistry, binaries);
     }
@@ -90,7 +96,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
             )
                 .descriptor(descriptor)
                 .ephemeral(true)
-                .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType, NodeBackedModelMap.createUsingParentNode(binarySpecModelType)))
+                .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType,
+                    ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(binarySpecModelType))))
                 .withProjection(UnmanagedModelProjection.of(DefaultBinaryContainer.class))
                 .build()
         );
@@ -112,12 +119,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
             }
         }));
 
-        modelRegistry.createOrReplace(ModelCreators.unmanagedInstance(ModelReference.of(ModelPath.path("__binarySpecFactoryRegistry"), ModelType.of(BinarySpecFactoryRegistry.class)), Factories.constant(new BinarySpecFactoryRegistry()))
-            .descriptor(ruleDescriptor)
-            .ephemeral(true)
-            .hidden(true)
-            .build());
-
         modelRegistry.getRoot().applyToAllLinksTransitive(ModelActionRole.Defaults,
             DirectNodeNoInputsModelAction.of(
                 ModelReference.of(BinarySpec.class),
@@ -128,9 +129,32 @@ public class LanguageBasePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
 
+        @Model @Internal
+        ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ModelSchemaStore.class);
+        }
+
+        @Model @Internal
+        ConstructableTypesRegistry constructableTypesRegistry() {
+            return new DefaultConstructableTypesRegistry();
+        }
+
+        @Mutate
+        // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
+        void registerFunctionalSourceSetNodeInitializer(ConstructableTypesRegistry constructableTypesRegistry, @Path("serviceRegistry") ServiceRegistry serviceRegistry) {
+            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+            constructableTypesRegistry.registerConstructableType(ModelType.of(FunctionalSourceSet.class), new FunctionalSourceSetNodeInitializer(instantiator));
+        }
+
+        @Mutate
+        // Path needed to avoid closing root scope before `NodeInitializerRegistry` can be finalized
+        void registerNodeInitializerExtractionStrategies(NodeInitializerRegistry nodeInitializerRegistry, @Path("constructableTypesRegistry") ConstructableTypesRegistry constructableTypesRegistry) {
+            nodeInitializerRegistry.registerStrategy(constructableTypesRegistry);
+        }
+
         @Model
-        ProjectSourceSet sources(ExtensionContainer extensions) {
-            return extensions.getByType(ProjectSourceSet.class);
+        ProjectSourceSet sources(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(Instantiator.class).newInstance(DefaultProjectSourceSet.class);
         }
 
         @Mutate
@@ -161,11 +185,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
             if (!hasBuildableBinaries && !notBuildable.isEmpty()) {
                 assemble.doFirst(new CheckForNotBuildableBinariesAction(notBuildable));
             }
-        }
-
-        @Defaults
-        void registerBinaryFactories(BinaryContainer binaries, BinarySpecFactoryRegistry binaryFactoryRegistry) {
-            binaryFactoryRegistry.copyInto(binaries);
         }
 
         private static class CheckForNotBuildableBinariesAction implements Action<Task> {

@@ -277,6 +277,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 }
 
             };
+            this.classNodeResolver = new ShortcutClassNodeResolver();
         }
 
         // This creepy bit of code is here to put the full source path of the script into the debug info for
@@ -294,6 +295,44 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     return super.toByteArray();
                 }
             };
+        }
+    }
+
+    /**
+     * This custom class node resolver is responsible for quickly discarding class lookups
+     * based on the class name, in order to increase the performance of compilation of Groovy scripts:
+     * the Groovy compiler, for each thing that may be a class reference in a script, performs *lots*
+     * of attempts to load a class using different fully qualified class names. In some situations,
+     * we are able to tell that this will fail, for example when we see something that starts with
+     * java.lang$java$lang$.
+     * This shortcut makes dramatic differences in compilation times.
+     */
+    private static class ShortcutClassNodeResolver extends ClassNodeResolver {
+        @Override
+        public LookupResult findClassNode(String name, CompilationUnit compilationUnit) {
+            // todo: ideally, we should use a precompiled DFA here, in order to choose whether to perform a lookup
+            // in linear time
+            if (name.startsWith("org$gradle$")) {
+                return null;
+            }
+            if (name.indexOf("$org$gradle") > 0 || name.indexOf("$java$lang") > 0 || name.indexOf("$groovy$lang") > 0) {
+                return null;
+            }
+            if (name.startsWith("java.") || name.startsWith("groovy.") || name.startsWith("org.gradle")) {
+                int idx = 6;
+                char c;
+                while ((c = name.charAt(idx)) == '.' || Character.isLowerCase(c)) {
+                    idx++;
+                }
+                if (c == '$') {
+                    return null;
+                }
+                if (name.indexOf("org.gradle", 1) > 0) {
+                    // ex: org.gradle.api.org.gradle....
+                    return null;
+                }
+            }
+            return super.findClassNode(name, compilationUnit);
         }
     }
 

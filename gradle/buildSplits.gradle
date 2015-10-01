@@ -13,42 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.build.BuildTypes
 
 def buckets = [
-    '1': [':platformPlay', ':modelCore', ':announce', ':antlr', ':internalIntegTesting', ':internalTesting', ':maven', ':messaging',
-          ':performance', ':platformBase', ':platformJvm', ':buildComparison', ':buildInit', ':cli', ':codeQuality', ':testKit',
-          ':docs', ':ear', ':ide', ':ideNative', ':ivy', ':jacoco', ':javascript', ':jetty', ':languageGroovy', ':languageJvm',
-          ':launcher', ':languageNative', ':platformNative', ':testingNative', ':native'
-    ],
+    "1": [":platformPlay", ":scala", ":languageScala", ":buildComparison",
+        ":ivy", ":platformBase", ":jacoco", ":announce", ":internalIntegTesting",
+        ":diagnostics", ":jetty", ":cli", ":reporting", ":toolingApiBuilders", ":openApi"],
 
-    '2': [':dependencyManagement', ':core', ':toolingApi',
-          ':modelGroovy', ':pluginDevelopment', ':pluginUse', ':publish', ':scala', ':signing', ':sonar',
-          ':openApi', ':osgi', ':toolingApiBuilders', ':ui', ':wrapper', ':languageScala', ':diagnostics',
-          ':plugins', ':integTest',
-          ':baseServices', ':baseServicesGroovy', ':reporting', ':resources', ':resourcesHttp', ':resourcesS3', ':resourcesSftp',
-          ':distributions', ':languageJava'
-    ]
+    "2": [":toolingApi", ":dependencyManagement", ":testKit", ":distributions",
+        ":pluginUse", ":sonar", ":jacoco", ":buildInit", ":languageGroovy", ":internalTesting",
+        ":languageJvm", ":performance", ":publish", ":resources", ":baseServicesGroovy", ":resourcesHttp",
+        ":pluginDevelopment", ":osgi"],
+
+    "3": [":launcher", ":plugins", ":codeQuality", ":languageJava",
+        ":ui", ":maven", ":javascript", ":antlr", ":messaging", ":ear",
+        ":resourcesS3", ":wrapper", ":resourcesSftp", ":signing", ":modelGroovy", ":baseServices"],
+
+    "4": [":docs", ":integTest", ":core", ":languageNative", ":ide", ":platformNative", ":modelCore", ":testingNative",
+        ":ideNative", ":native"]
 ]
 
 //Make sure all projects are accounted for
 def coveredProjects = (buckets.collect { it.value }).flatten()
 assert coveredProjects.size() == subprojects.size(): "The following projects should be added to a bucket: ${subprojects.collect { ":${it.name}" } - coveredProjects}"
 
-
-buckets.each { String bucketName, List<String> projects ->
-    buildTypeList.each { BuildTypes.BuildType buildType ->
-        def tasks = tasksForProjects(buildType, projects)
-        project.getExtensions().buildTypes."${buildType.name + bucketName}"(buildType.projectProperties, *tasks)
+//Create appropriate build types for each bucket
+buildTypes.toArray().each { buildType ->
+    buckets.each { String bucketName, List<String> projects ->
+        def projectTasks = tasksForProjects(buildType, projects)
+        buildTypes.create("${buildType.name + bucketName}") {
+            tasks projectTasks as String[]
+            projectProperties buildType.projectProperties
+        }
     }
-
 }
 
-def tasksForProjects(BuildTypes.BuildType buildType, List<String> projects) {
-    Set<String> tasks = []
+def tasksForProjects(buildType, List<String> projects) {
+    List tasks = []
     projects.each { String p ->
         buildType.tasks.each { String t ->
-            String task = reverseGrouping(t)
+            String task = resolveTask(t)
             if (!task.contains(':')) {
                 tasks << "$p:${task}"
             } else {
@@ -56,14 +59,13 @@ def tasksForProjects(BuildTypes.BuildType buildType, List<String> projects) {
             }
         }
     }
-    return tasks.toList()
+    return tasks
 }
 
-
-def String reverseGrouping(String task) {
-    if (task.startsWith('runtime')) {
-        return task.substring(7, 8).toLowerCase() + task.substring(8, task.length() - 1)
+def String resolveTask(String task) {
+    if (testGroupings.containsKey(task)) {
+        return testGroupings[task]
+    } else {
+        return task
     }
-    task
 }
-

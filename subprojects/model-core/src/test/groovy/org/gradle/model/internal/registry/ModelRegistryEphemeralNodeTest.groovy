@@ -17,9 +17,9 @@
 package org.gradle.model.internal.registry
 
 import org.gradle.api.Transformer
-import org.gradle.api.internal.rules.ModelMapCreators
 import org.gradle.internal.Factory
-import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.ModelNode
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import spock.lang.Specification
 
@@ -68,7 +68,7 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         registry.prepareForReuse()
 
         then:
-        registry.node("foo").state == ModelNode.State.Known
+        registry.node("foo").state == ModelNode.State.ProjectionsDefined
         registry.get("foo") == ["1"]
         events.size() == 2
     }
@@ -99,21 +99,23 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         registry.prepareForReuse()
 
         then:
-        registry.node("foo").state == ModelNode.State.Known
-        registry.node("bar").state == ModelNode.State.Known
+        registry.node("foo").state == ModelNode.State.ProjectionsDefined
+        registry.node("bar").state == ModelNode.State.ProjectionsDefined
         registry.get("foo") == ["1"]
         events.size() == 3
-        registry.node("bar").state == ModelNode.State.Known
+        registry.node("bar").state == ModelNode.State.ProjectionsDefined
         registry.get("bar") == ["1"]
         events.size() == 4
     }
 
     def "creator inputs for replaced ephemeral nodes are bound"() {
         when:
-        registry.createOrReplace(registry.creator("foo") { it.ephemeral(true).unmanaged(List, ["old"])})
+        registry.createOrReplace(registry.creator("foo") { it.ephemeral(true).unmanaged(List, {
+            ["old"]
+        } as Factory)})
         registry.createOrReplace(registry.creator("bar") { it.ephemeral(true).unmanaged(StringBuilder, List) { List l -> new StringBuilder(l[0]) }})
-        registry.mutate(List) {
-            it.add "2"
+        registry.mutate(List) { List list ->
+            list.add "2"
         }
         registry.mutate {
             it.path("bar").type(StringBuilder).action(List) { bar, foo ->
@@ -129,15 +131,17 @@ class ModelRegistryEphemeralNodeTest extends Specification {
 
         when:
         registry.prepareForReuse()
-        registry.createOrReplace(registry.creator("foo") { it.ephemeral(true).unmanaged(List, ["new"])})
+        registry.createOrReplace(registry.creator("foo") { it.ephemeral(true).unmanaged(List, {
+            ["new"]
+        } as Factory)})
         registry.createOrReplace(registry.creator("bar") { it.ephemeral(true).unmanaged(StringBuilder, List) { List l -> new StringBuilder(l[0]) }})
 
         then:
-        registry.node("foo").state == ModelNode.State.Known
-        registry.node("bar").state == ModelNode.State.Known
+        registry.node("foo").state == ModelNode.State.ProjectionsDefined
+        registry.node("bar").state == ModelNode.State.ProjectionsDefined
         registry.get("foo") == ["new", "2"]
 
-        registry.node("bar").state == ModelNode.State.Known
+        registry.node("bar").state == ModelNode.State.ProjectionsDefined
         registry.get("bar").toString() == "new bar"
     }
 
@@ -152,7 +156,7 @@ class ModelRegistryEphemeralNodeTest extends Specification {
                 .create("things") {
             it.ephemeral(true).modelMap(Thing)
         }
-        .mutate(ModelMapCreators.instantiatorType(Thing)) {
+        .mutate(ModelRegistryHelper.instantiatorType(Thing)) {
             it.registerFactory(Thing) { new Thing(name: it) }
         }
         registry.mutateModelMap("things", Thing) {
@@ -174,9 +178,9 @@ class ModelRegistryEphemeralNodeTest extends Specification {
         registry.prepareForReuse()
 
         then:
-        registry.node("things").state == ModelNode.State.Known
-        registry.node("things.foo").state == ModelNode.State.Known
-        registry.node("things.bar").state == ModelNode.State.Known
+        registry.node("things").state == ModelNode.State.ProjectionsDefined
+        registry.node("things.foo").state == ModelNode.State.ProjectionsDefined
+        registry.node("things.bar").state == ModelNode.State.ProjectionsDefined
     }
 
     def "nodes with creators dependent on ephemeral nodes are reset"() {

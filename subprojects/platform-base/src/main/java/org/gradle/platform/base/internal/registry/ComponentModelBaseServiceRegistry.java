@@ -38,7 +38,7 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
 
     }
 
-    public void registerBuildServices(ServiceRegistration registration){
+    public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScopeServices());
     }
 
@@ -74,6 +74,7 @@ public class ComponentModelBaseServiceRegistry implements PluginServiceRegistry 
         MethodModelRuleExtractor createComponentBinariesPluginInspector() {
             return new ComponentBinariesModelRuleExtractor();
         }
+
         MethodModelRuleExtractor createBinaryTaskPluginInspector() {
             return new BinaryTasksModelRuleExtractor();
         }

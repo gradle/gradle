@@ -24,6 +24,8 @@ import org.gradle.platform.base.BinarySpec;
 public interface BinarySpecInternal extends BinarySpec {
     ModelType<BinarySpec> PUBLIC_MODEL_TYPE = ModelType.of(BinarySpec.class);
 
+    Class<? extends BinarySpec> getPublicType();
+
     void setBuildable(boolean buildable);
 
     BinaryBuildAbility getBuildAbility();

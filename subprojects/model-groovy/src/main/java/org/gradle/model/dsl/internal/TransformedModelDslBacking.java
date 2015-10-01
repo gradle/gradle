@@ -33,9 +33,6 @@ import org.gradle.model.dsl.internal.transform.RulesBlock;
 import org.gradle.model.dsl.internal.transform.SourceLocation;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 
@@ -58,15 +55,13 @@ public class TransformedModelDslBacking {
     private final ModelRegistry modelRegistry;
     private final Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor;
     private final Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor;
-    private final ModelSchemaStore schemaStore;
 
-    public TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, RelativeFilePathResolver relativeFilePathResolver) {
-        this(modelRegistry, schemaStore, INPUT_PATHS_EXTRACTOR, new RelativePathSourceLocationTransformer(relativeFilePathResolver));
+    public TransformedModelDslBacking(ModelRegistry modelRegistry, RelativeFilePathResolver relativeFilePathResolver) {
+        this(modelRegistry, INPUT_PATHS_EXTRACTOR, new RelativePathSourceLocationTransformer(relativeFilePathResolver));
     }
 
-    TransformedModelDslBacking(ModelRegistry modelRegistry, ModelSchemaStore schemaStore, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor, Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
+    TransformedModelDslBacking(ModelRegistry modelRegistry, Transformer<? extends InputReferences, ? super Closure<?>> inputPathsExtractor, Transformer<SourceLocation, ? super Closure<?>> ruleLocationExtractor) {
         this.modelRegistry = modelRegistry;
-        this.schemaStore = schemaStore;
         this.inputPathsExtractor = inputPathsExtractor;
         this.ruleLocationExtractor = ruleLocationExtractor;
     }
@@ -81,18 +76,20 @@ public class TransformedModelDslBacking {
     public <T> void create(String modelPathString, @DelegatesTo.Target Class<T> type, @DelegatesTo(genericTypeIndex = 0) Closure<?> closure) {
         SourceLocation sourceLocation = ruleLocationExtractor.transform(closure);
         ModelPath modelPath = ModelPath.path(modelPathString);
-        ModelSchema<T> schema = schemaStore.getSchema(ModelType.of(type));
         ModelRuleDescriptor descriptor = toDescriptor(sourceLocation, modelPath);
-        if (!(schema instanceof ManagedImplModelSchema)) {
-            throw new InvalidModelRuleDeclarationException(descriptor, "Cannot create an element of type " + type.getName() + " as it is not a managed type");
+        try {
+            NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getType());
+            NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(ModelType.of(type));
+            modelRegistry.create(ModelCreators.of(modelPath, nodeInitializer).descriptor(descriptor).build());
+        } catch (ModelTypeInitializationException e) {
+            throw new InvalidModelRuleDeclarationException(descriptor, e);
         }
-        modelRegistry.create(ModelCreators.of(modelPath, ((ManagedImplModelSchema<T>) schema).getNodeInitializer()).descriptor(descriptor).build());
         registerAction(modelPath, type, descriptor, ModelActionRole.Initialize, closure);
     }
 
     private <T> void registerAction(final ModelPath modelPath, Class<T> viewType, final ModelRuleDescriptor descriptor, final ModelActionRole role, final Closure<?> closure) {
         final ModelReference<T> reference = ModelReference.of(modelPath, viewType);
-        ModelAction<T> action = DirectNodeNoInputsModelAction.of(reference, descriptor, new Action<MutableModelNode>() {
+        ModelAction action = DirectNodeNoInputsModelAction.of(reference, descriptor, new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode modelNode) {
                 InputReferences inputs = inputPathsExtractor.transform(closure);
@@ -110,7 +107,7 @@ public class TransformedModelDslBacking {
                     references.add(ModelReference.untyped(ModelPath.path(relativePaths.get(i)), description));
                 }
 
-                ModelAction<T> runClosureAction = InputUsingModelAction.of(reference, descriptor, references, new ExecuteClosure<T>(closure));
+                ModelAction runClosureAction = InputUsingModelAction.of(reference, descriptor, references, new ExecuteClosure<T>(closure));
                 modelRegistry.configure(role, runClosureAction);
             }
         });

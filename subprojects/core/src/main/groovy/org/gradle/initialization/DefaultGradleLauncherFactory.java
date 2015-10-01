@@ -16,17 +16,17 @@
 
 package org.gradle.initialization;
 
-import org.gradle.*;
+import org.gradle.BuildLogger;
+import org.gradle.StartParameter;
+import org.gradle.TaskExecutionLogger;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DeploymentRegistry;
-import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.BuildConfigurationActionExecuter;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -84,25 +84,28 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             cancellationToken = new DefaultBuildCancellationToken();
             buildEventConsumer = new NoOpBuildEventConsumer();
         }
-        final BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(sharedServices, startParameter);
-        final BuildScopeServices buildScopeServices = new BuildScopeServices(sessionScopeServices);
-        Stoppable servicesToStop = CompositeStoppable.stoppable(buildScopeServices, sessionScopeServices);
-        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices, servicesToStop);
+
+        final BuildScopeServices buildScopeServices = BuildScopeServices.singleSession(sharedServices, startParameter);
+        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
     }
 
     @Override
     public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
         // This should only be used for top-level builds
         assert tracker.getCurrentBuild() == null;
-        BuildScopeServices buildScopeServices = new BuildScopeServices(parentRegistry);
-        Stoppable servicesToStop = CompositeStoppable.stoppable(buildScopeServices);
-        DefaultGradleLauncher launcher = doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices, servicesToStop);
+
+        if (!(parentRegistry instanceof BuildSessionScopeServices)) {
+            throw new IllegalArgumentException("Service registry must be of build session scope");
+        }
+
+        BuildScopeServices buildScopeServices = BuildScopeServices.forSession((BuildSessionScopeServices) parentRegistry);
+        DefaultGradleLauncher launcher = doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices);
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
         deploymentRegistry.onNewBuild(launcher.getGradle());
         return launcher;
     }
 
-    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, BuildScopeServices serviceRegistry, Stoppable servicesToStop) {
+    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, BuildScopeServices serviceRegistry) {
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
@@ -144,7 +147,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             serviceRegistry.get(BuildOperationExecutor.class),
             gradle.getServices().get(BuildConfigurationActionExecuter.class),
             gradle.getServices().get(BuildExecuter.class),
-            servicesToStop
+            serviceRegistry
         );
     }
 }

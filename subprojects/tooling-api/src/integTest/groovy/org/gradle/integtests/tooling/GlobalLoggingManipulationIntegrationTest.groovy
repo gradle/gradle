@@ -20,19 +20,21 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
+import spock.lang.Ignore
 
 import java.util.logging.LogManager
 
 class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
-    @Rule RedirectStdIn stdIn
+    @Rule
+    RedirectStdIn stdIn
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
+    @Ignore
     def "tooling api does not replace standard streams"() {
-        //(SF) only checking if the instances of out and err were not replaced
-        //it would be nice to have more meaningful test that verifies the effects of replacing the streams
         given:
         def outInstance = System.out
         def errInstance = System.err
+        def inInstance = System.in
 
         buildFile << "task hey"
 
@@ -43,6 +45,7 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
         model.tasks.find { it.name == 'hey' }
         System.out.is(outInstance)
         System.err.is(errInstance)
+        System.in.is(inInstance)
     }
 
     static class FailingInputStream extends InputStream implements GroovyInterceptable {

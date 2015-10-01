@@ -18,7 +18,7 @@ package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
-import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.WithFailingTestsApp
 import org.gradle.util.TextUtil
 

@@ -33,7 +33,7 @@ import java.util.Map;
 
 import static org.junit.Assert.fail;
 
-class ForkingGradleExecuter extends AbstractGradleExecuter {
+public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     public ForkingGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);

@@ -26,6 +26,7 @@ import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.deployment.internal.DeploymentRegistry
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.messaging.remote.MessagingServer
 import org.gradle.process.internal.DefaultWorkerProcessFactory
@@ -40,7 +41,7 @@ class BuildSessionScopeServicesTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     ServiceRegistry parent = Stub()
     StartParameter startParameter = new StartParameter()
-    BuildSessionScopeServices registry = new BuildSessionScopeServices(parent, startParameter)
+    BuildSessionScopeServices registry = new BuildSessionScopeServices(parent, startParameter, ClassPath.EMPTY)
 
     def setup() {
         startParameter.gradleUserHomeDir = tmpDir.testDirectory
@@ -49,7 +50,7 @@ class BuildSessionScopeServicesTest extends Specification {
         parent.get(FileResolver) >> Stub(FileResolver)
     }
 
-    def "provides a DeploymentRegistry" () {
+    def "provides a DeploymentRegistry"() {
         expect:
         registry.get(DeploymentRegistry) instanceof DefaultDeploymentRegistry
         registry.get(DeploymentRegistry) == registry.get(DeploymentRegistry)
@@ -70,13 +71,13 @@ class BuildSessionScopeServicesTest extends Specification {
         registry.getFactory(WorkerProcessBuilder) == registry.getFactory(WorkerProcessBuilder)
     }
 
-    def "provides a ClassPathRegistry" () {
+    def "provides a ClassPathRegistry"() {
         expect:
         registry.get(ClassPathRegistry) instanceof ClassPathRegistry
         registry.get(ClassPathRegistry) == registry.get(ClassPathRegistry)
     }
 
-    def "provides a WorkerProcessClassPathProvider" () {
+    def "provides a WorkerProcessClassPathProvider"() {
         expect:
         registry.get(WorkerProcessClassPathProvider) instanceof WorkerProcessClassPathProvider
         registry.get(WorkerProcessClassPathProvider) == registry.get(WorkerProcessClassPathProvider)

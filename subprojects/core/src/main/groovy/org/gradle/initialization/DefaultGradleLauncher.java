@@ -24,8 +24,9 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
-import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.logging.LoggingManagerInternal;
 
 public class DefaultGradleLauncher extends GradleLauncher {
@@ -46,7 +47,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
-    private final Stoppable toStopOnStop;
+    private final BuildScopeServices buildServices;
 
     /**
      * Creates a new instance.
@@ -56,7 +57,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  LoggingManagerInternal loggingManager, BuildListener buildListener,
                                  ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
-                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, Stoppable toStopOnStop) {
+                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, BuildScopeServices buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
@@ -69,7 +70,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.buildConfigurationActionExecuter = buildConfigurationActionExecuter;
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
-        this.toStopOnStop = toStopOnStop;
+        this.buildServices = buildServices;
     }
 
     public GradleInternal getGradle() {
@@ -158,9 +159,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     /**
-     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the
-     * execution of the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for supported listener
-     * types.</p>
+     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the execution of the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for
+     * supported listener types.</p>
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
@@ -170,8 +170,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     /**
-     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to
-     * standard output by Gradle's logging system
+     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard output by Gradle's logging system
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
@@ -181,8 +180,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     /**
-     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to
-     * standard error by Gradle's logging system
+     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard error by Gradle's logging system
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
@@ -194,7 +192,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     public void stop() {
         try {
             loggingManager.stop();
-            toStopOnStop.stop();
+            CompositeStoppable.stoppable(buildServices).stop();
         } finally {
             buildCompletionListener.completed();
         }

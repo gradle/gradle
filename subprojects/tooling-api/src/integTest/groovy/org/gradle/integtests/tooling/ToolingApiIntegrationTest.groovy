@@ -22,11 +22,11 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
 class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
@@ -38,11 +38,6 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         projectDir = temporaryFolder.testDirectory
-    }
-
-    def "ensure the previous version supports short-lived daemons"() {
-        expect:
-        otherVersion.daemonIdleTimeoutConfigurable
     }
 
     def "tooling api uses to the current version of gradle when none has been specified"() {

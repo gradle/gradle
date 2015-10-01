@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -41,10 +40,6 @@ public class ModelSchemaAspectExtractor {
             ModelSchemaAspectExtractionResult result = strategy.extract(extractionContext, propertyResults);
             if (result != null) {
                 aspects.add(result.getAspect());
-                Action<? super ModelSchemaExtractionContext<?>> validator = result.getValidator();
-                if (validator != null) {
-                    extractionContext.addValidator(validator);
-                }
             }
         }
         return aspects;

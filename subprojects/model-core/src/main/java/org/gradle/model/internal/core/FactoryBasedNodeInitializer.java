@@ -16,17 +16,19 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 import java.util.List;
 
 public class FactoryBasedNodeInitializer<T, S extends T> implements NodeInitializer {
-    private final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference;
+    private final ModelReference<? extends InstanceFactory<? super T>> factoryReference;
     private final ModelType<S> type;
 
-    public FactoryBasedNodeInitializer(ModelReference<? extends InstanceFactory<? super T, String>> factoryReference, ModelType<S> type) {
+    public FactoryBasedNodeInitializer(ModelReference<? extends InstanceFactory<? super T>> factoryReference, ModelType<S> type) {
         this.factoryReference = factoryReference;
         this.type = type;
     }
@@ -38,13 +40,31 @@ public class FactoryBasedNodeInitializer<T, S extends T> implements NodeInitiali
 
     @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-        InstanceFactory<? super T, String> instantiator = Cast.uncheckedCast(inputs.get(0).getInstance());
-        S item = instantiator.create(type.getConcreteClass(), modelNode, modelNode.getPath().getName());
+        InstanceFactory<? super T> instantiator = Cast.uncheckedCast(inputs.get(0).getInstance());
+        S item = instantiator.create(type, modelNode, modelNode.getPath().getName());
         modelNode.setPrivateData(type, item);
     }
 
     @Override
     public List<? extends ModelProjection> getProjections() {
         return Collections.singletonList(UnmanagedModelProjection.of(type));
+    }
+
+    @Nullable
+    @Override
+    public ModelAction getProjector(final ModelPath path, final ModelRuleDescriptor descriptor, final ModelType<?> typeToCreate) {
+        if (!type.isAssignableFrom(typeToCreate)) {
+            throw new IllegalArgumentException(String.format("Type %s is not a subtype of %s", typeToCreate, type));
+        }
+        final ModelType<? extends S> projectedType = Cast.uncheckedCast(typeToCreate);
+        return new AbstractModelAction<Object>(ModelReference.of(path), descriptor, factoryReference) {
+            @Override
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                InstanceFactory<S> factory = Cast.uncheckedCast(inputs.get(0).getInstance());
+                for (ModelType<?> internalView : factory.getInternalViews(projectedType)) {
+                    modelNode.addProjection(UnmanagedModelProjection.of(internalView));
+                }
+            }
+        };
     }
 }

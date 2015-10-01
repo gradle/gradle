@@ -4,7 +4,7 @@
 @Managed
 interface Person {
 // START SNIPPET property-type-string
-  void setFirstName(String n)
+  void setFirstName(String name)
   String getFirstName()
 // END SNIPPET property-type-string
 
@@ -50,6 +50,12 @@ interface Person {
   void setMaritalStatus(MaritalStatus status)
   MaritalStatus getMaritalStatus()
 // END SNIPPET property-type-enum
+
+// START SNIPPET property-type-collection-scalar
+   void setUserGroups(List<String> groups)
+   List<String> getUserGroups()
+// END SNIPPET property-type-collection-scalar
+
 
 // START SNIPPET managed-type-plugin-and-dsl
 // START SNIPPET managed-type-and-plugin

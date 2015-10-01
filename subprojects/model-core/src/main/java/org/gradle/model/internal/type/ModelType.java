@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.type;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeResolver;
 import com.google.common.reflect.TypeToken;
@@ -205,33 +204,8 @@ public abstract class ModelType<T> {
 
     public List<Class<?>> getAllClasses() {
         ImmutableList.Builder<Class<?>> builder = ImmutableList.builder();
-        addAllClasses(builder);
+        wrapper.collectClasses(builder);
         return builder.build();
-    }
-
-    private void addAllClasses(ImmutableCollection.Builder<Class<?>> builder) {
-        Type runtimeType = getType();
-        if (runtimeType instanceof Class) {
-            builder.add((Class<?>) runtimeType);
-        } else if (runtimeType instanceof ParameterizedType) {
-            builder.add((Class<?>) ((ParameterizedType) runtimeType).getRawType());
-            for (Type type : ((ParameterizedType) runtimeType).getActualTypeArguments()) {
-                ModelType.of(type).addAllClasses(builder);
-            }
-        } else if (runtimeType instanceof WildcardType) {
-            for (Type type : ((WildcardType) runtimeType).getLowerBounds()) {
-                ModelType.of(type).addAllClasses(builder);
-            }
-            for (Type type : ((WildcardType) runtimeType).getUpperBounds()) {
-                ModelType.of(type).addAllClasses(builder);
-            }
-        } else if (runtimeType instanceof TypeVariable) {
-            for (Type type : ((TypeVariable) runtimeType).getBounds()) {
-                ModelType.of(type).addAllClasses(builder);
-            }
-        } else {
-            throw new IllegalArgumentException("Unable to deal with type " + runtimeType + " (" + runtimeType.getClass() + ")");
-        }
     }
 
     public String getName() {
@@ -240,6 +214,10 @@ public abstract class ModelType<T> {
 
     public String getSimpleName() {
         return wrapper.getRepresentation(false);
+    }
+
+    public static String getSimpleName(ModelType<?> type) {
+        return type == null ? null : type.getSimpleName();
     }
 
     public String toString() {
@@ -357,6 +335,9 @@ public abstract class ModelType<T> {
                 toWrappers(typeVariable.getBounds()),
                 type.hashCode()
             );
+        } else if (type instanceof GenericArrayType) {
+            GenericArrayType genericArrayType = (GenericArrayType) type;
+            return new GenericArrayTypeWrapper(wrap(genericArrayType.getGenericComponentType()), type.hashCode());
         } else {
             throw new IllegalArgumentException("cannot wrap type of type " + type.getClass());
         }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal
 
 import com.google.common.collect.Lists
+import groovy.transform.CompileStatic
 import org.gradle.api.*
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskDependency
@@ -320,9 +321,10 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test
+    @CompileStatic
     public void testAddAllNullToActionsAndExecute() {
         thrown.expect(InvalidUserDataException.class)
-        defaultTask.actions.addAll(null);
+        defaultTask.actions.addAll((Collection)null);
     }
 
     @Test

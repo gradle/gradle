@@ -16,6 +16,8 @@
 
 package org.gradle.model.internal.type;
 
+import com.google.common.collect.ImmutableList;
+
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.Arrays;
@@ -45,6 +47,16 @@ class WildcardTypeWrapper implements WildcardType, TypeWrapper {
     @Override
     public Type unwrap() {
         return this;
+    }
+
+    @Override
+    public void collectClasses(ImmutableList.Builder<Class<?>> builder) {
+        for (TypeWrapper upperBound : upperBounds) {
+            upperBound.collectClasses(builder);
+        }
+        for (TypeWrapper lowerBound : lowerBounds) {
+            lowerBound.collectClasses(builder);
+        }
     }
 
     @Override

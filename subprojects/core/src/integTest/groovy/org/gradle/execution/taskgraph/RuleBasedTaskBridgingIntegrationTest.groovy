@@ -190,7 +190,9 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
         apply type: Rules
 
         task customTask << { }
-        customTask.dependsOn tasks.withType(Task).withType(ClimbTask)
+def t = tasks.withType(Task).withType(ClimbTask)
+println t.getClass()
+        customTask.dependsOn t
         """
 
         when:
@@ -337,5 +339,35 @@ class RuleBasedTaskBridgingIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         succeeds('help')
+    }
+
+    def "only tasks of specified type are realized"() {
+        when:
+        buildScript """
+            ${ruleBasedTasks()}
+
+            model {
+              tasks {
+                create("climbTask", ClimbTask)
+                create("jumpTask", JumpTask)
+              }
+            }
+
+            task customTask {
+              dependsOn tasks.withType(ClimbTask)
+              doLast {
+                // This is somewhat fragile and may break when we handle realizing better
+                println "jumpTask exists: " + !tasks.withType(JumpTask).empty
+                println "climbTask exists: " + !tasks.withType(ClimbTask).empty
+              }
+            }
+        """
+
+        and:
+        run "customTask"
+
+        then:
+        outputContains "jumpTask exists: false"
+        outputContains "climbTask exists: true"
     }
 }

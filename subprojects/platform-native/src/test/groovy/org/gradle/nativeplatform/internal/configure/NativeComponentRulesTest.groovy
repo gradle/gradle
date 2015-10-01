@@ -15,23 +15,24 @@
  */
 
 package org.gradle.nativeplatform.internal.configure
-
 import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
+import org.gradle.model.internal.core.DefaultInstanceFactoryRegistry
+import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.nativeplatform.BuildType
-import org.gradle.nativeplatform.Flavor
+import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy
+import org.gradle.model.internal.type.ModelType
+import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultNativeLibrarySpec
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.platform.base.component.BaseComponentFixtures
-import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder
-import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
-import org.gradle.platform.base.internal.DefaultPlatformRequirement
-import org.gradle.platform.base.internal.PlatformResolvers
+import org.gradle.platform.base.internal.*
 import spock.lang.Specification
 
 class NativeComponentRulesTest extends Specification {
@@ -46,7 +47,20 @@ class NativeComponentRulesTest extends Specification {
     def flavor = createStub(Flavor, "flavor1")
 
     def id = new DefaultComponentSpecIdentifier("project", "name")
-    def component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, new ModelRegistryHelper(), id, Stub(ProjectSourceSet), instantiator)
+    def modelRegistry = new ModelRegistryHelper();
+    def component
+
+    def setup() {
+        modelRegistry.createInstance("__binarySpecFactory", new BinarySpecFactory("test"))
+        def instanceFactoryRegistry = new DefaultInstanceFactoryRegistry()
+        [StaticLibraryBinarySpec, SharedLibraryBinarySpec, NativeExecutableBinarySpec].each { type ->
+            instanceFactoryRegistry.register(ModelType.of(type), ModelReference.of(BinarySpecFactory))
+        }
+        def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)
+        nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry))
+        modelRegistry.createInstance("__nodeInitializerRegistry", nodeInitializerRegistry)
+        component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, modelRegistry, id, Stub(ProjectSourceSet), instantiator)
+    }
 
     def "does not use variant dimension names for single valued dimensions"() {
         component.targetPlatform("platform1")

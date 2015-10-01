@@ -18,7 +18,7 @@ package org.gradle.play.integtest.dependencies
 
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.play.integtest.PlayTestApplicationIntegrationTest
-import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayAppWithDependencies
 
 class PlayTestAppWithDependenciesIntegrationTest extends PlayTestApplicationIntegrationTest {

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
+import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
 
 import static org.gradle.util.Matchers.containsLine
@@ -181,8 +182,9 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
-        output.contains "Class1Test.java:1:\tAvoid instantiating Boolean objects"
-        output.contains "Class1Test.java:1:\tEnsure you override both equals() and hashCode()"
+        file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
+        output.contains "\tAvoid instantiating Boolean objects"
+        output.contains "\tEnsure you override both equals() and hashCode()"
     }
 
     private static Matcher<String> containsClass(String className) {
@@ -203,7 +205,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         // PMD Lvl 2 Warning BooleanInstantiation
         // PMD Lvl 3 Warning OverrideBothEqualsAndHashcode
         file("src/test/java/org/gradle/Class1Test.java") <<
-            "package org.gradle; class Class1Test<T> { public boolean equals(Object arg) { return java.lang.Boolean.valueOf(true); } }"
+            "package org.gradle; class Class1Test { public boolean equals(Object arg) { return new Boolean(\"true\"); } }"
     }
 
     private customCode() {
@@ -220,6 +222,10 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
     }
 
     private customRuleSetText() {
+        String pathToRuleset = "rulesets/java/braces.xml"
+        if (versionNumber < VersionNumber.version(5)) {
+            pathToRuleset = "rulesets/braces.xml"
+        }
         """
             <ruleset name="custom"
                 xmlns="http://pmd.sf.net/ruleset/1.0.0"
@@ -229,7 +235,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
                 <description>Custom rule set</description>
 
-                <rule ref="rulesets/java/braces.xml"/>
+                <rule ref="${pathToRuleset}"/>
             </ruleset>
         """
     }

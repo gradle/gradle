@@ -63,4 +63,10 @@ public abstract class ModelPredicate {
         return null;
     }
 
+    /**
+     * Returns whether the node to select must satisfy a type. Returns {code true} if the type is not relevant.
+     */
+    public boolean isUntyped() {
+        return true;
+    }
 }

@@ -16,5 +16,7 @@
 
 package org.gradle.play.integtest.fixtures.app
 
+import org.gradle.play.integtest.fixtures.PlayApp
+
 class PlayAppWithDependencies extends PlayApp {
 }

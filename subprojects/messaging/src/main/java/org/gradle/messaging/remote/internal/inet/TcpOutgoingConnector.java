@@ -16,6 +16,7 @@
 
 package org.gradle.messaging.remote.internal.inet;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.ConnectCompletion;
 import org.gradle.messaging.remote.internal.ConnectException;
@@ -75,23 +76,24 @@ public class TcpOutgoingConnector implements OutgoingConnector {
     }
 
     private SocketChannel tryConnect(InetEndpoint address, InetAddress candidate) throws IOException {
-        for (int i=0; i< MAXIMUM_RETRIES; i++) {
-            SocketChannel socketChannel = SocketChannel.open();
+        SocketChannel socketChannel = SocketChannel.open();
 
-            try {
-                socketChannel.socket().connect(new InetSocketAddress(candidate, address.getPort()), CONNECT_TIMEOUT);
-            } catch (IOException e) {
-                socketChannel.close();
-                throw e;
-            }
+        try {
+            socketChannel.socket().connect(new InetSocketAddress(candidate, address.getPort()), CONNECT_TIMEOUT);
 
             if (!detectSelfConnect(socketChannel)) {
                 return socketChannel;
             }
-            LOGGER.debug("Retrying connection... {}/{}", i, MAXIMUM_RETRIES);
             socketChannel.close();
+        } catch (IOException e) {
+            socketChannel.close();
+            throw e;
+        } catch (Throwable e) {
+            socketChannel.close();
+            throw UncheckedException.throwAsUncheckedException(e);
         }
-        throw new SocketException("Exceeded retries after detecting TCP self-connect.");
+
+        throw new java.net.ConnectException(String.format("Socket connected to itself on %s port %s.", candidate, address.getPort()));
     }
 
     boolean detectSelfConnect(SocketChannel socketChannel) {

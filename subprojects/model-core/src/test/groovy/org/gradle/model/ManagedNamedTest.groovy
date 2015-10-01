@@ -17,7 +17,10 @@
 package org.gradle.model
 
 import org.gradle.api.Named
+import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.ReadonlyImmutableManagedPropertyException
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
@@ -27,16 +30,17 @@ class ManagedNamedTest extends Specification {
 
     def r = new ModelRegistryHelper()
     def schemaStore = DefaultModelSchemaStore.getInstance()
+    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
 
     def "named struct has name name property populated"() {
         when:
-        r.create(ModelCreators.of(r.path("foo"), schemaStore.getSchema(NamedThingInterface).nodeInitializer).descriptor(r.desc("foo")).build())
+        r.create(ModelCreators.of(r.path("foo"), nodeInitializerRegistry.getNodeInitializer(schemaStore.getSchema(NamedThingInterface))).descriptor(r.desc("foo")).build())
 
         then:
         r.realize("foo", NamedThingInterface).name == "foo"
 
         when:
-        r.create(ModelCreators.of(r.path("bar"), schemaStore.getSchema(NamedThingInterface).nodeInitializer).descriptor(r.desc("bar")).build())
+        r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(schemaStore.getSchema(NamedThingInterface))).descriptor(r.desc("bar")).build())
 
         then:
         r.realize("bar", NamedThingInterface).name == "bar"
@@ -51,7 +55,7 @@ class ManagedNamedTest extends Specification {
 
     def "named struct does not have name populated if does not implement named"() {
         when:
-        r.create(ModelCreators.of(r.path("foo"), schemaStore.getSchema(NonNamedThing).nodeInitializer).descriptor(r.desc("foo")).build())
+        r.create(ModelCreators.of(r.path("foo"), nodeInitializerRegistry.getNodeInitializer(schemaStore.getSchema(NonNamedThing))).descriptor(r.desc("foo")).build())
 
         then:
         r.realize("foo", NonNamedThing).name == null
@@ -63,11 +67,15 @@ class ManagedNamedTest extends Specification {
     }
 
     def "name requires setter if not named"() {
+        given:
+        r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(schemaStore.getSchema(NonNamedThingNoSetter))).descriptor(r.desc("bar")).build())
+
         when:
-        schemaStore.getSchema(NonNamedThingNoSetter)
+        r.realize("bar", NonNamedThingNoSetter)
 
         then:
-        thrown InvalidManagedModelElementTypeException
+        def ex = thrown(ModelRuleExecutionException)
+        ex.cause instanceof ReadonlyImmutableManagedPropertyException
     }
 
     @Managed

@@ -148,7 +148,7 @@ Add methods to `BuildResult` to query the result.
     * All successful, failed or skipped tasks can be retrieved as executed tasks from `GradleRunner`.
 * A build that has  `buildSrc` project does not list executed tasks from that project when retrieved from `GradleRunner`.
 
-## Story: Test daemons are isolated from the environment they are running in
+## Story: Test daemons are isolated from the environment they are running in (DONE)
 
 The previous stories set up the basic mechanics for the test-kit. Daemons started by test-kit should be isolated from the machine environment:
 
@@ -188,7 +188,7 @@ for debugging purposes. Should we potentially allow the user to set a Gradle use
 
 We'll support that scenario when we get to the corresponding story.
 
-## Story: Functional test defines classes under test to make visible to test builds
+## Story: Functional test defines classes under test to make visible to test builds (DONE)
 
 Provide an API for functional tests to define a classpath containing classes under test:
 

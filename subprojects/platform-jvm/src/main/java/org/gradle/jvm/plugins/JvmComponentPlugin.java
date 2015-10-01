@@ -21,6 +21,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.*;
+import org.gradle.jvm.internal.model.JarBinarySpecSpecializationNodeInitializerExtractionStrategy;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -28,6 +29,8 @@ import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
 import org.gradle.model.*;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
@@ -67,6 +70,11 @@ public class JvmComponentPlugin implements Plugin<Project> {
         @BinaryType
         void registerJar(BinaryTypeBuilder<JarBinarySpec> builder) {
             builder.defaultImplementation(DefaultJarBinarySpec.class);
+        }
+
+        @Mutate
+        void registerJarBinarySpecSpecializationNodeInitializerExtractionStrategy(NodeInitializerRegistry nodeInitializerRegistry, ModelSchemaStore schemaStore) {
+            nodeInitializerRegistry.registerStrategy(new JarBinarySpecSpecializationNodeInitializerExtractionStrategy(schemaStore));
         }
 
         @Model

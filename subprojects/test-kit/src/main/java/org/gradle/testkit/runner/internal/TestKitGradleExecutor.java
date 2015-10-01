@@ -18,18 +18,18 @@ package org.gradle.testkit.runner.internal;
 
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskOutcome;
+import org.gradle.testkit.runner.UnexpectedBuildException;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.task.*;
-import org.gradle.tooling.internal.consumer.DefaultBuildLauncherInternal;
+import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,28 +54,31 @@ public class TestKitGradleExecutor implements GradleExecutor {
         }));
     }
 
-    public GradleExecutionResult run(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, List<URI> classpath, boolean debug) {
+    public GradleExecutionResult run(GradleExecutionParameters parameters) {
         final ByteArrayOutputStream standardOutput = new ByteArrayOutputStream();
         final ByteArrayOutputStream standardError = new ByteArrayOutputStream();
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
 
-        GradleConnector gradleConnector = buildConnector(gradleHome, gradleUserHome, projectDir, debug);
+        GradleConnector gradleConnector = buildConnector(parameters.getGradleHome(), parameters.getGradleUserHome(), parameters.getProjectDir(), parameters.isDebug());
         ProjectConnection connection = null;
 
         try {
             connection = gradleConnector.connect();
-            DefaultBuildLauncherInternal launcher = (DefaultBuildLauncherInternal) connection.newBuild();
+            DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
             launcher.setStandardOutput(standardOutput);
             launcher.setStandardError(standardError);
             launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
 
-            launcher.withArguments(buildArgs.toArray(new String[buildArgs.size()]));
-            launcher.setJvmArguments(jvmArgs.toArray(new String[jvmArgs.size()]));
-            launcher.withClasspath(classpath);
+            launcher.withArguments(parameters.getBuildArgs().toArray(new String[parameters.getBuildArgs().size()]));
+            launcher.setJvmArguments(parameters.getJvmArgs().toArray(new String[parameters.getJvmArgs().size()]));
+
+            launcher.withInjectedClassPath(parameters.getInjectedClassPath());
 
             launcher.run();
         } catch (BuildException t) {
             return new GradleExecutionResult(standardOutput, standardError, tasks, t);
+        } catch(Throwable t) {
+            throw new UnexpectedBuildException(t, new DefaultBuildResult(standardOutput.toString(), standardError.toString(), tasks));
         } finally {
             if (connection != null) {
                 connection.close();

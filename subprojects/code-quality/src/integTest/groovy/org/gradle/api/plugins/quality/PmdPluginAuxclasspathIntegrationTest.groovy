@@ -70,6 +70,8 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
     }
 
     def "auxclasspath configured for rule-using project"() {
+        Assume.assumeTrue(supportsAuxclasspath())
+
         expect:
         fails ":rule-using:pmdMain"
 
@@ -79,7 +81,6 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
     }
 
     def "auxclasspath not configured properly for rule-using project"() {
-
         Assume.assumeTrue(supportsAuxclasspath())
 
         given:

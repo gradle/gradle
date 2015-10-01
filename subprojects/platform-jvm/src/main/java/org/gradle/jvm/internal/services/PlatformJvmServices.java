@@ -83,5 +83,4 @@ public class PlatformJvmServices implements PluginServiceRegistry {
             return DelegatingComponentResolvers.of(delegate);
         }
     }
-
 }

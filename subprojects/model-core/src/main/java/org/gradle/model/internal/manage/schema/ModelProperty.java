@@ -44,7 +44,7 @@ public class ModelProperty<T> {
         /**
          * The state of the property is handled by an unmanaged delegate.
          */
-        DELEGATED
+        DELEGATED,
     }
 
     private final String name;
@@ -53,18 +53,20 @@ public class ModelProperty<T> {
     private final boolean writable;
     private final Set<ModelType<?>> declaredBy;
     private final List<WeaklyTypeReferencingMethod<?, T>> getters;
+    private final boolean declaredAsHavingUnmanagedType;
 
-    private ModelProperty(ModelType<T> type, String name, StateManagementType stateManagementType, boolean writable, Set<ModelType<?>> declaredBy, List<WeaklyTypeReferencingMethod<?, T>> getters) {
+    private ModelProperty(ModelType<T> type, String name, StateManagementType stateManagementType, boolean writable, Set<ModelType<?>> declaredBy, List<WeaklyTypeReferencingMethod<?, T>> getters, boolean declaredAsHavingUnmanagedType) {
         this.name = name;
         this.type = type;
         this.stateManagementType = stateManagementType;
         this.writable = writable;
         this.declaredBy = ImmutableSet.copyOf(declaredBy);
         this.getters = ImmutableList.copyOf(getters);
+        this.declaredAsHavingUnmanagedType = declaredAsHavingUnmanagedType;
     }
 
-    public static <T> ModelProperty<T> of(ModelType<T> type, String name, StateManagementType stateManagementType, boolean writable, Set<ModelType<?>> declaredBy, List<WeaklyTypeReferencingMethod<?, T>> getters) {
-        return new ModelProperty<T>(type, name, stateManagementType, writable, declaredBy, getters);
+    public static <T> ModelProperty<T> of(ModelType<T> type, String name, StateManagementType stateManagementType, boolean writable, Set<ModelType<?>> declaredBy, List<WeaklyTypeReferencingMethod<?, T>> getters, boolean declaredAsHavingUnmanagedType) {
+        return new ModelProperty<T>(type, name, stateManagementType, writable, declaredBy, getters, declaredAsHavingUnmanagedType);
     }
 
     public String getName() {
@@ -99,6 +101,10 @@ public class ModelProperty<T> {
         return Cast.<WeaklyTypeReferencingMethod<I, T>>uncheckedCast(firstGetter()).invoke(instance);
     }
 
+    public boolean isDeclaredAsHavingUnmanagedType() {
+        return declaredAsHavingUnmanagedType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -113,6 +119,7 @@ public class ModelProperty<T> {
         return Objects.equal(this.name, that.name)
             && Objects.equal(this.type, that.type)
             && Objects.equal(this.stateManagementType, that.stateManagementType)
+            && this.declaredAsHavingUnmanagedType == that.declaredAsHavingUnmanagedType
             && writable == that.writable;
     }
 
@@ -122,6 +129,7 @@ public class ModelProperty<T> {
         result = 31 * result + type.hashCode();
         result = 31 * result + stateManagementType.hashCode();
         result = 31 * result + Boolean.valueOf(writable).hashCode();
+        result = 31 * result + Boolean.valueOf(declaredAsHavingUnmanagedType).hashCode();
         return result;
     }
 

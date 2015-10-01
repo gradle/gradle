@@ -49,7 +49,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
 
     @Override
     public <S extends T> TaskCollection<S> withType(Class<S> type) {
-        return new RealizableTaskCollection<S>(type, filtered(createFilter(type)), project.getModelRegistry(), TaskContainerInternal.MODEL_PATH);
+        return filtered(createFilter(type));
     }
 
     @Override

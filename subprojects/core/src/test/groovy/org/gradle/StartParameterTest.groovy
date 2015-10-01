@@ -297,7 +297,7 @@ class StartParameterTest extends Specification {
         !newParameter.dryRun
         assertThat(newParameter, isSerializable())
     }
-    
+
     void "gets all init scripts"() {
         def gradleUserHomeDir = tmpDir.testDirectory.createDir("gradleUserHomeDie")
         def gradleHomeDir = tmpDir.testDirectory.createDir("gradleHomeDir")

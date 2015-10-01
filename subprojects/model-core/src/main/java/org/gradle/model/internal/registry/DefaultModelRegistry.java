@@ -24,7 +24,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Nullable;
-import org.gradle.internal.BiActions;
 import org.gradle.internal.Cast;
 import org.gradle.model.ConfigurationCycleException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
@@ -50,12 +49,13 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final ModelRuleExtractor ruleExtractor;
     private final Set<RuleBinder> unboundRules = Sets.newIdentityHashSet();
 
-    boolean reset;
+    private boolean reset;
+    private boolean replace;
 
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor) {
         this.ruleExtractor = ruleExtractor;
-        ModelCreator rootCreator = ModelCreators.of(ModelPath.ROOT, BiActions.doNothing()).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
-        modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootCreator, ModelPath.ROOT), null));
+        ModelCreator rootCreator = ModelCreators.of(ModelPath.ROOT).descriptor("<root>").withProjection(EmptyModelProjection.INSTANCE).build();
+        modelGraph = new ModelGraph(new ModelElementNode(toCreatorBinder(rootCreator), null));
         modelGraph.getRoot().setState(Created);
         ruleBindings = new RuleBindings(modelGraph);
     }
@@ -77,30 +77,54 @@ public class DefaultModelRegistry implements ModelRegistry {
         return this;
     }
 
-    private CreatorRuleBinder toCreatorBinder(ModelCreator creator, ModelPath scope) {
+    private CreatorRuleBinder toCreatorBinder(ModelCreator creator) {
         BindingPredicate subject = new BindingPredicate(ModelReference.of(creator.getPath(), ModelType.untyped(), ModelNode.State.Created));
-        List<BindingPredicate> inputs = mapInputs(creator.getInputs(), scope);
-        return new CreatorRuleBinder(creator, subject, inputs, unboundRules);
+        return new CreatorRuleBinder(creator, subject, Collections.<BindingPredicate>emptyList(), unboundRules);
     }
 
     private ModelNodeInternal registerNode(ModelNodeInternal node) {
         if (reset) {
             unboundRules.remove(node.getCreatorBinder());
+            unboundRules.removeAll(node.getInitializerRuleBinders());
             return node;
         }
 
         // Disabled before 2.3 release due to not wanting to validate task names (which may contain invalid chars), at least not yet
         // ModelPath.validateName(name);
 
-        ruleBindings.add(node);
+        addRuleBindings(node);
         modelGraph.add(node);
-        ruleBindings.add(node.getCreatorBinder());
+        ruleBindings.nodeCreated(node);
         return node;
     }
 
+    private void addRuleBindings(ModelNodeInternal node) {
+        ruleBindings.add(node.getCreatorBinder());
+
+        for(Map.Entry<ModelActionRole, ? extends ModelAction> entry : node.getCreatorBinder().getCreator().getActions().entries()) {
+            ModelActionRole role = entry.getKey();
+            ModelAction action = entry.getValue();
+            checkNodePath(node, action);
+            // We need to re-bind early actions like projections and creators even when reusing
+            boolean earlyAction = role.compareTo(ModelActionRole.Create) <= 0;
+            if (!reset || earlyAction) {
+                ModelActionBinder binder = forceBind(action.getSubject(), role, action, ModelPath.ROOT);
+                if (earlyAction) {
+                    node.addInitializerRuleBinder(binder);
+                }
+            }
+        }
+    }
+
     @Override
-    public <T> DefaultModelRegistry configure(ModelActionRole role, ModelAction<T> action) {
+    public DefaultModelRegistry configure(ModelActionRole role, ModelAction action) {
         bind(action.getSubject(), role, action, ModelPath.ROOT);
+        return this;
+    }
+
+    @Override
+    public ModelRegistry configure(ModelActionRole role, ModelAction action, ModelPath scope) {
+        bind(action.getSubject(), role, action, scope);
         return this;
     }
 
@@ -110,18 +134,25 @@ public class DefaultModelRegistry implements ModelRegistry {
         return this;
     }
 
-    private <T> void bind(ModelActionRole role, ModelAction<T> mutator, ModelPath scope) {
-        bind(mutator.getSubject(), role, mutator, scope);
+    private static void checkNodePath(ModelNodeInternal node, ModelAction action) {
+        if (!node.getPath().equals(action.getSubject().getPath())) {
+            throw new IllegalArgumentException(String.format("Element action reference has path (%s) which does not reference this node (%s).", action.getSubject().getPath(), node.getPath()));
+        }
     }
 
-    private <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction<T> mutator, ModelPath scope) {
+    private <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction mutator, ModelPath scope) {
         if (reset) {
             return;
         }
+        forceBind(subject, role, mutator, scope);
+    }
+
+    private <T> ModelActionBinder forceBind(ModelReference<T> subject, ModelActionRole role, ModelAction mutator, ModelPath scope) {
         BindingPredicate mappedSubject = mapSubject(subject, role, scope);
         List<BindingPredicate> mappedInputs = mapInputs(mutator.getInputs(), scope);
-        MutatorRuleBinder<T> binder = new MutatorRuleBinder<T>(mappedSubject, mappedInputs, mutator, unboundRules);
+        ModelActionBinder binder = new ModelActionBinder(mappedSubject, mappedInputs, mutator, unboundRules);
         ruleBindings.add(binder);
+        return binder;
     }
 
     public <T> T realize(ModelPath path, ModelType<T> type) {
@@ -179,6 +210,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             modelGraph.remove(node);
             ruleBindings.remove(node);
             unboundRules.remove(node.getCreatorBinder());
+            unboundRules.removeAll(node.getInitializerRuleBinders());
         } else {
             throw new RuntimeException("Tried to remove model " + path + " but it is depended on by: " + Joiner.on(", ").join(dependents));
         }
@@ -209,9 +241,26 @@ public class DefaultModelRegistry implements ModelRegistry {
             throw new IllegalStateException("can not replace node " + newCreator.getPath() + " as it does not exist");
         }
 
-        // Will internally verify that this is valid
-        node.replaceCreatorRuleBinder(toCreatorBinder(newCreator, ModelPath.ROOT));
-        ruleBindings.add(node.getCreatorBinder());
+        replace = true;
+        try {
+            boolean wasProjectionsDefined = node.isAtLeast(ProjectionsDefined);
+
+            ruleBindings.remove(node, node.getCreatorBinder());
+            for (RuleBinder ruleBinder : node.getInitializerRuleBinders()) {
+                ruleBindings.remove(node, ruleBinder);
+            }
+            node.getInitializerRuleBinders().clear();
+
+            // Will internally verify that this is valid
+            node.replaceCreatorRuleBinder(toCreatorBinder(newCreator));
+            node.setState(Known);
+            addRuleBindings(node);
+            if (wasProjectionsDefined) {
+                transition(node, ProjectionsDefined, false);
+            }
+        } finally {
+            replace = false;
+        }
         return this;
     }
 
@@ -381,7 +430,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelType<T> targetType, @Nullable ModelRuleDescriptor descriptor, String msg, Object... msgArgs) {
-        ModelView<? extends T> view = node.asReadOnly(targetType, descriptor);
+        ModelView<? extends T> view = node.asImmutable(targetType, descriptor);
         if (view == null) {
             // TODO better error reporting here
             throw new IllegalArgumentException("Model node '" + node.getPath().toString() + "' is not compatible with requested " + targetType + " (operation: " + String.format(msg, msgArgs) + ")");
@@ -390,70 +439,38 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private <T> ModelView<? extends T> assertView(ModelNodeInternal node, ModelReference<T> reference, ModelRuleDescriptor sourceDescriptor, List<ModelView<?>> inputs) {
-        ModelView<? extends T> view = node.asWritable(reference.getType(), sourceDescriptor, inputs);
-        if (view == null) {
-            // TODO better error reporting here
-            throw new IllegalArgumentException("Cannot project model element " + node.getPath() + " to writable type '" + reference.getType() + "' for rule " + sourceDescriptor);
-        } else {
-            return view;
+    private void fireAction(ModelActionBinder boundMutator) {
+        final List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction().getDescriptor());
+        ModelBinding subjectBinding = boundMutator.getSubjectBinding();
+        if (subjectBinding == null) {
+            throw new IllegalStateException("Subject binding must not be null");
         }
-    }
-
-    private ModelNodeInternal doCreate(final ModelNodeInternal node, CreatorRuleBinder boundCreator) {
-        final ModelCreator creator = boundCreator.getCreator();
-        final List<ModelView<?>> views = toViews(boundCreator.getInputBindings(), boundCreator.getCreator());
-
-        LOGGER.debug("Creating {} using {}", node.getPath(), creator.getDescriptor());
-
-        try {
-            RuleContext.run(creator.getDescriptor(), new Runnable() {
-                @Override
-                public void run() {
-                    creator.create(node, views);
-                }
-            });
-        } catch (Exception e) {
-            // TODO some representation of state of the inputs
-            throw new ModelRuleExecutionException(creator.getDescriptor(), e);
-        }
-
-        return node;
-    }
-
-    private <T> void fireMutation(MutatorRuleBinder<T> boundMutator) {
-        final List<ModelView<?>> inputs = toViews(boundMutator.getInputBindings(), boundMutator.getAction());
-
-        final ModelNodeInternal node = boundMutator.getSubjectBinding().getNode();
-        final ModelAction<T> mutator = boundMutator.getAction();
+        final ModelNodeInternal node = subjectBinding.getNode();
+        final ModelAction mutator = boundMutator.getAction();
         ModelRuleDescriptor descriptor = mutator.getDescriptor();
 
-        LOGGER.debug("Mutating {} using {}", node.getPath(), mutator.getDescriptor());
+        LOGGER.debug("Mutating {} using {}", node.getPath(), descriptor);
 
-        ModelReference<T> reference = Cast.uncheckedCast(boundMutator.getSubjectReference().getReference());
-        final ModelView<? extends T> view = assertView(node, reference, descriptor, inputs);
         try {
             RuleContext.run(descriptor, new Runnable() {
                 @Override
                 public void run() {
-                    mutator.execute(node, view.getInstance(), inputs);
+                    mutator.execute(node, inputs);
                 }
             });
         } catch (Exception e) {
             // TODO some representation of state of the inputs
             throw new ModelRuleExecutionException(descriptor, e);
-        } finally {
-            view.close();
         }
     }
 
-    private List<ModelView<?>> toViews(List<ModelBinding> bindings, ModelRule modelRule) {
+    private List<ModelView<?>> toViews(List<ModelBinding> bindings, ModelRuleDescriptor descriptor) {
         // hot path; create as little as possible…
         @SuppressWarnings("unchecked") ModelView<?>[] array = new ModelView<?>[bindings.size()];
         int i = 0;
         for (ModelBinding binding : bindings) {
             ModelNodeInternal element = binding.getNode();
-            ModelView<?> view = assertView(element, binding.getPredicate().getType(), modelRule.getDescriptor(), "toViews");
+            ModelView<?> view = assertView(element, binding.getPredicate().getType(), descriptor, "toViews");
             array[i++] = view;
         }
         @SuppressWarnings("unchecked") List<ModelView<?>> views = Arrays.asList(array);
@@ -499,17 +516,16 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private BindingPredicate mapSubject(ModelReference<?> subjectReference, ModelActionRole role, ModelPath scope) {
+        if (!role.isSubjectViewAvailable() && !subjectReference.isUntyped()) {
+            throw new IllegalStateException(String.format("Cannot bind subject '%s' to role '%s' because it is targeting a type and subject types are not yet available in that role", subjectReference, role));
+        }
         ModelReference<?> mappedReference;
         if (subjectReference.getPath() == null) {
             mappedReference = subjectReference.inScope(scope);
         } else {
             mappedReference = subjectReference.withPath(scope.descendant(subjectReference.getPath()));
         }
-        if (role.getTargetState() != null) {
-            return new BindingPredicate(mappedReference.atState(role.getTargetState()));
-        } else {
-            return new AnyStateBindingPredicate(mappedReference);
-        }
+        return new BindingPredicate(mappedReference.atState(role.getTargetState()));
     }
 
     private List<BindingPredicate> mapInputs(List<? extends ModelReference<?>> inputs, ModelPath scope) {
@@ -544,8 +560,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
-            ModelView<? extends T> modelView = getAdapter().asReadOnly(type, this, ruleDescriptor);
+        public <T> ModelView<? extends T> asImmutable(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
+            ModelView<? extends T> modelView = getAdapter().asImmutable(type, this, ruleDescriptor);
             if (modelView == null) {
                 throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a read-only view of type " + type);
             }
@@ -553,8 +569,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
-            ModelView<? extends T> modelView = getAdapter().asWritable(type, this, ruleDescriptor, inputs);
+        public <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
+            ModelView<? extends T> modelView = getAdapter().asMutable(type, this, ruleDescriptor, inputs);
             if (modelView == null) {
                 throw new IllegalStateException("Model node " + getPath() + " cannot be expressed as a mutable view of type " + type);
             }
@@ -595,6 +611,12 @@ public class DefaultModelRegistry implements ModelRegistry {
             this.privateData = object;
         }
 
+        @Override
+        protected void resetPrivateData() {
+            this.privateDataType = null;
+            this.privateData = null;
+        }
+
         public boolean hasLink(String name) {
             return links.containsKey(name);
         }
@@ -612,7 +634,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         public int getLinkCount(ModelType<?> type) {
             int count = 0;
             for (ModelNodeInternal linked : links.values()) {
-                if (linked.getPromise().canBeViewedAsWritable(type)) {
+                linked.ensureAtLeast(ProjectionsDefined);
+                if (linked.getPromise().canBeViewedAsMutable(type)) {
                     count++;
                 }
             }
@@ -623,7 +646,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         public Set<String> getLinkNames(ModelType<?> type) {
             Set<String> names = Sets.newLinkedHashSet();
             for (Map.Entry<String, ModelNodeInternal> entry : links.entrySet()) {
-                if (entry.getValue().getPromise().canBeViewedAsWritable(type)) {
+                ModelNodeInternal link = entry.getValue();
+                link.ensureAtLeast(ProjectionsDefined);
+                if (link.getPromise().canBeViewedAsMutable(type)) {
                     names.add(entry.getKey());
                 }
             }
@@ -634,8 +659,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         public Iterable<? extends MutableModelNode> getLinks(final ModelType<?> type) {
             return Iterables.filter(links.values(), new Predicate<ModelNodeInternal>() {
                 @Override
-                public boolean apply(ModelNodeInternal input) {
-                    return input.getPromise().canBeViewedAsWritable(type);
+                public boolean apply(ModelNodeInternal link) {
+                    link.ensureAtLeast(ProjectionsDefined);
+                    return link.getPromise().canBeViewedAsMutable(type);
                 }
             });
         }
@@ -648,19 +674,21 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public boolean hasLink(String name, ModelType<?> type) {
             ModelNodeInternal linked = getLink(name);
-            return linked != null && linked.getPromise().canBeViewedAsWritable(type);
-        }
-
-        @Override
-        public <T> void applyToSelf(ModelActionRole type, ModelAction<T> action) {
-            if (!getPath().equals(action.getSubject().getPath())) {
-                throw new IllegalArgumentException(String.format("Element action reference has path (%s) which does not reference this node (%s).", action.getSubject().getPath(), getPath()));
+            if (linked == null) {
+                return false;
             }
-            bind(action.getSubject(), type, action, ModelPath.ROOT);
+            linked.ensureAtLeast(ProjectionsDefined);
+            return linked.getPromise().canBeViewedAsMutable(type);
         }
 
         @Override
-        public <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+        public void applyToSelf(ModelActionRole role, ModelAction action) {
+            checkNodePath(this, action);
+            bind(action.getSubject(), role, action, ModelPath.ROOT);
+        }
+
+        @Override
+        public void applyToLink(ModelActionRole type, ModelAction action) {
             if (!getPath().isDirectChild(action.getSubject().getPath())) {
                 throw new IllegalArgumentException(String.format("Linked element action reference has a path (%s) which is not a child of this node (%s).", action.getSubject().getPath(), getPath()));
             }
@@ -722,41 +750,28 @@ public class DefaultModelRegistry implements ModelRegistry {
             });
         }
 
-        public void apply(Class<? extends RuleSource> rules, ModelPath scope) {
+        private void apply(Class<? extends RuleSource> rules, ModelPath scope) {
             Iterable<ExtractedModelRule> extractedRules = ruleExtractor.extract(rules);
             for (ExtractedModelRule extractedRule : extractedRules) {
                 if (!extractedRule.getRuleDependencies().isEmpty()) {
                     throw new IllegalStateException("Rule source " + rules + " cannot have plugin dependencies (introduced by rule " + extractedRule + ")");
                 }
-
-                if (extractedRule.getType().equals(ExtractedModelRule.Type.CREATOR)) {
-                    if (scope.equals(ModelPath.ROOT)) {
-                        DefaultModelRegistry.this.create(extractedRule.getCreator());
-                    } else {
-                        throw new InvalidModelRuleDeclarationException("Rule " + extractedRule.getCreator().getDescriptor() + " cannot be applied at the scope of model element " + scope + " as creation rules cannot be used when applying rule sources to particular elements");
-                    }
-                } else if (extractedRule.getType().equals(ExtractedModelRule.Type.ACTION)) {
-                    bind(extractedRule.getActionRole(), extractedRule.getAction(), scope);
-                } else {
-                    throw new IllegalStateException("unexpected extracted rule type: " + extractedRule.getType());
-                }
+                extractedRule.apply(DefaultModelRegistry.this, scope);
             }
         }
 
         @Override
-        public <T> void applyToAllLinks(final ModelActionRole type, final ModelAction<T> action) {
+        public void applyToAllLinks(final ModelActionRole type, final ModelAction action) {
             if (action.getSubject().getPath() != null) {
                 throw new IllegalArgumentException("Linked element action reference must have null path.");
             }
 
             registerListener(new ModelCreationListener() {
-                @Nullable
                 @Override
                 public ModelPath getParent() {
                     return ModelElementNode.this.getPath();
                 }
 
-                @Nullable
                 @Override
                 public ModelType<?> getType() {
                     return action.getSubject().getType();
@@ -771,19 +786,17 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
 
         @Override
-        public <T> void applyToAllLinksTransitive(final ModelActionRole type, final ModelAction<T> action) {
+        public void applyToAllLinksTransitive(final ModelActionRole type, final ModelAction action) {
             if (action.getSubject().getPath() != null) {
                 throw new IllegalArgumentException("Linked element action reference must have null path.");
             }
 
             registerListener(new ModelCreationListener() {
-                @Nullable
                 @Override
                 public ModelPath getAncestor() {
                     return ModelElementNode.this.getPath();
                 }
 
-                @Nullable
                 @Override
                 public ModelType<?> getType() {
                     return action.getSubject().getType();
@@ -799,12 +812,12 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void addReference(ModelCreator creator) {
-            addNode(new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT), this), creator);
+            addNode(new ModelReferenceNode(toCreatorBinder(creator), this), creator);
         }
 
         @Override
         public void addLink(ModelCreator creator) {
-            addNode(new ModelElementNode(toCreatorBinder(creator, ModelPath.ROOT), this), creator);
+            addNode(new ModelElementNode(toCreatorBinder(creator), this), creator);
         }
 
         private void addNode(ModelNodeInternal child, ModelCreator creator) {
@@ -821,7 +834,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
             ModelNodeInternal currentChild = links.get(childPath.getName());
             if (currentChild != null) {
-                if (currentChild.getState() == Known) {
+                if (!currentChild.isAtLeast(Created)) {
                     throw new DuplicateModelException(
                         String.format(
                             "Cannot create '%s' using creation rule '%s' as the rule '%s' is already registered to create this model element.",
@@ -868,9 +881,19 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public void ensureUsable() {
-            transition(this, Initialized, true);
+            ensureAtLeast(Initialized);
         }
 
+        @Override
+        public void ensureAtLeast(State state) {
+            transition(this, state, true);
+        }
+
+        @Override
+        public void addProjection(ModelProjection projection) {
+            transition(this, State.Known, false);
+            getCreatorBinder().getCreator().addProjection(projection);
+        }
     }
 
     private class GoalGraph {
@@ -883,8 +906,8 @@ public class DefaultModelRegistry implements ModelRegistry {
                     case Known:
                         node = new MakeKnown(goal.path);
                         break;
-                    case Created:
-                        node = new Create(goal);
+                    case ProjectionsDefined:
+                        node = new DefineProjections(goal.path);
                         break;
                     case GraphClosed:
                         node = new CloseGraph(goal);
@@ -945,6 +968,9 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         void attachToCycle(List<String> displayValue) {
         }
+
+        @Override
+        public abstract String toString();
     }
 
     /**
@@ -1062,11 +1088,8 @@ public class DefaultModelRegistry implements ModelRegistry {
                 throw new IllegalStateException(String.format("Cannot transition model element '%s' to state %s as it is already at state %s.", node.getPath(), getTargetState(), node.getState()));
             }
             LOGGER.debug("Transitioning model element '{}' to state {}.", node.getPath(), getTargetState().name());
-            doApply(node);
             node.setState(getTargetState());
         }
-
-        abstract void doApply(ModelNodeInternal node);
 
         @Override
         void attachToCycle(List<String> displayValue) {
@@ -1074,21 +1097,26 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class Create extends TransitionNodeToState {
-        public Create(NodeAtState target) {
-            super(target);
+    private class DefineProjections extends ModelNodeGoal {
+        public DefineProjections(ModelPath path) {
+            super(path);
         }
 
         @Override
-        boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            // Must run the creator
-            dependencies.add(new RunCreatorAction(getPath(), node.getCreatorBinder()));
+        public boolean doIsAchieved() {
+            return node.isAtLeast(ProjectionsDefined);
+        }
+
+        @Override
+        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            dependencies.add(new ApplyActions(new NodeAtState(getPath(), ProjectionsDefined)));
+            dependencies.add(new NotifyProjectionsDefined(getPath()));
             return true;
         }
 
         @Override
-        void doApply(ModelNodeInternal node) {
-            // Nothing to do, creator action is run as a dependency
+        public String toString() {
+            return "define projections for " + getPath() + ", state: " + state;
         }
     }
 
@@ -1114,6 +1142,44 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
             return true;
         }
+
+        @Override
+        public String toString() {
+            return "transition dependents " + input.path + ", target: " + input.state + ", state: " + state;
+        }
+    }
+
+    private class TransitionChildrenOrReference extends ModelNodeGoal {
+
+        private final ModelNode.State targetState;
+
+        protected TransitionChildrenOrReference(ModelPath target, ModelNode.State targetState) {
+            super(target);
+            this.targetState = targetState;
+        }
+
+        @Override
+        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            if (node instanceof ModelReferenceNode) {
+                ModelReferenceNode referenceNode = (ModelReferenceNode) node;
+                ModelNodeInternal target = referenceNode.getTarget();
+                if (target == null || target.getPath().isDescendant(node.getPath())) {
+                    // No target, or target is an ancestor of this node, so is already being handled
+                    return true;
+                }
+                dependencies.add(graph.nodeAtState(new NodeAtState(target.getPath(), targetState)));
+            } else {
+                for (ModelNodeInternal child : node.getLinks()) {
+                    dependencies.add(graph.nodeAtState(new NodeAtState(child.getPath(), targetState)));
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "transition children of " + getPath() + " to " + targetState + ", state: " + state;
+        }
     }
 
     private class ApplyActions extends TransitionNodeToState {
@@ -1125,28 +1191,17 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            if (seenRules.isEmpty() && getTargetState().equals(DefaultsApplied)) {
-                for (RuleBinder binder : ruleBindings.getRulesWithSubject(getPath())) {
-                    if (seenRules.add(binder)) {
-                        MutatorRuleBinder<?> mutator = Cast.uncheckedCast(binder);
-                        dependencies.add(new RunModelAction(getPath(), mutator));
-                    }
-                }
-            }
-
+            boolean noActionsAdded = true;
             // Must run each action
             for (RuleBinder binder : ruleBindings.getRulesWithSubject(target)) {
                 if (seenRules.add(binder)) {
-                    MutatorRuleBinder<?> mutator = Cast.uncheckedCast(binder);
-                    dependencies.add(new RunModelAction(getPath(), mutator));
+                    noActionsAdded = false;
+                    if (binder instanceof ModelActionBinder) {
+                        dependencies.add(new RunModelAction(getPath(), (ModelActionBinder) binder));
+                    }
                 }
             }
-            return false;
-        }
-
-        @Override
-        void doApply(ModelNodeInternal node) {
-            // Nothing to do, actions are run as dependencies
+            return noActionsAdded;
         }
     }
 
@@ -1157,20 +1212,8 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         boolean doCalculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            // Must graph-close each child first
-            for (ModelNodeInternal child : node.getLinks()) {
-                if (child.getPath().isDescendant(getPath())) {
-                    // The linked node is an ancestor of this node, so is already being closed
-                    continue;
-                }
-                dependencies.add(graph.nodeAtState(new NodeAtState(child.getPath(), GraphClosed)));
-            }
+            dependencies.add(new TransitionChildrenOrReference(getPath(), GraphClosed));
             return true;
-        }
-
-        @Override
-        void doApply(ModelNodeInternal node) {
-            // Nothing to do
         }
     }
 
@@ -1219,6 +1262,40 @@ public class DefaultModelRegistry implements ModelRegistry {
 
             return true;
         }
+
+        @Override
+        public String toString() {
+            return "try resolve path " + getPath() + ", state: " + state;
+        }
+    }
+
+    private class TryResolveAndDefineProjectionsForPath extends TryResolvePath {
+
+        private boolean attemptedPath;
+
+        public TryResolveAndDefineProjectionsForPath(ModelPath path) {
+            super(path);
+        }
+
+        @Override
+        protected boolean doIsAchieved() {
+            return node.isAtLeast(ProjectionsDefined);
+        }
+
+        @Override
+        public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
+            if (modelGraph.find(getPath()) == null) {
+                if (!attemptedPath) {
+                    attemptedPath = super.calculateDependencies(graph, dependencies);
+                    return false;
+                } else {
+                    // Didn't find node at path
+                    return true;
+                }
+            }
+            dependencies.add(graph.nodeAtState(new NodeAtState(getPath(), ProjectionsDefined)));
+            return true;
+        }
     }
 
     private class TryResolveReference extends ModelGoal {
@@ -1232,7 +1309,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         @Override
         public boolean calculateDependencies(GoalGraph graph, Collection<ModelGoal> dependencies) {
-            dependencies.add(new TryResolvePath(parent.getTarget().getPath().child(path.getName())));
+            dependencies.add(new TryResolveAndDefineProjectionsForPath(parent.getTarget().getPath().child(path.getName())));
             return true;
         }
 
@@ -1241,13 +1318,22 @@ public class DefaultModelRegistry implements ModelRegistry {
             // Rough implementation to get something to work
             ModelNodeInternal parentTarget = parent.getTarget();
             ModelNodeInternal childTarget = parentTarget.getLink(path.getName());
+            if (childTarget == null) {
+                throw new NullPointerException("child is null");
+            }
             ModelCreator creator = ModelCreators.of(path)
-                    .descriptor(parent.getDescriptor())
-                    .withProjection(UnmanagedModelProjection.of(Object.class))
-                    .build();
-            ModelReferenceNode childNode = new ModelReferenceNode(toCreatorBinder(creator, ModelPath.ROOT), parent);
+                .descriptor(parent.getDescriptor())
+                .withProjection(childTarget.getCreatorBinder().getCreator().getProjection())
+                .build();
+            ModelReferenceNode childNode = new ModelReferenceNode(toCreatorBinder(creator), parent);
             childNode.setTarget(childTarget);
             registerNode(childNode);
+            ruleBindings.nodeProjectionsDefined(childNode);
+        }
+
+        @Override
+        public String toString() {
+            return "try resolve reference " + path + ", state: " + state;
         }
     }
 
@@ -1265,7 +1351,15 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public boolean isAchieved() {
             ModelNodeInternal node = modelGraph.find(scope);
-            return node != null && node.getState().compareTo(SelfClosed) >= 0;
+            if (node == null || !node.isAtLeast(SelfClosed)) {
+                return false;
+            }
+            for (ModelNodeInternal child : node.getLinks()) {
+                if (!child.isAtLeast(ProjectionsDefined)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @Override
@@ -1277,8 +1371,14 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
             if (modelGraph.find(scope) != null) {
                 dependencies.add(graph.nodeAtState(new NodeAtState(scope, SelfClosed)));
+                dependencies.add(new TransitionChildrenOrReference(scope, ProjectionsDefined));
             }
             return true;
+        }
+
+        @Override
+        public String toString() {
+            return "try define scope " + scope + ", state: " + state;
         }
     }
 
@@ -1312,7 +1412,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         private void maybeBind(ModelBinding binding, Collection<ModelGoal> dependencies) {
             if (!binding.isBound()) {
                 if (binding.getPredicate().getPath() != null) {
-                    dependencies.add(new TryResolvePath(binding.getPredicate().getPath()));
+                    dependencies.add(new TryResolveAndDefineProjectionsForPath(binding.getPredicate().getPath()));
                 } else {
                     dependencies.add(new TryDefineScope(binding.getPredicate().getScope()));
                 }
@@ -1358,24 +1458,10 @@ public class DefaultModelRegistry implements ModelRegistry {
         }
     }
 
-    private class RunCreatorAction extends RunAction {
-        public RunCreatorAction(ModelPath path, CreatorRuleBinder binder) {
-            super(path, binder);
-        }
-
-        @Override
-        void apply() {
-            CreatorRuleBinder creatorBinder = node.getCreatorBinder();
-            LOGGER.debug("Running model element '{}' creator rule action {}", getPath(), creatorBinder.getDescriptor());
-            doCreate(node, creatorBinder);
-            node.notifyFired(creatorBinder);
-        }
-    }
-
     private class RunModelAction extends RunAction {
-        private final MutatorRuleBinder<?> binder;
+        private final ModelActionBinder binder;
 
-        public RunModelAction(ModelPath path, MutatorRuleBinder<?> binder) {
+        public RunModelAction(ModelPath path, ModelActionBinder binder) {
             super(path, binder);
             this.binder = binder;
         }
@@ -1383,8 +1469,29 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         void apply() {
             LOGGER.debug("Running model element '{}' rule action {}", getPath(), binder.getDescriptor());
-            fireMutation(binder);
+            fireAction(binder);
             node.notifyFired(binder);
+        }
+    }
+
+    private class NotifyProjectionsDefined extends ModelNodeGoal {
+
+        protected NotifyProjectionsDefined(ModelPath target) {
+            super(target);
+        }
+
+        @Override
+        void apply() {
+            if (replace) {
+                return;
+            }
+            ruleBindings.nodeProjectionsDefined(node);
+            modelGraph.nodeProjectionsDefined(node);
+        }
+
+        @Override
+        public String toString() {
+            return "notify projections defined for " + getPath() + ", state: " + state;
         }
     }
 }

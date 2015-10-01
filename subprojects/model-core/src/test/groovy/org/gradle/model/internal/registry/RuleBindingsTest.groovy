@@ -21,6 +21,7 @@ import org.gradle.model.InvalidModelRuleException
 import org.gradle.model.ModelRuleBindingException
 import org.gradle.model.internal.core.ModelNode
 import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.core.ModelProjection
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
@@ -63,6 +64,58 @@ class RuleBindingsTest extends RegistrySpec {
         expect:
         bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == [rule]
         rule.subjectBinding.boundTo == node
+    }
+
+    def "locates the subject of a rule by-type when projection is defined later"() {
+        given:
+        def node = node("a", Long)
+        def rule = rule(Long, ModelNode.State.Mutated)
+        addNodeWithoutProjections(node)
+
+        when:
+        bindings.add(rule)
+
+        then:
+        rule.bound == false
+        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == []
+
+        when:
+        addProjections(node)
+
+        then:
+        rule.bound == true
+
+        expect:
+        rule.subjectBinding.boundTo == node
+        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == [rule]
+    }
+
+    def "locates the subject of a rule by-type when rule is defined later"() {
+        given:
+        def node = node("a", Long)
+        def rule = rule(Long, ModelNode.State.Mutated)
+
+        when:
+        bindings.add(rule)
+
+        then:
+        rule.bound == false
+        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == []
+
+        when:
+        addNodeWithoutProjections(node)
+
+        then:
+        rule.bound == false
+        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == []
+
+        when:
+        addProjections(node)
+
+        then:
+        rule.subjectBinding.boundTo == node
+        rule.bound == true
+        bindings.getRulesWithSubject(nodeAtState("a", ModelNode.State.Mutated)) as List == [rule]
     }
 
     def "locates the subject of a rule by-type when subject added after rule"() {
@@ -421,10 +474,21 @@ class RuleBindingsTest extends RegistrySpec {
         return new NodeAtState(ModelPath.path(path), state)
     }
 
-    void addNode(TestNode node) {
+    void addNode(TestNode node, ModelProjection... projections) {
+        addNodeWithoutProjections(node)
+        addProjections(node, projections)
+    }
+
+    private void addNodeWithoutProjections(TestNode node) {
         graph.get(node.path.parent).addLink(node)
         graph.add(node)
-        bindings.add(node)
+        bindings.nodeCreated(node)
+    }
+
+    private void addProjections(TestNode node, ModelProjection... projections) {
+        projections.each { node.addProjection it }
+        node.setState(ModelNode.State.ProjectionsDefined)
+        bindings.nodeProjectionsDefined(node)
     }
 
     void removeNode(TestNode node) {

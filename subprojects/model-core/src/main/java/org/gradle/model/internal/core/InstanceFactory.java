@@ -19,11 +19,22 @@ package org.gradle.model.internal.core;
 import org.gradle.api.Nullable;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.type.ModelType;
 
-public interface InstanceFactory<T, P> {
-    <S extends T> S create(Class<S> type, MutableModelNode modelNode, P payload);
+import java.util.Set;
 
-    String getSupportedTypeNames();
+public interface InstanceFactory<T> {
+    <S extends T> S create(ModelType<S> type, MutableModelNode modelNode, String name);
 
-    <S extends T> void register(Class<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, ? super P, ? super MutableModelNode> factory);
+    Set<ModelType<? extends T>> getSupportedTypes();
+
+    <S extends T> void registerFactory(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, String, ? super MutableModelNode> factory);
+
+    <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type);
+
+    <S extends T, I extends S> void registerImplementation(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<I> implementationViewType);
+
+    <S extends T> void registerInternalView(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<?> internalViewType);
+
+    void validateRegistrations();
 }

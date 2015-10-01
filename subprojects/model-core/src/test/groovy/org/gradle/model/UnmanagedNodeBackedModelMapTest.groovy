@@ -24,11 +24,13 @@ import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.registry.UnboundModelRulesException
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
@@ -78,16 +80,26 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
                 { name, type -> DirectInstantiator.instantiate(type, name) } as NamedEntityInstantiator
             )
                 .descriptor("container")
-                .withProjection(PolymorphicModelMapProjection.of(itemType, NodeBackedModelMap.createUsingParentNode(itemType)))
+                .withProjection(PolymorphicModelMapProjection.of(
+                    itemType,
+                    ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(itemType)))
+                )
                 .build()
         )
     }
 
     void mutate(@DelegatesTo(ModelMap) Closure<? super ModelMap<NamedThing>> action) {
-        def mutator = Stub(ModelAction)
-        mutator.subject >> ModelReference.of(containerPath, new ModelType<ModelMap<NamedThing>>() {})
-        mutator.descriptor >> new SimpleModelRuleDescriptor("foo")
-        mutator.execute(*_) >> { new ClosureBackedAction<NamedThing>(action).execute(it[1]) }
+        def mutator = new AbstractModelActionWithView<ModelMap<NamedThing>>(
+            ModelReference.of(
+                containerPath,
+                ModelTypes.modelMap(NamedThing)
+            ),
+            new SimpleModelRuleDescriptor("foo")) {
+                @Override
+                protected void execute(MutableModelNode modelNode, ModelMap<NamedThing> view, List<ModelView<?>> inputs) {
+                    new ClosureBackedAction<? super ModelMap<NamedThing>>(action).execute(view)
+                }
+        }
 
         registry.configure(ModelActionRole.Mutate, mutator)
     }
@@ -368,10 +380,9 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         realize()
 
         then:
-        ModelRuleExecutionException e = thrown()
-        e.cause instanceof InvalidModelRuleException
-        e.cause.cause instanceof ModelRuleBindingException
-        e.cause.cause.message.startsWith("Model reference to element 'container.foo' with type java.lang.String is invalid due to incompatible types.")
+        InvalidModelRuleException e = thrown()
+        e.cause instanceof ModelRuleBindingException
+        e.cause.message.startsWith("Model reference to element 'container.foo' with type java.lang.String is invalid due to incompatible types.")
     }
 
     static class SetOtherToName extends RuleSource {
@@ -870,5 +881,17 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         then:
         thrown ModelViewClosedException
     }
+
+    def "is managed instance"() {
+        when:
+        mutate {
+            assert it instanceof ManagedInstance
+            assert withType(SpecialNamedThingInterface) instanceof ManagedInstance
+        }
+
+        then:
+        realize()
+    }
+
 
 }

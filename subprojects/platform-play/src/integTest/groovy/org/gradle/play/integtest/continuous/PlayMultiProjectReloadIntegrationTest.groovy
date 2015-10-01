@@ -18,7 +18,7 @@ package org.gradle.play.integtest.continuous
 import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayReloadIntegrationTest
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
 import org.gradle.play.integtest.fixtures.RunningPlayApp
-import org.gradle.play.integtest.fixtures.app.PlayApp
+import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.PlayMultiProject
 import org.gradle.test.fixtures.file.TestFile
 

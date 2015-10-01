@@ -21,8 +21,6 @@ import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.model.internal.inspect.ModelRuleExtractor;
-import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.Map;
@@ -35,11 +33,11 @@ public class ReusingModelRegistryStore implements ModelRegistryStore {
     public static final String TOGGLE = "org.gradle.model.reuse";
     public static final String BANNER = "Experimental model reuse is enabled.";
 
-    private final ModelRuleExtractor ruleExtractor;
     private final Map<String, ModelRegistry> store = Maps.newHashMap();
+    private final ModelRegistryStore delegate;
 
-    public ReusingModelRegistryStore(ModelRuleExtractor ruleExtractor) {
-        this.ruleExtractor = ruleExtractor;
+    public ReusingModelRegistryStore(ModelRegistryStore delegate) {
+        this.delegate = delegate;
     }
 
     @Override
@@ -47,7 +45,7 @@ public class ReusingModelRegistryStore implements ModelRegistryStore {
         ModelRegistry modelRegistry = store.get(projectIdentifier.getProjectDir().getAbsolutePath());
         if (modelRegistry == null) {
             LOGGER.info("creating new model registry for project: " + projectIdentifier.getPath());
-            modelRegistry = new DefaultModelRegistry(ruleExtractor);
+            modelRegistry = delegate.get(projectIdentifier);
             store.put(projectIdentifier.getProjectDir().getAbsolutePath(), modelRegistry);
         } else {
             LOGGER.info("reusing model for project: " + projectIdentifier.getPath());

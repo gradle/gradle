@@ -52,6 +52,7 @@ import org.gradle.internal.resource.StringResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.JUnit4GroovyMockery
@@ -110,6 +111,7 @@ class DefaultProjectTest {
     ProjectConfigurationActionContainer configureActions = context.mock(ProjectConfigurationActionContainer.class)
     PluginManagerInternal pluginManager = context.mock(PluginManagerInternal.class)
     PluginContainer pluginContainer = context.mock(PluginContainer.class)
+    NodeInitializerRegistry nodeInitializerRegistry = context.mock(NodeInitializerRegistry.class)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
@@ -134,8 +136,8 @@ class DefaultProjectTest {
 
         projectRegistry = new DefaultProjectRegistry()
 
-        projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, 'parent')
-        serviceRegistryMock = context.mock(ServiceRegistry.class, 'project')
+        projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, 'serviceRegistryFactory')
+        serviceRegistryMock = context.mock(ServiceRegistry.class, 'serviceRegistry')
 
         context.checking {
             allowing(projectServiceRegistryFactoryMock).createFor(withParam(notNullValue())); will(returnValue(serviceRegistryMock))

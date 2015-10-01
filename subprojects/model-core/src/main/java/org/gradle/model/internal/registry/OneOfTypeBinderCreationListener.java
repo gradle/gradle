@@ -19,6 +19,7 @@ package org.gradle.model.internal.registry;
 import org.gradle.api.Action;
 import org.gradle.model.InvalidModelRuleException;
 import org.gradle.model.ModelRuleBindingException;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.AmbiguousBindingReporter;
@@ -29,6 +30,11 @@ class OneOfTypeBinderCreationListener extends ModelBinding {
     public OneOfTypeBinderCreationListener(ModelRuleDescriptor descriptor, BindingPredicate predicate, boolean writable, Action<ModelBinding> bindAction) {
         super(descriptor, predicate, writable);
         this.bindAction = bindAction;
+    }
+
+    @Override
+    public boolean canBindInState(ModelNode.State state) {
+        return state.isAtLeast(ModelNode.State.ProjectionsDefined);
     }
 
     public void onCreate(ModelNodeInternal node) {

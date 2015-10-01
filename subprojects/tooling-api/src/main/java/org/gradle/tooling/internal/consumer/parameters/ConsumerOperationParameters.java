@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.parameters;
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -31,7 +32,6 @@ import org.gradle.tooling.model.Task;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -61,7 +61,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<String> arguments;
         private List<String> tasks;
         private List<InternalLaunchable> launchables;
-        private List<URI> classpath;
+        private ClassPath injectedPluginClasspath = ClassPath.EMPTY;
 
         private Builder() {
         }
@@ -141,8 +141,8 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return this;
         }
 
-        public Builder setClasspath(List<URI> classpath) {
-            this.classpath = classpath;
+        public Builder setInjectedPluginClasspath(ClassPath classPath) {
+            this.injectedPluginClasspath = classPath;
             return this;
         }
 
@@ -176,9 +176,9 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
             ProgressListenerAdapter progressListenerAdapter = new ProgressListenerAdapter(this.legacyProgressListeners);
             FailsafeBuildProgressListenerAdapter buildProgressListenerAdapter = new FailsafeBuildProgressListenerAdapter(
-                    new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
-            return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, classpath,
-                    progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
+                new BuildProgressListenerAdapter(this.testProgressListeners, this.taskProgressListeners, this.buildOperationProgressListeners));
+            return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, injectedPluginClasspath,
+                progressListenerAdapter, buildProgressListenerAdapter, cancellationToken);
         }
     }
 
@@ -199,10 +199,10 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<String> arguments;
     private final List<String> tasks;
     private final List<InternalLaunchable> launchables;
-    private final List<URI> classpath;
+    private final ClassPath injectedPluginClasspath;
 
     private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
-                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, List<URI> classpath,
+                                        File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
                                         ProgressListenerAdapter progressListener, FailsafeBuildProgressListenerAdapter buildProgressListener, CancellationToken cancellationToken) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
@@ -215,7 +215,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.arguments = arguments;
         this.tasks = tasks;
         this.launchables = launchables;
-        this.classpath = classpath;
+        this.injectedPluginClasspath = injectedPluginClasspath;
         this.progressListener = progressListener;
         this.buildProgressListener = buildProgressListener;
         this.cancellationToken = cancellationToken;
@@ -234,6 +234,9 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return entryPointName;
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public long getStartTime() {
         return startTime;
     }
@@ -242,42 +245,72 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return parameters.getVerboseLogging();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public File getGradleUserHomeDir() {
         return parameters.getGradleUserHomeDir();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public File getProjectDir() {
         return parameters.getProjectDir();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public Boolean isSearchUpwards() {
         return parameters.isSearchUpwards();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public Boolean isEmbedded() {
         return parameters.isEmbedded();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public TimeUnit getDaemonMaxIdleTimeUnits() {
         return parameters.getDaemonMaxIdleTimeUnits();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public Integer getDaemonMaxIdleTimeValue() {
         return parameters.getDaemonMaxIdleTimeValue();
     }
 
+    /**
+     * @since 2.2-rc-1
+     */
     public File getDaemonBaseDir() {
         return parameters.getDaemonBaseDir();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public OutputStream getStandardOutput() {
         return stdout;
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public OutputStream getStandardError() {
         return stderr;
     }
 
+    /**
+     * @since 2.3-rc-1
+     */
     public Boolean isColorOutput() {
         return colorOutput;
     }
@@ -302,18 +335,30 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return tasks;
     }
 
+    /**
+     * @since 1.12-rc-1
+     */
     public List<InternalLaunchable> getLaunchables() {
         return launchables;
     }
 
-    public List<URI> getClasspath() {
-        return classpath;
+    /**
+     * @since 2.8-rc-1
+     */
+    public List<File> getInjectedPluginClasspath() {
+        return injectedPluginClasspath.getAsFiles();
     }
 
+    /**
+     * @since 1.0-milestone-3
+     */
     public ProgressListenerVersion1 getProgressListener() {
         return progressListener;
     }
 
+    /**
+     * @since 2.4-rc-1
+     */
     public FailsafeBuildProgressListenerAdapter getBuildProgressListener() {
         return buildProgressListener;
     }

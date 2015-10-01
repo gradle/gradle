@@ -27,7 +27,7 @@ class BuildLogicFunctionalTest extends Specification {
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
     // START SNIPPET functional-test-classpath-setup
-    List<URI> pluginClasspath
+    List<File> pluginClasspath
 
     def setup() {
         buildFile = testProjectDir.newFile('build.gradle')
@@ -39,7 +39,7 @@ class BuildLogicFunctionalTest extends Specification {
 
         pluginClasspath = pluginClasspathResource.readLines()
             .collect { it.replace('\\', '\\\\') } // escape backslashes in Windows paths
-            .collect { new File(it).toURI() }
+            .collect { new File(it) }
     }
 
     def "hello world task prints hello world"() {
@@ -54,7 +54,7 @@ class BuildLogicFunctionalTest extends Specification {
         def result = GradleRunner.create()
             .withProjectDir(testProjectDir.root)
             .withArguments('helloWorld')
-            .withClasspath(pluginClasspath)
+            .withPluginClasspath(pluginClasspath)
             .build()
 
         then:

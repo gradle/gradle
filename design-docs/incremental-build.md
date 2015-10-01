@@ -19,7 +19,7 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 - TBD, whatever makes sense (this should touch test infrastructure only)
 
-## Story: Compare tasks using IncrementalTaskInputs with "regular" tasks
+## ~~Story: Compare tasks using IncrementalTaskInputs with "regular" tasks~~
 
 - Vary number of inputs
 - If difference between calculating up-to-date checks is identical or within an order of magnitude, remove this as a variable in future plans.
@@ -31,7 +31,11 @@ This spec defines some improvements to improve incremental build and task up-to-
 - Compare time to perform up-to-date checks for otherwise identical tasks at
    - 1, 10, 100, 1000 and 10000 inputs
 
-## Story: Compare "one change" and "no change" cases
+### Result
+
+No meaningful difference (see detailed numbers in Google sheet).
+
+## ~~Story: Compare "one change" and "no change" cases~~
 
 - Vary number of inputs
 - Compare no input change case with one input change case
@@ -45,7 +49,11 @@ This spec defines some improvements to improve incremental build and task up-to-
 - Collect time to perform up-to-date checks at
    - 1, 10, 100, 1000 and 10000 inputs
 
-## Story: Find breaking point for input and output sizes
+### Result
+
+No meaningful difference (see detailed numbers in Google sheet).
+
+## ~~Story: Find breaking point for input and output sizes~~
 
 ### Scenario 1: vary inputs
 
@@ -77,19 +85,62 @@ This spec defines some improvements to improve incremental build and task up-to-
 - Collect time to perform up-to-date checks for 100 outputs at
    - 1MB, 10MB, 50MB, 100MB outputs (smaller if impractical)
 
+### Result
+
+- It depends on the heap size. With 10000 tasks of 10000 input files, it runs out of memory with a 4GB max heap size.
+- With 1GB heap, 1000 tasks with 1000 input files is successful (total of 1 million inputs), but 1000 tasks with 2000 input files fails.
+Because of task execution history, the file hashes from the previous build are kept in memory. There was about 2.5 million FileHashSnapshot
+instances in memory when the OOM occured.
 
 ## Story: Update performance generator to create representative Java project
 
-See discussion about parameters.  Uses java-lang/jvm-component software model plugins.
+Uses java-lang/jvm-component software model plugins.
+
+A representative Java project:
+- 1 set of main sources
+- 1 set of unit test sources
+- Project dependencies
+- External dependencies
+  - use generated maven repository with generated jar files with realistic sizes (200k-2000k)
+  - define dependencies in build by using old-model configurations
+  - wire old-model configurations in to new-model generated tasks (compile, test)
+  - add testCompile configuration that extends compile configuration
+    - testCompile configuration add junit dependency
+  - add testRuntime configuration that extends testCompile
+    - use testRuntime for test execution task
+- Emulated checkstyle task per source set (main, test)
+- Unit test task
+
+2 different sizes of generated projects: small and large.
+
+All builds:
+- multi-project builds
+- max 10 classes per package
+- 50 source lines per class
+
+Small build:
+- 10 projects
+- 100 classes per project
+- 5 external dependencies per project, 20 unique external dependencies
+- up to 3 project dependencies per project
+
+Large build:
+- 100 projects
+- 1000 classes per project
+- 50 external dependencies per project, 200 unique external dependencies
+- up to 10 project dependencies per project
+
 
 ### Test coverage
 
-- Performance test that runs against 2.6 and latest release
+- Performance test that runs against latest release and master branch.
 
 ### Open Issues
 
-- Need to incorporate test execution into this as well
-- How are we going to handle external dependencies while the jvm-component plugins do not support external dependencies?
+~~- Need to incorporate test execution into this as well~~
+
+~~- How are we going to handle external dependencies while the jvm-component plugins do not support external dependencies?~~
+- do we need to simulate integration tests?
 
 ## Story: Update performance generator to create representative C/C++ project
 
@@ -98,6 +149,75 @@ See discussion about parameters.  Uses cpp software model plugins.
 ### Test coverage
 
 - Performance test that runs against 2.6 and latest release
+
+## Story: Profile Java representative build with parallel execution mode
+
+- Record profile findings
+
+### Test coverage
+
+- Test with --parallel --max-workers=4
+- add test scenario to NewJavaPluginPerformanceTest for parallel execution to existing test
+
+## Story: Improve File metadata lookup in task input/output snapshotting
+
+File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are hotspots in task input/output snapshotting.
+The Java nio2 directory walking method java.nio.file.Files.walkFileTree can pass the file metadata used for directory scanning to "visiting" the file tree so that metadata (BasicFileAttributes) doesn't have to be re-read.
+
+### Test coverage
+
+TBD
+
+## Story: Add caching to Specs returned from PatternSet.getAsSpecs()
+
+Evaluating patterns is a hotspot in directory scanning. The default excludes patterns contains 28 entries. Checking all rules for each file sums up in a lot of operations. Adding caching will improve performance of subsequent incremental builds.
+
+### Test coverage
+
+TBD
+
+## Story: Inline the data from the file hash cache into the task history cache
+
+Change `DefaultFileCollectionSnapshotter` to store (length, last-modified, hash)
+in the `FileCollectionSnapshot` implementation it creates. This is referenced by
+the task history cache.
+
+When deciding whether something has changed, iterate over the elements of the
+`FileCollectionSnapshot` and use the (length, last-modified, hash) from the
+snapshot. Do not fetch this information from the file hash cache. If something
+has changed, hash it, and add the (length, last-modified, hash) tuple to the
+file hash cache. Also make a copy of the snapshot and update it with this new
+entry. This copy will be used as the new snapshot in the task history.
+
+What this means is that file hash cache is used only for new and modified files,
+which means there’s no point caching these entries in-memory (except perhaps for
+the duration of a build). For unmodified files, there’s never a cache miss. When
+nothing has changed for a snapshot, we also don’t need to hold a lock on the
+cache, which means less work and better concurrency when most snapshots are
+unmodified.
+
+### Test coverage
+
+TBD
+
+
+## Story: Reduce the in-memory size of the task history cache
+
+1. Discard history that will never be used, eg for tasks that no longer exist,
+or that is unlikely to be used, eg for tasks in builds other than the current.
+2. Keep a hash of the file snapshots in memory rather than the file snapshots
+themselves. It’s only when we need to know exactly which files have changed that
+we would need to load up the snapshot.
+3. Do something similar for the task properties as well.
+4. Reduce the cost of a cache miss, by improving the efficiency of serialisation
+to the file system, and reducing the cache size.
+5. Reduce the cost of a cache miss, by spooling to an efficient transient second
+level cache, and reducing the cache size.
+
+### Test coverage
+
+TBD
+
 
 ## Story: TBD
 

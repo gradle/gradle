@@ -18,19 +18,15 @@ package org.gradle.integtests.tooling.r23
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestOutputStream
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 
-class StandardStreamsCrossVersionSpec extends ToolingApiSpecification {
+class StandardStreamsCrossVersionSpec extends ToolingApiLoggingSpecification {
     @Rule RedirectStdOutAndErr stdOutAndErr = new RedirectStdOutAndErr()
     def escapeHeader = "\u001b["
-
-    def setup() {
-        toolingApi.requireDaemons()
-    }
 
     @TargetGradleVersion(">=2.3")
     def "logging is not sent to System.out or System.err"() {

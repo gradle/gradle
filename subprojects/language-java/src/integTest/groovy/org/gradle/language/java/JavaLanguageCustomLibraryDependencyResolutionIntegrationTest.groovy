@@ -1009,3 +1009,4 @@ class DefaultCustomLibrary extends BaseComponentSpec implements CustomLibrary {
         '''
     }
 }
+

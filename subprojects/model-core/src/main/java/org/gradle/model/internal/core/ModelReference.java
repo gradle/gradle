@@ -17,6 +17,7 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.type.ModelType;
@@ -43,9 +44,9 @@ public class ModelReference<T> {
     @Nullable
     private final String description;
 
-    private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, ModelNode.State state, @Nullable String description) {
+    private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, @Nullable ModelNode.State state, @Nullable String description) {
         this.path = path;
-        this.type = type;
+        this.type = Preconditions.checkNotNull(type, "type");
         this.scope = scope;
         this.description = description;
         this.state = state != null ? state : ModelNode.State.GraphClosed;

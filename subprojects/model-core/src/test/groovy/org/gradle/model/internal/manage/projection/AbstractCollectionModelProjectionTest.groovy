@@ -17,24 +17,24 @@
 package org.gradle.model.internal.manage.projection
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.ModelViewClosedException
-import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.manage.schema.ManagedImplModelSchema
+import org.gradle.model.internal.manage.schema.ModelStructSchema
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>> extends Specification {
 
     def schemaStore = DefaultModelSchemaStore.instance
+    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
     def collectionPath = ModelPath.path("collection")
     def registry = new ModelRegistryHelper()
     def internalType
     def internalTypeSchema
     def collectionProperty
-    def collectionType
-    def collectionSchema
+    ModelType<C> collectionType
     private ModelReference<C> reference
 
     abstract Class<?> holderType()
@@ -46,12 +46,15 @@ abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>>
     def setup() {
         internalType = holderType()
         internalTypeSchema = schemaStore.getSchema(internalType)
+        assert internalTypeSchema instanceof ModelStructSchema
         collectionProperty = internalTypeSchema.getProperty('items')
-        collectionType = collectionProperty.type
-        collectionSchema = schemaStore.getSchema(collectionType)
+        collectionType = collectionProperty.type as ModelType<C>
+        def collectionSchema = schemaStore.getSchema(collectionType)
+        assert collectionSchema instanceof ManagedImplModelSchema
+        def nodeInitializer = nodeInitializerRegistry.getNodeInitializer(collectionSchema)
         reference = ModelReference.of(collectionPath, collectionType)
         registry.create(
-            ModelCreators.of(collectionPath, collectionSchema.nodeInitializer)
+            ModelCreators.of(collectionPath, nodeInitializer)
                 .descriptor("define collection")
                 .build()
         )

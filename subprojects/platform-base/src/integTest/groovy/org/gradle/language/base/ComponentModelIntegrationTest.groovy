@@ -15,12 +15,13 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 import spock.lang.Unroll
+
+import static org.gradle.util.Matchers.containsText
 
 class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
@@ -288,7 +289,6 @@ model {
                 }
             }
         """
-
         when:
         succeeds "model"
 
@@ -657,7 +657,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failureHasCause("Cannot create a DefaultCustomComponent because this type is not known to this collection. Known types are: CustomComponent")
+        failure.assertThatCause(containsText("A model node of type: 'DefaultCustomComponent' can not be constructed."))
     }
 
     def "reasonable error message when creating component with no implementation"() {
@@ -676,7 +676,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failureHasCause("Cannot create a AnotherCustomComponent because this type is not known to this collection. Known types are: CustomComponent")
+        failure.assertThatCause(containsText("A model node of type: 'AnotherCustomComponent' can not be constructed."))
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {

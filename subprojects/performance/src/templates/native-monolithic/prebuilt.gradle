@@ -1,0 +1,23 @@
+
+model {
+    repositories {
+        libs(PrebuiltLibraries) {
+            <% prebuiltLibraries.times { %>
+            prebuilt$it {
+                headers.with {
+                    srcDir "\$rootDir/prebuilt/lib$it/include"
+                    include "**/*.h"
+                }
+                // TODO: Define library locations (and generate something?)
+            }
+            <% } %>
+
+            commonHeaders {
+                headers.with {
+                    srcDir "\$rootDir"
+                    include "**/*.h"
+                }
+            }
+        }
+    }
+}

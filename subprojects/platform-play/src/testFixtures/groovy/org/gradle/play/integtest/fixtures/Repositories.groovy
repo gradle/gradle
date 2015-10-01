@@ -32,4 +32,13 @@ class Repositories {
             }
         }
     """
+
+    public static final String GRADLE_JS_REPOSITORY = """
+        repositories {
+            maven {
+                name = "gradle-js"
+                url = "https://repo.gradle.org/gradle/javascript-public"
+            }
+        }
+    """
 }

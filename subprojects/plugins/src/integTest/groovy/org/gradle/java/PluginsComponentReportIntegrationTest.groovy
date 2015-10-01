@@ -41,8 +41,10 @@ Additional source sets
 ----------------------
 Java source 'main:java'
     srcDir: src/main/java
+    limit to: **/*.java
 Java source 'test:java'
     srcDir: src/test/java
+    limit to: **/*.java
 JVM resources 'main:resources'
     srcDir: src/main/resources
 JVM resources 'test:resources'
@@ -50,6 +52,128 @@ JVM resources 'test:resources'
 
 Additional binaries
 -------------------
+Classes 'main'
+    build using task: :classes
+    targetPlatform: $currentJava
+    tool chain: $currentJdk
+    classes dir: build/classes/main
+    resources dir: build/resources/main
+Classes 'test'
+    build using task: :testClasses
+    targetPlatform: $currentJava
+    tool chain: $currentJdk
+    classes dir: build/classes/test
+    resources dir: build/resources/test
+"""
+    }
+
+    def "shows details of mixed legacy Java and JVM library project"() {
+        given:
+        buildFile << """
+plugins {
+    id 'java'
+    id 'jvm-component'
+}
+model {
+    components {
+        lib(JvmLibrarySpec)
+    }
+}
+"""
+        when:
+        succeeds "components"
+
+        then:
+        outputMatches output, """
+JVM library 'lib'
+-----------------
+
+Source sets
+    No source sets.
+
+Binaries
+    Jar 'libJar'
+        build using task: :libJar
+        targetPlatform: $currentJava
+        tool chain: $currentJdk
+        Jar file: build/jars/libJar/lib.jar
+
+Additional source sets
+----------------------
+Java source 'main:java'
+    srcDir: src/main/java
+    limit to: **/*.java
+Java source 'test:java'
+    srcDir: src/test/java
+    limit to: **/*.java
+JVM resources 'main:resources'
+    srcDir: src/main/resources
+JVM resources 'test:resources'
+    srcDir: src/test/resources
+
+Additional binaries
+-------------------
+Classes 'main'
+    build using task: :classes
+    targetPlatform: $currentJava
+    tool chain: $currentJdk
+    classes dir: build/classes/main
+    resources dir: build/resources/main
+Classes 'test'
+    build using task: :testClasses
+    targetPlatform: $currentJava
+    tool chain: $currentJdk
+    classes dir: build/classes/test
+    resources dir: build/resources/test
+"""
+    }
+
+    def "shows details of legacy Java project with custom source sets"() {
+        given:
+        buildFile << """
+plugins {
+    id 'java'
+}
+sourceSets {
+    custom {
+        java.srcDirs = ['src/custom', 'src/custom2']
+    }
+}
+"""
+        when:
+        succeeds "components"
+
+        then:
+        outputMatches output, """
+No components defined for this project.
+
+Additional source sets
+----------------------
+Java source 'custom:java'
+    srcDir: src/custom
+    srcDir: src/custom2
+    limit to: **/*.java
+Java source 'main:java'
+    srcDir: src/main/java
+    limit to: **/*.java
+Java source 'test:java'
+    srcDir: src/test/java
+    limit to: **/*.java
+JVM resources 'custom:resources'
+    srcDir: src/custom/resources
+JVM resources 'main:resources'
+    srcDir: src/main/resources
+JVM resources 'test:resources'
+    srcDir: src/test/resources
+
+Additional binaries
+-------------------
+Classes 'custom'
+    build using task: :customClasses
+    targetPlatform: $currentJava
+    tool chain: $currentJdk
+    classes dir: build/classes/custom
+    resources dir: build/resources/custom
 Classes 'main'
     build using task: :classes
     targetPlatform: $currentJava

@@ -15,7 +15,6 @@
  */
 
 package org.gradle.platform.base.internal.registry
-
 import org.gradle.language.base.internal.testinterfaces.RawLibrary
 import org.gradle.language.base.internal.testinterfaces.SomeBinarySpec
 import org.gradle.language.base.internal.testinterfaces.SomeBinarySubType
@@ -23,10 +22,8 @@ import org.gradle.language.base.internal.testinterfaces.SomeLibrary
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.ExtractedModelRule
-import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelReference
-import org.gradle.model.internal.type.ModelType
+import org.gradle.model.internal.core.*
+import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.*
 import spock.lang.Unroll
 
@@ -45,14 +42,25 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
 
     @Unroll
     def "applies ComponentModelBasePlugin and creates componentBinary rule #descr"() {
+        def mockRegistry = Mock(ModelRegistry)
+
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod(ruleName))
 
         then:
+        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
-        registration.type == ExtractedModelRule.Type.ACTION
-        registration.actionRole == ModelActionRole.Finalize
-        registration.action.subject == ModelReference.of("components", ModelType.of(ComponentSpecContainer))
+
+
+        when:
+        registration.apply(mockRegistry, ModelPath.ROOT)
+
+        then:
+        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction action, ModelPath scope ->
+            assert role == ModelActionRole.Finalize
+            assert action.subject == ModelReference.of("components", ComponentSpecContainer)
+        }
+        0 * _
 
         where:
         ruleName         | descr

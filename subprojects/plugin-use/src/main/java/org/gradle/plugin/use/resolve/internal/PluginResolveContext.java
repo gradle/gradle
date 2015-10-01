@@ -17,7 +17,6 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.internal.plugins.PluginImplementation;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.plugin.internal.PluginId;
 
 public interface PluginResolveContext {
@@ -25,5 +24,5 @@ public interface PluginResolveContext {
 
     void add(PluginImplementation<?> plugin);
 
-    void addClassPath(ClassPath classPath);
+    void addFromDifferentLoader(PluginImplementation<?> plugin);
 }

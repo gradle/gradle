@@ -9,6 +9,10 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Remove Sonar plugins
+
+Deprecate the Sonar plugins
+
 ## Test output directories
 
 The current defaults for the outputs of tasks of type `Test` conflict with each other:
@@ -163,7 +167,6 @@ Extension objects have been available for over 2 years and are now an establishe
 * Remove the specialised methods such as `whenTaskAdded()` from `PluginCollection`, `TaskCollection`
 * Remove the `extends T` upper bound on the type variable of `DomainObjectCollection.withType()`.
 * Remove the type variable from `ReportContainer`
-* Remove unused constants from `ArtifactRepositoryContainer`
 * Move `ReportContainer.ImmutableViolationException` to make top level.
 
 ## Dependency API tidy-ups
@@ -189,13 +192,8 @@ Extension objects have been available for over 2 years and are now an establishe
 * Remove `Settings.startParameter`. Can use `gradle.startParameter` instead.
 * Remove `org.gradle.util` from default imports.
 * Remove `AbstractOptions`.
-* Remove or rename `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`.
 * Remove unused `EclipseDomainModel`.
 * Replace `ShowStacktrace.INTERNAL_EXCEPTIONS` with `NONE`.
-
-## Remove `sonar` plugin
-
-Promote the `sonar-runner` plugin and remove the `sonar` plugin.
 
 ## Signing plugin tidy-ups
 

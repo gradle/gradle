@@ -24,10 +24,9 @@ import org.gradle.language.base.internal.testinterfaces.CustomLanguageSourceSet
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.core.ExtractedModelRule
-import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.LanguageType
 import org.gradle.platform.base.LanguageTypeBuilder
@@ -76,14 +75,24 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
     }
 
     def "applies ComponentModelBasePlugin and creates language type rule"() {
+        def mockRegistry = Mock(ModelRegistry)
+
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
+        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
-        registration.type == ExtractedModelRule.Type.ACTION
-        registration.actionRole == ModelActionRole.Defaults
-        registration.action.subject == ModelReference.of(LanguageRegistry)
+
+        when:
+        registration.apply(mockRegistry, ModelPath.ROOT)
+
+        then:
+        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction action, ModelPath scope ->
+            assert role == ModelActionRole.Defaults
+            assert action.subject == ModelReference.of(LanguageRegistry)
+        }
+        0 * _
     }
 
     def "only applies ComponentModelBasePlugin when implementation not set"() {
@@ -91,8 +100,8 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationTypeRule"))
 
         then:
+        registration instanceof DependencyOnlyExtractedModelRule
         registration.ruleDependencies == [ComponentModelBasePlugin]
-        registration.type == ExtractedModelRule.Type.DEPENDENCIES
     }
 
     static class ImplementingCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {

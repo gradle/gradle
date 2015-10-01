@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry;
 
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPromise;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
@@ -53,13 +54,15 @@ abstract class ModelBinding {
     }
 
     boolean isTypeCompatible(ModelPromise promise) {
-        return promise.canBeViewedAsWritable(predicate.getType()) || promise.canBeViewedAsReadOnly(predicate.getType());
+        return predicate.isUntyped() || promise.canBeViewedAsMutable(predicate.getType()) || promise.canBeViewedAsImmutable(predicate.getType());
     }
 
     @Override
     public String toString() {
         return "ModelBinding{predicate=" + predicate + ", node=" + boundTo + '}';
     }
+
+    public abstract boolean canBindInState(ModelNode.State state);
 
     public abstract void onCreate(ModelNodeInternal node);
 

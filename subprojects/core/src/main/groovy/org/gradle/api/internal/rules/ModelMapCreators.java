@@ -16,59 +16,38 @@
 
 package org.gradle.api.internal.rules;
 
-import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
+import org.gradle.internal.BiAction;
 import org.gradle.model.ModelMap;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessor;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
+
+import java.util.List;
 
 public class ModelMapCreators {
 
     public static <T, C extends ModelMap<T>> ModelCreator specialized(ModelPath path,
                                                                       Class<T> typeClass,
                                                                       Class<C> containerClass,
-                                                                      Class<? extends C> viewClass,
-                                                                      ModelReference<? extends InstanceFactory<? super T, String>> factoryReference,
+                                                                      final Class<? extends C> viewClass,
                                                                       ModelRuleDescriptor descriptor) {
-
-        ChildNodeInitializerStrategy<T> childFactory = NodeBackedModelMap.createUsingFactory(factoryReference);
-
         ModelType<C> containerType = ModelType.of(containerClass);
-        ModelType<T> modelType = ModelType.of(typeClass);
-        return ModelCreators.of(ModelReference.of(path, containerType), Factories.<C>constantNull())
+        final ModelType<T> modelType = ModelType.of(typeClass);
+        ChildNodeInitializerStrategyAccessor<T> strategyAccessor = ChildNodeInitializerStrategyAccessors.fromPrivateData();
+        return ModelCreators.of(path, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+            @Override
+            public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
+                NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
+                ChildNodeInitializerStrategy<T> childFactory = NodeBackedModelMap.createUsingRegistry(modelType, nodeInitializerRegistry);
+                node.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
+            }
+        })
             .descriptor(descriptor)
-            .withProjection(new SpecializedModelMapProjection<C, T>(containerType, modelType, viewClass, childFactory))
-            .withProjection(PolymorphicModelMapProjection.of(modelType, childFactory))
+            .withProjection(new SpecializedModelMapProjection<C, T>(containerType, modelType, viewClass, strategyAccessor))
+            .withProjection(PolymorphicModelMapProjection.of(modelType, strategyAccessor))
             .build();
     }
-
-    public static <T> ModelCreators.Builder of(ModelPath path, final Class<T> typeClass) {
-
-        final ModelType<RuleAwarePolymorphicNamedEntityInstantiator<T>> instantiatorType = instantiatorType(typeClass);
-
-        ModelType<T> modelType = ModelType.of(typeClass);
-        return ModelCreators.of(
-            ModelReference.of(path, instantiatorType),
-            new Factory<RuleAwarePolymorphicNamedEntityInstantiator<T>>() {
-                @Override
-                public RuleAwarePolymorphicNamedEntityInstantiator<T> create() {
-                    return new DefaultRuleAwarePolymorphicNamedEntityInstantiator<T>(
-                        new DefaultPolymorphicNamedEntityInstantiator<T>(typeClass, "this collection")
-                    );
-                }
-            }
-        )
-            .withProjection(PolymorphicModelMapProjection.of(modelType, NodeBackedModelMap.createUsingParentNode(modelType)))
-            .withProjection(UnmanagedModelProjection.of(instantiatorType));
-    }
-
-    public static <T> ModelType<RuleAwarePolymorphicNamedEntityInstantiator<T>> instantiatorType(Class<T> typeClass) {
-        return new ModelType.Builder<RuleAwarePolymorphicNamedEntityInstantiator<T>>() {
-        }.where(new ModelType.Parameter<T>() {
-        }, ModelType.of(typeClass)).build();
-    }
-
 }

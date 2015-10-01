@@ -22,38 +22,20 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import java.util.Collections;
 import java.util.List;
 
-public class NoInputsModelAction<T> implements ModelAction<T> {
-    private final ModelReference<T> subject;
+public class NoInputsModelAction<T> extends AbstractModelActionWithView<T> {
     private final Action<? super T> configAction;
-    private final ModelRuleDescriptor descriptor;
 
     public NoInputsModelAction(ModelReference<T> subject, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
-        this.subject = subject;
+        super(subject, descriptor, Collections.<ModelReference<?>>emptyList());
         this.configAction = configAction;
-        this.descriptor = descriptor;
     }
 
-    public static <T> ModelAction<T> of(ModelReference<T> reference, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
+    public static <T> ModelAction of(ModelReference<T> reference, ModelRuleDescriptor descriptor, Action<? super T> configAction) {
         return new NoInputsModelAction<T>(reference, descriptor, configAction);
     }
 
     @Override
-    public ModelReference<T> getSubject() {
-        return subject;
-    }
-
-    @Override
-    public void execute(MutableModelNode modelNode, T object, List<ModelView<?>> inputs) {
-        configAction.execute(object);
-    }
-
-    @Override
-    public List<ModelReference<?>> getInputs() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public ModelRuleDescriptor getDescriptor() {
-        return descriptor;
+    public void execute(MutableModelNode modelNode, T view, List<ModelView<?>> inputs) {
+        configAction.execute(view);
     }
 }

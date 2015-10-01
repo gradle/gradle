@@ -43,6 +43,7 @@ import org.gradle.sonar.runner.SonarRunnerRootExtension;
 import org.gradle.sonar.runner.tasks.SonarRunner;
 import org.gradle.testing.jacoco.plugins.JacocoPlugin;
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.Collection;
@@ -59,8 +60,10 @@ import static org.gradle.util.CollectionUtils.nonEmptyOrNull;
  * When applied to a project, both the project itself and its subprojects will be analyzed (in a single run).
  * <p>
  * Please see the “SonarQube Runner Plugin” chapter of the Gradle User Guide for more information.
+ *
+ * @deprecated The 'sonar-runner' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
-@Incubating
+@Deprecated
 public class SonarRunnerPlugin implements Plugin<Project> {
 
     private static final Predicate<File> FILE_EXISTS = new Predicate<File>() {
@@ -83,6 +86,7 @@ public class SonarRunnerPlugin implements Plugin<Project> {
     private Project targetProject;
 
     public void apply(Project project) {
+        SingleMessageLogger.nagUserOfDeprecated("The 'sonar-runner' plugin", "please use the official plugin from SonarQube (http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle)");
         targetProject = project;
 
         final Map<Project, ActionBroadcast<SonarProperties>> actionBroadcastMap = Maps.newHashMap();

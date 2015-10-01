@@ -36,7 +36,7 @@ public class BindingPredicate extends ModelPredicate {
 
     @Override
     public String toString() {
-        return "{type: " + getType() + ", path: " + getPath() + ", scope: " + getScope() + ", state: " + getState() + "}";
+        return "{type: " + ModelType.getSimpleName(getType()) + ", path: " + getPath() + ", scope: " + getScope() + ", state: " + getState() + "}";
     }
 
     @Nullable
@@ -49,6 +49,11 @@ public class BindingPredicate extends ModelPredicate {
     @Override
     public ModelType<?> getType() {
         return reference.getType();
+    }
+
+    @Override
+    public boolean isUntyped() {
+        return reference.isUntyped();
     }
 
     @Nullable

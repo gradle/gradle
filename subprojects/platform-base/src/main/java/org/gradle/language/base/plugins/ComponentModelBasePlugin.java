@@ -16,32 +16,26 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.rules.ModelMapCreators;
-import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.language.base.internal.model.BinarySpecFactoryRegistry;
 import org.gradle.language.base.internal.model.ComponentBinaryRules;
 import org.gradle.language.base.internal.model.ComponentRules;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.ModelCreator;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelReference;
-import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
+import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
@@ -81,7 +75,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             ComponentSpec.class,
             ComponentSpecContainer.class,
             schema.getImplementationType().asSubclass(ComponentSpecContainer.class),
-            ModelReference.of(ComponentSpecFactory.class),
             descriptor
         );
         modelRegistry.create(componentsCreator);
@@ -93,7 +86,17 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
     static class Rules extends RuleSource {
         @Model
         ComponentSpecFactory componentSpecFactory() {
-            return new ComponentSpecFactory("this collection");
+            return new ComponentSpecFactory("components");
+        }
+
+        @Model
+        BinarySpecFactory binarySpecFactory() {
+            return new BinarySpecFactory("binaries");
+        }
+
+        @Mutate
+        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, InstanceFactoryRegistry instanceFactoryRegistry) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry));
         }
 
         @Model
@@ -153,30 +156,23 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             extensions.add("platforms", platforms);
         }
 
-        @Model
-        BinarySpecFactory binarySpecFactory(final BinarySpecFactoryRegistry binaryFactoryRegistry) {
-            // BinarySpecFactoryRegistry is used by the BinaryContainer API, which we still need for the time being.
+        @Mutate
+        void registerLegacyBinaryFactories(BinaryContainer binaries, BinarySpecFactory binarySpecFactory) {
+            // This is used by the BinaryContainer API, which we still need for the time being.
             // We are adapting it to BinarySpecFactory here so it can be used by component.binaries model maps
+            binarySpecFactory.copyDomainObjectFactoriesInto(binaries);
+        }
 
-            final BinarySpecFactory binarySpecFactory = new BinarySpecFactory("this collection");
-            binaryFactoryRegistry.copyInto(new NamedDomainObjectFactoryRegistry<BinarySpec>() {
-                @Override
-                public <U extends BinarySpec> void registerFactory(Class<U> type, final NamedDomainObjectFactory<? extends U> factory) {
-                    binarySpecFactory.register(type, null, new BiFunction<U, String, MutableModelNode>() {
-                        @Override
-                        public U apply(String s, MutableModelNode modelNode) {
-                            final U binarySpec = factory.create(s);
-                            final Object parentObject = modelNode.getParent().getParent().getPrivateData();
-                            if (parentObject instanceof ComponentSpec && binarySpec instanceof ComponentSpecAware) {
-                                ((ComponentSpecAware) binarySpec).setComponent((ComponentSpec) parentObject);
-                            }
-
-                            return binarySpec;
-                        }
-                    });
-                }
-            });
-            return binarySpecFactory;
+        @Model
+        InstanceFactoryRegistry instanceFactoryRegistry(ServiceRegistry serviceRegistry, BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
+            InstanceFactoryRegistry instanceFactoryRegistry = new DefaultInstanceFactoryRegistry();
+            for (ModelType<? extends BinarySpec> type : binarySpecFactory.getSupportedTypes()) {
+                instanceFactoryRegistry.register(type, ModelReference.of(BinarySpecFactory.class));
+            }
+            for (ModelType<? extends ComponentSpec> type : componentSpecFactory.getSupportedTypes()) {
+                instanceFactoryRegistry.register(type, ModelReference.of(ComponentSpecFactory.class));
+            }
+            return instanceFactoryRegistry;
         }
 
         @Defaults
@@ -186,6 +182,16 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                     binaries.add(binary);
                 }
             }
+        }
+
+        @Validate
+        void validateComponentSpecInternalViews(ComponentSpecFactory instanceFactory) {
+            instanceFactory.validateRegistrations();
+        }
+
+        @Validate
+        void validateBinarySpecInternalViews(BinarySpecFactory instanceFactory) {
+            instanceFactory.validateRegistrations();
         }
 
         // TODO:LPTR This should be done on the binary itself when transitive rules don't fire multiple times anymore

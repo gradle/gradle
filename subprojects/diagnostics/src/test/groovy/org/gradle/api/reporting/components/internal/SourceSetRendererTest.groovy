@@ -19,6 +19,7 @@ package org.gradle.api.reporting.components.internal
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder
+import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DependentSourceSetInternal
 import org.gradle.logging.TestStyledTextOutput
@@ -31,9 +32,10 @@ class SourceSetRendererTest extends Specification {
     SourceSetRenderer renderer = new SourceSetRenderer()
     LanguageSourceSet languageSourceSet = Mock(LanguageSourceSet)
     SourceDirectorySet sourceDirectorySet = Mock(SourceDirectorySet)
+    PatternFilterable filter = Stub(PatternFilterable)
 
     def resolver = Stub(FileResolver) {
-        resolveAsRelativePath(_) >> { return it[0].toString() }
+        resolveAsRelativePath(_) >> { return it[0].toString().replace(File.separator, "/") }
     }
     def output = new TestStyledTextOutput()
     def builder = new DefaultTextReportBuilder(output, resolver)
@@ -45,27 +47,28 @@ class SourceSetRendererTest extends Specification {
         _ * languageSourceSet.displayName >> "acme:sample"
         _ * languageSourceSet.source >> sourceDirectorySet
         _ * sourceDirectorySet.srcDirs >> [srcFolder1, srcFolder2]
+        _ * sourceDirectorySet.filter >> filter
     }
 
     def "shows sourceSet folders"() {
         given:
-        _ * sourceDirectorySet.getIncludes() >> []
-        _ * sourceDirectorySet.getExcludes() >> []
+        _ * sourceDirectorySet.includes >> []
+        _ * sourceDirectorySet.excludes >> []
 
         when:
         renderer.render(languageSourceSet, builder)
 
         then:
-        output.value.startsWith("Acme:sample")
-        output.value.contains("srcDir: " + srcFolder1)
-        output.value.contains("srcDir: " + srcFolder2)
-
+        output.value.contains("""
+srcDir: src/folder1
+srcDir: src/folder2
+""")
     }
 
     def "shows includes / excludes"() {
         given:
-        1 * sourceDirectorySet.getIncludes() >> includes
-        1 * sourceDirectorySet.getExcludes() >> excludes
+        1 * sourceDirectorySet.includes >> includes
+        1 * sourceDirectorySet.excludes >> excludes
 
         when:
         renderer.render(languageSourceSet, builder)
@@ -81,6 +84,24 @@ class SourceSetRendererTest extends Specification {
         ["**/*.scala"]              | ["**/gen/**", "**/*.java"] | ["includes: **/*.scala", "excludes: **/gen/**, **/*.java"]
     }
 
+    def "shows filter includes"() {
+        given:
+        _ * sourceDirectorySet.includes >> []
+        _ * sourceDirectorySet.excludes >> []
+        _ * filter.includes >> includes
+
+        when:
+        renderer.render(languageSourceSet, builder)
+
+        then:
+        output.value.contains expectedOutput
+
+        where:
+        includes                    | expectedOutput
+        ["**/*.java"]               | "limit to: **/*.java"
+        ["**/*.java", "**/*.scala"] | "limit to: **/*.java, **/*.scala"
+    }
+
     def "shows dependencies"() {
         DependencySpecContainer dsc = new DefaultDependencySpecContainer()
         dsc.project("a-project")
@@ -88,23 +109,25 @@ class SourceSetRendererTest extends Specification {
         dsc.project("some-project").library("some-library")
 
         given:
-        def dependentSourceSet = Mock(DependentLanguageSourceSet)
+        def dependentSourceSet = Stub(DependentLanguageSourceSet)
         dependentSourceSet.dependencies >> dsc
 
         _ * dependentSourceSet.displayName >> "acme:sample"
         _ * dependentSourceSet.source >> sourceDirectorySet
-        _ * sourceDirectorySet.getIncludes() >> []
-        _ * sourceDirectorySet.getExcludes() >> []
+        _ * sourceDirectorySet.includes >> []
+        _ * sourceDirectorySet.excludes >> []
 
         when:
         renderer.render(dependentSourceSet, builder)
 
         then:
         output.value.contains("""
-    dependencies
-        project 'a-project'
-        library 'a-library'
-        project 'some-project' library 'some-library'
+srcDir: src/folder1
+srcDir: src/folder2
+dependencies:
+    project 'a-project'
+    library 'a-library'
+    project 'some-project' library 'some-library'
 """)
     }
 

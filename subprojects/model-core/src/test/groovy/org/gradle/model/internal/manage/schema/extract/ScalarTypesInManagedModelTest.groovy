@@ -15,22 +15,30 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
-
 import org.gradle.api.artifacts.Configuration
+import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
+import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.fixture.ModelRegistryHelper
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.util.regex.Pattern
 
 class ScalarTypesInManagedModelTest extends Specification {
 
     @Shared
     def store = DefaultModelSchemaStore.getInstance()
+    def r = new ModelRegistryHelper()
+    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(store)
 
     def classloader = new GroovyClassLoader(this.class.classLoader)
 
     @Unroll
     def "cannot have read only property of scalar type #someType.simpleName"() {
-        given:
+
+        when:
         def clazz = classloader.parseClass """
             import org.gradle.api.artifacts.Configuration.State
             import org.gradle.model.Managed
@@ -42,13 +50,8 @@ class ScalarTypesInManagedModelTest extends Specification {
 
         """
 
-        when:
-        store.getSchema(clazz)
-
         then:
-        def ex = thrown(InvalidManagedModelElementTypeException)
-        String expectedMessage = "Invalid managed model type ManagedType: read only property 'managedProperty' has non managed type ${someType.name}, only managed types can be used"
-        ex.message == expectedMessage
+        failWhenRealized(clazz, Pattern.quote("Invalid managed model type 'ManagedType': read only property 'managedProperty' has non managed type ${someType.name}, only managed types can be used") )
 
         where:
         someType << [
@@ -65,5 +68,16 @@ class ScalarTypesInManagedModelTest extends Specification {
             BigInteger,
             Configuration.State,
             File]
+    }
+
+    private void failWhenRealized(Class type, String expected) {
+        try {
+            r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(store.getSchema(type))).descriptor(r.desc("bar")).build())
+            r.realize("bar", type)
+            throw new AssertionError("node realisation of type ${type.name} should have failed with a cause of:\n$expected\n")
+        }
+        catch (ModelRuleExecutionException e) {
+            assert e.cause.message =~ expected
+        }
     }
 }

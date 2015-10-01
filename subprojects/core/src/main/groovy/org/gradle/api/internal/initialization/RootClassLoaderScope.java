@@ -33,14 +33,17 @@ public class RootClassLoaderScope implements ClassLoaderScope {
         this.id = new ClassLoaderScopeIdentifier(null, "root");
     }
 
+    @Override
     public ClassLoader getLocalClassLoader() {
         return localClassLoader;
     }
 
+    @Override
     public ClassLoader getExportClassLoader() {
         return exportClassLoader;
     }
 
+    @Override
     public ClassLoaderScope getParent() {
         return this; // should this be null?
     }
@@ -50,14 +53,22 @@ public class RootClassLoaderScope implements ClassLoaderScope {
         return localClassLoader.equals(clazz.getClassLoader()) || exportClassLoader.equals(clazz.getClassLoader());
     }
 
+    @Override
     public ClassLoaderScope local(ClassPath classPath) {
         throw new UnsupportedOperationException("root class loader scope is immutable");
     }
 
+    @Override
     public ClassLoaderScope export(ClassPath classPath) {
         throw new UnsupportedOperationException("root class loader scope is immutable");
     }
 
+    @Override
+    public ClassLoaderScope export(ClassLoader classLoader) {
+        throw new UnsupportedOperationException("root class loader scope is immutable");
+    }
+
+    @Override
     public ClassLoaderScope createChild(String name) {
         if (name == null) {
             throw new IllegalArgumentException("'name' cannot be null");
@@ -65,10 +76,12 @@ public class RootClassLoaderScope implements ClassLoaderScope {
         return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache);
     }
 
+    @Override
     public ClassLoaderScope lock() {
         return this;
     }
 
+    @Override
     public boolean isLocked() {
         return true;
     }

@@ -113,7 +113,7 @@
                 <sourcefile file="plugin/build.gradle" snippet="test-logic-classpath"/>
             </sample>
             <para>
-                The tests can then read this value, and inject the classpath into the test build by using the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withClasspath"/>.
+                The tests can then read this value, and inject the classpath into the test build by using the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath"/>.
                 This classpath is then available to use to locate plugins in a test build via the plugins DSL (see <xref linkend="plugins"/>). Applying plugins with the plugins DSL requires the
                 definition of a plugin identifier.
                 The following is an example (in Groovy) of doing this from within a Spock Framework <literal>setup()</literal> method, which is analogous to a JUnit <literal>@Before</literal> method.
@@ -174,8 +174,25 @@
                 Any breakpoints set in your IDE will be not be tripped by the code being exercised by the test build.
             </para>
             <para>
-                At this time, there is no way to effectively debug the build logic under test.
-                This, highly desirable, feature will be available in future versions of the test kit.
+                The TestKit provides two different ways to enable the debug mode:
+                <itemizedlist>
+                    <listitem>By setting a system property;</listitem>
+                    <listitem>By enabling it programmatically through the <literal>GradleRunner</literal> API.</listitem>
+                </itemizedlist>
+            </para>
+            <para>
+                By setting the system property <literal>org.gradle.testkit.debug</literal> to <literal>true</literal>
+                in the IDE run configuration, a user can execute the functional tests in the same JVM process as the spawning Gradle process.
+                Future versions of Gradle will provide a way to predetermine this setting based on the runtime environment.
+            </para>
+            <para>
+                The following screenshot shows the use of the system property in a IntelliJ run configuration:
+            </para>
+            <imageobject>
+                <imagedata fileref="img/testkit-idea-run-config.jpg" width="989px" depth="464px"/>
+            </imageobject>
+            <para>
+                Alternatively, the debug mode can also be activated through the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withDebug"/>.
             </para>
         </section>
     </section>

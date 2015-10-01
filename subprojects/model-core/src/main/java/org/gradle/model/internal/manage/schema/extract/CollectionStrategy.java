@@ -15,15 +15,6 @@
  */
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
-import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
-import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
@@ -42,27 +33,4 @@ public abstract class CollectionStrategy implements ModelSchemaExtractionStrateg
             throw new InvalidManagedModelElementTypeException(extractionContext, String.format("type parameter of %s has to be specified", modelType.getConcreteClass().getName()));
         }
     }
-
-    protected <T, E> ModelSchemaExtractionResult<T> getModelSchemaExtractionResult(ModelType<?> modelType, ModelSchemaExtractionContext<T> extractionContext, final ModelSchemaCache cache, ModelType<E> elementType, ModelSchemaStore store) {
-        if (modelType.isAssignableFrom(elementType)) {
-            throw new InvalidManagedModelElementTypeException(extractionContext, String.format("%1$s cannot be used as type parameter of %1$s", modelType.getConcreteClass().getName()));
-        }
-
-        ModelCollectionSchema<T, E> schema = new ModelCollectionSchema<T, E>(extractionContext.getType(), elementType, this.<T, E>getNodeInitializer(store));
-        ModelSchemaExtractionContext<?> typeParamExtractionContext = extractionContext.child(elementType, "element type", new Action<ModelSchemaExtractionContext<?>>() {
-            public void execute(ModelSchemaExtractionContext<?> context) {
-                ModelSchema<?> typeParamSchema = cache.get(context.getType());
-
-                if (!(typeParamSchema instanceof ManagedImplModelSchema)) {
-                    throw new InvalidManagedModelElementTypeException(context.getParent(), String.format(
-                        "cannot create a managed set of type %s as it is an unmanaged type. Only @Managed types are allowed.",
-                        context.getType()
-                    ));
-                }
-            }
-        });
-        return new ModelSchemaExtractionResult<T>(schema, ImmutableList.of(typeParamExtractionContext));
-    }
-
-    protected abstract <T, E> Function<ModelCollectionSchema<T, E>, NodeInitializer> getNodeInitializer(ModelSchemaStore store);
 }

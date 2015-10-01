@@ -45,7 +45,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         projectName("foobar/app") == "app"
     }
 
-    def "deduplicates duplicate eclipse project names"() {
+    def "deduplicates duplicate ide project names"() {
         given:
         project("root") {
             project("foo") {
@@ -85,6 +85,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
     def "handles calculated name matches existing project name"() {
         given:
         project("root") {
+            project("root-foo-bar") {}
             project("foo-bar") {}
             project("foo") {
                 project("bar") {}
@@ -99,6 +100,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
 
         then:
         projectName(".") == "root"
+        projectName("root-foo-bar") == "root-root-foo-bar"
         projectName("foo-bar") == "foo-bar"
         projectName("foo") == "foo"
         projectName("foo/bar") == "root-foo-bar"
@@ -144,6 +146,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         run ideName
 
         then:
+        projectName(".") == "myproject"
         projectName("myproject-app") == "myproject-app"
         projectName("myproject-bar") == "myproject-bar"
         projectName("myproject-bar/myproject-app") == "myproject-bar-app"
@@ -168,6 +171,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         run ideName
 
         then:
+        projectName(".") == "root"
         projectName("bar/services") == "bar-services"
         projectName("bar/services/rest") == "bar-services-rest"
         projectName("foo/services") == "foo-services"
@@ -193,6 +197,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         run ideName
 
         then:
+        projectName(".") == "root"
         projectName("bar/services") == "bar-services"
         projectName("bar/services/rest") == "bar-services-rest"
         projectName("foo/services") == "foo-services"

@@ -209,3 +209,4 @@ We have to write:
 This story is about avoiding the need to write the action accepting method in order to achieve this behaviour.
 
 # Open issues
+

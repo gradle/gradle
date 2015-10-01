@@ -15,17 +15,15 @@
  */
 package org.gradle.model.internal.manage.schema;
 
-import com.google.common.base.Function;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 
 public class ScalarCollectionSchema<T, E> extends ModelCollectionSchema<T, E> {
-    public ScalarCollectionSchema(ModelType<T> type, ModelType<E> elementType, Function<ModelCollectionSchema<T, E>, NodeInitializer> nodeInitializer) {
-        super(type, elementType, nodeInitializer);
+    public ScalarCollectionSchema(ModelType<T> type, ModelType<E> elementType) {
+        super(type, elementType);
     }
 
     public static void clear(MutableModelNode node) {

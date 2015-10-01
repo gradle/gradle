@@ -32,7 +32,7 @@ class DaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.tasksToRun = ['clean', 'build']
         runner.maxExecutionTimeRegression = maxTimeReg
         runner.maxMemoryRegression = maxMemReg
-        runner.targetVersions = ['1.0', '2.0', '2.2.1', '2.4', 'last']
+        runner.targetVersions = ['1.0', '2.0', '2.2.1', '2.4', '2.8', 'last']
 
         when:
         def result = runner.run()

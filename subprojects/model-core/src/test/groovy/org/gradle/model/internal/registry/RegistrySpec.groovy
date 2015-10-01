@@ -16,8 +16,8 @@
 
 package org.gradle.model.internal.registry
 
+import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.Nullable
-import org.gradle.internal.BiActions
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
@@ -38,7 +38,7 @@ class RegistrySpec extends Specification {
         }
 
         private static CreatorRuleBinder toBinder(String creationPath, Class<?> type) {
-            def creator = ModelCreators.of(ModelPath.path(creationPath), BiActions.doNothing()).descriptor("test").withProjection(new UnmanagedModelProjection(ModelType.of(type))).build()
+            def creator = ModelCreators.of(ModelPath.path(creationPath)).descriptor("test").withProjection(new UnmanagedModelProjection(ModelType.of(type))).build()
             def subject = new BindingPredicate()
             def binder = new CreatorRuleBinder(creator, subject, [], [])
             binder
@@ -55,7 +55,7 @@ class RegistrySpec extends Specification {
         }
 
         @Override
-        def <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
+        def <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
             return null
         }
 
@@ -63,6 +63,7 @@ class RegistrySpec extends Specification {
         void addReference(ModelCreator creator) {
 
         }
+
 
         @Override
         void addLink(ModelCreator creator) {
@@ -75,22 +76,22 @@ class RegistrySpec extends Specification {
         }
 
         @Override
-        def <T> void applyToSelf(ModelActionRole type, ModelAction<T> action) {
+        def void applyToSelf(ModelActionRole type, ModelAction action) {
 
         }
 
         @Override
-        def <T> void applyToAllLinks(ModelActionRole type, ModelAction<T> action) {
+        def void applyToAllLinks(ModelActionRole type, ModelAction action) {
 
         }
 
         @Override
-        def <T> void applyToAllLinksTransitive(ModelActionRole type, ModelAction<T> action) {
+        def void applyToAllLinksTransitive(ModelActionRole type, ModelAction action) {
 
         }
 
         @Override
-        def <T> void applyToLink(ModelActionRole type, ModelAction<T> action) {
+        def void applyToLink(ModelActionRole type, ModelAction action) {
 
         }
 
@@ -160,6 +161,11 @@ class RegistrySpec extends Specification {
         }
 
         @Override
+        protected void resetPrivateData() {
+
+        }
+
+        @Override
         def <T> T getPrivateData(ModelType<T> type) {
             return null
         }
@@ -184,15 +190,23 @@ class RegistrySpec extends Specification {
 
         }
 
+        @Override
+        void ensureAtLeast(ModelNode.State state) {
+
+        }
 
         @Override
-        def <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
+        def <T> ModelView<? extends T> asImmutable(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor) {
             return null
         }
 
         @Override
         MutableModelNode getParent() {
             return null
+        }
+
+        @Override
+        void addProjection(ModelProjection projection) {
         }
     }
 
@@ -251,11 +265,11 @@ class RegistrySpec extends Specification {
         RuleBinder build() {
             def binder
             if (subjectReference == null) {
-                def action = new ProjectionBackedModelCreator(null, descriptor, false, false, [], null, null)
+                def action = new ProjectionBackedModelCreator(null, descriptor, false, false, [], ImmutableMultimap.of())
                 binder = new CreatorRuleBinder(action, new BindingPredicate(), inputReferences, [])
             } else {
                 def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})
-                binder = new MutatorRuleBinder<?>(subjectReference, inputReferences, action, [])
+                binder = new ModelActionBinder(subjectReference, inputReferences, action, [])
             }
             if (subjectReferenceBindingPath) {
                 binder.subjectBinding.boundTo = new TestNode(subjectReferenceBindingPath, Object)

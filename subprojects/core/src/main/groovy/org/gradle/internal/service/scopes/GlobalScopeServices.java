@@ -55,7 +55,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
-import org.gradle.model.internal.DynamicObjectAwareTypeUtils;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -66,7 +65,6 @@ import org.gradle.model.internal.persist.AlwaysNewModelRegistryStore;
 import org.gradle.model.internal.persist.ModelRegistryStore;
 import org.gradle.model.internal.persist.ReusingModelRegistryStore;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -231,7 +229,7 @@ public class GlobalScopeServices {
     }
 
     protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {
-        return new DefaultModelSchemaStore(modelSchemaExtractor, Collections.singleton(DynamicObjectAwareTypeUtils.MODEL_TYPE_EXTRACTOR));
+        return new DefaultModelSchemaStore(modelSchemaExtractor);
     }
 
     protected ModelRuleSourceDetector createModelRuleSourceDetector() {
@@ -239,12 +237,12 @@ public class GlobalScopeServices {
     }
 
     protected ModelRegistryStore createModelRegistryStore(GradleBuildEnvironment buildEnvironment, ModelRuleExtractor ruleExtractor) {
+        ModelRegistryStore registryStore = new AlwaysNewModelRegistryStore(ruleExtractor);
         if (buildEnvironment.isLongLivingProcess() && Boolean.getBoolean(ReusingModelRegistryStore.TOGGLE)) {
             LOGGER.warn(ReusingModelRegistryStore.BANNER);
-            return new ReusingModelRegistryStore(ruleExtractor);
-        } else {
-            return new AlwaysNewModelRegistryStore(ruleExtractor);
+            registryStore = new ReusingModelRegistryStore(registryStore);
         }
+        return registryStore;
     }
 
     protected ImportsReader createImportsReader() {
@@ -254,4 +252,5 @@ public class GlobalScopeServices {
     FileWatcherFactory createFileWatcherFactory(ExecutorFactory executorFactory) {
         return new DefaultFileWatcherFactory(executorFactory);
     }
+
 }

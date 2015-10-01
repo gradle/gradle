@@ -17,43 +17,29 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.model.internal.registry.ModelRegistry;
 
 import java.util.List;
 
 public class ExtractedModelAction implements ExtractedModelRule {
 
     private final ModelActionRole role;
-    private final ModelAction<?> action;
+    private final ModelAction action;
     private final List<? extends Class<?>> dependencies;
 
-    public ExtractedModelAction(ModelActionRole role, ModelAction<?> action) {
+    public ExtractedModelAction(ModelActionRole role, ModelAction action) {
         this(role, ImmutableList.<Class<?>>of(), action);
     }
 
-    public ExtractedModelAction(ModelActionRole role, List<? extends Class<?>> dependencies, ModelAction<?> action) {
+    public ExtractedModelAction(ModelActionRole role, List<? extends Class<?>> dependencies, ModelAction action) {
         this.role = role;
         this.action = action;
         this.dependencies = dependencies;
     }
 
     @Override
-    public Type getType() {
-        return Type.ACTION;
-    }
-
-    @Override
-    public ModelCreator getCreator() {
-        return null;
-    }
-
-    @Override
-    public ModelActionRole getActionRole() {
-        return role;
-    }
-
-    @Override
-    public ModelAction<?> getAction() {
-        return action;
+    public void apply(ModelRegistry modelRegistry, ModelPath scope) {
+        modelRegistry.configure(role, action, scope);
     }
 
     @Override

@@ -32,4 +32,6 @@ public interface TypeBuilder<C> {
      * @param implementation the implementation class.
      */
     TypeBuilder<C> defaultImplementation(Class<? extends C> implementation);
+
+    TypeBuilder<C> internalView(Class<?> internalView);
 }

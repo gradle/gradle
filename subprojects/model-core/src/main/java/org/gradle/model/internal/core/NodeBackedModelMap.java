@@ -29,9 +29,6 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
-import org.gradle.model.internal.manage.schema.ManagedImplModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.*;
@@ -60,6 +57,18 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
     public NodeBackedModelMap(ModelType<T> type, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode, boolean eager, ModelViewState viewState, ChildNodeInitializerStrategy<? super T> childStrategy) {
         this(derivedDescription(modelNode, type), type, sourceDescriptor, modelNode, eager, viewState, childStrategy);
+    }
+
+    public static <T> ChildNodeInitializerStrategy<T> createUsingRegistry(final ModelType<T> baseItemModelType, final NodeInitializerRegistry nodeInitializerRegistry) {
+        return new ChildNodeInitializerStrategy<T>() {
+            @Override
+            public <S extends T> NodeInitializer initializer(ModelType<S> type) {
+                if (baseItemModelType.asSubclass(type) == null) {
+                    throw new IllegalArgumentException(String.format("%s is not a subtype of %s", type, baseItemModelType));
+                }
+                return nodeInitializerRegistry.getNodeInitializer(type);
+            }
+        };
     }
 
     public static <T> ChildNodeInitializerStrategy<T> createUsingParentNode(final ModelType<T> baseItemModelType) {
@@ -92,30 +101,13 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
                     public List<? extends ModelProjection> getProjections() {
                         return Collections.singletonList(UnmanagedModelProjection.of(type));
                     }
+
+                    @Nullable
+                    @Override
+                    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate) {
+                        return null;
+                    }
                 };
-            }
-        };
-    }
-
-    public static <T> ChildNodeInitializerStrategy<T> createUsingFactory(final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference) {
-        return new ChildNodeInitializerStrategy<T>() {
-            @Override
-            public <S extends T> NodeInitializer initializer(ModelType<S> type) {
-                return new FactoryBasedNodeInitializer<T, S>(factoryReference, type);
-            }
-        };
-    }
-
-    public static <T> ChildNodeInitializerStrategy<T> createManagedOrUsingFactory(final ModelSchemaStore schemaStore, final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference) {
-        return new ChildNodeInitializerStrategy<T>() {
-            @Override
-            public <S extends T> NodeInitializer initializer(final ModelType<S> type) {
-                ModelSchema<S> schema = schemaStore.getSchema(type);
-                if (schema instanceof ManagedImplModelSchema) {
-                    return ((ManagedImplModelSchema<S>) schema).getNodeInitializer();
-                } else {
-                    return new FactoryBasedNodeInitializer<T, S>(factoryReference, type);
-                }
             }
         };
     }
@@ -210,6 +202,11 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
 
         NodeInitializer nodeInitializer = creatorStrategy.initializer(type);
 
+        ModelAction projector = nodeInitializer.getProjector(childPath, descriptor, type);
+        if (projector != null) {
+            modelNode.applyToLink(ModelActionRole.DefineProjections, projector);
+        }
+
         ModelCreator creator = ModelCreators.of(childPath, nodeInitializer)
             .descriptor(descriptor)
             .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(childPath, type), descriptor, initAction))
@@ -248,9 +245,9 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         }
         link.ensureUsable();
         if (viewState.isCanMutate()) {
-            return link.asWritable(elementType, sourceDescriptor, null).getInstance();
+            return link.asMutable(elementType, sourceDescriptor, null).getInstance();
         } else {
-            return link.asReadOnly(elementType, sourceDescriptor).getInstance();
+            return link.asImmutable(elementType, sourceDescriptor).getInstance();
         }
     }
 

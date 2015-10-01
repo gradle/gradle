@@ -18,18 +18,9 @@ package org.gradle.model.internal;
 
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.model.internal.manage.schema.extract.ManagedInstanceTypeUtils;
-import org.gradle.model.internal.manage.schema.extract.ModelTypeExtractor;
 import org.gradle.model.internal.type.ModelType;
 
 public class DynamicObjectAwareTypeUtils {
-
-    public static final ModelTypeExtractor MODEL_TYPE_EXTRACTOR = new ModelTypeExtractor() {
-        @Override
-        public <T> ModelType<? super T> extractFromType(ModelType<T> type) {
-            return extractModelTypeFromType(type);
-        }
-    };
-
     public static <T> ModelType<? super T> extractModelTypeFromType(ModelType<T> type) {
         if (DynamicObjectAware.class.isAssignableFrom(type.getRawClass())) {
             return ModelType.of(type.getRawClass().getSuperclass());

@@ -20,15 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
-import org.gradle.internal.BiAction;
 import org.gradle.model.internal.DynamicObjectAwareTypeUtils;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.StandardDescriptorFactory;
 import org.gradle.model.internal.type.ModelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 public abstract class BridgedCollections {
 
@@ -50,8 +47,8 @@ public abstract class BridgedCollections {
 
         return ModelCreators.of(
             containerPath,
-            new BiAction<MutableModelNode, List<ModelView<?>>>() {
-                public void execute(final MutableModelNode containerNode, List<ModelView<?>> inputs) {
+            new Action<MutableModelNode>() {
+                public void execute(final MutableModelNode containerNode) {
                     final C container = containerFactory.transform(containerNode);
                     containerNode.setPrivateData(containerType, container);
                     container.all(new Action<I>() {

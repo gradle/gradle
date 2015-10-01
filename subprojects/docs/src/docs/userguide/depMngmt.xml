@@ -793,7 +793,7 @@
                     <sourcefile file="build.gradle" snippet="ivy-repo-with-maven-layout"/>
                 </sample>
                 <para>
-                    Valid named layout values are <literal>'gradle'</literal> (the default), <literal>'maven'</literal> and <literal>'ivy'</literal>.
+                    Valid named layout values are <literal>'gradle'</literal> (the default), <literal>'maven'</literal>, <literal>'ivy'</literal> and <literal>'pattern'</literal>.
                     See <apilink class="org.gradle.api.artifacts.repositories.IvyArtifactRepository" method="layout(java.lang.String, groovy.lang.Closure)"/> in the API documentation for details of these named layouts.
                 </para>
             </section>
