@@ -39,7 +39,11 @@ class MonolithicNativeProjectGeneratorTask extends ProjectGeneratorTask {
     void generateCommonLibrarySource() {
         rootProject.sourceFiles.times { sourceIdx ->
             def fileArgs = [ sourceIdx: sourceIdx ]
-            generateWithTemplate(destDir, "common/include/header${sourceIdx}.h", "native-monolithic/src/common.h", fileArgs)
+            def destination = destDir
+            if (!templateArgs.overlapWithOutput) {
+                destination = new File(destDir, "common")
+            }
+            generateWithTemplate(destination, "common/include/header${sourceIdx}.h", "native-monolithic/src/common.h", fileArgs)
         }
     }
 

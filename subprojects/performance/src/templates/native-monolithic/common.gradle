@@ -1,7 +1,9 @@
 apply plugin: 'cpp'
 apply plugin: 'c'
 
-buildDir = new File(rootProject.buildDir, project.name)
+<% if (overlapWithOutput) { %>
+    buildDir = new File(rootProject.buildDir, project.name)    
+<% } %>
 
 binaries.all {
     cCompiler.define "SOMETHING1=0"

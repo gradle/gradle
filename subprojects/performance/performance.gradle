@@ -411,12 +411,20 @@ configure([smallNewMultiprojectJava, largeNewMultiprojectJava]) {
     numberOfExternalDependencies = smallProjectType ? 5 : 50
 }
 
+task nativeMonolithicOverlapping(type: MonolithicNativeProjectGeneratorTask) {
+    templateArgs = [ overlapWithOutput: true ]
+}
+
 task nativeMonolithic(type: MonolithicNativeProjectGeneratorTask) {
+    templateArgs = [ overlapWithOutput: false ]
+}
+
+configure([nativeMonolithicOverlapping, nativeMonolithic]) {
     projects = 100
     // number of source files to generate in each project of each type
     // this generates 200 C, 200 C++, 200 headers and 400 unused C/C++ files
     sourceFiles = 200
-    templateArgs = [
+    templateArgs += [
             // number of functions created in each source file
             functionCount: 50,
             // number of prebuilt libraries to generate

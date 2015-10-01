@@ -5,7 +5,7 @@ model {
             <% prebuiltLibraries.times { %>
             prebuilt$it {
                 headers.with {
-                    srcDir "\$rootDir/prebuilt/lib$it/include"
+                    srcDir "prebuilt/lib$it/include"
                     include "**/*.h"
                 }
                 // TODO: Define library locations (and generate something?)
@@ -14,7 +14,11 @@ model {
 
             commonHeaders {
                 headers.with {
-                    srcDir "\$rootDir"
+                    <% if (overlapWithOutput) { %>
+                        srcDir "\$rootDir"
+                    <% } else { %>
+                        srcDir "\$rootDir/common"
+                    <% } %>
                     include "**/*.h"
                 }
             }
