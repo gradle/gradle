@@ -53,7 +53,7 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
             return;
         }
         ModelType<?> elementType = ModelType.of(parameterizedSuperType.getActualTypeArguments()[0]);
-        Class<?> proxyImpl = generator.generate(ModelMapGroovyDecorator.class, contractType);
+        Class<?> proxyImpl = generator.generate(ModelMapGroovyDecorator.Managed.class, contractType);
         extractionContext.found(new SpecializedMapSchema<T>(extractionContext.getType(), elementType, proxyImpl));
     }
 

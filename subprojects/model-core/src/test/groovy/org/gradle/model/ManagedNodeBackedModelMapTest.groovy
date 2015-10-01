@@ -19,6 +19,7 @@ import org.gradle.api.Named
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.UnboundModelRulesException
@@ -850,6 +851,17 @@ class ManagedNodeBackedModelMapTest extends Specification {
         then:
         def e = thrown ModelRuleExecutionException
         e.cause instanceof InvalidManagedModelElementTypeException
+    }
+
+    def "is managed instance"() {
+        when:
+        mutate {
+            assert it instanceof ManagedInstance
+            assert withType(SpecialNamedThingInterface) instanceof ManagedInstance
+        }
+
+        then:
+        realize()
     }
 
 }

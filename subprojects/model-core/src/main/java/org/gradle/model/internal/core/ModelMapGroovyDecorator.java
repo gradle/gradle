@@ -25,6 +25,8 @@ import org.gradle.api.Nullable;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
+import org.gradle.model.internal.manage.instance.ManagedInstance;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -38,19 +40,42 @@ import static org.gradle.internal.Cast.uncheckedCast;
 // TODO - mix in Groovy support
 public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements ModelMap<I> {
 
+    public static class Managed<I> extends ModelMapGroovyDecorator<I> implements ManagedInstance {
+        private final ManagedInstance managedInstance;
+
+        public Managed(ModelMap<I> delegate) {
+            super(delegate);
+            this.managedInstance = (ManagedInstance) delegate;
+        }
+
+        @Override
+        public MutableModelNode getBackingNode() {
+            return managedInstance.getBackingNode();
+        }
+
+        @Override
+        public ModelType<?> getManagedType() {
+            return managedInstance.getManagedType();
+        }
+    }
+
     private final ModelMap<I> delegate;
 
     public static <T> ModelMap<T> wrap(ModelMap<T> delegate) {
-        return new ModelMapGroovyDecorator<T>(delegate);
+        if (delegate instanceof ManagedInstance) {
+            return new Managed<T>(delegate);
+        } else {
+            return new ModelMapGroovyDecorator<T>(delegate);
+        }
     }
 
-    public ModelMapGroovyDecorator(ModelMap<I> delegate) {
+    private ModelMapGroovyDecorator(ModelMap<I> delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public <S> ModelMap<S> withType(Class<S> type) {
-        return new ModelMapGroovyDecorator<S>(delegate.withType(type));
+        return wrap(delegate.withType(type));
     }
 
     @Override
