@@ -17,12 +17,14 @@
 package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 import org.gradle.internal.TimeProvider
 
 class PrintStreamLoggingSystemTest extends Specification {
     private final OutputStream original = new ByteArrayOutputStream()
-    private PrintStream stream = new PrintStream(original)
+    private final PrintStream originalStream = new PrintStream(original)
+    private PrintStream stream = originalStream
     private final OutputEventListener listener = Mock()
     private final TimeProvider timeProvider = { 1200L } as TimeProvider
     private final PrintStreamLoggingSystem loggingSystem = new PrintStreamLoggingSystem(listener, 'category', timeProvider) {
@@ -33,6 +35,20 @@ class PrintStreamLoggingSystemTest extends Specification {
         protected void set(PrintStream printStream) {
             stream = printStream
         }
+    }
+
+    def onReplacesOriginalStreamAndOffRestores() {
+        when:
+        loggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG)
+
+        then:
+        stream != originalStream
+
+        when:
+        loggingSystem.off()
+
+        then:
+        stream == originalStream
     }
 
     def onStartsCapturingWhenNotAlreadyCapturing() {
@@ -76,33 +92,69 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream.println('info')
 
         then:
+        stream == originalStream
         original.toString() == withEOL('info')
         0 * listener._
     }
 
-    def offStopsCapturingWhenAlreadyCapturing() {
-        loggingSystem.on(LogLevel.WARN, LogLevel.WARN)
-
-        when:
-        loggingSystem.off()
-
-        stream.println('info')
-
-        then:
-        original.toString() == withEOL('info')
-        0 * listener._
-    }
-
-    def restoreStopsCapturingWhenCapturingWasNotInstalledWhenSnapshotTaken() {
+    def restoreDoesNothingWhenNotAlreadyCapturing() {
+        given:
         def snapshot = loggingSystem.snapshot()
-        loggingSystem.on(LogLevel.ERROR, LogLevel.ERROR)
 
         when:
         loggingSystem.restore(snapshot)
         stream.println('info')
 
         then:
+        stream == originalStream
         original.toString() == withEOL('info')
+        0 * listener._
+    }
+
+    def offStopsCapturingWhenAlreadyCapturing() {
+        loggingSystem.on(LogLevel.WARN, LogLevel.WARN)
+        def capturing = stream
+
+        when:
+        loggingSystem.off()
+        stream.println('info-1')
+        capturing.println('info-2')
+
+        then:
+        original.toString() == TextUtil.toPlatformLineSeparators('''info-1
+info-2
+''')
+        0 * listener._
+    }
+
+    def offFlushesPartialLine() {
+        loggingSystem.on(LogLevel.WARN, LogLevel.WARN)
+
+        when:
+        stream.print("info")
+        loggingSystem.off()
+
+        then:
+        1 * listener.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == 'info'})
+        original.toString() == ''
+        0 * listener._
+    }
+
+    def restoreStopsCapturingWhenCapturingWasNotInstalledWhenSnapshotTaken() {
+        def snapshot = loggingSystem.snapshot()
+        loggingSystem.on(LogLevel.ERROR, LogLevel.ERROR)
+        def capturing = stream
+
+        when:
+        loggingSystem.restore(snapshot)
+        capturing.println("info-1")
+        stream.println('info-2')
+
+        then:
+        stream == originalStream
+        original.toString() == TextUtil.toPlatformLineSeparators('''info-1
+info-2
+''')
         0 * listener._
     }
 
@@ -111,13 +163,18 @@ class PrintStreamLoggingSystemTest extends Specification {
         loggingSystem.off()
         def snapshot = loggingSystem.snapshot()
         loggingSystem.on(LogLevel.ERROR, LogLevel.ERROR)
+        def capturing = stream
 
         when:
         loggingSystem.restore(snapshot)
-        stream.println('info')
+        capturing.println("info-1")
+        stream.println('info-2')
 
         then:
-        original.toString() == withEOL('info')
+        stream == originalStream
+        original.toString() == TextUtil.toPlatformLineSeparators('''info-1
+info-2
+''')
         0 * listener._
     }
 
