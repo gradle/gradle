@@ -55,10 +55,14 @@ public class DistributionFactory {
     public Distribution getDefaultDistribution(File projectDir, boolean searchUpwards) {
         BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory(), System.out);
+        if (wrapper.getDistribution() == null) {
+            wrapper = WrapperExecutor.forProjectDirectory(projectDir, System.out);
+        }
         if (wrapper.getDistribution() != null) {
             return new ZippedDistribution(wrapper.getConfiguration(), executorFactory);
+        } else {
+            return getDownloadedDistribution(GradleVersion.current().getVersion());
         }
-        return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
 
     /**
