@@ -19,6 +19,7 @@ package org.gradle.model.internal.inspect;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
+import org.gradle.model.internal.Internal;
 import org.gradle.model.internal.core.ModelPath;
 
 @ThreadSafe
@@ -35,5 +36,9 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
         }
 
         return modelName;
+    }
+
+    protected boolean isHidden(MethodRuleDefinition<?, ?> ruleDefinition) {
+        return null != ruleDefinition.getAnnotation(Internal.class);
     }
 }

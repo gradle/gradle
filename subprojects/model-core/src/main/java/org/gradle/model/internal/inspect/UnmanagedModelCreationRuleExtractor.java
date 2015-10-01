@@ -47,9 +47,10 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
 
         BiAction<MutableModelNode, List<ModelView<?>>> transformer = new ModelRuleInvokerBackedTransformer<R>(returnType, ruleDefinition.getRuleInvoker(), descriptor);
         ModelCreator modelCreator = ModelCreators.of(ModelPath.path(modelName), references, transformer)
-                .withProjection(new UnmanagedModelProjection<R>(returnType, true, true))
-                .descriptor(descriptor)
-                .build();
+            .withProjection(new UnmanagedModelProjection<R>(returnType, true, true))
+            .descriptor(descriptor)
+            .hidden(isHidden(ruleDefinition))
+            .build();
 
         return new ExtractedModelCreator(modelCreator);
     }

@@ -37,6 +37,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
+import org.gradle.model.internal.Internal;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -128,12 +129,12 @@ public class LanguageBasePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
 
-        @Model
+        @Model @Internal
         ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ModelSchemaStore.class);
         }
 
-        @Model
+        @Model @Internal
         ConstructableTypesRegistry constructableTypesRegistry() {
             return new DefaultConstructableTypesRegistry();
         }

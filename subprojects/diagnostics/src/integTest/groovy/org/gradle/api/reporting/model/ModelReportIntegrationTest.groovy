@@ -340,6 +340,28 @@ apply plugin: ClassHolder.InnerRules
         rules[i] == 'NumberRules#validateRule'
     }
 
+    def "internal nodes are not displayed on the report"() {
+        given:
+        buildFile << """
+        import org.gradle.model.internal.Internal
+
+        class Rules extends RuleSource {
+            @Model @Internal
+            String thingamajigger() {
+                return "hello"
+            }
+        }
+        apply plugin: Rules
+"""
+
+        when:
+        run "model"
+
+        then:
+        def modelNode = ModelReportOutput.from(output).modelNode
+        !modelNode.thingamajigger
+    }
+
     private String managedNumbers() {
         return """@Managed
         public interface Numbers {
