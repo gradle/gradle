@@ -99,7 +99,7 @@ TBD: More clarification needed about how to properly separate the two.
         - Add `inputs` property, a set of `JvmClassesSpec`. Defaults to the `classes` of the library variant.
         - Build task for this element should build the runtime Jar from input classes/resources.
     - Components report should show details of the `jar` element for a library variant.
-- Add a buildable element to represent the API of the library variant: 
+- Add a buildable element to represent the API of the library variant:
     - Add `api` property that points to an instance of `JarSpec`.
     - Inputs should be the `classes` of the library variant.
     - Build task for this element should build the API Jar.
@@ -151,6 +151,7 @@ eg extends implementation class or throws checked implementation exception or re
 - Consuming source is not recompiled when comment is changed in API source file.
 - Consuming source is recompiled when signature of public API method is changed.
 - Trying to use the API jar at runtime throws `UnsupportedOperationException`
+- Public constants have the same value in stubs and implementation.
 
 ## Story: Java library API references the APIs of other libraries
 
@@ -184,14 +185,66 @@ TBD - Add a dependency set at the component level, to be used as the default for
 
 Add support for external dependencies.
 
-- Extend the dependency DSL to reference external libraries.
+## Story: Add support for external dependencies to the dependency DSL
+
+- Extend the dependency DSL to reference external libraries:
+
+```
+model {
+    components {
+        main(JvmLibrarySpec) {
+            dependencies {
+                external group: 'com.acme', name: 'artifact', version: '1.0'
+                external 'com.acme:artifact:1.0'
+            }
+        }
+    }
+}
+```
+
 - Reuse legacy repositories DSL for this feature, or perhaps bridge into model land.
 - Resolve external libraries from repository and include in compile time dependency graph.
 - Use jar + compile scope dependencies for a Maven module.
+
+### Test cases
+
+- Can add a dependency onto an artifact found in a Maven repository
+- Can compile a component that uses a class from an external dependency
+- Compile classpath is evaluated lazily, that is to say, resolution only occurs when we try to compile the component
+- Displays a reasonable error message if the external dependency cannot be found in a declared repository
+
+### Implementation
+
+- Should extend the existing `DependencySpecContainer`
+- Dependencies retrieved when calling `DependencySpecContainer#getDependencies` should be immutable
+
+### Open issues
+
+- Still no notion of _compile_ vs _runtime_, it's all **direct** compile time dependencies
+- If the DSL, at some point, is supposed to model other scopes (configurations, ...), `external` might not be the best choice (unless we use `dependencies(scope)`)
+- Should we allow transitive dependencies? Transitive closure?
+- Should we reuse `ExternalModuleDependency`?
+- Support for custom resolution strategies?
+- Support for dependency substitution?
+
+## Story: Resolve external dependencies from Ivy repositories
+
 - Use artifacts and dependencies from some conventional configuration (eg `compile`, or `default` if not present) an for Ivy module.
+
+## Story: Generate an API jar for external dependencies
+
 - Generate API stub for external Jar and use this for compilation. Cache the generated API jar.
 - Verify library is not recompiled when API of external library has not changed (eg method body change, add private element).
 - Dependencies report shows external libraries in compile time dependency graph.
+
+### Implementation
+
+Should reuse the "stub generator" that is used to create an API jar for local projects.
+
+### Test cases
+
+- Stubs only contain public members of the external dependency
+- Trying to use a stub at runtime should throw an `UnsupportedOperationException`
 
 ## Feature: Development team migrates Java library to Java 9
 
