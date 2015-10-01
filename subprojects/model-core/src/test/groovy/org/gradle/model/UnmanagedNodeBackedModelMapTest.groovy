@@ -30,6 +30,7 @@ import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.registry.UnboundModelRulesException
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
@@ -881,5 +882,17 @@ class UnmanagedNodeBackedModelMapTest extends Specification {
         then:
         thrown ModelViewClosedException
     }
+
+    def "is managed instance"() {
+        when:
+        mutate {
+            assert it instanceof ManagedInstance
+            assert withType(SpecialNamedThingInterface) instanceof ManagedInstance
+        }
+
+        then:
+        realize()
+    }
+
 
 }
