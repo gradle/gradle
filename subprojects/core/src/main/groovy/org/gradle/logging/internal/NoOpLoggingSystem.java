@@ -23,7 +23,8 @@ public class NoOpLoggingSystem implements StdOutLoggingSystem, StdErrLoggingSyst
         return dummy();
     }
 
-    public Snapshot on(LogLevel level) {
+    @Override
+    public Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel) {
         return dummy();
     }
 

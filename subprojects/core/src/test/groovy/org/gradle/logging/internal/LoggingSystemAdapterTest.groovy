@@ -26,7 +26,7 @@ class LoggingSystemAdapterTest extends Specification {
 
     def onUsesLoggingConfigurerToSetLoggingLevel() {
         when:
-        loggingSystem.on(LogLevel.DEBUG)
+        loggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG)
 
         then:
         1 * loggingConfigurer.configure(LogLevel.DEBUG)

@@ -76,10 +76,11 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         }
     }
 
-    public Snapshot on(final LogLevel level) {
+    @Override
+    public Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel) {
         Snapshot snapshot = snapshot();
         install();
-        this.logLevel = level;
+        this.logLevel = defaultLevel;
         outputEventListener.onOutput(new LogLevelChangeEvent(logLevel));
         destination.set(listener);
         return snapshot;

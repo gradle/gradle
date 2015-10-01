@@ -37,7 +37,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
     def onStartsCapturingWhenNotAlreadyCapturing() {
         when:
-        loggingSystem.on(LogLevel.INFO)
+        loggingSystem.on(LogLevel.INFO, LogLevel.INFO)
         stream.println('info')
 
         then:
@@ -49,7 +49,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
     def fillsInEventDetails() {
         when:
-        loggingSystem.on(LogLevel.INFO)
+        loggingSystem.on(LogLevel.INFO, LogLevel.INFO)
         stream.println('info')
 
         then:
@@ -57,10 +57,10 @@ class PrintStreamLoggingSystemTest extends Specification {
     }
 
     def onChangesLogLevelsWhenAlreadyCapturing() {
-        loggingSystem.on(LogLevel.INFO)
+        loggingSystem.on(LogLevel.INFO, LogLevel.INFO)
 
         when:
-        loggingSystem.on(LogLevel.DEBUG)
+        loggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG)
         stream.println('info')
 
         then:
@@ -81,7 +81,7 @@ class PrintStreamLoggingSystemTest extends Specification {
     }
 
     def offStopsCapturingWhenAlreadyCapturing() {
-        loggingSystem.on(LogLevel.WARN)
+        loggingSystem.on(LogLevel.WARN, LogLevel.WARN)
 
         when:
         loggingSystem.off()
@@ -95,7 +95,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
     def restoreStopsCapturingWhenCapturingWasNotInstalledWhenSnapshotTaken() {
         def snapshot = loggingSystem.snapshot()
-        loggingSystem.on(LogLevel.ERROR)
+        loggingSystem.on(LogLevel.ERROR, LogLevel.ERROR)
 
         when:
         loggingSystem.restore(snapshot)
@@ -107,10 +107,10 @@ class PrintStreamLoggingSystemTest extends Specification {
     }
 
     def restoreStopsCapturingWhenCapturingWasOffWhenSnapshotTaken() {
-        loggingSystem.on(LogLevel.INFO)
+        loggingSystem.on(LogLevel.INFO, LogLevel.INFO)
         loggingSystem.off()
         def snapshot = loggingSystem.snapshot()
-        loggingSystem.on(LogLevel.ERROR)
+        loggingSystem.on(LogLevel.ERROR, LogLevel.ERROR)
 
         when:
         loggingSystem.restore(snapshot)
@@ -122,7 +122,7 @@ class PrintStreamLoggingSystemTest extends Specification {
     }
 
     def restoreStartsCapturingWhenCapturingWasOnWhenSnapshotTaken() {
-        loggingSystem.on(LogLevel.WARN)
+        loggingSystem.on(LogLevel.WARN, LogLevel.WARN)
         def snapshot = loggingSystem.snapshot()
         loggingSystem.off()
 
@@ -138,9 +138,9 @@ class PrintStreamLoggingSystemTest extends Specification {
     }
     
     def restoreSetsLogLevelToTheLevelWhenSnapshotTaken() {
-        loggingSystem.on(LogLevel.WARN)
+        loggingSystem.on(LogLevel.WARN, LogLevel.WARN)
         def snapshot = loggingSystem.snapshot()
-        loggingSystem.on(LogLevel.INFO)
+        loggingSystem.on(LogLevel.INFO, LogLevel.INFO)
 
         when:
         loggingSystem.restore(snapshot)

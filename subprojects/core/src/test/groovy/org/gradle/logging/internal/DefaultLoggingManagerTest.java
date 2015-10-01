@@ -73,9 +73,9 @@ public class DefaultLoggingManagerTest {
         final LoggingSystem.Snapshot stdErrSnapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
-            one(stdOutLoggingSystem).on(LogLevel.DEBUG);
+            one(stdOutLoggingSystem).on(LogLevel.DEBUG, LogLevel.DEBUG);
             will(returnValue(stdOutSnapshot));
-            one(stdErrLoggingSystem).on(LogLevel.INFO);
+            one(stdErrLoggingSystem).on(LogLevel.INFO, LogLevel.INFO);
             will(returnValue(stdErrSnapshot));
         }});
 
@@ -97,7 +97,7 @@ public class DefaultLoggingManagerTest {
         context.checking(new Expectations() {{
             ignoring(stdOutLoggingSystem);
             ignoring(stdErrLoggingSystem);
-            one(loggingSystem).on(LogLevel.DEBUG);
+            one(loggingSystem).on(LogLevel.DEBUG, LogLevel.DEBUG);
             will(returnValue(snapshot));
         }});
 
@@ -135,9 +135,9 @@ public class DefaultLoggingManagerTest {
         final LoggingSystem.Snapshot stdErrSnapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
-            one(stdOutLoggingSystem).on(LogLevel.DEBUG);
+            one(stdOutLoggingSystem).on(LogLevel.DEBUG, LogLevel.DEBUG);
             will(returnValue(stdOutSnapshot));
-            one(stdErrLoggingSystem).on(LogLevel.DEBUG);
+            one(stdErrLoggingSystem).on(LogLevel.DEBUG, LogLevel.DEBUG);
             will(returnValue(stdErrSnapshot));
         }});
 
@@ -147,7 +147,7 @@ public class DefaultLoggingManagerTest {
         loggingManager.start();
 
         context.checking(new Expectations() {{
-            one(stdOutLoggingSystem).on(LogLevel.WARN);
+            one(stdOutLoggingSystem).on(LogLevel.WARN, LogLevel.WARN);
         }});
 
         loggingManager.captureStandardOutput(LogLevel.WARN);
@@ -174,7 +174,7 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             ignoring(stdOutLoggingSystem);
-            one(loggingSystem).on(LogLevel.LIFECYCLE);
+            one(loggingSystem).on(LogLevel.LIFECYCLE, LogLevel.LIFECYCLE);
             will(returnValue(context.mock(LoggingSystem.Snapshot.class)));
         }});
 

@@ -176,7 +176,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     private static class StartableLoggingSystem implements Stoppable {
         private final LoggingSystem loggingSystem;
         private LogLevel level;
-        private boolean disable;
         private LoggingSystem.Snapshot originalState;
 
         private StartableLoggingSystem(LoggingSystem loggingSystem, LogLevel level) {
@@ -185,10 +184,8 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         }
 
         public void start() {
-            if (disable) {
-                originalState = loggingSystem.off();
-            } else if (level != null) {
-                originalState = loggingSystem.on(level);
+            if (level != null) {
+                originalState = loggingSystem.on(level, level);
             } else {
                 originalState = loggingSystem.snapshot();
             }
@@ -200,20 +197,11 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             }
 
             this.level = logLevel;
-            disable = false;
-
             if (originalState == null) {
+                // Not started, don't apply the changes
                 return;
             }
-            loggingSystem.on(logLevel);
-        }
-
-        public void disable() {
-            level = null;
-            disable = true;
-            if (originalState != null) {
-                loggingSystem.off();
-            }
+            loggingSystem.on(logLevel, logLevel);
         }
 
         public void stop() {
