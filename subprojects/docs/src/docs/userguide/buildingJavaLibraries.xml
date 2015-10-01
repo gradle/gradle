@@ -263,9 +263,9 @@
                 </itemizedlist>
             </para>
             <para>The <literal>targetPlatform</literal> DSL defines which platforms a library should be built against:</para>
-            <sample id="newJavaTargetPlatforms" dir="javaLibraryPlugin/targetplatforms" title="Declaring target platforms">
-                <sourcefile file="core/build.gradle" snippet="declare-target-platforms"/>
-                <output args=":core:build" ignoreExtraLines="true"/>
+            <sample id="newJavaTargetPlatforms" dir="javaLibraryPlugin/targetplatforms/core" title="Declaring target platforms">
+                <sourcefile file="build.gradle" snippet="declare-target-platforms"/>
+                <output args="clean build" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms.out"/>
             </sample>
             <para>When building the application, Gradle generates two binaries: <literal>java5MainJar</literal> and <literal>java6MainJar</literal>
                 corresponding to the target versions of Java. These artifacts will participate in dependency resolution as described
@@ -276,9 +276,9 @@
             <para>For each <apilink class="org.gradle.jvm.JvmLibrarySpec"/> it is possible to define additional source sets for each binary. A common use case for this
             is having specific dependencies for each variant and source sets that conform to those dependencies. The example below configures a <literal>java6</literal> source set on the <literal>java6MainJar</literal>
             binary:</para>
-            <sample id="newJavaTargetPlatforms" dir="javaLibraryPlugin/targetplatforms" title="Declaring binary specific sources">
-                <sourcefile file="core/build.gradle" snippet="binary-specific-sourceset"/>
-                <output args=":core:java6MainJar" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-java6MainJar.out"/>
+            <sample id="newJavaTargetPlatforms" dir="javaLibraryPlugin/targetplatforms/core" title="Declaring binary specific sources">
+                <sourcefile file="build.gradle" snippet="binary-specific-sourceset"/>
+                <output args="clean java6MainJar" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-java6MainJar.out"/>
             </sample>
         </section>
         <section id="java_dependency_resolution">
@@ -294,9 +294,9 @@
                     <listitem>for multiple compatible binaries <literal>D(java 5), D(java 6), ...D(java m)</literal>, choose the compatible D binary with the highest Java version</listitem>
                 </itemizedlist>
             </para>
-            <sample id="newJavaTargetPlatforms" dir="javaLibraryPlugin/targetplatforms" title="Declaring target platforms">
-                <sourcefile file="server/build.gradle" snippet="dependency-with-platform"/>
-                <output args=":server:build" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-server.out"/>
+            <sample id="newJavaTargetPlatforms" dir="javaLibraryPlugin/targetplatforms/server" title="Declaring target platforms">
+                <sourcefile file="build.gradle" snippet="dependency-with-platform"/>
+                <output args="clean build" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-server.out"/>
             </sample>
             <para>In the example above, Gradle automatically chooses the Java 6 variant of the dependency for the Java 6 variant of the <literal>server</literal> component,
             and chooses the Java 5 version of the dependency for the Java 5 variant of the <literal>server</literal> component.
