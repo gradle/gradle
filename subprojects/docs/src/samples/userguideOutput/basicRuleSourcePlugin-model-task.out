@@ -8,8 +8,8 @@ Root project
       | Type:   	Person
       | Creator: 	PersonRules#person
       | Rules:
-         ⤷ PersonRules#setFirstName
          ⤷ model.person
+         ⤷ PersonRules#setFirstName
     + age
           | Type:   	int
           | Creator: 	PersonRules#person
