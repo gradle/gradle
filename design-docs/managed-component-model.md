@@ -146,13 +146,13 @@ registered when the binary type is registered:
 - Should start to unify the type registration infrastructure, so that registration for all types are treated the same way and there are few or no differences
 between the implementation of component, binary and source set type registration rules. This will be required for the next stories.
 
-## Plugin author declares internal view for custom non-managed source set types
+## Plugin author declares internal views for custom managed binary type
 
-Add support for `LanguageSourceSet` and `FunctionalSourceSet`.
+TBD
 
 ## Plugin author declares internal views for any extensible type
 
-Given a plugin defines a general purpose type that is then extended by another plugin, allow internal views to be declared for the general type as well as the
+Given a plugin defines a general purpose type that is then extended by another plugin, allow internal views to be declared for the general super type as well as the
 specialized type. For example:
 
     class BasePlugin extends RuleSource {
@@ -206,7 +206,11 @@ This default implementation is then used as the super class for all `@Managed` s
 - Change core plugins to declare default implementations for `ComponentSpec`, `BinarySpec` and `LanguageSourceSet`. This will allow `@Managed` subtypes of each
 of these types.
 
-## Plugin author declares internal views for custom managed binary type
+## Plugin author declares internal view for custom non-managed source set types
+
+Add support for `LanguageSourceSet` and `FunctionalSourceSet`.
+
+## Plugin author declares internal views for custom managed type
 
 Given a plugin defines a `@Managed` subtype of a general type, allow the plugin to define internal views for that type.
 
