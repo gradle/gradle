@@ -418,11 +418,23 @@ For example:
 - Model report shows something reasonable for a managed property or collections of type FunctionalSourceSet.
 
 ## Story: Validate model types more eagerly
+
+- Validate the type of all top level elements, regardless of whether they are used or not. 
+- Do not validate projects that are not used in the build current build.
+- Do this at the same time as `ModelRegistry.bindAllReferences()` is used.
+- Validate elements added via DSL and rules.
+- Validate the following top level element types (check for existing test coverage, some of this may already exist):
+    - ModelMap<T> and ModelSet<T> where T is not constructable.
+    - List<T> and Set<T> where T is not a scalar type.
+    - A `@Managed` type with a property of type T where T is not scalar and not constructable.
+    - Any T where T is not constructable. 
+- Ensure a consistent error message for each failure, should describe the available T for each case.
+- Other elements should be validated as they are realized.
+
 TBD:
 One option is to do so in `ModelRegistry.bindAllReferences()` (which might be renamed to `validateRules()`). It could just transition everything currently known to ‘projections defined'
 that should shake out a bunch of errors without closing the universe. The idea isn’t necessarily to catch every possible failure that might happen, just to be a reasonable trade off between
 coverage and the cost of the coverage
-
 
 ## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
 
