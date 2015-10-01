@@ -750,7 +750,7 @@ public class DefaultModelRegistry implements ModelRegistry {
             });
         }
 
-        public void apply(Class<? extends RuleSource> rules, ModelPath scope) {
+        private void apply(Class<? extends RuleSource> rules, ModelPath scope) {
             Iterable<ExtractedModelRule> extractedRules = ruleExtractor.extract(rules);
             for (ExtractedModelRule extractedRule : extractedRules) {
                 if (!extractedRule.getRuleDependencies().isEmpty()) {
@@ -767,13 +767,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
 
             registerListener(new ModelCreationListener() {
-                @Nullable
                 @Override
                 public ModelPath getParent() {
                     return ModelElementNode.this.getPath();
                 }
 
-                @Nullable
                 @Override
                 public ModelType<?> getType() {
                     return action.getSubject().getType();
@@ -794,13 +792,11 @@ public class DefaultModelRegistry implements ModelRegistry {
             }
 
             registerListener(new ModelCreationListener() {
-                @Nullable
                 @Override
                 public ModelPath getAncestor() {
                     return ModelElementNode.this.getPath();
                 }
 
-                @Nullable
                 @Override
                 public ModelType<?> getType() {
                     return action.getSubject().getType();
