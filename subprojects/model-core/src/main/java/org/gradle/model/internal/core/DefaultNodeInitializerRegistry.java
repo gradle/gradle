@@ -18,30 +18,40 @@ package org.gradle.model.internal.core;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.HashSet;
 import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
 
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     public static final ModelReference<NodeInitializerRegistry> DEFAULT_REFERENCE = ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class);
 
     private final List<NodeInitializerExtractionStrategy> strategies;
+    private final List<NodeInitializerExtractionStrategy> variableStrategies;
     private final ModelSchemaStore schemaStore;
+    private final ScalarCollectionNodeInitializerExtractionStrategy scalarCollectionNodeInitializerExtractionStrategy;
+    private final ManagedSetNodeInitializerExtractionStrategy managedSetNodeInitializerExtractionStrategy;
+    private final ModelMapNodeInitializerExtractionStrategy modelMapNodeInitializerExtractionStrategy;
+    private final ModelSetNodeInitializerExtractionStrategy modelSetNodeInitializerExtractionStrategy;
 
     public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore) {
         this.schemaStore = schemaStore;
+        scalarCollectionNodeInitializerExtractionStrategy = new ScalarCollectionNodeInitializerExtractionStrategy();
+        managedSetNodeInitializerExtractionStrategy = new ManagedSetNodeInitializerExtractionStrategy();
+        modelMapNodeInitializerExtractionStrategy = new ModelMapNodeInitializerExtractionStrategy();
+        modelSetNodeInitializerExtractionStrategy = new ModelSetNodeInitializerExtractionStrategy();
         this.strategies = Lists.newArrayList(
-            new ModelSetNodeInitializerExtractionStrategy(),
-            new ManagedSetNodeInitializerExtractionStrategy(),
-            new ModelMapNodeInitializerExtractionStrategy(),
-            new ScalarCollectionNodeInitializerExtractionStrategy(),
+            modelSetNodeInitializerExtractionStrategy,
+            managedSetNodeInitializerExtractionStrategy,
+            modelMapNodeInitializerExtractionStrategy,
+            scalarCollectionNodeInitializerExtractionStrategy,
             new ManagedImplStructNodeInitializerExtractionStrategy(schemaStore)
         );
+        variableStrategies = Lists.newArrayList();
     }
 
     @Override
@@ -52,11 +62,14 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
                 return nodeInitializer;
             }
         }
-        List<ModelType<?>> supportedTypes = newArrayList();
-        for (NodeInitializerExtractionStrategy extractor : strategies) {
-            Iterables.addAll(supportedTypes, extractor.supportedTypes());
+        Iterable<ModelType<?>> scalars = Iterables.concat(ScalarTypes.TYPES, ScalarTypes.NON_FINAL_TYPES);
+        Iterable<ModelType<?>> managedCollectionTypes = Iterables.concat(modelMapNodeInitializerExtractionStrategy.supportedTypes(), managedSetNodeInitializerExtractionStrategy.supportedTypes(), modelSetNodeInitializerExtractionStrategy.supportedTypes());
+
+        HashSet<ModelType<?>> otherManagedTypes = Sets.newHashSet();
+        for (NodeInitializerExtractionStrategy extractor : variableStrategies) {
+            Iterables.addAll(otherManagedTypes, extractor.supportedTypes());
         }
-        throw new ModelTypeInitializationException(schema.getType(), supportedTypes);
+        throw new ModelTypeInitializationException(schema.getType(), scalars, scalarCollectionNodeInitializerExtractionStrategy.supportedTypes(), managedCollectionTypes, otherManagedTypes);
     }
 
     @Override
@@ -67,5 +80,6 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     @Override
     public void registerStrategy(NodeInitializerExtractionStrategy strategy) {
         strategies.add(0, strategy);
+        variableStrategies.add(0, strategy);
     }
 }

@@ -30,12 +30,28 @@ import org.gradle.model.internal.type.ModelType;
 @Incubating
 public class ModelTypeInitializationException extends GradleException {
 
-    public ModelTypeInitializationException(ModelType<?> type, Iterable<ModelType<?>> candidates) {
-        super(toMessage(type, candidates));
+    public ModelTypeInitializationException(ModelType<?> type, Iterable<ModelType<?>> scalarTypes, Iterable<ModelType<?>> scalarCollectionTypes, Iterable<ModelType<?>> managedCollectionTypes, Iterable<ModelType<?>> managedTypes) {
+        super(toMessage(type, scalarTypes, scalarCollectionTypes, managedCollectionTypes, managedTypes));
     }
 
-    private static String toMessage(ModelType<?> type, Iterable<ModelType<?>> types) {
-        return String.format("The model node of type: '%s' can not be constructed. The type must be managed (@Managed) or one of the following types [%s]", type, describe(types));
+    private static String toMessage(ModelType<?> type, Iterable<ModelType<?>> scalarTypes, Iterable<ModelType<?>> scalarCollectionTypes,
+                                    Iterable<ModelType<?>> managedCollectionTypes, Iterable<ModelType<?>> managedTypes) {
+        StringBuffer s = new StringBuffer(String.format("A model node of type: '%s' can not be constructed.\n"
+            + "Its type must be one the following:\n"
+            + "  - A supported scalar type (%s)\n"
+            + "  - An enumerated type (Enum)\n"
+            + "  - An explicitly managed type (i.e. annotated with @Managed)\n"
+            + "  - An explicitly unmanaged type (i.e. annotated with @Unmanaged)\n"
+            + "  - A scalar collection type (%s)\n"
+            + "  - A managed collection type (%s)\n", type, describe(scalarTypes), describe(scalarCollectionTypes), describe(managedCollectionTypes)));
+
+        if (!Iterables.isEmpty(managedTypes)) {
+            s.append("  - A managed type:\n");
+            for (ModelType<?> modelType : managedTypes) {
+                s.append(String.format("    - %s", modelType.getName()));
+            }
+        }
+        return s.toString();
     }
 
     private static String describe(Iterable<ModelType<?>> types) {

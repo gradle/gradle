@@ -657,7 +657,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("The model node of type: 'DefaultCustomComponent' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"))
+        failure.assertThatCause(containsText("A model node of type: 'DefaultCustomComponent' can not be constructed."))
     }
 
     def "reasonable error message when creating component with no implementation"() {
@@ -676,7 +676,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("The model node of type: 'AnotherCustomComponent' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"))
+        failure.assertThatCause(containsText("A model node of type: 'AnotherCustomComponent' can not be constructed."))
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {

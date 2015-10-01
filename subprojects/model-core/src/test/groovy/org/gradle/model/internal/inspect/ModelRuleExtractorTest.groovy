@@ -358,30 +358,6 @@ class ModelRuleExtractorTest extends Specification {
         thrown InvalidModelRuleDeclarationException
     }
 
-    static class RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged extends RuleSource {
-        @Model
-        NodeInitializerRegistry nodeInitializerRegistry() {
-            return new DefaultNodeInitializerRegistry(null)
-        }
-
-        @Model
-        void bar(NonManaged foo) {
-        }
-    }
-
-    def "type of the first argument of void returning model definition has to be @Managed annotated"() {
-        when:
-        registerRules(RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged)
-
-        then:
-        ModelRuleExecutionException e = thrown()
-        e.cause instanceof InvalidModelRuleDeclarationException
-        e.cause.message == "Declaration of model rule ModelRuleExtractorTest.RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged#bar is invalid."
-        e.cause.cause instanceof ModelTypeInitializationException
-        e.cause.cause.message == "The model node of type: '$NonManaged.name' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"
-
-    }
-
     static class RuleSourceCreatingAClassAnnotatedWithManaged extends RuleSource {
         @Model
         void bar(ManagedAnnotatedClass foo) {

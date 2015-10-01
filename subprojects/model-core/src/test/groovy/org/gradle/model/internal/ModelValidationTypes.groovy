@@ -117,4 +117,8 @@ interface Managed${typeName} {
     String getName(Class<?> clazz) {
         clazz.name
     }
+
+    String canNotBeConstructed(String type) {
+        "A model node of type: '${type}' can not be constructed."
+    }
 }

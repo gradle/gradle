@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.core.NodeInitializerRegistry;
@@ -35,9 +35,7 @@ public class DefaultConstructableTypesRegistry implements ConstructableTypesRegi
 
     @Override
     public Iterable<ModelType<?>> supportedTypes() {
-        //Returning an empty for now because this class `DefaultConstructableTypesRegistry` is shared for the duration of a gradle process (GlobalScopeServices)
-        //and tests which verify the supported types cannot rely on this.
-        return ImmutableList.of();
+        return ImmutableSet.copyOf(mappings.keySet());
     }
 
     @Override
