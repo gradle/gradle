@@ -15,8 +15,11 @@
  */
 package org.gradle.nativeplatform.internal.configure;
 
-import org.gradle.api.Action;
+import org.gradle.internal.BiAction;
 import org.gradle.model.ModelMap;
+import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
@@ -63,14 +66,18 @@ public class NativeBinaries {
         // We have to use a @Defaults rule to assign the tool chain because it needs to be there in user @Mutate rules
         // Or at least, the file locations do so that they can be tweaked.
         // LD - 5/6/14
-        binaries.beforeEach(NativeBinarySpec.class, new Action<NativeBinarySpec>() {
-            @Override
-            public void execute(NativeBinarySpec nativeBinarySpec) {
-                if (nativeBinarySpec.getName().equals(name)) {
+        MutableModelNode backingNode = ((ManagedInstance) binaries).getBackingNode();
+        ModelPath binaryPath = backingNode.getPath().child(name);
+        backingNode.applyToLink(ModelActionRole.Defaults, DirectNodeNoInputsModelAction.of(
+            ModelReference.of(binaryPath, NativeBinarySpec.class),
+            new SimpleModelRuleDescriptor("initialize binary " + binaryPath),
+            new BiAction<MutableModelNode, NativeBinarySpec>() {
+                @Override
+                public void execute(MutableModelNode mutableModelNode, NativeBinarySpec nativeBinarySpec) {
                     initialize(nativeBinarySpec, namingScheme, resolver, platform, buildType, flavor);
                 }
             }
-        });
+        ));
         binaries.named(name, NativeBinaryRules.class);
     }
 
