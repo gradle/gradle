@@ -70,7 +70,7 @@ public class PlayCoffeeScriptPlugin extends RuleSource {
 
     @Mutate
     void createCoffeeScriptSourceSets(ModelMap<PlayApplicationSpec> components) {
-        components.beforeEach(new Action<PlayApplicationSpec>() {
+        components.afterEach(new Action<PlayApplicationSpec>() {
             @Override
             public void execute(PlayApplicationSpec playComponent) {
                 playComponent.getSources().create("coffeeScript", CoffeeScriptSourceSet.class, new Action<CoffeeScriptSourceSet>() {
