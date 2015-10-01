@@ -36,7 +36,7 @@ class PlayJavaScriptPluginTest extends Specification {
             getName() >> "play"
             getSources() >> sources
         }
-        _ * components.beforeEach(_) >> { Action a -> a.execute(playApp) }
+        _ * components.afterEach(_) >> { Action a -> a.execute(playApp) }
         _ * sourceSet.getSource() >> sourceDirSet
 
         and:
