@@ -419,9 +419,9 @@ For example:
 
 ## Story: Validate model types more eagerly
 
-- Validate the type of all top level elements, regardless of whether they are used or not. 
-- Do not validate projects that are not used in the build current build.
+- Validate the type of all top level elements, regardless of whether they are used or not in the current build.
 - Do this at the same time as `ModelRegistry.bindAllReferences()` is used.
+- Do not validate projects that are not used in the build current build.
 - Validate elements added via DSL and rules.
 - Validate the following top level element types (check for existing test coverage, some of this may already exist):
     - ModelMap<T> and ModelSet<T> where T is not constructable.
