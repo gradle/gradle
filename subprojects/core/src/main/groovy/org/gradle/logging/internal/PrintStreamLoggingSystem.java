@@ -90,7 +90,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         return snapshot;
     }
 
-    public Snapshot off() {
+    private Snapshot off() {
         Snapshot snapshot = snapshot();
         if (original != null && logLevel != null) {
             outstr.flush();

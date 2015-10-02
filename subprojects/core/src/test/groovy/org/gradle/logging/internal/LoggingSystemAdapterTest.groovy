@@ -16,9 +16,8 @@
 
 package org.gradle.logging.internal
 
-import spock.lang.Specification
-
 import org.gradle.api.logging.LogLevel
+import spock.lang.Specification
 
 class LoggingSystemAdapterTest extends Specification {
     def loggingConfigurer = Mock(LoggingConfigurer)
@@ -30,14 +29,6 @@ class LoggingSystemAdapterTest extends Specification {
 
         then:
         1 * loggingConfigurer.configure(LogLevel.DEBUG)
-        0 * loggingConfigurer._
-    }
-
-    def offDoesNothing() {
-        when:
-        loggingSystem.off()
-
-        then:
         0 * loggingConfigurer._
     }
 

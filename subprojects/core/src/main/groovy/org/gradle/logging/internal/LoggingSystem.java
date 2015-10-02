@@ -35,13 +35,6 @@ public interface LoggingSystem {
     Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel);
 
     /**
-     * Disables logging for this logging system
-     *
-     * @return the state of this logging system immediately before the changes are applied.
-     */
-    Snapshot off();
-
-    /**
      * Resets this logging system to some previous state.
      */
     void restore(Snapshot state);
