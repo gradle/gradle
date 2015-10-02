@@ -58,7 +58,7 @@ class NativeComponentRulesTest extends Specification {
         }
         def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)
         nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry))
-        modelRegistry.createInstance("__nodeInitializerRegistry", nodeInitializerRegistry)
+        modelRegistry.createInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.path, nodeInitializerRegistry)
         component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, modelRegistry, id, Stub(ProjectSourceSet), instantiator)
     }
 
