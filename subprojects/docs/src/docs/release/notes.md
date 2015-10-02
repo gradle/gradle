@@ -312,8 +312,32 @@ Setting the Eclipse project name in `eclipse.project.file.beforeMerged` or `ecli
 
 ### Upgraded to Groovy 2.4.4
 
-The Gradle API now uses Groovy 2.4.4. Previously, it was using Groovy 2.3.10. This change should be transparent to the majority of users; however, it can imply some minor breaking changes.
+The Gradle API now uses Groovy 2.4.4. Previously, it was using Groovy 2.3.10. This change should be transparent to the majority of users; however, it can cause minor problems with existing build scripts and plugins.
+
 Please refer to the [Groovy language changelogs](http://groovy-lang.org/changelogs.html) for further details.
+
+#### Groovy property assignment with multiple setter methods
+
+In earlier versions of Groovy, an assignment to a property that has multiple setter methods that each take a different parameter type would select the setter method in an JVM-implementation dependent way.  This is documented in [GROOVY-6084](https://issues.apache.org/jira/browse/GROOVY-6084).
+
+For example:
+
+    class Foo {
+        void setProperties(Properties p) { }
+        void setProperties(File f) { }
+    }
+
+    def foo = new Foo()
+    foo.properties = [:]
+
+In Groovy 2.3 and earlier, this would sometimes fail depending on which setter method was selected. 
+
+In Groovy 2.4, this always fails with an exception:
+
+    No signature of method: Foo.setProperties() is applicable for argument types: (java.util.LinkedHashMap) values: [[:]]
+    Possible solutions: setProperties(java.io.File), setProperties(java.util.Properties), getProperties(), getProperty(java.lang.String), setProperty(java.lang.String, java.lang.Object)
+
+To fix this problem, select the correct method by supplying the appropriate type (in this case, Properties).
 
 ### New PMD violations due to type resolution changes
 
