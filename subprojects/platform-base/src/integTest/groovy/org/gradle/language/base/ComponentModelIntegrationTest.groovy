@@ -882,4 +882,44 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         then:
         output.contains "component names: [main, viaCollectionBuilder, viaModelMap]"
     }
+
+    def "android problem with 2.8-rc1"() {
+        buildFile << """
+            @Managed
+            interface MyModel {
+                String value
+            }
+
+            // Define some binary and component types.
+            interface SampleBinarySpec extends BinarySpec {}
+            class DefaultSampleBinary extends BaseBinarySpec implements SampleBinarySpec {}
+
+            interface SampleComponent extends ComponentSpec{}
+            class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
+
+            class MyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    project.plugins.apply(ComponentModelBasePlugin)
+                }
+
+                static class Rules extends RuleSource {
+                    @Model
+                    void createManagedModel(MyModel value) {
+                        println "createManagedModel"
+                    }
+
+                    @ComponentType
+                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {
+                        println "registerComponent"
+                        builder.defaultImplementation(DefaultSampleComponent)
+                    }
+                }
+
+            }
+
+            apply plugin: MyPlugin
+        """
+        expect:
+        succeeds "components"
+    }
 }
