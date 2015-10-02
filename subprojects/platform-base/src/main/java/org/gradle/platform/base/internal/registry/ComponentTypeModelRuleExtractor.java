@@ -76,7 +76,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         private final Set<Class<?>> internalViews;
 
         public RegistrationAction(ModelType<? extends ComponentSpec> publicType, ModelType<? extends BaseComponentSpec> implementationType, Set<Class<?>> internalViews, ModelRuleDescriptor descriptor) {
-            super(ModelReference.of(ComponentSpecFactory.class), descriptor, ModelReference.of(ServiceRegistry.class), ModelReference.of(ProjectIdentifier.class), ModelReference.of(ProjectSourceSet.class));
+            super(ModelReference.of(ComponentSpecFactory.class), descriptor, ModelReference.of("serviceRegistry", ServiceRegistry.class), ModelReference.of("projectIdentifier", ProjectIdentifier.class), ModelReference.of("sources", ProjectSourceSet.class));
             this.publicType = publicType;
             this.implementationType = implementationType;
             this.internalViews = internalViews;

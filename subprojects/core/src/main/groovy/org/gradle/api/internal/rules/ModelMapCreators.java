@@ -37,7 +37,7 @@ public class ModelMapCreators {
         ModelType<C> containerType = ModelType.of(containerClass);
         final ModelType<T> modelType = ModelType.of(typeClass);
         ChildNodeInitializerStrategyAccessor<T> strategyAccessor = ChildNodeInitializerStrategyAccessors.fromPrivateData();
-        return ModelCreators.of(path, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+        return ModelCreators.of(path, DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, new BiAction<MutableModelNode, List<ModelView<?>>>() {
             @Override
             public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                 NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();

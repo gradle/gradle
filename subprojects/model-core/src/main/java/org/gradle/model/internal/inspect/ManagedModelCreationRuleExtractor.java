@@ -79,7 +79,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         final ModelReference<T> reference = ModelReference.of(modelPath, managedType);
         return ModelCreators.of(modelPath)
             .descriptor(descriptor)
-            .action(ModelActionRole.DefineProjections, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+            .action(ModelActionRole.DefineProjections, DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                     NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();

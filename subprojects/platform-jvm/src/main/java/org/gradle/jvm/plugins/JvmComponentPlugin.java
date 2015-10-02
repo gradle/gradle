@@ -73,7 +73,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void registerJarBinarySpecSpecializationNodeInitializerExtractionStrategy(NodeInitializerRegistry nodeInitializerRegistry, ModelSchemaStore schemaStore) {
+        void registerJarBinarySpecSpecializationNodeInitializerExtractionStrategy(NodeInitializerRegistry nodeInitializerRegistry, @Path("schemaStore") ModelSchemaStore schemaStore) {
             nodeInitializerRegistry.registerStrategy(new JarBinarySpecSpecializationNodeInitializerExtractionStrategy(schemaStore));
         }
 
