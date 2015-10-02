@@ -278,6 +278,114 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         confirmDuplicateServicesPreserved()
     }
 
+    def "adding a property in incremental build goes in to manifest"() {
+        given:
+        def jar = file('build/test.jar')
+        def jarTaskTemplate = { extraArgs ->
+            """
+            task jar(type: Jar) {
+                from 'test'
+                destinationDir = buildDir
+                archiveName = 'test.jar'
+                $extraArgs
+            }
+        """
+        }
+        createDir('test') {
+            dir1 {
+                file 'file1.txt'
+            }
+        }
+        and:
+        buildFile.text = jarTaskTemplate("")
+
+        when:
+        run 'jar'
+
+        then:
+        jar.manifest.mainAttributes.getValue('attr') == null
+
+
+        when:
+        buildFile.text = jarTaskTemplate("manifest { attributes(attr: 'Hello') }")
+        run 'jar'
+
+        then:
+        jar.manifest.mainAttributes.getValue('attr') == 'Hello'
+    }
+
+    def "modifying a property in incremental build goes in to manifest"() {
+        given:
+        def jar = file('build/test.jar')
+        def jarTaskTemplate = { extraArgs ->
+            """
+            task jar(type: Jar) {
+                from 'test'
+                destinationDir = buildDir
+                archiveName = 'test.jar'
+                $extraArgs
+            }
+        """
+        }
+        createDir('test') {
+            dir1 {
+                file 'file1.txt'
+            }
+        }
+        and:
+        buildFile.text = jarTaskTemplate("manifest { attributes(attr: 'Hello') }")
+
+        when:
+        run 'jar'
+
+        then:
+        jar.manifest.mainAttributes.getValue('attr') == 'Hello'
+
+
+        when:
+        buildFile.text = jarTaskTemplate("manifest { attributes(attr: 'Hi') }")
+        run 'jar'
+
+        then:
+        jar.manifest.mainAttributes.getValue('attr') == 'Hi'
+    }
+
+    def "removing a property in incremental build goes in to manifest"() {
+        given:
+        def jar = file('build/test.jar')
+        def jarTaskTemplate = { extraArgs ->
+            """
+            task jar(type: Jar) {
+                from 'test'
+                destinationDir = buildDir
+                archiveName = 'test.jar'
+                $extraArgs
+            }
+        """
+        }
+        createDir('test') {
+            dir1 {
+                file 'file1.txt'
+            }
+        }
+        and:
+        buildFile.text = jarTaskTemplate("manifest { attributes(attr: 'Hello') }")
+
+        when:
+        run 'jar'
+
+        then:
+        jar.manifest.mainAttributes.getValue('attr') == 'Hello'
+
+
+        when:
+        buildFile.text = jarTaskTemplate("")
+        run 'jar'
+
+        then:
+        jar.manifest.mainAttributes.getValue('attr') == null
+    }
+
     private def createParallelDirsWithServices() {
         createDir('dir1') {
             'META-INF' {
@@ -316,5 +424,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.hasService('org.gradle.Service', 'org.gradle.BetterServiceImpl')
         jar.hasService('org.gradle.Service', 'org.gradle.DefaultServiceImpl')
     }
+
 
 }
