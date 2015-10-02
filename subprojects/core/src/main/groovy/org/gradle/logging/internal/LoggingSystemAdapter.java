@@ -39,7 +39,7 @@ public class LoggingSystemAdapter implements LoggingSystem {
 
     @Override
     public Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel) {
-        SnapshotImpl snapshot = new SnapshotImpl(minimumLevel);
+        SnapshotImpl snapshot = new SnapshotImpl(this.logLevel);
         setLevel(defaultLevel);
         return snapshot;
     }

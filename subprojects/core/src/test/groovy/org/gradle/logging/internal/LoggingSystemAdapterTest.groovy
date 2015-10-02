@@ -21,8 +21,8 @@ import spock.lang.Specification
 import org.gradle.api.logging.LogLevel
 
 class LoggingSystemAdapterTest extends Specification {
-    private final LoggingConfigurer loggingConfigurer = Mock()
-    private final LoggingSystemAdapter loggingSystem = new LoggingSystemAdapter(loggingConfigurer)
+    def loggingConfigurer = Mock(LoggingConfigurer)
+    def LoggingSystemAdapter loggingSystem = new LoggingSystemAdapter(loggingConfigurer)
 
     def onUsesLoggingConfigurerToSetLoggingLevel() {
         when:
@@ -41,13 +41,42 @@ class LoggingSystemAdapterTest extends Specification {
         0 * loggingConfigurer._
     }
 
-    def restoreSetsLoggingLevelToPreviousLoggingLevel() {
+    def restoreSetsLoggingLevelToDefaultLoggingLevelWhenOff() {
         when:
         def snapshot = loggingSystem.snapshot()
         loggingSystem.restore(snapshot)
 
         then:
         1 * loggingConfigurer.configure(LogLevel.LIFECYCLE)
+        0 * loggingConfigurer._
     }
-    
+
+    def restoreSetsLoggingLevel() {
+        given:
+        def snapshot1 = loggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG)
+        def snapshot2 = loggingSystem.snapshot()
+        def snapshot3 = loggingSystem.on(LogLevel.INFO, LogLevel.INFO)
+
+        when:
+        loggingSystem.restore(snapshot3)
+
+        then:
+        1 * loggingConfigurer.configure(LogLevel.DEBUG)
+        0 * loggingConfigurer._
+
+        when:
+        loggingSystem.restore(snapshot1)
+
+        then:
+        1 * loggingConfigurer.configure(LogLevel.LIFECYCLE)
+        0 * loggingConfigurer._
+
+        when:
+        loggingSystem.restore(snapshot2)
+
+        then:
+        1 * loggingConfigurer.configure(LogLevel.DEBUG)
+        0 * loggingConfigurer._
+    }
+
 }
