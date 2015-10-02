@@ -33,9 +33,15 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
                 void setInternalData(String internalData)
             }
 
-            class DefaultSampleBinarySpec extends BaseBinarySpec implements SampleBinarySpec, SampleBinarySpecInternal {
+            interface BareInternal {
+                String getBareData()
+                void setBareData(String bareData)
+            }
+
+            class DefaultSampleBinarySpec extends BaseBinarySpec implements SampleBinarySpec, SampleBinarySpecInternal, BareInternal {
                 String internalData
                 String publicData
+                String bareData
             }
         """
     }
@@ -47,6 +53,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
                 void register(BinaryTypeBuilder<SampleBinarySpec> builder) {
                     builder.defaultImplementation(DefaultSampleBinarySpec)
                     builder.internalView(SampleBinarySpecInternal)
+                    builder.internalView(BareInternal)
                 }
             }
             apply plugin: RegisterBinaryRules
@@ -79,6 +86,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
                     assert binaries.withType(JvmBinarySpec)*.name == ["sampleLibJar"]
                     assert binaries.withType(SampleBinarySpec)*.name == ["sampleBin"]
                     assert binaries.withType(SampleBinarySpecInternal)*.name == ["sampleBin"]
+                    assert binaries.withType(BareInternal)*.name == ["sampleBin"]
                 }
             }
         }
@@ -105,6 +113,9 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
                 sampleBins.each { sampleBin ->
                     sampleBin.publicData = "public"
                 }
+                sampleBins.withType(BareInternal) { sampleBin ->
+                    bareData = "bare"
+                }
             }
 
             @Mutate
@@ -113,6 +124,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
                     sampleLibs.each { sampleLib ->
                         assert sampleLib.internalData == "internal"
                         assert sampleLib.publicData == "public"
+                        assert sampleLib.bareData == "bare"
                     }
                 }
             }
@@ -186,6 +198,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
                     assert binaries.withType(JvmBinarySpec)*.name == ["sampleLibJar"]
                     assert binaries.withType(SampleBinarySpec)*.name == ["sampleBin"]
                     assert binaries.withType(SampleBinarySpecInternal)*.name == ["sampleBin"]
+                    assert binaries.withType(BareInternal)*.name == ["sampleBin"]
                 }
             }
         }
@@ -207,6 +220,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
                 @BinaryType
                 void registerInternalView(BinaryTypeBuilder<SampleBinarySpec> builder) {
                     builder.internalView(SampleBinarySpecInternal)
+                    builder.internalView(BareInternal)
                 }
             }
             apply plugin: RegisterBinaryRules
