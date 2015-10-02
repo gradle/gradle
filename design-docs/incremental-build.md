@@ -150,7 +150,7 @@ See discussion about parameters.  Uses cpp software model plugins.
 
 - Performance test that runs against 2.6 and latest release
 
-## Story: Profile Java representative build with parallel execution mode
+## ~~Story: Profile Java representative build with parallel execution mode~~
 
 - Record profile findings
 
@@ -218,6 +218,13 @@ level cache, and reducing the cache size.
 
 TBD
 
+## Story: Use source file dependency information in up-to-date checks
+
+TBD
+
+### Test coverage
+
+- TBD
 
 ## Story: TBD
 
