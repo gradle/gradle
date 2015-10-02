@@ -1,10 +1,49 @@
+Gradle 2.8 delivers performance improvements and a collection of general fixes and enhancements.
+
+Large builds with many source files should see major improvements in incremental build speed.
+This release also brings faster build script compilation, faster source compilation when using continuous build,
+and general performance improvements that apply to all builds.
+
+Building upon the recent releases, this release brings more improvements to the [Gradle TestKit](userguide/test_kit.html).
+It is now easier to inject plugins under test into test builds.
+
+Work continues on the new [managed model](userguide/new_model.html).
+This release brings richer modelling capabilities along with interoperability improvements when dynamically depending on rule based tasks.
+
+A Gradle release would not be complete without contributions from the wonderful Gradle community.
+This release provides support for file name encoding in Zip files, support for more PMD features and other fixes from community pull requests.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
-Add-->
+### Faster incremental builds
+
+One of Gradle's key features is the ability to perform “incremental builds”.
+This allows Gradle to avoid doing redundant work, by detecting that it can safely reuse files created by a previous build.
+For example, the “class files” created by the Java compiler can be reused if there were no changes to source code or compiler settings since the previous build.
+This is a [generic capability available to all kinds of work performed by Gradle](userguide/more_about_tasks.html#sec:up_to_date_checks).
+
+This feature relies on tracking checksums of files in order to detect changes.
+In this Gradle release, improvements have been made to the management of file checksums,
+resulting in significantly improved build times when the build is mostly up to date (i.e. many previously created files were able to be reused).
+
+Highly incremental builds of projects with greater than 140,000 files have been measured at 35-50% faster with Gradle 2.8.
+Very large projects (greater than 400,000 files) are also significantly faster again, if there is ample memory available to the build process
+(see [“The Build Environment”](userguide/build_environment.html) in the Gradle User Guide for how to control memory allocation).
+Smaller projects also benefit from these changes.
+
+No build script or configuration changes, beyond upgrading to Gradle 2.8, are required to leverage these performance improvements.
+
+### Faster build script compilation
+
+Build script compilation times have been reduced by up to 30% in this version of Gradle.
+
+This improvement is noticeable when building a project for the first time with a certain version of Gradle, or after making changes to build scripts.
+This is due to Gradle caching the compiled form of the build scripts.
+
+The reduction in compilation time per script is dependent on the size and complexity of script.
+Additionally, the reduction for the entire build is dependent on the number of build scripts that need to be compiled.
 
 <!--
 ### Example new and noteworthy
@@ -97,9 +136,57 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Upgraded to Groovy 2.4.4
+
+The Gradle API now uses Groovy 2.4.4. Previously, it was using Groovy 2.3.10. This change should be transparent to the majority of users; however, it can imply some minor breaking changes.
+Please refer to the [Groovy language changelogs](http://groovy-lang.org/changelogs.html) for further details.
+
+### New PMD violations due to type resolution changes
+
+PMD can perform additional analysis for some rules (see above), therefore new violations may be found in existing projects.  Previously, these rules were unable to detect problems
+because classes outside of your project were not available during analysis.
+
+### Updated to CodeNarc 0.24.1
+
+The default version of CodeNarc has been updated from 0.23 to 0.24.1. Should you want to stay on older version, it is possible to downgrade it using the `codenarc` configuration:
+
+    dependencies {
+       codenarc 'org.codenarc:CodeNarc:0.17'
+    }
+
+### Improved IDE project naming deduplication
+
+To ensure unique project names in the IDE, Gradle applies a deduplication logic when generating IDE metadata for Eclipse and Idea projects.
+This deduplication logic has been improved. All projects with non unique names are now deduplicated. here's an example for clarification:
+
+Given a Gradle multiproject build with the following project structure
+
+    root
+    |-foo
+    |  \- app
+    |
+    \-bar
+       \- app
+
+results in the following IDE project name mapping:
+
+    root
+    |-foo
+    |  \- foo-app
+    |
+    \-bar
+       \- bar-app
+
+### Changes to the incubating integration between the managed model and the Java plugins
+
+The Java plugins make some details about the project source sets visible in the managed model, to allow integration between rules based plugins and
+the stable Java plugins. This integration has changed in this Gradle release, to move more of the integration into the managed model:
+
+- The `sources` container is no longer added as a project extension. It is now visible only to rules, as part of the managed model.
+- `ClassDirectoryBinarySpec` instances can no longer be added to the `binaries` container. Instances are still added to this container by the Java plugins for each source set,
+however, additional instances cannot be added. This capability will be added again in a later release, to allow rules based plugins to define arbitrary class directory binaries.
+- The Java plugins do not add instances to the `binaries` container until they are required by rules. Previously, the plugins would add these instances eagerly when the
+source set was defined.
 
 ## External contributions
 
