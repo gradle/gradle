@@ -94,7 +94,7 @@ class LoggingServiceRegistryTest extends Specification {
         outputEventListener.toString() == '[WARN before]'
     }
 
-    def routesSlf4jToListenersWhenStarted() {
+    def consumesSlf4jWhenStarted() {
         StandardOutputListener listener = Mock()
 
         given:
@@ -128,7 +128,7 @@ class LoggingServiceRegistryTest extends Specification {
         0 * listener._
     }
 
-    def routesJavaUtilLoggingToListenersWhenStarted() {
+    def consumesFromJavaUtilLoggingWhenStarted() {
         StandardOutputListener listener = Mock()
 
         given:
@@ -190,6 +190,13 @@ class LoggingServiceRegistryTest extends Specification {
         1 * listener.onOutput(TextUtil.toPlatformLineSeparators("info\n"))
         1 * listener.onOutput(TextUtil.toPlatformLineSeparators("error\n"))
         0 * listener._
+
+        when:
+        loggingManager.stop()
+
+        then:
+        System.out == outputs.stdOutPrintStream
+        System.err == outputs.stdErrPrintStream
     }
 
     def routesStyledTextToListenersWhenStarted() {
@@ -241,7 +248,7 @@ class LoggingServiceRegistryTest extends Specification {
         outputs.stdErr == TextUtil.toPlatformLineSeparators('error\n')
     }
 
-    def routesSlf4jToListenersWhenEmbedded() {
+    def consumesSlf4jWhenEmbedded() {
         given:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def logger = LoggerFactory.getLogger("category")
@@ -288,7 +295,7 @@ class LoggingServiceRegistryTest extends Specification {
         outputs.stdErr == ''
     }
 
-    def doesNotRouteJavaUtilLoggingWhenEmbedded() {
+    def doesNotConsumeJavaUtilLoggingWhenEmbedded() {
         given:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
@@ -305,6 +312,41 @@ class LoggingServiceRegistryTest extends Specification {
         outputs.stdErr == ''
     }
 
+    def canEnableConsumingJavaUtilLoggingWhenEmbedded() {
+        StandardOutputListener listener = Mock()
+
+        given:
+        def registry = LoggingServiceRegistry.newEmbeddableLogging()
+        def logger = Logger.getLogger("category")
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.addStandardOutputListener(listener)
+        loggingManager.level = LogLevel.WARN
+        loggingManager.start()
+
+        when:
+        logger.warning("before")
+
+        then:
+        0 * listener._
+
+        when:
+        loggingManager.captureSystemSources()
+        logger.info("ignored")
+        logger.warning("warning")
+
+        then:
+        1 * listener.onOutput('warning')
+        1 * listener.onOutput(TextUtil.platformLineSeparator)
+        0 * listener._
+
+        when:
+        loggingManager.stop()
+        logger.warning("after")
+
+        then:
+        0 * listener._
+    }
+
     def doesNotConsumeFromSystemOutAndErrWhenEmbedded() {
         when:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
@@ -317,7 +359,45 @@ class LoggingServiceRegistryTest extends Specification {
         System.err == outputs.stdErrPrintStream
     }
 
-    def doesNotRouteSlf4jToListenersWhenNested() {
+    def canEnabledConsumingFromSystemOutAndErrWhenEmbedded() {
+        StandardOutputListener listener = Mock()
+
+        when:
+        def registry = LoggingServiceRegistry.newEmbeddableLogging()
+        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        loggingManager.addStandardOutputListener(listener)
+        loggingManager.addStandardErrorListener(listener)
+        loggingManager.start()
+
+        then:
+        System.out == outputs.stdOutPrintStream
+        System.err == outputs.stdErrPrintStream
+
+        when:
+        loggingManager.captureSystemSources()
+
+        then:
+        System.out != outputs.stdOutPrintStream
+        System.err != outputs.stdErrPrintStream
+
+        when:
+        System.out.println("info")
+        System.err.println("error")
+
+        then:
+        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("info\n"))
+        1 * listener.onOutput(TextUtil.toPlatformLineSeparators("error\n"))
+        0 * listener._
+
+        when:
+        loggingManager.stop()
+
+        then:
+        System.out == outputs.stdOutPrintStream
+        System.err == outputs.stdErrPrintStream
+    }
+
+    def doesNotConsumeSlf4jWhenNested() {
         given:
         def registry = LoggingServiceRegistry.newNestedLogging()
         def logger = LoggerFactory.getLogger("category")
@@ -336,7 +416,7 @@ class LoggingServiceRegistryTest extends Specification {
         0 * listener._
     }
 
-    def doesNotRouteJavaUtilLoggingWhenNested() {
+    def doesNotConsumeJavaUtilLoggingWhenNested() {
         given:
         def registry = LoggingServiceRegistry.newNestedLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)

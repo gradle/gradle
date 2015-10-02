@@ -24,14 +24,14 @@ import spock.lang.Specification
 
 import java.util.logging.Logger
 
-class JavaUtilLoggingConfigurerTest extends Specification {
+class JavaUtilLoggingSystemTest extends Specification {
     final TestOutputEventListener outputEventListener = new TestOutputEventListener()
     @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
-    private final JavaUtilLoggingConfigurer configurer = new JavaUtilLoggingConfigurer()
+    private final JavaUtilLoggingSystem configurer = new JavaUtilLoggingSystem()
 
     def routesJulToSlf4j() {
         when:
-        configurer.configure(LogLevel.DEBUG)
+        configurer.on(LogLevel.DEBUG, LogLevel.DEBUG)
         Logger.getLogger('test').info('info message')
 
         then:

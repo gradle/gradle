@@ -33,17 +33,19 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     private final StartableLoggingSystem loggingSystem;
     private final StartableLoggingSystem stdOutLoggingSystem;
     private final StartableLoggingSystem stdErrLoggingSystem;
+    private final StartableLoggingSystem javaUtilLoggingSystem;
     private final LoggingOutputInternal loggingOutput;
     private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<OutputEventListener> outputEventListeners = new LinkedHashSet<OutputEventListener>();
 
-    public DefaultLoggingManager(LoggingSystem loggingSystem, LoggingSystem stdOutLoggingSystem,
+    public DefaultLoggingManager(LoggingSystem loggingSystem, LoggingSystem javaUtilLoggingSystem, LoggingSystem stdOutLoggingSystem,
                                  LoggingSystem stdErrLoggingSystem, LoggingOutputInternal loggingOutput) {
         this.loggingOutput = loggingOutput;
         this.loggingSystem = new StartableLoggingSystem(loggingSystem, null);
         this.stdOutLoggingSystem = new StartableLoggingSystem(stdOutLoggingSystem, null);
         this.stdErrLoggingSystem = new StartableLoggingSystem(stdErrLoggingSystem, null);
+        this.javaUtilLoggingSystem = new StartableLoggingSystem(javaUtilLoggingSystem, null);
     }
 
     public DefaultLoggingManager start() {
@@ -58,6 +60,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             loggingOutput.addOutputEventListener(outputEventListener);
         }
         loggingSystem.start();
+        javaUtilLoggingSystem.start();
         stdOutLoggingSystem.start();
         stdErrLoggingSystem.start();
 
@@ -66,7 +69,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
     public DefaultLoggingManager stop() {
         try {
-            CompositeStoppable.stoppable(loggingSystem, stdOutLoggingSystem, stdErrLoggingSystem).stop();
+            CompositeStoppable.stoppable(loggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem).stop();
             for (StandardOutputListener stdoutListener : stdoutListeners) {
                 loggingOutput.removeStandardOutputListener(stdoutListener);
             }
@@ -96,9 +99,10 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     }
 
     @Override
-    public DefaultLoggingManager captureSystemOutAndErr() {
+    public DefaultLoggingManager captureSystemSources() {
         stdOutLoggingSystem.setLevel(LogLevel.QUIET);
         stdErrLoggingSystem.setLevel(LogLevel.ERROR);
+        javaUtilLoggingSystem.setLevel(LogLevel.DEBUG);
         return this;
     }
 

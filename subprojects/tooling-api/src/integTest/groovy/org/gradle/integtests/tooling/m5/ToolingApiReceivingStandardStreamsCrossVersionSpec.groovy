@@ -45,9 +45,7 @@ class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiLoggi
         stdout.toString().contains('A warning using SLF4j')
         stdout.toString().contains('A warning using JCL')
         stdout.toString().contains('A warning using Log4j')
-        if (!toolingApi.isEmbedded()) {
-            stdout.toString().contains('A warning using JUL')
-        }
+        stdout.toString().contains('A warning using JUL')
     }
 
     def "receives standard streams while the model is building"() {
@@ -71,9 +69,7 @@ class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiLoggi
         stdout.toString().contains('A warning using SLF4j')
         stdout.toString().contains('A warning using JCL')
         stdout.toString().contains('A warning using Log4j')
-        if (!toolingApi.isEmbedded()) {
-            stdout.toString().contains('A warning using JUL')
-        }
+        stdout.toString().contains('A warning using JUL')
     }
 
     @ToolingApiVersion(">=1.8")
@@ -99,9 +95,7 @@ class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiLoggi
         stdout.toString().contains('A warning using SLF4j')
         stdout.toString().contains('A warning using JCL')
         stdout.toString().contains('A warning using Log4j')
-        if (!toolingApi.isEmbedded()) {
-            stdout.toString().contains('A warning using JUL')
-        }
+        stdout.toString().contains('A warning using JUL')
     }
 
     private TestFile loggingBuildScript() {

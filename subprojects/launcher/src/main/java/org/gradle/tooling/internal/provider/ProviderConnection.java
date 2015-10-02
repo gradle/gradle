@@ -144,7 +144,7 @@ public class ProviderConnection {
         BuildActionExecuter<BuildActionParameters> executer;
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
-            loggingManager.captureSystemOutAndErr();
+            loggingManager.captureSystemSources();
             executer = embeddedExecutor;
         } else {
             LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
