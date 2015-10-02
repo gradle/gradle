@@ -72,7 +72,7 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     void reset() {
-        new ConnectorServices().reset()
+        ConnectorServices.reset()
     }
 
     public void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {

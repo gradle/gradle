@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
-import spock.lang.Ignore
 
 import java.util.logging.LogManager
 
@@ -29,7 +28,6 @@ class GlobalLoggingManipulationIntegrationTest extends AbstractIntegrationSpec {
     RedirectStdIn stdIn
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
-    @Ignore
     def "tooling api does not replace standard streams"() {
         given:
         def outInstance = System.out
