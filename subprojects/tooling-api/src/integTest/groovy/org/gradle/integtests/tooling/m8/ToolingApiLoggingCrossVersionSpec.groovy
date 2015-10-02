@@ -110,6 +110,7 @@ project.logger.debug("debug logging");
 
     private ExecutionResult runUsingCommandLine() {
         targetDist.executer(temporaryFolder)
+            .requireGradleHome()
             .withArgument("--no-daemon") //suppress daemon usage suggestions
             .run()
     }
