@@ -17,19 +17,7 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.internal.Factory;
-import org.gradle.internal.TrueTimeProvider;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.internal.event.DefaultListenerManager;
-import org.gradle.internal.event.ListenerManager;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.logging.internal.DefaultProgressLoggerFactory;
-import org.gradle.logging.internal.DefaultStyledTextOutputFactory;
-import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.logging.internal.ProgressListener;
 
 public class TestGlobalScopeServices extends GlobalScopeServices {
     public TestGlobalScopeServices() {
@@ -39,29 +27,5 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
     @Override
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager) {
         return new InMemoryCacheFactory();
-    }
-
-    public static class TestLoggingServices extends DefaultServiceRegistry {
-        final ListenerManager listenerManager = new DefaultListenerManager();
-
-        protected ProgressLoggerFactory createProgressLoggerFactory() {
-            return new DefaultProgressLoggerFactory(listenerManager.getBroadcaster(ProgressListener.class), new TrueTimeProvider());
-        }
-
-        protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
-            return new Factory<LoggingManagerInternal>() {
-                public LoggingManagerInternal create() {
-                    return new NoOpLoggingManager();
-                }
-            };
-        }
-
-        protected StyledTextOutputFactory createStyledTextOutputFactory() {
-            return new DefaultStyledTextOutputFactory(listenerManager.getBroadcaster(OutputEventListener.class), new TrueTimeProvider());
-        }
-
-        protected TestOutputEventListener createStubOutputEventListener() {
-            return new TestOutputEventListener();
-        }
     }
 }

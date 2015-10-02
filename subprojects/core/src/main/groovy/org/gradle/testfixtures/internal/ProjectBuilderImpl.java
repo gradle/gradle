@@ -35,6 +35,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
+import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -92,7 +93,7 @@ public class ProjectBuilderImpl {
             globalServices = ServiceRegistryBuilder
                     .builder()
                     .displayName("global services")
-                    .parent(new TestGlobalScopeServices.TestLoggingServices())
+                    .parent(LoggingServiceRegistry.newNestedLogging())
                     .parent(NativeServices.getInstance())
                     .provider(new TestGlobalScopeServices())
                     .build();
