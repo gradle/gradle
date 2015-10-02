@@ -318,7 +318,8 @@ Please refer to the [Groovy language changelogs](http://groovy-lang.org/changelo
 
 #### Groovy property assignment with multiple setter methods
 
-In earlier versions of Groovy, an assignment to a property that has multiple setter methods that each take a different parameter type would select the setter method in an JVM-implementation dependent way.  This is documented in [GROOVY-6084](https://issues.apache.org/jira/browse/GROOVY-6084).
+In earlier versions of Groovy, an assignment to a property that has multiple setter methods that each take a different parameter type would select the setter method in an JVM-implementation dependent way.  
+This is documented in [GROOVY-6084](https://issues.apache.org/jira/browse/GROOVY-6084).
 
 For example:
 
