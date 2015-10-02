@@ -1,4 +1,3 @@
-:core:clean
 :core:compileJava5MainJarMainJava
 :core:processJava5MainJarMainResources
 :core:createJava5MainJar
