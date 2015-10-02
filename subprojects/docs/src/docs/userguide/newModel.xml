@@ -142,7 +142,7 @@
                 The process of “realizing” a model element is effectively executing all the rules for which it is the subject, transitioning it to its final state.
                 There is a strong analogy here to Gradle's task graph and task execution model.
                 Just as tasks depend on each other and Gradle ensures that dependencies are satisfied before executing a task,
-                rules effectively depend on each other (i.e. a rule depends on all rules who's subject is one of the inputs) and Gradle ensures that all dependencies are satisfied
+                rules effectively depend on each other (i.e. a rule depends on all rules whose subject is one of the inputs) and Gradle ensures that all dependencies are satisfied
                 before executing the rule.
             </para>
             <para>
@@ -174,9 +174,9 @@
             <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed type">
                 <sourcefile file='build.gradle' snippet='managed-type'/>
             </sample>
-            <para>By defining a couple of getter/setter, you are effectively declaring a managed property. A managed property is a property for which Gradle
+            <para>By defining a getter/setter pair, you are effectively declaring a managed property. A managed property is a property for which Gradle
             will enforce semantics such as immutability when a node of the model is not the subject of a rule. Therefore, this example declares a property
-            named <emphasis>name</emphasis> on the managed type <emphasis>Person</emphasis>. This property will only be writeable when the view is mutable,
+            named <emphasis>name</emphasis> on the managed type <emphasis>Person</emphasis>. This property will only be writable when the view is mutable,
             that is to say when the <emphasis>Person</emphasis> is the subject of a <literal>Rule</literal> (see below the explanation for rules).</para>
             <para>Properties can be of any scalar type. A scalar type is either:
                 <itemizedlist>
@@ -394,7 +394,7 @@
             The only input is our person element.
             As the person is being used as an input here, it will have been realised before executing this rule.
             That is, the task container effectively <emphasis>depends on</emphasis> the person element.
-            If there are other configuration rules for the person element, potentially specified in a build script or other plugin, the will also be guaranteed to have been executed.
+            If there are other configuration rules for the person element, potentially specified in a build script or other plugin, they will also be guaranteed to have been executed.
         </para>
         <para>
             As <literal>Person</literal> is a <apilink class="org.gradle.model.Managed" /> type in this example, any attempt to modify the person parameter in this method would result in an exception being thrown.

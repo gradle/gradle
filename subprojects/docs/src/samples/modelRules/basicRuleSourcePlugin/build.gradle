@@ -76,7 +76,7 @@ class PersonRules extends RuleSource {
 // END SNIPPET plugin-mutate-rule
 
 // START SNIPPET task-create-rule
- @Mutate void createHelloTask(ModelMap<Task> tasks, Person p) {
+  @Mutate void createHelloTask(ModelMap<Task> tasks, Person p) {
     tasks.create("hello") {
       doLast {
         println "Hello $p.firstName $p.lastName!"
