@@ -42,8 +42,8 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
                                  LoggingSystem stdErrLoggingSystem, LoggingOutputInternal loggingOutput) {
         this.loggingOutput = loggingOutput;
         this.loggingSystem = new StartableLoggingSystem(loggingSystem, null);
-        this.stdOutLoggingSystem = new StartableLoggingSystem(stdOutLoggingSystem, LogLevel.QUIET);
-        this.stdErrLoggingSystem = new StartableLoggingSystem(stdErrLoggingSystem, LogLevel.ERROR);
+        this.stdOutLoggingSystem = new StartableLoggingSystem(stdOutLoggingSystem, null);
+        this.stdErrLoggingSystem = new StartableLoggingSystem(stdErrLoggingSystem, null);
     }
 
     public DefaultLoggingManager start() {
@@ -93,6 +93,13 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
     public LogLevel getLevel() {
         return loggingSystem.level;
+    }
+
+    @Override
+    public DefaultLoggingManager captureSystemOutAndErr() {
+        stdOutLoggingSystem.setLevel(LogLevel.QUIET);
+        stdErrLoggingSystem.setLevel(LogLevel.ERROR);
+        return this;
     }
 
     public LogLevel getStandardOutputCaptureLevel() {

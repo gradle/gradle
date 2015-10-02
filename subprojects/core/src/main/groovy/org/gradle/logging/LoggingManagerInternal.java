@@ -24,6 +24,8 @@ public interface LoggingManagerInternal extends LoggingManager, StandardOutputCa
 
     LoggingManagerInternal stop();
 
+    LoggingManagerInternal captureSystemOutAndErr();
+
     LoggingManagerInternal captureStandardOutput(LogLevel level);
 
     LoggingManagerInternal captureStandardError(LogLevel level);

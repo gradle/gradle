@@ -41,8 +41,8 @@ public class DefaultLoggingManagerTest {
 
     @Test
     public void defaultValues() {
-        assertEquals(LogLevel.QUIET, loggingManager.getStandardOutputCaptureLevel());
-        assertEquals(LogLevel.ERROR, loggingManager.getStandardErrorCaptureLevel());
+        assertNull(loggingManager.getStandardOutputCaptureLevel());
+        assertNull(loggingManager.getStandardErrorCaptureLevel());
         assertNull(loggingManager.getLevel());
     }
 

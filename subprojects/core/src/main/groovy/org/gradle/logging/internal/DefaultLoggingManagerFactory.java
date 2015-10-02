@@ -24,15 +24,30 @@ public class DefaultLoggingManagerFactory implements Factory<LoggingManagerInter
     private final LoggingSystem stdOutLoggingSystem;
     private final LoggingSystem stdErrLoggingSystem;
     private final LoggingOutputInternal loggingOutput;
+    private final DefaultLoggingManager rootManager;
+    private boolean created;
 
     public DefaultLoggingManagerFactory(LoggingConfigurer loggingConfigurer, LoggingOutputInternal loggingOutput, LoggingSystem stdOutLoggingSystem, LoggingSystem stdErrLoggingSystem) {
         this.loggingOutput = loggingOutput;
         this.stdOutLoggingSystem = stdOutLoggingSystem;
         this.stdErrLoggingSystem = stdErrLoggingSystem;
         slfLoggingSystem = new LoggingSystemAdapter(loggingConfigurer);
+        rootManager = newManager();
+    }
+
+    public LoggingManagerInternal getRoot() {
+        return rootManager;
     }
 
     public LoggingManagerInternal create() {
+        if (!created) {
+            created = true;
+            return getRoot();
+        }
+        return newManager();
+    }
+
+    private DefaultLoggingManager newManager() {
         return new DefaultLoggingManager(slfLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingOutput);
     }
 }
