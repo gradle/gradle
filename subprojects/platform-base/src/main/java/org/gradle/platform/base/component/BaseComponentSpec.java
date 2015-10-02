@@ -121,7 +121,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         modelNode = info.modelNode;
         modelNode.addLink(
             ModelCreators.of(
-                modelNode.getPath().child("binaries"), ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                modelNode.getPath().child("binaries"), DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, new BiAction<MutableModelNode, List<ModelView<?>>>() {
                     @Override
                     public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                         NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
