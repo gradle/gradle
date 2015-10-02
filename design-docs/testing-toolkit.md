@@ -381,6 +381,19 @@ A functional test using Spock could look as such:
 * Execution of tests in parallel for multiple Gradle versions
 * JUnit Runner implementation to simplify definition of Gradle distributions
 
+## Story: Test kit does not require any of the Gradle runtime
+
+This story improves usability of the test kit by not imposing any dependencies beyond the `gradle-test-kit` and `gradle-tooling-api` jars (including no transitive dependencies).
+
+### Implementation
+
+- Push responsibility for finding a Gradle distribution based on a class (i.e. what GradleDistributionLocator) does into the tooling API
+- Remove the dependency on `gradle-core` in the test kit project
+
+### Test Coverage
+
+- User tests cannot access classes from `gradle-core` (or any other part of the Gradle runtime) in tests where `gradleTestKit()` was used
+- Configuration containing just `gradleTestKit()` contains no other files than `gradle-test-kit` and `gradle-tooling-api`
 
 # Milestone 3
 
