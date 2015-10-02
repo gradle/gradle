@@ -109,8 +109,8 @@ task sleep << {
             //in theory the client could have received result and complete
             // but the daemon has not yet finished processing hence polling
             def daemonLog = readLog(executer.daemonBaseDir)
-            daemonLog.findAll(DaemonMessages.FINISHED_EXECUTING_COMMAND).size() == 1
-            daemonLog.findAll(DaemonMessages.FINISHED_BUILD).size() == 1
+            assert daemonLog.findAll(DaemonMessages.FINISHED_EXECUTING_COMMAND).size() == 1
+            assert daemonLog.findAll(DaemonMessages.FINISHED_BUILD).size() == 1
         }
 
         when: "another build requested with the same daemon with --info"
