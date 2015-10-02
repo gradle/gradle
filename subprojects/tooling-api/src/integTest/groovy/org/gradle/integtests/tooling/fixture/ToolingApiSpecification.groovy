@@ -72,7 +72,8 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     void reset() {
-        ConnectorServices.reset()
+        // This method wasn't static in older tooling API versions
+        new ConnectorServices().reset()
     }
 
     public void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
