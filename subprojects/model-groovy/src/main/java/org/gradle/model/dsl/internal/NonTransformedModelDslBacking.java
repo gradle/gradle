@@ -66,7 +66,8 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
 
     private <T> void registerCreator(Class<T> type, Closure<?> closure) {
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("model." + modelPath);
-        NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getType());
+        ModelReference<NodeInitializerRegistry> nodeInitializerRegistryRef = ModelReference.of(NodeInitializerRegistry.class);
+        NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(nodeInitializerRegistryRef.getPath(), nodeInitializerRegistryRef.getType());
         NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(ModelType.of(type));
         modelRegistry.create(
             ModelCreators.of(modelPath, nodeInitializer)

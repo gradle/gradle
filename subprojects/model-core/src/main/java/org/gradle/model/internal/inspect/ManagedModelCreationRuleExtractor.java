@@ -54,14 +54,13 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
 
     @Override
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
-        String modelName = determineModelName(ruleDefinition);
-
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         if (references.isEmpty()) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule has to take a managed model element instance as the first argument");
         }
 
         ModelType<?> managedType = references.get(0).getType();
+        String modelName = determineModelName(ruleDefinition, managedType);
         return new ExtractedModelCreator(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
     }
 

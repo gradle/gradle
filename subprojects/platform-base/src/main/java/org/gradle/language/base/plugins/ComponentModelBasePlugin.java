@@ -164,7 +164,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        InstanceFactoryRegistry instanceFactoryRegistry(ServiceRegistry serviceRegistry, @Path("binarySpecFactory") BinarySpecFactory binarySpecFactory, @Path("componentSpecFactory") ComponentSpecFactory componentSpecFactory) {
+        InstanceFactoryRegistry instanceFactoryRegistry(ServiceRegistry serviceRegistry, BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
             InstanceFactoryRegistry instanceFactoryRegistry = new DefaultInstanceFactoryRegistry();
             for (ModelType<? extends BinarySpec> type : binarySpecFactory.getSupportedTypes()) {
                 instanceFactoryRegistry.register(type, ModelReference.of(BinarySpecFactory.class));

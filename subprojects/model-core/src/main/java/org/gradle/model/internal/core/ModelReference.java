@@ -19,7 +19,9 @@ package org.gradle.model.internal.core;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import net.jcip.annotations.ThreadSafe;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Nullable;
+import org.gradle.internal.service.Service;
 import org.gradle.model.internal.type.ModelType;
 
 /**
@@ -45,11 +47,23 @@ public class ModelReference<T> {
     private final String description;
 
     private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, @Nullable ModelNode.State state, @Nullable String description) {
-        this.path = path;
+        this.path = validatePath(path, type);
         this.type = Preconditions.checkNotNull(type, "type");
         this.scope = scope;
         this.description = description;
         this.state = state != null ? state : ModelNode.State.GraphClosed;
+    }
+
+    private static ModelPath validatePath(@Nullable ModelPath path, ModelType<?> type) {
+        ModelPath servicePath = findServicePath(type);
+        if (servicePath != null) {
+            if (path == null) {
+                return servicePath;
+            } else if (!path.equals(servicePath)) {
+                throw invalidServicePath(type, servicePath, path);
+            }
+        }
+        return path;
     }
 
     public static ModelReference<Object> any() {
@@ -148,6 +162,13 @@ public class ModelReference<T> {
     }
 
     public ModelReference<T> withPath(ModelPath path) {
+        ModelPath servicePath = findServicePath(type);
+        if (servicePath != null) {
+            if (!servicePath.equals(path)) {
+                throw invalidServicePath(type, servicePath, path);
+            }
+            return this;
+        }
         return new ModelReference<T>(path, type, scope, state, description);
     }
 
@@ -183,5 +204,22 @@ public class ModelReference<T> {
     @Override
     public String toString() {
         return "ModelReference{path=" + path + ", scope=" + scope + ", type=" + type + ", state=" + state + '}';
+    }
+
+    @Nullable
+    public static ModelPath findServicePath(ModelType<?> type) {
+        Service service = type.getConcreteClass().getAnnotation(Service.class);
+        if (service == null) {
+            return null;
+        }
+        String servicePath = service.value();
+        if (servicePath == null || servicePath.equals(Service.UNSPECIFIED)) {
+            servicePath = StringUtils.uncapitalize(type.getSimpleName());
+        }
+        return ModelPath.path(servicePath);
+    }
+
+    private static IllegalArgumentException invalidServicePath(ModelType<?> type, ModelPath servicePath, @Nullable ModelPath path) {
+        return new IllegalArgumentException(String.format("Service '%s' must be referenced via path '%s' instead of '%s'", type, servicePath, path));
     }
 }

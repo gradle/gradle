@@ -28,8 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
-    public static final ModelReference<NodeInitializerRegistry> DEFAULT_REFERENCE = ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class);
-
     private final List<NodeInitializerExtractionStrategy> strategies;
     private final List<NodeInitializerExtractionStrategy> variableStrategies;
     private final ModelSchemaStore schemaStore;

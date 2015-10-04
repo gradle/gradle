@@ -32,7 +32,7 @@ class NonTransformedModelDslBackingTest extends Specification {
     def modelDsl
 
     def setup() {
-        modelRegistry.create(ModelCreators.bridgedInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
+        modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry.class), nodeInitializerRegistry).build())
         modelDsl = new NonTransformedModelDslBacking(getModelRegistry())
     }
 

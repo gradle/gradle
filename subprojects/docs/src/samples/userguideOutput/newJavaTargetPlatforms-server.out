@@ -1,3 +1,4 @@
+:core:clean
 :server:clean UP-TO-DATE
 :core:compileJava5MainJarMainJava
 :core:processJava5MainJarMainResources

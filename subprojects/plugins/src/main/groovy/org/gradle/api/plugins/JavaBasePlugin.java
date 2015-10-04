@@ -40,6 +40,7 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.Service;
 import org.gradle.jvm.Classpath;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
@@ -97,7 +98,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureCompileDefaults(project, javaConvention);
         BridgedBinaries binaries = configureSourceSetDefaults(javaConvention);
 
-        modelRegistry.createOrReplace(ModelCreators.bridgedInstance(ModelReference.of("bridgedJavaBinaries", BridgedBinaries.class), binaries)
+        modelRegistry.createOrReplace(ModelCreators.bridgedInstance(ModelReference.of(BridgedBinaries.class), binaries)
                 .descriptor("JavaBasePlugin.apply()")
                 .ephemeral(true)
                 .hidden(true)
@@ -383,6 +384,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         test.workingDir(project.getProjectDir());
     }
 
+    @Service("bridgedJavaBinaries")
     static class BridgedBinaries {
         final List<ClassDirectoryBinarySpecInternal> binaries;
 

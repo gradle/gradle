@@ -21,6 +21,7 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.rules.DefaultRuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
+import org.gradle.internal.service.Service;
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.platform.base.BinarySpec;
@@ -30,6 +31,7 @@ import java.util.Map;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
+@Service
 public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec> {
     private final CollectingNamedBinarySpecFactoryRegistry collector = new CollectingNamedBinarySpecFactoryRegistry();
     private final RuleAwareNamedDomainObjectFactoryRegistry<BinarySpec> domainObjectFactories = new DefaultRuleAwareNamedDomainObjectFactoryRegistry<BinarySpec>(collector);

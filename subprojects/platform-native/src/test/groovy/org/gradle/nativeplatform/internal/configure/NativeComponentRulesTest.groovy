@@ -20,7 +20,9 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.model.internal.core.DefaultInstanceFactoryRegistry
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
+import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy
@@ -51,14 +53,14 @@ class NativeComponentRulesTest extends Specification {
     def component
 
     def setup() {
-        modelRegistry.createInstance("__binarySpecFactory", new BinarySpecFactory("test"))
+        modelRegistry.createInstance("binarySpecFactory", new BinarySpecFactory("test"))
         def instanceFactoryRegistry = new DefaultInstanceFactoryRegistry()
         [StaticLibraryBinarySpec, SharedLibraryBinarySpec, NativeExecutableBinarySpec].each { type ->
             instanceFactoryRegistry.register(ModelType.of(type), ModelReference.of(BinarySpecFactory))
         }
         def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)
         nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry))
-        modelRegistry.createInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.path.toString(), nodeInitializerRegistry)
+        modelRegistry.create(ModelCreators.unmanagedInstance(ModelReference.of(NodeInitializerRegistry), { nodeInitializerRegistry }).build())
         component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, modelRegistry, id, Stub(ProjectSourceSet), instantiator)
     }
 
