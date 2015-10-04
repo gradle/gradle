@@ -87,7 +87,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         private final String languageName;
 
         protected RegisterTypeRule(ModelType<? extends LanguageSourceSet> type, ModelType<? extends BaseLanguageSourceSet> implementation, String languageName, ModelRuleDescriptor descriptor) {
-            super(ModelReference.of(LanguageRegistry.class), descriptor, ModelReference.of("serviceRegistry", ServiceRegistry.class));
+            super(ModelReference.of(LanguageRegistry.class), descriptor, ModelReference.of(ServiceRegistry.class));
             this.type = type;
             this.implementation = implementation;
             this.languageName = languageName;

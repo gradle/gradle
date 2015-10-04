@@ -20,11 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.service.Service;
 
 /**
  * Allows adding 'namespaced' DSL extensions to a target object.
  */
 @HasInternalProtocol
+@Service("extensions")
 public interface ExtensionContainer {
 
     /**

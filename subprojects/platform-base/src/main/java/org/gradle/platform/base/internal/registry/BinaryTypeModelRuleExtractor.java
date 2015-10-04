@@ -72,7 +72,7 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
         private final ModelType<? extends BaseBinarySpec> implementationType;
 
         public RegistrationAction(ModelType<? extends BinarySpec> publicType, ModelType<? extends BaseBinarySpec> implementationType, ModelRuleDescriptor descriptor) {
-            super(ModelReference.of(BinarySpecFactoryRegistry.class), descriptor, ModelReference.of("serviceRegistry", ServiceRegistry.class), ModelReference.of("taskFactory", ITaskFactory.class));
+            super(ModelReference.of(BinarySpecFactoryRegistry.class), descriptor, ModelReference.of(ServiceRegistry.class), ModelReference.of(ITaskFactory.class));
             this.publicType = publicType;
             this.implementationType = implementationType;
         }

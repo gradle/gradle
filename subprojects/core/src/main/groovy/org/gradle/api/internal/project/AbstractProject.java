@@ -185,8 +185,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
-        ModelPath taskFactoryPath = ModelPath.path("taskFactory");
-        ModelCreator taskFactoryCreator = ModelCreators.bridgedInstance(ModelReference.of(taskFactoryPath, ITaskFactory.class), services.get(ITaskFactory.class))
+        ModelCreator taskFactoryCreator = ModelCreators.bridgedInstance(ModelReference.of(ITaskFactory.class), services.get(ITaskFactory.class))
             .descriptor("Project.<init>.taskFactory")
             .ephemeral(true)
             .hidden(true)
@@ -195,7 +194,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         modelRegistry.createOrReplace(taskFactoryCreator);
 
         modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
+            ModelCreators.bridgedInstance(ModelReference.of(ServiceRegistry.class), services)
                 .descriptor("Project.<init>.serviceRegistry()")
                 .ephemeral(true)
                 .hidden(true)
@@ -205,14 +204,14 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         ModelSchemaStore schemaStore = services.get(ModelSchemaStore.class);
         NodeInitializerRegistry nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore);
         modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry)
+            ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry.class), nodeInitializerRegistry)
                 .descriptor("Project.<init>.nodeInitializerRegistry()")
                 .ephemeral(true)
                 .hidden(true)
                 .build()
         );
         // Make sure this is discoverable when `DefineProjections` actions are looking for it by type
-        modelRegistry.atStateOrLater(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), ModelNode.State.ProjectionsDefined);
+        modelRegistry.atStateOrLater(ModelReference.of(NodeInitializerRegistry.class).getPath(), ModelNode.State.ProjectionsDefined);
 
         modelRegistry.createOrReplace(
             ModelCreators.unmanagedInstance(ModelReference.of("buildDir", File.class), new Factory<File>() {
@@ -227,7 +226,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         );
 
         modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
+            ModelCreators.bridgedInstance(ModelReference.of(ProjectIdentifier.class), this)
                 .descriptor("Project.<init>.projectIdentifier()")
                 .ephemeral(true)
                 .hidden(true)
@@ -235,7 +234,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         );
 
         modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of("extensions", ExtensionContainer.class), getExtensions())
+            ModelCreators.bridgedInstance(ModelReference.of(ExtensionContainer.class), getExtensions())
                 .descriptor("Project.<init>.extensions()")
                 .ephemeral(true)
                 .hidden(true)

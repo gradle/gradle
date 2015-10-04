@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base;
 
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Incubating;
-import org.gradle.internal.service.Service;
+package org.gradle.internal.service;
+
+import java.lang.annotation.*;
 
 /**
- * A container of {@link org.gradle.language.base.LanguageSourceSet}s. Added to a project by the {@link org.gradle.language.base.plugins.LanguageBasePlugin}.
+ * A service is a singleton instance that is always available at a specific path in the software model registry.
  */
-@Incubating
-@Service("sources")
-public interface ProjectSourceSet extends DomainObjectSet<LanguageSourceSet> {}
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Service {
+    String UNSPECIFIED = "";
+
+    /**
+     * The path to access the service at.
+     */
+    String value() default UNSPECIFIED;
+}

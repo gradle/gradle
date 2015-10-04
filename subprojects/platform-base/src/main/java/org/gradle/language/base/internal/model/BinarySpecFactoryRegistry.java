@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
+import org.gradle.internal.service.Service;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.api.internal.rules.DefaultRuleAwareNamedDomainObjectFactoryRegistry;
@@ -29,6 +30,7 @@ import java.util.Map;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
+@Service
 public class BinarySpecFactoryRegistry implements RuleAwareNamedDomainObjectFactoryRegistry<BinarySpec> {
 
     private final CollectingNamedBinarySpecFactoryRegistry collector = new CollectingNamedBinarySpecFactoryRegistry();

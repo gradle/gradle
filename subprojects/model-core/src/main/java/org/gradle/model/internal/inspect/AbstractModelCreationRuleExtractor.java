@@ -20,13 +20,27 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.Model;
 import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.type.ModelType;
 
 @ThreadSafe
 public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Model> {
 
-    protected String determineModelName(MethodRuleDefinition<?, ?> ruleDefinition) {
+    protected String determineModelName(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<?> type) {
         String annotationValue = ruleDefinition.getAnnotation(Model.class).value();
-        String modelName = (annotationValue == null || annotationValue.isEmpty()) ? ruleDefinition.getMethodName() : annotationValue;
+        ModelPath servicePath = ModelReference.findServicePath(type);
+        String modelName;
+        boolean hasAnnotationValue = annotationValue == null || annotationValue.isEmpty();
+        if (servicePath != null) {
+            if (!hasAnnotationValue) {
+                if (!servicePath.toString().equals(annotationValue)) {
+                    throw new InvalidModelRuleDeclarationException(String.format("Service '%s' must be registered under path '%s' instead of '%s'", type, servicePath, annotationValue));
+                }
+            }
+            modelName = servicePath.getName();
+        } else {
+            modelName = hasAnnotationValue ? ruleDefinition.getMethodName() : annotationValue;
+        }
 
         try {
             ModelPath.validatePath(modelName);

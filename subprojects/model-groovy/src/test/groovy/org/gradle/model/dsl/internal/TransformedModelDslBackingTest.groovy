@@ -25,6 +25,7 @@ import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.DefaultModelRegistry
@@ -41,7 +42,7 @@ class TransformedModelDslBackingTest extends Specification {
     def modelDsl
 
     def setup() {
-        modelRegistry.create(ModelCreators.bridgedInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
+        modelRegistry.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry.class), nodeInitializerRegistry).build())
         modelDsl = new TransformedModelDslBacking(getModelRegistry(), referenceExtractor, locationExtractor)
     }
 

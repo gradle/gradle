@@ -28,8 +28,6 @@ import java.util.List;
 import static com.google.common.collect.Lists.newArrayList;
 
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
-    public static final ModelReference<NodeInitializerRegistry> DEFAULT_REFERENCE = ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class);
-
     private final List<NodeInitializerExtractionStrategy> strategies;
     private final ModelSchemaStore schemaStore;
 

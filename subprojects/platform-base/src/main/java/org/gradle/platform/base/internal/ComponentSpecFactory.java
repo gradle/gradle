@@ -16,9 +16,11 @@
 
 package org.gradle.platform.base.internal;
 
+import org.gradle.internal.service.Service;
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.platform.base.ComponentSpec;
 
+@Service
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec, String> {
     public ComponentSpecFactory(String displayName) {
         super(displayName);

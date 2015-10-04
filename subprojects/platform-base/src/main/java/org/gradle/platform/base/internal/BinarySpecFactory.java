@@ -16,9 +16,11 @@
 
 package org.gradle.platform.base.internal;
 
+import org.gradle.internal.service.Service;
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.platform.base.BinarySpec;
 
+@Service
 public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec, String> {
     public BinarySpecFactory(String displayName) {
         super(displayName);

@@ -366,8 +366,8 @@ class ModelRuleExtractorTest extends Specification {
 
     def "type of the first argument of void returning model definition has to be @Managed annotated"() {
         def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)
-        registry.create(ModelCreators.bridgedInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).descriptor("tester").build())
-        registry.atStateOrLater(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.path, ModelNode.State.ProjectionsDefined)
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry.class), nodeInitializerRegistry).descriptor("tester").build())
+        registry.atStateOrLater(ModelReference.of(NodeInitializerRegistry.class).path, ModelNode.State.ProjectionsDefined)
 
         when:
         registerRules(RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged)

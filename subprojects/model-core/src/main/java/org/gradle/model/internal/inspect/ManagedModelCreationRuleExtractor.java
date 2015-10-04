@@ -54,14 +54,13 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
 
     @Override
     public <R, S> ExtractedModelRule registration(MethodRuleDefinition<R, S> ruleDefinition) {
-        String modelName = determineModelName(ruleDefinition);
-
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         if (references.isEmpty()) {
             throw new InvalidModelRuleDeclarationException(ruleDefinition.getDescriptor(), "a void returning model element creation rule has to take a managed model element instance as the first argument");
         }
 
         ModelType<?> managedType = references.get(0).getType();
+        String modelName = determineModelName(ruleDefinition, managedType);
         return new ExtractedModelCreator(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
     }
 
@@ -79,7 +78,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         final ModelReference<T> reference = ModelReference.of(modelPath, managedType);
         return ModelCreators.of(modelPath)
             .descriptor(descriptor)
-            .action(ModelActionRole.DefineProjections, DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+            .action(ModelActionRole.DefineProjections, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                     NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
@@ -89,7 +88,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
                     }
                 }
             })
-            .action(ModelActionRole.Create, DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, new BiAction<MutableModelNode, List<ModelView<?>>>() {
+            .action(ModelActionRole.Create, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override
                 public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
                     NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();

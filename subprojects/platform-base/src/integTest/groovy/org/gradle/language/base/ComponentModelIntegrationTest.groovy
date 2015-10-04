@@ -922,4 +922,44 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         expect:
         succeeds "components"
     }
+
+    def "android problem with 2.8-rc1 version 2"() {
+        buildFile << """
+            @Managed
+            public interface MyModel {
+            }
+
+            // Define some binary and component types.
+            interface SampleBinarySpec extends BinarySpec {}
+            class DefaultSampleBinary extends BaseBinarySpec implements SampleBinarySpec {}
+
+            interface SampleComponent extends ComponentSpec{}
+            class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
+
+            class MyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    project.getPlugins().apply(ComponentModelBasePlugin.class);
+                    project.getPlugins().apply(JavaBasePlugin.class);
+                }
+
+                static class Rules extends RuleSource {
+                    @Model("android")
+                    public void createManagedModel(MyModel value) {
+                        println "createManagedModel"
+                    }
+
+                    @ComponentType
+                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {
+                        println "registerComponent"
+                        builder.defaultImplementation(DefaultSampleComponent)
+                    }
+                }
+
+            }
+
+            apply plugin: MyPlugin
+        """
+        expect:
+        succeeds "components"
+    }
 }
