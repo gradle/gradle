@@ -281,23 +281,20 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     def "adding a property in incremental build goes in to manifest"() {
         given:
         def jar = file('build/test.jar')
-        def jarTaskTemplate = { extraArgs ->
-            """
-            task jar(type: Jar) {
-                from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.jar'
-                $extraArgs
-            }
-        """
-        }
+
         createDir('test') {
             dir1 {
                 file 'file1.txt'
             }
         }
         and:
-        buildFile.text = jarTaskTemplate("")
+        buildFile << """
+            task jar(type: Jar) {
+                from 'test'
+                destinationDir = buildDir
+                archiveName = 'test.jar'
+            }
+        """
 
         when:
         run 'jar'
@@ -307,7 +304,9 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
 
 
         when:
-        buildFile.text = jarTaskTemplate("manifest { attributes(attr: 'Hello') }")
+        buildFile << """
+            jar.manifest.attributes(attr: 'Hello')
+        """
         run 'jar'
 
         then:
@@ -317,23 +316,21 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     def "modifying a property in incremental build goes in to manifest"() {
         given:
         def jar = file('build/test.jar')
-        def jarTaskTemplate = { extraArgs ->
-            """
-            task jar(type: Jar) {
-                from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.jar'
-                $extraArgs
-            }
-        """
-        }
+
         createDir('test') {
             dir1 {
                 file 'file1.txt'
             }
         }
         and:
-        buildFile.text = jarTaskTemplate("manifest { attributes(attr: 'Hello') }")
+        buildFile << """
+            task jar(type: Jar) {
+                from 'test'
+                destinationDir = buildDir
+                archiveName = 'test.jar'
+                manifest { attributes(attr: 'Hello') }
+            }
+        """
 
         when:
         run 'jar'
@@ -343,7 +340,9 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
 
 
         when:
-        buildFile.text = jarTaskTemplate("manifest { attributes(attr: 'Hi') }")
+        buildFile << """
+            jar.manifest.attributes(attr: 'Hi')
+        """
         run 'jar'
 
         then:
@@ -353,23 +352,20 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     def "removing a property in incremental build goes in to manifest"() {
         given:
         def jar = file('build/test.jar')
-        def jarTaskTemplate = { extraArgs ->
-            """
-            task jar(type: Jar) {
-                from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.jar'
-                $extraArgs
-            }
-        """
-        }
         createDir('test') {
             dir1 {
                 file 'file1.txt'
             }
         }
         and:
-        buildFile.text = jarTaskTemplate("manifest { attributes(attr: 'Hello') }")
+        buildFile << """
+            task jar(type: Jar) {
+                from 'test'
+                destinationDir = buildDir
+                archiveName = 'test.jar'
+                manifest { attributes(attr: 'Hello') }
+            }
+        """
 
         when:
         run 'jar'
@@ -379,7 +375,9 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
 
 
         when:
-        buildFile.text = jarTaskTemplate("")
+        buildFile << """
+            jar.manifest.attributes.clear()
+        """
         run 'jar'
 
         then:
