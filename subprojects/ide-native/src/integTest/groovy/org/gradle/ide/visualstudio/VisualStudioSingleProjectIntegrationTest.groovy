@@ -597,9 +597,11 @@ model {
     components {
         main(NativeExecutableSpec)
     }
-    binaries.all {
-        rcCompiler.define "TEST"
-        rcCompiler.define "foo", "bar"
+    binaries {
+        all {
+            rcCompiler.define "TEST"
+            rcCompiler.define "foo", "bar"
+        }
     }
 }
 """

@@ -51,13 +51,9 @@ model {
 }
 
 // START SNIPPET buildable
-model {
-    tasks {
-        buildAllExecutables(Task) {
-            dependsOn $('binaries').withType(NativeExecutableBinary).matching {
-                it.buildable
-            }
-        }
+task buildAllExecutables {
+    dependsOn binaries.withType(NativeExecutableBinary).matching {
+        it.buildable
     }
 }
 // END SNIPPET buildable

@@ -487,7 +487,9 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         given:
         buildFile << """
             model {
-                binaries.all { ${compilerTool}.args '/Zi'; linker.args '/DEBUG'; }
+                binaries {
+                    all { ${compilerTool}.args '/Zi'; linker.args '/DEBUG'; }
+                }
             }
         """
         run "mainExecutable"
