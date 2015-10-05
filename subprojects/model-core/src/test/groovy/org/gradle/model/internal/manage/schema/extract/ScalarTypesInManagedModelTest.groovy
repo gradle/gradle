@@ -15,6 +15,8 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
+
+import groovy.transform.NotYetImplemented
 import org.gradle.api.artifacts.Configuration
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
@@ -70,14 +72,45 @@ class ScalarTypesInManagedModelTest extends Specification {
             File]
     }
 
+    @NotYetImplemented
+    @Unroll
+    def "can have a #type as an @Unmanaged property"() {
+        when:
+        def clazz = classloader.parseClass """
+            import org.gradle.api.artifacts.Configuration.State
+            import org.gradle.model.Managed
+            import org.gradle.model.Unmanaged
+
+            @Managed
+            interface ManagedType {
+                @Unmanaged
+                $type getUnmanagedReadWriteProperty()
+
+                void setUnmanagedReadWriteProperty($type type)
+            }
+
+        """
+
+        then:
+        realize(clazz)
+
+        where:
+        type << ['List<Date>', 'Set<Date>']
+
+    }
+
     private void failWhenRealized(Class type, String expected) {
         try {
-            r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(store.getSchema(type))).descriptor(r.desc("bar")).build())
-            r.realize("bar", type)
+            realize(type)
             throw new AssertionError("node realisation of type ${type.name} should have failed with a cause of:\n$expected\n")
         }
         catch (ModelRuleExecutionException e) {
             assert e.cause.message =~ expected
         }
+    }
+
+    private void realize(Class type) {
+        r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(store.getSchema(type))).descriptor(r.desc("bar")).build())
+        r.realize("bar", type)
     }
 }
