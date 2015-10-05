@@ -45,22 +45,30 @@ model {
 
 // Apply arguments for debug binaries (these options are not yet set automatically)
 // START SNIPPET build-type-config
-binaries.all {
-    if (toolChain in Gcc && buildType == buildTypes.debug) {
-        cppCompiler.args "-g"
-    }
-    if (toolChain in VisualCpp && buildType == buildTypes.debug) {
-        cppCompiler.args '/Zi'
-        cppCompiler.define 'DEBUG'
-        linker.args '/DEBUG'
+model {
+    binaries {
+        all {
+            if (toolChain in Gcc && buildType == buildTypes.debug) {
+                cppCompiler.args "-g"
+            }
+            if (toolChain in VisualCpp && buildType == buildTypes.debug) {
+                cppCompiler.args '/Zi'
+                cppCompiler.define 'DEBUG'
+                linker.args '/DEBUG'
+            }
+        }
     }
 }
 // END SNIPPET build-type-config
 
 // Apply custom arguments for different target platforms
-binaries.all {
-    if (toolChain in Gcc && targetPlatform == platforms.x86) {
-        cppCompiler.args '-O3'
+model {
+    binaries {
+        all {
+            if (toolChain in Gcc && targetPlatform == platforms.x86) {
+                cppCompiler.args '-O3'
+            }
+        }
     }
 }
 
