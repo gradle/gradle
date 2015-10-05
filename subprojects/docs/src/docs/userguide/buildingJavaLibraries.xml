@@ -306,7 +306,7 @@
     <section>
         <title>Custom variant resolution</title>
         <para>The Java plugin, in addition to the target platform resolution, supports resolution of custom variants. Custom variants
-            can be defined on custom binary types, as long as they extends <apilink class="org.gradle.jvm.JarBinarySpec"/>. Users interested
+            can be defined on custom binary types, as long as they extend <apilink class="org.gradle.jvm.JarBinarySpec"/>. Users interested
             in testing this incubating feature can check out the documentation of the <apilink class="org.gradle.platform.base.Variant"/>
             annotation.</para>
     </section>
