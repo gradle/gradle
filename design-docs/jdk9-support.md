@@ -72,38 +72,62 @@ Therefore, it is acceptable that the API jar task depends on the implementation 
 - Changes to the specification of the public APIs should trigger regeneration of the API jar
 - If the specification of the public APIs do not change, API jar is not rebuilt
 
-## Story: Model the API jar as a buildable element produced by the library
+## Story: Extract a buildable element to represent the compiled classes of the library variant
 
-Decouple the generation of the API jar from the generation of the implementation jar.
+The next 3 stories form a larger effort to decouple the generation of the API jar from the generation of the implementation jar.
 A new binary spec type should likely be introduced, supporting only classes found in a directory.
 Replace the configuration of compile tasks from `JarBinarySpec` to the new binary type.
 Compose `JarBinarySpec` with that new specification.
 
-TBD: More clarification needed about how to properly separate the two.
+The first step involves the creation of a buildable element to represent the compiled classes of a variant.
 
-- Extract a buildable element to represent the compiled classes of the library variant:
-    - Add a `JvmClassesSpec` buildable element type.
-    - Add `classes` property to `JarBinarySpec` that points to an instance of `JvmClassesSpec`.
-    - Remove `resourcesDir` from `JarBinarySpec`. Generate resources into the classes dir.
-    - With `JvmClassesSpec`:
-        - Move `classesDir` from `JarBinarySpec`.
-        - Add `inputs` property, a set of `LanguageSourceSet`. Defaults to library variant's input source sets.
-        - Build task for this element should compile input sources to classes and process input resources.
-        - Replace the Play plugin's `JvmClasses` with this.
-    - Components report should show details of the `classes` element for a library variant.
-- Extract a buildable element to represent the implementation Jar of the library variant:
-    - Add a `JarSpec` buildable element type.
-    - Add `jar` property to `JarBinarySpec` that points to an instance of `JarSpec`.
-    - With `JarSpec`:
-        - Move `jarFile` from `JarBinarySpec`.
-        - Add `inputs` property, a set of `JvmClassesSpec`. Defaults to the `classes` of the library variant.
-        - Build task for this element should build the runtime Jar from input classes/resources.
-    - Components report should show details of the `jar` element for a library variant.
-- Add a buildable element to represent the API of the library variant:
-    - Add `api` property that points to an instance of `JarSpec`.
-    - Inputs should be the `classes` of the library variant.
-    - Build task for this element should build the API Jar.
-    - Components report should show details of the `api` element for a library variant.
+### Implementation
+
+- Add a `JvmClassesSpec` buildable element type.
+- Add `classes` property to `JarBinarySpec` that points to an instance of `JvmClassesSpec`.
+- Remove `resourcesDir` from `JarBinarySpec`. Generate resources into the classes dir.
+- With `JvmClassesSpec`:
+    - Move `classesDir` from `JarBinarySpec`.
+    - Add `inputs` property, a set of `LanguageSourceSet`. Defaults to library variant's input source sets.
+    - Build task for this element should compile input sources to classes and process input resources.
+    - Replace the Play plugin's `JvmClasses` with this.
+
+### Test cases
+
+- Can compile the classes of a component without having to build the jar
+- Building the jar should depend on the classes
+- Components report should show details of the `classes` element for a library variant
+
+## Story: Extract a buildable element to represent the implementation Jar of the library variant
+
+The second step in order to separate API jars from implementation jars involves the creation of a separate
+buildable element to represent the implementation Jar of a variant.
+
+### Implementation
+
+- Add a `JarSpec` buildable element type.
+- Add `jar` property to `JarBinarySpec` that points to an instance of `JarSpec`.
+- With `JarSpec`:
+    - Move `jarFile` from `JarBinarySpec`.
+    - Add `inputs` property, a set of `JvmClassesSpec`. Defaults to the `classes` of the library variant.
+    - Build task for this element should build the runtime Jar from input classes/resources.
+
+### Test cases
+
+- Components report should show details of the `jar` element for a library variant.
+
+## Story: Add a buildable element to represent the API of the library variant
+
+The last step of separating API from implementation involves the creation of a buildable element to represent
+the API of a library. Once this story is implemented it must be possible to reuse the same directory of classes
+for building both the API and the implementation jars of a variant.
+
+### Implementation
+
+- Add `api` property that points to an instance of `JarSpec`.
+- Inputs should be the `classes` of the library variant.
+- Build task for this element should build the API Jar.
+- Components report should show details of the `api` element for a library variant.
 - Rename `JarBinarySpec` to `JvmLibraryVariantSpec`.
 
 ### Test cases
