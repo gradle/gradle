@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.util.TextUtil
 
 import java.util.concurrent.TimeUnit
 
@@ -128,17 +127,24 @@ ${result.error}
     private void waitForBuild() {
         def lastOutput = buildOutputSoFar()
         def lastActivity = System.currentTimeMillis()
+        boolean endOfBuildReached = false
 
         while (gradle.isRunning() && System.currentTimeMillis() - lastActivity < (buildTimeout * 1000)) {
             sleep 100
             def lastLength = lastOutput.size()
             lastOutput = buildOutputSoFar()
 
-            if (lastOutput.contains(TextUtil.toPlatformLineSeparators("Waiting for changes to input files of tasks..."))) {
+            if (lastOutput.contains("Waiting for changes to input files of tasks...")) {
+                endOfBuildReached = true
                 break
             } else if (lastOutput.size() > lastLength) {
                 lastActivity = System.currentTimeMillis()
             }
+        }
+        if (gradle.isRunning() && !endOfBuildReached) {
+            throw new RuntimeException("""Timeout waiting for build to complete. Output:
+$lastOutput
+""")
         }
 
         def out = buildOutputSoFar()
