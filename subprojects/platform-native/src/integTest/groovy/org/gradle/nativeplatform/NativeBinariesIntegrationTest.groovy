@@ -178,16 +178,17 @@ model {
     components {
         main(NativeExecutableSpec)
     }
-    binaries.all {
-        sources {
-            testCpp(CppSourceSet) {
-                source.srcDir "src/test/cpp"
-                exportedHeaders.srcDir "src/test/headers"
-            }
-            testC(CSourceSet) {
-                source.srcDir "src/test/c"
-                exportedHeaders.srcDir "src/test/headers"
-            }
+}
+
+binaries.all {
+    sources {
+        testCpp(CppSourceSet) {
+            source.srcDir "src/test/cpp"
+            exportedHeaders.srcDir "src/test/headers"
+        }
+        testC(CSourceSet) {
+            source.srcDir "src/test/c"
+            exportedHeaders.srcDir "src/test/headers"
         }
     }
 }
@@ -301,8 +302,10 @@ model {
     components {
         main(NativeLibrarySpec)
     }
-    binaries.withType(StaticLibraryBinarySpec) {
-        staticLibArchiver.args "not_a_file"
+    binaries {
+        withType(StaticLibraryBinarySpec) {
+            staticLibArchiver.args "not_a_file"
+        }
     }
 }
 

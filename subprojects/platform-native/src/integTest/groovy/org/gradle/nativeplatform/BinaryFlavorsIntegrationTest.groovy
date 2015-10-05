@@ -71,9 +71,11 @@ model {
         given:
         buildFile << """
 model {
-    binaries.all {
-        if (flavor == flavors.french) {
-            cppCompiler.define "FRENCH"
+    binaries {
+        all {
+            if (flavor == flavors.french) {
+                cppCompiler.define "FRENCH"
+            }
         }
     }
     components {
