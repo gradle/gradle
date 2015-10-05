@@ -20,8 +20,9 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ConfigureUtil
 
 abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegrationSpec {
-    protected abstract String  projectName(String path)
-    protected abstract String  getIdeName()
+    protected abstract String projectName(String path)
+
+    protected abstract String getIdeName()
 
     def "unique project names are not deduplicated"() {
         given:
@@ -40,7 +41,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         then:
         projectName(".") == "root"
         projectName("foo") == "foo"
-        projectName("foo/bar")== "bar"
+        projectName("foo/bar") == "bar"
         projectName("foobar") == "foobar"
         projectName("foobar/app") == "app"
     }
@@ -67,18 +68,21 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         projectName("bar/app") == "bar-app"
     }
 
-    def "dedups child project with same name as root project"() {
+    def "dedups child project with same name as parent project"() {
         given:
-        project("app") {
-            project("app") {}
+        project("root") {
+            project("app") {
+                project("app") {}
+            }
         }
 
         when:
         run ideName
 
         then:
-        projectName(".") == "app"
-        projectName("app") == "app-app"
+        projectName(".") == "root"
+        projectName("app") == "root-app"
+        projectName("app/app") == "app-app"
 
     }
 
@@ -129,28 +133,20 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         projectName("services/bar/app") == "bar-app"
     }
 
-
-    def "duplicate words in project names are removed"() {
+    def "dedups root project name"() {
         given:
-        project("myproject") {
-            project("myproject-app") {
-            }
-            project("myproject-bar") {
-                project("myproject-app") {
-
-                }
-            }
+        project("app") {
+            project("app") {}
         }
 
         when:
         run ideName
 
         then:
-        projectName(".") == "myproject"
-        projectName("myproject-app") == "myproject-app"
-        projectName("myproject-bar") == "myproject-bar"
-        projectName("myproject-bar/myproject-app") == "myproject-bar-app"
+        projectName(".") == "app"
+        projectName("app") == "app-app"
     }
+
 
     def "deduplication works on deduplicated parent module name"() {
         given:
@@ -202,6 +198,42 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         projectName("bar/services/rest") == "bar-services-rest"
         projectName("foo/services") == "foo-services"
         projectName("foo/services/rest") == "foo-services-rest"
+    }
+
+    def "removes duplicate words from project dedup prefix"() {
+        given:
+        project("root"){
+            project("api"){
+                project("myproject") {
+                    project("myproject-foo") {
+                        project("app") {}
+                    }
+                }
+
+            }
+            project("impl"){
+                project("myproject") {
+                    project("myproject-foo") {
+                        project("app") {}
+                    }
+                }
+            }
+        }
+
+        when:
+        run ideName
+
+        then:
+        projectName(".") == "root"
+        projectName("api") == "api"
+        projectName("api/myproject") == "api-myproject"
+        projectName("api/myproject/myproject-foo") == "api-myproject-foo"
+        projectName("api/myproject/myproject-foo/app") == "api-myproject-foo-app"
+
+        projectName("impl") == "impl"
+        projectName("impl/myproject") == "impl-myproject"
+        projectName("impl/myproject/myproject-foo") == "impl-myproject-foo"
+        projectName("impl/myproject/myproject-foo/app") == "impl-myproject-foo-app"
     }
 
     Project project(String projectName, Closure configClosure) {

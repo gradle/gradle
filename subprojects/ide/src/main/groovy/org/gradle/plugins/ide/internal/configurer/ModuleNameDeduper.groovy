@@ -31,6 +31,10 @@ class ModuleNameDeduper {
         targets.each { target ->
             projectToPrefixMap[target.project] = target.project.parent
         }
+        def originalProjectNames = targets.inject([:]) { acc, value ->
+            acc[value] = value.moduleName
+            acc
+        }
 
         for (List<String> projectNames = targets.collect { it.moduleName }; hasDuplicates(projectNames); projectNames = targets.collect { it.moduleName }) {
             doDedup(targets, projectToPrefixMap)
@@ -38,8 +42,8 @@ class ModuleNameDeduper {
 
         List<String> deduplicatedProjectNames = targets.collect { it.moduleName }
         targets.each { target ->
-            def simplifiedProjectName = removeDuplicateWords(target.moduleName)
-            if(!deduplicatedProjectNames.contains(simplifiedProjectName)){
+            def simplifiedProjectName = removeDuplicateWordsFromPrefix(target.moduleName, originalProjectNames[target])
+            if (!deduplicatedProjectNames.contains(simplifiedProjectName)) {
                 target.moduleName = simplifiedProjectName
             }
             target.updateModuleName(target.moduleName)
@@ -82,12 +86,26 @@ class ModuleNameDeduper {
         }
     }
 
-    private String removeDuplicateWords(String givenProjectName) {
-        def wordlist = Lists.newArrayList(givenProjectName.split("-"))
-        if (wordlist.size() > 2) {
-            wordlist = wordlist.unique()
+    private String removeDuplicateWordsFromPrefix(String deduppedProjectName, String originalProjectName) {
+        if (deduppedProjectName.equals(originalProjectName)) {
+            return deduppedProjectName
         }
-        return wordlist.join("-")
-    }
 
+        def prefix = deduppedProjectName.substring(0, deduppedProjectName.lastIndexOf(originalProjectName))
+        def prefixWordList = Lists.newArrayList(prefix.split("-"))
+        def postfixWordList = Lists.newArrayList(originalProjectName.split("-"))
+        if (postfixWordList.size() > 1) {
+            prefixWordList.add(postfixWordList.head())
+            postfixWordList = postfixWordList.tail()
+        }
+
+        def words = prefixWordList.inject([]) { List words, newWord ->
+            if (words.isEmpty() || !words.last().equals(newWord)) {
+                words.add(newWord)
+            }
+            words
+        }
+        words.addAll(postfixWordList)
+        return words.join("-")
+    }
 }

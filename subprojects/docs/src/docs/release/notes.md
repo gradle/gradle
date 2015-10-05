@@ -383,7 +383,8 @@ The library has been updated from 2.1.0 to [2.4.0](https://github.com/bndtools/b
 ### Improved IDE project naming deduplication
 
 To ensure unique project names in the IDE, Gradle applies a deduplication logic when generating IDE metadata for Eclipse and Idea projects.
-This deduplication logic has been improved. All projects with non unique names are now deduplicated. here's an example for clarification:
+This deduplication logic has been improved. All projects with non unique names are now deduplicated by adding a prefix based on the
+parent projects. Here's an example for clarification:
 
 Given a Gradle multiproject build with the following project structure
 
@@ -402,6 +403,26 @@ results in the following IDE project name mapping:
     |
     \-bar
        \- bar-app
+
+Duplicate words in a row within the deduplication prefix are removed from the generated ide project name.
+Assuming having a project structure like:
+
+    myapp
+    |-myapp-foo
+    |  \- app
+    |
+    \-myapp-bar
+       \- app
+
+results in the following IDE project name mapping:
+
+    myapp
+    |-myapp-foo
+    |  \- myapp-foo-myapp-app
+    |
+    \-myapp-bar
+       \- myapp-bar-myapp-app
+
 
 ### Changes to the incubating integration between the managed model and the Java plugins
 
