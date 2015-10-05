@@ -500,7 +500,9 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         when:
         buildFile << """
             model {
-                binaries.all { ${compilerTool}.args.clear(); linker.args.clear(); }
+                binaries {
+                    all { ${compilerTool}.args.clear(); linker.args.clear(); }
+                }
             }
         """
         run "mainExecutable"
