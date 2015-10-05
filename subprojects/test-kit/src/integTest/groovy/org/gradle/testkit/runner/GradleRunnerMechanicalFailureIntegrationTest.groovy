@@ -146,6 +146,7 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         result.taskPaths(FAILED).empty
     }
 
+    @IgnoreTarget({ GradleRunnerCoverage.DEBUG })
     def "daemon dies during build execution"() {
         given:
         buildFile << """
