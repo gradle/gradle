@@ -53,10 +53,10 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         toolChain.initialiseEnvironment()
 
         and:
+        EnableModelDsl.enable(executer)
         sample cppExe
 
         when:
-        EnableModelDsl.enable(executer)
         run "installMain"
 
         then:
@@ -95,8 +95,10 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     def flavors() {
-        when:
+        given:
         sample flavors
+
+        when:
         run "installEnglishMainExecutable"
 
         then:
@@ -127,8 +129,11 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     def variants() {
-        when:
+        given:
+        EnableModelDsl.enable(executer)
         sample variants
+
+        when:
         run "assemble"
 
         then:
@@ -163,6 +168,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
     def "tool chains"() {
         given:
+        EnableModelDsl.enable(executer)
         sample toolChains
 
         when:
@@ -192,6 +198,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     def "target platforms"() {
         given:
         sample targetPlatforms
+
         and:
         targetPlatforms.dir.file("build.gradle") << """
 model {

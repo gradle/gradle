@@ -144,10 +144,12 @@ model {
         }
         hello(NativeLibrarySpec)
     }
-}
-binaries.all {
-    if (buildType == buildTypes.debug) {
-        cppCompiler.define "FRENCH" // Equate 'debug' to 'french' for this test
+    binaries {
+        all {
+            if (buildType == buildTypes.debug) {
+                cppCompiler.define "FRENCH" // Equate 'debug' to 'french' for this test
+            }
+        }
     }
 }
         """
