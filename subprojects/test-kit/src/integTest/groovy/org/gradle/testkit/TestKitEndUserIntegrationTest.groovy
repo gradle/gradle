@@ -22,9 +22,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.fixtures.GradleRunnerCoverage
 import org.gradle.testkit.runner.fixtures.GradleRunnerType
-import org.gradle.testkit.runner.fixtures.IgnoreTarget
 import org.gradle.testkit.runner.fixtures.MultiGradleRunnerSpecRunner
 import org.gradle.testkit.runner.internal.TempTestKitDirProvider
 import org.gradle.util.GFileUtils
@@ -202,7 +200,6 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         assertDaemonsAreStopping()
     }
 
-    @IgnoreTarget({ GradleRunnerCoverage.DEBUG })
     def "functional test fails due to invalid JVM parameter for test execution"() {
         buildFile << gradleTestKitDependency()
         writeTest """
@@ -508,7 +505,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         assertDaemonsAreStopping()
     }
 
-    def "can control debug mode through system property set to #debug"() {
+    def "can control debug mode through system property"() {
         buildFile << gradleTestKitDependency()
         buildFile << """
             test {
