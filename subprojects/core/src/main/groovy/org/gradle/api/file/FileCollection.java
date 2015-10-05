@@ -77,6 +77,17 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
     FileCollection plus(FileCollection collection);
 
     /**
+     * <p>Returns a {@code FileCollection} which contains the union of this collection and the given iterable. The
+     * returned collection is live, and tracks changes to all source collections.</p>
+     *
+     * <p>You can call this method in your build script using the {@code +} operator.</p>
+     *
+     * @param collections An iterable of collections. Should not be null.
+     * @return A new collection containing the union.
+     */
+    FileCollection plus(Iterable<FileCollection> collections);
+
+    /**
      * <p>Returns a {@code FileCollection} which contains the intersection of this collection and the given collection.
      * The returned collection is live, and tracks changes to both source collections.</p>
      *
@@ -86,6 +97,17 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      * @return A new collection containing the intersection.
      */
     FileCollection minus(FileCollection collection);
+
+    /**
+     * <p>Returns a {@code FileCollection} which contains the intersection of this collection and the given iterable.
+     * The returned collection is live, and tracks changes to all source collections.</p>
+     *
+     * <p>You can call this method in your build script using the {@code -} operator.</p>
+     *
+     * @param collections An iterable of collections. Should not be null.
+     * @return A new collection containing the intersection.
+     */
+    FileCollection minus(Iterable<FileCollection> collections);
 
     /**
      * <p>Restricts the contents of this collection to those files which match the given criteria. The filtered

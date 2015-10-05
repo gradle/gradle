@@ -318,7 +318,7 @@ Please refer to the [Groovy language changelogs](http://groovy-lang.org/changelo
 
 #### Groovy property assignment with multiple setter methods
 
-In earlier versions of Groovy, an assignment to a property that has multiple setter methods that each take a different parameter type would select the setter method in an JVM-implementation dependent way.
+In earlier versions of Groovy, an assignment to a property that has multiple setter methods that each take a different parameter type would select the setter method in a JVM-implementation dependent way.
 This is documented in [GROOVY-6084](https://issues.apache.org/jira/browse/GROOVY-6084).
 
 For example:
@@ -339,6 +339,28 @@ In Groovy 2.4, this always fails with an exception:
     Possible solutions: setProperties(java.io.File), setProperties(java.util.Properties), getProperties(), getProperty(java.lang.String), setProperty(java.lang.String, java.lang.Object)
 
 To fix this problem, select the correct method by supplying the appropriate type (in this case, Properties).
+
+#### Using the + operator with Iterable objects
+
+In earlier versions of Groovy, when the '+' operator was used with objects that implement `java.lang.Iterable` and there was not a direct match on the signature
+of the `plus()` method, the behavior was not defined and could result in success.
+
+For example:
+
+    class Foo implements Iterable<String> {
+        public Foo plus(Foo bar) { }
+    }
+
+    Foo foo = new Foo()
+    foo += [ new Foo() ]
+
+In Groovy 2.3 and earlier, this may work, invoking the `plus(Foo)` method.
+
+In Groovy 2.4, this always fails with an exception:
+
+    Cannot cast object '[Foo@563a3ada]' with class 'java.util.ArrayList' to class 'Foo' due to: groovy.lang.GroovyRuntimeException: Could not find matching constructor for: Foo(Foo)
+
+To fix this problem, add a `plus()` method that accepts an appropriate `java.lang.Iterable` object so that there is a direct match on the method signature.
 
 ### New PMD violations due to type resolution changes
 

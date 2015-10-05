@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -31,6 +32,10 @@ public class UnionFileTree extends CompositeFileTree {
 
     public UnionFileTree(FileTreeInternal... sourceTrees) {
         this("file tree", Arrays.asList(sourceTrees));
+    }
+
+    public UnionFileTree(Iterable<FileTreeInternal> sourceTrees) {
+        this("file tree", Lists.newArrayList(sourceTrees));
     }
 
     public UnionFileTree(String displayName, FileTreeInternal... sourceTrees) {

@@ -20,8 +20,10 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+@UsesNativeServices
 public class AbstractFileTreeTest extends Specification {
     def isEmptyWhenVisitsNoFiles() {
         def tree = new TestFileTree([])
@@ -70,6 +72,72 @@ public class AbstractFileTreeTest extends Specification {
 
         then:
         filtered.buildDependencies == buildDependencies
+    }
+
+    def "can add file trees together" () {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        FileVisitDetails fileVisitDetails1 = fileVisitDetails(file1)
+        FileVisitDetails fileVisitDetails2 = fileVisitDetails(file2)
+        def tree1 = new TestFileTree([fileVisitDetails1])
+        def tree2 = new TestFileTree([fileVisitDetails2])
+
+        when:
+        FileTree sum = tree1.plus(tree2)
+
+        then:
+        sum.files.sort() == [ file1, file2 ]
+    }
+
+    def "can add file trees together using + operator" () {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        FileVisitDetails fileVisitDetails1 = fileVisitDetails(file1)
+        FileVisitDetails fileVisitDetails2 = fileVisitDetails(file2)
+        def tree1 = new TestFileTree([fileVisitDetails1])
+        def tree2 = new TestFileTree([fileVisitDetails2])
+
+        when:
+        FileTree sum = tree1 + tree2
+
+        then:
+        sum.files.sort() == [ file1, file2 ]
+    }
+
+    def "can add a list of file trees" () {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        FileVisitDetails fileVisitDetails1 = fileVisitDetails(file1)
+        FileVisitDetails fileVisitDetails2 = fileVisitDetails(file2)
+        def tree1 = new TestFileTree([fileVisitDetails1])
+        def tree2 = new TestFileTree([fileVisitDetails2])
+
+        when:
+        FileTree sum = tree1.plus([tree2])
+
+        then:
+        sum.files.sort() == [ file1, file2 ]
+    }
+
+    def "can add a list of file trees using + operator" () {
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        FileVisitDetails fileVisitDetails1 = fileVisitDetails(file1)
+        FileVisitDetails fileVisitDetails2 = fileVisitDetails(file2)
+        def tree1 = new TestFileTree([fileVisitDetails1])
+        def tree2 = new TestFileTree([fileVisitDetails2])
+
+        when:
+        FileTree sum = tree1 + [ tree2 ]
+
+        then:
+        sum.files.sort() == [ file1, file2 ]
+    }
+
+    FileVisitDetails fileVisitDetails(File file) {
+        return Stub(FileVisitDetails) {
+            getFile() >> { file }
+        }
     }
 }
 

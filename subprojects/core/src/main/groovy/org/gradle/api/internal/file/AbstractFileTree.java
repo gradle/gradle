@@ -26,10 +26,7 @@ import org.gradle.internal.Cast;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
@@ -108,6 +105,12 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     public FileTree plus(FileTree fileTree) {
         return new UnionFileTree(this, Cast.cast(FileTreeInternal.class, fileTree));
+    }
+
+    @Override
+    public FileTree plus(Iterable<FileCollection> collections) {
+        Iterable<FileTreeInternal> castCollections = Cast.uncheckedCast(collections);
+        return this.plus(new UnionFileTree(castCollections));
     }
 
     public FileTree visit(Closure closure) {

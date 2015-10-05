@@ -24,22 +24,11 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.GUtil;
-import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices;
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith
 import spock.lang.Specification;
-
-import java.io.File;
-import java.util.*;
 
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
 import static org.gradle.util.Matchers.isEmpty;
@@ -139,6 +128,51 @@ public class AbstractFileCollectionTest extends Specification {
         assertThat(sum.getFiles(), equalTo(toLinkedSet(file1, file2, file3)));
     }
 
+    def "can add collections using + operator"() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
+        FileCollection sum = collection1 + collection2
+
+        then:
+        sum instanceof UnionFileCollection
+        sum.getFiles() == [ file1, file2, file3 ]
+    }
+
+    def "can add a list of collections"() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
+        FileCollection sum = collection1.plus([collection2])
+
+        then:
+        sum instanceof UnionFileCollection
+        sum.getFiles() == [ file1, file2, file3 ]
+    }
+
+    def "can add list of collections using + operator"() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
+        FileCollection sum = collection1 + [collection2]
+
+        then:
+        sum instanceof UnionFileCollection
+        sum.getFiles() == [ file1, file2, file3 ]
+    }
+
     public void canSubtractCollections() {
         File file1 = new File("f1");
         File file2 = new File("f2");
@@ -147,10 +181,52 @@ public class AbstractFileCollectionTest extends Specification {
         TestFileCollection collection2 = new TestFileCollection(file2, file3);
 
         when:
-        FileCollection sum = collection1.minus(collection2);
+        FileCollection difference = collection1.minus(collection2);
 
         then:
-        assertThat(sum.getFiles(), equalTo(toLinkedSet(file1)));
+        assertThat(difference.getFiles(), equalTo(toLinkedSet(file1)));
+    }
+
+    def "can subtract a collection using - operator"() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
+        FileCollection difference = collection1 - collection2
+
+        then:
+        difference.files == [ file1 ]
+    }
+
+    def "can subtract a list of collection"() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
+        FileCollection difference = collection1.minus([collection2])
+
+        then:
+        difference.files == [ file1 ]
+    }
+
+    def "can subtract a list of collections using - operator"() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
+        FileCollection difference = collection1 - [collection2]
+
+        then:
+        difference.files == [ file1 ]
     }
 
     public void cannotAddCollectionToThisCollection() {

@@ -75,6 +75,10 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return new UnionFileCollection(this, collection);
     }
 
+    public FileCollection plus(Iterable<FileCollection> collections) {
+        return this.plus(new UnionFileCollection(collections));
+    }
+
     public FileCollection minus(final FileCollection collection) {
         return new AbstractFileCollection() {
             @Override
@@ -93,6 +97,10 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
                 return files;
             }
         };
+    }
+
+    public FileCollection minus(final Iterable<FileCollection> collections) {
+        return this.minus(new UnionFileCollection(collections));
     }
 
     public FileCollection add(FileCollection collection) throws UnsupportedOperationException {
