@@ -27,7 +27,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not create library or binaries when not configured"() {
         when:
-        buildFile << """
+        buildFile << '''
     plugins {
         id 'jvm-component'
     }
@@ -35,13 +35,14 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         tasks {
             create("validate") {
                 doLast {
-                    assert \$("components").size() == 0
-                    assert project.binaries.empty
+                    assert $("components").size() == 0
+                    assert $("binaries").size() == 0
+                    assert $("sources").size() == 0
                 }
             }
         }
     }
-"""
+'''
         then:
         succeeds "validate"
 
@@ -222,14 +223,15 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         tasks {
             create("validate") {
                 def components = \$("components")
+                def binaries = \$("binaries")
                 doLast {
                     assert components.size() == 2
                     assert components.myLibOne instanceof JvmLibrarySpec
                     assert components.myLibTwo instanceof JvmLibrarySpec
 
-                    assert project.binaries.size() == 2
-                    assert project.binaries.myLibOneJar == components.myLibOne.binaries.values()[0]
-                    assert project.binaries.myLibTwoJar == components.myLibTwo.binaries.values()[0]
+                    assert binaries.size() == 2
+                    assert binaries.myLibOneJar == components.myLibOne.binaries.values()[0]
+                    assert binaries.myLibTwoJar == components.myLibTwo.binaries.values()[0]
                 }
             }
         }

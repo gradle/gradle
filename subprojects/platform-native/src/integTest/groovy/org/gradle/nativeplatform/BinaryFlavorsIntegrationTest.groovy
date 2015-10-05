@@ -70,12 +70,12 @@ model {
     def "can configure components for a single flavor"() {
         given:
         buildFile << """
-binaries.all {
-    if (flavor == flavors.french) {
-        cppCompiler.define "FRENCH"
-    }
-}
 model {
+    binaries.all {
+        if (flavor == flavors.french) {
+            cppCompiler.define "FRENCH"
+        }
+    }
     components {
         main.targetFlavors "french"
         hello.targetFlavors "french"

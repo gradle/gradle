@@ -134,10 +134,10 @@ model {
         testApp.plugins.each{ plugin ->
             buildFile << "apply plugin: '$plugin'\n"
         }
-        buildFile << testApp.extraConfiguration
 
         buildFile << """
 model {
+    ${testApp.extraConfiguration}
     components {
         main(NativeExecutableSpec)
     }

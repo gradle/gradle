@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.model.ModelMap
 import org.gradle.model.collection.CollectionBuilder
 import spock.lang.Ignore
@@ -27,6 +28,8 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
+        EnableModelDsl.enable(executer)
+
         buildFile << """
 interface SampleBinary extends BinarySpec {}
 interface OtherSampleBinary extends SampleBinary {}
@@ -87,19 +90,26 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
     def "can register binaries using @ComponentBinaries when viewing binaries container as #binariesContainerType.simpleName"() {
         when:
         buildFile << withSimpleComponentBinaries(binariesContainerType)
-        buildFile << """
+        buildFile << '''
 
-
-        task checkModel << {
-            assert project.binaries.size() == 2
-            def sampleBinary = project.binaries.sampleLibBinary
-            def othersSampleBinary = project.binaries.sampleLibOtherBinary
-            assert sampleBinary instanceof SampleBinary
-            assert sampleBinary.displayName == "DefaultSampleBinary 'sampleLibBinary'"
-            assert othersSampleBinary instanceof OtherSampleBinary
-            assert othersSampleBinary.displayName == "OtherSampleBinaryImpl 'sampleLibOtherBinary'"
+        model {
+            tasks {
+                checkModel(Task) {
+                    doLast {
+                        def binaries = $('binaries')
+                        assert binaries.size() == 2
+                        def sampleBinary = binaries.sampleLibBinary
+                        def othersSampleBinary = binaries.sampleLibOtherBinary
+                        assert sampleBinary instanceof SampleBinary
+                        assert sampleBinary.displayName == "DefaultSampleBinary 'sampleLibBinary'"
+                        assert othersSampleBinary instanceof OtherSampleBinary
+                        assert othersSampleBinary.displayName == "OtherSampleBinaryImpl 'sampleLibOtherBinary'"
+                    }
+                }
+            }
         }
-"""
+'''
+
         then:
         succeeds "checkModel"
 
@@ -163,13 +173,19 @@ Binaries
     def "Can access lifecycle task of binary via BinarySpec.buildTask"(){
         when:
         buildFile << withSimpleComponentBinaries()
-        buildFile << """
-
-        task tellTaskName << {
-            assert project.binaries.sampleLibBinary.buildTask instanceof Task
-            assert project.binaries.sampleLibBinary.buildTask.name ==  "sampleLibBinary"
-        }
-"""
+        buildFile << '''
+            model {
+                tasks {
+                    tellTaskName(Task) {
+                        doLast {
+                            def binaries = $('binaries')
+                            assert binaries.sampleLibBinary.buildTask instanceof Task
+                            assert binaries.sampleLibBinary.buildTask.name == "sampleLibBinary"
+                        }
+                    }
+                }
+            }
+'''
         then:
         succeeds "tellTaskName"
     }

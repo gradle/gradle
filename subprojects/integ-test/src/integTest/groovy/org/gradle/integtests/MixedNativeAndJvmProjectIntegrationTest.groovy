@@ -40,12 +40,19 @@ model {
         mainExe(NativeExecutableSpec)
         mainLib(NativeLibrarySpec)
     }
-}
-
-task checkBinaries << {
-    assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
-    assert binaries.mainExeExecutable instanceof NativeExecutableBinarySpec
-    assert binaries.mainLibSharedLibrary instanceof SharedLibraryBinarySpec
+    tasks {
+        checkBinaries(Task) {
+            def binaries = \$("binaries")
+            doLast {
+                assert binaries.size() == 5
+                assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
+                assert binaries.testClasses instanceof ClassDirectoryBinarySpec
+                assert binaries.mainExeExecutable instanceof NativeExecutableBinarySpec
+                assert binaries.mainLibSharedLibrary instanceof SharedLibraryBinarySpec
+                assert binaries.mainLibStaticLibrary instanceof StaticLibraryBinarySpec
+            }
+        }
+    }
 }
 """
         expect:
@@ -68,17 +75,18 @@ model {
     tasks {
         create("validate") {
             def components = $("components")
+            def binaries = $("binaries")
             doLast {
                 assert components.size() == 3
                 assert components.nativeExe instanceof NativeExecutableSpec
                 assert components.nativeLib instanceof NativeLibrarySpec
                 assert components.jvmLib instanceof JvmLibrarySpec
 
-                assert project.binaries.size() == 4
-                assert project.binaries.jvmLibJar instanceof JarBinarySpec
-                assert project.binaries.nativeExeExecutable instanceof NativeExecutableBinarySpec
-                assert project.binaries.nativeLibStaticLibrary instanceof StaticLibraryBinarySpec
-                assert project.binaries.nativeLibSharedLibrary instanceof SharedLibraryBinarySpec
+                assert binaries.size() == 4
+                assert binaries.jvmLibJar instanceof JarBinarySpec
+                assert binaries.nativeExeExecutable instanceof NativeExecutableBinarySpec
+                assert binaries.nativeLibStaticLibrary instanceof StaticLibraryBinarySpec
+                assert binaries.nativeLibSharedLibrary instanceof SharedLibraryBinarySpec
             }
         }
     }

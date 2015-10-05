@@ -38,16 +38,17 @@ public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractInt
                     jvmLib(JvmLibrarySpec)
                 }
                 tasks {
-                    create("checkModel") {
+                    checkModel(Task) {
                         def components = $("components")
+                        def binaries = $("binaries")
                         doLast {
                             assert components.size() == 1
                             assert components.jvmLib instanceof JvmLibrarySpec
 
-                            assert project.binaries.size() == 3
-                            assert project.binaries.jvmLibJar instanceof JarBinarySpec
-                            assert project.binaries.mainClasses instanceof ClassDirectoryBinarySpec
-                            assert project.binaries.testClasses instanceof ClassDirectoryBinarySpec
+                            assert binaries.size() == 3
+                            assert binaries.jvmLibJar instanceof JarBinarySpec
+                            assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
+                            assert binaries.testClasses instanceof ClassDirectoryBinarySpec
                         }
                     }
                 }

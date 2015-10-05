@@ -447,10 +447,12 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     @RequiresInstalledToolChain(GccCompatible)
     def "recompiles binary when imported header file changes"() {
         sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
-        if(buildingCorCppWithGcc()){
+        if(buildingCorCppWithGcc()) {
             buildFile << """
-                //support for #import on c/cpp is deprecated in gcc
-                binaries.all { ${compilerTool}.args '-Wno-deprecated'; }
+                model {
+                    //support for #import on c/cpp is deprecated in gcc
+                    binaries.all { ${compilerTool}.args '-Wno-deprecated'; }
+                }
             """
         }
 
@@ -482,7 +484,9 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         given:
         buildFile << """
-            binaries.all { ${compilerTool}.args '/Zi'; linker.args '/DEBUG'; }
+            model {
+                binaries.all { ${compilerTool}.args '/Zi'; linker.args '/DEBUG'; }
+            }
         """
         run "mainExecutable"
 
@@ -491,7 +495,9 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
         when:
         buildFile << """
-            binaries.all { ${compilerTool}.args.clear(); linker.args.clear(); }
+            model {
+                binaries.all { ${compilerTool}.args.clear(); linker.args.clear(); }
+            }
         """
         run "mainExecutable"
 

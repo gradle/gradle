@@ -17,11 +17,14 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.EnableModelDsl
 import spock.lang.Unroll
 
 public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
+        EnableModelDsl.enable(executer)
+
         buildFile << """
         interface SampleBinary extends BinarySpec {}
         class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}
@@ -111,25 +114,31 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "can reference rule-added tasks in model"() {
         given:
-        buildFile << """
+        buildFile << '''
         class BinaryTasksPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
             static class Rules extends RuleSource {
                 @BinaryTasks
                 void createSampleComponentComponents(ModelMap<Task> tasks, SampleBinary binary) {
-                    tasks.create("\${binary.name}Task")
+                    tasks.create("${binary.name}Task")
                 }
             }
         }
         apply plugin:BinaryTasksPlugin
-
-        task checkModel << {
-            assert project.binaries.size() == 2
-            assert project.binaries.sampleLibBinaryOne != null
-            assert project.binaries.sampleLibBinaryOne.tasks*.name == ['sampleLibBinaryOneTask']
+        model {
+            tasks {
+                checkModel(Task) {
+                    doLast {
+                        def binaries = $('binaries')
+                        assert binaries.size() == 2
+                        assert binaries.sampleLibBinaryOne != null
+                        assert binaries.sampleLibBinaryOne.tasks*.name == ['sampleLibBinaryOneTask']
+                    }
+                }
+            }
         }
-"""
+'''
         expect:
         succeeds "checkModel"
     }
