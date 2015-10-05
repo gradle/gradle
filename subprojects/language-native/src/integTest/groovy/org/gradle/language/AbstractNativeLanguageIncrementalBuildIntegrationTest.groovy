@@ -452,7 +452,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
                 model {
                     //support for #import on c/cpp is deprecated in gcc
                     binaries {
-                        all { ${compilerTool}.args '-Wno-deprecated';
+                        all { ${compilerTool}.args '-Wno-deprecated'; }
                     }
                 }
             """
