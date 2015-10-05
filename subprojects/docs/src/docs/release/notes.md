@@ -185,10 +185,10 @@ A read-only (non nullable) property is created by defining only a setter, while 
 This release facilitates adding source sets (`LanguageSourceSet`) to arbitrary locations in the model space through the use of the `language-base` plugin and `FunctionalSourceSet`.
 A `FunctionalSourceSet` can be attached to any `@Managed` type as a property, or used for the elements of a `ModelSet` or `ModelMap`, or as a top level element.
 
-Using `FunctionalSourceSet` allows build and plugin authors to strongly model things that use collections of source as `LanguageSourceSet`s.
+Using `FunctionalSourceSet` allows build and plugin authors to strongly model things that use collections of sources as `LanguageSourceSet`s.
 This kind of strongly typed modelling also allows build and plugin authors to access `LanguageSourceSet`s in a controlled and consistent way using rules.
 
-Adding a top level FunctionalSourceSet is a simple as:
+Adding a top level `FunctionalSourceSet` is as simple as:
 
 
     model {
@@ -318,7 +318,7 @@ Please refer to the [Groovy language changelogs](http://groovy-lang.org/changelo
 
 #### Groovy property assignment with multiple setter methods
 
-In earlier versions of Groovy, an assignment to a property that has multiple setter methods that each take a different parameter type would select the setter method in an JVM-implementation dependent way.  
+In earlier versions of Groovy, an assignment to a property that has multiple setter methods that each take a different parameter type would select the setter method in an JVM-implementation dependent way.
 This is documented in [GROOVY-6084](https://issues.apache.org/jira/browse/GROOVY-6084).
 
 For example:
@@ -331,7 +331,7 @@ For example:
     def foo = new Foo()
     foo.properties = [:]
 
-In Groovy 2.3 and earlier, this would sometimes fail depending on which setter method was selected. 
+In Groovy 2.3 and earlier, this would sometimes fail depending on which setter method was selected.
 
 In Groovy 2.4, this always fails with an exception:
 
@@ -355,8 +355,8 @@ The default version of CodeNarc has been updated from 0.23 to 0.24.1. Should you
 
 ### Updated to bndlib 2.4.0
 
-The built-in [OSGi plugin](userguide/osgi_plugin.html) uses the [bndlib](https://github.com/bndtools/bnd) library internally. 
-The library has been updated from 2.1.0 to [2.4.0](https://github.com/bndtools/bndtools/wiki/Changes-in-2.4.0). 
+The built-in [OSGi plugin](userguide/osgi_plugin.html) uses the [bndlib](https://github.com/bndtools/bnd) library internally.
+The library has been updated from 2.1.0 to [2.4.0](https://github.com/bndtools/bndtools/wiki/Changes-in-2.4.0).
 
 ### Improved IDE project naming deduplication
 
