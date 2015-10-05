@@ -142,16 +142,23 @@ Binaries
     def "links components sourceSets to binaries"() {
         when:
         buildFile << withSimpleComponentBinaries()
-        buildFile << """
-        task checkSourceSets << {
-            def sampleBinarySourceSet = project.binaries.sampleLibBinary.inputs.toList()[0]
-            def othersSampleBinarySourceSet = project.binaries.sampleLibOtherBinary.inputs.toList()[0]
-            assert sampleBinarySourceSet instanceof DefaultLibrarySourceSet
-            assert sampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
-            assert othersSampleBinarySourceSet instanceof DefaultLibrarySourceSet
-            assert othersSampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
-        }
-"""
+        buildFile << '''
+            model {
+                tasks {
+                    checkSourceSets(Task) {
+                        doLast {
+                            def binaries = $('binaries')
+                            def sampleBinarySourceSet = binaries.sampleLibBinary.inputs.toList()[0]
+                            def othersSampleBinarySourceSet = binaries.sampleLibOtherBinary.inputs.toList()[0]
+                            assert sampleBinarySourceSet instanceof DefaultLibrarySourceSet
+                            assert sampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
+                            assert othersSampleBinarySourceSet instanceof DefaultLibrarySourceSet
+                            assert othersSampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
+                        }
+                    }
+                }
+            }
+'''
         then:
         succeeds "checkSourceSets"
     }

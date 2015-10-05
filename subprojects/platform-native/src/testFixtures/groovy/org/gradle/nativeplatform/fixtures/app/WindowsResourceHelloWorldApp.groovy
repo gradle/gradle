@@ -37,11 +37,15 @@ class WindowsResourceHelloWorldApp extends HelloWorldApp {
     @Override
     String getExtraConfiguration() {
         return """
-            binaries.all {
-                linker.args "user32.lib"
-            }
-            binaries.withType(SharedLibraryBinarySpec) {
-                cppCompiler.define "DLL_EXPORT"
+            model {
+                binaries {
+                    all {
+                        linker.args "user32.lib"
+                    }
+                    withType(SharedLibraryBinarySpec) {
+                        cppCompiler.define "DLL_EXPORT"
+                    }
+                }
             }
 """
     }

@@ -52,7 +52,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "defines jvm library and binary model objects and lifecycle task"() {
         when:
-        buildFile << """
+        buildFile << '''
     plugins {
         id 'jvm-component'
     }
@@ -63,8 +63,9 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         }
         tasks {
             create("validate") {
-            def components = \$("components")
                 doLast {
+                    def components = $("components")
+                    def binaries = $("binaries")
                     assert components.size() == 1
                     def myLib = components.myLib
                     assert myLib.name == 'myLib'
@@ -72,10 +73,10 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
                     assert myLib.sources.size() == 0
 
-                    assert project.binaries.size() == 1
-                    assert myLib.binaries.values() as Set == project.binaries as Set
+                    assert binaries.size() == 1
+                    assert myLib.binaries.values() as Set == binaries as Set
 
-                    def myLibJar = (project.binaries as List)[0]
+                    def myLibJar = (binaries.values() as List)[0]
                     assert myLibJar instanceof JarBinarySpec
                     assert myLibJar.name == 'myLibJar'
                     assert myLibJar.displayName == "Jar 'myLibJar'"
@@ -93,7 +94,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
             }
         }
     }
-"""
+'''
 
         then:
         succeeds "validate"

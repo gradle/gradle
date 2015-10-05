@@ -96,14 +96,16 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
             app.greetingsSources*.writeToDir(file("src/${name}Greetings"))
 
             buildFile << """
-                // Allow static libraries to be linked into shared
-                binaries.withType(StaticLibraryBinarySpec) {
-                    if (toolChain in Gcc || toolChain in Clang) {
-                        cppCompiler.args '-fPIC'
-                    }
-                }
-
                 model {
+                    // Allow static libraries to be linked into shared
+                    binaries {
+                        withType(StaticLibraryBinarySpec) {
+                            if (toolChain in Gcc || toolChain in Clang) {
+                                cppCompiler.args '-fPIC'
+                            }
+                        }
+                    }
+
                     components {
                         ${name}Main(NativeExecutableSpec) {
                             sources {
