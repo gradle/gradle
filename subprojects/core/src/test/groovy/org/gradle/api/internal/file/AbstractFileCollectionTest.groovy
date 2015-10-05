@@ -140,7 +140,7 @@ public class AbstractFileCollectionTest extends Specification {
 
         then:
         sum instanceof UnionFileCollection
-        sum.getFiles() == [ file1, file2, file3 ]
+        sum.getFiles() == toLinkedSet(file1, file2, file3)
     }
 
     def "can add a list of collections"() {
@@ -155,7 +155,7 @@ public class AbstractFileCollectionTest extends Specification {
 
         then:
         sum instanceof UnionFileCollection
-        sum.getFiles() == [ file1, file2, file3 ]
+        sum.getFiles() == toLinkedSet(file1, file2, file3)
     }
 
     def "can add list of collections using + operator"() {
@@ -170,7 +170,7 @@ public class AbstractFileCollectionTest extends Specification {
 
         then:
         sum instanceof UnionFileCollection
-        sum.getFiles() == [ file1, file2, file3 ]
+        sum.getFiles() == toLinkedSet(file1, file2, file3)
     }
 
     public void canSubtractCollections() {
@@ -198,7 +198,7 @@ public class AbstractFileCollectionTest extends Specification {
         FileCollection difference = collection1 - collection2
 
         then:
-        difference.files == [ file1 ]
+        difference.files == toLinkedSet(file1)
     }
 
     def "can subtract a list of collection"() {
@@ -212,7 +212,7 @@ public class AbstractFileCollectionTest extends Specification {
         FileCollection difference = collection1.minus([collection2])
 
         then:
-        difference.files == [ file1 ]
+        difference.files == toLinkedSet(file1)
     }
 
     def "can subtract a list of collections using - operator"() {
@@ -226,7 +226,7 @@ public class AbstractFileCollectionTest extends Specification {
         FileCollection difference = collection1 - [collection2]
 
         then:
-        difference.files == [ file1 ]
+        difference.files == toLinkedSet(file1)
     }
 
     public void cannotAddCollectionToThisCollection() {

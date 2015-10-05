@@ -109,8 +109,15 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
 
     @Override
     public FileTree plus(Iterable<FileCollection> collections) {
-        Iterable<FileTreeInternal> castCollections = Cast.uncheckedCast(collections);
-        return this.plus(new UnionFileTree(castCollections));
+        return this.plus(new UnionFileTree(castToFileTreeInternal(collections)));
+    }
+
+    private Iterable<FileTreeInternal> castToFileTreeInternal(Iterable<FileCollection> collections) {
+        for (FileCollection fileCollection : collections) {
+            Cast.cast(FileTreeInternal.class, fileCollection);
+        }
+
+        return Cast.uncheckedCast(collections);
     }
 
     public FileTree visit(Closure closure) {
