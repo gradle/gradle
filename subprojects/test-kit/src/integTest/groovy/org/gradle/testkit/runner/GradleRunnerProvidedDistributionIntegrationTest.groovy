@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import spock.lang.Shared
@@ -32,6 +33,7 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
     @Shared
     GradleVersion mostRecentSnapshot = distributions.mostRecentSnapshot.version
 
+    @LeaksFileHandles
     def "execute build with different distribution types"() {
         given:
         buildFile << helloWorldTask()
@@ -57,6 +59,7 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
                                new VersionBasedGradleDistribution(mostRecentSnapshot.version)]
     }
 
+    @LeaksFileHandles
     def "execute build for multiple Gradle versions of the same distribution type"() {
         given:
         buildFile << """
