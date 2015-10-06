@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.test.plugins
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec
@@ -48,6 +49,7 @@ class NativeBinariesTestPluginTest extends Specification {
         def binary = BaseBinarySpec.create(NativeTestSuiteBinarySpec, TestSpec, "testBinary", project.services.get(Instantiator), Mock(ITaskFactory))
         binary.setNamingScheme(namingScheme)
         binary.tasks.add(task)
+        binary.setTargetPlatform(new DefaultNativePlatform(System.getProperty("os.name")+"_"+System.getProperty("os.arch")))
 
         project.binaries.add(binary)
 

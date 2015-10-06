@@ -366,6 +366,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                     installTask.setDescription("Installs a development image of " + binary.getName());
                     installTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                     installTask.setToolChain(binary.getToolChain());
+                    installTask.setPlatform(binary.getTargetPlatform());
 
                     File defaultDestination = new File(buildDirectory, "install/" + binary.getNamingScheme().getOutputDirectoryBase());
                     installTask.setDestinationDir(defaultDestination);
