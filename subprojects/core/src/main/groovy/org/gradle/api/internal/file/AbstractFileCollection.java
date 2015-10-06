@@ -30,6 +30,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -76,6 +77,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     public FileCollection plus(Iterable<FileCollection> collections) {
+        DeprecationLogger.nagUserOfReplacedMethod("plus(Iterable)", "plus(FileCollection)");
         return this.plus(new UnionFileCollection(collections));
     }
 
@@ -100,6 +102,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     public FileCollection minus(final Iterable<FileCollection> collections) {
+        DeprecationLogger.nagUserOfReplacedMethod("minus(Iterable)", "minus(FileCollection)");
         return this.minus(new UnionFileCollection(collections));
     }
 

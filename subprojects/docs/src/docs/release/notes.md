@@ -308,8 +308,27 @@ not a part of the public API, some users may be utilizing it and should plan to 
 Setting the Eclipse project name in `eclipse.project.file.beforeMerged` or `eclipse.project.file.whenMerged` hook provided by the
 `Eclipse` plugin has been deprecated. Support for this will be removed in Gradle 3.0
 
+### Adding a one-item List to a FileCollection
+
+In previous versions of Gradle, adding a one-item list of `FileCollection` objects to a `FileCollection` would succeed.
+
+For example:
+
+    FileCollection foo = files()
+    foo += [files()]
+
+However, this behavior was never explicitly supported and only worked incidentally because Groovy selected the appropriate method on `FileCollection` to add a
+single `FileCollection` object.  In Groovy 2.4, this behavior has changed and no longer selects the correct method (see "Using the + operator with Iterable objects" under [Upgraded to Groovy 2.4.4](#groovyBreakingChanges)).
+As this construct may be in use, we have added a workaround to maintain backwards compatibility, but this unsupported functionality is considered deprecated.
+
+Instead, adding the `FileCollection` without a list should be used:
+
+    FileCollection foo = files()
+    foo += files()
+
 ## Potential breaking changes
 
+<a name="groovyBreakingChanges"></a>
 ### Upgraded to Groovy 2.4.4
 
 The Gradle API now uses Groovy 2.4.4. Previously, it was using Groovy 2.3.10. This change should be transparent to the majority of users; however, it can cause minor problems with existing build scripts and plugins.

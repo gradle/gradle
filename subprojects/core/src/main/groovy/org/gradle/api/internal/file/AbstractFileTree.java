@@ -107,11 +107,6 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return new UnionFileTree(this, Cast.cast(FileTreeInternal.class, fileTree));
     }
 
-    @Override
-    public FileTree plus(Iterable<FileCollection> collections) {
-        return this.plus(new UnionFileTree(castToFileTreeInternal(collections)));
-    }
-
     private Iterable<FileTreeInternal> castToFileTreeInternal(Iterable<FileCollection> collections) {
         for (FileCollection fileCollection : collections) {
             Cast.cast(FileTreeInternal.class, fileCollection);

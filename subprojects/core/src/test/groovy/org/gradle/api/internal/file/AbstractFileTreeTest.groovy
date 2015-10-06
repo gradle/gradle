@@ -74,7 +74,7 @@ public class AbstractFileTreeTest extends Specification {
         filtered.buildDependencies == buildDependencies
     }
 
-    def "can add file trees together" () {
+    def "can add file trees together"() {
         File file1 = new File("f1")
         File file2 = new File("f2")
         FileVisitDetails fileVisitDetails1 = fileVisitDetails(file1)
@@ -86,10 +86,10 @@ public class AbstractFileTreeTest extends Specification {
         FileTree sum = tree1.plus(tree2)
 
         then:
-        sum.files.sort() == [ file1, file2 ]
+        sum.files.sort() == [file1, file2]
     }
 
-    def "can add file trees together using + operator" () {
+    def "can add file trees together using + operator"() {
         File file1 = new File("f1")
         File file2 = new File("f2")
         FileVisitDetails fileVisitDetails1 = fileVisitDetails(file1)
@@ -101,37 +101,7 @@ public class AbstractFileTreeTest extends Specification {
         FileTree sum = tree1 + tree2
 
         then:
-        sum.files.sort() == [ file1, file2 ]
-    }
-
-    def "can add a list of file trees" () {
-        File file1 = new File("f1")
-        File file2 = new File("f2")
-        FileVisitDetails fileVisitDetails1 = fileVisitDetails(file1)
-        FileVisitDetails fileVisitDetails2 = fileVisitDetails(file2)
-        def tree1 = new TestFileTree([fileVisitDetails1])
-        def tree2 = new TestFileTree([fileVisitDetails2])
-
-        when:
-        FileTree sum = tree1.plus([tree2])
-
-        then:
-        sum.files.sort() == [ file1, file2 ]
-    }
-
-    def "can add a list of file trees using + operator" () {
-        File file1 = new File("f1")
-        File file2 = new File("f2")
-        FileVisitDetails fileVisitDetails1 = fileVisitDetails(file1)
-        FileVisitDetails fileVisitDetails2 = fileVisitDetails(file2)
-        def tree1 = new TestFileTree([fileVisitDetails1])
-        def tree2 = new TestFileTree([fileVisitDetails2])
-
-        when:
-        FileTree sum = tree1 + [ tree2 ]
-
-        then:
-        sum.files.sort() == [ file1, file2 ]
+        sum.files.sort() == [file1, file2]
     }
 
     FileVisitDetails fileVisitDetails(File file) {
@@ -139,26 +109,25 @@ public class AbstractFileTreeTest extends Specification {
             getFile() >> { file }
         }
     }
-}
 
-class TestFileTree extends AbstractFileTree {
-    List contents
-    TaskDependency buildDependencies
+    class TestFileTree extends AbstractFileTree {
+        List contents
+        TaskDependency buildDependencies
 
-    def TestFileTree(List files, TaskDependency dependencies = null) {
-        this.contents = files
-        this.buildDependencies = dependencies
-    }
-
-    String getDisplayName() {
-        throw new UnsupportedOperationException();
-    }
-
-    FileTree visit(FileVisitor visitor) {
-        contents.each {FileVisitDetails details ->
-            visitor.visitFile(details)
+        def TestFileTree(List files, TaskDependency dependencies = null) {
+            this.contents = files
+            this.buildDependencies = dependencies
         }
-        this
+
+        String getDisplayName() {
+            throw new UnsupportedOperationException();
+        }
+
+        FileTree visit(FileVisitor visitor) {
+            contents.each { FileVisitDetails details ->
+                visitor.visitFile(details)
+            }
+            this
+        }
     }
 }
-
