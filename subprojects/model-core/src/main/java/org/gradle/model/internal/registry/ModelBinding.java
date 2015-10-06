@@ -16,9 +16,13 @@
 
 package org.gradle.model.internal.registry;
 
+import org.gradle.model.InvalidModelRuleException;
+import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelPromise;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.report.AmbiguousBindingReporter;
 
 /**
  * A binding of a reference to an actual model element.
@@ -64,9 +68,23 @@ abstract class ModelBinding {
 
     public abstract boolean canBindInState(ModelNode.State state);
 
-    public abstract void onCreate(ModelNodeInternal node);
+    public final void onBind(ModelNodeInternal node) {
+        if (boundTo != null) {
+            ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
+            ModelPath path = node.getPath();
+            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
+                new AmbiguousBindingReporter(predicate.getReference(), boundTo.getPath(), boundTo.getDescriptor(), path, creatorDescriptor).asString()
+            ));
+        }
 
-    public void onRemove(ModelNodeInternal node) {
+        doOnBind(node);
+    }
+
+    protected void doOnBind(ModelNodeInternal node) {
+        // Do nothing by default
+    }
+
+    public void onUnbind(ModelNodeInternal node) {
         if (node == boundTo) {
             boundTo = null;
         }

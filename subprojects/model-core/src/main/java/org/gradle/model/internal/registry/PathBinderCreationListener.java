@@ -36,10 +36,7 @@ class PathBinderCreationListener extends ModelBinding {
         return predicate.isUntyped() || state.isAtLeast(ModelNode.State.ProjectionsDefined);
     }
 
-    public void onCreate(ModelNodeInternal node) {
-        if (boundTo != null) {
-            throw new IllegalStateException(String.format("Reference %s for %s is already bound to %s.", predicate.getReference(), referrer, boundTo));
-        }
+    public void doOnBind(ModelNodeInternal node) {
         if (predicate.isUntyped() || isTypeCompatible(node.getPromise())) {
             boundTo = node;
             bindAction.execute(this);

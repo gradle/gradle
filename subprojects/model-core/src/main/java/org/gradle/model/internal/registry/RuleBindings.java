@@ -67,7 +67,7 @@ class RuleBindings {
 
     private void bound(Reference reference, ModelNodeInternal node) {
         ModelBinding binding = reference.binding;
-        binding.onCreate(node);
+        binding.onBind(node);
         if (binding.predicate.getState() == null) {
             throw new IllegalArgumentException("No state specified for binding: " + binding);
         }
@@ -143,19 +143,15 @@ class RuleBindings {
             public boolean canBindInState(ModelNode.State state) {
                 return true;
             }
-
-            @Override
-            public void onCreate(ModelNodeInternal node) {
-            }
         };
     }
 
     private static void unbind(RuleBinder rule, ModelNodeInternal node) {
         if (rule.getSubjectBinding() != null) {
-            rule.getSubjectBinding().onRemove(node);
+            rule.getSubjectBinding().onUnbind(node);
         }
         for (ModelBinding binding : rule.getInputBindings()) {
-            binding.onRemove(node);
+            binding.onUnbind(node);
         }
     }
 
