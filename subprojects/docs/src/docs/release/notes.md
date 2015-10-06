@@ -318,7 +318,8 @@ For example:
     foo += [files()]
 
 However, this behavior was never explicitly supported and only worked incidentally because Groovy selected the appropriate method on `FileCollection` to add a
-single `FileCollection` object.  In Groovy 2.4, this behavior has changed and no longer selects the correct method (see "Using the + operator with Iterable objects" under [Upgraded to Groovy 2.4.4](#groovyBreakingChanges)).
+single `FileCollection` object.  In Groovy 2.4, this behavior has changed and no longer selects the correct method
+(see "Using the + operator with Iterable objects" under [Upgraded to Groovy 2.4.4](#groovyBreakingChanges)).
 As this construct may be in use, we have added a workaround to maintain backwards compatibility, but this unsupported functionality is considered deprecated.
 
 Instead, adding the `FileCollection` without a list should be used:

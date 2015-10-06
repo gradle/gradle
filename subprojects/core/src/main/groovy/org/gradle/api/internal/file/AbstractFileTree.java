@@ -107,14 +107,6 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return new UnionFileTree(this, Cast.cast(FileTreeInternal.class, fileTree));
     }
 
-    private Iterable<FileTreeInternal> castToFileTreeInternal(Iterable<FileCollection> collections) {
-        for (FileCollection fileCollection : collections) {
-            Cast.cast(FileTreeInternal.class, fileCollection);
-        }
-
-        return Cast.uncheckedCast(collections);
-    }
-
     public FileTree visit(Closure closure) {
         return visit(DefaultGroovyMethods.asType(closure, FileVisitor.class));
     }
