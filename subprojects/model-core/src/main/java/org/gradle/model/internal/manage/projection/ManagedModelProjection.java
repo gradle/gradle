@@ -28,23 +28,24 @@ import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionSupport<M> {
 
+    private static final ModelType<? extends Collection<?>> COLLECTION_MODEL_TYPE = new ModelType<Collection<?>>() {
+    };
     private final ModelSchemaStore schemaStore;
-    private final NodeInitializerRegistry nodeInitializerRegistry;
     private final ManagedProxyFactory proxyFactory;
     private final ModelManagedImplStructSchema<M> schema;
 
+    // TODO:LPTR Remove nodeInitializerRegistry parameter
     public ManagedModelProjection(ModelManagedImplStructSchema<M> schema, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry, ManagedProxyFactory proxyFactory) {
         super(schema.getType(), true, true);
         this.schema = schema;
         this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;
-        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     @Override
@@ -150,10 +151,13 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                             ManagedInstance managedInstance = (ManagedInstance) value;
                             MutableModelNode targetNode = managedInstance.getBackingNode();
                             propertyNode.setTarget(targetNode);
-                        } else if (propertySchema instanceof ScalarCollectionSchema && Collection.class.isInstance(value)) {
+                        } else if (propertySchema instanceof ScalarCollectionSchema && value instanceof Collection) {
+                            ModelView<? extends Collection<?>> modelView = propertyNode.asMutable(COLLECTION_MODEL_TYPE, ruleDescriptor, Collections.<ModelView<?>>emptyList());
+                            Collection<Object> instance = Cast.uncheckedCast(modelView.getInstance());
                             Collection<Object> values = Cast.uncheckedCast(value);
-                            ScalarCollectionSchema<T, Object> scalarSchema = Cast.uncheckedCast(propertySchema);
-                            return initializeCollection(propertyNode, propertyType, scalarSchema, values);
+                            instance.clear();
+                            instance.addAll(values);
+                            return instance;
                         } else {
                             throw new IllegalArgumentException(String.format("Only managed model instances can be set as property '%s' of class '%s'", name, getType()));
                         }
@@ -162,21 +166,6 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                         propertyNode.setPrivateData(propertyType, castValue);
                     }
                     return value;
-                }
-
-                private <T, E> Object initializeCollection(MutableModelNode propertyNode, ModelType<T> propertyType, ScalarCollectionSchema<T, E> propertySchema, Collection<E> value) {
-                    ScalarCollectionSchema.clear(propertyNode);
-                    NodeInitializer initializer = nodeInitializerRegistry.getNodeInitializer(propertySchema);
-                    List<? extends ModelProjection> projections = initializer.getProjections();
-                    for (ModelProjection projection : projections) {
-                        ModelView<? extends T> modelView = projection.asMutable(propertyType, propertyNode, ruleDescriptor, null);
-                        if (modelView != null) {
-                            Collection<E> instance = Cast.uncheckedCast(modelView.getInstance());
-                            instance.addAll(value);
-                            return instance;
-                        }
-                    }
-                    return null;
                 }
             }
         };

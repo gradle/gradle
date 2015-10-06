@@ -645,6 +645,38 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    def "read-write backing set retains null value"() {
+        buildScript '''
+            @Managed
+            interface User {
+                Set<String> getGroups()
+                void setGroups(Set<String> groups)
+            }
+
+            model {
+                user(User) {
+                    groups = null
+                }
+            }
+
+            class RulePlugin extends RuleSource {
+                @Mutate
+                void checkUser(ModelMap<Task> tasks, User user) {
+                    tasks.create("check") {
+                        doLast {
+                            def items = user.groups
+                            assert items == null
+                        }
+                    }
+                }
+            }
+            apply plugin: RulePlugin
+        '''
+
+        expect:
+        succeeds 'check'
+    }
+
     def "cannot mutate read-write scalar collection when not target of a rule"() {
         given: "a managed type that uses a read-write Set of strings"
         buildScript '''
