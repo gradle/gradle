@@ -205,6 +205,8 @@ This default implementation is then used as the super class for all `@Managed` s
 - Allow for all types that support registration.
 - Change core plugins to declare default implementations for `ComponentSpec`, `BinarySpec` and `LanguageSourceSet`. This will allow `@Managed` subtypes of each
 of these types.
+- Update user guide and samples to show how to implement a custom `@Managed` `ComponentSpec`, `BinarySpec` and `LanguageSourceSet` type
+- Update user guide to show how to attach an internal view to the custom type
 
 ## Plugin author declares internal view for custom non-managed source set types
 
@@ -427,11 +429,11 @@ For example:
     - Any T where T is not constructable. Should report which types are constructable. 
 - Ensure a consistent error message for each failure, should describe the available T for each case.
 
-## Story: Allow unmanaged properties of type `List` or `Set`
+## Story: Allow `@Unmanaged` properties of type `List` or `Set`
 
 Allow a read-write property marked with `@Unmanaged` of a `@Managed` type to have type `List<T>` or `Set<T>` for any `T`. 
 
-## Story: Report available types for a ModelMap or ModelSet when element type is not constructable
+## Story: Report available types for a `ModelMap` or `ModelSet` when element type is not constructable
 
 When adding an element to a `ModelMap<T>` or `ModelSet<T>` and `T` is not constructable, use a specific error message that informs
 the user that an element of type `T` cannot be added to the collection. Error message should include the known types:
