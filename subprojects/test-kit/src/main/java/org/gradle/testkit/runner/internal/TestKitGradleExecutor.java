@@ -16,9 +16,7 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.gradle.testkit.runner.BuildTask;
-import org.gradle.testkit.runner.TaskOutcome;
-import org.gradle.testkit.runner.UnexpectedBuildException;
+import org.gradle.testkit.runner.*;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -41,8 +39,10 @@ import static org.gradle.testkit.runner.TaskOutcome.*;
 public class TestKitGradleExecutor implements GradleExecutor {
 
     public static final String TEST_KIT_DAEMON_DIR_NAME = "test-kit-daemon";
+    private final GradleDistribution<?> gradleDistribution;
 
-    public TestKitGradleExecutor() {
+    public TestKitGradleExecutor(GradleDistribution<?> gradleDistribution) {
+        this.gradleDistribution = gradleDistribution;
         registerShutdownHook();
     }
 
@@ -59,7 +59,7 @@ public class TestKitGradleExecutor implements GradleExecutor {
         final ByteArrayOutputStream standardError = new ByteArrayOutputStream();
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
 
-        GradleConnector gradleConnector = buildConnector(parameters.getGradleHome(), parameters.getGradleUserHome(), parameters.getProjectDir(), parameters.isDebug());
+        GradleConnector gradleConnector = buildConnector(parameters.getGradleUserHome(), parameters.getProjectDir(), parameters.isDebug());
         ProjectConnection connection = null;
 
         try {
@@ -88,16 +88,26 @@ public class TestKitGradleExecutor implements GradleExecutor {
         return new GradleExecutionResult(standardOutput, standardError, tasks);
     }
 
-    private GradleConnector buildConnector(File gradleHome, File gradleUserHome, File projectDir, boolean debug) {
+    private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean debug) {
         DefaultGradleConnector gradleConnector = (DefaultGradleConnector) GradleConnector.newConnector();
+        useGradleDistribution(gradleConnector);
         gradleConnector.useGradleUserHomeDir(gradleUserHome);
         gradleConnector.daemonBaseDir(new File(gradleUserHome, TEST_KIT_DAEMON_DIR_NAME));
         gradleConnector.forProjectDirectory(projectDir);
         gradleConnector.searchUpwards(false);
         gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);
-        gradleConnector.useInstallation(gradleHome);
         gradleConnector.embedded(debug);
         return gradleConnector;
+    }
+
+    private void useGradleDistribution(GradleConnector gradleConnector) {
+        if(gradleDistribution instanceof InstalledGradleDistribution) {
+            gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getHandle());
+        } else if(gradleDistribution instanceof URILocatedGradleDistribution) {
+            gradleConnector.useDistribution(((URILocatedGradleDistribution) gradleDistribution).getHandle());
+        } else if(gradleDistribution instanceof VersionBasedGradleDistribution) {
+            gradleConnector.useGradleVersion(((VersionBasedGradleDistribution) gradleDistribution).getHandle());
+        }
     }
 
     private class TaskExecutionProgressListener implements ProgressListener {

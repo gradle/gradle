@@ -58,15 +58,19 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
         testProjectDir.file(path)
     }
 
-    protected DefaultGradleRunner runner(List<String> arguments) {
-        return runner(arguments as String[])
+    DefaultGradleRunner runner(List<String> arguments) {
+        runner(arguments as String[])
     }
 
     DefaultGradleRunner runner(String... arguments) {
-        GradleRunner gradleRunner = new DefaultGradleRunner(buildContext.gradleHomeDir)
-        .withTestKitDir(testKitWorkspace)
-        .withProjectDir(testProjectDir.testDirectory)
-        .withArguments(arguments)
+        runner(new InstalledGradleDistribution(buildContext.gradleHomeDir), arguments)
+    }
+
+    DefaultGradleRunner runner(GradleDistribution<?> gradleDistribution, String... arguments) {
+        GradleRunner gradleRunner = new DefaultGradleRunner(gradleDistribution)
+            .withTestKitDir(testKitWorkspace)
+            .withProjectDir(testProjectDir.testDirectory)
+            .withArguments(arguments)
 
         if (gradleRunnerType == GradleRunnerType.EMBEDDED) {
             gradleRunner.withDebug(true)

@@ -32,7 +32,6 @@ import java.util.List;
 public class DefaultGradleRunner extends GradleRunner {
 
     public static final String DIAGNOSTICS_MESSAGE_SEPARATOR = "-----";
-    private final File gradleHome;
     private final GradleExecutor gradleExecutor;
 
     private TestKitDirProvider testKitDirProvider;
@@ -43,12 +42,11 @@ public class DefaultGradleRunner extends GradleRunner {
     private ClassPath classpath = ClassPath.EMPTY;
     private boolean debug;
 
-    public DefaultGradleRunner(File gradleHome) {
-        this(gradleHome, new TestKitGradleExecutor(), new TempTestKitDirProvider());
+    public DefaultGradleRunner(GradleDistribution<?> gradleDistribution) {
+        this(new TestKitGradleExecutor(gradleDistribution), new TempTestKitDirProvider());
     }
 
-    DefaultGradleRunner(File gradleHome, GradleExecutor gradleExecutor, TestKitDirProvider testKitDirProvider) {
-        this.gradleHome = gradleHome;
+    DefaultGradleRunner(GradleExecutor gradleExecutor, TestKitDirProvider testKitDirProvider) {
         this.gradleExecutor = gradleExecutor;
         this.testKitDirProvider = testKitDirProvider;
         debug = isDebugEnabled();
@@ -205,7 +203,6 @@ public class DefaultGradleRunner extends GradleRunner {
         File testKitDir = createTestKitDir(testKitDirProvider);
 
         GradleExecutionResult execResult = gradleExecutor.run(new GradleExecutionParameters(
-            gradleHome,
             testKitDir,
             projectDirectory,
             arguments,

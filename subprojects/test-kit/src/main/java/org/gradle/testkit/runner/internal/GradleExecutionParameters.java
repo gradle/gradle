@@ -22,7 +22,6 @@ import java.io.File;
 import java.util.List;
 
 public class GradleExecutionParameters {
-    private final File gradleHome;
     private final File gradleUserHome;
     private final File projectDir;
     private final List<String> buildArgs;
@@ -30,18 +29,13 @@ public class GradleExecutionParameters {
     private final ClassPath injectedClassPath;
     private final boolean debug;
 
-    public GradleExecutionParameters(File gradleHome, File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, ClassPath injectedClassPath, boolean debug) {
-        this.gradleHome = gradleHome;
+    public GradleExecutionParameters(File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, ClassPath injectedClassPath, boolean debug) {
         this.gradleUserHome = gradleUserHome;
         this.projectDir = projectDir;
         this.buildArgs = buildArgs;
         this.jvmArgs = jvmArgs;
         this.injectedClassPath = injectedClassPath;
         this.debug = debug;
-    }
-
-    public File getGradleHome() {
-        return gradleHome;
     }
 
     public File getGradleUserHome() {
@@ -82,9 +76,6 @@ public class GradleExecutionParameters {
         if (debug != that.debug) {
             return false;
         }
-        if (gradleHome != null ? !gradleHome.equals(that.gradleHome) : that.gradleHome != null) {
-            return false;
-        }
         if (gradleUserHome != null ? !gradleUserHome.equals(that.gradleUserHome) : that.gradleUserHome != null) {
             return false;
         }
@@ -103,8 +94,7 @@ public class GradleExecutionParameters {
 
     @Override
     public int hashCode() {
-        int result = gradleHome != null ? gradleHome.hashCode() : 0;
-        result = 31 * result + (gradleUserHome != null ? gradleUserHome.hashCode() : 0);
+        int result = gradleUserHome != null ? gradleUserHome.hashCode() : 0;
         result = 31 * result + (projectDir != null ? projectDir.hashCode() : 0);
         result = 31 * result + (buildArgs != null ? buildArgs.hashCode() : 0);
         result = 31 * result + (jvmArgs != null ? jvmArgs.hashCode() : 0);

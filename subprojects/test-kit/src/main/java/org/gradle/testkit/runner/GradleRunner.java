@@ -74,15 +74,44 @@ public abstract class GradleRunner {
     public static GradleRunner create() {
         GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator(GradleRunner.class);
         final File gradleHome = gradleDistributionLocator.getGradleHome();
-        if (gradleHome == null) {
-            try {
-                File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
-                throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was loaded from " + classpathForClass + " which is not a Gradle distribution");
-            } catch (Exception e) {
-                throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was not loaded from a Gradle distribution");
+        return create(new InstalledGradleDistribution(gradleHome));
+    }
+
+    /**
+     * Creates a new Gradle runner for a Gradle distribution.
+     * <p>
+     * A valid Gradle distribution is either installed in the filesystem, available as version on <i>https://services.gradle.org/distributions</i>,
+     * or can be downloaded from an URI.
+     * <p>
+     * Gradle distributions have to be provided as implementation of a {@link GradleDistribution}. Custom implementations of
+     * {@link GradleDistribution} are not allowed.
+     *
+     * @param gradleDistribution the Gradle distribution to be used
+     * @return a new Gradle runner
+     * @since 2.9
+     */
+    public static GradleRunner create(GradleDistribution<?> gradleDistribution) {
+        if (!(gradleDistribution instanceof InstalledGradleDistribution
+            || gradleDistribution instanceof URILocatedGradleDistribution
+            || gradleDistribution instanceof VersionBasedGradleDistribution)) {
+            throw new IllegalArgumentException(String.format("Invalid Gradle distribution type: %s", gradleDistribution.getClass().getName()));
+        }
+
+        validateGradleDistribution(gradleDistribution);
+        return new DefaultGradleRunner(gradleDistribution);
+    }
+
+    private static void validateGradleDistribution(GradleDistribution<?> gradleDistribution) {
+        if (gradleDistribution instanceof InstalledGradleDistribution) {
+            if (((InstalledGradleDistribution)gradleDistribution).getHandle() == null) {
+                try {
+                    File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
+                    throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was loaded from " + classpathForClass + " which is not a Gradle distribution");
+                } catch (Exception e) {
+                    throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was not loaded from a Gradle distribution");
+                }
             }
         }
-        return new DefaultGradleRunner(gradleHome);
     }
 
     /**

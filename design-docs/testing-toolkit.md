@@ -314,7 +314,7 @@ specific Gradle version. Example: Plugin X is built with 2.3, but check if it is
 
 A user interacts with the following interfaces/classes:
 
-    package org.gradle.testkit.functional.dist;
+    package org.gradle.testkit.runner;
 
     public interface GradleDistribution<T> {
         T getHandle();
@@ -324,20 +324,20 @@ A user interacts with the following interfaces/classes:
     public final class URILocatedGradleDistribution implements GradleDistribution<URI> { /* ... */ }
     public final class InstalledGradleDistribution implements GradleDistribution<File> { /* ... */ }
 
-    package org.gradle.testkit.functional;
+    package org.gradle.testkit.runner;
 
-    public class GradleRunnerFactory {
-        public static GradleRunner create(GradleDistribution gradleDistribution) { /* ... */ }
+    public abstract class GradleRunner {
+        public static GradleRunner create(GradleDistribution<?> gradleDistribution) { /* ... */ }
     }
 
 A functional test using Spock could look as such:
 
-    class UserFunctionalTest extends Specification {
+    class BuildLogicFunctionalTest extends Specification {
         @Unroll
-        def "run build with #gradleDistribution"() {
+        def "run build with Gradle version #gradleVersion"() {
             given:
-            File testProjectDir = new File("${System.getProperty('user.home')}/tmp/gradle-build")
-            File buildFile = new File(testProjectDir, 'build.gradle')
+            @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+            File buildFile = testProjectDir.newFile('build.gradle')
 
             buildFile << """
                 task helloWorld {
@@ -348,17 +348,25 @@ A functional test using Spock could look as such:
             """
 
             when:
-            def result = GradleRunnerFactory.create(gradleDistribution).with {
-                workingDir = testProjectDir
-                arguments << "helloWorld"
-                succeed()
+            def result = GradleRunner.create(new VersionBasedGradleDistribution(gradleVersion))
+                .withProjectDir(testProjectDir.root)
+                .withArguments('helloWorld')
+                .build()
             }
 
             then:
-            result.standardOutput.contains "Hello World!"
+            noExceptionThrown()
+            result.standardOutput.contains(':helloWorld')
+            result.standardOutput.contains('Hello world!')
+            !result.standardError
+            result.tasks.collect { it.path } == [':helloWorld']
+            result.taskPaths(SUCCESS) == [':helloWorld']
+            result.taskPaths(SKIPPED).empty
+            result.taskPaths(UP_TO_DATE).empty
+            result.taskPaths(FAILED).empty
 
             where:
-            gradleDistribution << [new VersionBasedGradleDistribution("2.4"), new VersionBasedGradleDistribution("2.5")]
+            gradleVersion << ['2.6', '2.7']
         }
     }
 
@@ -368,18 +376,19 @@ A functional test using Spock could look as such:
     * Gradle version String e.g. `"2.4"`
     * Gradle URI e.g. `new URI("http://services.gradle.org/distributions/gradle-2.4-bin.zip")`
     * Gradle installation e.g. `new File("/Users/foo/bar/gradle-installation/gradle-2.4-bin")`
-* Each test executed with a specific Gradle version creates a unique temporary test directory.
-* Tests executed with the different Gradle versions run with an isolated daemon.
 
 ### Test coverage
 
-* `GradleRunnerFactory` throws and exception if `GradleDistribution` is provided that doesn't match the supported types.
+* `GradleRunner` throws an exception if `GradleDistribution` is provided that doesn't match the supported types.
 * A test can be executed with Gradle distribution provided by the user. The version of the distribution can be a different from the Gradle version used to build the project.
+* A test can be executed with a series of Gradle distributions of the same type or different types.
+* Tests can be executed in parallel for multiple Gradle versions.
 
 ### Open issues
 
-* Execution of tests in parallel for multiple Gradle versions
-* JUnit Runner implementation to simplify definition of Gradle distributions
+* Should we provide a JUnit Runner implementation to simplify definition of Gradle distributions? The use case would be a matrix combination of multiple Gradle distributions and a list of `where`
+arguments.
+* Do we need to deal with TestKit runtime behavior backward compatibility e.g. no isolated daemon environment when executing test with a Gradle version that doesn't support it yet?
 
 ## Story: Test kit does not require any of the Gradle runtime
 

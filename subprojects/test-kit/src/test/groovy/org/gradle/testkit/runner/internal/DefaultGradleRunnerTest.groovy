@@ -29,7 +29,6 @@ import spock.lang.Unroll
 class DefaultGradleRunnerTest extends Specification {
     @Rule
     SetSystemProperties sysProp = new SetSystemProperties()
-    File gradleHome = Mock(File)
     GradleExecutor gradleExecutor = Mock(GradleExecutor)
     TestKitDirProvider testKitDirProvider = Mock(TestKitDirProvider)
     File workingDir = new File('my/tests')
@@ -220,7 +219,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(new GradleExecutionParameters(gradleHome, gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(new GradleExecutionParameters(gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
     }
 
     def "temporary working space directory is not created if Gradle user home directory is not provided by user when build and fail is requested"() {
@@ -233,7 +232,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(new GradleExecutionParameters(gradleHome, gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(new GradleExecutionParameters(gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
     }
 
     def "debug flag is passed on to executor"() {
@@ -246,7 +245,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(new GradleExecutionParameters(gradleHome, gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, debug)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(new GradleExecutionParameters(gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, debug)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
 
         where:
         debug << [true, false]
@@ -271,7 +270,7 @@ $expectedReason
     }
 
     private DefaultGradleRunner createRunner() {
-        new DefaultGradleRunner(gradleHome, gradleExecutor, testKitDirProvider)
+        new DefaultGradleRunner( gradleExecutor, testKitDirProvider)
     }
 
     private DefaultGradleRunner createRunnerWithWorkingDirAndArgument() {
