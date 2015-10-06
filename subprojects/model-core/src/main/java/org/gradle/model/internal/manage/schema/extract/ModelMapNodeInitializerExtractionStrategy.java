@@ -35,34 +35,9 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
     };
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(final ModelCollectionSchema<T, E> schema) {
+    protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema) {
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(schema.getType())) {
-            return new NodeInitializer() {
-                @Override
-                public List<? extends ModelReference<?>> getInputs() {
-                    return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
-                }
-
-                @Override
-                public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                    NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
-                    ManagedChildNodeCreatorStrategy<E> childCreator = new ManagedChildNodeCreatorStrategy<E>(nodeInitializerRegistry);
-                    modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childCreator);
-                }
-
-                @Override
-                public List<? extends ModelProjection> getProjections() {
-                    return Collections.singletonList(
-                        ModelMapModelProjection.managed(schema.getElementType(), ChildNodeInitializerStrategyAccessors.fromPrivateData())
-                    );
-                }
-
-                @Nullable
-                @Override
-                public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-                    return null;
-                }
-            };
+            return new ModelMapNodeInitializer<T, E>(schema);
         }
         return null;
     }
@@ -70,5 +45,38 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
     @Override
     public Iterable<ModelType<?>> supportedTypes() {
         return ImmutableList.<ModelType<?>>of(MODEL_MAP_MODEL_TYPE);
+    }
+
+    private static class ModelMapNodeInitializer<T, E> implements NodeInitializer {
+        private final ModelCollectionSchema<T, E> schema;
+
+        public ModelMapNodeInitializer(ModelCollectionSchema<T, E> schema) {
+            this.schema = schema;
+        }
+
+        @Override
+        public List<? extends ModelReference<?>> getInputs() {
+            return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
+        }
+
+        @Override
+        public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+            NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
+            ManagedChildNodeCreatorStrategy<E> childCreator = new ManagedChildNodeCreatorStrategy<E>(nodeInitializerRegistry);
+            modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childCreator);
+        }
+
+        @Override
+        public List<? extends ModelProjection> getProjections() {
+            return Collections.singletonList(
+                ModelMapModelProjection.managed(schema.getElementType(), ChildNodeInitializerStrategyAccessors.fromPrivateData())
+            );
+        }
+
+        @Nullable
+        @Override
+        public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
+            return null;
+        }
     }
 }

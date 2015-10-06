@@ -36,37 +36,9 @@ public class ManagedSetNodeInitializerExtractionStrategy extends CollectionNodeI
     };
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(final ModelCollectionSchema<T, E> schema) {
+    protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema) {
         if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(schema.getType())) {
-            return new NodeInitializer() {
-                @Override
-                public List<? extends ModelReference<?>> getInputs() {
-                    return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
-                }
-
-                @Override
-                public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                    NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
-                    ChildNodeInitializerStrategy<T> childCreator = new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry);
-                    modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childCreator);
-                }
-
-                @Override
-                public List<? extends ModelProjection> getProjections() {
-                    return Collections.singletonList(
-                        TypedModelProjection.of(
-                            ModelTypes.managedSet(schema.getElementType()),
-                            new ManagedSetModelViewFactory<E>(schema.getElementType())
-                        )
-                    );
-                }
-
-                @Nullable
-                @Override
-                public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
-                    return null;
-                }
-            };
+            return new ManagedSetNodeInitializer<T, E>(schema);
         }
         return null;
     }
@@ -110,6 +82,42 @@ public class ManagedSetNodeInitializerExtractionStrategy extends CollectionNodeI
         @Override
         public int hashCode() {
             return elementType.hashCode();
+        }
+    }
+
+    private static class ManagedSetNodeInitializer<T, E> implements NodeInitializer {
+        private final ModelCollectionSchema<T, E> schema;
+
+        public ManagedSetNodeInitializer(ModelCollectionSchema<T, E> schema) {
+            this.schema = schema;
+        }
+
+        @Override
+        public List<? extends ModelReference<?>> getInputs() {
+            return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
+        }
+
+        @Override
+        public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+            NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
+            ChildNodeInitializerStrategy<T> childCreator = new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry);
+            modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childCreator);
+        }
+
+        @Override
+        public List<? extends ModelProjection> getProjections() {
+            return Collections.singletonList(
+                TypedModelProjection.of(
+                    ModelTypes.managedSet(schema.getElementType()),
+                    new ManagedSetModelViewFactory<E>(schema.getElementType())
+                )
+            );
+        }
+
+        @Nullable
+        @Override
+        public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
+            return null;
         }
     }
 }
