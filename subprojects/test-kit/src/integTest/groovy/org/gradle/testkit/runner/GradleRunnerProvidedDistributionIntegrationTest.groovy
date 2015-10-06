@@ -21,12 +21,15 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.ClassRule
 import spock.lang.Shared
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
 @LeaksFileHandles
+@Requires(TestPrecondition.ONLINE)
 class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     @Shared
@@ -47,8 +50,7 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = runner(gradleDistribution, 'helloWorld')
-        gradleRunner.withTestKitDir(testKitDir.root)
+        GradleRunner gradleRunner = runnerWithSharedTestKitDir(gradleDistribution, 'helloWorld')
         BuildResult result = gradleRunner.build()
 
         then:
@@ -68,6 +70,7 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
                                new VersionBasedGradleDistribution(mostRecentSnapshot.version)]
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "execute build for multiple Gradle versions of the same distribution type"() {
         given:
         buildFile << """
@@ -81,8 +84,7 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         """
 
         when:
-        GradleRunner gradleRunner = runner(new VersionBasedGradleDistribution(gradleVersion), 'helloWorld')
-        gradleRunner.withTestKitDir(testKitDir.root)
+        GradleRunner gradleRunner = runnerWithSharedTestKitDir(new VersionBasedGradleDistribution(gradleVersion), 'helloWorld')
         BuildResult result = gradleRunner.build()
 
         then:
@@ -100,6 +102,7 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         gradleVersion << ['2.6', '2.7']
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "fails a build that uses unsupported APIs for a Gradle version"() {
         given:
         buildFile << """
@@ -114,8 +117,7 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         """
 
         when:
-        GradleRunner gradleRunner = runner(new VersionBasedGradleDistribution('2.5'), 'dependencies')
-        gradleRunner.withTestKitDir(testKitDir.root)
+        GradleRunner gradleRunner = runnerWithSharedTestKitDir(new VersionBasedGradleDistribution('2.5'), 'dependencies')
         BuildResult result = gradleRunner.buildAndFail()
 
         then:
@@ -127,5 +129,10 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         result.taskPaths(SKIPPED).empty
         result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
+    }
+
+    private GradleRunner runnerWithSharedTestKitDir(GradleDistribution<?> gradleDistribution, String... arguments) {
+        runner(gradleDistribution, arguments)
+        .withTestKitDir(testKitDir.root)
     }
 }

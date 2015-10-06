@@ -27,6 +27,8 @@ import org.gradle.testkit.runner.fixtures.GradleRunnerType
 import org.gradle.testkit.runner.fixtures.MultiGradleRunnerSpecRunner
 import org.gradle.testkit.runner.internal.TempTestKitDirProvider
 import org.gradle.util.GFileUtils
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.ClassRule
 import org.junit.runner.RunWith
 import spock.lang.Shared
@@ -564,6 +566,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         assertDaemonsAreStopping()
     }
 
+    @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
     def "can provide a series of version-based Gradle distributions to execute test"() {
         buildFile << gradleTestKitDependency()
         writeTest """
@@ -624,6 +627,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         gradleVersion << ['2.6', '2.7']
     }
 
+    @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
     def "successfully execute functional tests with parallel forks for multiple Gradle distributions"() {
         buildFile << gradleTestKitDependency()
         buildFile << parallelTests()
