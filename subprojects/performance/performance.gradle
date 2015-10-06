@@ -452,7 +452,8 @@ task prepareSamples {
         smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
         variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
         smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
-        bigOldJavaMoreSource, lotProjectDependencies, smallNewMultiprojectJava, largeNewMultiprojectJava
+        bigOldJavaMoreSource, lotProjectDependencies, smallNewMultiprojectJava, largeNewMultiprojectJava,
+        nativeMonolithic, nativeMonolithicOverlapping
     group = "Project Setup"
     description = "Generates all sample projects for automated performance tests"
 }
