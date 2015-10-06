@@ -449,8 +449,7 @@
         <title>Convention properties</title>
         <para>
             The Java plugin adds a number of convention properties to the project, shown below. You can use these properties
-            in your build script as though they were properties of the project object (see
-            <xref linkend="sub:more_about_convention_objects"/>).
+            in your build script as though they were properties of the project object.
         </para>
 
         <table id='javaconventionDir'>
@@ -1321,7 +1320,7 @@
                 <literal>scanForTestClasses</literal> to false. This will make the test task only use includes /
                 excludes to find test classes. If <literal>scanForTestClasses</literal> is false and no include
                 / exclude patterns are specified, the defaults are
-                “<literal>**/*Tests.class</literal>”, “<literal>**/*Test.class</literal>” and 
+                “<literal>**/*Tests.class</literal>”, “<literal>**/*Test.class</literal>” and
                 “<literal>**/Abstract*.class</literal>” for include and exclude, respectively.
             </para>
         </section>

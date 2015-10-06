@@ -210,8 +210,7 @@
             </term>
             <listitem>
                 <para>Specifies the project-specific cache directory. Default value is
-                    <filename>.gradle</filename>
-                    in the root project directory. See <xref linkend="sec:caching"/>.
+                    <filename>.gradle</filename> in the root project directory.
                 </para>
             </listitem>
         </varlistentry>
