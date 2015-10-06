@@ -84,10 +84,10 @@ The first step involves the creation of a buildable element to represent the com
 ### Implementation
 
 - Add a `JvmClassesSpec` buildable element type.
-- Add `classes` property to `JarBinarySpec` that points to an instance of `JvmClassesSpec`.
-- Remove `resourcesDir` from `JarBinarySpec`. Generate resources into the classes dir.
+- Add `classes` property to `JvmBinarySpec` that points to an instance of `JvmClassesSpec`.
+- Remove `resourcesDir` from `JvmBinarySpec`. Generate resources into the classes dir.
 - With `JvmClassesSpec`:
-    - Move `classesDir` from `JarBinarySpec`.
+    - Move `classesDir` from `JvmBinarySpec`.
     - Add `inputs` property, a set of `LanguageSourceSet`. Defaults to library variant's input source sets.
     - Build task for this element should compile input sources to classes and process input resources.
     - Replace the Play plugin's `JvmClasses` with this.
