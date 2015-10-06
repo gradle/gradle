@@ -50,4 +50,11 @@ class TestKitSamplesIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(sample.dir)
         succeeds "check"
     }
+
+    @UsesSample("testKit/testKitSpockGradleDistribution")
+    def gradleDistribution() {
+        expect:
+        executer.inDirectory(sample.dir)
+        succeeds "check"
+    }
 }

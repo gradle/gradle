@@ -162,8 +162,27 @@
                 If a Gradle distribution cannot be found, creation of the runner instance will fail.
             </para>
             <para>
-                Future versions of the TestKit will support more powerful distribution discovery, facilitating cross version testing.
+                An alternative to relying on the default Gradle distribution determined during the creation of the <literal>GradleRunner</literal> instance is to specify a custom Gradle distribution.
+                Gradle distributions are defined as implementations of the interface <apilink class="org.gradle.testkit.runner.GradleDistribution"/>. The following implementations are available:
+                <itemizedlist>
+                    <listitem>A distribution identified by a Gradle version;</listitem>
+                    <listitem>A URI pointing to distribution ZIP file;</listitem>
+                    <listitem>A extracted distribution located in the filesystem.</listitem>
+                </itemizedlist>
             </para>
+            <para>
+                This functionality is extremely useful to verify that build logic is working as expected for across multiple versions of Gradle. The typical use case would be to test the
+                cross-version compatibility of a plugin or task.
+            </para>
+            <para>
+                The TestKit does not allow the use of custom implementations of the <literal>GradleDistribution</literal> interface.
+            </para>
+            <para>
+                The following demonstrates a cross-version compatibility test written as Groovy Spock test:
+            </para>
+            <sample id="testKitFunctionalTestSpockGradleDistribution" dir="testKit/testKitSpockGradleDistribution/src/test/groovy/org/gradle/sample" title="Specifying a Gradle distribution for test execution">
+                <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock-gradle-distribution"/>
+            </sample>
         </section>
         <section>
             <title>Debugging build logic</title>
