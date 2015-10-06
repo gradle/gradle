@@ -383,6 +383,7 @@ A functional test using Spock could look as such:
 * A test can be executed with Gradle distribution provided by the user. The version of the distribution can be a different from the Gradle version used to build the project.
 * A test can be executed with a series of Gradle distributions of the same type or different types.
 * Tests can be executed in parallel for multiple Gradle versions.
+* A test using a unknown or unsupported for a Gradle distribution fails the build.
 
 ### Open issues
 

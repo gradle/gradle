@@ -270,7 +270,7 @@ $expectedReason
     }
 
     private DefaultGradleRunner createRunner() {
-        new DefaultGradleRunner( gradleExecutor, testKitDirProvider)
+        new DefaultGradleRunner(gradleExecutor, testKitDirProvider)
     }
 
     private DefaultGradleRunner createRunnerWithWorkingDirAndArgument() {

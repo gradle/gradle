@@ -21,15 +21,22 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.fixtures.GradleRunnerType
 import org.gradle.testkit.runner.fixtures.MultiGradleRunnerSpecRunner
 import org.gradle.testkit.runner.internal.TempTestKitDirProvider
 import org.gradle.util.GFileUtils
+import org.junit.ClassRule
 import org.junit.runner.RunWith
+import spock.lang.Shared
 
 @RunWith(MultiGradleRunnerSpecRunner)
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
+
+    @ClassRule
+    @Shared
+    TestNameTestDirectoryProvider testKitDir = new TestNameTestDirectoryProvider()
 
     static GradleRunnerType gradleRunnerType
 
@@ -589,6 +596,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
                     when:
                     def gradleRunner = GradleRunner.create(new VersionBasedGradleDistribution('$gradleVersion'))
+                        .withTestKitDir(new File('$testKitDir.root'))
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
                         .withDebug($gradleRunnerType.debug)
@@ -653,6 +661,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
                         when:
                         def gradleRunner = GradleRunner.create(new VersionBasedGradleDistribution('$gradleVersion'))
+                            .withTestKitDir(new File('$testKitDir.root'))
                             .withProjectDir(testProjectDir.root)
                             .withArguments('helloWorld')
                             .withDebug($gradleRunnerType.debug)

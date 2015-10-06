@@ -18,28 +18,37 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
+import org.junit.ClassRule
 import spock.lang.Shared
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
+@LeaksFileHandles
 class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     @Shared
     DistributionLocator locator = new DistributionLocator()
+
     @Shared
     ReleasedVersionDistributions distributions = new ReleasedVersionDistributions()
+
     @Shared
     GradleVersion mostRecentSnapshot = distributions.mostRecentSnapshot.version
 
-    @LeaksFileHandles
+    @ClassRule
+    @Shared
+    TestNameTestDirectoryProvider testKitDir = new TestNameTestDirectoryProvider()
+
     def "execute build with different distribution types"() {
         given:
         buildFile << helloWorldTask()
 
         when:
         GradleRunner gradleRunner = runner(gradleDistribution, 'helloWorld')
+        gradleRunner.withTestKitDir(testKitDir.root)
         BuildResult result = gradleRunner.build()
 
         then:
@@ -59,21 +68,21 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
                                new VersionBasedGradleDistribution(mostRecentSnapshot.version)]
     }
 
-    @LeaksFileHandles
     def "execute build for multiple Gradle versions of the same distribution type"() {
         given:
         buildFile << """
-        task helloWorld {
-            doLast {
-                // standard output wasn't parsed properly for pre-2.8 Gradle versions in embedded mode
-                // using the Gradle logger instead
-                logger.quiet 'Hello world!'
+            task helloWorld {
+                doLast {
+                    // standard output wasn't parsed properly for pre-2.8 Gradle versions in embedded mode
+                    // using the Gradle logger instead
+                    logger.quiet 'Hello world!'
+                }
             }
-        }
         """
 
         when:
         GradleRunner gradleRunner = runner(new VersionBasedGradleDistribution(gradleVersion), 'helloWorld')
+        gradleRunner.withTestKitDir(testKitDir.root)
         BuildResult result = gradleRunner.build()
 
         then:
@@ -89,5 +98,34 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
 
         where:
         gradleVersion << ['2.6', '2.7']
+    }
+
+    def "fails a build that uses unsupported APIs for a Gradle version"() {
+        given:
+        buildFile << """
+            configurations {
+                functionalTestCompile
+            }
+
+            dependencies {
+                // method was introduced in Gradle 2.6
+                functionalTestCompile gradleTestKit()
+            }
+        """
+
+        when:
+        GradleRunner gradleRunner = runner(new VersionBasedGradleDistribution('2.5'), 'dependencies')
+        gradleRunner.withTestKitDir(testKitDir.root)
+        BuildResult result = gradleRunner.buildAndFail()
+
+        then:
+        !result.standardOutput.contains(':dependencies')
+        result.standardOutput.contains('BUILD FAILED')
+        result.standardError.contains("Could not find method gradleTestKit() for arguments [] on root project '$gradleRunner.projectDir.name'")
+        result.tasks.empty
+        result.taskPaths(SUCCESS).empty
+        result.taskPaths(SKIPPED).empty
+        result.taskPaths(UP_TO_DATE).empty
+        result.taskPaths(FAILED).empty
     }
 }
