@@ -19,7 +19,6 @@ package org.gradle.model.internal.inspect;
 import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 import java.util.List;
@@ -49,7 +48,7 @@ public class ProjectionOnlyNodeInitializer implements NodeInitializer {
 
     @Nullable
     @Override
-    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate) {
+    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
         return null;
     }
 }

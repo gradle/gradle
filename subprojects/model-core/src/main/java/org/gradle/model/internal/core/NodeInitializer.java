@@ -19,7 +19,6 @@ package org.gradle.model.internal.core;
 import org.gradle.api.Nullable;
 import org.gradle.internal.BiAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
@@ -40,6 +39,6 @@ public interface NodeInitializer extends BiAction<MutableModelNode, List<ModelVi
     List<? extends ModelProjection> getProjections();
 
     @Nullable
-    ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate);
+    ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor);
 
 }

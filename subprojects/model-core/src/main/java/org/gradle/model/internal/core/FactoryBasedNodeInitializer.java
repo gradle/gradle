@@ -52,16 +52,12 @@ public class FactoryBasedNodeInitializer<T, S extends T> implements NodeInitiali
 
     @Nullable
     @Override
-    public ModelAction getProjector(final ModelPath path, final ModelRuleDescriptor descriptor, final ModelType<?> typeToCreate) {
-        if (!type.isAssignableFrom(typeToCreate)) {
-            throw new IllegalArgumentException(String.format("Type %s is not a subtype of %s", typeToCreate, type));
-        }
-        final ModelType<? extends S> projectedType = Cast.uncheckedCast(typeToCreate);
+    public ModelAction getProjector(final ModelPath path, final ModelRuleDescriptor descriptor) {
         return new AbstractModelAction<Object>(ModelReference.of(path), descriptor, factoryReference) {
             @Override
             public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
                 InstanceFactory<S> factory = Cast.uncheckedCast(inputs.get(0).getInstance());
-                for (ModelType<?> internalView : factory.getInternalViews(projectedType)) {
+                for (ModelType<?> internalView : factory.getInternalViews(type)) {
                     modelNode.addProjection(UnmanagedModelProjection.of(internalView));
                 }
             }

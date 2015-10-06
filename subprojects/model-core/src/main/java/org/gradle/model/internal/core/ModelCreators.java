@@ -72,9 +72,7 @@ abstract public class ModelCreators {
     }
 
     public static Builder of(ModelPath path, NodeInitializer initializer) {
-        return of(path)
-            .action(ModelActionRole.Create, initializer)
-            .withProjections(initializer.getProjections());
+        return new Builder(path, initializer);
     }
 
     public static Builder of(ModelPath path, ModelReference<?> input, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
@@ -106,13 +104,19 @@ abstract public class ModelCreators {
         private final ModelPath path;
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
         private final ListMultimap<ModelActionRole, ModelAction> actions = ArrayListMultimap.create();
+        private final NodeInitializer nodeInitializer;
         private boolean ephemeral;
         private boolean hidden;
 
         private ModelRuleDescriptor modelRuleDescriptor;
 
         private Builder(ModelPath path) {
+            this(path, null);
+        }
+
+        private Builder(ModelPath path, NodeInitializer nodeInitializer) {
             this.path = path;
+            this.nodeInitializer = nodeInitializer;
         }
 
         public Builder descriptor(String descriptor) {
@@ -155,22 +159,6 @@ abstract public class ModelCreators {
             return this;
         }
 
-        public Builder action(ModelActionRole role, final NodeInitializer initializer) {
-            this.action(role, new BuilderModelAction() {
-                @Override
-                public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                    initializer.execute(modelNode, inputs);
-                }
-
-                @Override
-                public List<? extends ModelReference<?>> getInputs() {
-                    return initializer.getInputs();
-                }
-            });
-            this.projections.addAll(initializer.getProjections());
-            return this;
-        }
-
         public Builder action(ModelActionRole role, ModelReference<?> input, BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer) {
             this.action(role, Collections.singletonList(input), initializer);
             return this;
@@ -197,13 +185,6 @@ abstract public class ModelCreators {
             return this;
         }
 
-        public Builder withProjections(Iterable<? extends ModelProjection> projections) {
-            for (ModelProjection projection : projections) {
-                withProjection(projection);
-            }
-            return this;
-        }
-
         public Builder hidden(boolean flag) {
             this.hidden = flag;
             return this;
@@ -216,6 +197,26 @@ abstract public class ModelCreators {
 
         @SuppressWarnings("unchecked")
         public ModelCreator build() {
+            if (nodeInitializer != null) {
+                this.action(ModelActionRole.Create, new BuilderModelAction() {
+                    @Override
+                    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                        nodeInitializer.execute(modelNode, inputs);
+                    }
+
+                    @Override
+                    public List<? extends ModelReference<?>> getInputs() {
+                        return nodeInitializer.getInputs();
+                    }
+                });
+
+                this.projections.addAll(nodeInitializer.getProjections());
+
+                ModelAction projector = nodeInitializer.getProjector(path, modelRuleDescriptor);
+                if (projector != null) {
+                    action(ModelActionRole.DefineProjections, projector);
+                }
+            }
             return new ProjectionBackedModelCreator(path, modelRuleDescriptor, ephemeral, hidden, projections, actions);
         }
 

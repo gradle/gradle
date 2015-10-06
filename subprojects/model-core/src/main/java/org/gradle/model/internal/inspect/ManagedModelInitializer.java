@@ -71,7 +71,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
 
     @Nullable
     @Override
-    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate) {
+    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
         return null;
     }
 
@@ -84,25 +84,26 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
         validateProperty(propertySchema, property);
 
-        final ModelRuleDescriptor descriptor = modelNode.getDescriptor();
+        ModelRuleDescriptor descriptor = modelNode.getDescriptor();
+        ModelPath childPath = modelNode.getPath().child(property.getName());
         if (propertySchema instanceof ManagedImplModelSchema) {
             if (!property.isWritable()) {
                 ManagedImplModelSchema<P> managedPropertySchema = (ManagedImplModelSchema<P>) propertySchema;
-                ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), nodeInitializerRegistry.getNodeInitializer(managedPropertySchema))
+                ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(managedPropertySchema))
                     .descriptor(descriptor)
                     .build();
                 modelNode.addLink(creator);
             } else {
                 if (propertySchema instanceof ScalarCollectionSchema) {
                     ManagedImplModelSchema<P> managedPropertySchema = (ManagedImplModelSchema<P>) propertySchema;
-                    ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()), nodeInitializerRegistry.getNodeInitializer(managedPropertySchema))
+                    ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(managedPropertySchema))
                         .descriptor(descriptor)
                         .build();
                     modelNode.addLink(creator);
                 } else {
                     ModelManagedImplStructSchema<P> structSchema = (ModelManagedImplStructSchema<P>) propertySchema;
                     ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, nodeInitializerRegistry, ManagedProxyFactory.INSTANCE);
-                    ModelCreator creator = ModelCreators.of(modelNode.getPath().child(property.getName()))
+                    ModelCreator creator = ModelCreators.of(childPath)
                         .withProjection(projection)
                         .descriptor(descriptor).build();
                     modelNode.addReference(creator);
@@ -110,12 +111,15 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
             }
         } else {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
-            ModelCreators.Builder creatorBuilder = ModelCreators.of(modelNode.getPath().child(property.getName()))
+            ModelCreators.Builder creatorBuilder;
+            if (shouldHaveANodeInitializer(property, propertySchema)) {
+                creatorBuilder = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(propertyType));
+            } else {
+                creatorBuilder = ModelCreators.of(childPath);
+            }
+            creatorBuilder
                 .withProjection(projection)
                 .descriptor(descriptor);
-            if (shouldHaveANodeInitializer(property, propertySchema)) {
-                creatorBuilder.action(ModelActionRole.Create, nodeInitializerRegistry.getNodeInitializer(propertyType));
-            }
             modelNode.addLink(creatorBuilder.build());
         }
     }

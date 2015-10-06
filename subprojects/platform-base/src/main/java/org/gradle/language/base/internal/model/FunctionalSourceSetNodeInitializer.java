@@ -54,7 +54,7 @@ public class FunctionalSourceSetNodeInitializer implements NodeInitializer {
 
     @Nullable
     @Override
-    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor, ModelType<?> typeToCreate) {
+    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
         return null;
     }
 }

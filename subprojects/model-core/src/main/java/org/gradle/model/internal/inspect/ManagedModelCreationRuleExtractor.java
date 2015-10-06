@@ -87,6 +87,10 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
                     for (ModelProjection projection : initializer.getProjections()) {
                         node.addProjection(projection);
                     }
+                    ModelAction projector = initializer.getProjector(modelPath, descriptor);
+                    if (projector != null) {
+                        node.applyToSelf(ModelActionRole.DefineProjections, projector);
+                    }
                 }
             })
             .action(ModelActionRole.Create, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
