@@ -17,10 +17,7 @@
 package org.gradle.model
 
 import org.gradle.api.Named
-import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
-import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.core.ReadonlyImmutableManagedPropertyException
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
@@ -31,6 +28,10 @@ class ManagedNamedTest extends Specification {
     def r = new ModelRegistryHelper()
     def schemaStore = DefaultModelSchemaStore.getInstance()
     def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
+
+    def setup() {
+        r.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry), nodeInitializerRegistry).build())
+    }
 
     def "named struct has name name property populated"() {
         when:

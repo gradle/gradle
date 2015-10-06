@@ -19,8 +19,10 @@ package org.gradle.model.internal.inspect
 import org.gradle.model.internal.ModelValidationTypes
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.ModelTypeInitializationException
+import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import spock.lang.Shared
@@ -33,6 +35,10 @@ class ManagedModelInitializerTest extends Specification implements ModelValidati
     def store = DefaultModelSchemaStore.getInstance()
     def r = new ModelRegistryHelper()
     def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(store)
+
+    def setup() {
+        r.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry), nodeInitializerRegistry).build())
+    }
 
     def "must be symmetrical"() {
         expect:

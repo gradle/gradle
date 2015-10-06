@@ -49,10 +49,10 @@ public abstract class ManagedImplStructNodeInitializerExtractionSupport implemen
         if (!isTarget(schema.getType())) {
             return null;
         }
-        return extractNodeInitializer((ModelManagedImplStructSchema<T>) schema, nodeInitializerRegistry);
+        return extractNodeInitializer((ModelManagedImplStructSchema<T>) schema);
     }
 
-    protected abstract <T> NodeInitializer extractNodeInitializer(ModelManagedImplStructSchema<T> schema, NodeInitializerRegistry nodeInitializerRegistry);
+    protected abstract <T> NodeInitializer extractNodeInitializer(ModelManagedImplStructSchema<T> schema);
 
     @Override
     public Iterable<ModelType<?>> supportedTypes() {

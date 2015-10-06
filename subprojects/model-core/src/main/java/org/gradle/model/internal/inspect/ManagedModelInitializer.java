@@ -32,23 +32,22 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
 
     protected final ModelManagedImplStructSchema<T> modelSchema;
     protected final ModelSchemaStore schemaStore;
-    protected final NodeInitializerRegistry nodeInitializerRegistry;
 
-    public ManagedModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry) {
+    public ManagedModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore) {
         this.modelSchema = modelSchema;
         this.schemaStore = schemaStore;
-        this.nodeInitializerRegistry = nodeInitializerRegistry;
     }
 
     @Override
     public List<? extends ModelReference<?>> getInputs() {
-        return Collections.emptyList();
+        return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
     }
 
     @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+        NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
         for (ModelProperty<?> property : modelSchema.getProperties()) {
-            addPropertyLink(modelNode, property);
+            addPropertyLink(modelNode, property, nodeInitializerRegistry);
         }
         if (isANamedType()) {
             // Only initialize "name" child node if the schema has such a managed property.
@@ -66,7 +65,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
 
     @Override
     public List<? extends ModelProjection> getProjections() {
-        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, nodeInitializerRegistry, ManagedProxyFactory.INSTANCE));
+        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, ManagedProxyFactory.INSTANCE));
     }
 
     @Nullable
@@ -75,14 +74,14 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
         return null;
     }
 
-    private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property) {
+    private <P> void addPropertyLink(MutableModelNode modelNode, ModelProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry) {
         // No need to create nodes for unmanaged properties
         if (!property.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
             return;
         }
         ModelType<P> propertyType = property.getType();
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
-        validateProperty(propertySchema, property);
+        validateProperty(propertySchema, property, nodeInitializerRegistry);
 
         ModelRuleDescriptor descriptor = modelNode.getDescriptor();
         ModelPath childPath = modelNode.getPath().child(property.getName());
@@ -102,7 +101,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
                     modelNode.addLink(creator);
                 } else {
                     ModelManagedImplStructSchema<P> structSchema = (ModelManagedImplStructSchema<P>) propertySchema;
-                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, nodeInitializerRegistry, ManagedProxyFactory.INSTANCE);
+                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, ManagedProxyFactory.INSTANCE);
                     ModelCreator creator = ModelCreators.of(childPath)
                         .withProjection(projection)
                         .descriptor(descriptor).build();
@@ -124,7 +123,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
         }
     }
 
-    private <P> void validateProperty(ModelSchema<P> propertySchema, ModelProperty<P> property) {
+    private <P> void validateProperty(ModelSchema<P> propertySchema, ModelProperty<P> property, NodeInitializerRegistry nodeInitializerRegistry) {
         if (propertySchema instanceof ManagedImplModelSchema) {
             if (propertySchema instanceof ModelCollectionSchema) {
                 ModelCollectionSchema<P, ?> propertyCollectionsSchema = (ModelCollectionSchema<P, ?>) propertySchema;

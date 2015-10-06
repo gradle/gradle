@@ -20,7 +20,9 @@ import groovy.transform.NotYetImplemented
 import org.gradle.api.artifacts.Configuration
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
+import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleExecutionException
+import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import spock.lang.Shared
 import spock.lang.Specification
@@ -36,6 +38,10 @@ class ScalarTypesInManagedModelTest extends Specification {
     def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(store)
 
     def classloader = new GroovyClassLoader(this.class.classLoader)
+
+    def setup() {
+        r.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry), nodeInitializerRegistry).build())
+    }
 
     @Unroll
     def "cannot have read only property of scalar type #someType.simpleName"() {

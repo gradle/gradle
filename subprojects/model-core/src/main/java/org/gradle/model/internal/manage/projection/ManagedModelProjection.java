@@ -19,7 +19,10 @@ package org.gradle.model.internal.manage.projection;
 import com.google.common.base.Optional;
 import org.gradle.internal.Cast;
 import org.gradle.model.ModelViewClosedException;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.TypeCompatibilityModelProjectionSupport;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
@@ -40,8 +43,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     private final ManagedProxyFactory proxyFactory;
     private final ModelManagedImplStructSchema<M> schema;
 
-    // TODO:LPTR Remove nodeInitializerRegistry parameter
-    public ManagedModelProjection(ModelManagedImplStructSchema<M> schema, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry, ManagedProxyFactory proxyFactory) {
+    public ManagedModelProjection(ModelManagedImplStructSchema<M> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         super(schema.getType(), true, true);
         this.schema = schema;
         this.schemaStore = schemaStore;
