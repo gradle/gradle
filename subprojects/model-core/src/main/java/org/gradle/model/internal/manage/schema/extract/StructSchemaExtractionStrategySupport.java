@@ -26,7 +26,6 @@ import org.gradle.api.Nullable;
 import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
@@ -48,7 +47,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     protected abstract boolean isTarget(ModelType<?> type);
 
-    public <R> void extract(final ModelSchemaExtractionContext<R> extractionContext, final ModelSchemaStore store) {
+    public <R> void extract(final ModelSchemaExtractionContext<R> extractionContext) {
         ModelType<R> type = extractionContext.getType();
         if (!isTarget(type)) {
             return;
@@ -61,15 +60,15 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
         ModelSchema<R> schema = createSchema(extractionContext, propertyExtractionResults, aspects);
         for (ModelPropertyExtractionResult<?> propertyResult : propertyExtractionResults) {
-            toPropertyExtractionContext(extractionContext, propertyResult, store);
+            toPropertyExtractionContext(extractionContext, propertyResult);
         }
 
         extractionContext.found(schema);
     }
 
-    private <R, P> void toPropertyExtractionContext(ModelSchemaExtractionContext<R> parentContext, ModelPropertyExtractionResult<P> propertyResult, ModelSchemaStore modelSchemaStore) {
+    private <R, P> void toPropertyExtractionContext(ModelSchemaExtractionContext<R> parentContext, ModelPropertyExtractionResult<P> propertyResult) {
         ModelProperty<P> property = propertyResult.getProperty();
-        parentContext.child(property.getType(), propertyDescription(parentContext, property), createPropertyValidator(parentContext, propertyResult, modelSchemaStore));
+        parentContext.child(property.getType(), propertyDescription(parentContext, property), createPropertyValidator(parentContext, propertyResult));
     }
 
     private <R> List<ModelPropertyExtractionResult<?>> extractPropertySchemas(ModelSchemaExtractionContext<R> extractionContext, Multimap<String, Method> methodsByName) {
@@ -215,7 +214,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     protected abstract <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects);
 
-    protected abstract <P> Action<ModelSchema<P>> createPropertyValidator(ModelSchemaExtractionContext<?> extractionContext, ModelPropertyExtractionResult<P> propertyResult, ModelSchemaStore modelSchemaStore);
+    protected abstract <P> Action<ModelSchema<P>> createPropertyValidator(ModelSchemaExtractionContext<?> extractionContext, ModelPropertyExtractionResult<P> propertyResult);
 
     private String propertyDescription(ModelSchemaExtractionContext<?> parentContext, ModelProperty<?> property) {
         if (property.getDeclaredBy().size() == 1 && property.getDeclaredBy().contains(parentContext.getType())) {

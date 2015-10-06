@@ -25,6 +25,8 @@ import org.gradle.model.internal.type.ModelType;
 public interface NodeInitializerRegistry {
     <T> NodeInitializer getNodeInitializer(ModelType<T> type);
 
+    <T> void ensureHasInitializer(ModelType<T> type);
+
     <T> NodeInitializer getNodeInitializer(ModelSchema<T> schema);
 
     void registerStrategy(NodeInitializerExtractionStrategy strategy);

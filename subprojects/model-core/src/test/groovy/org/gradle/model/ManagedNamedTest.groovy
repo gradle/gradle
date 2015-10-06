@@ -19,6 +19,7 @@ package org.gradle.model
 import org.gradle.api.Named
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.inspect.ReadonlyImmutableManagedPropertyException
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import spock.lang.Specification

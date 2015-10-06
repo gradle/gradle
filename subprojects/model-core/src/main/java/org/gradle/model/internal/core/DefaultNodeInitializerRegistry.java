@@ -18,18 +18,18 @@ package org.gradle.model.internal.core;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
+import java.util.TreeSet;
 
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
-    private final List<NodeInitializerExtractionStrategy> strategies;
-    private final List<NodeInitializerExtractionStrategy> variableStrategies;
+    private final List<NodeInitializerExtractionStrategy> allStrategies;
+    private final List<NodeInitializerExtractionStrategy> additionalStrategies;
     private final ModelSchemaStore schemaStore;
     private final ScalarCollectionNodeInitializerExtractionStrategy scalarCollectionNodeInitializerExtractionStrategy;
     private final ManagedSetNodeInitializerExtractionStrategy managedSetNodeInitializerExtractionStrategy;
@@ -42,32 +42,45 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         managedSetNodeInitializerExtractionStrategy = new ManagedSetNodeInitializerExtractionStrategy();
         modelMapNodeInitializerExtractionStrategy = new ModelMapNodeInitializerExtractionStrategy();
         modelSetNodeInitializerExtractionStrategy = new ModelSetNodeInitializerExtractionStrategy();
-        this.strategies = Lists.newArrayList(
+        this.allStrategies = Lists.newArrayList(
             modelSetNodeInitializerExtractionStrategy,
             managedSetNodeInitializerExtractionStrategy,
             modelMapNodeInitializerExtractionStrategy,
             scalarCollectionNodeInitializerExtractionStrategy,
             new ManagedImplStructNodeInitializerExtractionStrategy(schemaStore)
         );
-        variableStrategies = Lists.newArrayList();
+        additionalStrategies = Lists.newArrayList();
     }
 
     @Override
     public <T> NodeInitializer getNodeInitializer(ModelSchema<T> schema) {
-        for (NodeInitializerExtractionStrategy extractor : strategies) {
+        for (NodeInitializerExtractionStrategy extractor : allStrategies) {
             NodeInitializer nodeInitializer = extractor.extractNodeInitializer(schema);
             if (nodeInitializer != null) {
                 return nodeInitializer;
             }
         }
-        Iterable<ModelType<?>> scalars = Iterables.concat(ScalarTypes.TYPES, ScalarTypes.NON_FINAL_TYPES);
-        Iterable<ModelType<?>> managedCollectionTypes = Iterables.concat(modelMapNodeInitializerExtractionStrategy.supportedTypes(), managedSetNodeInitializerExtractionStrategy.supportedTypes(), modelSetNodeInitializerExtractionStrategy.supportedTypes());
+        throw canNotConstructTypeException(schema.getType());
+    }
 
-        HashSet<ModelType<?>> otherManagedTypes = Sets.newHashSet();
-        for (NodeInitializerExtractionStrategy extractor : variableStrategies) {
-            Iterables.addAll(otherManagedTypes, extractor.supportedTypes());
+    public <T> ModelTypeInitializationException canNotConstructTypeException(ModelType<T> type) {
+        Iterable<ModelType<?>> scalars = Iterables.concat(ScalarTypes.TYPES, ScalarTypes.NON_FINAL_TYPES);
+        Iterable<ModelType<?>> managedCollectionTypes = Iterables.concat(
+            modelMapNodeInitializerExtractionStrategy.supportedTypes(),
+            managedSetNodeInitializerExtractionStrategy.supportedTypes(),
+            modelSetNodeInitializerExtractionStrategy.supportedTypes()
+        );
+
+        TreeSet<ModelType<?>> constructableTypes = new TreeSet<ModelType<?>>(new Comparator<ModelType<?>>() {
+            @Override
+            public int compare(ModelType<?> o1, ModelType<?> o2) {
+                return o1.getSimpleName().compareTo(o2.getSimpleName());
+            }
+        });
+        for (NodeInitializerExtractionStrategy extractor : additionalStrategies) {
+            Iterables.addAll(constructableTypes, extractor.supportedTypes());
         }
-        throw new ModelTypeInitializationException(schema.getType(), scalars, scalarCollectionNodeInitializerExtractionStrategy.supportedTypes(), managedCollectionTypes, otherManagedTypes);
+        return new ModelTypeInitializationException(type, scalars, scalarCollectionNodeInitializerExtractionStrategy.supportedTypes(), managedCollectionTypes, constructableTypes);
     }
 
     @Override
@@ -76,8 +89,13 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     }
 
     @Override
+    public <T> void ensureHasInitializer(ModelType<T> type) {
+        getNodeInitializer(type);
+    }
+
+    @Override
     public void registerStrategy(NodeInitializerExtractionStrategy strategy) {
-        strategies.add(0, strategy);
-        variableStrategies.add(0, strategy);
+        allStrategies.add(0, strategy);
+        additionalStrategies.add(0, strategy);
     }
 }

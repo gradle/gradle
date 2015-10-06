@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.core;
+package org.gradle.model.internal.inspect;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;

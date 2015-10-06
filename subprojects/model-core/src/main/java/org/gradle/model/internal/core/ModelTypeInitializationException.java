@@ -30,24 +30,24 @@ import org.gradle.model.internal.type.ModelType;
 @Incubating
 public class ModelTypeInitializationException extends GradleException {
 
-    public ModelTypeInitializationException(ModelType<?> type, Iterable<ModelType<?>> scalarTypes, Iterable<ModelType<?>> scalarCollectionTypes, Iterable<ModelType<?>> managedCollectionTypes, Iterable<ModelType<?>> managedTypes) {
-        super(toMessage(type, scalarTypes, scalarCollectionTypes, managedCollectionTypes, managedTypes));
+    public ModelTypeInitializationException(ModelType<?> type, Iterable<ModelType<?>> scalarTypes, Iterable<ModelType<?>> scalarCollectionTypes, Iterable<ModelType<?>> managedCollectionTypes, Iterable<ModelType<?>> constructableTypes) {
+        super(toMessage(type, scalarTypes, scalarCollectionTypes, managedCollectionTypes, constructableTypes));
     }
 
     private static String toMessage(ModelType<?> type, Iterable<ModelType<?>> scalarTypes, Iterable<ModelType<?>> scalarCollectionTypes,
-                                    Iterable<ModelType<?>> managedCollectionTypes, Iterable<ModelType<?>> managedTypes) {
+                                    Iterable<ModelType<?>> managedCollectionTypes, Iterable<ModelType<?>> constructableTypes) {
         StringBuffer s = new StringBuffer(String.format("A model node of type: '%s' can not be constructed.\n"
-            + "Its type must be one the following:\n"
+            + "It must be one the following:\n"
             + "  - A supported scalar type (%s)\n"
             + "  - An enumerated type (Enum)\n"
             + "  - An explicitly managed type (i.e. annotated with @Managed)\n"
-            + "  - An explicitly unmanaged type (i.e. annotated with @Unmanaged)\n"
+            + "  - An explicitly unmanaged property (i.e. annotated with @Unmanaged)\n"
             + "  - A scalar collection type (%s)\n"
             + "  - A managed collection type (%s)\n", type, describe(scalarTypes), describe(scalarCollectionTypes), describe(managedCollectionTypes)));
 
-        if (!Iterables.isEmpty(managedTypes)) {
-            s.append("  - A managed type:\n");
-            for (ModelType<?> modelType : managedTypes) {
+        if (!Iterables.isEmpty(constructableTypes)) {
+            s.append("  - A type which Gradle is capable of constructing:\n");
+            for (ModelType<?> modelType : constructableTypes) {
                 s.append(String.format("    - %s", modelType.getName()));
             }
         }

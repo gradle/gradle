@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 
@@ -33,7 +32,7 @@ public class ScalarCollectionStrategy implements ModelSchemaExtractionStrategy {
         ModelType.of(Set.class)
     );
 
-    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store) {
+    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);

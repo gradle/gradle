@@ -15,10 +15,8 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.platform.base.internal.registry.LanguageTypeModelRuleExtractor
 
 class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -34,7 +32,6 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         fails "model"
-        new LanguageTypeModelRuleExtractor.DefaultLanguageTypeBuilder().setLanguageName('ruby')
 
         then:
         failureCauseContains("Declaration of model rule Rules#functionalSources is invalid.")

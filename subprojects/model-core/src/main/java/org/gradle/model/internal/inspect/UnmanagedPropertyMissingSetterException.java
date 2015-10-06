@@ -16,9 +16,10 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.api.GradleException;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 
-public class UnmanagedPropertyMissingSetterException extends RuntimeException {
+public class UnmanagedPropertyMissingSetterException extends GradleException {
     public UnmanagedPropertyMissingSetterException(ModelProperty<?> property) {
         super(getMessage(property));
     }

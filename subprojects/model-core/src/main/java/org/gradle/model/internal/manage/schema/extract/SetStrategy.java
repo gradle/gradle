@@ -32,7 +32,7 @@ public abstract class SetStrategy extends CollectionStrategy {
         this.modelType = modelType;
     }
 
-    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store) {
+    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         if (modelType.isAssignableFrom(type)) {
             validateType(modelType, extractionContext, type);

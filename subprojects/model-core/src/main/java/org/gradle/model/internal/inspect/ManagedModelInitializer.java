@@ -130,7 +130,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
                 ModelType<?> elementType = propertyCollectionsSchema.getElementType();
                 if (!(propertySchema instanceof ScalarCollectionSchema)) {
                     if (!property.isWritable()) {
-                        nodeInitializerRegistry.getNodeInitializer(elementType);
+                        nodeInitializerRegistry.ensureHasInitializer(elementType);
                     }
                 }
             }
@@ -139,9 +139,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
                     throw new UnmanagedPropertyMissingSetterException(property);
                 }
             }
-        } else if (!shouldHaveANodeInitializer(property, propertySchema) && isAModelValueSchema(propertySchema)
-            && !property.isWritable()
-            && !isNamePropertyOfANamedType(property)) {
+        } else if (!shouldHaveANodeInitializer(property, propertySchema) && !property.isWritable() && !isNamePropertyOfANamedType(property)) {
             throw new ReadonlyImmutableManagedPropertyException(modelSchema.getType(), property.getName(), property.getType());
         }
     }
@@ -155,8 +153,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
     }
 
     private <P> boolean shouldHaveANodeInitializer(ModelProperty<P> property, ModelSchema<P> propertySchema) {
-        return !isAModelValueSchema(propertySchema)
-            && !property.isDeclaredAsHavingUnmanagedType();
+        return !isAModelValueSchema(propertySchema) && !property.isDeclaredAsHavingUnmanagedType();
     }
 
     private <P> boolean isAModelValueSchema(ModelSchema<P> propertySchema) {

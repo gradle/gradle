@@ -16,13 +16,12 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ModelValueSchema;
 import org.gradle.model.internal.type.ModelType;
 
 public class JdkValueTypeStrategy implements ModelSchemaExtractionStrategy {
 
-    public <R> void extract(ModelSchemaExtractionContext<R> extractionContext, ModelSchemaStore store) {
+    public <R> void extract(ModelSchemaExtractionContext<R> extractionContext) {
         ModelType<R> type = extractionContext.getType();
         if (ScalarTypes.TYPES.contains(type)) {
             extractionContext.found(new ModelValueSchema<R>(type));

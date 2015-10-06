@@ -69,7 +69,7 @@ public class ModelSchemaExtractor {
         validations.add(extractionContext);
 
         while (extractionContext != null) {
-            extractSchema(extractionContext, store, cache);
+            extractSchema(extractionContext, cache);
             Iterable<? extends ModelSchemaExtractionContext<?>> dependencies = extractionContext.getChildren();
             Iterables.addAll(validations, dependencies);
             pushUnsatisfiedDependencies(dependencies, unsatisfiedDependencies, cache);
@@ -96,7 +96,7 @@ public class ModelSchemaExtractor {
         extractionContext.validate(cache.get(extractionContext.getType()));
     }
 
-    private <T> void extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store, ModelSchemaCache cache) {
+    private <T> void extractSchema(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaCache cache) {
         final ModelType<T> type = extractionContext.getType();
         ModelSchema<T> cached = cache.get(type);
         if (cached != null) {
@@ -105,7 +105,7 @@ public class ModelSchemaExtractor {
         }
 
         for (ModelSchemaExtractionStrategy strategy : strategies) {
-            strategy.extract(extractionContext, store);
+            strategy.extract(extractionContext);
             if (extractionContext.getResult() != null) {
                 cache.set(type, extractionContext.getResult());
                 return;

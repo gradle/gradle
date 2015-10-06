@@ -195,7 +195,7 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
     }
 
     @Override
-    protected <P> Action<ModelSchema<P>> createPropertyValidator(final ModelSchemaExtractionContext<?> parentContext, final ModelPropertyExtractionResult<P> propertyResult, final ModelSchemaStore modelSchemaStore) {
+    protected <P> Action<ModelSchema<P>> createPropertyValidator(final ModelSchemaExtractionContext<?> parentContext, final ModelPropertyExtractionResult<P> propertyResult) {
         return new Action<ModelSchema<P>>() {
             @Override
             public void execute(ModelSchema<P> propertySchema) {

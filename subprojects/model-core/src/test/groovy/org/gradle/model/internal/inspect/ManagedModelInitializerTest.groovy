@@ -16,7 +16,8 @@
 
 package org.gradle.model.internal.inspect
 
-import org.gradle.model.internal.ModelValidationTypes
+import org.gradle.model.Managed
+import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelReference
@@ -25,16 +26,19 @@ import org.gradle.model.internal.core.ModelTypeInitializationException
 import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.manage.schema.extract.ScalarTypes
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class ManagedModelInitializerTest extends Specification implements ModelValidationTypes {
+class ManagedModelInitializerTest extends Specification {
 
     @Shared
     def store = DefaultModelSchemaStore.getInstance()
     def r = new ModelRegistryHelper()
     def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(store)
+    def classLoader = new GroovyClassLoader(getClass().classLoader)
+    static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
     def setup() {
         r.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry), nodeInitializerRegistry).build())
@@ -42,7 +46,7 @@ class ManagedModelInitializerTest extends Specification implements ModelValidati
 
     def "must be symmetrical"() {
         expect:
-        failWhenRealized ModelValidationTypes.OnlyGetter, "read only property 'name' has non managed type java.lang.String, only managed types can be used"
+        failWhenRealized OnlyGetter, "read only property 'name' has non managed type java.lang.String, only managed types can be used"
     }
 
     @Unroll
@@ -50,25 +54,25 @@ class ManagedModelInitializerTest extends Specification implements ModelValidati
         expect:
         failWhenRealized(type,
             canNotBeConstructed("${failingProperty.name}"),
-            "Its type must be one the following:",
+            "It must be one the following:",
             "- A supported scalar type (",
             "- An enumerated type (Enum)",
             "- An explicitly managed type (i.e. annotated with @Managed)",
-            "- An explicitly unmanaged type (i.e. annotated with @Unmanaged)",
+            "- An explicitly unmanaged property (i.e. annotated with @Unmanaged)",
             "- A scalar collection type ("
         )
 
         where:
         type                                           | failingProperty
-        ModelValidationTypes.NonStringProperty         | Object
-        ModelValidationTypes.ClassWithExtendedFileType | ModelValidationTypes.ExtendedFile
+        NonStringProperty         | Object
+        ClassWithExtendedFileType | ExtendedFile
     }
 
     def "unmanaged types must be annotated with unmanaged"() {
         expect:
-        failWhenRealized(ModelValidationTypes.MissingUnmanaged,
+        failWhenRealized(MissingUnmanaged,
             canNotBeConstructed('java.io.InputStream'),
-            "- An explicitly unmanaged type (i.e. annotated with @Unmanaged)")
+            "- An explicitly unmanaged property (i.e. annotated with @Unmanaged)")
     }
 
     @Unroll
@@ -83,9 +87,21 @@ class ManagedModelInitializerTest extends Specification implements ModelValidati
         type << JDK_SCALAR_TYPES
     }
 
+    Class<?> managedClassWithoutSetter(Class<?> type) {
+        String typeName = type.getSimpleName()
+        return classLoader.parseClass("""
+import org.gradle.model.Managed
+
+@Managed
+interface Managed${typeName} {
+    ${typeName} get${typeName}()
+}
+""")
+    }
+
     def "model map type must be managed in a managed type"() {
         expect:
-        failWhenRealized(ModelValidationTypes.UnmanagedModelMapInManagedType,
+        failWhenRealized(UnmanagedModelMapInManagedType,
             canNotBeConstructed(InputStream.name),
             "- A managed collection type (ModelMap<?>, ManagedSet<?>, ModelSet<?>)"
         )
@@ -100,7 +116,7 @@ class ManagedModelInitializerTest extends Specification implements ModelValidati
         true
 
         where:
-        managedType << [ModelValidationTypes.OnlyIsGetter, ModelValidationTypes.OnlyGetGetter]
+        managedType << [OnlyIsGetter, OnlyGetGetter]
     }
 
     @Unroll
@@ -125,6 +141,26 @@ class ManagedModelInitializerTest extends Specification implements ModelValidati
         collectionType << [LinkedList, ArrayList, SortedSet, TreeSet]
     }
 
+    @Unroll
+    def "can initialize a model node with a managed collection property of type #collectionType"() {
+        when:
+        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+           import org.gradle.model.Managed
+
+            @Managed
+            interface CollectionType {
+                ${collectionType.name}<String> getItems()
+            }
+        """
+
+        then:
+        realizeNodeOfType(managedType)
+
+        where:
+        collectionType << [Set, List]
+    }
+
+
     def "type of the first argument of void returning model definition has to be @Managed annotated"() {
         expect:
         failWhenRealized(NonManaged,
@@ -132,10 +168,9 @@ class ManagedModelInitializerTest extends Specification implements ModelValidati
             "- An explicitly managed type (i.e. annotated with @Managed)")
     }
 
-    private void failWhenRealized(Class type, String... expectedMessages) {
+    void failWhenRealized(Class type, String... expectedMessages) {
         try {
-            r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(store.getSchema(type))).descriptor(r.desc("bar")).build())
-            r.realize("bar", type)
+            realizeNodeOfType(type)
             throw new AssertionError("node realisation of type ${getName(type)} should have failed with a cause of:\n$expectedMessages\n")
         }
         catch (ModelRuleExecutionException e) {
@@ -145,9 +180,65 @@ class ManagedModelInitializerTest extends Specification implements ModelValidati
         }
     }
 
-    private void assertExpected(Exception e, String... expectedMessages) {
+    void realizeNodeOfType(Class type) {
+        r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(store.getSchema(type))).descriptor(r.desc("bar")).build())
+        r.realize("bar", type)
+    }
+
+    void assertExpected(Exception e, String... expectedMessages) {
         expectedMessages.each { String error ->
             assert e.message.contains(error)
         }
+    }
+
+    String canNotBeConstructed(String type) {
+        "A model node of type: '${type}' can not be constructed."
+    }
+
+    @Managed
+    static interface NonStringProperty {
+        Object getName()
+
+        void setName(Object name)
+    }
+
+    @Managed
+    static interface OnlyGetter {
+        String getName()
+    }
+
+    @Managed
+    static interface ClassWithExtendedFileType {
+        ExtendedFile getExtendedFile()
+
+        void setExtendedFile(ExtendedFile extendedFile)
+    }
+
+    static class ExtendedFile extends File {
+        ExtendedFile(String pathname) {
+            super(pathname)
+        }
+    }
+
+    @Managed
+    static interface MissingUnmanaged {
+        InputStream getThing();
+
+        void setThing(InputStream inputStream);
+    }
+
+    @Managed
+    static abstract class UnmanagedModelMapInManagedType {
+        abstract ModelMap<InputStream> getThings()
+    }
+
+    @Managed
+    static interface OnlyGetGetter {
+        boolean getThing()
+    }
+
+    @Managed
+    static interface OnlyIsGetter {
+        boolean isThing()
     }
 }

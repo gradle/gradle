@@ -21,7 +21,6 @@ import org.gradle.model.Managed
 import org.gradle.model.ModelMap
 import org.gradle.model.ModelSet
 import org.gradle.model.Unmanaged
-import org.gradle.model.internal.ModelValidationTypes
 import org.gradle.model.internal.manage.schema.*
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
@@ -38,10 +37,12 @@ import java.util.regex.Pattern
 import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.*
 
 @SuppressWarnings("GroovyPointlessBoolean")
-class ModelSchemaExtractorTest extends Specification implements ModelValidationTypes{
+class ModelSchemaExtractorTest extends Specification {
 
     @Shared
     def store = DefaultModelSchemaStore.getInstance()
+    def classLoader = new GroovyClassLoader(getClass().classLoader)
+    static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
     static interface NotAnnotatedInterface {}
 
@@ -608,7 +609,15 @@ $type
 
     def "subtype can declare property unmanaged"() {
         expect:
-        extract(ModelValidationTypes.ExtendsMissingUnmanaged).getProperty("thing").type.rawClass == InputStream
+        extract(ExtendsMissingUnmanaged).getProperty("thing").type.rawClass == InputStream
+    }
+
+    @Managed
+    static interface ExtendsMissingUnmanaged {
+        @Unmanaged
+        InputStream getThing();
+
+        void setThing(InputStream inputStream);
     }
 
     @Managed
@@ -826,7 +835,18 @@ $type
         type << JDK_SCALAR_TYPES
     }
 
+    Class<?> managedClass(Class<?> type) {
+        String typeName = type.getSimpleName()
+        return classLoader.parseClass("""
+import org.gradle.model.Managed
 
+@Managed
+interface Managed${typeName} {
+    ${typeName} get${typeName}()
+    void set${typeName}(${typeName} a${typeName})
+}
+""")
+    }
 
     static class CustomThing {}
 
@@ -835,7 +855,7 @@ $type
     def "can register custom strategy"() {
         when:
         def strategy = Mock(ModelSchemaExtractionStrategy) {
-            extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore store ->
+            extract(_) >> { ModelSchemaExtractionContext extractionContext ->
                 if (extractionContext.type.rawClass == CustomThing) {
                     extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
                 }
@@ -858,12 +878,12 @@ $type
         def customSchema = store.getSchema(CustomThing)
 
         then:
-        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+        1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(CustomThing)
             extractionContext.child(ModelType.of(UnmanagedThing), "child")
             extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
         }
-        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+        1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
         }
 
@@ -881,13 +901,13 @@ $type
         store.getSchema(CustomThing)
 
         then:
-        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+        1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(CustomThing)
             extractionContext.addValidator(validator)
             extractionContext.child(ModelType.of(UnmanagedThing), "child")
             extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
         }
-        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+        1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
             return null;
         }
@@ -898,7 +918,11 @@ $type
 
     def "model map type doesn't have to be managed type in an unmanaged type"() {
         expect:
-        extract(ModelValidationTypes.UnmanagedModelMapInUnmanagedType).getProperty("things").type.rawClass == ModelMap
+        extract(UnmanagedModelMapInUnmanagedType).getProperty("things").type.rawClass == ModelMap
+    }
+
+    static abstract class UnmanagedModelMapInUnmanagedType {
+        ModelMap<InputStream> getThings() { null }
     }
 
     static class SimpleUnmanagedType {
@@ -1337,6 +1361,14 @@ $type
 
         where:
         collectionType << [LinkedList, ArrayList, SortedSet, TreeSet]
+    }
+
+    String getName(ModelType<?> modelType) {
+        modelType
+    }
+
+    String getName(Class<?> clazz) {
+        clazz.name
     }
 }
 

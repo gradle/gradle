@@ -37,7 +37,7 @@ class ScalarTypesInManagedModelTest extends Specification {
     def r = new ModelRegistryHelper()
     def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(store)
 
-    def classloader = new GroovyClassLoader(this.class.classLoader)
+    def classLoader = new GroovyClassLoader(this.class.classLoader)
 
     def setup() {
         r.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry), nodeInitializerRegistry).build())
@@ -47,7 +47,7 @@ class ScalarTypesInManagedModelTest extends Specification {
     def "cannot have read only property of scalar type #someType.simpleName"() {
 
         when:
-        def clazz = classloader.parseClass """
+        def clazz = classLoader.parseClass """
             import org.gradle.api.artifacts.Configuration.State
             import org.gradle.model.Managed
 
@@ -59,7 +59,7 @@ class ScalarTypesInManagedModelTest extends Specification {
         """
 
         then:
-        failWhenRealized(clazz, Pattern.quote("Invalid managed model type 'ManagedType': read only property 'managedProperty' has non managed type ${someType.name}, only managed types can be used") )
+        failWhenRealized(clazz, Pattern.quote("Invalid managed model type 'ManagedType': read only property 'managedProperty' has non managed type ${someType.name}, only managed types can be used"))
 
         where:
         someType << [
