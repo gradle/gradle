@@ -100,13 +100,13 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        LanguageRegistry languages(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(Instantiator.class).newInstance(DefaultLanguageRegistry.class);
+        LanguageRegistry languages() {
+            return new DefaultLanguageRegistry();
         }
 
         @Model
-        LanguageTransformContainer languageTransforms(ServiceRegistry serviceRegistry) {
-            return serviceRegistry.get(Instantiator.class).newInstance(DefaultLanguageTransformContainer.class);
+        LanguageTransformContainer languageTransforms() {
+            return new DefaultLanguageTransformContainer();
         }
 
         // Required because creation of Binaries from Components is not yet wired into the infrastructure
@@ -146,9 +146,8 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        PlatformResolvers platformResolver(PlatformContainer platforms, ServiceRegistry serviceRegistry) {
-            Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultPlatformResolvers.class, platforms);
+        PlatformResolvers platformResolver(PlatformContainer platforms) {
+            return new DefaultPlatformResolvers(platforms);
         }
 
         @Mutate
@@ -164,7 +163,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Model
-        InstanceFactoryRegistry instanceFactoryRegistry(ServiceRegistry serviceRegistry, BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
+        InstanceFactoryRegistry instanceFactoryRegistry(BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
             InstanceFactoryRegistry instanceFactoryRegistry = new DefaultInstanceFactoryRegistry();
             for (ModelType<? extends BinarySpec> type : binarySpecFactory.getSupportedTypes()) {
                 instanceFactoryRegistry.register(type, ModelReference.of(BinarySpecFactory.class));
