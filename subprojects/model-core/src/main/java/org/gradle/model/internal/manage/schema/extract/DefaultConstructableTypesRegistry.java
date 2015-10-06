@@ -19,7 +19,6 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
@@ -29,7 +28,7 @@ public class DefaultConstructableTypesRegistry implements ConstructableTypesRegi
     private Map<ModelType<?>, NodeInitializer> mappings = Maps.newLinkedHashMap();
 
     @Override
-    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema, NodeInitializerRegistry nodeInitializerRegistry) {
+    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema) {
         return mappings.get(schema.getType());
     }
 

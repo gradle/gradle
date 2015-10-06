@@ -19,7 +19,6 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.NodeInitializer;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
@@ -42,7 +41,7 @@ public abstract class ManagedImplStructNodeInitializerExtractionSupport implemen
     }
 
     @Override
-    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema, NodeInitializerRegistry nodeInitializerRegistry) {
+    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema) {
         if (!(schema instanceof ModelManagedImplStructSchema)) {
             return null;
         }

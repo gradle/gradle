@@ -39,7 +39,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
     );
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema, NodeInitializerRegistry nodeInitializerRegistry) {
+    protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema) {
         ModelType<T> type = schema.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);
