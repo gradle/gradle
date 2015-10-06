@@ -128,7 +128,3 @@ if (buildTypes.pullRequestValidation.active) {
 task compileAll {
     dependsOn tasks.matching { it instanceof JavaCompile || it instanceof GroovyCompile }
 }
-
-test {
-    jvmArgs "-XX:MaxPermSize=512m"
-}
