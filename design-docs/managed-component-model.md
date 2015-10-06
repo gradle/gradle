@@ -417,18 +417,34 @@ For example:
 - A property or managed element of type `FunctionalSourceSet` cannot be applied when the `LanguageBasePlugin` has not been applied.
 - Model report shows something reasonable for a managed property or collections of type FunctionalSourceSet.
 
+## Story: Consistent validation of model types
+
+- Validate top level element of the following types (check for existing test coverage, some of this may already exist):
+    - ModelMap<T> and ModelSet<T> where T is not constructable. Should report which types are constructable (should not mention `@Unmanaged`)
+    - List<T> and Set<T> where T is not a scalar type. Should report which types are scalar.
+    - A `@Managed` type with a read-only property of type T where T is not constructable. Should report which types are constructable. 
+    - A `@Managed` type with a read-write property without `@Unmanaged` of type T where T is not scalar and not constructable. Should report scalar and constructable types. 
+    - Any T where T is not constructable. Should report which types are constructable. 
+- Ensure a consistent error message for each failure, should describe the available T for each case.
+
+## Story: Allow unmanaged properties of type `List` or `Set`
+
+Allow a read-write property marked with `@Unmanaged` of a `@Managed` type to have type `List<T>` or `Set<T>` for any `T`. 
+
+## Story: Report available types for a ModelMap or ModelSet when element type is not constructable
+
+When adding an element to a `ModelMap<T>` or `ModelSet<T>` and `T` is not constructable, use a specific error message that informs
+the user that an element of type `T` cannot be added to the collection. Error message should include the known types:
+
+- When `T` extends BinarySpec or ComponentSpec, report on the registered subtypes.
+- Otherwise, report on the general types that are assignable to `T`.
+
 ## Story: Validate model types more eagerly
 
 - Validate the type of all top level elements, regardless of whether they are used or not in the current build.
 - Do this at the same time as `ModelRegistry.bindAllReferences()` is used.
 - Do not validate projects that are not used in the build current build.
 - Validate elements added via DSL and rules.
-- Validate the following top level element types (check for existing test coverage, some of this may already exist):
-    - ModelMap<T> and ModelSet<T> where T is not constructable.
-    - List<T> and Set<T> where T is not a scalar type.
-    - A `@Managed` type with a property of type T where T is not scalar and not constructable.
-    - Any T where T is not constructable. 
-- Ensure a consistent error message for each failure, should describe the available T for each case.
 - Other elements should be validated as they are realized.
 
 TBD:
