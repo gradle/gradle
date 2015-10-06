@@ -77,7 +77,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     public FileCollection plus(Iterable<FileCollection> collections) {
-        DeprecationLogger.nagUserOfReplacedMethod("plus(Iterable)", "plus(FileCollection)");
+        DeprecationLogger.nagUserOfReplacedMethod("plus(Iterable<FileCollection>)", "plus(FileCollection)");
         return this.plus(new UnionFileCollection(collections));
     }
 
@@ -102,7 +102,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     public FileCollection minus(final Iterable<FileCollection> collections) {
-        DeprecationLogger.nagUserOfReplacedMethod("minus(Iterable)", "minus(FileCollection)");
+        DeprecationLogger.nagUserOfReplacedMethod("minus(Iterable<FileCollection>)", "minus(FileCollection)");
         return this.minus(new UnionFileCollection(collections));
     }
 
