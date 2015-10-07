@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.TreeSet;
 
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
+    public static final ModelReference<NodeInitializerRegistry> DEFAULT_REFERENCE = ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class);
+
     private final List<NodeInitializerExtractionStrategy> allStrategies;
     private final List<NodeInitializerExtractionStrategy> additionalStrategies;
     private final ModelSchemaStore schemaStore;

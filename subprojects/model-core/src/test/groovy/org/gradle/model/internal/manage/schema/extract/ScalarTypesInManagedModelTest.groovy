@@ -15,14 +15,11 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
-
 import groovy.transform.NotYetImplemented
 import org.gradle.api.artifacts.Configuration
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import spock.lang.Shared
 import spock.lang.Specification
@@ -40,7 +37,7 @@ class ScalarTypesInManagedModelTest extends Specification {
     def classLoader = new GroovyClassLoader(this.class.classLoader)
 
     def setup() {
-        r.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry), nodeInitializerRegistry).build())
+        r.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
     }
 
     @Unroll

@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service;
+package org.gradle.model;
 
-import java.lang.annotation.*;
+import org.gradle.api.Incubating;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A service is a singleton instance that is always available at a specific path in the software model registry.
+ * Denotes that the {@link RuleSource} method rule carrying this annotation creates a new top level service in the model space.
+ * Must be used together with the {@link Model} annotation.
  */
-@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Documented
+@Target(ElementType.METHOD)
+@Incubating
 public @interface Service {
-    String UNSPECIFIED = "";
-
-    /**
-     * The path to access the service at.
-     */
-    String value() default UNSPECIFIED;
 }

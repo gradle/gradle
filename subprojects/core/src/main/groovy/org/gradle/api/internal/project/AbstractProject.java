@@ -185,7 +185,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
-        ModelCreator taskFactoryCreator = ModelCreators.bridgedInstance(ModelReference.of(ITaskFactory.class), services.get(ITaskFactory.class))
+        ModelCreator taskFactoryCreator = ModelCreators.serviceInstance(ModelReference.of("taskFactory", ITaskFactory.class), services.get(ITaskFactory.class))
             .descriptor("Project.<init>.taskFactory")
             .ephemeral(true)
             .build();
@@ -193,7 +193,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         modelRegistry.createOrReplace(taskFactoryCreator);
 
         modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of(ServiceRegistry.class), services)
+            ModelCreators.serviceInstance(ModelReference.of("serviceRegistry", ServiceRegistry.class), services)
                 .descriptor("Project.<init>.serviceRegistry()")
                 .ephemeral(true)
                 .build()
@@ -202,7 +202,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         ModelSchemaStore schemaStore = services.get(ModelSchemaStore.class);
         NodeInitializerRegistry nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore);
         modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry.class), nodeInitializerRegistry)
+            ModelCreators.serviceInstance(ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class), nodeInitializerRegistry)
                 .descriptor("Project.<init>.nodeInitializerRegistry()")
                 .ephemeral(true)
                 .build()

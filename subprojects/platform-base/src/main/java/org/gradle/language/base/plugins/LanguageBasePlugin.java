@@ -30,14 +30,10 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.model.FunctionalSourceSetNodeInitializer;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.Path;
-import org.gradle.model.RuleSource;
+import org.gradle.model.*;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
-import org.gradle.model.internal.Internal;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -95,6 +91,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 BridgedCollections.itemDescriptor(descriptor)
             )
                 .descriptor(descriptor)
+                .service(true)
                 .ephemeral(true)
                 .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType,
                     ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(binarySpecModelType))))
@@ -129,12 +126,12 @@ public class LanguageBasePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
 
-        @Model @Internal
+        @Model @Service
         ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ModelSchemaStore.class);
         }
 
-        @Model @Internal
+        @Model @Service
         ConstructableTypesRegistry constructableTypesRegistry() {
             return new DefaultConstructableTypesRegistry();
         }

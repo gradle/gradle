@@ -25,7 +25,6 @@ import com.google.common.collect.Sets;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
-import org.gradle.internal.service.Service;
 import org.gradle.model.ConfigurationCycleException;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleSource;
@@ -541,11 +540,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         ArrayList<BindingPredicate> result = new ArrayList<BindingPredicate>(inputs.size());
         for (ModelReference<?> input : inputs) {
             if (input.getPath() != null) {
-                if (input.getType().getConcreteClass().isAnnotationPresent(Service.class)) {
-                    result.add(new BindingPredicate(input));
-                } else {
-                    result.add(new BindingPredicate(input.withPath(scope.descendant(input.getPath()))));
-                }
+                result.add(new BindingPredicate(input.withPath(scope.descendant(input.getPath()))));
             } else {
                 result.add(new BindingPredicate(input.inScope(ModelPath.ROOT)));
             }
@@ -1364,7 +1359,7 @@ public class DefaultModelRegistry implements ModelRegistry {
         @Override
         public boolean isAchieved() {
             ModelNodeInternal node = modelGraph.find(scope);
-            if (node == null || !node.isAtLeast(SelfClosed)) {
+            if (node == null) {
                 return false;
             }
             for (ModelNodeInternal child : node.getLinks()) {

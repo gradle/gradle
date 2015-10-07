@@ -16,10 +16,8 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import org.gradle.internal.service.Service;
 import org.gradle.model.internal.type.ModelType;
 
-@Service("schemaStore")
 public interface ModelSchemaStore {
 
     <T> ModelSchema<T> getSchema(ModelType<T> type);

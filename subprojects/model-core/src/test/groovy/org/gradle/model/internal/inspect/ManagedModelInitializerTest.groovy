@@ -15,15 +15,12 @@
  */
 
 package org.gradle.model.internal.inspect
-
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.ModelTypeInitializationException
-import org.gradle.model.internal.core.NodeInitializerRegistry
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
@@ -41,7 +38,7 @@ class ManagedModelInitializerTest extends Specification {
     static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
     def setup() {
-        r.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry), nodeInitializerRegistry).build())
+        r.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
     }
 
     def "must be symmetrical"() {

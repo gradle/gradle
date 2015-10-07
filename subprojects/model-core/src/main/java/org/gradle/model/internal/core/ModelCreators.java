@@ -26,7 +26,6 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.service.Service;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -37,6 +36,11 @@ import java.util.List;
 
 @ThreadSafe
 abstract public class ModelCreators {
+
+    public static <T> Builder serviceInstance(ModelReference<T> modelReference, T instance) {
+        return bridgedInstance(modelReference, instance)
+            .service(true);
+    }
 
     public static <T> Builder bridgedInstance(ModelReference<T> modelReference, T instance) {
         return unmanagedInstance(modelReference, Factories.constant(instance), Actions.doNothing());
@@ -65,7 +69,6 @@ abstract public class ModelCreators {
                 modelNode.setPrivateData(modelReference.getType(), t);
             }
         })
-            .service(modelReference.getType().getConcreteClass().isAnnotationPresent(Service.class))
             .withProjection(UnmanagedModelProjection.of(modelReference.getType()));
     }
 

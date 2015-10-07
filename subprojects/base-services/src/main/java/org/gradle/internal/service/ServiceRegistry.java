@@ -23,7 +23,6 @@ import java.util.List;
 /**
  * A registry of services.
  */
-@Service
 public interface ServiceRegistry {
     /**
      * Locates the service of the given type.

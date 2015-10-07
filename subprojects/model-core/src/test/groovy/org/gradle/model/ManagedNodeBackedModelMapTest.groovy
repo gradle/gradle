@@ -40,7 +40,7 @@ class ManagedNodeBackedModelMapTest extends Specification {
     def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
 
     def setup() {
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry), nodeInitializerRegistry).build())
+        registry.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
         registry.create(ModelCreators.of(path, nodeInitializerRegistry.getNodeInitializer(schemaStore.getSchema(modelMapType))).descriptor("creator").build())
     }
 

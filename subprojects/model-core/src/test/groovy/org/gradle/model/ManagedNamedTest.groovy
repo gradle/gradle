@@ -31,7 +31,7 @@ class ManagedNamedTest extends Specification {
     def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
 
     def setup() {
-        r.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry), nodeInitializerRegistry).build())
+        r.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
     }
 
     def "named struct has name name property populated"() {

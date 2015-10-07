@@ -49,7 +49,7 @@ class ModelSetModelProjectionTest extends Specification {
     def setup() {
         def collectionSchema = schemaStore.getSchema(collectionType)
         assert collectionSchema instanceof ManagedImplModelSchema
-        registry.create(ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry), nodeInitializerRegistry).build())
+        registry.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
         registry.create(
             ModelCreators.of(collectionPath, nodeInitializerRegistry.getNodeInitializer(collectionSchema))
                 .descriptor("define collection")

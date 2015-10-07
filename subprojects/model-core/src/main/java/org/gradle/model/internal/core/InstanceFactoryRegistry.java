@@ -16,10 +16,8 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.internal.service.Service;
 import org.gradle.model.internal.type.ModelType;
 
-@Service
 public interface InstanceFactoryRegistry {
     <T> ModelReference<InstanceFactory<? super T>> getFactory(ModelType<T> type);
 

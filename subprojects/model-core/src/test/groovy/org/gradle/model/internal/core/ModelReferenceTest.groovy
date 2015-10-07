@@ -16,11 +16,9 @@
 
 package org.gradle.model.internal.core
 
-import org.gradle.internal.service.Service
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.Matchers
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ModelReferenceTest extends Specification {
     def "any"() {
@@ -86,59 +84,6 @@ class ModelReferenceTest extends Specification {
         reference.state == ModelNode.State.GraphClosed
     }
 
-    @Service("myService")
-    static abstract class MyService {}
-
-    @Unroll
-    def "service path is found for #service"() {
-        when:
-        def reference = ModelReference.of(service)
-
-        then:
-        reference.path == ModelPath.path(path)
-        reference.type == ModelType.of(service)
-
-        where:
-        service           | path
-        MyService         | "myService"
-        MyInferredService | "myInferredService"
-    }
-
-    def "service can be referenced with valid path"() {
-        when:
-        def reference = ModelReference.of("myService", MyService)
-
-        then:
-        reference.path == ModelPath.path("myService")
-        reference.type == ModelType.of(MyService)
-
-        when:
-        def withPathRef = reference.withPath(ModelPath.path("myService"))
-
-        then:
-        withPathRef == reference
-    }
-
-    def "service cannot be referenced with invalid path"() {
-        when:
-        ModelReference.of("someService", MyService)
-
-        then:
-        def ex = thrown IllegalArgumentException
-        ex.message == "Service '$MyService.name' must be referenced via path 'myService' instead of 'someService'"
-    }
-
-    def "path of service reference cannot be changed to invalid path"() {
-        def reference = ModelReference.of(MyService)
-
-        when:
-        reference.withPath(ModelPath.path("someService"))
-
-        then:
-        def ex = thrown IllegalArgumentException
-        ex.message == "Service '$MyService.name' must be referenced via path 'myService' instead of 'someService'"
-    }
-
     def "equals"() {
         expect:
         def path = ModelReference.of("path")
@@ -165,6 +110,3 @@ class ModelReferenceTest extends Specification {
         scopeAndType != scopeAndType.inScope(ModelPath.path("other"))
     }
 }
-
-@Service
-abstract class MyInferredService {}
