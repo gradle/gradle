@@ -15,6 +15,7 @@
  */
 package org.gradle.language.base.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
@@ -195,14 +196,17 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         // TODO:LPTR This should be done on the binary itself when transitive rules don't fire multiple times anymore
-        @Finalize
-        void addSourceSetsOwnedByBinariesToTheirInputs(BinaryContainer binarySpecs) {
-            for (BinarySpec binary : binarySpecs) {
-                if (((BinarySpecInternal) binary).isLegacyBinary()) {
-                    continue;
+        @Defaults
+        void addSourceSetsOwnedByBinariesToTheirInputs(ModelMap<BinarySpec> binarySpecs) {
+            binarySpecs.withType(BinarySpecInternal.class).afterEach(new Action<BinarySpecInternal>() {
+                @Override
+                public void execute(BinarySpecInternal binary) {
+                    if (binary.isLegacyBinary()) {
+                        return;
+                    }
+                    binary.getInputs().addAll(binary.getSources().values());
                 }
-                binary.getInputs().addAll(binary.getSources().values());
-            }
+            });
         }
     }
 }

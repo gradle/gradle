@@ -61,14 +61,17 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
     }
 
     def "source order is retained"() {
-        buildFile << """
+        buildFile << '''
 class Dump extends RuleSource {
-
-    @Validate
-    void checkBinaries(BinaryContainer binaries) {
-        binaries.each { binary ->
-            println "Binary sources: \${binary.sources.values()}"
-            println "Binary inputs: \${binary.inputs}"
+    @Mutate
+    void tasks(ModelMap<Task> tasks, BinaryContainer binaries) {
+        tasks.create("verify") {
+            doLast {
+                binaries.each { binary ->
+                    println "Binary sources: ${binary.sources.values()}"
+                    println "Binary inputs: ${binary.inputs}"
+                }
+            }
         }
     }
 }
@@ -133,9 +136,9 @@ model {
         }
     }
 }
-"""
+'''
         expect:
-        succeeds "components"
+        succeeds "verify"
         output.contains """Binary sources: [DefaultLibrarySourceSet 'sampleLib:binaryA', DefaultLibrarySourceSet 'sampleLib:binaryB', DefaultLibrarySourceSet 'sampleLib:binaryC', DefaultLibrarySourceSet 'sampleLib:binaryD']"""
         output.contains """Binary inputs: [DefaultLibrarySourceSet 'sampleLib:compA', DefaultLibrarySourceSet 'sampleLib:compB', DefaultLibrarySourceSet 'sampleLib:compC', DefaultLibrarySourceSet 'sampleLib:compD', DefaultLibrarySourceSet 'sampleLib:binaryA', DefaultLibrarySourceSet 'sampleLib:binaryB', DefaultLibrarySourceSet 'sampleLib:binaryC', DefaultLibrarySourceSet 'sampleLib:binaryD']"""
     }

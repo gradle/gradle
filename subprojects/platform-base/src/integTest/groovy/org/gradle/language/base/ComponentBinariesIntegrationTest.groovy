@@ -139,6 +139,8 @@ model {
                 def binaries = $('components.mylib.binaries')
                 assert binaries.main.sources.size() == 1
                 assert binaries.main.sources.first() instanceof CustomLanguageSourceSet
+                assert binaries.main.inputs.size() == 1
+                assert binaries.main.inputs as Set == binaries.main.sources as Set
             }
         }
     }
