@@ -45,7 +45,7 @@ class DocumentationPlugin extends RuleSource {
         tasks.create("zip${binary.name.capitalize()}", Zip, new Action<Zip>() {
             @Override
             public void execute(Zip zipBinary) {
-                binary.source.withType(DocumentationSourceSet) { source ->
+                binary.inputs.withType(DocumentationSourceSet) { source ->
                     zipBinary.into(source.name) {
                         from(source.outputDir)
                     }

@@ -34,7 +34,7 @@ class MarkdownPlugin extends RuleSource {
     @Defaults
     void createMarkdownHtmlCompilerTasks(ModelMap<DocumentationBinary> binaries, @Path("buildDir") File buildDir) {
         binaries.beforeEach { binary ->
-            source.withType(MarkdownSourceSet.class) { markdownSourceSet ->
+            inputs.withType(MarkdownSourceSet.class) { markdownSourceSet ->
                 taskName = binary.name + name.capitalize() + "HtmlCompile"
                 outputDir = new File(buildDir, "${binary.name}/src/${name}")
                 binary.tasks.create(markdownSourceSet.taskName, MarkdownHtmlCompile) {
