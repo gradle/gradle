@@ -400,13 +400,13 @@ The default version of CodeNarc has been updated from 0.23 to 0.24.1. Should you
 The built-in [OSGi plugin](userguide/osgi_plugin.html) uses the [bndlib](https://github.com/bndtools/bnd) library internally.
 The library has been updated from 2.1.0 to [2.4.0](https://github.com/bndtools/bndtools/wiki/Changes-in-2.4.0).
 
-### Improved IDE project naming deduplication
+### Improved IDE project name de-duplication
 
-To ensure unique project names in the IDE, Gradle applies a deduplication logic when generating IDE metadata for Eclipse and Idea projects.
-This deduplication logic has been improved. All projects with non unique names are now deduplicated by adding a prefix based on the
-parent projects. Here's an example for clarification:
+To ensure unique project names in the IDE, Gradle applies de-duplication logic when generating IDE metadata for Eclipse and Idea projects.
+This de-duplication logic has been improved such that all projects with non-unique names are now de-duplicated by adding a prefix based on the
+parent project(s). For example:
 
-Given a Gradle multiproject build with the following project structure
+Given a Gradle multiproject build with the following project structure:
 
     root
     |-foo
@@ -415,7 +415,7 @@ Given a Gradle multiproject build with the following project structure
     \-bar
        \- app
 
-results in the following IDE project name mapping:
+The following IDE project name mapping will result:
 
     root
     |-foo
@@ -424,8 +424,9 @@ results in the following IDE project name mapping:
     \-bar
        \- bar-app
 
-Duplicate words in a row within the deduplication prefix are removed from the generated ide project name.
-Assuming having a project structure like:
+Duplicate words in a row within the de-duplication prefix are removed from the generated ide project name.
+
+Given a project with the following structure:
 
     myapp
     |-myapp-foo
@@ -434,7 +435,7 @@ Assuming having a project structure like:
     \-myapp-bar
        \- app
 
-results in the following IDE project name mapping:
+The following IDE project name mapping will result:
 
     myapp
     |-myapp-foo
