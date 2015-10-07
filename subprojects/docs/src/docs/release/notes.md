@@ -146,9 +146,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Changes to experimental integration between software model and Java plugins
+
+- `binaries` container is now only visible to rules via model. The `binaries` project extension has been removed.
 
 ## External contributions
 

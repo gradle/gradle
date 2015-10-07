@@ -38,9 +38,8 @@ class LanguageBasePluginTest extends Specification {
         project.pluginManager.apply(LanguageBasePlugin)
     }
 
-    def "adds a 'binaries' container to the project model and as a project extension"() {
+    def "adds a 'binaries' container to the project model"() {
         expect:
-        project.extensions.findByName("binaries") instanceof BinaryContainer
         project.modelRegistry.find(ModelPath.path("binaries"), ModelType.of(BinaryContainer)) != null
     }
 
