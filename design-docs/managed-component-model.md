@@ -441,6 +441,10 @@ the user that an element of type `T` cannot be added to the collection. Error me
 - When `T` extends BinarySpec or ComponentSpec, report on the registered subtypes.
 - Otherwise, report on the general types that are assignable to `T`.
 
+### Test cases
+
+- Fix `ComponentModelIntegrationTest.reasonable error message when creating component with no implementation`.
+
 ## Story: Validate model types more eagerly
 
 - Validate the type of all top level elements, regardless of whether they are used or not in the current build.
