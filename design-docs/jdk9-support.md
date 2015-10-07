@@ -81,11 +81,11 @@ Compose `JarBinarySpec` with that new specification.
 
 The idea is to move from this model:
 
-<img src="img/classes-spec-before.png"/>
+<img src="img/classesspec-before.png"/>
 
 to something closer to:
 
-<img src="img/classes-spec-after.png"/>
+<img src="img/classesspec-after.png"/>
 
 
 The first step involves the creation of a buildable element to represent the compiled classes of a variant.
