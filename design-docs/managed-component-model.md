@@ -443,7 +443,8 @@ the user that an element of type `T` cannot be added to the collection. Error me
 
 ### Test cases
 
-- Fix `ComponentModelIntegrationTest.reasonable error message when creating component with no implementation`.
+- Fix `ComponentModelIntegrationTest.reasonable error message when creating component with no implementation`. This used to report the available types.
+- Fix `ComponentModelIntegrationTest.reasonable error message when creating component with default implementation`. This used to report the available types.
 
 ## Story: Validate model types more eagerly
 
