@@ -1352,6 +1352,32 @@ foo
         registry.state("childB") == ModelNode.State.Known
     }
 
+    def "fails when another child in scope with matching bound rule's target type is discovered"() {
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).service(true).descriptor("dep creator").build())
+        registry.create(registry.creator("target").unmanaged(String, {}))
+        registry.create(registry.creator("childA").unmanaged(String, {}))
+        registry.create(registry.creator("childB").unmanaged(String, {}))
+        registry.configure(ModelActionRole.Mutate, registry.action().path("target").action(Bean, BiActions.doNothing()))
+
+        registry.realize("target")
+
+        when:
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of("dep2", Bean), new Bean()).descriptor("dep2 creator").build())
+
+        then:
+        noExceptionThrown()
+
+        when:
+        registry.realize("dep2")
+
+        then:
+        def ex = thrown InvalidModelRuleException
+        ex.cause instanceof ModelRuleBindingException
+        ex.cause.message == """Type-only model reference of type $Bean.name ($Bean.name) is ambiguous as multiple model elements are available for this type:
+  - dep (created by: dep creator)
+  - dep2 (created by: dep2 creator)"""
+    }
+
     static class Bean {
         String name
         String value
