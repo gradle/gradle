@@ -1350,12 +1350,15 @@ public class DefaultModelRegistry implements ModelRegistry {
     /**
      * Attempts to define the contents of the requested scope. Does not fail if not possible.
      */
-    private class TryDefineScope extends ModelGoal {
+    private class TryDefineScopeForType extends ModelGoal {
         private final ModelPath scope;
+        private final ModelType<?> typeToBind;
         private boolean attemptedPath;
+        private boolean attemptedCloseScope;
 
-        public TryDefineScope(ModelPath scope) {
+        public TryDefineScopeForType(ModelPath scope, ModelType<?> typeToBind) {
             this.scope = scope;
+            this.typeToBind = typeToBind;
         }
 
         @Override
@@ -1365,11 +1368,11 @@ public class DefaultModelRegistry implements ModelRegistry {
                 return false;
             }
             for (ModelNodeInternal child : node.getLinks()) {
-                if (!child.isAtLeast(ProjectionsDefined)) {
-                    return false;
+                if (child.isAtLeast(ProjectionsDefined) && (child.getPromise().canBeViewedAsImmutable(typeToBind) || child.getPromise().canBeViewedAsMutable(typeToBind))) {
+                    return true;
                 }
             }
-            return true;
+            return false;
         }
 
         @Override
@@ -1380,15 +1383,20 @@ public class DefaultModelRegistry implements ModelRegistry {
                 return false;
             }
             if (modelGraph.find(scope) != null) {
-                dependencies.add(graph.nodeAtState(new NodeAtState(scope, SelfClosed)));
-                dependencies.add(new TransitionChildrenOrReference(scope, ProjectionsDefined));
+                if (!attemptedCloseScope) {
+                    dependencies.add(graph.nodeAtState(new NodeAtState(scope, SelfClosed)));
+                    attemptedCloseScope = true;
+                    return false;
+                } else {
+                    dependencies.add(new TransitionChildrenOrReference(scope, ProjectionsDefined));
+                }
             }
             return true;
         }
 
         @Override
         public String toString() {
-            return "try define scope " + scope + ", state: " + state;
+            return "try define scope " + scope + " to bind type " + typeToBind + ", state: " + state;
         }
     }
 
@@ -1424,7 +1432,7 @@ public class DefaultModelRegistry implements ModelRegistry {
                 if (binding.getPredicate().getPath() != null) {
                     dependencies.add(new TryResolveAndDefineProjectionsForPath(binding.getPredicate().getPath()));
                 } else {
-                    dependencies.add(new TryDefineScope(binding.getPredicate().getScope()));
+                    dependencies.add(new TryDefineScopeForType(binding.getPredicate().getScope(), binding.getPredicate().getType()));
                 }
             }
         }

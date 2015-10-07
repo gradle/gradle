@@ -1318,7 +1318,7 @@ foo
         ex.message == "Cannot add rule project for model element 'foo' at state Known as this element is already at state ProjectionsDefined."
     }
 
-    def "transitions children to projections defined when defining scope"() {
+    def "transitions children of scope to projections defined when defining scope when node matching input type is not already in projections defined state"() {
         registry.create(registry.creator("dep").unmanaged(Bean, new Bean()))
         registry.create(registry.creator("target").unmanaged(String, {}))
         registry.create(registry.creator("childA").unmanaged(String, {}))
@@ -1333,6 +1333,23 @@ foo
         registry.state("target") == ModelNode.State.GraphClosed
         registry.state("childA") == ModelNode.State.ProjectionsDefined
         registry.state("childB") == ModelNode.State.ProjectionsDefined
+    }
+
+    def "does not transition children of scope to projections defined when node matching input type is already in projections defined state"() {
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).service(true).build())
+        registry.create(registry.creator("target").unmanaged(String, {}))
+        registry.create(registry.creator("childA").unmanaged(String, {}))
+        registry.create(registry.creator("childB").unmanaged(String, {}))
+        registry.configure(ModelActionRole.Mutate, registry.action().path("target").action(Bean, BiActions.doNothing()))
+
+        when:
+        registry.realize("target")
+
+        then:
+        registry.state("dep") == ModelNode.State.GraphClosed
+        registry.state("target") == ModelNode.State.GraphClosed
+        registry.state("childA") == ModelNode.State.Known
+        registry.state("childB") == ModelNode.State.Known
     }
 
     static class Bean {
