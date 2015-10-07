@@ -121,6 +121,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
             @Mutate
             void createValidateTask(ModelMap<Task> tasks, ModelMap<SampleBinarySpecInternal> sampleLibs) {
                 tasks.create("validate") {
+                    assert sampleLibs.size() == 1
                     sampleLibs.each { sampleLib ->
                         assert sampleLib.internalData == "internal"
                         assert sampleLib.publicData == "public"
@@ -163,6 +164,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
             @Mutate
             void createValidateTask(ModelMap<Task> tasks, ModelMap<SampleBinarySpecInternal> sampleLibs) {
                 tasks.create("validate") {
+                    assert sampleLibs.size() == 1
                     sampleLibs.each { sampleLib ->
                         assert sampleLib.internalData == "internal"
                         assert sampleLib.publicData == "public"

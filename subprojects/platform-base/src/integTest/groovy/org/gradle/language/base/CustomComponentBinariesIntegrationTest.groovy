@@ -177,7 +177,7 @@ Binaries
         "assemble"        | "assemble task"
     }
 
-    def "Can access lifecycle task of binary via BinarySpec.buildTask"(){
+    def "can access lifecycle task of binary via BinarySpec.buildTask"(){
         when:
         buildFile << withSimpleComponentBinaries()
         buildFile << '''

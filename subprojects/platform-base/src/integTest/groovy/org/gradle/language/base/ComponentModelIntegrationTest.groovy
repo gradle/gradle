@@ -19,6 +19,7 @@ import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
@@ -883,7 +884,8 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         output.contains "component names: [main, viaCollectionBuilder, viaModelMap]"
     }
 
-    def "android problem with 2.8-rc1"() {
+    @Issue("android problem with 2.8-rc-1")
+    def "plugin can declare a top level element and register a component type"() {
         buildFile << """
             @Managed
             interface MyModel {
@@ -919,11 +921,13 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
             apply plugin: MyPlugin
         """
+
         expect:
         succeeds "components"
     }
 
-    def "android problem with 2.8-rc1 version 2"() {
+    @Issue("android problem with 2.8-rc-1")
+    def "plugin can declare a top level element and register a component type and use the JavaBasePlugin"() {
         buildFile << """
             @Managed
             public interface MyModel {
