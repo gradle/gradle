@@ -1373,9 +1373,9 @@ foo
         then:
         def ex = thrown InvalidModelRuleException
         ex.cause instanceof ModelRuleBindingException
-        ex.cause.message == """Type-only model reference of type $Bean.name ($Bean.name) is ambiguous as multiple model elements are available for this type:
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""Type-only model reference of type $Bean.name ($Bean.name) is ambiguous as multiple model elements are available for this type:
   - dep (created by: dep creator)
-  - dep2 (created by: dep2 creator)"""
+  - dep2 (created by: dep2 creator)""")
     }
 
     static class Bean {
