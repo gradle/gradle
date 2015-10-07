@@ -71,9 +71,11 @@ model {
             targetPlatform "x86"
         }
     }
-}
-binaries.withType(CUnitTestSuiteBinarySpec) {
-    lib library: "cunit", linkage: "static"
+    binaries {
+        withType(CUnitTestSuiteBinarySpec) {
+            lib library: "cunit", linkage: "static"
+        }
+    }
 }
 """
     }
@@ -233,8 +235,12 @@ model {
 
         when:
         buildFile << """
-binaries.withType(CUnitTestSuiteBinarySpec) {
-    cCompiler.define "ONE_TEST"
+model {
+    binaries {
+        withType(CUnitTestSuiteBinarySpec) {
+            cCompiler.define "ONE_TEST"
+        }
+    }
 }
 """
         and:

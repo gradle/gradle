@@ -26,6 +26,7 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.*
+import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
@@ -40,6 +41,10 @@ class AssemblerPluginTest extends Specification {
 
     ProjectSourceSet realizeSourceSets() {
         project.modelRegistry.find(ModelPath.path("sources"), ModelType.of(ProjectSourceSet))
+    }
+
+    BinaryContainer realizeBinaries() {
+        project.modelRegistry.find(ModelPath.path("binaries"), ModelType.of(BinaryContainer))
     }
 
     def "creates asm source set with conventional locations for components"() {
@@ -112,7 +117,7 @@ class AssemblerPluginTest extends Specification {
         }
 
         then:
-        NativeExecutableBinarySpec binary = project.binaries.testExecutable
+        NativeExecutableBinarySpec binary = realizeBinaries().testExecutable
         binary.tasks.withType(Assemble)*.name == ["assembleTestExecutableTestAnotherOne", "assembleTestExecutableTestAsm"]
 
         and:
@@ -155,7 +160,7 @@ class AssemblerPluginTest extends Specification {
         }
 
         then:
-        SharedLibraryBinarySpec sharedLib = project.binaries.testSharedLibrary
+        SharedLibraryBinarySpec sharedLib = realizeBinaries().testSharedLibrary
         sharedLib.tasks.withType(Assemble)*.name == ["assembleTestSharedLibraryTestAnotherOne", "assembleTestSharedLibraryTestAsm"]
         sharedLib.tasks.withType(Assemble).each { compile ->
             compile.toolChain == sharedLib.toolChain
@@ -165,7 +170,7 @@ class AssemblerPluginTest extends Specification {
         sharedLinkTask TaskDependencyMatchers.dependsOn("assembleTestSharedLibraryTestAnotherOne", "assembleTestSharedLibraryTestAsm")
 
         and:
-        StaticLibraryBinarySpec staticLib = project.binaries.testStaticLibrary
+        StaticLibraryBinarySpec staticLib = realizeBinaries().testStaticLibrary
         staticLib.tasks.withType(Assemble)*.name == ["assembleTestStaticLibraryTestAnotherOne", "assembleTestStaticLibraryTestAsm"]
         staticLib.tasks.withType(Assemble).each { compile ->
             compile.toolChain == sharedLib.toolChain

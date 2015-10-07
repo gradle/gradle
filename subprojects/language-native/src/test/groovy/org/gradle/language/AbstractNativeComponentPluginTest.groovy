@@ -31,6 +31,7 @@ import org.gradle.nativeplatform.NativeBinary
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
+import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
@@ -53,6 +54,10 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
 
     ProjectSourceSet realizeSourceSets() {
         project.modelRegistry.find(ModelPath.path("sources"), ModelType.of(ProjectSourceSet))
+    }
+
+    BinaryContainer realizeBinaries() {
+        project.modelRegistry.find(ModelPath.path("binaries"), ModelType.of(BinaryContainer))
     }
 
     def "creates source set with conventional locations for components"() {
@@ -167,7 +172,7 @@ abstract class AbstractNativeComponentPluginTest extends Specification {
         }
 
         then:
-        NativeExecutableBinarySpec binary = project.binaries.testExecutable
+        NativeExecutableBinarySpec binary = realizeBinaries().testExecutable
         binary.tasks.withType(compileTaskClass)*.name as Set == ["compileTestExecutableTestAnotherOne", "compileTestExecutableTest${StringUtils.capitalize(pluginName)}"] as Set
 
         and:

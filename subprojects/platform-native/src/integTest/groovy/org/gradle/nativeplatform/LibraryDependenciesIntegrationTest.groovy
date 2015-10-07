@@ -184,8 +184,7 @@ model {
         executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
     }
 
-    @Unroll
-    def "can use map notation to reference library in different project#label"() {
+    def "can use map notation to reference library in different project"() {
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("exe/src/main"))
@@ -195,7 +194,6 @@ model {
         settingsFile.text = "include ':lib', ':exe'"
         buildFile << """
 project(":exe") {
-    ${explicitEvaluation}
     model {
         components {
             main(NativeExecutableSpec) {
@@ -216,24 +214,47 @@ project(":lib") {
 """
 
         when:
-        if (configureOnDemand) {
-            executer.withArgument('--configure-on-demand')
-        }
         succeeds ":exe:installMainExecutable"
 
         then:
         installation("exe/build/install/mainExecutable").exec().out == app.englishOutput
+    }
 
-        where:
-        label                       | configureOnDemand | explicitEvaluation
-        ""                          | false             | ""
-        " with configure-on-demand" | true              | ""
-//        " with evaluationDependsOn" | false             | "evaluationDependsOn(':lib')"
-        " with afterEvaluate"       | false             | """
-project.afterEvaluate {
-    binaries*.libs*.linkFiles.files.each { println it }
+    def "can use map notation to reference library in different project with configure-on-demand"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.executable.writeSources(file("exe/src/main"))
+        app.library.writeSources(file("lib/src/hello"))
+
+        and:
+        settingsFile.text = "include ':lib', ':exe'"
+        buildFile << """
+project(":exe") {
+    model {
+        components {
+            main(NativeExecutableSpec) {
+                sources {
+                    cpp.lib project: ':lib', library: 'hello'
+                }
+            }
+        }
+    }
+}
+project(":lib") {
+    model {
+        components {
+            hello(NativeLibrarySpec)
+        }
+    }
 }
 """
+
+        when:
+        executer.withArgument('--configure-on-demand')
+        succeeds ":exe:installMainExecutable"
+
+        then:
+        installation("exe/build/install/mainExecutable").exec().out == app.englishOutput
     }
 
     def "can use map notation to transitively reference libraries in different projects"() {
