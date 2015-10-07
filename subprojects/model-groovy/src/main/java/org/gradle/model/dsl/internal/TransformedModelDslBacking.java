@@ -136,7 +136,7 @@ public class TransformedModelDslBacking {
         private final Closure<?> closure;
 
         public ExecuteClosure(Closure<?> closure) {
-            this.closure = closure.rehydrate(null, null, null);
+            this.closure = closure.rehydrate(null, new Object(), null);
         }
 
         @Override

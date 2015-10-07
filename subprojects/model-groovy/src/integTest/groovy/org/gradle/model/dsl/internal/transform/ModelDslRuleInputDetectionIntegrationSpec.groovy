@@ -347,14 +347,20 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         buildScript """
             model {
                 tasks {
-                    assert owner == null
+                    assert owner.class == Object
                     assert this == null
 
                     try {
                         project.tasks
                         assert false : "should not reach here"
                     } catch (MissingPropertyException ignore) {
-
+                        // expected
+                    }
+                    try {
+                        files('thing')
+                        assert false : "should not reach here"
+                    } catch (MissingMethodException ignore) {
+                        // expected
                     }
                 }
             }
