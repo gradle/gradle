@@ -126,12 +126,12 @@ public class LanguageBasePlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
 
-        @Model @Service
+        @Service
         ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ModelSchemaStore.class);
         }
 
-        @Model @Service
+        @Service
         ConstructableTypesRegistry constructableTypesRegistry() {
             return new DefaultConstructableTypesRegistry();
         }

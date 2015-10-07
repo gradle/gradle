@@ -20,6 +20,7 @@ import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.BiAction;
 import org.gradle.model.InvalidModelRuleDeclarationException;
+import org.gradle.model.Model;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -31,7 +32,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.List;
 
 @NotThreadSafe
-public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor {
+public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRuleExtractor<Model> {
     private final ModelSchemaStore schemaStore;
 
     public ManagedModelCreationRuleExtractor(ModelSchemaStore schemaStore) {
@@ -65,6 +66,11 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         return new ExtractedModelCreator(buildModelCreatorForManagedType(managedType, ruleDefinition, ModelPath.path(modelName)));
     }
 
+    @Override
+    protected String getNameFromAnnotation(MethodRuleDefinition<?, ?> ruleDefinition) {
+        return ruleDefinition.getAnnotation(Model.class).value();
+    }
+
     private <T> ModelCreator buildModelCreatorForManagedType(ModelType<T> managedType, final MethodRuleDefinition<?, ?> ruleDefinition, final ModelPath modelPath) {
         final ModelSchema<T> modelSchema = getModelSchema(managedType, ruleDefinition);
 
@@ -78,7 +84,6 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
 
         final ModelReference<T> reference = ModelReference.of(modelPath, managedType);
         return ModelCreators.of(modelPath)
-            .service(isService(ruleDefinition))
             .descriptor(descriptor)
             .action(ModelActionRole.DefineProjections, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override

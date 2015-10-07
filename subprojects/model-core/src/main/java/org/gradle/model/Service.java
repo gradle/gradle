@@ -25,10 +25,30 @@ import java.lang.annotation.Target;
 
 /**
  * Denotes that the {@link RuleSource} method rule carrying this annotation creates a new top level service in the model space.
- * Must be used together with the {@link Model} annotation.
+ * <p>
+ * The same rules apply to service elements as other elements defined via the {@link Model} annotation.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating
 public @interface Service {
+
+    /**
+     * Denotes the name by which the service model element will be available.
+     * <p>
+     * If the value is the empty string, the exact name of the annotated method will be used.
+     * <p>
+     * The value must:
+     * <p>
+     * <ul>
+     * <li>Start with a lower case letter</li>
+     * <li>Contain only ASCII letters, numbers and the '_' character</li>
+     * </ul>
+     * <p>
+     * This restriction also applies when the name is being derived from the method name.
+     * </p>
+     *
+     * @return the name by which the model element will be available
+     */
+    String value() default "";
 }

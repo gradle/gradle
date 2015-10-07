@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,18 @@
 
 package org.gradle.model.internal.inspect;
 
-import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.Model;
+import org.gradle.model.Service;
 import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.core.ModelCreators;
 
-@ThreadSafe
-public class UnmanagedModelCreationRuleExtractor extends AbstractUnmanagedModelCreationRuleExtractor<Model> {
+public class ServiceModelCreationRuleExtractor extends AbstractUnmanagedModelCreationRuleExtractor<Service> {
     @Override
     protected ModelCreator buildCreator(ModelCreators.Builder builder) {
-        return builder.build();
+        return builder.service(true).build();
     }
 
     @Override
     protected String getNameFromAnnotation(MethodRuleDefinition<?, ?> ruleDefinition) {
-        return ruleDefinition.getAnnotation(Model.class).value();
+        return ruleDefinition.getAnnotation(Service.class).value();
     }
 }

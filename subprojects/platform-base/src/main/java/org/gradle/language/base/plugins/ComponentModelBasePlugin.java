@@ -85,12 +85,12 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @Model @Service
+        @Service
         ComponentSpecFactory componentSpecFactory() {
             return new ComponentSpecFactory("components");
         }
 
-        @Model @Service
+        @Service
         BinarySpecFactory binarySpecFactory() {
             return new BinarySpecFactory("binaries");
         }
@@ -100,12 +100,12 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry));
         }
 
-        @Model @Service
+        @Service
         LanguageRegistry languages() {
             return new DefaultLanguageRegistry();
         }
 
-        @Model @Service
+        @Service
         LanguageTransformContainer languageTransforms() {
             return new DefaultLanguageTransformContainer();
         }
@@ -146,7 +146,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
         }
 
-        @Model @Service
+        @Service
         PlatformResolvers platformResolver(PlatformContainer platforms) {
             return new DefaultPlatformResolvers(platforms);
         }
@@ -163,7 +163,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             binarySpecFactory.copyDomainObjectFactoriesInto(binaries);
         }
 
-        @Model @Service
+        @Service
         InstanceFactoryRegistry instanceFactoryRegistry(BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
             InstanceFactoryRegistry instanceFactoryRegistry = new DefaultInstanceFactoryRegistry();
             for (ModelType<? extends BinarySpec> type : binarySpecFactory.getSupportedTypes()) {

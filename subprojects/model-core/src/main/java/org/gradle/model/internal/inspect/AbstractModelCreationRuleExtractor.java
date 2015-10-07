@@ -18,15 +18,15 @@ package org.gradle.model.internal.inspect;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.Model;
-import org.gradle.model.Service;
 import org.gradle.model.internal.core.ModelPath;
 
+import java.lang.annotation.Annotation;
+
 @ThreadSafe
-public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Model> {
+public abstract class AbstractModelCreationRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
 
     protected String determineModelName(MethodRuleDefinition<?, ?> ruleDefinition) {
-        String annotationValue = ruleDefinition.getAnnotation(Model.class).value();
+        String annotationValue = getNameFromAnnotation(ruleDefinition);
         String modelName = (annotationValue == null || annotationValue.isEmpty()) ? ruleDefinition.getMethodName() : annotationValue;
 
         try {
@@ -38,7 +38,5 @@ public abstract class AbstractModelCreationRuleExtractor extends AbstractAnnotat
         return modelName;
     }
 
-    protected boolean isService(MethodRuleDefinition<?, ?> ruleDefinition) {
-        return ruleDefinition.isAnnotationPresent(Service.class);
-    }
+    protected abstract String getNameFromAnnotation(MethodRuleDefinition<?, ?> ruleDefinition);
 }
