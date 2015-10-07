@@ -78,6 +78,7 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         final ModelReference<T> reference = ModelReference.of(modelPath, managedType);
         return ModelCreators.of(modelPath)
             .hidden(isHidden(ruleDefinition))
+            .service(isService(managedType))
             .descriptor(descriptor)
             .action(ModelActionRole.DefineProjections, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
                 @Override

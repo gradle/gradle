@@ -96,6 +96,11 @@ public class DefaultModelRegistry implements ModelRegistry {
         addRuleBindings(node);
         modelGraph.add(node);
         ruleBindings.nodeCreated(node);
+
+        if (node.getCreatorBinder().getCreator().isService()) {
+            node.ensureAtLeast(ProjectionsDefined);
+        }
+
         return node;
     }
 

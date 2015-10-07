@@ -41,5 +41,7 @@ public interface ModelCreator extends ModelRule {
 
     boolean isEphemeral();
 
+    boolean isService();
+
     void addProjection(ModelProjection projection);
 }

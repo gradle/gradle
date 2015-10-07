@@ -188,7 +188,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         ModelCreator taskFactoryCreator = ModelCreators.bridgedInstance(ModelReference.of(ITaskFactory.class), services.get(ITaskFactory.class))
             .descriptor("Project.<init>.taskFactory")
             .ephemeral(true)
-            .hidden(true)
             .build();
 
         modelRegistry.createOrReplace(taskFactoryCreator);
@@ -197,7 +196,6 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             ModelCreators.bridgedInstance(ModelReference.of(ServiceRegistry.class), services)
                 .descriptor("Project.<init>.serviceRegistry()")
                 .ephemeral(true)
-                .hidden(true)
                 .build()
         );
 
@@ -207,11 +205,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             ModelCreators.bridgedInstance(ModelReference.of(NodeInitializerRegistry.class), nodeInitializerRegistry)
                 .descriptor("Project.<init>.nodeInitializerRegistry()")
                 .ephemeral(true)
-                .hidden(true)
                 .build()
         );
-        // Make sure this is discoverable when `DefineProjections` actions are looking for it by type
-        modelRegistry.atStateOrLater(ModelReference.of(NodeInitializerRegistry.class).getPath(), ModelNode.State.ProjectionsDefined);
 
         modelRegistry.createOrReplace(
             ModelCreators.unmanagedInstance(ModelReference.of("buildDir", File.class), new Factory<File>() {

@@ -49,6 +49,7 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
         ModelCreator modelCreator = ModelCreators.of(ModelPath.path(modelName), references, transformer)
             .withProjection(new UnmanagedModelProjection<R>(returnType, true, true))
             .descriptor(descriptor)
+            .service(isService(returnType))
             .hidden(isHidden(ruleDefinition))
             .build();
 

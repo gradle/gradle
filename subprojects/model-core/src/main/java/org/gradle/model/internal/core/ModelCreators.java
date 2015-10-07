@@ -26,6 +26,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.service.Service;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.NestedModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -64,6 +65,7 @@ abstract public class ModelCreators {
                 modelNode.setPrivateData(modelReference.getType(), t);
             }
         })
+            .service(modelReference.getType().getConcreteClass().isAnnotationPresent(Service.class))
             .withProjection(UnmanagedModelProjection.of(modelReference.getType()));
     }
 
@@ -105,6 +107,7 @@ abstract public class ModelCreators {
         private final List<ModelProjection> projections = new ArrayList<ModelProjection>();
         private final ListMultimap<ModelActionRole, ModelAction> actions = ArrayListMultimap.create();
         private final NodeInitializer nodeInitializer;
+        private boolean service;
         private boolean ephemeral;
         private boolean hidden;
 
@@ -195,6 +198,11 @@ abstract public class ModelCreators {
             return this;
         }
 
+        public Builder service(boolean flag) {
+            this.service = flag;
+            return this;
+        }
+
         @SuppressWarnings("unchecked")
         public ModelCreator build() {
             if (nodeInitializer != null) {
@@ -217,7 +225,7 @@ abstract public class ModelCreators {
                     action(ModelActionRole.DefineProjections, projector);
                 }
             }
-            return new ProjectionBackedModelCreator(path, modelRuleDescriptor, ephemeral, hidden, projections, actions);
+            return new ProjectionBackedModelCreator(path, modelRuleDescriptor, service, ephemeral, hidden || service, projections, actions);
         }
 
         private abstract class BuilderModelAction implements ModelAction {

@@ -265,7 +265,7 @@ class RegistrySpec extends Specification {
         RuleBinder build() {
             def binder
             if (subjectReference == null) {
-                def action = new ProjectionBackedModelCreator(null, descriptor, false, false, [], ImmutableMultimap.of())
+                def action = new ProjectionBackedModelCreator(null, descriptor, false, false, false, [], ImmutableMultimap.of())
                 binder = new CreatorRuleBinder(action, new BindingPredicate(), inputReferences, [])
             } else {
                 def action = NoInputsModelAction.of(subjectReference.reference, descriptor, {})

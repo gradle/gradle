@@ -27,6 +27,7 @@ import java.util.Set;
 public class ProjectionBackedModelCreator implements ModelCreator {
     private final ModelPath path;
     private final ModelRuleDescriptor descriptor;
+    private final boolean service;
     private final boolean ephemeral;
     private final ModelProjection projection;
     private final List<ModelProjection> projections;
@@ -35,12 +36,14 @@ public class ProjectionBackedModelCreator implements ModelCreator {
     public ProjectionBackedModelCreator(
         ModelPath path,
         ModelRuleDescriptor descriptor,
+        boolean service,
         boolean ephemeral,
         final boolean hidden,
         Iterable<? extends ModelProjection> initialProjections,
         Multimap<ModelActionRole, ? extends ModelAction> actions) {
         this.path = path;
         this.descriptor = descriptor;
+        this.service = service;
         this.ephemeral = ephemeral;
         this.projections = Lists.newArrayList(initialProjections);
         this.projection = new ChainingModelProjection(projections);
@@ -90,6 +93,11 @@ public class ProjectionBackedModelCreator implements ModelCreator {
     @Override
     public boolean isEphemeral() {
         return ephemeral;
+    }
+
+    @Override
+    public boolean isService() {
+        return service;
     }
 
     @Override
