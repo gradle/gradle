@@ -37,16 +37,12 @@ class IsolatedAntBuilderMemoryLeakTest extends AbstractIntegrationSpec {
 
                 dependencies {
                     compile $groovyVersion
-                    codenarc('org.codenarc:CodeNarc:0.24.1') {
-                        exclude group: 'org.codehaus.groovy'
-                    }
-                    codenarc $groovyVersion
                 }
             }
         """
     }
 
-    private void withCodenarc(TestFile root = testDirectory) {
+    private void withCodenarc(String groovyVersion, TestFile root = testDirectory) {
         root.file("config/codenarc/rulesets.groovy") << """
             ruleset {
                 ruleset('rulesets/naming.xml')
@@ -56,9 +52,17 @@ class IsolatedAntBuilderMemoryLeakTest extends AbstractIntegrationSpec {
             allprojects {
                 apply plugin: 'codenarc'
 
+                dependencies {
+                    codenarc('org.codenarc:CodeNarc:0.24.1') {
+                        exclude group: 'org.codehaus.groovy'
+                    }
+                    codenarc $groovyVersion
+                }
+
                 codenarc {
                     configFile = file('config/codenarc/rulesets.groovy')
                 }
+
             }
 """
     }
@@ -80,7 +84,7 @@ class IsolatedAntBuilderMemoryLeakTest extends AbstractIntegrationSpec {
     @Unroll
     void 'CodeNarc does not fail with PermGen space error, Groovy #groovyVersion'() {
         given:
-        withCodenarc()
+        withCodenarc(groovyVersion)
         withCheckstyle()
         goodCode(groovyVersion)
 
@@ -97,4 +101,33 @@ class IsolatedAntBuilderMemoryLeakTest extends AbstractIntegrationSpec {
             "'org.codehaus.groovy:groovy-all:1.8.7'"] * 3
     }
 
+    @Unroll
+    void "Doesn't fail with a PermGen space error or a missing method exception"() {
+        given:
+        buildFile << '''
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+
+  dependencies {
+    classpath "org.ajoberstar:gradle-git:1.3.0"
+  }
+}
+
+import org.ajoberstar.grgit.*
+Grgit.open(currentDir: project.rootProject.rootDir)
+
+'''
+        withCheckstyle()
+        goodCode('localGroovy()')
+
+        expect:
+        succeeds 'check'
+
+        where:
+        iteration << (0..10)
+    }
 }

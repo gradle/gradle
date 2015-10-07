@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.util.VersionNumber;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -56,6 +57,7 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
     private Field clazzField;
     private Class<ClassInfo> gradleClassInfoClass;
     private ClassLoader gradleClassInfoClassLoader;
+    private boolean isFaultyGroovy;
 
     public GroovyJava7RuntimeMemoryLeakStrategy() {
         this(false);
@@ -108,10 +110,23 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
             gradleClassInfoClass = ClassInfo.class;
             gradleClassInfoClassLoader = gradleClassInfoClass.getClassLoader();
         }
+
+        Class<?> groovySystem = leakingLoader.loadClass("groovy.lang.GroovySystem");
+        try {
+            Method getVersion = groovySystem.getDeclaredMethod("getVersion");
+            String versionString = (String) getVersion.invoke(null);
+            VersionNumber groovyVersion = VersionNumber.parse(versionString);
+            isFaultyGroovy = groovyVersion.getMajor()==2 && groovyVersion.getMinor()>=4;
+        } catch (NoSuchMethodException  ex) {
+            isFaultyGroovy = false;
+        }
     }
 
     @Override
     public void dispose(ClassLoader classLoader, ClassLoader... affectedLoaders) throws Exception {
+        if (!isFaultyGroovy) {
+            return;
+        }
 
         Iterator it = globalClassSetIterator();
 
@@ -171,7 +186,9 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
     }
 
     private boolean isLoadedInSameHierarchy(ClassLoader loader, ClassLoader ld) {
-        while (ld != null) {
+        // we must stop at the loader of the ClassInfo class in order to avoid
+        // unloading valid metaclasses, that belong to the "Gradle" classloader
+        while (ld != null && ld!=gradleClassInfoClassLoader) {
             if (ld == loader) {
                 return true;
             }

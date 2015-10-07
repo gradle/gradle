@@ -192,7 +192,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
 
     private boolean shouldProcessAnnotations(ClassLoader classLoader, GroovyJavaJointCompileSpec spec) {
         return !isAnnotationProcessingDisabled(spec)
-               && (isAnnotationProcessorOnClasspath(classLoader) || isDefaultAnnotationProcessorDiscoveryOverridden(spec));
+            && (isAnnotationProcessorOnClasspath(classLoader) || isDefaultAnnotationProcessorDiscoveryOverridden(spec));
     }
 
     private boolean isAnnotationProcessingDisabled(GroovyJavaJointCompileSpec spec) {
