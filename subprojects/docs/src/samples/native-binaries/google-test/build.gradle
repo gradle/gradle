@@ -31,16 +31,20 @@ model {
     }
 }
 // START SNIPPET configure-test-binary
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    lib library: "googleTest", linkage: "static"
+model {
+    binaries {
+        withType(GoogleTestTestSuiteBinarySpec) {
+            lib library: "googleTest", linkage: "static"
 
-    if (flavor == flavors.failing) {
-        cppCompiler.define "PLUS_BROKEN"
-    }
+            if (flavor == flavors.failing) {
+                cppCompiler.define "PLUS_BROKEN"
+            }
 
-    if (targetPlatform.operatingSystem.linux) {
-        cppCompiler.args '-pthread'
-        linker.args '-pthread'
+            if (targetPlatform.operatingSystem.linux) {
+                cppCompiler.args '-pthread'
+                linker.args '-pthread'
+            }
+        }
     }
 }
 // END SNIPPET configure-test-binary
