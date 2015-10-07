@@ -31,6 +31,7 @@ import org.gradle.language.base.internal.model.ComponentBinaryRules;
 import org.gradle.language.base.internal.model.ComponentRules;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
+import org.gradle.model.internal.Internal;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -84,12 +85,12 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @Model
+        @Model @Internal
         ComponentSpecFactory componentSpecFactory() {
             return new ComponentSpecFactory("components");
         }
 
-        @Model
+        @Model @Internal
         BinarySpecFactory binarySpecFactory() {
             return new BinarySpecFactory("binaries");
         }
@@ -99,12 +100,12 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry));
         }
 
-        @Model
+        @Model @Internal
         LanguageRegistry languages() {
             return new DefaultLanguageRegistry();
         }
 
-        @Model
+        @Model @Internal
         LanguageTransformContainer languageTransforms() {
             return new DefaultLanguageTransformContainer();
         }
@@ -142,10 +143,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Model
         PlatformContainer platforms(ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
+            return new DefaultPlatformContainer(instantiator);
         }
 
-        @Model
+        @Model @Internal
         PlatformResolvers platformResolver(PlatformContainer platforms) {
             return new DefaultPlatformResolvers(platforms);
         }
@@ -162,7 +163,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             binarySpecFactory.copyDomainObjectFactoriesInto(binaries);
         }
 
-        @Model
+        @Model @Internal
         InstanceFactoryRegistry instanceFactoryRegistry(BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
             InstanceFactoryRegistry instanceFactoryRegistry = new DefaultInstanceFactoryRegistry();
             for (ModelType<? extends BinarySpec> type : binarySpecFactory.getSupportedTypes()) {
