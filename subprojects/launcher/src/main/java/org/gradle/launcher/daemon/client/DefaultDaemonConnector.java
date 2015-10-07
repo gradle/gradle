@@ -166,7 +166,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         }
 
         public boolean maybeStaleAddress(Exception failure) {
-            LOGGER.info(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE + daemon);
+            LOGGER.info("{}{}", DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE, daemon);
             daemonRegistry.remove(daemon.getAddress());
             return exposeAsStale;
         }

@@ -122,7 +122,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
                 walkDir(dir, path, visitor, spec, stopFlag);
             }
         } else {
-            LOGGER.info("file or directory '" + dir + "', not found");
+            LOGGER.info("file or directory '{}', not found", dir);
         }
     }
 

@@ -44,11 +44,11 @@ public class ReusingModelRegistryStore implements ModelRegistryStore {
     public ModelRegistry get(ProjectIdentifier projectIdentifier) {
         ModelRegistry modelRegistry = store.get(projectIdentifier.getProjectDir().getAbsolutePath());
         if (modelRegistry == null) {
-            LOGGER.info("creating new model registry for project: " + projectIdentifier.getPath());
+            LOGGER.info("creating new model registry for project: {}", projectIdentifier.getPath());
             modelRegistry = delegate.get(projectIdentifier);
             store.put(projectIdentifier.getProjectDir().getAbsolutePath(), modelRegistry);
         } else {
-            LOGGER.info("reusing model for project: " + projectIdentifier.getPath());
+            LOGGER.info("reusing model for project: {}", projectIdentifier.getPath());
             // TODO - we should be doing this after the build, after the daemon has returned to the user doesn't wait for it
             modelRegistry.prepareForReuse();
         }

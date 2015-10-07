@@ -96,7 +96,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                                 return false;
                             } else {
                                 Date waitUntil = new Date(lastActivityAt + timeoutMs);
-                                LOGGER.debug(DaemonMessages.DAEMON_IDLE + waitUntil);
+                                LOGGER.debug("{}{}", DaemonMessages.DAEMON_IDLE, waitUntil);
                                 condition.awaitUntil(waitUntil);
                             }
                             break;

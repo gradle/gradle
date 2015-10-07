@@ -149,14 +149,14 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         }
 
         private void handleCommand(Command command, DaemonConnection daemonConnection) {
-            LOGGER.debug(DaemonMessages.STARTED_EXECUTING_COMMAND + command + " with connection: " + connection + ".");
+            LOGGER.debug("{}{} with connection: {}.", DaemonMessages.STARTED_EXECUTING_COMMAND, command, connection);
             try {
                 commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl);
             } catch (Throwable e) {
                 LOGGER.warn(String.format("Unable to execute command %s from %s. Dispatching the failure to the daemon client", command, connection), e);
                 daemonConnection.completed(new Failure(e));
             } finally {
-                LOGGER.debug(DaemonMessages.FINISHED_EXECUTING_COMMAND + command);
+                LOGGER.debug("{}{}", DaemonMessages.FINISHED_EXECUTING_COMMAND, command);
             }
 
             Object finished = daemonConnection.receive(60, TimeUnit.SECONDS);

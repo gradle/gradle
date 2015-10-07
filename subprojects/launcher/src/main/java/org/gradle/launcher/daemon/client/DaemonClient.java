@@ -215,8 +215,8 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         //if he's really dead we should deregister it if it is not already deregistered.
         //if the daemon is not dead we might continue receiving from him (and try to find the bug in messaging infrastructure)
         LOGGER.error("The message received from the daemon indicates that the daemon has disappeared."
-                     + "\nBuild request sent: " + build
-                     + "\nAttempting to read last messages from the daemon log...");
+                     + "\nBuild request sent: {}"
+                     + "\nAttempting to read last messages from the daemon log...",  build);
 
         LOGGER.error(diagnostics.describe());
         throw new DaemonDisappearedException();
