@@ -47,4 +47,8 @@ public abstract class AbstractHeaderExportingSourceSet extends BaseLanguageSourc
     public SourceDirectorySet getImplicitHeaders() {
         return implicitHeaders;
     }
+
+    public void implicitHeaders(Action<? super SourceDirectorySet> config) {
+        config.execute(getImplicitHeaders());
+    }
 }

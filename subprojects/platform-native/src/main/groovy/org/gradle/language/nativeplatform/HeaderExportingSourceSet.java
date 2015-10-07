@@ -37,6 +37,11 @@ public interface HeaderExportingSourceSet extends LanguageSourceSet {
     SourceDirectorySet getExportedHeaders();
 
     /**
+     * Configure the implicit header directories.
+     */
+    public void implicitHeaders(Action<? super SourceDirectorySet> config);
+
+    /**
      * The headers that are private to this source set and implicitly available. These are not explicitly made available for compilation.
      */
     SourceDirectorySet getImplicitHeaders();
