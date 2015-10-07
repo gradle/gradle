@@ -19,6 +19,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @LeaksFileHandles
@@ -51,6 +53,7 @@ class TestKitSamplesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "check"
     }
 
+    @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
     @UsesSample("testKit/testKitSpockGradleDistribution")
     def gradleDistribution() {
         expect:
