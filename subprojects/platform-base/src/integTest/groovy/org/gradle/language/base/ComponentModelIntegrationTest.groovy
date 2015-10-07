@@ -15,8 +15,8 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 import spock.lang.Issue
@@ -24,23 +24,12 @@ import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
-class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
+class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTest {
 
     def "setup"() {
         EnableModelDsl.enable(executer)
-        buildScript """
-            interface CustomComponent extends ComponentSpec {}
-            class DefaultCustomComponent extends BaseComponentSpec implements CustomComponent {}
-
-            class ComponentTypeRules extends RuleSource {
-                @ComponentType
-                void registerCustomComponentType(ComponentTypeBuilder<CustomComponent> builder) {
-                    builder.defaultImplementation(DefaultCustomComponent)
-                }
-            }
-
-            apply type: ComponentTypeRules
-
+        withCustomComponentType()
+        buildFile << """
             model {
                 components {
                     main(CustomComponent)
@@ -49,32 +38,8 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    void withCustomLanguage() {
-        buildFile << """
-            interface CustomLanguageSourceSet extends LanguageSourceSet {
-                String getData();
-            }
-            class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {
-                final String data = "foo"
-
-                public boolean getMayHaveSources() {
-                    true
-                }
-            }
-
-            class LanguageTypeRules extends RuleSource {
-                @LanguageType
-                void registerCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
-                    builder.defaultImplementation(DefaultCustomLanguageSourceSet)
-                }
-            }
-
-            apply type: LanguageTypeRules
-        """
-    }
-
     void withMainSourceSet() {
-        withCustomLanguage()
+        withCustomLanguageType()
         buildFile << """
             model {
                 components {
@@ -89,20 +54,9 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void withBinaries() {
+        withCustomBinaryType()
         buildFile << """
-            interface CustomBinary extends BinarySpec {
-                String getData();
-            }
-            class DefaultCustomBinary extends BaseBinarySpec implements CustomBinary {
-                final String data = "bar"
-            }
-
-            class BinaryRules extends RuleSource {
-                @BinaryType
-                void registerCustomBinary(BinaryTypeBuilder<CustomBinary> builder) {
-                    builder.defaultImplementation(DefaultCustomBinary)
-                }
-
+            class ComponentBinaryRules extends RuleSource {
                 @ComponentBinaries
                 void addBinaries(ModelMap<CustomBinary> binaries, CustomComponent component) {
                     binaries.create("main", CustomBinary)
@@ -110,7 +64,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply type: BinaryRules
+            apply type: ComponentBinaryRules
 
             model {
                 components {
@@ -122,60 +76,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
     void withLanguageTransforms() {
         withMainSourceSet()
-        buildFile << """
-            import org.gradle.language.base.internal.registry.*
-            import org.gradle.language.base.internal.*
-            import org.gradle.language.base.*
-            import org.gradle.internal.reflect.*
-            import org.gradle.internal.service.*
-
-
-            class CustomLanguageTransformation implements LanguageTransform {
-                Class getSourceSetType() {
-                    CustomLanguageSourceSet
-                }
-
-                Class getOutputType() {
-                    CustomTransformationFileType
-                }
-
-                Map<String, Class<?>> getBinaryTools() {
-                    throw new UnsupportedOperationException()
-                }
-
-                SourceTransformTaskConfig getTransformTask() {
-                    new SourceTransformTaskConfig() {
-                        String getTaskPrefix() {
-                            "custom"
-                        }
-
-                        Class<? extends DefaultTask> getTaskType() {
-                            DefaultTask
-                        }
-
-                        void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
-                        }
-                    }
-                }
-
-                boolean applyToBinary(BinarySpec binary) {
-                    true
-                }
-            }
-
-            class CustomTransformationFileType implements TransformationFileType {
-            }
-
-
-            class LanguageRules extends RuleSource {
-                @Mutate
-                void registerLanguageTransformation(LanguageTransformContainer transforms) {
-                    transforms.add(new CustomLanguageTransformation())
-                }
-            }
-
-            apply type: LanguageRules
-        """
+        withCustomLanguageTransform()
     }
 
     def "component container is visible to rules as various types"() {
