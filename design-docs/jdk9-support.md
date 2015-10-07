@@ -79,6 +79,15 @@ A new binary spec type should likely be introduced, supporting only classes foun
 Replace the configuration of compile tasks from `JarBinarySpec` to the new binary type.
 Compose `JarBinarySpec` with that new specification.
 
+The idea is to move from this model:
+
+<img src="img/classes-spec-before.png"/>
+
+to something closer to:
+
+<img src="img/classes-spec-after.png"/>
+
+
 The first step involves the creation of a buildable element to represent the compiled classes of a variant.
 
 ### Implementation
