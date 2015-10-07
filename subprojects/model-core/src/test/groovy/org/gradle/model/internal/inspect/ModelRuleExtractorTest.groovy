@@ -150,7 +150,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == "${ModelType.of(HasMultipleRuleAnnotations).simpleName}#thing is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate]"
+        e.message == "${ModelType.of(HasMultipleRuleAnnotations).simpleName}#thing is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, annotated with @Service and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate]"
     }
 
     static class ConcreteGenericModelType extends RuleSource {

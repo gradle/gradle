@@ -340,13 +340,11 @@ apply plugin: ClassHolder.InnerRules
         rules[i] == 'NumberRules#validateRule'
     }
 
-    def "internal nodes are not displayed on the report"() {
+    def "service nodes are not displayed on the report"() {
         given:
         buildFile << """
-        import org.gradle.model.internal.Internal
-
         class Rules extends RuleSource {
-            @Model @Internal
+            @Service
             String thingamajigger() {
                 return "hello"
             }
