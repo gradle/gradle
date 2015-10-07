@@ -207,9 +207,7 @@ TBD - Add a dependency set at the component level, to be used as the default for
 
 # Feature: Java library is compiled against the API of Java libraries in binary repository
 
-Add support for external dependencies.
-
-## Story: Add support for external dependencies to the dependency DSL
+## Story: Java library sources are compiled against library Jar resolved from Maven repository
 
 - Extend the dependency DSL to reference external libraries:
 
