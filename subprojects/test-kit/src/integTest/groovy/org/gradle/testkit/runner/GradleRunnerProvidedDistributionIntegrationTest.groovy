@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
@@ -33,15 +32,9 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
     @Shared
     DistributionLocator locator = new DistributionLocator()
 
-    @Shared
-    ReleasedVersionDistributions distributions = new ReleasedVersionDistributions()
-
-    @Shared
-    GradleVersion mostRecentSnapshot = distributions.mostRecentSnapshot.version
-
     def "execute build with different distribution types"() {
         given:
-        buildFile << helloWorldTask()
+        buildFile << helloWorldTaskWithLoggerOutput()
 
         when:
         GradleRunner gradleRunner = runner(gradleDistribution, 'helloWorld')
@@ -60,22 +53,14 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
 
         where:
         gradleDistribution << [new InstalledGradleDistribution(buildContext.gradleHomeDir),
-                               new URILocatedGradleDistribution(locator.getDistributionFor(mostRecentSnapshot)),
-                               new VersionBasedGradleDistribution(mostRecentSnapshot.version)]
+                               new URILocatedGradleDistribution(locator.getDistributionFor(GradleVersion.version('2.7'))),
+                               new VersionBasedGradleDistribution('2.7')]
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "execute build for multiple Gradle versions of the same distribution type"() {
         given:
-        buildFile << """
-            task helloWorld {
-                doLast {
-                    // standard output wasn't parsed properly for pre-2.8 Gradle versions in embedded mode
-                    // using the Gradle logger instead
-                    logger.quiet 'Hello world!'
-                }
-            }
-        """
+        buildFile << helloWorldTaskWithLoggerOutput()
 
         when:
         GradleRunner gradleRunner = runner(new VersionBasedGradleDistribution(gradleVersion), 'helloWorld')
@@ -123,5 +108,17 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         result.taskPaths(SKIPPED).empty
         result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
+    }
+
+    private String helloWorldTaskWithLoggerOutput() {
+        """
+            task helloWorld {
+                doLast {
+                    // standard output wasn't parsed properly for pre-2.8 Gradle versions in embedded mode
+                    // using the Gradle logger instead
+                    logger.quiet 'Hello world!'
+                }
+            }
+        """
     }
 }
