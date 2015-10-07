@@ -82,6 +82,11 @@ public class DefaultGradleConnector extends GradleConnector {
         return this;
     }
 
+    public GradleConnector useDistributionBaseDir(File distributionBaseDir) {
+        distributionFactory.setDistributionBaseDir(distributionBaseDir);
+        return this;
+    }
+
     public GradleConnector forProjectDirectory(File projectDir) {
         connectionParamsBuilder.setProjectDir(projectDir);
         return this;

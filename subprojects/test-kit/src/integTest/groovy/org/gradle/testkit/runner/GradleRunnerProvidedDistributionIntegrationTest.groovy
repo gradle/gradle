@@ -18,12 +18,10 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.ClassRule
 import spock.lang.Shared
 
 import static org.gradle.testkit.runner.TaskOutcome.*
@@ -41,16 +39,12 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
     @Shared
     GradleVersion mostRecentSnapshot = distributions.mostRecentSnapshot.version
 
-    @ClassRule
-    @Shared
-    TestNameTestDirectoryProvider testKitDir = new TestNameTestDirectoryProvider()
-
     def "execute build with different distribution types"() {
         given:
         buildFile << helloWorldTask()
 
         when:
-        GradleRunner gradleRunner = runnerWithSharedTestKitDir(gradleDistribution, 'helloWorld')
+        GradleRunner gradleRunner = runner(gradleDistribution, 'helloWorld')
         BuildResult result = gradleRunner.build()
 
         then:
@@ -84,7 +78,7 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         """
 
         when:
-        GradleRunner gradleRunner = runnerWithSharedTestKitDir(new VersionBasedGradleDistribution(gradleVersion), 'helloWorld')
+        GradleRunner gradleRunner = runner(new VersionBasedGradleDistribution(gradleVersion), 'helloWorld')
         BuildResult result = gradleRunner.build()
 
         then:
@@ -117,7 +111,7 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         """
 
         when:
-        GradleRunner gradleRunner = runnerWithSharedTestKitDir(new VersionBasedGradleDistribution('2.5'), 'dependencies')
+        GradleRunner gradleRunner = runner(new VersionBasedGradleDistribution('2.5'), 'dependencies')
         BuildResult result = gradleRunner.buildAndFail()
 
         then:
@@ -129,10 +123,5 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         result.taskPaths(SKIPPED).empty
         result.taskPaths(UP_TO_DATE).empty
         result.taskPaths(FAILED).empty
-    }
-
-    private GradleRunner runnerWithSharedTestKitDir(GradleDistribution<?> gradleDistribution, String... arguments) {
-        runner(gradleDistribution, arguments)
-        .withTestKitDir(testKitDir.root)
     }
 }

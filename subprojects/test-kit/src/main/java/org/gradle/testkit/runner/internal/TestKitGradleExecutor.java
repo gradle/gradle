@@ -25,6 +25,7 @@ import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.task.*;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
+import org.gradle.wrapper.GradleUserHomeLookup;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -92,6 +93,7 @@ public class TestKitGradleExecutor implements GradleExecutor {
         DefaultGradleConnector gradleConnector = (DefaultGradleConnector) GradleConnector.newConnector();
         useGradleDistribution(gradleConnector);
         gradleConnector.useGradleUserHomeDir(gradleUserHome);
+        gradleConnector.useDistributionBaseDir(GradleUserHomeLookup.gradleUserHome());
         gradleConnector.daemonBaseDir(new File(gradleUserHome, TEST_KIT_DAEMON_DIR_NAME));
         gradleConnector.forProjectDirectory(projectDir);
         gradleConnector.searchUpwards(false);
