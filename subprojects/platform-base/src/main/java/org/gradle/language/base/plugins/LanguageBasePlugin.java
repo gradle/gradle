@@ -153,8 +153,8 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Model
-        ProjectSourceSet sources() {
-            return new DefaultProjectSourceSet();
+        ProjectSourceSet sources(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(Instantiator.class).newInstance(DefaultProjectSourceSet.class);
         }
 
         @Mutate

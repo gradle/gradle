@@ -143,7 +143,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         @Model
         PlatformContainer platforms(ServiceRegistry serviceRegistry) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-            return new DefaultPlatformContainer(instantiator);
+            return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
         }
 
         @Model @Internal
