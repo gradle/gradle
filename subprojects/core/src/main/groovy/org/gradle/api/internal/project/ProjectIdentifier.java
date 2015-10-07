@@ -15,12 +15,9 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.internal.service.Service;
-
 import java.io.File;
 
 // TODO need a better name for this
-@Service
 public interface ProjectIdentifier {
     String getName();
 

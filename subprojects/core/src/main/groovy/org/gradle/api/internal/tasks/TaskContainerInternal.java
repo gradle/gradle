@@ -21,11 +21,9 @@ import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.service.Service;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.type.ModelType;
 
-@Service(TaskContainerInternal.PATH)
 public interface TaskContainerInternal extends TaskContainer, TaskResolver, PolymorphicDomainObjectContainerInternal<Task> {
 
     // The path to the project's task container in the model registry

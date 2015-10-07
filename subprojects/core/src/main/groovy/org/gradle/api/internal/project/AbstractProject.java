@@ -226,7 +226,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         );
 
         modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of(ProjectIdentifier.class), this)
+            ModelCreators.bridgedInstance(ModelReference.of("projectIdentifier", ProjectIdentifier.class), this)
                 .descriptor("Project.<init>.projectIdentifier()")
                 .ephemeral(true)
                 .hidden(true)
@@ -234,7 +234,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         );
 
         modelRegistry.createOrReplace(
-            ModelCreators.bridgedInstance(ModelReference.of(ExtensionContainer.class), getExtensions())
+            ModelCreators.bridgedInstance(ModelReference.of("extensionContainer", ExtensionContainer.class), getExtensions())
                 .descriptor("Project.<init>.extensions()")
                 .ephemeral(true)
                 .hidden(true)

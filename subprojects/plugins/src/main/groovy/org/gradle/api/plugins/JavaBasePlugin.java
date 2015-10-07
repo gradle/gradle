@@ -40,7 +40,6 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.Service;
 import org.gradle.jvm.Classpath;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
@@ -50,6 +49,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.model.Mutate;
+import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelReference;
@@ -98,7 +98,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureCompileDefaults(project, javaConvention);
         BridgedBinaries binaries = configureSourceSetDefaults(javaConvention);
 
-        modelRegistry.createOrReplace(ModelCreators.bridgedInstance(ModelReference.of(BridgedBinaries.class), binaries)
+        modelRegistry.createOrReplace(ModelCreators.bridgedInstance(ModelReference.of("bridgedBinaries", BridgedBinaries.class), binaries)
                 .descriptor("JavaBasePlugin.apply()")
                 .ephemeral(true)
                 .hidden(true)
@@ -384,7 +384,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         test.workingDir(project.getProjectDir());
     }
 
-    @Service("bridgedJavaBinaries")
     static class BridgedBinaries {
         final List<ClassDirectoryBinarySpecInternal> binaries;
 
@@ -395,14 +394,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     static class Rules extends RuleSource {
         @Mutate
-        void attachBridgedSourceSets(ProjectSourceSet projectSourceSet, BridgedBinaries bridgedBinaries) {
+        void attachBridgedSourceSets(ProjectSourceSet projectSourceSet, @Path("bridgedBinaries") BridgedBinaries bridgedBinaries) {
             for (ClassDirectoryBinarySpecInternal binary : bridgedBinaries.binaries) {
                 projectSourceSet.addAll(binary.getInputs());
             }
         }
 
         @Mutate
-        void attachBridgedBinaries(BinaryContainer binaries, BridgedBinaries bridgedBinaries) {
+        void attachBridgedBinaries(BinaryContainer binaries, @Path("bridgedBinaries") BridgedBinaries bridgedBinaries) {
             binaries.addAll(bridgedBinaries.binaries);
         }
     }
