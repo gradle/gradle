@@ -80,11 +80,15 @@ tasks.withType(RunTestExecutable) {
 
     private void addGoogleTestDep() {
         buildFile << """
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    lib library: "googleTest", linkage: "static"
-    if (targetPlatform.operatingSystem.linux) {
-        cppCompiler.args '-pthread'
-        linker.args '-pthread'
+model {
+    binaries {
+        withType(GoogleTestTestSuiteBinarySpec) {
+            lib library: "googleTest", linkage: "static"
+            if (targetPlatform.operatingSystem.linux) {
+                cppCompiler.args '-pthread'
+                linker.args '-pthread'
+            }
+        }
     }
 }
 """
@@ -202,8 +206,12 @@ tasks.withType(RunTestExecutable) {
 
         when:
         buildFile << """
-binaries.withType(GoogleTestTestSuiteBinarySpec) {
-    cppCompiler.define "ONE_TEST"
+model {
+    binaries {
+        withType(GoogleTestTestSuiteBinarySpec) {
+            cppCompiler.define "ONE_TEST"
+        }
+    }
 }
 """
         and:
