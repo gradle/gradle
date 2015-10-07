@@ -61,8 +61,8 @@ model {
 }
 // END SNIPPET build-type-config
 
-// Apply custom arguments for different target platforms
 model {
+    // Apply custom arguments for different target platforms
     binaries {
         all {
             if (toolChain in Gcc && targetPlatform == platforms.x86) {
@@ -70,16 +70,14 @@ model {
             }
         }
     }
-}
 
-// Tasks to build all binaries for a tool chain
-task gccExecutables {
-    dependsOn binaries.withType(NativeExecutableBinary).matching {
-        it.toolChain in Gcc
-    }
-}
-task visualCppExecutables {
-    dependsOn binaries.withType(NativeExecutableBinary).matching {
-        it.toolChain in VisualCpp
+    // Tasks to build all binaries for a tool chain
+    tasks {
+        gccExecutables(Task) {
+            dependsOn $('binaries').findAll { it.toolChain in Gcc }
+        }
+        visualCppExecutables(Task) {
+            dependsOn $('binaries').findAll { it.toolChain in VisualCpp }
+        }
     }
 }

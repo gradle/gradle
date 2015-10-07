@@ -149,6 +149,10 @@ class UserGuideSamplesRunner extends Runner {
                 executer.withDeprecationChecksDisabled()
             }
 
+            if (run.modelDsl) {
+                executer.withArgument("-Dorg.gradle.model.dsl=true")
+            }
+
             def result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
                 def expectedResult = buildContext.userGuideOutputDir.file(run.outputFile).text
@@ -236,6 +240,8 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/tasks/finalizersWithFailure')*.expectFailure = true
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
+        samplesByDir.get('native-binaries/tool-chains')*.modelDsl = true
+        samplesByDir.get('native-binaries/variants')*.modelDsl = true
 
         def sonarSamples = samplesByDir.values().findAll { it.subDir.startsWith("sonar") }
         assert sonarSamples
@@ -293,6 +299,7 @@ Please run 'gradle docs:userguideDocbook' first"""
         boolean ignoreLineOrder
         boolean brokenForParallel
         boolean allowDeprecation
+        boolean modelDsl
         List files = []
         List dirs = []
 
