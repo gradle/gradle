@@ -306,36 +306,6 @@ Provide a mechanism that build logic can use to prompt the user, when running fr
 
 Extend the above mechanism to support prompting the user, when running via the tooling API.
 
-# More candidates
-
-Some more features to mix into the above plan:
-
-- `IdeaSingleEntryLibraryDependency` should expose multiple source or javadoc artifacts.
-- Honour same environment variables as command-line `gradle` invocation.
-- Richer events during execution:
-    - Custom events
-- Richer build results:
-    - Test results
-    - Custom results
-    - Compilation and other verification failures
-    - Task failures
-    - Build configuration failures
-- Expose unresolved dependencies.
-- Expose dependency graph.
-- Expose component graph.
-- Provide some way to search repositories, to offer content assistance with dependency notations.
-- Don't configure the projects when `GradleBuild` model is requested.
-- Configure projects as required when using configure-on-demand.
-- Don't configure tasks when they are not requested.
-- Deal with non-standard wrapper meta-data location.
-- More accurate content assistance.
-- User provides input to build execution.
-- User edits dependencies via some UI.
-- User upgrades Gradle version via some UI.
-- User creates a new build via some UI.
-- Provide some way to define additional JVM args and system properties (possibly via command-line args)
-- Provide some way to locate Gradle builds, eg to allow the user to select which build to import.
-
 ### Story - IntelliJ directory-based project metadata generation
 
 A couple of versions ago, IntelliJ introduced the directory-based project format. The file-based project format is [considered to be deprecated](https://devnet.jetbrains.com/thread/461951).
@@ -381,3 +351,33 @@ per configuration file. The DSL of the old and new format may not conflict.
 might be confusing to users.
 - Is there any feature parity between the file-based and directory-based project formats?
 - There's no overarching, publicly-available documentation or specification on directory-based project files. It might be worth to contact JetBrains for a good resource.
+
+# More candidates
+
+Some more features to mix into the above plan:
+
+- `IdeaSingleEntryLibraryDependency` should expose multiple source or javadoc artifacts.
+- Honour same environment variables as command-line `gradle` invocation.
+- Richer events during execution:
+    - Custom events
+- Richer build results:
+    - Test results
+    - Custom results
+    - Compilation and other verification failures
+    - Task failures
+    - Build configuration failures
+- Expose unresolved dependencies.
+- Expose dependency graph.
+- Expose component graph.
+- Provide some way to search repositories, to offer content assistance with dependency notations.
+- Don't configure the projects when `GradleBuild` model is requested.
+- Configure projects as required when using configure-on-demand.
+- Don't configure tasks when they are not requested.
+- Deal with non-standard wrapper meta-data location.
+- More accurate content assistance.
+- User provides input to build execution.
+- User edits dependencies via some UI.
+- User upgrades Gradle version via some UI.
+- User creates a new build via some UI.
+- Provide some way to define additional JVM args and system properties (possibly via command-line args)
+- Provide some way to locate Gradle builds, eg to allow the user to select which build to import.
