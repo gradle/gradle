@@ -2,9 +2,7 @@ This spec describes changes to Gradle to support and take advantage of the major
 
 # Milestone 1: Assist teams migrating to a modular architecture
 
-The Java module system is a deep, disruptive change to the Java ecosystem. The following Gradle features will help
-teams migrate to a modular architecture running on the modular JVM, so that the migration can be made in a controlled and
-incremental way.
+The Java module system is a deep, disruptive change to the Java ecosystem. The following Gradle features will help teams migrate to a modular architecture running on the modular JVM, so that the migration can be made in a controlled and incremental way.
 
 Useful links:
 
@@ -14,14 +12,9 @@ Useful links:
 
 # Feature: Java library author declares library API
 
-Given a description of the API of a library, Gradle will prevent at compile time the consumers of a library from using classes that are not
-part of the API of the library.
-This is intended to help teams materialize and describe the APIs of and dependencies between the various components of their software
-stack, and enforce the boundaries between them, ready for the Java module system.
+Given a description of the API of a library, Gradle will prevent at compile time the consumers of a library from using classes that are not part of the API of the library. This is intended to help teams materialize and describe the APIs of and dependencies between the various components of their software stack, and enforce the boundaries between them, ready for the Java module system.
 
-No runtime enforcement will be done - this is the job of the modular JVM. Gradle will simply approximate the behaviour of the
-modular JVM at compile time, but in a way that should be sufficient for many teams to make significant progress towards a modular
-architecture.
+No runtime enforcement will be done - this is the job of the modular JVM. Gradle will simply approximate the behaviour of the modular JVM at compile time, but in a way that should be sufficient for many teams to make significant progress towards a modular architecture.
 
 ## Story: Java library author declares packages that make up the API of the library
 
@@ -56,9 +49,7 @@ model {
 
 ### Implementation details
 
-For this story, it is expected that the API jar is built after the implementation jar. It is not
-in the scope of this story to make the API jar buildable without building the implementation jar.
-Therefore, it is acceptable that the API jar task depends on the implementation jar if it helps.
+For this story, it is expected that the API jar is built after the implementation jar. It is not in the scope of this story to make the API jar buildable without building the implementation jar. Therefore, it is acceptable that the API jar task depends on the implementation jar if it helps.
 
 ### Test cases
 
@@ -75,10 +66,7 @@ Therefore, it is acceptable that the API jar task depends on the implementation 
 
 ## Story: Extract a buildable element to represent the compiled classes of the library variant
 
-The next 3 stories form a larger effort to decouple the generation of the API jar from the generation of the implementation jar.
-A new binary spec type should likely be introduced, supporting only classes found in a directory.
-Replace the configuration of compile tasks from `JarBinarySpec` to the new binary type.
-Compose `JarBinarySpec` with that new specification.
+The next 3 stories form a larger effort to decouple the generation of the API jar from the generation of the implementation jar. A new binary spec type should likely be introduced, supporting only classes found in a directory. Replace the configuration of compile tasks from `JarBinarySpec` to the new binary type. Compose `JarBinarySpec` with that new specification.
 
 The idea is to move from this model:
 
@@ -128,9 +116,7 @@ buildable element to represent the implementation Jar of a variant.
 
 ## Story: Add a buildable element to represent the API of the library variant
 
-The last step of separating API from implementation involves the creation of a buildable element to represent
-the API of a library. Once this story is implemented it must be possible to reuse the same directory of classes
-for building both the API and the implementation jars of a variant.
+The last step of separating API from implementation involves the creation of a buildable element to represent the API of a library. Once this story is implemented it must be possible to reuse the same directory of classes for building both the API and the implementation jars of a variant.
 
 ### Implementation
 
@@ -357,25 +343,23 @@ TBD - fail or warn when source code is not compiled against exactly the target J
 
 # Feature: Run all Gradle tests against non modular Java 9
 
-Goal: Successfully run all Gradle tests in a CI build on Java 8, running tests against Java 9. At completion, Gradle will be fully working on Java 9.
-At this stage, however, there will be no special support for Java 9 specific features.
+Goal: Successfully run all Gradle tests in a CI build on Java 8, running tests against Java 9. At completion, Gradle will be fully working on Java 9. At this stage, however, there will be no special support for Java 9 specific features.
 
 It is a non-goal of this feature to be able to build Gradle on Java 9. This is a later feature.
 
 ## Cannot fork test worker processes
 
 See:
+
 - https://discuss.gradle.org/t/classcastexception-from-org-gradle-process-internal-child-bootstrapsecuritymanager/2443
 - https://issues.gradle.org/browse/GRADLE-3287
 - http://download.java.net/jdk9/docs/api/index.html
 
-As of b80, an `@argsfile` command-line option is available for the `java` command, change the worker process launcher to use this on Java 9.
-Reuse handling for `javac` from java compiler infrastructure.
+As of b80, an `@argsfile` command-line option is available for the `java` command, change the worker process launcher to use this on Java 9. Reuse handling for `javac` from java compiler infrastructure.
 
 ## Fix test fixtures and test assumptions
 
-- `tools.jar` no longer exists as part of the JDK so `org.gradle.internal.jvm.JdkTools`(and others) need an alternative way to
-get a SystemJavaCompiler which does rely on the JavaCompiler coming from an isolated, non-system `ClassLoader`. One approach would be:
+- `tools.jar` no longer exists as part of the JDK so `org.gradle.internal.jvm.JdkTools`(and others) need an alternative way to get a SystemJavaCompiler which does rely on the JavaCompiler coming from an isolated, non-system `ClassLoader`. One approach would be:
     - Isolate the Gradle classes from the application `ClassLoader`
     - Load things, targeted for compilation, into an isolated `ClassLoader` as opposed to the JVM's application application `ClassLoader`.
     - `org.gradle.internal.jvm.JdkTools` could use `ToolProvider.getSystemJavaCompiler()` to get a java compiler
@@ -384,11 +368,9 @@ get a SystemJavaCompiler which does rely on the JavaCompiler coming from an isol
 - Some tests use `tools.jar` as a "big jar", they need to be refactored to use something else.
 - JDK 9 has completely changed the JVM and `org.gradle.internal.jvm.Jvm` is no longer an accurate model:
     - No longer a distinction between JRE and SDK, it's all rolled into one.
-    - Files or jars under `lib/` should not be referenced: [http://openjdk.java.net/jeps/220](http://openjdk.java.net/jeps/220)
-    _All other files and directories in the lib directory must be treated as private implementation details of the run-time system_
+    - Files or jars under `lib/` should not be referenced: [http://openjdk.java.net/jeps/220](http://openjdk.java.net/jeps/220). _All other files and directories in the lib directory must be treated as private implementation details of the run-time system_
 
-- Some tests which garbage collect(`System.gc()`) are failing. See: `ModelRuleExtractorTest`. There would need to be some exploration
-to figure out how (or if) garbage collection is different on JDK9.
+- Some tests which garbage collect(`System.gc()`) are failing. See: `ModelRuleExtractorTest`. There would need to be some exploration to figure out how (or if) garbage collection is different on JDK9.
 
 ## Scala compilation is broken
 
@@ -418,8 +400,7 @@ Goal: Run a coverage CI build on Java 9. At completion, it will be possible to b
 
 ## Initial JDK9 support in Gradle's own build
 
-[gradle/java9.gradle](gradle/java9.gradle) adds both unit and integration test tasks executing on JDK 9.
- Once JDK 9 has been fully supported, jdk9 specific test tasks should be removed along with `[gradle/java9.gradle]`
+[gradle/java9.gradle](gradle/java9.gradle) adds both unit and integration test tasks executing on JDK 9. Once JDK 9 has been fully supported, jdk9 specific test tasks should be removed along with `[gradle/java9.gradle]`
 
 # Milestone: Support Java 9 language and runtime features
 
