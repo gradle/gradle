@@ -38,7 +38,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureCauseContains("Declaration of model rule Rules#functionalSources is invalid.")
-        failureCauseContains("The model node of type: 'org.gradle.language.base.FunctionalSourceSet' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]")
+        failureCauseContains("The model element of type: 'org.gradle.language.base.FunctionalSourceSet' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]")
     }
 
     def "can create a top level functional source set with a rule"() {

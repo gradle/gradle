@@ -378,7 +378,7 @@ class ModelRuleExtractorTest extends Specification {
         e.cause instanceof InvalidModelRuleDeclarationException
         e.cause.message == "Declaration of model rule ModelRuleExtractorTest.RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged#bar is invalid."
         e.cause.cause instanceof ModelTypeInitializationException
-        e.cause.cause.message == "The model node of type: '$NonManaged.name' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"
+        e.cause.cause.message == "The model element of type: '$NonManaged.name' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"
 
     }
 

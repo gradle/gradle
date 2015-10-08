@@ -94,7 +94,7 @@ class ManagedModelInitializerTest extends Specification implements ModelValidati
         """
 
         then:
-        failWhenRealized(managedType, Pattern.quote("The model node of type: '${collectionType.name}<java.lang.String>' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"))
+        failWhenRealized(managedType, Pattern.quote("The model element of type: '${collectionType.name}<java.lang.String>' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"))
 
         where:
         collectionType << [LinkedList, ArrayList, SortedSet, TreeSet]
@@ -112,6 +112,6 @@ class ManagedModelInitializerTest extends Specification implements ModelValidati
     }
 
     private void failWhenRealizedWithType(Class type, String failingType) {
-        failWhenRealized(type, Pattern.quote("The model node of type: '${failingType}' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"))
+        failWhenRealized(type, Pattern.quote("The model element of type: '${failingType}' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"))
     }
 }

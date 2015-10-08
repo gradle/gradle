@@ -35,7 +35,7 @@ public class ModelTypeInitializationException extends GradleException {
     }
 
     private static String toMessage(ModelType<?> type, Iterable<ModelType<?>> types) {
-        return String.format("The model node of type: '%s' can not be constructed. The type must be managed (@Managed) or one of the following types [%s]", type, describe(types));
+        return String.format("The model element of type: '%s' can not be constructed. The type must be managed (@Managed) or one of the following types [%s]", type, describe(types));
     }
 
     private static String describe(Iterable<ModelType<?>> types) {

@@ -207,6 +207,6 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
         then:
         fails "dependencies" // something that doesn't actually require thing1 to be built
         failure.assertThatCause(containsText("model.thing1 @ build.gradle"))
-        failure.assertThatCause(containsText("The model node of type: 'Thing' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"))
+        failure.assertThatCause(containsText("The model element of type: 'Thing' can not be constructed. The type must be managed (@Managed) or one of the following types [ModelSet<?>, ManagedSet<?>, ModelMap<?>, List, Set]"))
     }
 }
