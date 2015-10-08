@@ -2,26 +2,6 @@ This specification defines a number of improvements to the tooling API.
 
 # Use cases
 
-## Bugfix: allow concurrent usage of different gradle distributions of the same version
-
-When using the tooling api to work with different gradle distributions of the same version (e.g a gradle "-bin" and a "-all" distribution)
-an OverlappingFileException can be thrown in the current implementation.
-This is caused by loading the same version of the Gradle provider loaded up in multiple ClassLoaders (from each of the different distributions for the 2 different builds).
-The provider loading must be changed to deal with this.
-
-### implementation
-- Instead of using the version string as cache key in `CachingToolingImplementation` use a hash of the files of the provider's classpath as a key to the cache.
-- pass the distribution(by file reference) from the consumer across to the provider
-- for provider versions is >= this implementation can use cached provider, otherwise use new one.
-
-### integration test coverage
-
-- Can load and use multiple distributions of the same gradle version for doing running multiple build requests via tooling api.
-    - using the new tooling-api tested against multiple (older) gradle versions
-
-### Open issues
-- cannot handle init scripts in distributions init.d folder if as distribution of cached provider is used for resolving init scripts
-
 ## Tooling can be developed for Gradle plugins
 
 Many plugins have a model of some kind that declares something about the project. In order to build tooling for these
@@ -61,6 +41,26 @@ a 'custom' is gradually reduced. Allowing custom plugins to contribute tooling m
 to use this same mechanism is one step in this direction.
 
 # Implementation plan
+
+## Bugfix: allow concurrent usage of different gradle distributions of the same version
+
+When using the tooling api to work with different gradle distributions of the same version (e.g a gradle "-bin" and a "-all" distribution)
+an OverlappingFileException can be thrown in the current implementation.
+This is caused by loading the same version of the Gradle provider loaded up in multiple ClassLoaders (from each of the different distributions for the 2 different builds).
+The provider loading must be changed to deal with this.
+
+### implementation
+- Instead of using the version string as cache key in `CachingToolingImplementation` use a hash of the files of the provider's classpath as a key to the cache.
+- pass the distribution(by file reference) from the consumer across to the provider
+- for provider versions is >= this implementation can use cached provider, otherwise use new one.
+
+### integration test coverage
+
+- Can load and use multiple distributions of the same gradle version for doing running multiple build requests via tooling api.
+    - using the new tooling-api tested against multiple (older) gradle versions
+
+### Open issues
+- cannot handle init scripts in distributions init.d folder if as distribution of cached provider is used for resolving init scripts
 
 ## Feature: Expose the compile details of a build script
 
