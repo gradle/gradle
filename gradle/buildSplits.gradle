@@ -34,7 +34,8 @@ def buckets = [
 
 //Make sure all projects are accounted for
 def coveredProjects = (buckets.collect { it.value }).flatten()
-assert coveredProjects.size() == subprojects.size(): "The following projects should be added to a bucket: ${subprojects.collect { ":${it.name}" } - coveredProjects}"
+def uncoveredProjects = subprojects.collect { ":${it.name}" } - coveredProjects
+assert uncoveredProjects == [] : "The following projects should be added to a bucket: ${uncoveredProjects}"
 
 //Make sure there are no duplicates between buckets
 for (int bucket : buckets.keySet().collect{it as int}) {
