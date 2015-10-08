@@ -73,11 +73,6 @@ class ReleasedVersions {
     }
 
     static void traceRoute(URL location) {
-        if (org.gradle.internal.os.OperatingSystem.current().windows) {
-            LOGGER.lifecycle("Skipping traceroute on windows")
-            return
-        }
-
         LOGGER.lifecycle("Beginning traceroute to ${location.getHost()}")
         def standardOut = new StringBuffer(), standardErr = new StringBuffer()
         String command
