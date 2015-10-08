@@ -100,6 +100,13 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     }
 
     @Override
+    public void visitExpressionStatement(ExpressionStatement stat) {
+        if (!(stat.getExpression() instanceof VariableExpression)) {
+            super.visitExpressionStatement(stat);
+        }
+    }
+
+    @Override
     public void visitClosureExpression(ClosureExpression expression) {
         if (inputs == null) {
             inputs = new InputReferences();
