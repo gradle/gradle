@@ -107,9 +107,10 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
+                def people = people
                 create("printPeople") {
                   doLast {
-                    def names = $("people")*.name.sort().join(", ")
+                    def names = people*.name.sort().join(", ")
                     println "people: $names"
                   }
                 }
@@ -156,10 +157,11 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
+                def g = group
                 create("printGroup") {
                   doLast {
-                    def members = $("group").members*.name.sort().join(", ")
-                    def name = $("group").name
+                    def members = g.members*.name.sort().join(", ")
+                    def name = g.name
                     println "$name: $members"
                   }
                 }

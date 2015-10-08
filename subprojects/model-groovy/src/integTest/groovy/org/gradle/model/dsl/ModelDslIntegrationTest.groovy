@@ -16,7 +16,6 @@
 
 package org.gradle.model.dsl
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.model.dsl.internal.transform.RulesVisitor
@@ -34,7 +33,6 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         EnableModelDsl.enable(executer)
     }
 
-    @NotYetImplemented
     def "can reference rule inputs using relative property reference"() {
         when:
         buildScript """
@@ -54,9 +52,10 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 tasks {
+                    def strings = strings
                     printStrings(Task) {
                         doLast {
-                            println strings
+                            println "strings: " + strings
                         }
                     }
                 }
@@ -208,7 +207,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("printStrings") {
                   doLast {
-                    println project.name + ": " + \$("strings")
+                    println it.project.name + ": " + \$("strings")
                   }
                 }
               }

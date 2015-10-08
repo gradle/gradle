@@ -43,9 +43,10 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
                 value = "foo"
             }
             tasks {
+                def v = $syntax
                 create("echo") {
                     doLast {
-                        println "thing.value: " + $syntax
+                        println "thing.value: " + v
                     }
                 }
             }
@@ -87,9 +88,10 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
               value = value + "-bar"
             }
             tasks {
+              def v = thing.value
               create("echo") {
                 doLast {
-                  println "thing.value: " + thing.value
+                  println "thing.value: " + v
                 }
               }
             }
@@ -351,13 +353,13 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
                     assert this == null
 
                     try {
-                        project.tasks
+                        { -> project.tasks }.call()
                         assert false : "should not reach here"
                     } catch (MissingPropertyException ignore) {
                         // expected
                     }
                     try {
-                        files('thing')
+                        { -> files('thing') }.call()
                         assert false : "should not reach here"
                     } catch (MissingMethodException ignore) {
                         // expected

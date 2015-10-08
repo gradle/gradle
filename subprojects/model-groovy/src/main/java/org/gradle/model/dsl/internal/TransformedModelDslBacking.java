@@ -19,6 +19,7 @@ package org.gradle.model.dsl.internal;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import groovy.lang.GroovySystem;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
@@ -26,7 +27,9 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.model.InvalidModelRuleDeclarationException;
-import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking;
+import org.gradle.model.dsl.internal.inputs.PotentialInput;
+import org.gradle.model.dsl.internal.inputs.PotentialInputs;
+import org.gradle.model.dsl.internal.inputs.PotentialInputsAccess;
 import org.gradle.model.dsl.internal.transform.InputReferences;
 import org.gradle.model.dsl.internal.transform.RuleMetadata;
 import org.gradle.model.dsl.internal.transform.RulesBlock;
@@ -87,28 +90,50 @@ public class TransformedModelDslBacking {
         registerAction(modelPath, type, descriptor, ModelActionRole.Initialize, closure);
     }
 
-    private <T> void registerAction(final ModelPath modelPath, Class<T> viewType, final ModelRuleDescriptor descriptor, final ModelActionRole role, final Closure<?> closure) {
+    private <T> void registerAction(final ModelPath modelPath, final Class<T> viewType, final ModelRuleDescriptor descriptor, final ModelActionRole role, final Closure<?> closure) {
         final ModelReference<T> reference = ModelReference.of(modelPath, viewType);
-        ModelAction action = DirectNodeNoInputsModelAction.of(reference, descriptor, new Action<MutableModelNode>() {
+        ModelAction action = NoInputsModelAction.of(reference, descriptor, new Action<T>() {
             @Override
-            public void execute(MutableModelNode modelNode) {
+            public void execute(T subject) {
                 InputReferences inputs = inputPathsExtractor.transform(closure);
                 List<String> absolutePaths = inputs.getAbsolutePaths();
                 List<Integer> absolutePathLineNumbers = inputs.getAbsolutePathLineNumbers();
                 List<String> relativePaths = inputs.getRelativePaths();
                 List<Integer> relativePathLineNumbers = inputs.getRelativePathLineNumbers();
-                List<ModelReference<?>> references = Lists.newArrayListWithCapacity(absolutePaths.size() + inputs.getRelativePaths().size());
+
+                final List<PotentialInput> potentialInputs = Lists.newArrayListWithCapacity(absolutePaths.size() + relativePaths.size());
+                List<ModelReference<?>> actualInputs = Lists.newArrayListWithCapacity(potentialInputs.size());
+
                 for (int i = 0; i < absolutePaths.size(); i++) {
                     String description = String.format("@ line %d", absolutePathLineNumbers.get(i));
-                    references.add(ModelReference.untyped(ModelPath.path(absolutePaths.get(i)), description));
+                    String path = absolutePaths.get(i);
+                    potentialInputs.add(PotentialInput.absoluteInput(path, actualInputs.size()));
+                    actualInputs.add(ModelReference.untyped(ModelPath.path(path), description));
                 }
                 for (int i = 0; i < relativePaths.size(); i++) {
-                    String description = String.format("@ line %d", relativePathLineNumbers.get(i));
-                    references.add(ModelReference.untyped(ModelPath.path(relativePaths.get(i)), description));
+                    String pathString = relativePaths.get(i);
+                    ModelPath path = ModelPath.path(pathString);
+                    String rootName = path.getComponents().get(0);
+                    boolean subjectHasProperty = GroovySystem.getMetaClassRegistry().getMetaClass(subject.getClass()).hasProperty(subject, rootName) != null;
+
+                    if (!subjectHasProperty) {
+                        String description = String.format("@ line %d", relativePathLineNumbers.get(i));
+                        potentialInputs.add(PotentialInput.relativeInput(path, actualInputs.size()));
+                        actualInputs.add(ModelReference.untyped(ModelPath.path(rootName), description));
+                    }
                 }
 
-                ModelAction runClosureAction = InputUsingModelAction.of(reference, descriptor, references, new ExecuteClosure<T>(closure));
-                modelRegistry.configure(role, runClosureAction);
+                modelRegistry.configure(role, InputUsingModelAction.of(reference, descriptor, actualInputs, new BiAction<T, List<ModelView<?>>>() {
+                    @Override
+                    public void execute(final T t, List<ModelView<?>> modelViews) {
+                        PotentialInputsAccess.with(new PotentialInputs(modelViews, potentialInputs), new Runnable() {
+                            @Override
+                            public void run() {
+                                ClosureBackedAction.execute(t, closure.rehydrate(null, new Object(), null));
+                            }
+                        });
+                    }
+                }));
             }
         });
         modelRegistry.configure(ModelActionRole.DefineRules, action);
@@ -130,23 +155,6 @@ public class TransformedModelDslBacking {
         Class<?> closureClass = closure.getClass();
         RulesBlock annotation = closureClass.getAnnotation(RulesBlock.class);
         return annotation != null;
-    }
-
-    private static class ExecuteClosure<T> implements BiAction<T, List<ModelView<?>>> {
-        private final Closure<?> closure;
-
-        public ExecuteClosure(Closure<?> closure) {
-            this.closure = closure.rehydrate(null, new Object(), null);
-        }
-
-        @Override
-        public void execute(final T object, List<ModelView<?>> inputs) {
-            RuleInputAccessBacking.runWithContext(inputs, new Runnable() {
-                public void run() {
-                    new ClosureBackedAction<Object>(closure).execute(object);
-                }
-            });
-        }
     }
 
     private static class RelativePathSourceLocationTransformer implements Transformer<SourceLocation, Closure<?>> {

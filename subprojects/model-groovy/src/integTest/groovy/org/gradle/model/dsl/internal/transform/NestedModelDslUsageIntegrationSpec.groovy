@@ -148,7 +148,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
             def c = {
                 strings {
-                    add \$("foo")
+                    add foo
                 }
             }
 

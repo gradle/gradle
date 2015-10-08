@@ -16,7 +16,6 @@
 
 package org.gradle.model.dsl
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.EnableModelDsl
 
@@ -87,7 +86,6 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
         output.contains "thing2.name: foo bar"
     }
 
-    @NotYetImplemented
     def "creator closure can reference inputs using relative property reference"() {
         when:
         buildScript """
@@ -105,6 +103,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
                     name = "\${thing1.name} bar" // reference in a gstring
                 }
                 tasks {
+                    def thing2 = thing2
                     create("echo") {
                         doLast {
                             println "thing2.name: " + thing2.name

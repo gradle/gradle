@@ -30,8 +30,8 @@ import org.codehaus.groovy.syntax.Types;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.ExpressionReplacingVisitorSupport;
 import org.gradle.internal.SystemProperties;
-import org.gradle.model.dsl.internal.inputs.RuleInputAccess;
-import org.gradle.model.dsl.internal.inputs.RuleInputAccessBacking;
+import org.gradle.model.dsl.internal.inputs.PotentialInputs;
+import org.gradle.model.dsl.internal.inputs.PotentialInputsAccess;
 import org.gradle.model.internal.core.ModelPath;
 
 import java.util.ArrayList;
@@ -47,18 +47,20 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     public static final String AST_NODE_METADATA_LOCATION_KEY = RuleVisitor.class.getName() + ".location";
 
     private static final String DOLLAR = "$";
-    private static final String INPUT = "input";
     private static final String HAS = "has";
-    private static final ClassNode ANNOTATION_CLASS_NODE = new ClassNode(RuleMetadata.class);
-    private static final ClassNode CONTEXTUAL_INPUT_TYPE = new ClassNode(RuleInputAccessBacking.class);
-    private static final ClassNode ACCESS_API_TYPE = new ClassNode(RuleInputAccess.class);
-    private static final String GET_ACCESS = "getAccess";
+    private static final String GET = "get";
+    private static final ClassNode RULE_METADATA = new ClassNode(RuleMetadata.class);
+    private static final ClassNode POTENTIAL_INPUTS_ACCESS = new ClassNode(PotentialInputsAccess.class);
+    private static final ClassNode POTENTIAL_INPUTS = new ClassNode(PotentialInputs.class);
 
-    private static final String ACCESS_HOLDER_FIELD = "_" + RuleInputAccess.class.getName().replace(".", "_");
+    private static final String ACCESS_HOLDER_FIELD = "_" + PotentialInputs.class.getName().replace(".", "_");
+
+    boolean isLeftSideOfAssignment;
+    int closureDepth;
 
     private final SourceUnit sourceUnit;
     private InputReferences inputs;
-    private VariableExpression accessVariable;
+    private VariableExpression inputsVariable;
 
     public RuleVisitor(SourceUnit sourceUnit) {
         this.sourceUnit = sourceUnit;
@@ -70,7 +72,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         Statement closureCode = method.getCode();
         SourceLocation sourceLocation = closureCode.getNodeMetaData(AST_NODE_METADATA_LOCATION_KEY);
         if (sourceLocation != null) {
-            AnnotationNode metadataAnnotation = new AnnotationNode(ANNOTATION_CLASS_NODE);
+            AnnotationNode metadataAnnotation = new AnnotationNode(RULE_METADATA);
 
             metadataAnnotation.addMember("scriptSourceDescription", new ConstantExpression(sourceLocation.getScriptSourceDescription()));
             metadataAnnotation.addMember("absoluteScriptSourceLocation", new ConstantExpression(sourceLocation.getUri()));
@@ -102,23 +104,26 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         if (inputs == null) {
             inputs = new InputReferences();
             try {
-                accessVariable = new VariableExpression(ACCESS_HOLDER_FIELD, ACCESS_API_TYPE);
-
+                inputsVariable = new VariableExpression(ACCESS_HOLDER_FIELD, POTENTIAL_INPUTS);
                 super.visitClosureExpression(expression);
-
                 BlockStatement code = (BlockStatement) expression.getCode();
                 code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY, inputs);
-                accessVariable.setClosureSharedVariable(true);
-                StaticMethodCallExpression getAccessCall = new StaticMethodCallExpression(CONTEXTUAL_INPUT_TYPE, GET_ACCESS, ArgumentListExpression.EMPTY_ARGUMENTS);
-                DeclarationExpression variableDeclaration = new DeclarationExpression(accessVariable, new Token(Types.ASSIGN, "=", -1, -1), getAccessCall);
+                inputsVariable.setClosureSharedVariable(true);
+                StaticMethodCallExpression getAccessCall = new StaticMethodCallExpression(POTENTIAL_INPUTS_ACCESS, GET, ArgumentListExpression.EMPTY_ARGUMENTS);
+                DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, new Token(Types.ASSIGN, "=", -1, -1), getAccessCall);
                 code.getStatements().add(0, new ExpressionStatement(variableDeclaration));
-                code.getVariableScope().putDeclaredVariable(accessVariable);
+                code.getVariableScope().putDeclaredVariable(inputsVariable);
             } finally {
                 inputs = null;
             }
         } else {
-            expression.getVariableScope().putReferencedLocalVariable(accessVariable);
-            super.visitClosureExpression(expression);
+            ++closureDepth;
+            try {
+                expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
+                super.visitClosureExpression(expression);
+            } finally {
+                --closureDepth;
+            }
         }
     }
 
@@ -135,34 +140,46 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
 
     @Override
     public void visitBinaryExpression(BinaryExpression expression) {
-        if (expression.getLeftExpression() instanceof VariableExpression) {
+        if (atTopLevel() && isAssignmentLikeToken(expression.getOperation().getMeaning())) {
+            isLeftSideOfAssignment = true;
+            try {
+                expression.setLeftExpression(replaceExpr(expression.getLeftExpression()));
+            } finally {
+                isLeftSideOfAssignment = false;
+            }
             expression.setRightExpression(replaceExpr(expression.getRightExpression()));
         } else {
             super.visitBinaryExpression(expression);
         }
     }
 
+    private boolean atTopLevel() {
+        return closureDepth == 0;
+    }
+
     @Override
     public void visitPropertyExpression(PropertyExpression expression) {
-        ArrayList<String> names = Lists.newArrayList();
-        boolean propertyNameIsPart = extractPropertyPath(expression, names);
-        if (names.isEmpty() || !names.get(0).equals("thing")) {
-            super.visitPropertyExpression(expression);
-        } else {
-            String modelPath = ModelPath.pathString(names);
-            inputs.relativePath(modelPath, expression.getLineNumber());
-            if (propertyNameIsPart) {
-                replaceVisitedExpressionWith(conditionalInputGet(modelPath, expression));
-            } else {
-                expression.setObjectExpression(conditionalInputGet(modelPath, expression.getObjectExpression()));
+        if (atTopLevel()) {
+            ArrayList<String> names = Lists.newArrayList();
+            boolean propertyNameIsPart = extractPropertyPath(expression, names);
+            if (!names.isEmpty()) {
+                String modelPath = ModelPath.pathString(names);
+                inputs.relativePath(modelPath, expression.getLineNumber());
+                if (propertyNameIsPart) {
+                    replaceVisitedExpressionWith(conditionalInputGet(modelPath, expression));
+                } else {
+                    expression.setObjectExpression(conditionalInputGet(modelPath, expression.getObjectExpression()));
+                }
             }
+        } else {
+            super.visitPropertyExpression(expression);
         }
     }
 
     private TernaryExpression conditionalInputGet(String modelPath, Expression originalExpression) {
         return new TernaryExpression(
-            new BooleanExpression(new MethodCallExpression(accessVariable, HAS, new ArgumentListExpression(new ConstantExpression(modelPath)))),
-            new MethodCallExpression(accessVariable, INPUT, new ArgumentListExpression(new ConstantExpression(modelPath))),
+            new BooleanExpression(new MethodCallExpression(inputsVariable, HAS, new ArgumentListExpression(new ConstantExpression(modelPath)))),
+            new MethodCallExpression(inputsVariable, GET, new ArgumentListExpression(new ConstantExpression(modelPath))),
             originalExpression
         );
     }
@@ -170,37 +187,51 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     private boolean extractPropertyPath(Expression expression, List<String> names) {
         if (expression instanceof PropertyExpression) {
             PropertyExpression propertyExpression = (PropertyExpression) expression;
+            //noinspection SimplifiableIfStatement
             if (extractPropertyPath(propertyExpression.getObjectExpression(), names)) {
                 return extractPropertyPath(propertyExpression.getProperty(), names);
             }
-        } else if (expression instanceof VariableExpression) {
-            names.add(((VariableExpression) expression).getName());
-        } else if (expression instanceof ConstantExpression) {
-            ConstantExpression constantExpression = (ConstantExpression) expression;
-            if (constantExpression.getType().equals(ClassHelper.STRING_TYPE)) {
-                names.add(constantExpression.getText());
-            } else {
-                return false;
-            }
-        } else {
+        } else if (expression instanceof MethodCallExpression) {
+            visitMethodCallExpression((MethodCallExpression) expression);
             return false;
+        } else if (!isLeftSideOfAssignment) {
+            if (expression instanceof VariableExpression) {
+                VariableExpression variableExpression = (VariableExpression) expression;
+                if (!isNonReferenceKeyword(variableExpression)) {
+                    Variable accessedVariable = variableExpression.getAccessedVariable();
+                    if (accessedVariable instanceof DynamicVariable) {
+                        names.add(variableExpression.getName());
+                        return true;
+                    }
+                }
+            } else if (expression instanceof ConstantExpression) {
+                ConstantExpression constantExpression = (ConstantExpression) expression;
+                if (constantExpression.getType().equals(ClassHelper.STRING_TYPE)) {
+                    names.add(constantExpression.getText());
+                    return true;
+                }
+            }
         }
 
-        return true;
+        return false;
+    }
+
+    private static boolean isNonReferenceKeyword(VariableExpression expression) {
+        return expression.isThisExpression()
+            || expression.isSuperExpression()
+            || expression.getText().equals("owner")
+            || expression.getText().equals("delegate")
+            || expression.getText().equals("it");
     }
 
     @Override
     public void visitVariableExpression(VariableExpression expression) {
-        if (expression.isThisExpression() || expression.isSuperExpression()) {
+        if (!atTopLevel() || isLeftSideOfAssignment || isNonReferenceKeyword(expression) || !(expression.getAccessedVariable() instanceof DynamicVariable)) {
             super.visitVariableExpression(expression);
         } else {
             String modelPath = expression.getText();
-            if (modelPath.equals("thing")) {
-                inputs.relativePath(modelPath, expression.getLineNumber());
-                replaceVisitedExpressionWith(conditionalInputGet(modelPath, expression));
-            } else {
-                super.visitVariableExpression(expression);
-            }
+            inputs.relativePath(modelPath, expression.getLineNumber());
+            replaceVisitedExpressionWith(conditionalInputGet(modelPath, expression));
         }
     }
 
@@ -231,8 +262,8 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             }
 
             inputs.absolutePath(modelPath, call.getLineNumber());
-            call.setObjectExpression(new VariableExpression(accessVariable));
-            call.setMethod(new ConstantExpression(INPUT));
+            call.setObjectExpression(new VariableExpression(inputsVariable));
+            call.setMethod(new ConstantExpression(GET));
         }
     }
 
@@ -241,4 +272,30 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         sourceUnit.getErrorCollector().addError(syntaxException, sourceUnit);
     }
 
+    private static final int[] ASSIGNMENT_TOKENS = new int[]{
+        Types.EQUAL,
+        Types.PLUS_EQUAL,
+        Types.MINUS_EQUAL,
+        Types.MULTIPLY_EQUAL,
+        Types.DIVIDE_EQUAL,
+        Types.INTDIV_EQUAL,
+        Types.MOD_EQUAL,
+        Types.POWER_EQUAL,
+        Types.LEFT_SHIFT_EQUAL,
+        Types.RIGHT_SHIFT_EQUAL,
+        Types.RIGHT_SHIFT_UNSIGNED_EQUAL,
+        Types.BITWISE_OR_EQUAL,
+        Types.BITWISE_AND_EQUAL,
+        Types.BITWISE_XOR_EQUAL,
+    };
+
+    private boolean isAssignmentLikeToken(int token) {
+        for (int assignmentToken : ASSIGNMENT_TOKENS) {
+            if (assignmentToken == token) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
