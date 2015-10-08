@@ -6,6 +6,7 @@ Specific sub streams have been broken out into other concurrent specs.
 * `managed-model.md`
 * `component-model-for-jvm-components.md`
 * `model-rules-dsl.md`
+* `model-reporting.md`
 
 # Stories
 
