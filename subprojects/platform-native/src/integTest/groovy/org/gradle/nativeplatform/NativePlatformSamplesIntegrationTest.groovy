@@ -130,6 +130,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
     def variants() {
         given:
+        EnableModelDsl.enable(executer)
         sample variants
 
         when:
