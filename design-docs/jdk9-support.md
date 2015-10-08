@@ -19,16 +19,15 @@ No runtime enforcement will be done - this is the job of the modular JVM. Gradle
 ## Story: Java library author declares packages that make up the API of the library
 
 - Add a DSL to declare packages of the API. Proposed DSL:
-
-```
-model {
-    main(JvmLibrarySpec) {
-        api {
-            exports 'com.acme'
+    ```
+    model {
+        main(JvmLibrarySpec) {
+            api {
+                exports 'com.acme'
+            }
         }
     }
-}
-```
+    ```
 
 - Default to all packages: if no `api` section is found, we assume that all public elements of the library are exported.
 - This story is about implementing the DSL, not use it.
@@ -170,21 +169,19 @@ of the source classes that belong to those packages.A stub class contains only t
 - Public constant types should be initialized to `null` or their default JVM value if of a primitive type (do not use `UnsupportedOperationException` here because it would imply the
 creation of a static initializer that we want to avoid).
 - Java bytecode compatibility level of the classes must be the same as the original class compatibility level
-- Throws an error if a public member references a class which is not part of the public API. For example:
-    Given:
+- Throws an error if a public member references a class which is not part of the public API. For example, given:
     ```
     package p1;
     public class A {
        public B foo()
     }
-    ```
-    and:
-    ```
+
     package p2;
     public class B {
     }
     ```
-    Then if only `p1` is declared as the public API package, `foo` violates the contract and we should throw an error.
+
+    then if only `p1` is declared as the public API package, `foo` violates the contract and we should throw an error.
 
 ### Out of scope
 
@@ -242,22 +239,20 @@ TBD - Add a dependency set at the component level, to be used as the default for
 ## Story: Java library sources are compiled against library Jar resolved from Maven repository
 
 - Extend the dependency DSL to reference external libraries:
-
-```
-model {
-    components {
-        main(JvmLibrarySpec) {
-            dependencies {
-                library group: 'com.acme', name: 'artifact', version: '1.0'
-                library 'com.acme:artifact:1.0'
+    ```
+    model {
+        components {
+            main(JvmLibrarySpec) {
+                dependencies {
+                    library group: 'com.acme', name: 'artifact', version: '1.0'
+                    library 'com.acme:artifact:1.0'
+                }
             }
         }
     }
-}
-```
+    ```
 
-TODO: Need a better DSL.
-
+    TODO: Need a better DSL.
 - Reuse existing repositories DSL, bridging into model space.
 - Main Jar artifact of maven module is included in compile classpath.
 - Main Jar artifact of any compile-scoped dependencies are included transitively in the compile classpath.
