@@ -43,10 +43,10 @@ class ReleasedVersions {
         if (offline) {
             if (!destFile.isFile()) {
                 throw new RuntimeException("The versions info file (${destFile.name}) does not exist from a previous build and cannot be downloaded (due to --offline switch).\n"
-                                           + "After running 'clean', build must be executed once online before going offline")
+                    + "After running 'clean', build must be executed once online before going offline")
             }
             LOGGER.warn("Versions information will not be downloaded because --offline switch is used.\n"
-                    + "Without the version information certain integration tests may fail or use outdated version details.")
+                + "Without the version information certain integration tests may fail or use outdated version details.")
             return
         }
         if (destFile.isFile() && destFile.lastModified() > System.currentTimeMillis() - MILLIS_PER_DAY) {
@@ -60,14 +60,40 @@ class ReleasedVersions {
             json = new URL(url).text
         } catch (UnknownHostException e) {
             throw new GradleException("Unable to acquire versions info. I've tried this url: '$url'.\n"
-                    + "If you don't have the network connection please run with '--offline' or exclude this task from execution via '-x'."
-                    , e)
+                + "If you don't have the network connection please run with '--offline' or exclude this task from execution via '-x'."
+                , e)
+        } catch (IOException e) {
+            traceRoute(new URL(url))
+            throw e
         }
-
         destFile.parentFile.mkdirs()
         destFile.text = json
 
         LOGGER.info "Saved released versions information in: $destFile"
+    }
+
+    static void traceRoute(URL location) {
+        if (org.gradle.internal.os.OperatingSystem.current().windows) {
+            LOGGER.lifecycle("Skipping traceroute on windows")
+            return
+        }
+
+        LOGGER.lifecycle("Beginning traceroute to ${location.getHost()}")
+        def standardOut = new StringBuffer(), standardErr = new StringBuffer()
+        String command
+        if (org.gradle.internal.os.OperatingSystem.current().windows) {
+            command = "tracert ${location.getHost()}"
+        } else {
+            command = "traceroute ${location.getHost()}"
+        }
+        def proc = command.execute()
+        proc.consumeProcessOutput(standardOut, standardErr)
+        proc.waitFor()
+        LOGGER.lifecycle("Route trace to ${location.getHost()}")
+        LOGGER.lifecycle("""out:
+$standardOut
+err:
+$standardErr""")
     }
 
     String getMostRecentFinalRelease() {
