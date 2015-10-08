@@ -75,7 +75,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds "components"
+        succeeds "model"
     }
 
     def "model report renders a functional source set"() {

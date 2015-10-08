@@ -21,8 +21,10 @@ import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import net.jcip.annotations.NotThreadSafe;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.internal.Actions;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -65,13 +67,17 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
     }
 
     private <T> void registerCreator(Class<T> type, Closure<?> closure) {
+        registerCreator(type, new ClosureBackedAction<T>(closure));
+    }
+
+    private <T> void registerCreator(Class<T> type, Action<? super T> action) {
         ModelRuleDescriptor descriptor = new SimpleModelRuleDescriptor("model." + modelPath);
         NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getType());
         NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(ModelType.of(type));
         modelRegistry.create(
             ModelCreators.of(modelPath, nodeInitializer)
                 .descriptor(descriptor)
-                .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(modelPath, type), descriptor, new ClosureBackedAction<T>(closure)))
+                .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(modelPath, type), descriptor, action))
                 .build()
         );
     }
@@ -113,8 +119,7 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
                 return null;
             } else if (args.length == 1 && args[0] instanceof Class) {
                 Class<?> clazz = (Class<?>) args[0];
-                Closure<?> closure = Closure.IDENTITY;
-                getChildPath(name).registerCreator(clazz, closure);
+                getChildPath(name).registerCreator(clazz, Actions.doNothing());
                 return null;
             } else {
                 throw new MissingMethodException(name, getClass(), args);
