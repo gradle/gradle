@@ -19,7 +19,7 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.*;
-import org.gradle.api.internal.file.DefaultFileVisitDetails;
+import org.gradle.api.internal.file.CachingFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -141,7 +141,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     private void processSingleFile(File file, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
         RelativePath path = new RelativePath(true, file.getName());
-        FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem);
+        FileVisitDetails details = new CachingFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem, false);
         if (isAllowed(details, spec)) {
             visitor.visitFile(details);
         }
@@ -227,7 +227,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
                 File child = children[i];
                 boolean isFile = child.isFile();
                 RelativePath childPath = path.append(isFile, child.getName());
-                FileVisitDetails details = new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem);
+                FileVisitDetails details = new CachingFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, !isFile);
                 if (isAllowed(details, spec)) {
                     if (isFile) {
                         visitor.visitFile(details);
