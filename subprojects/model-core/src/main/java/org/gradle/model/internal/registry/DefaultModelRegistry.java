@@ -270,11 +270,16 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public void bindAllReferences() throws UnboundModelRulesException {
+        GoalGraph graph = new GoalGraph();
+        for (ModelNodeInternal node : modelGraph.getFlattened().values()) {
+            if (!node.isAtLeast(ProjectionsDefined)) {
+                transitionTo(graph, new DefineProjections(node.getPath()));
+            }
+        }
+
         if (unboundRules.isEmpty()) {
             return;
         }
-
-        GoalGraph graph = new GoalGraph();
         boolean newInputsBound = true;
         while (!unboundRules.isEmpty() && newInputsBound) {
             newInputsBound = false;

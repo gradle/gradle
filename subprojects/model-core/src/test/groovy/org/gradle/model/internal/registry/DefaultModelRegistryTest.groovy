@@ -1359,8 +1359,6 @@ foo
         registry.create(registry.creator("childB").unmanaged(String, {}))
         registry.configure(ModelActionRole.Mutate, registry.action().path("target").action(Bean, BiActions.doNothing()))
 
-        registry.realize("target")
-
         when:
         registry.create(ModelCreators.bridgedInstance(ModelReference.of("dep2", Bean), new Bean()).descriptor("dep2 creator").build())
 
@@ -1368,7 +1366,7 @@ foo
         noExceptionThrown()
 
         when:
-        registry.realize("dep2")
+        registry.bindAllReferences()
 
         then:
         def ex = thrown InvalidModelRuleException
