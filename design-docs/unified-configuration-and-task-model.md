@@ -4,6 +4,8 @@ This is a large topic.
 Specific sub streams have been broken out into other concurrent specs.
 
 * `managed-model.md`
+* `component-model-for-jvm-components.md`
+* `model-rules-dsl.md`
 
 # Stories
 
@@ -162,11 +164,8 @@ These should be rationalised and ideally replaced with model rules.
 - SonarRunnerExtension.sonarProperties
 - Move native plugin suite to new mechanism
 - Move publishing plugin suite to new mechanism
-- `CollectionBuilder` is not part of public API
-- `@RuleSource` is not documented, nor is the concept of a rule based plugin (need to tidy up docs on `PluginAware` and `ObjectConfigurationAction`)
+- `RuleSource` is not documented, nor is the concept of a rule based plugin (need to tidy up docs on `PluginAware` and `ObjectConfigurationAction`)
 - Allow helper (i.e. non rule) methods to be parameterized for types in rule source plugins (currently we do not allow any parameterized methods)
-- `ModelRuleDescriptor` values extracted from methods should be more concise (e.g. use simple class names)
-- `ModelRuleDescriptor` values extracted from scripts should be more concise (e.g. use root dir relative path to script)
 
 ## Tasks
 
@@ -200,13 +199,6 @@ These should be rationalised and ideally replaced with model rules.
 - DefaultModelRegistry stores RuleBinder implementations twice
 - Rule references are bound eagerly (should be deferred until the rule is needed)
 
-## DSL
-
-- Specify type of rule input
-- Specify type of rule subject
-- Plugin author specifies model type to use in DSL when type is unspecified
-- Mechanism for declaring new top level (adhoc?) model elements in build script
-
 ## Reuse
 
 - Fine grained reuse on build logic changes (e.g. connect rules to source that changed, and invalidate)
@@ -217,7 +209,6 @@ These should be rationalised and ideally replaced with model rules.
 
 ## Productization
 
-- Document general configuration rule concepts (incl. rationale for change)
 - Document rule source plugin concepts
 
 ## Migration/Bridging

@@ -64,6 +64,7 @@ For example:
 - Improve creation DSL to allow parameterized types
 - Improve creation DSL to allow type to be left out when it can be inferred or there is a reasonable default
 - Improve configuration DSL to allow subject's view type to be declared
+- Improve DSL to allow rule input's view type to be declared
 - Conveniences to target subject is child with name, subject is children with type, subject is children that meet some criteria etc
 - Type coercion
 - Conveniences where subject is collection
