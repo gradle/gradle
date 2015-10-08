@@ -159,14 +159,29 @@ See discussion about parameters.  Uses cpp software model plugins.
 - Test with --parallel --max-workers=4
 - add test scenario to NewJavaPluginPerformanceTest for parallel execution to existing test
 
-## Story: Improve File metadata lookup in task input/output snapshotting
+## Story: Speed up File metadata lookup in task input/output snapshotting
 
 File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are hotspots in task input/output snapshotting.
+
 The Java nio2 directory walking method java.nio.file.Files.walkFileTree can pass the file metadata used for directory scanning to "visiting" the file tree so that metadata (BasicFileAttributes) doesn't have to be re-read.
+
+### Implementation
+
+- For JDK7+ with UTF-8 file encoding, use a nio2 file walker implemention.
+    - Cache isDirectory()/getSize()/getLastModified() in FileVisitDetails from BasicFileAttributes gathered from walking
+- Otherwise, use default file walker implementation (current behavior).
+    - Use a caching FileVisitDetails for getSize()/getLastModified() to cache on first use.
+    - Maybe reuse isFile/isDirectory result from the walker implementation
+- Replace calls to getFiles() in DefaultFileCollectionSnapshotter with a visitor
 
 ### Test coverage
 
-TBD
+- Test that correct implementation is chosen for JDK platform and file encoding
+- Test that a file walker sees a snapshot of tree even if the tree is modified after walking has started.
+- Generate file tree and walk with JDK7+ file walker and non-nio2 file walker. Attributes and files should be the same for both.
+- Test that the visited files is the same as inputs.getAsFileTrees().getFiles() when snapshotting.
+- Performance gains will be measured from existing performance tests.
+- Expect existing test coverage will cover behavior of input/output snapshotting and file collection operations.
 
 ## Story: Add caching to Specs returned from PatternSet.getAsSpecs()
 
