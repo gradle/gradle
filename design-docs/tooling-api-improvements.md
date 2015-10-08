@@ -240,30 +240,6 @@ TBD
 - Can execute task selectors from multiple projects, for all target Gradle versions
 - Can execute overlapping task selectors.
 
-## Story: Tooling API exposes project's implicit tasks as launchable (DONE)
-
-Change the building of the `BuildInvocations` model so that:
-
-- `getTasks()` includes the implicit tasks of the project.
-- `getTaskSelectors()` includes the implicit tasks of the project and all its subprojects.
-
-### Test cases
-
-- `BuildInvocations.getTasks()` includes `help` and other implicit tasks.
-    - Launching a build using one of these task instances runs the appropriate task.
-- `BuildInvocations.getTaskSelectors()` includes the `help` and other implicit tasks.
-    - Launching a build using the `dependencies` selector runs the task in the default project only (this is the behaviour on the command-line).
-- A project defines a task placeholder. This should be visible in the `BuildInvocations` model for the project and for the parent of the project.
-    - Launching a build using the selector runs the task.
-
-## Story: Expose information about the visibility of a task (DONE)
-
-This story allows the IDE to hide those tasks that are part of the implementation details of a build.
-
-- Add a `visibility` property to `Launchable`.
-- A task is considered `public` when it has a non-empty `group` property, otherwise it is considered `private`.
-- A task selector is considered `public` when any task it selects is `public`, otherwise it is considered `private`.
-
 ### Test cases
 
 - A project defines a public and private task.
@@ -275,7 +251,7 @@ This story allows the IDE to hide those tasks that are part of the implementatio
 
 For example, allow something similar to `gradle test --tests SomePattern`
 
-## Story: Tooling API build action requests a tooling model for a Gradle build (DONE)
+## Story: Tooling API build action requests a tooling model for a Gradle build
 
 This story adds support to build models that have a scope of a whole Gradle build (not just a project)
 
@@ -305,14 +281,6 @@ This story adds support to build models that have a scope of a whole Gradle buil
 ## Story: Expose the IDE output directories
 
 Add the appropriate properties to the IDEA and Eclipse models.
-
-## Story: Expose the project root directory
-
-Add a `projectDir` property to `GradleProject`
-
-### Test coverage
-
-- Verify that a decent error message is received when using a Gradle version that does not expose the project directory
 
 ## Story: Expose the Java language level
 
