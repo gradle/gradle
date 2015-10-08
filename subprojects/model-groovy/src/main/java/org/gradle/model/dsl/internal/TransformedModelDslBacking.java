@@ -115,6 +115,9 @@ public class TransformedModelDslBacking {
                     ModelPath path = ModelPath.path(pathString);
                     String rootName = path.getComponents().get(0);
                     boolean subjectHasProperty = GroovySystem.getMetaClassRegistry().getMetaClass(subject.getClass()).hasProperty(subject, rootName) != null;
+                    if (!subjectHasProperty) {
+                        subjectHasProperty = GroovySystem.getMetaClassRegistry().getMetaClass(closure.getThisObject().getClass()).hasProperty(closure.getThisObject(), rootName) != null;
+                    }
 
                     if (!subjectHasProperty) {
                         String description = String.format("@ line %d", relativePathLineNumbers.get(i));
@@ -122,14 +125,13 @@ public class TransformedModelDslBacking {
                         actualInputs.add(ModelReference.untyped(ModelPath.path(rootName), description));
                     }
                 }
-
                 modelRegistry.configure(role, InputUsingModelAction.of(reference, descriptor, actualInputs, new BiAction<T, List<ModelView<?>>>() {
                     @Override
                     public void execute(final T t, List<ModelView<?>> modelViews) {
                         PotentialInputsAccess.with(new PotentialInputs(modelViews, potentialInputs), new Runnable() {
                             @Override
                             public void run() {
-                                ClosureBackedAction.execute(t, closure.rehydrate(null, new Object(), null));
+                                ClosureBackedAction.execute(t, closure.rehydrate(null, closure.getThisObject(), closure.getThisObject()));
                             }
                         });
                     }

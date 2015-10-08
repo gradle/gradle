@@ -344,26 +344,17 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 ''')
     }
 
-    def "can not access project or script from rule"() {
+    def "can access project and script from rule"() {
         when:
         buildScript """
+            def a = '12'
             model {
                 tasks {
-                    assert owner.class == Object
-                    assert this == null
-
-                    try {
-                        { -> project.tasks }.call()
-                        assert false : "should not reach here"
-                    } catch (MissingPropertyException ignore) {
-                        // expected
-                    }
-                    try {
-                        { -> files('thing') }.call()
-                        assert false : "should not reach here"
-                    } catch (MissingMethodException ignore) {
-                        // expected
-                    }
+                    project.tasks
+                    println project.tasks
+                    files('thing')
+                    a = files('thing')
+                    a = '9'
                 }
             }
         """
