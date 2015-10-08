@@ -20,6 +20,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -53,11 +54,20 @@ public class DirectoryFileTreeTest {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private JUnit4Mockery context = new JUnit4GroovyMockery();
     private FileVisitor visitor;
+    private Factory<DirectoryFileTree.DirectoryWalker> directoryWalkerFactory = new Factory<DirectoryFileTree.DirectoryWalker>() {
+        DirectoryFileTree.DirectoryWalker directoryWalker = new DirectoryFileTree.DefaultDirectoryWalker();
+
+        @Override
+        public DirectoryFileTree.DirectoryWalker create() {
+            return directoryWalker;
+        }
+    };
 
     @Before
     public void setUp() {
         NativeServicesTestFixture.initialize();
         visitor = context.mock(FileVisitor.class);
+
     }
 
     @Test
@@ -65,7 +75,7 @@ public class DirectoryFileTreeTest {
         final MockFile root = new MockFile(context, "root", false);
         root.setExpectations();
 
-        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock());
+        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock(), new PatternSet(), directoryWalkerFactory);
         root.setExpectations();
 
         fileTree.visit(visitor);
@@ -81,7 +91,7 @@ public class DirectoryFileTreeTest {
             will(returnValue(spec));
         }});
 
-        DirectoryFileTree fileTree = new DirectoryFileTree(new File("root"), patternSet);
+        DirectoryFileTree fileTree = new DirectoryFileTree(new File("root"), patternSet, directoryWalkerFactory);
         fileTree.visit(visitor);
     }
 
@@ -97,7 +107,7 @@ public class DirectoryFileTreeTest {
             one(visitor).visitFile(with(file(fileToCopy)));
         }});
 
-        DirectoryFileTree fileTree = new DirectoryFileTree(fileToCopy.getMock());
+        DirectoryFileTree fileTree = new DirectoryFileTree(fileToCopy.getMock(), new PatternSet(), directoryWalkerFactory);
         fileTree.visit(visitor);
     }
 
@@ -136,7 +146,7 @@ public class DirectoryFileTreeTest {
             inSequence(visiting);
         }});
 
-        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock());
+        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock(), new PatternSet(), directoryWalkerFactory);
         fileTree.visit(visitor);
     }
 
@@ -165,7 +175,7 @@ public class DirectoryFileTreeTest {
             inSequence(visiting);
         }});
 
-        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock()).postfix();
+        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock(), new PatternSet(), directoryWalkerFactory).postfix();
         fileTree.visit(visitor);
     }
 
@@ -191,7 +201,7 @@ public class DirectoryFileTreeTest {
         patterns.include("**/*2");
         PatternSet filter = new PatternSet();
         filter.include("dir1/**");
-        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock(), patterns).filter(filter);
+        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock(), patterns, directoryWalkerFactory).filter(filter);
         fileTree.visit(visitor);
     }
 
@@ -211,7 +221,7 @@ public class DirectoryFileTreeTest {
             will(stopVisiting());
         }});
 
-        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock());
+        DirectoryFileTree fileTree = new DirectoryFileTree(root.getMock(), new PatternSet(), directoryWalkerFactory);
         fileTree.visit(visitor);
 
         final Sequence visiting = context.sequence("visiting");
@@ -243,7 +253,7 @@ public class DirectoryFileTreeTest {
         PatternSet patterns = new PatternSet();
         patterns.include("**/*.txt");
         patterns.exclude("subdir1/**");
-        DirectoryFileTree fileTree = new DirectoryFileTree(rootDir, patterns);
+        DirectoryFileTree fileTree = new DirectoryFileTree(rootDir, patterns, directoryWalkerFactory);
 
         assertTrue(fileTree.contains(rootTextFile));
         assertTrue(fileTree.contains(nestedTextFile));
@@ -255,13 +265,13 @@ public class DirectoryFileTreeTest {
 
     @Test
     public void hasUsefulDisplayName() {
-        DirectoryFileTree treeWithNoIncludesOrExcludes = new DirectoryFileTree(tmpDir.getTestDirectory());
+        DirectoryFileTree treeWithNoIncludesOrExcludes = new DirectoryFileTree(tmpDir.getTestDirectory(), new PatternSet(), directoryWalkerFactory);
         PatternSet includesOnly = new PatternSet();
         includesOnly.include("a/b", "c");
-        DirectoryFileTree treeWithIncludes = new DirectoryFileTree(tmpDir.getTestDirectory(), includesOnly);
+        DirectoryFileTree treeWithIncludes = new DirectoryFileTree(tmpDir.getTestDirectory(), includesOnly, directoryWalkerFactory);
         PatternSet excludesOnly = new PatternSet();
         excludesOnly.exclude("a/b", "c");
-        DirectoryFileTree treeWithExcludes = new DirectoryFileTree(tmpDir.getTestDirectory(), excludesOnly);
+        DirectoryFileTree treeWithExcludes = new DirectoryFileTree(tmpDir.getTestDirectory(), excludesOnly, directoryWalkerFactory);
 
         assertThat(treeWithNoIncludesOrExcludes.getDisplayName(), equalTo(String.format("directory '%s'", tmpDir.getTestDirectory())));
         assertThat(treeWithIncludes.getDisplayName(), equalTo(String.format("directory '%s' include 'a/b', 'c'", tmpDir.getTestDirectory())));
