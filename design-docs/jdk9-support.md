@@ -6,7 +6,10 @@ The Java module system is a deep, disruptive change to the Java ecosystem. The f
 
 Useful links:
 
-- [Jigsaw overview](http://openjdk.java.net/projects/jigsaw/doc/quickstart.html)
+- [State of the module system](http://openjdk.java.net/projects/jigsaw/spec/sotms/)
+- [Module system quick-start guide](http://openjdk.java.net/projects/jigsaw/quick-start) (not [this one](http://openjdk.java.net/projects/jigsaw/doc/quickstart.html))
+- [Initial module system design, API, and early-access builds](http://mail.openjdk.java.net/pipermail/jigsaw-dev/2015-September/004480.html)
+- [Java platform module system spec observers list](http://mail.openjdk.java.net/pipermail/jpms-spec-observers/)
 - [Explanation of source layout for Jigsaw](http://openjdk.java.net/projects/jigsaw/doc/ModulesAndJavac.pdf)
 - [The module descriptor syntax](http://cr.openjdk.java.net/~mr/jigsaw/spec/lang-vm.html)
 
