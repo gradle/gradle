@@ -62,6 +62,51 @@ The provider loading must be changed to deal with this.
 ### Open issues
 - cannot handle init scripts in distributions init.d folder if as distribution of cached provider is used for resolving init scripts
 
+## Story - Tooling API stability tests
+
+Introduce some stress and stability tests for the tooling API and daemon to the performance test suite. Does not include
+fixing any leaks or stability problems exposed by these tests. Additional stories will be added to take care of such issues.
+
+## Feature - Daemon usability improvements
+
+### Story - Build script classpath can contain a changing jar
+
+Fix ClassLoader caching to detect when a build script classpath has changed.
+
+Fix the ClassLoading implementation to avoid locking these Jars on Windows.
+
+### Story - Can clean after compiling on Windows
+
+Fix GRADLE-2275.
+
+### Story - Prefer a single daemon instance
+
+Improve daemon expiration algorithm so that when there are multiple daemon instances running, one instance is
+selected as the survivor and the others expire quickly (say, as soon as they become idle).
+
+### Story - Daemon handles additional immutable system properties
+
+Some system properties are immutable, and must be defined when the JVM is started. When these properties change,
+a new daemon instance must be started. Currently, only `file.encoding` is treated as an immutable system property.
+
+Add support for the following properties:
+
+- The jmxremote system properties (GRADLE-2629)
+- The SSL system properties (GRADLE-2367)
+- 'java.io.tmpdir' : this property is only read once at JVM startup
+
+### Story - Daemon process expires when a memory pool is exhausted
+
+Improve daemon expiration algorithm to expire more quickly a daemon whose memory is close to being exhausted.
+
+### Story - Cross-version daemon management
+
+Daemon management, such as `gradle --stop` and the daemon expiration algorithm should consider daemons across all Gradle versions.
+
+### Story - Reduce the default daemon maximum heap and permgen sizes
+
+Should be done in a backwards compatible way.
+
 ## Feature: Expose the compile details of a build script
 
 This feature exposes some information about how a build script will be compiled. This information can be used by an
@@ -287,3 +332,17 @@ Similar to `gradleApi()`
   handling in the consumer to deal with this.
 * Test fixtures should stop daemons at end of test when custom user home dir is used.
 * Introduce a `GradleExecutor` implementation backed by the tooling API and remove the in-process executor.
+
+## Feature - Tooling API client listens for changes to a tooling model
+
+Provide a subscription mechanism to allow a tooling API client to listen for changes to the model it is interested in.
+
+## Feature - Interactive builds
+
+### Story - Support interactive builds from the command-line
+
+Provide a mechanism that build logic can use to prompt the user, when running from the command-line.
+
+### Story - Support interactive builds from the IDE
+
+Extend the above mechanism to support prompting the user, when running via the tooling API.
