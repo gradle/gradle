@@ -18,10 +18,7 @@ package org.gradle.model.dsl.internal.transform;
 
 import com.google.common.collect.Lists;
 import net.jcip.annotations.NotThreadSafe;
-import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.AnnotationNode;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.MethodNode;
+import org.codehaus.groovy.ast.*;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
@@ -55,8 +52,6 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     private static final ClassNode POTENTIAL_INPUTS = new ClassNode(PotentialInputs.class);
 
     private static final String ACCESS_HOLDER_FIELD = "_" + PotentialInputs.class.getName().replace(".", "_");
-
-    int closureDepth;
 
     private final SourceUnit sourceUnit;
     private InputReferences inputs;
@@ -107,6 +102,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     @Override
     public void visitClosureExpression(ClosureExpression expression) {
         if (inputs == null) {
+            // A top level closure - collect up the inputs and set up some initial state
             inputs = new InputReferences();
             try {
                 inputsVariable = new VariableExpression(ACCESS_HOLDER_FIELD, POTENTIAL_INPUTS);
@@ -114,21 +110,26 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                 BlockStatement code = (BlockStatement) expression.getCode();
                 code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY, inputs);
                 inputsVariable.setClosureSharedVariable(true);
+                code.getVariableScope().putDeclaredVariable(inputsVariable);
+
+                // <inputs-lvar> = PotentialInputs.get()
                 StaticMethodCallExpression getAccessCall = new StaticMethodCallExpression(POTENTIAL_INPUTS_ACCESS, GET, ArgumentListExpression.EMPTY_ARGUMENTS);
                 DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, new Token(Types.ASSIGN, "=", -1, -1), getAccessCall);
                 code.getStatements().add(0, new ExpressionStatement(variableDeclaration));
-                code.getVariableScope().putDeclaredVariable(inputsVariable);
+
+                // Move default values into body of code
+                for (Parameter parameter : expression.getParameters()) {
+                    if (parameter.hasInitialExpression()) {
+                        code.getStatements().add(1, new ExpressionStatement(new BinaryExpression(new VariableExpression(parameter.getName()), new Token(Types.ASSIGN, "=", -1, -1), parameter.getInitialExpression())));
+                        parameter.setInitialExpression(ConstantExpression.NULL);
+                    }
+                }
             } finally {
                 inputs = null;
             }
         } else {
-            ++closureDepth;
-            try {
-                expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
-                super.visitClosureExpression(expression);
-            } finally {
-                --closureDepth;
-            }
+            expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
+            super.visitClosureExpression(expression);
         }
     }
 

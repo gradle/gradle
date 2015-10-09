@@ -68,6 +68,41 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
     }
 
     @Unroll
+    def "can inject input as parameter - #syntax"() {
+        when:
+        buildScript """
+          @Managed
+          interface Thing {
+            String getValue(); void setValue(String str)
+          }
+
+          model {
+            thing(Thing) {
+                value = "foo"
+            }
+            tasks { t, v = $syntax ->
+                create("echo") {
+                    doLast {
+                        println "thing.value: " + v
+                    }
+                }
+            }
+          }
+        """
+
+        then:
+        succeeds "echo"
+        output.contains "thing.value: foo"
+
+        where:
+        syntax << [
+            '$("thing.value")',
+            '$("thing").value',
+            '$("thing.value").toString()',
+        ]
+    }
+
+    @Unroll
     def "only literal strings can be given to dollar - #code"() {
         when:
         buildScript """
@@ -188,7 +223,8 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             '''
 def cl = { foo = $("foo") -> add(foo) }
 cl.call()
-'''
+''',
+            '{ foo = true ? $("foo") : "bar" -> add(foo) }.call()'
         ]
     }
 
