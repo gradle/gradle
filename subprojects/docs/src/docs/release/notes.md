@@ -120,6 +120,10 @@ Spock:
         }
     }
 
+### Model rules improvements 
+
+TBD: DSL now supports `$('p')` expressions
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -148,7 +152,15 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Changes to experimental integration between software model and Java plugins
 
+TBD
+
 - `binaries` container is now only visible to rules via model. The `binaries` project extension has been removed.
+
+### Changes to experimental model rules DSL
+
+TBD
+
+- The `model { }` block can now contain only rule blocks. 
 
 ## External contributions
 
