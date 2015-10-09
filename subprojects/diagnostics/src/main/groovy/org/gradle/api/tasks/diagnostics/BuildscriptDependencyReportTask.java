@@ -15,16 +15,129 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.ProjectReportGenerator;
+import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
+import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
+import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.logging.StyledTextOutputFactory;
+
+import javax.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Displays the buildscript dependency tree for a project. An instance of this type is used when you
  * execute the {@code buildscriptDependencies} task from the command-line.
  */
-public class BuildscriptDependencyReportTask extends AbstractDependencyReportTask {
+public class BuildscriptDependencyReportTask extends ConventionTask {
 
-    @Override
-    public ConfigurationContainer getTaskConfigurations() {
-        return getProject().getBuildscript().getConfigurations();
+    private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
+    private File outputFile;
+    private Set<Project> projects;
+
+    public BuildscriptDependencyReportTask() {
+        getOutputs().upToDateWhen(new Spec<Task>() {
+            public boolean isSatisfiedBy(Task element) {
+                return false;
+            }
+        });
+        projects = new HashSet<Project>();
+        projects.add(getProject());
+    }
+
+    @Inject
+    protected BuildClientMetaData getClientMetaData() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected StyledTextOutputFactory getTextOutputFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @TaskAction
+    public void generate() {
+        ProjectReportGenerator projectReportGenerator = new ProjectReportGenerator() {
+            @Override
+            public void generateReport(Project project) throws IOException {
+                SortedSet<Configuration> sortedConfigurations = new TreeSet<Configuration>(new Comparator<Configuration>() {
+                    public int compare(Configuration conf1, Configuration conf2) {
+                        return conf1.getName().compareTo(conf2.getName());
+                    }
+                });
+                sortedConfigurations.addAll(getProject().getBuildscript().getConfigurations());
+                for (Configuration configuration : sortedConfigurations) {
+                    renderer.startConfiguration(configuration);
+                    renderer.render(configuration);
+                    renderer.completeConfiguration(configuration);
+                }
+            }
+        };
+
+        ReportGenerator reportGenerator = new ReportGenerator(getRenderer(), getClientMetaData(), getOutputFile(),
+                getTextOutputFactory(), projectReportGenerator);
+        reportGenerator.generateReport(new TreeSet<Project>(getProjects()));
+    }
+
+    public ReportRenderer getRenderer() {
+        return renderer;
+    }
+
+    /**
+     * Set the renderer to use to build a report. If unset, AsciiGraphRenderer will be used.
+     */
+    public void setRenderer(DependencyReportRenderer renderer) {
+        this.renderer = renderer;
+    }
+
+    /**
+     * Returns the file which the report will be written to. When set to {@code null}, the report is written to {@code System.out}.
+     * Defaults to {@code null}.
+     *
+     * @return The output file. May be null.
+     */
+    @OutputFile
+    @Optional
+    public File getOutputFile() {
+        return outputFile;
+    }
+
+    /**
+     * Sets the file which the report will be written to. Set this to {@code null} to write the report to {@code System.out}.
+     *
+     * @param outputFile The output file. May be null.
+     */
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile;
+    }
+
+    /**
+     * Returns the set of project to generate this report for. By default, the report is generated for the task's
+     * containing project.
+     *
+     * @return The set of files.
+     */
+    public Set<Project> getProjects() {
+        return projects;
+    }
+
+    /**
+     * Specifies the set of projects to generate this report for.
+     *
+     * @param projects The set of projects. Must not be null.
+     */
+    public void setProjects(Set<Project> projects) {
+        this.projects = projects;
     }
 }

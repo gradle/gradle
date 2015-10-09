@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.diagnostics;
+
+package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer
-import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class BuildscriptDependencyReportTaskTest extends Specification {
-    private Project project = new ProjectBuilder().build()
+    private Project project = TestUtil.createRootProject()
     private BuildscriptDependencyReportTask task = TestUtil.createTask(BuildscriptDependencyReportTask.class, project)
     private DependencyReportRenderer renderer = Mock(DependencyReportRenderer)
     private Configuration conf1 = project.buildscript.configurations.create("conf1")
@@ -40,12 +40,11 @@ class BuildscriptDependencyReportTaskTest extends Specification {
 
         expect:
         task.renderer instanceof AsciiDependencyReportRenderer
-        task.configurations == null
     }
 
     def "renders all configurations in the project"() {
         when:
-        task.generate(project)
+        task.generate()
 
         then: 1 * renderer.startConfiguration(classpath)
         then: 1 * renderer.render(classpath)
@@ -60,34 +59,6 @@ class BuildscriptDependencyReportTaskTest extends Specification {
         then: 1 * renderer.render(conf2)
         then: 1 * renderer.completeConfiguration(conf2)
 
-        0 * renderer._
-    }
 
-    def "rendering can be limited to specific configurations"() {
-        given:
-        project.buildscript.configurations.create("a")
-        def bConf = project.buildscript.configurations.create("b")
-        task.configurations = [bConf] as Set
-
-        when:
-        task.generate(project)
-
-        then:
-        1 * renderer.startConfiguration(bConf)
-        1 * renderer.render(bConf)
-        1 * renderer.completeConfiguration(bConf)
-        0 * renderer._
-    }
-
-    def "rendering can be limited to a single configuration, specified by name"() {
-        given:
-        project.buildscript.configurations.create("a")
-        def bConf = project.buildscript.configurations.create("b")
-
-        when:
-        task.configuration = "b"
-
-        then:
-        task.configurations == [bConf] as Set
     }
 }
