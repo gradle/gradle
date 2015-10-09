@@ -73,9 +73,9 @@ model {
         ModelReportOutput.from(output).hasNodeStructure({
             model {
                 container {
-                    ids(type: 'java.util.List<java.lang.Integer>', creator: 'model.container')
-                    labels(type: 'java.util.List<java.lang.String>', creator: 'model.container', nodeValue: "[bug, blocker]")
-                    values(type: 'java.util.List<java.lang.Double>', creator: 'model.container')
+                    ids(type: 'java.util.List<java.lang.Integer>', creator: 'model.container @ build.gradle line 12, column 5')
+                    labels(type: 'java.util.List<java.lang.String>', creator: 'model.container @ build.gradle line 12, column 5', nodeValue: "[bug, blocker]")
+                    values(type: 'java.util.List<java.lang.Double>', creator: 'model.container @ build.gradle line 12, column 5')
                 }
                 tasks {
                     components(nodeValue: "task ':components'")
@@ -130,8 +130,8 @@ model {
         ModelReportOutput.from(output).hasNodeStructure({
             model {
                 nullCredentials {
-                    password(type: 'java.lang.String', creator: 'model.nullCredentials')
-                    username(type: 'java.lang.String', creator: 'model.nullCredentials')
+                    password(type: 'java.lang.String', creator: 'model.nullCredentials @ build.gradle line 27, column 5')
+                    username(type: 'java.lang.String', creator: 'model.nullCredentials @ build.gradle line 27, column 5')
                 }
 
                 numbers {
@@ -139,8 +139,8 @@ model {
                     value(nodeValue: "5")
                 }
                 primaryCredentials {
-                    password(nodeValue: 'hunter2', type: 'java.lang.String', creator: 'model.primaryCredentials')
-                    username(nodeValue: 'uname', type: 'java.lang.String', creator: 'model.primaryCredentials')
+                    password(nodeValue: 'hunter2', type: 'java.lang.String', creator: 'model.primaryCredentials @ build.gradle line 22, column 5')
+                    username(nodeValue: 'uname', type: 'java.lang.String', creator: 'model.primaryCredentials @ build.gradle line 22, column 5')
                 }
                 tasks {
                     components(nodeValue: "task ':components'")
@@ -201,35 +201,35 @@ model {
         modelReportOutput.nodeContentEquals('''
 + nullCredentials
       | Type:   \tPasswordCredentials
-      | Creator: \tmodel.nullCredentials
+      | Creator: \tmodel.nullCredentials @ build.gradle line 27, column 5
     + password
           | Type:   \tjava.lang.String
-          | Creator: \tmodel.nullCredentials
+          | Creator: \tmodel.nullCredentials @ build.gradle line 27, column 5
     + username
           | Type:   \tjava.lang.String
-          | Creator: \tmodel.nullCredentials
+          | Creator: \tmodel.nullCredentials @ build.gradle line 27, column 5
 + numbers
       | Type:   \tNumbers
-      | Creator: \tmodel.numbers
+      | Creator: \tmodel.numbers @ build.gradle line 28, column 5
     + threshold
           | Type:   \tdouble
           | Value:  \t0.8
-          | Creator: \tmodel.numbers
+          | Creator: \tmodel.numbers @ build.gradle line 28, column 5
     + value
           | Type:   \tjava.lang.Integer
           | Value:  \t5
-          | Creator: \tmodel.numbers
+          | Creator: \tmodel.numbers @ build.gradle line 28, column 5
 + primaryCredentials
       | Type:   \tPasswordCredentials
-      | Creator: \tmodel.primaryCredentials
+      | Creator: \tmodel.primaryCredentials @ build.gradle line 22, column 5
     + password
           | Type:   \tjava.lang.String
           | Value:  \thunter2
-          | Creator: \tmodel.primaryCredentials
+          | Creator: \tmodel.primaryCredentials @ build.gradle line 22, column 5
     + username
           | Type:   \tjava.lang.String
           | Value:  \tuname
-          | Creator: \tmodel.primaryCredentials
+          | Creator: \tmodel.primaryCredentials @ build.gradle line 22, column 5
 + tasks
       | Type:   \torg.gradle.model.ModelMap<org.gradle.api.Task>
       | Creator: \tProject.<init>.tasks()
