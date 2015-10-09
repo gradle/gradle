@@ -20,7 +20,7 @@ def buckets = [
         ":diagnostics", ":jetty", ":cli", ":reporting", ":toolingApiBuilders", ":openApi"],
 
     "2": [":toolingApi", ":dependencyManagement", ":testKit", ":distributions",
-        ":pluginUse", ":sonar", ":jacoco", ":buildInit", ":languageGroovy", ":internalTesting",
+        ":pluginUse", ":sonar", ":buildInit", ":languageGroovy", ":internalTesting",
         ":languageJvm", ":performance", ":publish", ":resources", ":baseServicesGroovy", ":resourcesHttp",
         ":pluginDevelopment", ":osgi"],
 
@@ -28,13 +28,24 @@ def buckets = [
         ":ui", ":maven", ":javascript", ":antlr", ":messaging", ":ear",
         ":resourcesS3", ":wrapper", ":resourcesSftp", ":signing", ":modelGroovy", ":baseServices"],
 
-    "4": [":docs", ":integTest", ":core", ":languageNative", ":ide", ":platformNative", ":modelCore", ":testingNative",
+    "4": [":docs", ":integTest", ":core", ":languageNative", ":ide", ":platformJvm", ":platformNative", ":modelCore", ":testingNative",
         ":ideNative", ":native"]
 ]
 
 //Make sure all projects are accounted for
 def coveredProjects = (buckets.collect { it.value }).flatten()
-assert coveredProjects.size() == subprojects.size(): "The following projects should be added to a bucket: ${subprojects.collect { ":${it.name}" } - coveredProjects}"
+def uncoveredProjects = subprojects.collect { ":${it.name}" } - coveredProjects
+assert uncoveredProjects == [] : "The following projects should be added to a bucket: ${uncoveredProjects}"
+
+ext.runtimeProjectPaths = runtimeProjects.collect { it.path }
+
+//Make sure there are no duplicates between buckets
+for (int bucket : buckets.keySet().collect{it as int}) {
+    for (int other=bucket+1; other<=buckets.size(); other++) {
+        def duplicates = buckets["${bucket}"].intersect(buckets["${other}"])
+        assert duplicates == [] : "Duplicates were found between bucket ${bucket} and ${other}: ${duplicates}"
+    }
+}
 
 //Create appropriate build types for each bucket
 buildTypes.toArray().each { buildType ->
@@ -51,20 +62,29 @@ def tasksForProjects(buildType, List<String> projects) {
     List tasks = []
     projects.each { String p ->
         buildType.tasks.each { String t ->
-            String task = resolveTask(t)
-            if (!task.contains(':')) {
-                tasks << "$p:${task}"
-            } else {
-                tasks << task
+            String task = resolveTask(p, t)
+            if (task) {
+                if (!task.contains(':')) {
+                    tasks << "$p:${task}"
+                } else {
+                    // Add the task if the project is in this bucket
+                    if (task.startsWith("${p}:") || ":${task}".startsWith("${p}:")) {
+                        tasks << task
+                    }
+                }
             }
         }
     }
     return tasks
 }
 
-def String resolveTask(String task) {
+def String resolveTask(String projectPath, String task) {
     if (testGroupings.containsKey(task)) {
-        return testGroupings[task]
+        if (projectPath in runtimeProjectPaths) {
+            return testGroupings[task]
+        } else {
+            return null
+        }
     } else {
         return task
     }
