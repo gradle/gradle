@@ -125,11 +125,12 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         where:
         code << [
             'something.$(1)',
-//                'this.$("$name")',
-//                'foo.bar().$("a" + "b")',
+            'this.$("$name")',
+            'foo.bar().$("a" + "b")',
         ]
     }
 
+    @Unroll
     def "input references are found in nested code - #code"() {
         when:
         buildScript """
@@ -184,6 +185,10 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
             'def v = $("foo"); add(v)',
             'add($("foo"))',
             'add($("foo").toString())',
+            '''
+def cl = { foo = $("foo") -> add(foo) }
+cl.call()
+'''
         ]
     }
 
