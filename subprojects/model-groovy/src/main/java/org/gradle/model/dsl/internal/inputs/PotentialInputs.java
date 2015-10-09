@@ -38,10 +38,6 @@ public class PotentialInputs {
         });
     }
 
-    public boolean has(String path) {
-        return inputs.containsKey(path);
-    }
-
     public Object get(String path) {
         PotentialInput potentialInput = inputs.get(path);
         if (potentialInput == null) {

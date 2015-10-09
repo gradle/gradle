@@ -107,7 +107,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
-                def people = people
+                def people = $('people')
                 create("printPeople") {
                   doLast {
                     def names = people*.name.sort().join(", ")
@@ -157,7 +157,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
-                def g = group
+                def g = $('group')
                 create("printGroup") {
                   doLast {
                     def members = g.members*.name.sort().join(", ")
@@ -323,14 +323,14 @@ finalize
         and:
         output.contains TextUtil.toPlatformLineSeparators('''
 p1 defined
-p2 defined
 p3 defined
+p2 defined
 construct Person
 configure p1
 construct Person
-configure p2
-construct Person
 configure p3
+construct Person
+configure p2
 ''')
 
         output.contains "people: p1, p2, p3"

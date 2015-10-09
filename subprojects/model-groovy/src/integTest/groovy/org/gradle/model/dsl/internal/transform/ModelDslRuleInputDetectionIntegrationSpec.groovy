@@ -61,48 +61,16 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         syntax << [
             '$("thing.value")',
             '$("thing").value',
-            "thing.value",
-            "(thing).value",
-            "(thing).(value)",
-            "thing.\"\${'value'}\"",
-            "thing.'value'",
-            "thing.value.toUpperCase().toLowerCase()",
-            "thing.value[0] + 'oo'",
-            "(true ? thing.value : 'bar')",
-            "new String(thing.value)",
-            "thing.getValue()"
+            '$("thing").getValue()',
+            "(\$('thing')).value",
+            "(\$('thing')).(value)",
+            '$("thing")."${"value"}"',
+            "\$('thing').'value'",
+            "\$('thing').value.toUpperCase().toLowerCase()",
+            "\$('thing').value[0] + 'oo'",
+            "(true ? \$('thing.value') : 'bar')",
+            "new String(\$('thing.value'))",
         ]
-    }
-
-    def "can reference property of subject"() {
-        when:
-        buildScript """
-          @Managed
-          interface Thing {
-            String getValue(); void setValue(String str)
-          }
-
-          model {
-            thing(Thing) {
-              value = "foo"
-              value = value + "-bar"
-            }
-            tasks {
-              def v = thing.value
-              create("echo") {
-                doLast {
-                  println "thing.value: " + v
-                }
-              }
-            }
-          }
-        """
-
-        then:
-        succeeds "echo"
-
-        and:
-        output.contains "thing.value: foo-bar"
     }
 
     @Unroll

@@ -16,29 +16,17 @@
 
 package org.gradle.model.dsl.internal.inputs;
 
-import groovy.lang.GroovySystem;
-import org.gradle.api.Transformer;
-import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelView;
 
 import java.util.List;
 
 public class PotentialInput {
-
-    private final Transformer<?, ModelView<?>> extractor;
     private final String consumerPath;
     private final int inputIndex;
-    private final boolean absolute;
 
-    private PotentialInput(String consumerPath, int inputIndex, boolean absolute, Transformer<?, ModelView<?>> extractor) {
+    private PotentialInput(String consumerPath, int inputIndex) {
         this.inputIndex = inputIndex;
-        this.absolute = absolute;
-        this.extractor = extractor;
         this.consumerPath = consumerPath;
-    }
-
-    public boolean isAbsolute() {
-        return absolute;
     }
 
     public String getConsumerPath() {
@@ -46,34 +34,10 @@ public class PotentialInput {
     }
 
     public Object get(List<ModelView<?>> views) {
-        if (inputIndex == -1) {
-            // internal error
-            throw new IllegalStateException("potential input '" + consumerPath + "' did not bind");
-        }
-        return extractor.transform(views.get(inputIndex));
+        return views.get(inputIndex).getInstance();
     }
 
     public static PotentialInput absoluteInput(String consumerPath, int indexPath) {
-        return new PotentialInput(consumerPath, indexPath, true, new Transformer<Object, ModelView<?>>() {
-            @Override
-            public Object transform(ModelView<?> modelView) {
-                return modelView.getInstance();
-            }
-        });
+        return new PotentialInput(consumerPath, indexPath);
     }
-
-    public static PotentialInput relativeInput(final ModelPath consumerPath, int indexPath) {
-        return new PotentialInput(consumerPath.toString(), indexPath, false, new Transformer<Object, ModelView<?>>() {
-            @Override
-            public Object transform(ModelView<?> modelView) {
-                Object object = modelView.getInstance();
-                List<String> pathComponents = consumerPath.getComponents();
-                for (String pathComponent : pathComponents.subList(1, pathComponents.size())) {
-                    object = GroovySystem.getMetaClassRegistry().getMetaClass(object.getClass()).getProperty(object, pathComponent);
-                }
-                return object;
-            }
-        });
-    }
-
 }

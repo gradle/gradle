@@ -133,7 +133,7 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
         succeeds "echo"
 
         and:
-        output.contains "mutations: second source, first source, third source, first dsl, second dsl"
+        output.contains "mutations: first dsl, second dsl, second source, first source, third source"
     }
 
     def "DSL rules are executed in order declared"() {

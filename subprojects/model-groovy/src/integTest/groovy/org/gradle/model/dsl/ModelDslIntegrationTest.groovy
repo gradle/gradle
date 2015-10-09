@@ -33,9 +33,9 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         EnableModelDsl.enable(executer)
     }
 
-    def "can reference rule inputs using relative property reference"() {
+    def "can reference rule inputs using property reference syntax"() {
         when:
-        buildScript """
+        buildScript '''
             class MyPlugin extends RuleSource {
                 @Model
                 String foo() {
@@ -52,7 +52,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
             model {
                 tasks {
-                    def strings = strings
+                    def strings = $('strings')
                     printStrings(Task) {
                         doLast {
                             println "strings: " + strings
@@ -60,10 +60,10 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
                 strings {
-                    add(foo)
+                    add($('foo'))
                 }
             }
-"""
+'''
 
         then:
         succeeds "printStrings"
@@ -72,7 +72,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule inputs can be referenced in closures that are not executed during rule execution"() {
         when:
-        buildScript """
+        buildScript '''
             class MyPlugin extends RuleSource {
                 @Model
                 String foo() {
@@ -93,15 +93,15 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                   doLast {
                     // Being in doLast is significant here.
                     // This is not going to execute until much later, so we are testing that we can still access the input
-                    println "strings: " + \$("strings")
+                    println "strings: " + $("strings")
                   }
                 }
               }
               strings {
-                add \$("foo")
+                add $("foo")
               }
             }
-        """
+        '''
 
         then:
         succeeds "printStrings"
@@ -110,7 +110,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "inputs are fully configured when used in rules"() {
         when:
-        buildScript """
+        buildScript '''
             class MyPlugin extends RuleSource {
                 @Model
                 List<String> strings() {
@@ -124,7 +124,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("printStrings") {
                   doLast {
-                    println "strings: " + \$("strings")
+                    println "strings: " + $("strings")
                   }
                 }
               }
@@ -135,7 +135,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
                 add "bar"
               }
             }
-        """
+        '''
 
         then:
         succeeds "printStrings"
@@ -144,7 +144,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "the same input can be referenced more than once, and refers to the same object"() {
         when:
-        buildScript """
+        buildScript '''
             class MyPlugin extends RuleSource {
                 @Model
                 List<String> strings() {
@@ -158,12 +158,12 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               tasks {
                 create("assertDuplicateInputIsSameObject") {
                   doLast {
-                    assert \$("strings").is(\$("strings"))
+                    assert $("strings").is($("strings"))
                   }
                 }
               }
             }
-        """
+        '''
 
         then:
         succeeds "assertDuplicateInputIsSameObject"
@@ -174,7 +174,7 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << "include 'a'; include 'b'"
         when:
 
-        buildScript """
+        buildScript '''
             class MyPlugin extends RuleSource {
                 @Model
                 String foo() {
@@ -189,9 +189,9 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
             subprojects {
                 apply type: MyPlugin
-                apply from: "\$rootDir/script.gradle"
+                apply from: "$rootDir/script.gradle"
             }
-        """
+        '''
         file("a/build.gradle") << """
             model {
               strings { add "a" }
@@ -202,20 +202,20 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
               strings { add "b" }
             }
         """
-        file("script.gradle") << """
+        file("script.gradle") << '''
             model {
               tasks {
                 create("printStrings") {
                   doLast {
-                    println it.project.name + ": " + \$("strings")
+                    println it.project.name + ": " + $("strings")
                   }
                 }
               }
               strings {
-                add \$("foo")
+                add $("foo")
               }
             }
-        """
+        '''
 
         then:
         succeeds "printStrings"

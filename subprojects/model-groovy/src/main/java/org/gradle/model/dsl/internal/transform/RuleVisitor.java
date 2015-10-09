@@ -18,7 +18,10 @@ package org.gradle.model.dsl.internal.transform;
 
 import com.google.common.collect.Lists;
 import net.jcip.annotations.NotThreadSafe;
-import org.codehaus.groovy.ast.*;
+import org.codehaus.groovy.ast.ASTNode;
+import org.codehaus.groovy.ast.AnnotationNode;
+import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
@@ -34,7 +37,6 @@ import org.gradle.model.dsl.internal.inputs.PotentialInputs;
 import org.gradle.model.dsl.internal.inputs.PotentialInputsAccess;
 import org.gradle.model.internal.core.ModelPath;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -47,7 +49,6 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     public static final String AST_NODE_METADATA_LOCATION_KEY = RuleVisitor.class.getName() + ".location";
 
     private static final String DOLLAR = "$";
-    private static final String HAS = "has";
     private static final String GET = "get";
     private static final ClassNode RULE_METADATA = new ClassNode(RuleMetadata.class);
     private static final ClassNode POTENTIAL_INPUTS_ACCESS = new ClassNode(PotentialInputsAccess.class);
@@ -55,7 +56,6 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
 
     private static final String ACCESS_HOLDER_FIELD = "_" + PotentialInputs.class.getName().replace(".", "_");
 
-    boolean isLeftSideOfAssignment;
     int closureDepth;
 
     private final SourceUnit sourceUnit;
@@ -83,8 +83,6 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             if (!inputs.isEmpty()) {
                 metadataAnnotation.addMember("absoluteInputPaths", new ListExpression(constants(inputs.getAbsolutePaths())));
                 metadataAnnotation.addMember("absoluteInputLineNumbers", new ListExpression(constants(inputs.getAbsolutePathLineNumbers())));
-                metadataAnnotation.addMember("relativeInputPaths", new ListExpression(constants(inputs.getRelativePaths())));
-                metadataAnnotation.addMember("relativeInputLineNumbers", new ListExpression(constants(inputs.getRelativePathLineNumbers())));
             }
 
             node.addAnnotation(metadataAnnotation);
@@ -145,103 +143,6 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         }
     }
 
-    @Override
-    public void visitBinaryExpression(BinaryExpression expression) {
-        if (atTopLevel() && isAssignmentLikeToken(expression.getOperation().getMeaning())) {
-            isLeftSideOfAssignment = true;
-            try {
-                expression.setLeftExpression(replaceExpr(expression.getLeftExpression()));
-            } finally {
-                isLeftSideOfAssignment = false;
-            }
-            expression.setRightExpression(replaceExpr(expression.getRightExpression()));
-        } else {
-            super.visitBinaryExpression(expression);
-        }
-    }
-
-    private boolean atTopLevel() {
-        return closureDepth == 0;
-    }
-
-    @Override
-    public void visitPropertyExpression(PropertyExpression expression) {
-        if (atTopLevel()) {
-            ArrayList<String> names = Lists.newArrayList();
-            boolean propertyNameIsPart = extractPropertyPath(expression, names);
-            if (!names.isEmpty()) {
-                String modelPath = ModelPath.pathString(names);
-                inputs.relativePath(modelPath, expression.getLineNumber());
-                if (propertyNameIsPart) {
-                    replaceVisitedExpressionWith(conditionalInputGet(modelPath, expression));
-                } else {
-                    expression.setObjectExpression(conditionalInputGet(modelPath, expression.getObjectExpression()));
-                }
-            }
-        } else {
-            super.visitPropertyExpression(expression);
-        }
-    }
-
-    private TernaryExpression conditionalInputGet(String modelPath, Expression originalExpression) {
-        return new TernaryExpression(
-            new BooleanExpression(new MethodCallExpression(inputsVariable, HAS, new ArgumentListExpression(new ConstantExpression(modelPath)))),
-            new MethodCallExpression(inputsVariable, GET, new ArgumentListExpression(new ConstantExpression(modelPath))),
-            originalExpression
-        );
-    }
-
-    private boolean extractPropertyPath(Expression expression, List<String> names) {
-        if (expression instanceof PropertyExpression) {
-            PropertyExpression propertyExpression = (PropertyExpression) expression;
-            //noinspection SimplifiableIfStatement
-            if (extractPropertyPath(propertyExpression.getObjectExpression(), names)) {
-                return extractPropertyPath(propertyExpression.getProperty(), names);
-            }
-        } else if (expression instanceof MethodCallExpression) {
-            visitMethodCallExpression((MethodCallExpression) expression);
-            return false;
-        } else if (!isLeftSideOfAssignment) {
-            if (expression instanceof VariableExpression) {
-                VariableExpression variableExpression = (VariableExpression) expression;
-                if (!isNonReferenceKeyword(variableExpression)) {
-                    Variable accessedVariable = variableExpression.getAccessedVariable();
-                    if (accessedVariable instanceof DynamicVariable) {
-                        names.add(variableExpression.getName());
-                        return true;
-                    }
-                }
-            } else if (expression instanceof ConstantExpression) {
-                ConstantExpression constantExpression = (ConstantExpression) expression;
-                if (constantExpression.getType().equals(ClassHelper.STRING_TYPE)) {
-                    names.add(constantExpression.getText());
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private static boolean isNonReferenceKeyword(VariableExpression expression) {
-        return expression.isThisExpression()
-            || expression.isSuperExpression()
-            || expression.getText().equals("owner")
-            || expression.getText().equals("delegate")
-            || expression.getText().equals("it");
-    }
-
-    @Override
-    public void visitVariableExpression(VariableExpression expression) {
-        if (!atTopLevel() || isLeftSideOfAssignment || isNonReferenceKeyword(expression) || !(expression.getAccessedVariable() instanceof DynamicVariable)) {
-            super.visitVariableExpression(expression);
-        } else {
-            String modelPath = expression.getText();
-            inputs.relativePath(modelPath, expression.getLineNumber());
-            replaceVisitedExpressionWith(conditionalInputGet(modelPath, expression));
-        }
-    }
-
     private void visitInputMethod(MethodCallExpression call) {
         ConstantExpression argExpression = AstUtils.hasSingleConstantStringArg(call);
         if (argExpression == null) { // not a valid signature
@@ -277,32 +178,5 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     private void error(ASTNode call, String message) {
         SyntaxException syntaxException = new SyntaxException(message, call.getLineNumber(), call.getColumnNumber());
         sourceUnit.getErrorCollector().addError(syntaxException, sourceUnit);
-    }
-
-    private static final int[] ASSIGNMENT_TOKENS = new int[]{
-        Types.EQUAL,
-        Types.PLUS_EQUAL,
-        Types.MINUS_EQUAL,
-        Types.MULTIPLY_EQUAL,
-        Types.DIVIDE_EQUAL,
-        Types.INTDIV_EQUAL,
-        Types.MOD_EQUAL,
-        Types.POWER_EQUAL,
-        Types.LEFT_SHIFT_EQUAL,
-        Types.RIGHT_SHIFT_EQUAL,
-        Types.RIGHT_SHIFT_UNSIGNED_EQUAL,
-        Types.BITWISE_OR_EQUAL,
-        Types.BITWISE_AND_EQUAL,
-        Types.BITWISE_XOR_EQUAL,
-    };
-
-    private boolean isAssignmentLikeToken(int token) {
-        for (int assignmentToken : ASSIGNMENT_TOKENS) {
-            if (assignmentToken == token) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

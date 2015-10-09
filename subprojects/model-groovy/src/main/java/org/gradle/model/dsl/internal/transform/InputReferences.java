@@ -25,7 +25,6 @@ import java.util.Set;
 
 public class InputReferences {
     private final Set<String> relativePaths = Sets.newLinkedHashSet();
-    private final List<Integer> relativePathLineNumbers = Lists.newArrayList();
     private final Set<String> absolutePaths = Sets.newLinkedHashSet();
     private final List<Integer> absolutePathLineNumbers = Lists.newArrayList();
 
@@ -35,20 +34,6 @@ public class InputReferences {
 
     public List<Integer> getAbsolutePathLineNumbers() {
         return absolutePathLineNumbers;
-    }
-
-    public List<String> getRelativePaths() {
-        return Lists.newArrayList(relativePaths);
-    }
-
-    public List<Integer> getRelativePathLineNumbers() {
-        return relativePathLineNumbers;
-    }
-
-    public void relativePath(String path, int lineNumber) {
-        if (relativePaths.add(path)) {
-            relativePathLineNumbers.add(lineNumber);
-        }
     }
 
     public void absolutePath(String path, int lineNumber) {
@@ -65,13 +50,6 @@ public class InputReferences {
         absolutePaths.addAll(Arrays.asList(paths));
         for (int lineNumber : lineNumbers) {
             absolutePathLineNumbers.add(lineNumber);
-        }
-    }
-
-    public void relativePaths(String[] paths, int[] lineNumbers) {
-        relativePaths.addAll(Arrays.asList(paths));
-        for (int lineNumber : lineNumbers) {
-            relativePathLineNumbers.add(lineNumber);
         }
     }
 }

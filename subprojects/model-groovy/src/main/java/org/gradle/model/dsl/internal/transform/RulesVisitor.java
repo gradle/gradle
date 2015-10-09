@@ -80,18 +80,21 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
     public void visitMethodCallExpression(MethodCallExpression call) {
         ClosureExpression closureExpression = AstUtils.getSingleClosureArg(call);
         if (closureExpression != null) {
+            // path { ... }
             rewriteAction(call, extractModelPathFromMethodTarget(call), closureExpression);
             return;
         }
 
         Pair<ClassExpression, ClosureExpression> args = AstUtils.getClassAndClosureArgs(call);
         if (args != null) {
+            // path(Type) { ... }
             rewriteCreator(call, extractModelPathFromMethodTarget(call), args.getRight(), args.getLeft());
             return;
         }
 
         ClassExpression classArg = AstUtils.getClassArg(call);
         if (classArg != null) {
+            // path(Type)
             List<Statement> statements = Lists.newLinkedList();
             statements.add(new EmptyStatement());
             BlockStatement block = new BlockStatement(statements, new VariableScope());
@@ -105,6 +108,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
     }
 
     public void rewriteCreator(MethodCallExpression call, String modelPath, ClosureExpression closureExpression, ClassExpression typeExpression) {
+        // Rewrite the method call to match TransformedModelDslBacking#create(String, Closure), which is what the delegate will be
         ConstantExpression modelPathArgument = new ConstantExpression(modelPath);
         ArgumentListExpression replacedArgumentList = new ArgumentListExpression(modelPathArgument, typeExpression, closureExpression);
         call.setMethod(new ConstantExpression("create"));
@@ -121,7 +125,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
     }
 
     public void rewriteAction(MethodCallExpression call, String modelPath, ClosureExpression closureExpression) {
-        // Rewrite the method call to match ModelDsl#configure(String, Closure), which is what the delegate will be
+        // Rewrite the method call to match TransformedModelDslBacking#configure(String, Closure), which is what the delegate will be
         ConstantExpression modelPathArgument = new ConstantExpression(modelPath);
         ArgumentListExpression replacedArgumentList = new ArgumentListExpression(modelPathArgument, closureExpression);
         call.setMethod(new ConstantExpression("configure"));
