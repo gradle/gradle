@@ -64,7 +64,7 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
 
         then:
         succeeds()
-        skipped(":zip") // GRADLE-2827 - current behaviour, not desired
+        executedAndNotSkipped(":zip")
     }
 
     @Unroll
