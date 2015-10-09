@@ -33,12 +33,16 @@ digraph G {
         label = "{JvmBinarySpec|+toolChain : JavaToolChain\l+targetPlatform: JavaPlatform}"
     ]
 
-    JarSpec [
-        label = "{JarSpec|+id :  LibraryBinaryIdentifier\l+jarFile : File \l}"
+    JvmVariantSpec [
+        label = "{JvmVariantSpec\l(renamed from JarBinarySpec)|+toolChain : JavaToolChain\l+targetPlatform: JavaPlatform\l+id:  LibraryBinaryIdentifier\l}"
     ]
 
-    CustomJarBinarySpec [
-        label = "{CustomJarBinarySpec|+customVariantDimension :  VariantDimensionType\l}"
+    JarSpec [
+        label = "{JarSpec|+jarFile : File \l}"
+    ]
+
+    CustomVariantSpec [
+        label = "{CustomVariantSpec|+customVariantDimension :  VariantDimensionType\l}"
     ]
 
     JvmLibrarySpec [
@@ -56,8 +60,9 @@ digraph G {
     BinarySpec -> BuildableModelElement
     JvmClassesSpec -> BuildableModelElement
     JvmBinarySpec -> BinarySpec
+    JvmVariantSpec -> JvmBinarySpec
     JarSpec -> BuildableModelElement
-    CustomJarBinarySpec -> JvmBinarySpec
+    CustomVariantSpec -> JvmVariantSpec
 
     edge [
         arrowhead = "none"
@@ -69,16 +74,27 @@ digraph G {
 
     BinarySpec -> LanguageSourceSet
     JarSpec -> JvmClassesSpec
+    JvmClassesSpec -> LanguageSourceSet
 
     edge [
         arrowhead = "none"
 
-        headlabel = "2"
-        label = "api / impl"
+        headlabel = ""
+        label = "api"
         taillabel = ""
     ]
 
-    JvmBinarySpec -> JarSpec
+    JvmVariantSpec -> JarSpec
+
+    edge [
+        arrowhead = "none"
+
+        headlabel = ""
+        label = "impl"
+        taillabel = ""
+    ]
+
+    JvmVariantSpec -> JarSpec
 
     edge [
         arrowhead = "open"
@@ -88,5 +104,5 @@ digraph G {
     ]
 
     JvmLibrarySpec -> JvmBinarySpec
-    CustomLibrarySpec -> CustomJarBinarySpec
+    CustomLibrarySpec -> CustomVariantSpec
 }
