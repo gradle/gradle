@@ -178,10 +178,16 @@ Should consider `java.*` as allowed packages.
 - Public constants have the same value in stubs and implementation.
 - Throws an error if a public member references a class which is not part of the public API
 
+### Out of scope
+
+This doesn't have to use the `PublicAPISpec` or whatever it is called, if it is not available when work
+on this story is started: a list of packages is enough.
+
 ## Story: Consuming Java source is not recompiled when API of library has not changed
 
 AKA API classes can reference implementation classes of the same library.
 
+- Replace the public API jar generator input from a list of packages to the public API specification class
 - Generate stub classes in the API jar using the public API jar generator.
 - Generate stub API jar for all libraries, regardless of whether the library declares its API or not (a library always has an API).
 - Generation task should be incremental.
