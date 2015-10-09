@@ -41,7 +41,7 @@ import static org.gradle.util.WrapUtil.toMap
 import static org.gradle.util.WrapUtil.toSet
 
 public class DefaultTaskArtifactStateRepositoryTest extends Specification {
-    
+
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final project = TestUtil.createRootProject()
@@ -133,7 +133,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
     def artifactsAreNotUpToDateWhenAnyOutputFileHasChangedHash() {
         given:
         execute(task)
-        
+
         when:
         outputFile.write("new content")
 
@@ -144,7 +144,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
     def artifactsAreNotUpToDateWhenAnyFileInOutputDirHasChangedHash() {
         given:
         execute(task)
-        
+
         when:
         outputDirFile.write("new content")
 
@@ -276,7 +276,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         inputDirFile.mkdir()
 
         then:
-        inputsOutOfDate(task).withRemovedFile(inputDirFile)
+        inputsOutOfDate(task).withModifiedFile(inputDirFile)
     }
 
     def artifactsAreNotUpToDateWhenAnyInputPropertyValueChanged() {
@@ -329,14 +329,14 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         TaskInternal task1 = builder.withOutputFiles(outputDir).createsFiles(outputDirFile).task()
         TaskInternal task2 = builder.withPath("other").withOutputFiles(outputDir).createsFiles(outputDirFile2).task()
-        
+
         when:
         TaskArtifactState state = repository.getStateFor(task1)
         state.afterTask()
-        
+
         then:
         !state.upToDate
-        
+
         when:
         outputDir.deleteDir()
 
@@ -346,11 +346,11 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         then:
         !state.isUpToDate([])
-        
+
         when:
         task2.execute()
         state.afterTask()
-        
+
         then:
         // Task should be out-of-date
         outOfDate task1
@@ -390,7 +390,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
     def hasEmptyTaskHistoryWhenTaskHasNeverBeenExecuted() {
         when:
         TaskArtifactState state = repository.getStateFor(task)
-        
+
         then:
         state.getExecutionHistory().getOutputFiles().getFiles().isEmpty()
     }
@@ -401,7 +401,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         when:
         TaskArtifactState state = repository.getStateFor(task)
-        
+
         then:
         state.getExecutionHistory().getOutputFiles().getFiles() == [outputFile, outputDirFile, outputDirFile2] as Set
     }

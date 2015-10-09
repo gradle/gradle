@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
@@ -24,7 +25,7 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 
-public class CachingFileSnapshotter implements FileSnapshotter {
+public class CachingFileSnapshotter implements FileSnapshotter, FileTreeElementSnapshotter {
     private final PersistentIndexedCache<String, FileInfo> cache;
     private final Hasher hasher;
     private final FileInfoSerializer serializer = new FileInfoSerializer();
@@ -35,11 +36,20 @@ public class CachingFileSnapshotter implements FileSnapshotter {
     }
 
     public FileInfo snapshot(File file) {
+        return snapshot(new FileAccessor(file));
+    }
+
+    public FileInfo snapshot(FileTreeElement file) {
+        return snapshot(new FileTreeElementAccessor(file));
+    }
+
+    private FileInfo snapshot(FileWithMetadata fileWithMetadata) {
+        File file = fileWithMetadata.getFile();
         String absolutePath = file.getAbsolutePath();
         FileInfo info = cache.get(absolutePath);
 
-        long length = file.length();
-        long timestamp = file.lastModified();
+        long length = fileWithMetadata.getSize();
+        long timestamp = fileWithMetadata.getLastModified();
         if (info != null && length == info.length && timestamp == info.timestamp) {
             return info;
         }
@@ -48,6 +58,60 @@ public class CachingFileSnapshotter implements FileSnapshotter {
         info = new FileInfo(hash, length, timestamp);
         cache.put(absolutePath, info);
         return info;
+    }
+
+    private interface FileWithMetadata {
+        File getFile();
+
+        long getSize();
+
+        long getLastModified();
+    }
+
+    private static class FileTreeElementAccessor implements FileWithMetadata {
+        private final FileTreeElement fileTreeElement;
+
+        private FileTreeElementAccessor(FileTreeElement fileTreeElement) {
+            this.fileTreeElement = fileTreeElement;
+        }
+
+        @Override
+        public File getFile() {
+            return fileTreeElement.getFile();
+        }
+
+        @Override
+        public long getSize() {
+            return fileTreeElement.getSize();
+        }
+
+        @Override
+        public long getLastModified() {
+            return fileTreeElement.getLastModified();
+        }
+    }
+
+    private static class FileAccessor implements FileWithMetadata {
+        private final File file;
+
+        private FileAccessor(File file) {
+            this.file = file;
+        }
+
+        @Override
+        public File getFile() {
+            return file;
+        }
+
+        @Override
+        public long getSize() {
+            return file.length();
+        }
+
+        @Override
+        public long getLastModified() {
+            return file.lastModified();
+        }
     }
 
     public static class FileInfo implements FileSnapshot {
