@@ -48,6 +48,26 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         testResult.testClass("LibraryTest").assertTestPassed("testSomeLibraryMethod")
     }
 
+    def "creates sample source using spock instead of junit"() {
+        when:
+        succeeds('init', '--type', 'java-library', '--with', 'spock')
+
+        then:
+        file(SAMPLE_LIBRARY_CLASS).exists()
+        file("src/test/groovy/LibraryTest.groovy").exists()
+        buildFile.exists()
+        settingsFile.exists()
+        wrapper.generated()
+
+        when:
+        succeeds("build")
+
+        then:
+        TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
+        testResult.assertTestClassesExecuted("LibraryTest")
+        testResult.testClass("LibraryTest").assertTestPassed("someLibraryMethod returns true")
+    }
+
     def "setupProjectLayout is skipped when java sources detected"() {
         setup:
         file("src/main/java/org/acme/SampleMain.java") << """
