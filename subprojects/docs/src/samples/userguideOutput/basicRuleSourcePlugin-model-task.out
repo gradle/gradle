@@ -8,7 +8,7 @@ Root project
       | Type:   	Person
       | Creator: 	PersonRules#person
       | Rules:
-         ⤷ model.person
+         ⤷ model.person @ build.gradle line 57, column 3
          ⤷ PersonRules#setFirstName
     + age
           | Type:   	int

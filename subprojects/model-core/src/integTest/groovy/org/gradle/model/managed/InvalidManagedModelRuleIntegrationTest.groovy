@@ -115,11 +115,13 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
             apply type: RulePlugin
 
+            class OperatingSystemImpl implements OperatingSystem {
+                String name
+            }
+
             model {
                 platform {
-                    operatingSystem = new OperatingSystem() {
-                        String name
-                    }
+                    operatingSystem = new OperatingSystemImpl()
                 }
             }
         '''
