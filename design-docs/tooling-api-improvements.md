@@ -1,5 +1,7 @@
 This specification defines a number of improvements to the tooling API.
 
+Stories relating specifically to usability from the IDE should go in the `ide-integration.md` spec.
+
 # Use cases
 
 ## Tooling can be developed for Gradle plugins

@@ -3,7 +3,7 @@ This spec defines a number of features to improve the developer IDE experience w
 that directly affect the IDE user experience. This includes the tooling API and tooling models, the Gradle daemon, and the Gradle IDE plugins
 (i.e. the plugins that run inside Gradle to provide the IDE models).
 
-This spec does not cover more general features such as improving dependency resolution or configuration performance.
+Tooling API stories that are not related directly to the IDE experience should go in the `tooling-api-improvements.md` spec. 
 
 # Implementation plan
 
