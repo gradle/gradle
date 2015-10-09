@@ -67,8 +67,8 @@ def tasksForProjects(buildType, List<String> projects) {
                 if (!task.contains(':')) {
                     tasks << "$p:${task}"
                 } else {
-                    def targetProject = task.split(':')[0]
-                    if (projects.contains(targetProject)) {
+                    // Add the task if the project is in this bucket
+                    if (task.startsWith("${p}:") || ":${task}".startsWith("${p}:")) {
                         tasks << task
                     }
                 }
