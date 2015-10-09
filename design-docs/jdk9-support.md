@@ -157,23 +157,34 @@ for building both the API and the implementation jars of a variant.
 - Consuming source is recompiled when API class is changed.
 - Consuming source is not recompiled when implementation class changes in an incompatible way.
 
+## Story: Allow generation of public API jars
+
+Given a set of source classes and a list of packages, generate a jar that only contains the public members
+of the source classes that belong to those packages.
+A stub class contains only the public members of the source class required at compile time.
+Method bodies should throw an `UnsupportedOperationException`.
+Should consider `java.*` as allowed packages.
+
+### Test cases
+
+- Jar contains:
+    - public or protected elements
+    - public super types
+- Jar should not contain:
+    - debug attributes
+    - source location annotations
+    - package private classes
+- Trying to use the API jar at runtime throws `UnsupportedOperationException`
+- Public constants have the same value in stubs and implementation.
+- Throws an error if a public member references a class which is not part of the public API
+
 ## Story: Consuming Java source is not recompiled when API of library has not changed
 
 AKA API classes can reference implementation classes of the same library.
 
-- Generate stub classes in the API jar.
-- A stub class contains only the public members of the source class required at compile time:
-    - Only public or protected elements
-    - Only public super types
-    - Method bodies should throw an `UnsupportedOperationException`
-    - No debug attributes
-    - No source annotations
+- Generate stub classes in the API jar using the public API jar generator.
 - Generate stub API jar for all libraries, regardless of whether the library declares its API or not (a library always has an API).
 - Generation task should be incremental.
-
-TBD - split up stub generation into several stories?
-TBD - fail or warn when API class references implementation class in some way that cannot be stubbed,
-eg extends implementation class or throws checked implementation exception or referenced from public method signature?
 
 ### Test cases
 
@@ -183,8 +194,6 @@ eg extends implementation class or throws checked implementation exception or re
 - Consuming source is not recompiled when package private class is added to API.
 - Consuming source is not recompiled when comment is changed in API source file.
 - Consuming source is recompiled when signature of public API method is changed.
-- Trying to use the API jar at runtime throws `UnsupportedOperationException`
-- Public constants have the same value in stubs and implementation.
 
 ## Story: Java library API references the APIs of other libraries
 
