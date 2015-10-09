@@ -107,53 +107,6 @@ Daemon management, such as `gradle --stop` and the daemon expiration algorithm s
 
 Should be done in a backwards compatible way.
 
-## Feature: Expose the compile details of a build script
-
-This feature exposes some information about how a build script will be compiled. This information can be used by an
-IDE to provide some basic content assistance for a build script.
-
-## Story: Expose the Groovy version used for a build script
-
-Add a `groovyVersion` property to `GradleScript` to expose the Groovy version that is used.
-
-### Test coverage
-
-## Story: Expose the default imports used for a build script
-
-Add a `defaultImports` property to `GradleScript` to expose the default imports applied to the script.
-
-### Test coverage
-
-## Story: Expose the classpath used for a build script
-
-1. Introduce a new hierarchy to represent a classpath element. Retrofit the IDEA and Eclipse models to use this.
-    - Should expose a set of files, a set of source archives and a set of API docs.
-2. Add `compileClasspath` property to `GradleScript` to expose the build script classpath.
-3. Script classpath includes the Gradle API and core plugins
-    - Should include the source and Javadoc
-4. Script classpath includes the libraries declared in the `buildscript { }` block.
-5. Script classpath includes the plugins declared in the `plugins { }` block.
-6. Script classpath includes the libraries inherited from parent project.
-
-### Test coverage
-
-- Add a new `ToolingApiSpecification` integration test class that covers:
-    - Gradle API is included in the classpath.
-    - buildSrc output is included in the classpath, if present.
-    - Classpath declared in script is included in the classpath.
-    - Classpath declared in script of ancestor project is included in the classpath.
-    - Source and Javadoc artifacts for the above are included in the classpath.
-- Verify that a decent error message is received when using a Gradle version that does not expose the build script classpath.
-
-### Open issues
-
-- Need to flesh out the classpath types.
-- Will need to use Eclipse and IDEA specific classpath models
-
-## Story: Tooling API client requests build script details for a given file
-
-Add a way to take a file path and request a `BuildScript` model for it.
-
 # Feature: Fetching models
 
 ## Story: Tooling API client builds a complex tooling model in a single batch operation (DONE)
@@ -275,22 +228,6 @@ This story adds support for conditionally requesting a model, if it is available
 ## Story: Tooling API client changes implementation of a build action
 
 Fix the `ClassLoader` caching in the tooling API so that it can deal with changing implementations.
-
-## Story: Tooling API client launches a build using task selectors from different projects (DONE)
-
-TBD
-
-### Test cases
-
-- Can execute task selectors from multiple projects, for all target Gradle versions
-- Can execute overlapping task selectors.
-
-### Test cases
-
-- A project defines a public and private task.
-    - The `BuildInvocations` model for the project includes task instances with the correct visibility.
-    - The `BuildInvocations` model for the project includes task selectors with the correct visibility.
-    - The `BuildInvocations` model for the parent project includes task selectors with the correct visibility.
 
 ## Story: Allow options to be specified for tasks
 

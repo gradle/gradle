@@ -182,15 +182,52 @@ Once the new DSL is stabilised we will deprecate and remove the `scopes` map.
 - Change the existing IDE plugin int tests to verify the warning is produced in each of the above cases.
 - Add test coverage for the tooling API to cover the above cases.
 
-## Feature - Expose build script compilation details
+## Feature: Expose the compile details of a build script
 
-See [tooling-api-improvements.md](tooling-api-improvements.md#story-expose-the-compile-details-of-a-build-script):
+This feature exposes some information about how a build script will be compiled. This information can be used by an
+IDE to provide some basic content assistance for a build script.
 
-Expose some details to allow some basic content assistance for build scripts:
+## Story: Expose the Groovy version used for a build script
 
-- Expose the classpath each build script.
-- Expose the default imports for each build script.
-- Expose the Groovy version for each build script.
+Add a `groovyVersion` property to `GradleScript` to expose the Groovy version that is used.
+
+### Test coverage
+
+## Story: Expose the default imports used for a build script
+
+Add a `defaultImports` property to `GradleScript` to expose the default imports applied to the script.
+
+### Test coverage
+
+## Story: Expose the classpath used for a build script
+
+1. Introduce a new hierarchy to represent a classpath element. Retrofit the IDEA and Eclipse models to use this.
+    - Should expose a set of files, a set of source archives and a set of API docs.
+2. Add `compileClasspath` property to `GradleScript` to expose the build script classpath.
+3. Script classpath includes the Gradle API and core plugins
+    - Should include the source and Javadoc
+4. Script classpath includes the libraries declared in the `buildscript { }` block.
+5. Script classpath includes the plugins declared in the `plugins { }` block.
+6. Script classpath includes the libraries inherited from parent project.
+
+### Test coverage
+
+- Add a new `ToolingApiSpecification` integration test class that covers:
+    - Gradle API is included in the classpath.
+    - buildSrc output is included in the classpath, if present.
+    - Classpath declared in script is included in the classpath.
+    - Classpath declared in script of ancestor project is included in the classpath.
+    - Source and Javadoc artifacts for the above are included in the classpath.
+- Verify that a decent error message is received when using a Gradle version that does not expose the build script classpath.
+
+### Open issues
+
+- Need to flesh out the classpath types.
+- Will need to use Eclipse and IDEA specific classpath models
+
+## Story: Tooling API client requests build script details for a given file
+
+Add a way to take a file path and request a `BuildScript` model for it.
 
 ## Feature - Expose project components to the IDE
 

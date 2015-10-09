@@ -193,3 +193,19 @@ Add a `projectDir` property to `GradleProject`
 ### Test coverage
 
 - Verify that a decent error message is received when using a Gradle version that does not expose the project directory
+
+## Story: Tooling API client launches a build using task selectors from different projects (DONE)
+
+TBD
+
+### Test cases
+
+- Can execute task selectors from multiple projects, for all target Gradle versions
+- Can execute overlapping task selectors.
+
+### Test cases
+
+- A project defines a public and private task.
+    - The `BuildInvocations` model for the project includes task instances with the correct visibility.
+    - The `BuildInvocations` model for the project includes task selectors with the correct visibility.
+    - The `BuildInvocations` model for the parent project includes task selectors with the correct visibility.
