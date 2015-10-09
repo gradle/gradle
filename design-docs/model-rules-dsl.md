@@ -6,34 +6,31 @@
 - Update user guide to mention syntax.
 - Update release notes to mention potential breaking change.
 
-## Story: DSL rule references input using simplified syntax
+## Story: DSL rule references input using path expression syntax
 
 - Replace `$('path')` with `$.path`
 
-## Story: Top level DSL rule references input using idiomatic syntax
+## Story: DSL rule references input relative to subject 
 
-- Add an alternative to `$('path')` that is closer to idiomatic Groovy
-- Resolve an expression `a` to model element with path `a` when subject does not have property `a`.
-- Resolve a property expression `a.b.c` to model element with path `a.b.c` when subject does not have property `a`.
-- Resolve a method expression `a.b.c()` to method call `c()` on model element with path `a.b` when subject does not have property `a`.
-- TBD - resolve paths relative to subject, or root?
-- TBD - need to make this work in nested closures, configure rules and task actions in particular. 
-- TBD - More efficient detection of subject/script property reference, perhaps using node schema
+- Allow a closure parameter to be declared, this lvar can be used to reference inputs
 - Improve error message when extracted input cannot be bound
 - Update user guide and samples to use this syntax
 - Update release notes to mention potential breaking change.
 
 For example:
 
-    model {
-        components {
+    model { m ->
+        components { c ->
             mylib(JavaLibrarySpec) {
-                targetPlatform platforms.java6
+                targetPlatform m.platforms.java6
+            }
+            test {
+                targetPlatform c.test.targetPlatform
             }
         }
-        tasks {
+        tasks { t ->
             thing(MyTask) {
-                dependsOn tasks.otherTask // resolve path relative to subject
+                dependsOn t.otherTask // resolve path relative to subject
             }
             components.withType(JavaLibrarySpec).each { lib ->
                 ... define a task using properties of `lib` ...
@@ -43,12 +40,11 @@ For example:
 
 ### Test cases
 
-- When a property cannot be resolved correct class is referenced in `MissingPropertyException`.
 - Can configure a component using a sibling component as input.
 
 ## Story: DSL rule configures element of ModelMap 
 
-- Enable idiomatic syntax
+- Allow input references using subject parameter
 - Named, all, with type, before, after, etc
 
 
@@ -62,7 +58,7 @@ For example:
     
 ## Story: DSL rule configures child of a structure
  
-- Enable idiomatic syntax
+- Allow input references using subject parameter
 
 
     model {
@@ -80,7 +76,7 @@ For example:
 
 ## Story: DSL rule configures task action 
 
-- Enable idiomatic syntax
+- Allow input references using subject parameter
 
 
     model {
@@ -136,15 +132,13 @@ For example:
 
 - Add DSL to attach rules to children of current subject
     - For example, a nested closure
-    - Enable idiomatic input references
     - TBD - Implicitly use subject as input to nested rule, or require an explicit reference?
-- Support idiomatic input references in nested closures
 - Improve creation DSL to allow parameterized types
 - Improve creation DSL to allow type to be left out when it can be inferred or there is a reasonable default
 - Improve creation DSL to allow name to be left out when there is a reasonable default
 - Improve configuration DSL to allow subject's view type to be declared
 - Improve DSL to allow rule input's view type to be declared
-- Conveniences to target subject is child with name, subject is children with type, subject is children that meet some criteria etc
+- Conveniences to target cases where subject is child with name, subject is children with type, subject is children that meet some criteria etc
 - Type coercion
 - Conveniences where subject is collection
 - Property references instead of nesting for simple configuration
