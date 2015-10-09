@@ -123,10 +123,11 @@ class Jdk7DirectoryWalkerTest extends Specification {
     private boolean checkFileVisitDetailsEqual(List<FileVisitDetails> visitedWithDefaultWalker, List<FileVisitDetails> visitedWithJdk7Walker) {
         visitedWithDefaultWalker.every { FileVisitDetails details ->
             def detailsFromJdk7Walker = visitedWithJdk7Walker.find { it.file.absolutePath == details.file.absolutePath }
+
             detailsFromJdk7Walker != null &&
                 details.lastModified == detailsFromJdk7Walker.lastModified &&
                 details.directory == detailsFromJdk7Walker.directory &&
-                details.size == detailsFromJdk7Walker.size
+                (details.directory || details.size == detailsFromJdk7Walker.size)
         }
     }
 
