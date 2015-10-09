@@ -41,4 +41,9 @@ public abstract class AbstractFileResource implements ReadableResource {
     public String getBaseName() {
         return file.getName();
     }
+
+    public File getFile() {
+        return file;
+    }
+
 }

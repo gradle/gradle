@@ -76,4 +76,9 @@ public class GzipArchiver implements CompressedReadableResource {
     public String getBaseName() {
         return resource.getBaseName();
     }
+
+    @Override
+    public ReadableResource getCompressedResource() {
+        return resource;
+    }
 }

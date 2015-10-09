@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.archive.compression;
+package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.resources.ReadableResource;
+import java.io.File;
 
-public interface CompressedReadableResource extends ReadableResource {
-    ReadableResource getCompressedResource();
+public interface FileTreeWithSourceFile {
+    public File getSourceFile();
 }

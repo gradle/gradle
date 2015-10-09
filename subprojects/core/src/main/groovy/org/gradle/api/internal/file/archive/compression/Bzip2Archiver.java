@@ -81,4 +81,9 @@ public class Bzip2Archiver implements CompressedReadableResource {
     public String getBaseName() {
         return resource.getBaseName();
     }
+
+    @Override
+    public ReadableResource getCompressedResource() {
+        return resource;
+    }
 }

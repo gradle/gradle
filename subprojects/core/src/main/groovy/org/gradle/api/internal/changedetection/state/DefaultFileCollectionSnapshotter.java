@@ -19,7 +19,9 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.CachingFileVisitDetails;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.*;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.NoOpChangeListener;
@@ -46,18 +48,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     public FileCollectionSnapshot snapshot(final FileCollection input) {
-        final List<FileVisitDetails> allFileVisitDetails = new LinkedList<FileVisitDetails>();
-        input.getAsFileTree().visit(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                allFileVisitDetails.add(dirDetails);
-            }
-
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                allFileVisitDetails.add(fileDetails);
-            }
-        });
+        final List<FileVisitDetails> allFileVisitDetails = visitFiles(input);
 
         if (allFileVisitDetails.isEmpty()) {
             return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap());
@@ -83,6 +74,51 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         return new FileCollectionSnapshotImpl(snapshots);
     }
 
+    private List<FileVisitDetails> visitFiles(FileCollection input) {
+        final List<FileVisitDetails> allFileVisitDetails = new LinkedList<FileVisitDetails>();
+
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
+        context.add(input);
+        List<FileTreeInternal> fileTrees = context.resolveAsFileTrees();
+
+        for (FileTreeInternal fileTree : fileTrees) {
+            Set<File> fileTreeSourceFiles = unwrapFileTreeSourceFilesIfAvailable(fileTree);
+            if (fileTreeSourceFiles != null) {
+                for (File fileTreeSourceFile : fileTreeSourceFiles) {
+                    allFileVisitDetails.add(new CachingFileVisitDetails(fileTreeSourceFile));
+                }
+            } else {
+                fileTree.visit(new FileVisitor() {
+                    @Override
+                    public void visitDir(FileVisitDetails dirDetails) {
+                        allFileVisitDetails.add(dirDetails);
+                    }
+
+                    @Override
+                    public void visitFile(FileVisitDetails fileDetails) {
+                        allFileVisitDetails.add(fileDetails);
+                    }
+                });
+            }
+        }
+        return allFileVisitDetails;
+    }
+
+    private Set<File> unwrapFileTreeSourceFilesIfAvailable(Object fileTree) {
+        if (fileTree instanceof FileTreeWithSourceFile) {
+            File sourceFile = ((FileTreeWithSourceFile) fileTree).getSourceFile();
+            if (sourceFile == null && fileTree instanceof FileSystemMirroringFileTree) {
+                // custom resource as source for TarFileTree, fallback to snapshotting files in archive
+                return new FileTreeAdapter((FileSystemMirroringFileTree) fileTree).getFiles();
+            }
+            return Collections.singleton(sourceFile);
+        } else if (fileTree instanceof FileTreeAdapter) {
+            return unwrapFileTreeSourceFilesIfAvailable(((FileTreeAdapter) fileTree).getTree());
+        } else if (fileTree instanceof FilteredFileTree) {
+            return unwrapFileTreeSourceFilesIfAvailable(((FilteredFileTree) fileTree).getOriginalFileTree());
+        }
+        return null;
+    }
 
     static interface IncrementalFileSnapshot {
         boolean isUpToDate(IncrementalFileSnapshot snapshot);

@@ -23,10 +23,14 @@ import org.gradle.api.Nullable;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.file.AbstractFileResource;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.file.MaybeCompressedFileResource;
+import org.gradle.api.internal.file.archive.compression.CompressedReadableResource;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.internal.file.collections.FileTreeWithSourceFile;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
@@ -39,7 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree {
+public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree, FileTreeWithSourceFile {
     private final File tarFile;
     private final ReadableResource resource;
     private final Chmod chmod;
@@ -95,6 +99,28 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
                 visitor.visitFile(new DetailsImpl(entry, tar, stopFlag, chmod));
             }
         }
+    }
+
+    @Override
+    public File getSourceFile() {
+        if (tarFile != null) {
+            return tarFile;
+        }
+        if (resource != null) {
+            return unwrapSourceFileFromResource(resource);
+        }
+        return null;
+    }
+
+    private File unwrapSourceFileFromResource(ReadableResource resource) {
+        if (resource instanceof MaybeCompressedFileResource) {
+            return unwrapSourceFileFromResource(((MaybeCompressedFileResource) resource).getResource());
+        } else if (resource instanceof CompressedReadableResource) {
+            return unwrapSourceFileFromResource(((CompressedReadableResource) resource).getCompressedResource());
+        } else if (resource instanceof AbstractFileResource) {
+            return ((AbstractFileResource) resource).getFile();
+        }
+        return null;
     }
 
     private class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {

@@ -18,12 +18,15 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
+import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CachingFileVisitDetails extends DefaultFileVisitDetails {
+    private final static FileSystem DEFAULT_FILESYSTEM = FileSystems.getDefault();
     private final boolean isDirectory;
     private volatile long size = -1;
     private volatile long lastModified = -1;
@@ -31,6 +34,10 @@ public class CachingFileVisitDetails extends DefaultFileVisitDetails {
     public CachingFileVisitDetails(File file, RelativePath relativePath, AtomicBoolean stop, Chmod chmod, Stat stat, boolean isDirectory) {
         super(file, relativePath, stop, chmod, stat);
         this.isDirectory = isDirectory;
+    }
+
+    public CachingFileVisitDetails(File file) {
+        this(file, new RelativePath(true, file.getName()), new AtomicBoolean(), DEFAULT_FILESYSTEM, DEFAULT_FILESYSTEM, false);
     }
 
     @Override
