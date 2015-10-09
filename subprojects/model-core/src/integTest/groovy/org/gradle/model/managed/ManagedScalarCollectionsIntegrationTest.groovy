@@ -17,15 +17,11 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import spock.lang.Unroll
 
 class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
     private final static List<String> MANAGED_SCALAR_COLLECTION_TYPES = ['List', 'Set']
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     @Unroll
     def "rule can mutate a managed type with a #type of scalar read-only property"() {

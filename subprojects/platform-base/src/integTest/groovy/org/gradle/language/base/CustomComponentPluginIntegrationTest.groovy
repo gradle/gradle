@@ -17,12 +17,10 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 
 class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
-        EnableModelDsl.enable(executer)
         buildFile << """
 interface SampleComponent extends ComponentSpec {
     String getVersion()

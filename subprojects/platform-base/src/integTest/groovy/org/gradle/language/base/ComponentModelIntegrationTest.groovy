@@ -17,7 +17,6 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -27,7 +26,6 @@ import static org.gradle.util.Matchers.containsText
 class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTest {
 
     def "setup"() {
-        EnableModelDsl.enable(executer)
         withCustomComponentType()
         buildFile << """
             model {

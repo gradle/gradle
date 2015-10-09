@@ -17,7 +17,6 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 /**
  * Tests the information provided when a model rule fails to bind.
@@ -25,10 +24,6 @@ import org.gradle.integtests.fixtures.EnableModelDsl
  * @see ModelRuleBindingValidationIntegrationTest
  */
 class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "unbound rule by-type subject and inputs are reported"() {
         given:

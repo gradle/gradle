@@ -17,7 +17,6 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpec {
 
@@ -82,7 +81,6 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
 
     def "mutation rules are executed in a fixed and arbitrary order"() {
         when:
-        EnableModelDsl.enable(executer)
         buildFile << '''
             class FirstSource extends RuleSource {
                 @Mutate
@@ -138,7 +136,6 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
 
     def "DSL rules are executed in order declared"() {
         when:
-        EnableModelDsl.enable(executer)
         buildFile << '''
             class FirstSource extends RuleSource {
                 @Model

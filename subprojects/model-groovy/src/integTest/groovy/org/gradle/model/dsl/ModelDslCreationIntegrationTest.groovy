@@ -17,15 +17,10 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 import static org.gradle.util.Matchers.containsText
 
 class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "can create and initialize elements"() {
         when:

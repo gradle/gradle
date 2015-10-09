@@ -17,7 +17,6 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 
 /**
@@ -25,10 +24,6 @@ import org.gradle.util.TextUtil
  * {@link ModelSetIntegrationTest} duplicates this for ModelSet.
  */
 class ManagedSetIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "rule can create a managed collection of interface backed managed model elements"() {
         when:

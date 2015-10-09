@@ -15,15 +15,11 @@
  */
 
 package org.gradle.jvm.plugins
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "does not create library or binaries when not configured"() {
         when:

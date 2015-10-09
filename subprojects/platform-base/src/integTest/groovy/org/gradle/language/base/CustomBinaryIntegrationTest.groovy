@@ -15,13 +15,12 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 
 class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
-        EnableModelDsl.enable(executer)
         buildFile << """
 interface SampleBinary extends BinarySpec {
     String getVersion()

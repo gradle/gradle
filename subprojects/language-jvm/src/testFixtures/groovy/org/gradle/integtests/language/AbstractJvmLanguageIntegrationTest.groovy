@@ -15,9 +15,9 @@
  */
 
 package org.gradle.integtests.language
+
 import com.sun.xml.internal.ws.util.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -27,8 +27,6 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
     abstract TestJvmComponent getApp()
 
     def setup() {
-        EnableModelDsl.enable(executer)
-
         buildFile << """
         plugins {
             id 'jvm-component'

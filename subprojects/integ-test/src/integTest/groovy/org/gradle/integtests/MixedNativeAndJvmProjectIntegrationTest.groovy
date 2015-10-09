@@ -15,17 +15,13 @@
  */
 
 package org.gradle.integtests
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "can combine legacy java and cpp plugins in a single project"() {
         settingsFile << "rootProject.name = 'test'"

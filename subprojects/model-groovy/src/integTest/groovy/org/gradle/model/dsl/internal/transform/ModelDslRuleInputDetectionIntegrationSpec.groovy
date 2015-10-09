@@ -17,17 +17,11 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
 
 class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec {
-
-    def setup() {
-        executer.requireOwnGradleUserHomeDir()
-        EnableModelDsl.enable(executer)
-    }
 
     @Unroll
     def "can reference input - #syntax"() {

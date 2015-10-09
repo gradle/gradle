@@ -17,23 +17,15 @@
 package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
-/**
- * Tests for more detailed output i.e. with the `org.gradle.model.dsl` flag enabled.
- */
 class DetailedModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final HttpServer server = new HttpServer()
-
-    void setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "includes a relative path to the build script"() {
         given:

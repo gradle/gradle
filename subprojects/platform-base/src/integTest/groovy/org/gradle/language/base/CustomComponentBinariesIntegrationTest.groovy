@@ -17,7 +17,6 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.model.ModelMap
 import org.gradle.model.collection.CollectionBuilder
 import spock.lang.Ignore
@@ -28,8 +27,6 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
-        EnableModelDsl.enable(executer)
-
         buildFile << """
 interface SampleBinary extends BinarySpec {}
 interface OtherSampleBinary extends SampleBinary {}

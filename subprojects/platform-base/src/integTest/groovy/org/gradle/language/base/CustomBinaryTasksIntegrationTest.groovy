@@ -17,14 +17,11 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import spock.lang.Unroll
 
 public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
-        EnableModelDsl.enable(executer)
-
         buildFile << """
         interface SampleBinary extends BinarySpec {}
         class DefaultSampleBinary extends BaseBinarySpec implements SampleBinary {}

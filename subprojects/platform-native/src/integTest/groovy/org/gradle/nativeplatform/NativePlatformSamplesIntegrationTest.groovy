@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform
 
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -53,7 +52,6 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         toolChain.initialiseEnvironment()
 
         and:
-        EnableModelDsl.enable(executer)
         sample cppExe
 
         when:
@@ -130,7 +128,6 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
     def variants() {
         given:
-        EnableModelDsl.enable(executer)
         sample variants
 
         when:
@@ -168,7 +165,6 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
     def "tool chains"() {
         given:
-        EnableModelDsl.enable(executer)
         sample toolChains
 
         when:

@@ -17,11 +17,9 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 class ComponentBinariesIntegrationTest extends AbstractComponentModelIntegrationTest {
     def setup() {
-        EnableModelDsl.enable(executer)
         withCustomComponentType()
         withCustomBinaryType()
         withCustomLanguageType()

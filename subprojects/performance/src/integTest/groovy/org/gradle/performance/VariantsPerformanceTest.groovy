@@ -37,22 +37,22 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testId = "$size project using variants $scenario build"
         runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model").invocation {
-                tasksToRun(task).useDaemon().enableTransformedModelDsl()
+                tasksToRun(task).useDaemon()
             }
         }
         runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model (reuse)").invocation {
-                tasksToRun(task).useDaemon().enableTransformedModelDsl().enableModelReuse()
+                tasksToRun(task).useDaemon().enableModelReuse()
             }
         }
         runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model (reuse + tooling api)").invocation {
-                tasksToRun(task).useToolingApi().enableTransformedModelDsl().enableModelReuse()
+                tasksToRun(task).useToolingApi().enableModelReuse()
             }
         }
         runner.buildSpec {
             projectName("${size}VariantsNewModel").displayName("new model (no client logging)").invocation {
-                tasksToRun(task).useDaemon().enableTransformedModelDsl().disableDaemonLogging()
+                tasksToRun(task).useDaemon().disableDaemonLogging()
             }
         }
         runner.baseline {
@@ -93,22 +93,22 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
         runner.testId = "multiproject using variants $scenario build"
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model").invocation {
-                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl()
+                tasksToRun(*tasks).useDaemon()
             }
         }
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model (reuse)").invocation {
-                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl().enableModelReuse()
+                tasksToRun(*tasks).useDaemon().enableModelReuse()
             }
         }
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model (reuse + tooling api)").invocation {
-                tasksToRun(*tasks).useToolingApi().enableTransformedModelDsl().enableModelReuse()
+                tasksToRun(*tasks).useToolingApi().enableModelReuse()
             }
         }
         runner.buildSpec {
             projectName("variantsNewModelMultiproject").displayName("new model (no client logging)").invocation {
-                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl().disableDaemonLogging()
+                tasksToRun(*tasks).useDaemon().disableDaemonLogging()
             }
         }
         runner.baseline {

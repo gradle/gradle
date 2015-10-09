@@ -17,15 +17,9 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
-
     def "can combine legacy java and jvm-component plugins in a single project"() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << '''

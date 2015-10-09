@@ -17,16 +17,11 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
 
 class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     @Unroll
     def "rules are detected when model path is a straight property reference chain - #path"() {

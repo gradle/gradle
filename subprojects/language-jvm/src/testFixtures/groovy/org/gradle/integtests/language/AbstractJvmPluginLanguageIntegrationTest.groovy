@@ -18,7 +18,6 @@ package org.gradle.integtests.language
 
 import com.sun.xml.internal.ws.util.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 
@@ -37,8 +36,6 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
     }
 
     def setup() {
-        EnableModelDsl.enable(executer)
-
         buildFile << """
         plugins {
             id 'jvm-component'
