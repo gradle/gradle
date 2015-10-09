@@ -27,14 +27,15 @@ architecture.
 
 - Add a DSL to declare packages of the API. Proposed DSL:
 
-
-    model {
-        main(JvmLibrarySpec) {
-            api {
-                exports 'com.acme'
-            }
+```
+model {
+    main(JvmLibrarySpec) {
+        api {
+            exports 'com.acme'
         }
     }
+}
+```
 
 - Default to all packages: if no `api` section is found, we assume that all public elements of the library are exported.
 - This story is about implementing the DSL, not use it.
@@ -160,18 +161,22 @@ for building both the API and the implementation jars of a variant.
 ## Story: Allow generation of public API jars
 
 Given a set of source classes and a list of packages, generate a jar that only contains the public members
-of the source classes that belong to those packages.
-A stub class contains only the public members of the source class required at compile time.
-Method bodies should throw an `UnsupportedOperationException`.
-Should consider `java.*`, `javax.*` as allowed packages, considering they will map later to the `java-base` module.
-Conversion of the implementation to an API jar should be done through a task.
+of the source classes that belong to those packages.A stub class contains only the public members of the source class required at compile time.
+
+### Implementation
+
+- Should take `.class` files as input, **not** source files
+- Process classes using the ASM library
+- Method bodies should throw an `UnsupportedOperationException`.
+- Should consider `java.*`, `javax.*` as allowed packages, considering they will map later to the `java-base` module.
+- Conversion of the implementation to an API jar should be done through a task that takes a classes directory as input and will output another class directory.
 
 ### Test cases
 
-- Jar contains:
+- Output contains:
     - public or protected elements, including nested classes
     - annotations (we don't need to deal with source-retention annotations because they are not present in the original binary)
-- Jar should not contain:
+- Output must not contain:
     - debug attributes
     - source location annotations
     - package private classes
@@ -182,20 +187,20 @@ the Java compiler).
 creation of a static initializer that we want to avoid).
 - Java bytecode compatibility level of the classes must be the same as the original class compatibility level
 - Throws an error if a public member references a class which is not part of the public API. For example:
-Given:
-```
-package p1;
-public class A {
-   public B foo()
-}
-```
-and:
-```
-package p2;
-public class B {
-}
-```
-Then if only `p1` is declared as the public API package, `foo` violates the contract and we should throw an error.
+    Given:
+    ```
+    package p1;
+    public class A {
+       public B foo()
+    }
+    ```
+    and:
+    ```
+    package p2;
+    public class B {
+    }
+    ```
+    Then if only `p1` is declared as the public API package, `foo` violates the contract and we should throw an error.
 
 ### Out of scope
 
