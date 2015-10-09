@@ -163,20 +163,39 @@ Given a set of source classes and a list of packages, generate a jar that only c
 of the source classes that belong to those packages.
 A stub class contains only the public members of the source class required at compile time.
 Method bodies should throw an `UnsupportedOperationException`.
-Should consider `java.*` as allowed packages.
+Should consider `java.*`, `javax.*` as allowed packages, considering they will map later to the `java-base` module.
+Conversion of the implementation to an API jar should be done through a task.
 
 ### Test cases
 
 - Jar contains:
-    - public or protected elements
-    - public super types
+    - public or protected elements, including nested classes
+    - annotations (we don't need to deal with source-retention annotations because they are not present in the original binary)
 - Jar should not contain:
     - debug attributes
     - source location annotations
     - package private classes
-- Trying to use the API jar at runtime throws `UnsupportedOperationException`
-- Public constants have the same value in stubs and implementation.
-- Throws an error if a public member references a class which is not part of the public API
+- Trying to call a method of the API jar at runtime throws `UnsupportedOperationException`
+- Public constants of primitive type, `Class` or `String` must have the same value in stubs and implementation (because those are subject to inlining by
+the Java compiler).
+- Other public constant types should be initialized to `null` (do not use `UnsupportedOperationException` here because it would imply the
+creation of a static initializer that we want to avoid).
+- Java bytecode compatibility level of the classes must be the same as the original class compatibility level
+- Throws an error if a public member references a class which is not part of the public API. For example:
+Given:
+```
+package p1;
+public class A {
+   public B foo()
+}
+```
+and:
+```
+package p2;
+public class B {
+}
+```
+Then if only `p1` is declared as the public API package, `foo` violates the contract and we should throw an error.
 
 ### Out of scope
 
