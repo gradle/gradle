@@ -45,6 +45,8 @@ for (int bucket : buckets.keySet().collect{it as int}) {
     }
 }
 
+ext.runtimeProjectPaths = runtimeProjects.collect { it.path }
+
 //Create appropriate build types for each bucket
 buildTypes.toArray().each { buildType ->
     buckets.each { String bucketName, List<String> projects ->
@@ -60,20 +62,29 @@ def tasksForProjects(buildType, List<String> projects) {
     List tasks = []
     projects.each { String p ->
         buildType.tasks.each { String t ->
-            String task = resolveTask(t)
-            if (!task.contains(':')) {
-                tasks << "$p:${task}"
-            } else {
-                tasks << task
+            String task = resolveTask(p, t)
+            if (task) {
+                if (!task.contains(':')) {
+                    tasks << "$p:${task}"
+                } else {
+                    def targetProject = task.split(':')[0]
+                    if (projects.contains(targetProject)) {
+                        tasks << task
+                    }
+                }
             }
         }
     }
     return tasks
 }
 
-def String resolveTask(String task) {
+def String resolveTask(String projectPath, String task) {
     if (testGroupings.containsKey(task)) {
-        return testGroupings[task]
+        if (projectPath in runtimeProjectPaths) {
+            return testGroupings[task]
+        } else {
+            return null
+        }
     } else {
         return task
     }
