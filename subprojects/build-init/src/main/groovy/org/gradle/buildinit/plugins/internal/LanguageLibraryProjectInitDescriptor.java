@@ -40,6 +40,10 @@ public class LanguageLibraryProjectInitDescriptor extends TemplateBasedProjectIn
     }
 
     protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName) {
+        return fromClazzTemplate(clazzTemplate, sourceSetName, this.language);
+    }
+
+    protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName, String language) {
         String targetFileName = clazzTemplate.substring(clazzTemplate.lastIndexOf("/") + 1).replace(".template", "");
         return templateOperationFactory.newTemplateOperation()
                 .withTemplate(clazzTemplate)
