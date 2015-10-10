@@ -4,6 +4,8 @@
 
 - Allow transformed DSL rules to access project and script, for now.
 - Update user guide to mention syntax.
+    - Can use `$('p')` in any expression inside rule closure.
+    - Can use in rule closure parameters.
 - Update release notes to mention potential breaking change.
 
 ## Story: DSL rule references input using path expression syntax
@@ -16,13 +18,14 @@
 - Improve error message when extracted input cannot be bound
 - Update user guide and samples to use this syntax
 - Update release notes to mention potential breaking change.
+- Report actual expression used for input reference in error messages.
 
 For example:
 
     model { m ->
         components { c ->
             mylib(JavaLibrarySpec) {
-                targetPlatform m.platforms.java6
+                targetPlatform m.platforms.java6 // resolve path relative to subject `m`
             }
             test {
                 targetPlatform c.test.targetPlatform
@@ -30,10 +33,7 @@ For example:
         }
         tasks { t ->
             thing(MyTask) {
-                dependsOn t.otherTask // resolve path relative to subject
-            }
-            components.withType(JavaLibrarySpec).each { lib ->
-                ... define a task using properties of `lib` ...
+                dependsOn t.otherTask // resolve path relative to subject `t`
             }
         }
     }
@@ -41,6 +41,17 @@ For example:
 ### Test cases
 
 - Can configure a component using a sibling component as input.
+
+## Story: DSL rule references input relative to another input reference 
+
+    model {
+        thing {
+            def c = $.a.b.c
+            all {
+                value = c.d.e // reference to a.b.c.d.e
+            }
+        }
+    }
 
 ## Story: DSL rule configures element of ModelMap 
 
