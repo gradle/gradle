@@ -8,9 +8,12 @@ These are general speed ups that improve all builds.
 
 ## Story: Speed up File metadata lookup in task input/output snapshotting
 
-File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are hotspots in task input/output snapshotting.
+File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are 
+hotspots in task input/output snapshotting.
 
-The Java nio2 directory walking method java.nio.file.Files.walkFileTree can pass the file metadata used for directory scanning to "visiting" the file tree so that metadata (BasicFileAttributes) doesn't have to be re-read.
+The Java nio2 directory walking method java.nio.file.Files.walkFileTree can pass the file 
+metadata used for directory scanning to "visiting" the file tree so that metadata 
+(BasicFileAttributes) doesn't have to be re-read.
 
 ### Implementation
 
@@ -32,7 +35,9 @@ The Java nio2 directory walking method java.nio.file.Files.walkFileTree can pass
 
 ## Story: Add caching to Specs returned from PatternSet.getAsSpecs()
 
-Evaluating patterns is a hotspot in directory scanning. The default excludes patterns contains 28 entries. Checking all rules for each file sums up in a lot of operations. Adding caching will improve performance of subsequent incremental builds.
+Evaluating patterns is a hotspot in directory scanning. The default excludes patterns 
+contains 28 entries. Checking all rules for each file sums up in a lot of operations. 
+Adding caching will improve performance of subsequent incremental builds.
 
 ### Test coverage
 
@@ -56,7 +61,7 @@ TBD
 - Change in header file does not cause recalculation
 - Test header parsing/extraction
 
-## Story: Reuse dependency information in incremental native build
+## Story: Reuse dependency information in incremental native compiler
 
 - Remove #include parsing from incremental compiler
 - Use dependency information from above
@@ -65,6 +70,7 @@ TBD
 ## Test coverage 
 
 - Existing test coverage should cover most cases
+- Remeasure performance/profiling after this is complete
 
 ## Story: Reuse native source file dependency information within a build
 
