@@ -122,7 +122,31 @@ Spock:
 
 ### Model rules improvements 
 
-TBD: DSL now supports `$('p')` expressions
+TBD: DSL now supports `$.p` expressions in DSL rules:
+
+    model {
+        components {
+            all {
+                targetPlatform = $.platforms.java6
+            }
+        }
+        components {
+            def plat = $.platforms
+            all {
+                targetPlatform = plat.java6
+            }
+        }
+    }
+
+TBD: DSL now supports `$('p')` expressions in DSL rules:
+
+    model {
+        components {
+            all {
+                targetPlatform = $('platforms.java6')
+            }
+        }
+    }
 
 ## Promoted features
 
