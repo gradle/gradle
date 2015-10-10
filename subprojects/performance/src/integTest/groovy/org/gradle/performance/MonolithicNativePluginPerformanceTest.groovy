@@ -17,10 +17,12 @@
 package org.gradle.performance
 import org.gradle.performance.measure.DataAmount
 import org.junit.experimental.categories.Category
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
+@Ignore("Running out of memory")
 @Category(Experiment)
 class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' measuring incremental build speed")
