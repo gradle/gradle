@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.containsString
  */
 class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can reference rule inputs using property reference syntax"() {
+    def "can reference rule inputs using dollar method syntax"() {
         when:
         buildScript '''
             class MyPlugin extends RuleSource {
