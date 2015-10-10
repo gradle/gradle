@@ -43,7 +43,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
 
     private static final String AST_NODE_METADATA_INPUTS_KEY = RuleVisitor.class.getName() + ".inputs";
-    public static final String AST_NODE_METADATA_LOCATION_KEY = RuleVisitor.class.getName() + ".location";
+    private static final String AST_NODE_METADATA_LOCATION_KEY = RuleVisitor.class.getName() + ".location";
 
     private static final String DOLLAR = "$";
     private static final String GET = "get";
@@ -69,7 +69,6 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         if (sourceLocation != null) {
             AnnotationNode metadataAnnotation = new AnnotationNode(RULE_METADATA);
 
-            metadataAnnotation.addMember("scriptSourceDescription", new ConstantExpression(sourceLocation.getScriptSourceDescription()));
             metadataAnnotation.addMember("absoluteScriptSourceLocation", new ConstantExpression(sourceLocation.getUri()));
             metadataAnnotation.addMember("lineNumber", new ConstantExpression(sourceLocation.getLineNumber()));
             metadataAnnotation.addMember("columnNumber", new ConstantExpression(sourceLocation.getColumnNumber()));
@@ -92,38 +91,42 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         return expressions;
     }
 
+    public void visitRuleClosure(ClosureExpression expression, SourceLocation sourceLocation) {
+        if (inputs != null) {
+            throw new IllegalStateException("Already visiting a rule closure");
+        }
+        inputs = new InputReferences();
+        try {
+            inputsVariable = new VariableExpression(ACCESS_HOLDER_FIELD, POTENTIAL_INPUTS);
+            super.visitClosureExpression(expression);
+            BlockStatement code = (BlockStatement) expression.getCode();
+            code.setNodeMetaData(AST_NODE_METADATA_LOCATION_KEY, sourceLocation);
+            code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY, inputs);
+            inputsVariable.setClosureSharedVariable(true);
+            code.getVariableScope().putDeclaredVariable(inputsVariable);
+
+            // <inputs-lvar> = PotentialInputs.get()
+            StaticMethodCallExpression getAccessCall = new StaticMethodCallExpression(POTENTIAL_INPUTS_ACCESS, GET, ArgumentListExpression.EMPTY_ARGUMENTS);
+            DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, new Token(Types.ASSIGN, "=", -1, -1), getAccessCall);
+            code.getStatements().add(0, new ExpressionStatement(variableDeclaration));
+
+            // Move default values into body of closure, so they can use `PotentialInputs`
+            for (Parameter parameter : expression.getParameters()) {
+                if (parameter.hasInitialExpression()) {
+                    code.getStatements().add(1, new ExpressionStatement(new BinaryExpression(new VariableExpression(parameter.getName()), new Token(Types.ASSIGN, "=", -1, -1), parameter.getInitialExpression())));
+                    parameter.setInitialExpression(ConstantExpression.NULL);
+                }
+            }
+        } finally {
+            inputs = null;
+        }
+    }
+
     @Override
     public void visitClosureExpression(ClosureExpression expression) {
-        if (inputs == null) {
-            // A top level closure - collect up the inputs and set up some initial state
-            inputs = new InputReferences();
-            try {
-                inputsVariable = new VariableExpression(ACCESS_HOLDER_FIELD, POTENTIAL_INPUTS);
-                super.visitClosureExpression(expression);
-                BlockStatement code = (BlockStatement) expression.getCode();
-                code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY, inputs);
-                inputsVariable.setClosureSharedVariable(true);
-                code.getVariableScope().putDeclaredVariable(inputsVariable);
-
-                // <inputs-lvar> = PotentialInputs.get()
-                StaticMethodCallExpression getAccessCall = new StaticMethodCallExpression(POTENTIAL_INPUTS_ACCESS, GET, ArgumentListExpression.EMPTY_ARGUMENTS);
-                DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, new Token(Types.ASSIGN, "=", -1, -1), getAccessCall);
-                code.getStatements().add(0, new ExpressionStatement(variableDeclaration));
-
-                // Move default values into body of code
-                for (Parameter parameter : expression.getParameters()) {
-                    if (parameter.hasInitialExpression()) {
-                        code.getStatements().add(1, new ExpressionStatement(new BinaryExpression(new VariableExpression(parameter.getName()), new Token(Types.ASSIGN, "=", -1, -1), parameter.getInitialExpression())));
-                        parameter.setInitialExpression(ConstantExpression.NULL);
-                    }
-                }
-            } finally {
-                inputs = null;
-            }
-        } else {
-            expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
-            super.visitClosureExpression(expression);
-        }
+        // Nested closure
+        expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
+        super.visitClosureExpression(expression);
     }
 
     @Override

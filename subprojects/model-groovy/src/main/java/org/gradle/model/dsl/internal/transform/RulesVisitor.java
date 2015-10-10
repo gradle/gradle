@@ -119,9 +119,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         call.setObjectExpression(new MethodCallExpression(VariableExpression.THIS_EXPRESSION, "getDelegate", ArgumentListExpression.EMPTY_ARGUMENTS));
 
         SourceLocation sourceLocation = new SourceLocation(getScriptSourceLocation(), getScriptSourceDescription(), call.getLineNumber(), call.getColumnNumber());
-        closureExpression.getCode().setNodeMetaData(RuleVisitor.AST_NODE_METADATA_LOCATION_KEY, sourceLocation);
-
-        closureExpression.visit(ruleVisitor);
+        ruleVisitor.visitRuleClosure(closureExpression, sourceLocation);
     }
 
     public void rewriteAction(MethodCallExpression call, String modelPath, ClosureExpression closureExpression) {
@@ -136,9 +134,7 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
         call.setObjectExpression(new MethodCallExpression(VariableExpression.THIS_EXPRESSION, "getDelegate", ArgumentListExpression.EMPTY_ARGUMENTS));
 
         SourceLocation sourceLocation = new SourceLocation(getScriptSourceLocation(), getScriptSourceDescription(), call.getLineNumber(), call.getColumnNumber());
-        closureExpression.getCode().setNodeMetaData(RuleVisitor.AST_NODE_METADATA_LOCATION_KEY, sourceLocation);
-
-        closureExpression.visit(ruleVisitor);
+        ruleVisitor.visitRuleClosure(closureExpression, sourceLocation);
     }
 
     private String getScriptSourceDescription() {
