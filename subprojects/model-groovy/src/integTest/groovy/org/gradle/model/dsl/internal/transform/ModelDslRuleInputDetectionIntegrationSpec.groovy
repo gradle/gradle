@@ -17,6 +17,7 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
@@ -165,9 +166,9 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
 
         then:
         succeeds "tasks"
-        result.output.contains('''thing configured
+        result.output.contains(TextUtil.toPlatformLineSeparators('''thing configured
 tasks configured
-''')
+'''))
 
         where:
         syntax << [
