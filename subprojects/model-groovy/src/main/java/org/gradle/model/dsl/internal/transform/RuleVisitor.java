@@ -93,13 +93,6 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     }
 
     @Override
-    public void visitExpressionStatement(ExpressionStatement stat) {
-        if (!(stat.getExpression() instanceof VariableExpression)) {
-            super.visitExpressionStatement(stat);
-        }
-    }
-
-    @Override
     public void visitClosureExpression(ClosureExpression expression) {
         if (inputs == null) {
             // A top level closure - collect up the inputs and set up some initial state
@@ -131,6 +124,38 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             expression.getVariableScope().putReferencedLocalVariable(inputsVariable);
             super.visitClosureExpression(expression);
         }
+    }
+
+    @Override
+    public void visitPropertyExpression(PropertyExpression expr) {
+        String modelPath = isDollarPathExpression(expr);
+        if (modelPath != null) {
+            inputs.absolutePath(modelPath, expr.getLineNumber());
+            replaceVisitedExpressionWith(new MethodCallExpression(new VariableExpression(inputsVariable), new ConstantExpression(GET), new ArgumentListExpression(new ConstantExpression(modelPath))));
+        } else {
+            super.visitPropertyExpression(expr);
+        }
+    }
+
+    private String isDollarPathExpression(PropertyExpression expr) {
+        if (expr.getObjectExpression() instanceof VariableExpression) {
+            VariableExpression objectExpression = (VariableExpression) expr.getObjectExpression();
+            if (objectExpression.getName().equals(DOLLAR)) {
+                return expr.getPropertyAsString();
+            } else {
+                return null;
+            }
+        }
+        if (expr.getObjectExpression() instanceof PropertyExpression) {
+            PropertyExpression objectExpression = (PropertyExpression) expr.getObjectExpression();
+            String path = isDollarPathExpression(objectExpression);
+            if (path != null) {
+                return path + '.' + expr.getPropertyAsString();
+            } else {
+                return null;
+            }
+        }
+        return null;
     }
 
     @Override
