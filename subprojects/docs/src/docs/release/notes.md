@@ -2,14 +2,6 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
-Add-->
-
-<!--
-### Example new and noteworthy
--->
-
 ### TestKit improvements
 
 This release provide significant improvements to for consumers of the TestKit.
@@ -147,6 +139,12 @@ TBD: DSL now supports `$('p')` expressions in DSL rules:
             }
         }
     }
+
+### Support for external dependencies in the 'jvm-components' plugin
+
+It is now possible to reference external dependencies when building a `JvmLibrary` using the `jvm-component` plugin.
+
+TODO: Expand this and provide a DSL example.
 
 ## Promoted features
 
