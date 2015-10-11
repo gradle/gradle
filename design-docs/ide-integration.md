@@ -23,7 +23,7 @@ Tooling API stories that are not related directly to the IDE experience should g
 
 ### Story - Expose target JDK for Java projects to Eclipse
 
-- For `EclipseProject`, add details of the Target JVM:
+- For `EclipseProject`, add details of the target JVM:
     - JRE name
     - JRE Java version
     - JRE install directory
