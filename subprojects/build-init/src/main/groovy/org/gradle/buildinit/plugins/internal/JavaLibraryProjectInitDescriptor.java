@@ -50,9 +50,9 @@ public class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInit
     }
 
     public ProjectInitDescriptor withModifier(String modifier) {
-        String supportedModifiersStr = Joiner.on(", ").join(supportedModifiers.keySet());
-
         if (supportedModifiers.get(modifier) == null) {
+            String supportedModifiersStr = Joiner.on(", ").join(supportedModifiers.keySet());
+
             throw new GradleException(
                 "The requested init modifier '"+modifier+"' is not supported."
                 + " Supported modifiers for this build setup type are: " + supportedModifiersStr
