@@ -264,38 +264,34 @@ model {
     components {
         main(JvmLibrarySpec) {
             dependencies {
-                external group: 'com.acme', name: 'artifact', version: '1.0'
-                external 'com.acme:artifact:1.0'
+                library group: 'com.acme', name: 'artifact', version: '1.0'
+                library 'com.acme:artifact:1.0'
             }
         }
     }
 }
 ```
 
-- Reuse legacy repositories DSL for this feature, or perhaps bridge into model land.
-- Resolve external libraries from repository and include in compile time dependency graph.
-- Use jar + compile scope dependencies for a Maven module.
+TODO: Need a better DSL.
+
+- Reuse existing repositories DSL, bridging into model space.
+- Main Jar artifact of maven module is included in compile classpath.
+- Main Jar artifact of any compile-scoped dependencies are included transitively in the compile classpath.
 
 ### Test cases
 
-- Can add a dependency onto an artifact found in a Maven repository
-- Can compile a component that uses a class from an external dependency
-- Compile classpath is evaluated lazily, that is to say, resolution only occurs when we try to compile the component
+- For maven module dependencies
+    - Main Jar artifact of module is included in compile classpath.
+    - Main Jar artifact of compile-scoped transitive dependencies are included in the compile classpath.
+    - Artifacts from runtime-scoped (and other scoped) transitive dependencies are _not_ included in the compile classpath.
+- For local component dependencies:
+    - Artifacts from transitive external dependencies that are non part of component API are _not_ included in the compile classpath.
 - Displays a reasonable error message if the external dependency cannot be found in a declared repository
-
-### Implementation
-
-- Should extend the existing `DependencySpecContainer`
-- Dependencies retrieved when calling `DependencySpecContainer#getDependencies` should be immutable
 
 ### Open issues
 
-- Still no notion of _compile_ vs _runtime_, it's all **direct** compile time dependencies
-- If the DSL, at some point, is supposed to model other scopes (configurations, ...), `external` might not be the best choice (unless we use `dependencies(scope)`)
-- Should we allow transitive dependencies? Transitive closure?
-- Should we reuse `ExternalModuleDependency`?
-- Support for custom resolution strategies?
-- Support for dependency substitution?
+- Should we use a single `dependencies` block to define API and compile dependencies, or use 2 separate `dependencies` blocks?
+- Need to provide support for `ResolutionStrategy`: forced versions, dependency substitution, etc
 
 ## Story: Resolve external dependencies from Ivy repositories
 
