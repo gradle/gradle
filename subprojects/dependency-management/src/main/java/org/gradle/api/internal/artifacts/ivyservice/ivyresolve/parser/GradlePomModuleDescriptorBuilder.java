@@ -256,7 +256,7 @@ public class GradlePomModuleDescriptorBuilder {
         // inherited from parent POMs if either of the following is true:
         // the <exclusions> element is missing or the <exclusions> element
         // is present, but empty.
-        List /*<ModuleId>*/ excluded = dep.getExcludedModules();
+        List<ModuleId> excluded = dep.getExcludedModules();
         if (excluded.isEmpty()) {
             excluded = getDependencyMgtExclusions(dep);
         }

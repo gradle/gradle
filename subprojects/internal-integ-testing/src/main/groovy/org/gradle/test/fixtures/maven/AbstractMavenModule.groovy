@@ -90,8 +90,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return dependsOn(module.groupId, module.artifactId, module.version)
     }
 
-    MavenModule dependsOn(String group, String artifactId, String version, String type = null) {
-        this.dependencies << [groupId: group, artifactId: artifactId, version: version, type: type]
+    MavenModule dependsOn(String group, String artifactId, String version, String type = null, String scope = null) {
+        this.dependencies << [groupId: group, artifactId: artifactId, version: version, type: type, scope: scope]
         return this
     }
 
@@ -275,6 +275,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                                 version(dep.version)
                                 if (dep.type) {
                                     type(dep.type)
+                                }
+                                if (dep.scope) {
+                                    scope(dep.scope)
                                 }
                             }
                         }

@@ -70,7 +70,7 @@ public class DependentSourceSetLocalComponentConverter implements LocalComponent
                 String[] components = libraryName.split(":");
                 ModuleVersionSelector requested = new DefaultModuleVersionSelector(components[0], components[1], components[2]);
                 ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
-                metaData.addDependency(createDependencyMetaData(selector, requested, Dependency.DEFAULT_CONFIGURATION));
+                metaData.addDependency(createDependencyMetaData(selector, requested, "compile"));
             } else {
                 if (Strings.isNullOrEmpty(projectPath)) {
                     projectPath = defaultProject;

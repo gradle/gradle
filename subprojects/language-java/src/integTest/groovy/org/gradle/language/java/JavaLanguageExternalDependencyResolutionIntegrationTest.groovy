@@ -17,8 +17,6 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -62,5 +60,113 @@ model {
         then:
         file('libs').assertHasDescendants('test-1.0.jar')
         file('libs/test-1.0.jar').assertIsCopyOf(module.artifactFile)
+    }
+
+    def "resolved classpath includes compile-scoped but not runtime-scoped transitive dependencies for library in maven repository"() {
+        given:
+        def compileDep = mavenRepo.module("org.gradle", "compileDep").publish()
+        mavenRepo.module("org.gradle", "runtimeDep").publish()
+        def module = mavenRepo.module("org.gradle", "test")
+                .dependsOn("org.gradle", "compileDep", "1.0")
+                .dependsOn("org.gradle", "runtimeDep", "1.0", null, "runtime")
+                .publish()
+
+        buildFile << """
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'org.gradle:test:1.0'
+                    }
+                }
+            }
+        }
+    }
+    tasks {
+        create('copyDeps', Copy) {
+            into 'libs'
+            from compileMainJarMainJava.classpath
+        }
+    }
+}
+"""
+        file('src/main/java/TestApp.java') << '''public class TestApp {}'''
+
+        when:
+        succeeds ':copyDeps'
+
+        then:
+        file('libs').assertHasDescendants('test-1.0.jar', 'compileDep-1.0.jar')
+        file('libs/test-1.0.jar').assertIsCopyOf(module.artifactFile)
+        file('libs/compileDep-1.0.jar').assertIsCopyOf(compileDep.artifactFile)
+    }
+
+    def "resolved classpath does not include transitive compile-scoped dependencies of local components"() {
+        given:
+        mavenRepo.module("org.gradle", "compileDep").publish()
+
+        buildFile << """
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'other'
+                    }
+                }
+            }
+        }
+        other(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'org.gradle:compileDep:1.0'
+                    }
+                }
+            }
+        }
+    }
+    tasks {
+        create('copyDeps') {
+            dependsOn 'copyMainDeps'
+            dependsOn 'copyOtherDeps'
+        }
+        create('copyMainDeps', Copy) {
+            into 'mainLibs'
+            from compileMainJarMainJava.classpath
+        }
+        create('copyOtherDeps', Copy) {
+            into 'otherLibs'
+            from compileOtherJarOtherJava.classpath
+        }
+    }
+}
+"""
+        file('src/main/java/TestApp.java') << '''public class TestApp {}'''
+        file('src/other/java/Other.java') << '''public class Other {}'''
+
+        when:
+        succeeds ':copyDeps'
+
+        then:
+        file('mainLibs').assertHasDescendants('other.jar')
+        file('otherLibs').assertHasDescendants('compileDep-1.0.jar')
     }
 }
