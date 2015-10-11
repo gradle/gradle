@@ -215,7 +215,9 @@ public class BuildScopeServicesTest extends Specification {
 
     def providesAnIsolatedAntBuilder() {
         setup:
-        expectParentServiceLocated(ClassLoaderFactory)
+        def factory = expectParentServiceLocated(ClassLoaderFactory)
+        _ * factory.createIsolatedClassLoader(_) >> getClass().getClassLoader()
+
         expect:
 
         assertThat(registry.get(IsolatedAntBuilder), instanceOf(DefaultIsolatedAntBuilder))
