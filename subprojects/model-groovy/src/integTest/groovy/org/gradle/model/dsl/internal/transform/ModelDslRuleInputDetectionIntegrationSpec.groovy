@@ -360,7 +360,8 @@ tasks configured
 def cl = { foo = $("foo") -> add(foo) }
 cl.call()
 ''',
-            '{ foo = true ? $("foo") : "bar" -> add(foo) }.call()'
+            '{ foo = true ? $("foo") : "bar" -> add(foo) }.call()',
+            '{ foo = true ? $.foo : "bar" -> add(foo) }.call()'
         ]
     }
 

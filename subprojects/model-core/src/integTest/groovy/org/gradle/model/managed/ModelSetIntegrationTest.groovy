@@ -318,14 +318,14 @@ finalize
         and:
         output.contains TextUtil.toPlatformLineSeparators('''
 p1 defined
-p3 defined
 p2 defined
+p3 defined
 construct Person
 configure p1
 construct Person
-configure p3
-construct Person
 configure p2
+construct Person
+configure p3
 ''')
 
         output.contains "people: p1, p2, p3"

@@ -101,7 +101,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
                 @Mutate
                 void setOsName(@Path("platform.operatingSystem") OperatingSystem os) {
                     println "plugin subject: $os"
-                    os.name = "$os.name os"
+                    os.name = "foo"
                 }
 
                 @Mutate
@@ -119,7 +119,7 @@ class ManagedModelPropertyTargetingRuleIntegrationTest extends AbstractIntegrati
             model {
                 platform.operatingSystem {
                     println "script subject: $it"
-                    name = "foo"
+                    name = "$name os"
                 }
                 tasks {
                     fromScript(Task) {

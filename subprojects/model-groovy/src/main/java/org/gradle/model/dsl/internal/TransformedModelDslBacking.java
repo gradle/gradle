@@ -18,8 +18,8 @@ package org.gradle.model.dsl.internal;
 
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.BiAction;
@@ -27,11 +27,7 @@ import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.dsl.internal.inputs.PotentialInput;
 import org.gradle.model.dsl.internal.inputs.PotentialInputs;
-import org.gradle.model.dsl.internal.inputs.PotentialInputsAccess;
-import org.gradle.model.dsl.internal.transform.InputReferences;
-import org.gradle.model.dsl.internal.transform.RuleMetadata;
-import org.gradle.model.dsl.internal.transform.RulesBlock;
-import org.gradle.model.dsl.internal.transform.SourceLocation;
+import org.gradle.model.dsl.internal.transform.*;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -79,7 +75,7 @@ public class TransformedModelDslBacking {
     /**
      * Invoked by transformed DSL creation rules
      */
-    public <T> void create(String modelPathString, @DelegatesTo.Target Class<T> type, @DelegatesTo(genericTypeIndex = 0) Closure<?> closure) {
+    public <T> void create(String modelPathString, Class<T> type, Closure<?> closure) {
         SourceLocation sourceLocation = ruleLocationExtractor.transform(closure);
         ModelPath modelPath = ModelPath.path(modelPathString);
         ModelRuleDescriptor descriptor = toDescriptor(sourceLocation, modelPath);
@@ -95,27 +91,28 @@ public class TransformedModelDslBacking {
 
     private <T> void registerAction(final ModelPath modelPath, final Class<T> viewType, final ModelRuleDescriptor descriptor, final ModelActionRole role, final Closure<?> closure) {
         final ModelReference<T> reference = ModelReference.of(modelPath, viewType);
-        InputReferences inputs = inputPathsExtractor.transform(closure);
-        List<String> absolutePaths = inputs.getAbsolutePaths();
-        List<Integer> absolutePathLineNumbers = inputs.getAbsolutePathLineNumbers();
-        final List<PotentialInput> potentialInputs = Lists.newArrayListWithCapacity(absolutePaths.size());
-        List<ModelReference<?>> actualInputs = Lists.newArrayListWithCapacity(potentialInputs.size());
-
-        for (int i = 0; i < absolutePaths.size(); i++) {
-            String description = String.format("@ line %d", absolutePathLineNumbers.get(i));
-            String path = absolutePaths.get(i);
-            potentialInputs.add(PotentialInput.absoluteInput(path, actualInputs.size()));
-            actualInputs.add(ModelReference.untyped(ModelPath.path(path), description));
-        }
-        modelRegistry.configure(role, InputUsingModelAction.of(reference, descriptor, actualInputs, new BiAction<T, List<ModelView<?>>>() {
+        modelRegistry.configure(ModelActionRole.DefineRules, DirectNodeNoInputsModelAction.of(reference, descriptor, new Action<MutableModelNode>() {
             @Override
-            public void execute(final T t, List<ModelView<?>> modelViews) {
-                PotentialInputsAccess.with(new PotentialInputs(modelViews, potentialInputs), new Runnable() {
+            public void execute(MutableModelNode mutableModelNode) {
+                InputReferences inputs = inputPathsExtractor.transform(closure);
+                List<String> absolutePaths = inputs.getAbsolutePaths();
+                List<Integer> absolutePathLineNumbers = inputs.getAbsolutePathLineNumbers();
+                final List<PotentialInput> potentialInputs = Lists.newArrayListWithCapacity(absolutePaths.size());
+                List<ModelReference<?>> actualInputs = Lists.newArrayListWithCapacity(potentialInputs.size());
+
+                for (int i = 0; i < absolutePaths.size(); i++) {
+                    String description = String.format("@ line %d", absolutePathLineNumbers.get(i));
+                    String path = absolutePaths.get(i);
+                    potentialInputs.add(PotentialInput.absoluteInput(path, actualInputs.size()));
+                    actualInputs.add(ModelReference.untyped(ModelPath.path(path), description));
+                }
+                mutableModelNode.applyToSelf(role, InputUsingModelAction.of(reference, descriptor, actualInputs, new BiAction<T, List<ModelView<?>>>() {
                     @Override
-                    public void run() {
+                    public void execute(final T t, List<ModelView<?>> modelViews) {
+                        ((TransformedClosure)closure).applyRuleInputs(new PotentialInputs(modelViews, potentialInputs));
                         ClosureBackedAction.execute(t, closure.rehydrate(null, closure.getThisObject(), closure.getThisObject()));
                     }
-                });
+                }));
             }
         }));
     }

@@ -31,9 +31,10 @@ import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.ExpressionReplacingVisitorSupport;
 import org.gradle.internal.SystemProperties;
 import org.gradle.model.dsl.internal.inputs.PotentialInputs;
-import org.gradle.model.dsl.internal.inputs.PotentialInputsAccess;
 import org.gradle.model.internal.core.ModelPath;
 
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -48,10 +49,12 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     private static final String DOLLAR = "$";
     private static final String GET = "get";
     private static final ClassNode RULE_METADATA = new ClassNode(RuleMetadata.class);
-    private static final ClassNode POTENTIAL_INPUTS_ACCESS = new ClassNode(PotentialInputsAccess.class);
     private static final ClassNode POTENTIAL_INPUTS = new ClassNode(PotentialInputs.class);
+    private static final ClassNode TRANSFORMED_CLOSURE = new ClassNode(TransformedClosure.class);
 
-    private static final String ACCESS_HOLDER_FIELD = "_" + PotentialInputs.class.getName().replace(".", "_");
+    private static final String INPUTS_LVAR_NAME = "__rule_inputs_var__";
+    private static final String INPUTS_FIELD_NAME = "__rule_inputs__";
+    private static final Token ASSIGN = new Token(Types.ASSIGN, "=", -1, -1);
 
     private final SourceUnit sourceUnit;
     private InputReferences inputs;
@@ -80,6 +83,15 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             }
 
             node.addAnnotation(metadataAnnotation);
+
+            node.addInterface(TRANSFORMED_CLOSURE);
+            node.addField(new FieldNode(INPUTS_FIELD_NAME, Modifier.PUBLIC, POTENTIAL_INPUTS, node, null));
+            List<Statement> statements = new ArrayList<Statement>();
+            statements.add(new ExpressionStatement(new BinaryExpression(new VariableExpression(INPUTS_FIELD_NAME), ASSIGN, new VariableExpression("inputs"))));
+            node.addMethod(new MethodNode("applyRuleInputs", Modifier.PUBLIC, ClassHelper.VOID_TYPE,
+                    new Parameter[]{new Parameter(POTENTIAL_INPUTS, "inputs")},
+                    new ClassNode[0],
+                    new BlockStatement(statements, new VariableScope())));
         }
     }
 
@@ -97,7 +109,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         }
         inputs = new InputReferences();
         try {
-            inputsVariable = new VariableExpression(ACCESS_HOLDER_FIELD, POTENTIAL_INPUTS);
+            inputsVariable = new VariableExpression(INPUTS_LVAR_NAME, POTENTIAL_INPUTS);
             super.visitClosureExpression(expression);
             BlockStatement code = (BlockStatement) expression.getCode();
             code.setNodeMetaData(AST_NODE_METADATA_LOCATION_KEY, sourceLocation);
@@ -105,15 +117,14 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             inputsVariable.setClosureSharedVariable(true);
             code.getVariableScope().putDeclaredVariable(inputsVariable);
 
-            // <inputs-lvar> = PotentialInputs.get()
-            StaticMethodCallExpression getAccessCall = new StaticMethodCallExpression(POTENTIAL_INPUTS_ACCESS, GET, ArgumentListExpression.EMPTY_ARGUMENTS);
-            DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, new Token(Types.ASSIGN, "=", -1, -1), getAccessCall);
+            // <inputs-lvar> = <inputs-field>
+            DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, ASSIGN, new VariableExpression(INPUTS_FIELD_NAME));
             code.getStatements().add(0, new ExpressionStatement(variableDeclaration));
 
-            // Move default values into body of closure, so they can use `PotentialInputs`
+            // Move default values into body of closure, so they can use <inputs-lvar>
             for (Parameter parameter : expression.getParameters()) {
                 if (parameter.hasInitialExpression()) {
-                    code.getStatements().add(1, new ExpressionStatement(new BinaryExpression(new VariableExpression(parameter.getName()), new Token(Types.ASSIGN, "=", -1, -1), parameter.getInitialExpression())));
+                    code.getStatements().add(1, new ExpressionStatement(new BinaryExpression(new VariableExpression(parameter.getName()), ASSIGN, parameter.getInitialExpression())));
                     parameter.setInitialExpression(ConstantExpression.NULL);
                 }
             }
@@ -134,7 +145,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         String modelPath = isDollarPathExpression(expr);
         if (modelPath != null) {
             inputs.absolutePath(modelPath, expr.getLineNumber());
-            replaceVisitedExpressionWith(new MethodCallExpression(new VariableExpression(inputsVariable), new ConstantExpression(GET), new ArgumentListExpression(new ConstantExpression(modelPath))));
+            replaceVisitedExpressionWith(inputReferenceExpression(modelPath));
         } else {
             super.visitPropertyExpression(expr);
         }
@@ -189,7 +200,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                 // TODO find a better way to present this information in the error message
                 // Attempt to mimic Gradle nested exception output
                 String message = "Invalid model path given as rule input." + SystemProperties.getInstance().getLineSeparator()
-                    + "  > " + e.getMessage();
+                        + "  > " + e.getMessage();
                 if (e.getCause() != null) {
                     // if there is a cause, it's an invalid name exception
                     message += SystemProperties.getInstance().getLineSeparator() + "    > " + e.getCause().getMessage();
@@ -199,9 +210,12 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             }
 
             inputs.absolutePath(modelPath, call.getLineNumber());
-            call.setObjectExpression(new VariableExpression(inputsVariable));
-            call.setMethod(new ConstantExpression(GET));
+            replaceVisitedExpressionWith(inputReferenceExpression(modelPath));
         }
+    }
+
+    private MethodCallExpression inputReferenceExpression(String modelPath) {
+        return new MethodCallExpression(new VariableExpression(inputsVariable), new ConstantExpression(GET), new ArgumentListExpression(new ConstantExpression(modelPath)));
     }
 
     private void error(ASTNode call, String message) {
