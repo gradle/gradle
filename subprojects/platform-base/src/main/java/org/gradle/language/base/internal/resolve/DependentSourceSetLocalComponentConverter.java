@@ -17,7 +17,6 @@ package org.gradle.language.base.internal.resolve;
 
 import com.google.common.base.Strings;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
