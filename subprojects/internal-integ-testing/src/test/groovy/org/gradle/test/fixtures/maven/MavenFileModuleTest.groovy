@@ -52,12 +52,12 @@ class MavenFileModuleTest extends Specification {
 
     def "Add single dependency"() {
         when:
-        List dependencies = mavenFileModule.dependsOn('my-company', 'dep1', 'jar', '1.0').dependencies
+        List dependencies = mavenFileModule.dependsOn('my-company', 'dep1', 'jar', '1.0', 'compile').dependencies
 
         then:
         dependencies != null
         dependencies.size() == 1
-        dependencies.get(0) == [groupId: 'my-company', artifactId: 'dep1', version: 'jar', type: '1.0']
+        dependencies.get(0) == [groupId: 'my-company', artifactId: 'dep1', version: 'jar', type: '1.0', scope: 'compile']
     }
 
     def "Check packaging for set packaging"() {
