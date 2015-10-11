@@ -130,7 +130,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":test", ":build")
 
         testClassNames.each { testClassName ->
-            assert result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
+            result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
         }
 
         assertDaemonsAreStopping()
@@ -681,7 +681,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":test", ":build")
 
         testClassNames.each { testClassName ->
-            assert result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
+            result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
         }
 
         assertDaemonsAreStopping()

@@ -126,7 +126,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         fails "assemble"
 
         and:
-        assert failure.assertHasCause("Invalid JavaPlatform: $badName")
+        failure.assertHasCause("Invalid JavaPlatform: $badName")
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
@@ -161,18 +161,18 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
         and:
         buildFile << """
-    model {
-        components {
-            myLib(JvmLibrarySpec) {
-                targetPlatform "java9"
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        targetPlatform "java9"
+                    }
+                }
             }
-        }
-    }
-"""
+        """
         then:
         fails "myLibJar"
 
         and:
-        assert failure.assertHasCause("Could not target platform: 'Java SE 9' using tool chain: 'JDK ${JavaVersion.current().majorVersion} (${JavaVersion.current()})'")
+        failure.assertHasCause("Could not target platform: 'Java SE 9' using tool chain: 'JDK ${JavaVersion.current().majorVersion} (${JavaVersion.current()})'")
     }
 }
