@@ -18,6 +18,8 @@ package org.gradle.language.base.internal.tasks.apigen
 
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes
 import spock.lang.Unroll
 
@@ -226,5 +228,28 @@ public abstract class A {
         'boolean' | 'true'         | false
     }
 
+    @Requires(TestPrecondition.JDK7_OR_LATER)
+    void "target binary compatibility is maintained"() {
+        given:
+        def api = toApi(target, [A: 'public class A {}'])
+
+        when:
+        def cr = new ClassReader(api.getStubBytes(api.classes.A))
+        def stubVersion = 0
+        cr.accept(new ClassVisitor(Opcodes.ASM5) {
+            @Override
+            void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                stubVersion = version
+            }
+        }, 0)
+
+        then:
+        stubVersion == expectedVersion
+
+        where:
+        target | expectedVersion
+        '1.6'  | 50
+        '1.7'  | 51
+    }
 
 }

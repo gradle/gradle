@@ -68,6 +68,10 @@ class ApiStubGeneratorTestSupport extends Specification {
         protected Class<?> loadStub(GeneratedClass clazz) {
             apiClassLoader.loadClassFromBytes(stubgen.convertToApi(clazz.bytes))
         }
+
+        protected byte[] getStubBytes(GeneratedClass clazz) {
+            stubgen.convertToApi(clazz.bytes)
+        }
     }
 
     @TupleConstructor
@@ -88,7 +92,7 @@ class ApiStubGeneratorTestSupport extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    protected ApiContainer toApi(Map<String, String> sources) {
+    protected ApiContainer toApi(String targetVersion = '1.6', Map<String, String> sources) {
         def dir = temporaryFolder.createDir('out')
         def fileManager = compiler.getStandardFileManager(null, null, null)
         def diagnostics = new DiagnosticCollector<JavaFileObject>()
@@ -96,7 +100,7 @@ class ApiStubGeneratorTestSupport extends Specification {
             new ByteArrayOutputStream()),
             fileManager,
             diagnostics,
-            ['-d', dir.absolutePath],
+            ['-d', dir.absolutePath, '-source', targetVersion, '-target', targetVersion],
             [],
             sources.collect { fqn, src -> new JavaSourceFromString(fqn, src) })
         fileManager.close()
