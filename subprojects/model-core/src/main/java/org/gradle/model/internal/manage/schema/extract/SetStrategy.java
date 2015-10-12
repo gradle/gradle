@@ -17,8 +17,6 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.api.Action;
-import org.gradle.model.internal.core.ModelProjection;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -42,8 +40,6 @@ public abstract class SetStrategy extends CollectionStrategy {
             extractionContext.found(getModelSchema(modelType, extractionContext, elementType));
         }
     }
-
-    protected abstract <E> ModelProjection getProjection(ModelType<E> elementType, ModelSchemaStore schemaStore, NodeInitializerRegistry nodeInitializerRegistry);
 
     protected <T, E> ModelSchema<T> getModelSchema(ModelType<?> modelType, final ModelSchemaExtractionContext<T> extractionContext, final ModelType<E> elementType) {
         if (modelType.isAssignableFrom(elementType)) {

@@ -557,7 +557,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("A model node of type: 'DefaultCustomComponent' can not be constructed."))
+        failure.assertThatCause(containsText("A model element of type: 'DefaultCustomComponent' can not be constructed."))
     }
 
     def "reasonable error message when creating component with no implementation"() {
@@ -576,7 +576,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("A model node of type: 'AnotherCustomComponent' can not be constructed."))
+        failure.assertThatCause(containsText("A model element of type: 'AnotherCustomComponent' can not be constructed."))
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {

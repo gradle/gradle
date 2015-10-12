@@ -24,20 +24,11 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
-import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.GUtil;
-import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.TestUtil;
-import org.jmock.Expectations;
-import org.jmock.integration.junit4.JMock;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Before;
+import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.util.*;
+import spock.lang.Specification;
 
 import static org.gradle.api.tasks.AntBuilderAwareUtil.*;
 import static org.gradle.util.Matchers.isEmpty;
@@ -45,50 +36,45 @@ import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-@RunWith(JMock.class)
-public class AbstractFileCollectionTest {
+@UsesNativeServices
+public class AbstractFileCollectionTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
-    final JUnit4Mockery context = new JUnit4GroovyMockery();
-    final TaskDependency dependency = context.mock(TaskDependency.class);
+    final TaskDependency dependency = Mock(TaskDependency.class);
 
-    @Before
-    public void setUp() {
-        NativeServicesTestFixture.initialize();
-    }
-
-    @Test
     public void usesDisplayNameAsToString() {
         TestFileCollection collection = new TestFileCollection();
+
+        expect:
         assertThat(collection.toString(), equalTo("collection-display-name"));
     }
 
-    @Test
     public void canIterateOverFiles() {
         File file1 = new File("f1");
         File file2 = new File("f2");
-
         TestFileCollection collection = new TestFileCollection(file1, file2);
+
+        expect:
         Iterator<File> iterator = collection.iterator();
         assertThat(iterator.next(), sameInstance(file1));
         assertThat(iterator.next(), sameInstance(file2));
         assertFalse(iterator.hasNext());
     }
 
-    @Test
     public void canGetSingleFile() {
         File file = new File("f1");
-
         TestFileCollection collection = new TestFileCollection(file);
+
+        expect:
         assertThat(collection.getSingleFile(), sameInstance(file));
     }
 
-    @Test
     public void failsToGetSingleFileWhenCollectionContainsMultipleFiles() {
         File file1 = new File("f1");
         File file2 = new File("f2");
-
         TestFileCollection collection = new TestFileCollection(file1, file2);
+
+        expect:
         try {
             collection.getSingleFile();
             fail();
@@ -97,9 +83,10 @@ public class AbstractFileCollectionTest {
         }
     }
 
-    @Test
     public void failsToGetSingleFileWhenCollectionIsEmpty() {
         TestFileCollection collection = new TestFileCollection();
+
+        expect:
         try {
             collection.getSingleFile();
             fail();
@@ -108,51 +95,142 @@ public class AbstractFileCollectionTest {
         }
     }
 
-    @Test
     public void containsFile() {
         File file1 = new File("f1");
-
         TestFileCollection collection = new TestFileCollection(file1);
+
+        expect:
         assertTrue(collection.contains(file1));
         assertFalse(collection.contains(new File("f2")));
     }
 
-    @Test
     public void canGetFilesAsAPath() {
         File file1 = new File("f1");
         File file2 = new File("f2");
-
         TestFileCollection collection = new TestFileCollection(file1, file2);
-        assertThat(collection.getAsPath(), equalTo(file1 + File.pathSeparator + file2));
+
+        expect:
+        assertThat(collection.getAsPath(), equalTo(file1.path + File.pathSeparator + file2.path));
     }
 
-    @Test
     public void canAddCollectionsTogether() {
         File file1 = new File("f1");
         File file2 = new File("f2");
         File file3 = new File("f3");
-
         TestFileCollection collection1 = new TestFileCollection(file1, file2);
         TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
         FileCollection sum = collection1.plus(collection2);
+
+        then:
         assertThat(sum, instanceOf(UnionFileCollection.class));
         assertThat(sum.getFiles(), equalTo(toLinkedSet(file1, file2, file3)));
     }
 
-    @Test
+    def "can add collections using + operator"() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
+        FileCollection sum = collection1 + collection2
+
+        then:
+        sum instanceof UnionFileCollection
+        sum.getFiles() == toLinkedSet(file1, file2, file3)
+    }
+
+    def "can add a list of collections"() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
+        FileCollection sum = collection1.plus([collection2])
+
+        then:
+        sum instanceof UnionFileCollection
+        sum.getFiles() == toLinkedSet(file1, file2, file3)
+    }
+
+    def "can add list of collections using + operator"() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
+        FileCollection sum = collection1 + [collection2]
+
+        then:
+        sum instanceof UnionFileCollection
+        sum.getFiles() == toLinkedSet(file1, file2, file3)
+    }
+
     public void canSubtractCollections() {
         File file1 = new File("f1");
         File file2 = new File("f2");
         File file3 = new File("f3");
-
         TestFileCollection collection1 = new TestFileCollection(file1, file2);
         TestFileCollection collection2 = new TestFileCollection(file2, file3);
-        FileCollection sum = collection1.minus(collection2);
-        assertThat(sum.getFiles(), equalTo(toLinkedSet(file1)));
+
+        when:
+        FileCollection difference = collection1.minus(collection2);
+
+        then:
+        assertThat(difference.getFiles(), equalTo(toLinkedSet(file1)));
     }
 
-    @Test
+    def "can subtract a collection using - operator"() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
+        FileCollection difference = collection1 - collection2
+
+        then:
+        difference.files == toLinkedSet(file1)
+    }
+
+    def "can subtract a list of collection"() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
+        FileCollection difference = collection1.minus([collection2])
+
+        then:
+        difference.files == toLinkedSet(file1)
+    }
+
+    def "can subtract a list of collections using - operator"() {
+        File file1 = new File("f1");
+        File file2 = new File("f2");
+        File file3 = new File("f3");
+        TestFileCollection collection1 = new TestFileCollection(file1, file2);
+        TestFileCollection collection2 = new TestFileCollection(file2, file3);
+
+        when:
+        FileCollection difference = collection1 - [collection2]
+
+        then:
+        difference.files == toLinkedSet(file1)
+    }
+
     public void cannotAddCollectionToThisCollection() {
+        expect:
         try {
             new TestFileCollection().add(new TestFileCollection());
             fail();
@@ -161,16 +239,15 @@ public class AbstractFileCollectionTest {
         }
     }
 
-    @Test
     public void canAddToAntBuilderAsResourceCollection() {
         File file1 = new File("f1");
         File file2 = new File("f2");
-
         TestFileCollection collection = new TestFileCollection(file1, file2);
+
+        expect:
         assertSetContains(collection, toSet("f1", "f2"));
     }
 
-    @Test
     public void includesOnlyExistingFilesWhenAddedToAntBuilderAsAFileSetOrMatchingTask() {
         TestFile testDir = this.testDir.getTestDirectory();
         TestFile file1 = testDir.file("f1").touch();
@@ -181,21 +258,23 @@ public class AbstractFileCollectionTest {
         testDir.file("ignored1").touch();
         dir1.file("f1").touch();
         dir1.file("ignored1").touch();
-
         TestFileCollection collection = new TestFileCollection(file1, file2, dir1, missing);
+
+        expect:
         assertSetContainsForFileSet(collection, toSet("f1", "f2"));
         assertSetContainsForMatchingTask(collection, toSet("f1", "f2"));
     }
 
-    @Test
     public void isEmptyWhenFilesIsEmpty() {
+        expect:
         assertTrue(new TestFileCollection().isEmpty());
         assertFalse(new TestFileCollection(new File("f1")).isEmpty());
     }
 
-    @Test
     public void throwsStopExceptionWhenEmpty() {
         TestFileCollection collection = new TestFileCollection();
+
+        expect:
         try {
             collection.stopExecutionIfEmpty();
             fail();
@@ -204,46 +283,51 @@ public class AbstractFileCollectionTest {
         }
     }
 
-    @Test
     public void doesNotThrowStopExceptionWhenNotEmpty() {
         TestFileCollection collection = new TestFileCollection(new File("f1"));
+
+        when:
         collection.stopExecutionIfEmpty();
+
+        then:
+        noExceptionThrown()
     }
 
-    @Test
     public void canConvertToCollectionTypes() {
         File file = new File("f1");
         TestFileCollection collection = new TestFileCollection(file);
 
+        expect:
         assertThat(collection.asType(Collection.class), equalTo((Object) toLinkedSet(file)));
         assertThat(collection.asType(Set.class), equalTo((Object) toLinkedSet(file)));
         assertThat(collection.asType(List.class), equalTo((Object) toList(file)));
     }
 
-    @Test
     public void canConvertToArray() {
         File file = new File("f1");
         TestFileCollection collection = new TestFileCollection(file);
 
+        expect:
         assertThat(collection.asType(File[].class), equalTo((Object) toArray(file)));
     }
 
-    @Test
     public void canConvertCollectionWithSingleFileToFile() {
         File file = new File("f1");
         TestFileCollection collection = new TestFileCollection(file);
 
+        expect:
         assertThat(collection.asType(File.class), equalTo((Object) file));
     }
 
-    @Test
     public void canConvertToFileTree() {
         TestFileCollection collection = new TestFileCollection();
+
+        expect:
         assertThat(collection.asType(FileTree.class), notNullValue());
     }
 
-    @Test
     public void throwsUnsupportedOperationExceptionWhenConvertingToUnsupportedType() {
+        expect:
         try {
             new TestFileCollection().asType(Integer.class);
             fail();
@@ -252,17 +336,17 @@ public class AbstractFileCollectionTest {
         }
     }
 
-    @Test
     public void toFileTreeReturnsSingletonTreeForEachFileInCollection() {
         File file = testDir.createFile("f1");
         File file2 = testDir.createFile("f2");
 
         TestFileCollection collection = new TestFileCollection(file, file2);
         FileTree tree = collection.getAsFileTree();
+
+        expect:
         FileVisitorUtil.assertVisits(tree, GUtil.map("f1", file, "f2", file2));
     }
 
-    @Test
     public void canFilterContentsOfCollectionUsingSpec() {
         File file1 = new File("f1");
         File file2 = new File("f2");
@@ -273,61 +357,66 @@ public class AbstractFileCollectionTest {
                 return element.getName().equals("f1");
             }
         });
+
+        expect:
         assertThat(filtered.getFiles(), equalTo(toSet(file1)));
     }
 
-    @Test
     public void canFilterContentsOfCollectionUsingClosure() {
         File file1 = new File("f1");
         File file2 = new File("f2");
 
         TestFileCollection collection = new TestFileCollection(file1, file2);
         FileCollection filtered = collection.filter(TestUtil.toClosure("{f -> f.name == 'f1'}"));
+
+        expect:
         assertThat(filtered.getFiles(), equalTo(toSet(file1)));
     }
 
-    @Test
     public void filteredCollectionIsLive() {
         File file1 = new File("f1");
         File file2 = new File("f2");
         File file3 = new File("dir/f1");
-
         TestFileCollection collection = new TestFileCollection(file1, file2);
+
+        when:
         FileCollection filtered = collection.filter(TestUtil.toClosure("{f -> f.name == 'f1'}"));
+
+        then:
         assertThat(filtered.getFiles(), equalTo(toSet(file1)));
 
+        when:
         collection.files.add(file3);
+
+        then:
         assertThat(filtered.getFiles(), equalTo(toSet(file1, file3)));
     }
 
-    @Test
     public void hasNoDependencies() {
+        expect:
         assertThat(new TestFileCollection().getBuildDependencies().getDependencies(null), isEmpty());
     }
 
-    @Test
     public void fileTreeHasSameDependenciesAsThis() {
         TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency();
         collection.files.add(new File("f1"));
 
+        expect:
         assertHasSameDependencies(collection.getAsFileTree());
         assertHasSameDependencies(collection.getAsFileTree().matching(TestUtil.TEST_CLOSURE));
     }
 
-    @Test
     public void filteredCollectionHasSameDependenciesAsThis() {
         TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency();
 
+        expect:
         assertHasSameDependencies(collection.filter(TestUtil.toClosure("{true}")));
     }
 
     private void assertHasSameDependencies(FileCollection tree) {
-        final Task task = context.mock(Task.class);
-        final Task depTask = context.mock(Task.class);
-        context.checking(new Expectations() {{
-            one(dependency).getDependencies(task);
-            will(returnValue(toSet(depTask)));
-        }});
+        final Task task = Mock(Task.class);
+        final Task depTask = Mock(Task.class);
+        1 * dependency.getDependencies(task) >> { [ depTask ] }
 
         assertThat(tree.getBuildDependencies().getDependencies(task), equalTo((Object) toSet(depTask)));
     }
@@ -335,7 +424,7 @@ public class AbstractFileCollectionTest {
     private class TestFileCollection extends AbstractFileCollection {
         Set<File> files = new LinkedHashSet<File>();
 
-        private TestFileCollection(File... files) {
+        TestFileCollection(File... files) {
             this.files.addAll(Arrays.asList(files));
         }
 
@@ -349,6 +438,10 @@ public class AbstractFileCollectionTest {
     }
 
     private class TestFileCollectionWithDependency extends TestFileCollection {
+        TestFileCollectionWithDependency(File... files) {
+            super(files)
+        }
+
         @Override
         public TaskDependency getBuildDependencies() {
             return dependency;

@@ -30,6 +30,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -75,6 +76,11 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return new UnionFileCollection(this, collection);
     }
 
+    public FileCollection plus(Iterable<FileCollection> collections) {
+        DeprecationLogger.nagUserOfReplacedMethod("plus(Iterable<FileCollection>)", "plus(FileCollection)");
+        return this.plus(new UnionFileCollection(collections));
+    }
+
     public FileCollection minus(final FileCollection collection) {
         return new AbstractFileCollection() {
             @Override
@@ -93,6 +99,11 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
                 return files;
             }
         };
+    }
+
+    public FileCollection minus(final Iterable<FileCollection> collections) {
+        DeprecationLogger.nagUserOfReplacedMethod("minus(Iterable<FileCollection>)", "minus(FileCollection)");
+        return this.minus(new UnionFileCollection(collections));
     }
 
     public FileCollection add(FileCollection collection) throws UnsupportedOperationException {

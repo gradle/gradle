@@ -36,7 +36,7 @@ public class ModelTypeInitializationException extends GradleException {
 
     private static String toMessage(ModelType<?> type, Iterable<ModelType<?>> scalarTypes, Iterable<ModelType<?>> scalarCollectionTypes,
                                     Iterable<ModelType<?>> managedCollectionTypes, Iterable<ModelType<?>> constructableTypes) {
-        StringBuffer s = new StringBuffer(String.format("A model node of type: '%s' can not be constructed.\n"
+        StringBuffer s = new StringBuffer(String.format("A model element of type: '%s' can not be constructed.\n"
             + "It must be one the following:\n"
             + "  - A supported scalar type (%s)\n"
             + "  - An enumerated type (Enum)\n"

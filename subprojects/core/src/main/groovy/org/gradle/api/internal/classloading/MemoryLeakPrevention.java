@@ -18,31 +18,17 @@ package org.gradle.api.internal.classloading;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.ErroringAction;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class MemoryLeakPrevention {
-
     private final static Logger LOG = Logging.getLogger(MemoryLeakPrevention.class);
-
-    final static Method THREADLOCAL_REMOVE;
-
-    static {
-        Method m;
-        try {
-            m = ThreadLocal.class.getDeclaredMethod("remove");
-        } catch (NoSuchMethodException e) {
-            m = null;
-        }
-        THREADLOCAL_REMOVE = m;
-    }
-
     private final String name; // only used to make debugging easier
     private final Set<Strategy> strategies;
     private final ClassLoader leakingLoader;
@@ -80,39 +66,28 @@ public class MemoryLeakPrevention {
         }
     }
 
-    private void doWithClassPath(StrategyAction action) {
-        Set<Strategy> blackListedStrategies = new LinkedHashSet<Strategy>();
+    private void doWithClassPath(Action<? super Strategy> action) {
         for (Strategy strategy : strategies) {
-            try {
-                action.execute(strategy);
-            } catch (Throwable e) {
-                LOG.debug("Cannot apply memory leak strategy", e);
-                blackListedStrategies.add(strategy);
-            }
+            action.execute(strategy);
         }
-        strategies.removeAll(blackListedStrategies);
     }
 
     public void dispose(final ClassLoader... affectedLoaders) {
         LOG.debug(String.format("Clearing leaking classloader [%s] from %s", name, Arrays.toString(affectedLoaders)));
-        doWithClassPath(new StrategyAction() {
+        doWithClassPath(new ErroringAction<Strategy>() {
             @Override
-            public void execute(Strategy strategy) throws Exception {
+            protected void doExecute(Strategy strategy) throws Exception {
                 strategy.dispose(leakingLoader, affectedLoaders);
             }
         });
     }
 
     public void prepare(final ClassLoader... affectedLoaders) {
-        doWithClassPath(new StrategyAction() {
+        doWithClassPath(new ErroringAction<Strategy>() {
             @Override
-            public void execute(Strategy strategy) throws Exception {
+            protected void doExecute(Strategy strategy) throws Exception {
                 strategy.prepare(leakingLoader, affectedLoaders);
             }
         });
-    }
-
-    private interface StrategyAction {
-        void execute(Strategy s) throws Exception;
     }
 }

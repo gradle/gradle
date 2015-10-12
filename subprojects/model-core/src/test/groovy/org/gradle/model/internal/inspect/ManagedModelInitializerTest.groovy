@@ -133,7 +133,6 @@ interface Managed${typeName} {
             "- A scalar collection type (List, Set)",
             "- A managed collection type (ModelMap<?>, ManagedSet<?>, ModelSet<?>)")
 
-
         where:
         collectionType << [LinkedList, ArrayList, SortedSet, TreeSet]
     }
@@ -189,7 +188,7 @@ interface Managed${typeName} {
     }
 
     String canNotBeConstructed(String type) {
-        "A model node of type: '${type}' can not be constructed."
+        "A model element of type: '${type}' can not be constructed."
     }
 
     @Managed

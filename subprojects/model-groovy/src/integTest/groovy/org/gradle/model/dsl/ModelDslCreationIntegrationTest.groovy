@@ -169,6 +169,6 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
         then:
         fails "dependencies" // something that doesn't actually require thing1 to be built
         failure.assertThatCause(containsText("model.thing1 @ build.gradle"))
-        failure.assertThatCause(containsText("A model node of type: 'Thing' can not be constructed."))
+        failure.assertThatCause(containsText("A model element of type: 'Thing' can not be constructed."))
     }
 }

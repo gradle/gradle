@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.util.VersionNumber;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -43,10 +44,6 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
         HAS_CLASS_VALUE = cv;
     }
 
-    // If set to true, we will totally disable the Groovy runtime, which is not always
-    // what we want. For example, the Gradle Groovy runtime itself should never be disabled
-    // but in a worker thread, if Groovy was loaded, it must be unloaded totally. Defaults to false.
-    private final boolean totallyDisableRuntime;
     private Class<?> classInfoClass;
 
     private Method removeFromGlobalClassValue;
@@ -56,14 +53,7 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
     private Field clazzField;
     private Class<ClassInfo> gradleClassInfoClass;
     private ClassLoader gradleClassInfoClassLoader;
-
-    public GroovyJava7RuntimeMemoryLeakStrategy() {
-        this(false);
-    }
-
-    public GroovyJava7RuntimeMemoryLeakStrategy(boolean totallyDisableRuntime) {
-        this.totallyDisableRuntime = totallyDisableRuntime;
-    }
+    private boolean isFaultyGroovy;
 
     @Override
     public boolean appliesTo(ClassPath classpath) {
@@ -83,6 +73,19 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
 
     @Override
     public void prepare(ClassLoader leakingLoader, ClassLoader... affectedLoaders) throws Exception {
+        Class<?> groovySystem = leakingLoader.loadClass("groovy.lang.GroovySystem");
+        try {
+            Method getVersion = groovySystem.getDeclaredMethod("getVersion");
+            String versionString = (String) getVersion.invoke(null);
+            VersionNumber groovyVersion = VersionNumber.parse(versionString);
+            isFaultyGroovy = groovyVersion.getMajor() == 2 && groovyVersion.getMinor() == 4 && groovyVersion.getMicro() < 5;
+        } catch (NoSuchMethodException ex) {
+            isFaultyGroovy = false;
+        }
+        if (!isFaultyGroovy) {
+            return;
+        }
+
         // this work has to be done before classes are loaded, otherwise there are risks that
         // the PermGen space is full before we create the reflection methods
 
@@ -104,14 +107,15 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
         clazzField = classInfoClass.getDeclaredField("klazz");
         clazzField.setAccessible(true);
 
-        if (!totallyDisableRuntime) {
-            gradleClassInfoClass = ClassInfo.class;
-            gradleClassInfoClassLoader = gradleClassInfoClass.getClassLoader();
-        }
+        gradleClassInfoClass = ClassInfo.class;
+        gradleClassInfoClassLoader = gradleClassInfoClass.getClassLoader();
     }
 
     @Override
     public void dispose(ClassLoader classLoader, ClassLoader... affectedLoaders) throws Exception {
+        if (!isFaultyGroovy) {
+            return;
+        }
 
         Iterator it = globalClassSetIterator();
 
@@ -119,7 +123,7 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
             Object classInfo = it.next();
             if (classInfo != null) {
                 Class clazz = (Class) clazzField.get(classInfo);
-                if (totallyDisableRuntime || inHierarchy(clazz, affectedLoaders)) {
+                if (inHierarchy(clazz, affectedLoaders)) {
                     removeFromGlobalClassValue.invoke(globalClassValue, clazz);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug(String.format("Removed ClassInfo from %s loaded by %s", clazz.getName(), clazz.getClassLoader()));
@@ -127,10 +131,9 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
                 }
             }
         }
-
     }
 
-    private Iterator globalClassSetIterator() throws IllegalAccessException, InvocationTargetException {
+    private Iterator<?> globalClassSetIterator() throws IllegalAccessException, InvocationTargetException {
         return (Iterator) globalClassSetIteratorMethod.invoke(globalClassSetItems);
     }
 
@@ -151,7 +154,7 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
         if (loader == null) {
             return false;
         }
-        if (classLoader == null || classLoader==gradleClassInfoClassLoader) {
+        if (classLoader == null || classLoader == gradleClassInfoClassLoader) {
             // "please don't clean any classinfo from Gradle core, for classes which have been loaded by Gradle itself"
             // system class loader, purged only if not Gradle core
             return gradleClassInfoClass != classInfoClass;
@@ -171,7 +174,9 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
     }
 
     private boolean isLoadedInSameHierarchy(ClassLoader loader, ClassLoader ld) {
-        while (ld != null) {
+        // we must stop at the loader of the ClassInfo class in order to avoid
+        // unloading valid metaclasses, that belong to the "Gradle" classloader
+        while (ld != null && ld != gradleClassInfoClassLoader) {
             if (ld == loader) {
                 return true;
             }
