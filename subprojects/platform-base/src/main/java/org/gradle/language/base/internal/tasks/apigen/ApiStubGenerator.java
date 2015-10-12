@@ -16,6 +16,8 @@
 package org.gradle.language.base.internal.tasks.apigen;
 
 import org.objectweb.asm.*;
+import org.objectweb.asm.signature.SignatureReader;
+import org.objectweb.asm.signature.SignatureVisitor;
 
 import java.util.List;
 
@@ -76,7 +78,7 @@ public class ApiStubGenerator {
                 return null;
             }
             if ((access & ACC_PUBLIC) == ACC_PUBLIC || (access & ACC_PROTECTED) == ACC_PROTECTED) {
-                validateSignature(desc);
+                validateSignature(signature==null?desc : signature);
                 MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
                 if ((access & ACC_ABSTRACT) != ACC_ABSTRACT) {
                     mv.visitCode();
@@ -89,37 +91,36 @@ public class ApiStubGenerator {
             return null;
         }
 
-        private void validateSignature(String desc) {
+        private void validateSignature(String signature) {
             if (allowedPackages.isEmpty()) {
                 return;
             }
-            Type returnType = Type.getReturnType(desc);
-            validateType(returnType);
-            Type[] argumentTypes = Type.getArgumentTypes(desc);
-            for (Type argumentType : argumentTypes) {
-                validateType(argumentType);
-            }
+            SignatureReader sr = new SignatureReader(signature);
+            sr.accept(new SignatureVisitor(Opcodes.ASM5) {
+                @Override
+                public void visitClassType(String name) {
+                    super.visitClassType(name);
+                    validateType(name);
+                }
+            });
+
         }
 
-        private void validateType(Type type) {
+        private void validateType(String name) {
             if (allowedPackages.isEmpty()) {
                 return;
             }
-            String className = type.getClassName();
-            if (isPrimitiveType(className)) {
-                return;
-            }
-            if (type.getElementType()!=null) {
-                validateType(type.getElementType());
-                return;
-            }
-            if (className.startsWith("java")) {
+
+            String className = name.replace('/','.');
+            String pkg = className.indexOf(".")>0?className.substring(0, className.lastIndexOf(".")):"";
+
+            if (pkg.startsWith("java")) {
                 // special case to treat all Java classes as belonging to the public API
                 return;
             }
             boolean allowed = false;
             for (String allowedPackage : allowedPackages) {
-                if (className.startsWith(allowedPackage+".")) {
+                if (pkg.equals(allowedPackage)) {
                     allowed = true;
                     break;
                 }
@@ -129,11 +130,7 @@ public class ApiStubGenerator {
             }
         }
 
-        private boolean isPrimitiveType(String className) {
-            return "void".equals(className) || "byte".equals(className) || "short".equals(className)
-                || "int".equals(className) || "boolean".equals(className) || "long".equals(className)
-                || "char".equals(className) || "float".equals(className) || "double".equals(className);
-        }
+
 
         @Override
         public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
