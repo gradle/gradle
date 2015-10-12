@@ -405,6 +405,31 @@ This story improves usability of the test kit by not imposing any dependencies b
 - User tests cannot access classes from `gradle-core` (or any other part of the Gradle runtime) in tests where `gradleTestKit()` was used
 - Configuration containing just `gradleTestKit()` contains no other files than `gradle-test-kit` and `gradle-tooling-api`
 
+## Story: Ability to provide OutputStreams for standard output and error
+
+At the moment the standard output and error can only be resolved from the `BuildResult`. There's not direct output of these streams to the console. Users cannot provide their own OutputStreams
+for other debugging or processing purposes. This story allows for specifying OutputStreams to the `GradleRunner` API that output will be forwarded to (e.g. `System.out`).
+
+### Implementation
+
+The `GradleRunner` abstract class will be extended to provide additional methods.
+
+    public abstract class GradleRunner {
+        public abstract GradleRunner withStandardOutputStream(OutputStream outputStream);
+        public abstract GradleRunner withStandardErrorStream(OutputStream outputStream);
+    }
+
+* If no OutputStream is provided by the user, the Test Kit will not write the output to the console. Output from the test execution will be captured as part of the `BuildResult`.
+* A user can provide OutputStreams for standard output and/or standard error. The relevant output from the test execution will be forwarded to the provided OutputStreams.
+* If a user provides an `OutputStream`, then the corresponding OutputStream in the `BuildResult` provides the same information.
+
+### Test Coverage
+
+* If a user doesn't provide an `OutputStream`, then an internal one is provided and made available through the `BuildResult`.
+* A user can redirect the output to the console by providing `System.out` and `System.err`. The standard output and error of the `BuildResult` provides the same information.
+* A user can provide other instances of `OutputStream`. The standard output and error of the `BuildResult` provides the same information.
+* Providing a null `OutputStream` results in an exception thrown.
+
 # Milestone 3
 
 ## Story: Integration with plugin-development-plugin
