@@ -29,7 +29,6 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.ModelSet;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
 import org.gradle.model.internal.type.ModelType;
 
@@ -66,7 +65,7 @@ public class ModelSchemaExtractor {
             .build();
     }
 
-    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaStore store, ModelSchemaCache cache) {
+    public <T> ModelSchema<T> extract(ModelType<T> type, ModelSchemaCache cache) {
         ModelSchemaExtractionContext<T> context = ModelSchemaExtractionContext.root(type);
         List<ModelSchemaExtractionContext<?>> validations = Lists.newLinkedList();
         Queue<ModelSchemaExtractionContext<?>> unsatisfiedDependencies = Lists.newLinkedList();
