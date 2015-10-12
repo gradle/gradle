@@ -201,4 +201,44 @@ public @interface Ann {}
         ex.message == "'public void foo(java.lang.String)' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package doesn't belong to the allowed packages."
     }
 
+    void "cannot have a superclass which is not in the public API"() {
+        given:
+        def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
+import com.acme.internal.AImpl;
+
+public class A extends AImpl {
+}""",
+                                       'com.acme.internal.AImpl': '''package com.acme.internal;
+public class AImpl {}
+
+'''])
+
+        when:
+        api.loadStub(api.classes['com.acme.A'])
+
+        then:
+        def ex = thrown(InvalidPublicAPIException)
+        ex.message == "'com.acme.A' extends 'com.acme.internal.AImpl' which package doesn't belong to the allowed packages."
+    }
+
+    void "cannot have an interface which is not in the public API"() {
+        given:
+        def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
+import com.acme.internal.AInternal;
+
+public class A implements AInternal {
+}""",
+                                       'com.acme.internal.AInternal': '''package com.acme.internal;
+public interface AInternal {}
+
+'''])
+
+        when:
+        api.loadStub(api.classes['com.acme.A'])
+
+        then:
+        def ex = thrown(InvalidPublicAPIException)
+        ex.message == "'com.acme.A' declares interface 'com.acme.internal.AInternal' which package doesn't belong to the allowed packages."
+    }
+
 }

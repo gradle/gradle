@@ -68,6 +68,16 @@ public class ApiStubGenerator {
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
             internalClassName = name;
+            if (!validateType(toClassName(superName))) {
+                throw new InvalidPublicAPIException(String.format("'%s' extends '%s' which package doesn't belong to the allowed packages.", toClassName(name), toClassName(superName)));
+            }
+            if (interfaces!=null) {
+                for (String intf : interfaces) {
+                    if (!validateType(toClassName(intf))) {
+                        throw new InvalidPublicAPIException(String.format("'%s' declares interface '%s' which package doesn't belong to the allowed packages.", toClassName(name), toClassName(intf)));
+                    }
+                }
+            }
             if ((access & ACC_INTERFACE) == 0) {
                 generateUnsupportedOperationExceptionMethod();
             }
