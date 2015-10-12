@@ -71,7 +71,7 @@ public class ApiStubGenerator {
             if (!validateType(toClassName(superName))) {
                 throw new InvalidPublicAPIException(String.format("'%s' extends '%s' which package doesn't belong to the allowed packages.", toClassName(name), toClassName(superName)));
             }
-            if (interfaces!=null) {
+            if (interfaces != null) {
                 for (String intf : interfaces) {
                     if (!validateType(toClassName(intf))) {
                         throw new InvalidPublicAPIException(String.format("'%s' declares interface '%s' which package doesn't belong to the allowed packages.", toClassName(name), toClassName(intf)));
@@ -166,6 +166,10 @@ public class ApiStubGenerator {
             return methodDesc.toString();
         }
 
+        private String prettifyFieldDescriptor(int access, String name, String desc) {
+            return String.format("%s %s %s", Modifier.toString(access), Type.getType(desc).getClassName(), name);
+        }
+
         private Set<String> invalidReferencedTypes(String signature) {
             if (allowedPackages.isEmpty()) {
                 return Collections.emptySet();
@@ -208,9 +212,15 @@ public class ApiStubGenerator {
 
 
         @Override
-        public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
+        public FieldVisitor visitField(final int access, final String name, final String desc, String signature, Object value) {
             if ((access & ACC_PUBLIC) == ACC_PUBLIC || (access & ACC_PROTECTED) == ACC_PROTECTED) {
-                return cv.visitField(access, name, desc, signature, value);
+                return new FieldVisitor(Opcodes.ASM5, cv.visitField(access, name, desc, signature, value)) {
+                    @Override
+                    public AnnotationVisitor visitAnnotation(String annotationDesc, boolean visible) {
+                        checkAnnotation(prettifyFieldDescriptor(access, name, desc), annotationDesc);
+                        return super.visitAnnotation(annotationDesc, visible);
+                    }
+                };
             }
             return null;
         }
