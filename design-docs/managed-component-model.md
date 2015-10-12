@@ -179,7 +179,7 @@ The views defined for the general type should also be applied to the specialized
 - Add a rule to the base plugins, to declare internal view types for `ComponentSpec` and `BinarySpec`.
 - Change node creation so that implementation is no longer available as a view type.
 
-## Plugin author declares default implementation for extensible type
+## Plugin author declares default implementation for extensible binary and component type
 
 Given a plugin defines a general type, allow the plugin to provide a default implementation the general type.
 This default implementation is then used as the super class for all `@Managed` subtype of the general type. For example:
@@ -202,11 +202,25 @@ This default implementation is then used as the super class for all `@Managed` s
     }
 
 - Generalise the work done to allow `@Managed` subtypes of `JarBinarySpec` to support this.
-- Allow for all types that support registration.
-- Change core plugins to declare default implementations for `ComponentSpec`, `BinarySpec` and `LanguageSourceSet`. This will allow `@Managed` subtypes of each
+- Allow for binaries and components.
+- Change core plugins to declare default implementations for `ComponentSpec` and `BinarySpec`. This will allow `@Managed` subtypes of each
 of these types.
-- Update user guide and samples to show how to implement a custom `@Managed` `ComponentSpec`, `BinarySpec` and `LanguageSourceSet` type
+- Update user guide and samples to show how to implement a custom `@Managed` `ComponentSpec` and `BinarySpec` type
 - Update user guide to show how to attach an internal view to the custom type
+
+### Test cases
+
+- user can declare a base binary type and extended it with a `@Managed` subtype
+- user can declare a base component type and extended it with a `@Managed` subtype
+- fails on registration when:
+    - implementation type is an abstract type
+    - implementation type does not have a default constructor
+    - implementation type does not extend `BaseBinarySpec` or `BaseComponentSpec`, respectively
+    - base type does not implement `BinarySpec` or `ComponentSpec`, respectively
+
+## Plugin author declares default implementation for all extensible types
+
+Extend the previous story for `LanguageSourceSet` and `FunctionalSourceSet`.
 
 ## Plugin author declares internal view for custom non-managed source set types
 
@@ -424,14 +438,14 @@ For example:
 - Validate top level element of the following types (check for existing test coverage, some of this may already exist):
     - ModelMap<T> and ModelSet<T> where T is not constructable. Should report which types are constructable (should not mention `@Unmanaged`)
     - List<T> and Set<T> where T is not a scalar type. Should report which types are scalar.
-    - A `@Managed` type with a read-only property of type T where T is not constructable. Should report which types are constructable. 
-    - A `@Managed` type with a read-write property without `@Unmanaged` of type T where T is not scalar and not constructable. Should report scalar and constructable types. 
-    - Any T where T is not constructable. Should report which types are constructable. 
+    - A `@Managed` type with a read-only property of type T where T is not constructable. Should report which types are constructable.
+    - A `@Managed` type with a read-write property without `@Unmanaged` of type T where T is not scalar and not constructable. Should report scalar and constructable types.
+    - Any T where T is not constructable. Should report which types are constructable.
 - Ensure a consistent error message for each failure, should describe the available T for each case.
 
 ## Story: Allow `@Unmanaged` properties of type `List` or `Set`
 
-Allow a read-write property marked with `@Unmanaged` of a `@Managed` type to have type `List<T>` or `Set<T>` for any `T`. 
+Allow a read-write property marked with `@Unmanaged` of a `@Managed` type to have type `List<T>` or `Set<T>` for any `T`.
 
 ## Story: Report available types for a `ModelMap` or `ModelSet` when element type is not constructable
 
