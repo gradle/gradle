@@ -59,6 +59,7 @@ import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.model.internal.persist.AlwaysNewModelRegistryStore;
@@ -223,9 +224,13 @@ public class GlobalScopeServices {
         return new ModelSchemaAspectExtractor(strategies);
     }
 
-    protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, ServiceRegistry serviceRegistry) {
+    protected ManagedProxyFactory createManagedProxyFactory() {
+        return new ManagedProxyFactory();
+    }
+
+    protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, ManagedProxyFactory proxyFactory, ServiceRegistry serviceRegistry) {
         List<ModelSchemaExtractionStrategy> strategies = serviceRegistry.getAll(ModelSchemaExtractionStrategy.class);
-        return new ModelSchemaExtractor(strategies, aspectExtractor);
+        return new ModelSchemaExtractor(strategies, aspectExtractor, proxyFactory);
     }
 
     protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {

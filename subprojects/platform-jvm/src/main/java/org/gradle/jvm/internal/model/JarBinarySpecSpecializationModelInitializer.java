@@ -39,8 +39,8 @@ import java.util.List;
 
 public class JarBinarySpecSpecializationModelInitializer<T> extends ManagedModelInitializer<T> {
 
-    public JarBinarySpecSpecializationModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore) {
-        super(modelSchema, schemaStore);
+    public JarBinarySpecSpecializationModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+        super(modelSchema, schemaStore, proxyFactory);
     }
 
     @Override
@@ -59,6 +59,6 @@ public class JarBinarySpecSpecializationModelInitializer<T> extends ManagedModel
 
     @Override
     public List<? extends ModelProjection> getProjections() {
-        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, ManagedProxyFactory.INSTANCE));
+        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, proxyFactory));
     }
 }

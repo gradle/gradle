@@ -32,10 +32,12 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
 
     protected final ModelManagedImplStructSchema<T> modelSchema;
     protected final ModelSchemaStore schemaStore;
+    protected final ManagedProxyFactory proxyFactory;
 
-    public ManagedModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore) {
+    public ManagedModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         this.modelSchema = modelSchema;
         this.schemaStore = schemaStore;
+        this.proxyFactory = proxyFactory;
     }
 
     @Override
@@ -65,7 +67,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
 
     @Override
     public List<? extends ModelProjection> getProjections() {
-        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, ManagedProxyFactory.INSTANCE));
+        return Collections.singletonList(new ManagedModelProjection<T>(modelSchema, schemaStore, proxyFactory));
     }
 
     @Nullable
@@ -99,7 +101,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
                     modelNode.addLink(creator);
                 } else {
                     ModelManagedImplStructSchema<P> structSchema = (ModelManagedImplStructSchema<P>) propertySchema;
-                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, ManagedProxyFactory.INSTANCE);
+                    ModelProjection projection = new ManagedModelProjection<P>(structSchema, schemaStore, proxyFactory);
                     ModelCreator creator = ModelCreators.of(childPath)
                         .withProjection(projection)
                         .descriptor(descriptor).build();

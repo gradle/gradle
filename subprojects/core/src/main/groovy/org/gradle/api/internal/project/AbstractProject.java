@@ -64,6 +64,7 @@ import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
 import org.gradle.model.dsl.internal.TransformedModelDslBacking;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.ExecResult;
@@ -200,7 +201,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         );
 
         ModelSchemaStore schemaStore = services.get(ModelSchemaStore.class);
-        NodeInitializerRegistry nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore);
+        ManagedProxyFactory proxyFactory = services.get(ManagedProxyFactory.class);
+        NodeInitializerRegistry nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore, proxyFactory);
         modelRegistry.createOrReplace(
             ModelCreators.serviceInstance(ModelReference.of("nodeInitializerRegistry", NodeInitializerRegistry.class), nodeInitializerRegistry)
                 .descriptor("Project.<init>.nodeInitializerRegistry()")

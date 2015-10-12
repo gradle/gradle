@@ -27,6 +27,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.model.Managed;
 import org.gradle.model.ModelMap;
 import org.gradle.model.ModelSet;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.cache.ModelSchemaCache;
@@ -42,10 +43,14 @@ public class ModelSchemaExtractor {
     private final List<? extends ModelSchemaExtractionStrategy> strategies;
 
     public ModelSchemaExtractor() {
-        this(Collections.<ModelSchemaExtractionStrategy>emptyList(), new ModelSchemaAspectExtractor());
+        this(Collections.<ModelSchemaExtractionStrategy>emptyList(), new ModelSchemaAspectExtractor(), new ManagedProxyFactory());
     }
 
     public ModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies, ModelSchemaAspectExtractor aspectExtractor) {
+        this(strategies, aspectExtractor, new ManagedProxyFactory());
+    }
+
+    public ModelSchemaExtractor(List<? extends ModelSchemaExtractionStrategy> strategies, ModelSchemaAspectExtractor aspectExtractor, ManagedProxyFactory proxyFactory) {
         this.strategies = ImmutableList.<ModelSchemaExtractionStrategy>builder()
             .addAll(strategies)
             .add(new PrimitiveStrategy())
@@ -56,7 +61,7 @@ public class ModelSchemaExtractor {
             .add(new SpecializedMapStrategy())
             .add(new ModelMapStrategy())
             .add(new ScalarCollectionStrategy())
-            .add(new ManagedImplStructStrategy(aspectExtractor))
+            .add(new ManagedImplStructStrategy(aspectExtractor, proxyFactory))
             .add(new UnmanagedImplStructStrategy(aspectExtractor))
             .build();
     }

@@ -43,9 +43,11 @@ public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtraction
         public void set(String name, Object value) {
         }
     };
+    private final ManagedProxyFactory proxyFactory;
 
-    public ManagedImplStructStrategy(ModelSchemaAspectExtractor aspectExtractor) {
+    public ManagedImplStructStrategy(ModelSchemaAspectExtractor aspectExtractor, ManagedProxyFactory proxyFactory) {
         super(aspectExtractor, null, null);
+        this.proxyFactory = proxyFactory;
     }
 
     @Override
@@ -62,7 +64,7 @@ public class ManagedImplStructStrategy extends ManagedImplStructSchemaExtraction
 
     private <R> void ensureCanBeInstantiated(ModelSchemaExtractionContext<R> extractionContext, ModelManagedImplStructSchema<R> schema) {
         try {
-            ManagedProxyFactory.INSTANCE.createProxy(NO_OP_MODEL_ELEMENT_STATE, schema);
+            proxyFactory.createProxy(NO_OP_MODEL_ELEMENT_STATE, schema);
         } catch (Throwable e) {
             throw new InvalidManagedModelElementTypeException(extractionContext, "instance creation failed", e);
         }

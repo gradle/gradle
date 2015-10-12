@@ -18,19 +18,18 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.model.internal.core.NodeInitializer;
 import org.gradle.model.internal.inspect.ManagedModelInitializer;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 
 public class ManagedImplStructNodeInitializerExtractionStrategy extends ManagedImplStructNodeInitializerExtractionSupport {
-    private final ModelSchemaStore schemaStore;
 
-    public ManagedImplStructNodeInitializerExtractionStrategy(ModelSchemaStore schemaStore) {
-        super(null);
-        this.schemaStore = schemaStore;
+    public ManagedImplStructNodeInitializerExtractionStrategy(ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+        super(null, schemaStore, proxyFactory);
     }
 
     @Override
     protected <T> NodeInitializer extractNodeInitializer(ModelManagedImplStructSchema<T> schema) {
-        return new ManagedModelInitializer<T>(schema, schemaStore);
+        return new ManagedModelInitializer<T>(schema, schemaStore, proxyFactory);
     }
 }

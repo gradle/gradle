@@ -19,15 +19,21 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
 
 public abstract class ManagedImplStructNodeInitializerExtractionSupport implements NodeInitializerExtractionStrategy {
     private final Class<?> implementedInterface;
+    protected final ModelSchemaStore schemaStore;
+    protected final ManagedProxyFactory proxyFactory;
 
-    protected ManagedImplStructNodeInitializerExtractionSupport(Class<?> implementedInterface) {
+    protected ManagedImplStructNodeInitializerExtractionSupport(Class<?> implementedInterface, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         this.implementedInterface = implementedInterface;
+        this.schemaStore = schemaStore;
+        this.proxyFactory = proxyFactory;
     }
 
     @SuppressWarnings("SimplifiableIfStatement")

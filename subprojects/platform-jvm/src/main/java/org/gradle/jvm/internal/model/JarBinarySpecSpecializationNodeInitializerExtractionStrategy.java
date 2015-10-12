@@ -18,20 +18,18 @@ package org.gradle.jvm.internal.model;
 
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.ManagedImplStructNodeInitializerExtractionSupport;
 
 public class JarBinarySpecSpecializationNodeInitializerExtractionStrategy extends ManagedImplStructNodeInitializerExtractionSupport {
-    private final ModelSchemaStore schemaStore;
-
-    public JarBinarySpecSpecializationNodeInitializerExtractionStrategy(ModelSchemaStore schemaStore) {
-        super(JarBinarySpec.class);
-        this.schemaStore = schemaStore;
+    public JarBinarySpecSpecializationNodeInitializerExtractionStrategy(ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+        super(JarBinarySpec.class, schemaStore, proxyFactory);
     }
 
     @Override
     protected <T> NodeInitializer extractNodeInitializer(ModelManagedImplStructSchema<T> schema) {
-        return new JarBinarySpecSpecializationModelInitializer<T>(schema, schemaStore);
+        return new JarBinarySpecSpecializationModelInitializer<T>(schema, schemaStore, proxyFactory);
     }
 }
