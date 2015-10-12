@@ -13,37 +13,38 @@ Useful links:
 - [Explanation of source layout for Jigsaw](http://openjdk.java.net/projects/jigsaw/doc/ModulesAndJavac.pdf)
 - [The module descriptor syntax](http://cr.openjdk.java.net/~mr/jigsaw/spec/lang-vm.html)
 
-# Feature: Java library author declares library API
+# Feature: Java library author specifies library API
 
-Given a description of the API of a library, Gradle will prevent at compile time the consumers of a library from using classes that are not part of the API of the library. This is intended to help teams materialize and describe the APIs of and dependencies between the various components of their software stack, and enforce the boundaries between them, ready for the Java module system.
+Given a description of the API of a library, Gradle will prevent at compile time the consumers of a library from using classes that are not part of the API of the library. This is intended to help teams materialize and describe the APIs of and dependencies between the various components of their software stack, and enforce the boundaries between them, helping prepare them for transition to the Java module system.
 
-No runtime enforcement will be done - this is the job of the modular JVM. Gradle will simply approximate the behaviour of the modular JVM at compile time, but in a way that should be sufficient for many teams to make significant progress towards a modular architecture.
+No runtime enforcement will be done--this is the job of the module system. Gradle will simply approximate the behaviour of the module system at compile time, but in a way that should be sufficient for many teams to make significant progress towards a modular architecture.
 
-## Story: Java library author declares packages that make up the API of the library
+## Story: Java library author specifies packages included in library API
 
-- Add a DSL to declare packages of the API. Proposed DSL:
+- Add a DSL to specify the packages included in the library's API
     ```
     model {
         main(JvmLibrarySpec) {
             api {
-                exports 'com.acme'
+                exports 'com.example.p1'
+                exports 'com.example.p2'
             }
         }
     }
     ```
 
-- Default to all packages: if no `api` section is found, we assume that all public elements of the library are exported.
-- This story is about implementing the DSL, not use it.
-- It is not expected to see the public API as part of the model report.
+- This story is about implementing the DSL, not using it.
+- It is not expected to see the API specification as part of the model report.
 
 ### Test cases
 
-- Can have several `exports` clauses
-- Multiple `exports` clauses do not overwrite themselves
-- Can omit the `api` section
-- Validates that the package string is valid with regards to the JVM specs
+- `api` specification should be optional
+- `api` specification may contain zero or more `exports` clauses
+- Multiple `exports` clauses should be preserved, i.e. not overwrite themselves
+- Duplicate `exports` clauses should raise an error
+- Package name argument to `exports` clause should be validated per the JLS
 
-## Story: Generate an API jar using the public API declaration
+## Story: Generate an API jar based on the API specification
 
 - All JVM libraries should produce an API and an implementation jar.
 - Build a jar containing those packages from compiled classes for each variant of the library.
@@ -55,16 +56,17 @@ For this story, it is expected that the API jar is built after the implementatio
 
 ### Test cases
 
-- API jar can be built for each variant of the library and contains only API classes.
-- `assemble` task builds the API jar and implementation jar for each buildable variant.
+- Default to all packages: if no `api` section is found, assume that all packages of the library are exported
+- API jar can be built for each variant of the library and contains only API classes
+- `assemble` task builds the API jar and implementation jar for each buildable variant
 - API jar contains exported packages
 - API jar does not contain non exported packages
-- If no API section is declared, API jar and implementation jars are identical (same contents)
+- If no API specification is present, API jar and implementation jars are identical (same contents)
 - Building the API jar should trigger compilation of classes
-- Changes to the specification of the public APIs should not trigger recompilation of the classes
-- Changes to the specification of the public APIs should not trigger repackaging of the implementation jar
-- Changes to the specification of the public APIs should trigger regeneration of the API jar
-- If the specification of the public APIs do not change, API jar is not rebuilt
+- Changes to the API specification should not trigger recompilation of the classes
+- Changes to the API specification should not trigger repackaging of the implementation jar
+- Changes to the API specification should trigger regeneration of the API jar
+- If the API specification does not change, the API jar should not be rebuilt
 
 ## Story: Extract a buildable element to represent the compiled classes of the library variant
 
@@ -146,10 +148,9 @@ The last step of separating API from implementation involves the creation of a b
 - Consuming source is recompiled when API class is changed.
 - Consuming source is not recompiled when implementation class changes in an incompatible way.
 
-## Story: Allow generation of public API jars
+## Story: Allow generation of API jars
 
-Given a set of source classes and a list of packages, generate a jar that only contains the public members
-of the source classes that belong to those packages.A stub class contains only the public members of the source class required at compile time.
+Given a set of source classes and a list of packages, generate a jar that only contains the public members of the source classes that belong to those packages.A stub class contains only the public members of the source class required at compile time.
 
 ### Implementation
 
@@ -172,7 +173,7 @@ of the source classes that belong to those packages.A stub class contains only t
 - Public constant types should be initialized to `null` or their default JVM value if of a primitive type (do not use `UnsupportedOperationException` here because it would imply the
 creation of a static initializer that we want to avoid).
 - Java bytecode compatibility level of the classes must be the same as the original class compatibility level
-- Throws an error if a public member references a class which is not part of the public API. For example, given:
+- Throws an error if a public member references a class which is not part of the API. For example, given:
     ```
     package p1;
     public class A {
@@ -184,20 +185,19 @@ creation of a static initializer that we want to avoid).
     }
     ```
 
-    then if only `p1` is declared as the public API package, `foo` violates the contract and we should throw an error.
+    if only package `p1` has been specified as part of the library's API, then `foo` has a return type in violation of this contract. An error should be raised accordingly.
 
 ### Out of scope
 
-This doesn't have to use the `PublicAPISpec` or whatever it is called, if it is not available when work
-on this story is started: a list of packages is enough.
+This doesn't have to use the `ApiSpec` (or whatever it is called) if it is not available when work on this story is started; a simple list of packages would be sufficient.
 
 ## Story: Consuming Java source is not recompiled when API of library has not changed
 
-AKA API classes can reference implementation classes of the same library.
+AKA: API classes can reference implementation classes of the same library
 
-- Replace the public API jar generator input from a list of packages to the public API specification class
-- Generate stub classes in the API jar using the public API jar generator.
-- Generate stub API jar for all libraries, regardless of whether the library declares its API or not (a library always has an API).
+- Replace the API jar generator input from a list of packages to the `ApiSpec` class (if this has not already been done).
+- Generate stub classes in the API jar using the API jar generator.
+- Generate stub API jar for all libraries, regardless of whether the library explicitly specifies its API or not (i.e., a library always has an API).
 - Generation task should be incremental.
 
 ### Test cases
@@ -307,6 +307,7 @@ Allow a Java library to build for Java 9, and produce both modular and non-modul
 - To compile Java source, select the closest compatible toolchain to compile the variant.
 
 TBD - alternatively, select the toolchain with the highest version and use bootstrap classpath or `-release` to cross compile.
+
 TBD - fail or warn when source code is not compiled against exactly the target Java API. Currently, toolchain selection is lenient.
 
 ## Story: Modular Java library is compiled using modular Java 9
