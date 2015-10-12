@@ -252,4 +252,33 @@ public abstract class A {
         '1.7'  | 51
     }
 
+    void "annotations are retained"() {
+        given:
+        def api = toApi([
+            A: '@Ann public class A {}',
+            Ann: '''import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface Ann {}
+'''
+        ])
+
+        when:
+        def clazz = api.classes.A.clazz
+        def annotations = clazz.annotations
+        def stubbed = api.loadStub(api.classes.A)
+        def stubbedAnn = api.loadStub(api.classes.Ann)
+        def stubbedAnnotations = stubbed.annotations
+
+        then:
+        annotations.size() == 1
+        annotations[0].annotationType().name == 'Ann'
+        stubbedAnnotations.size() == 1
+        stubbedAnnotations[0].annotationType() == stubbedAnn
+    }
+
 }

@@ -100,4 +100,105 @@ public class AInternal {}
    - com.acme.internal.AImpl
 """
     }
+
+    void "reports error if class is annotated with an annotation that doesn't belong to the public API"() {
+        given:
+        def api = toApi(['com.acme'], [
+            'com.acme.A': '''package com.acme;
+import com.acme.internal.Ann;
+
+@Ann public class A {}
+''',
+            'com.acme.internal.Ann': '''package com.acme.internal;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface Ann {}
+'''
+        ])
+
+        when:
+        def clazz = api.classes['com.acme.A']
+        def annotations = clazz.clazz.annotations
+        api.loadStub(clazz)
+
+        then:
+        annotations.size() == 1
+        annotations[0].annotationType().name == 'com.acme.internal.Ann'
+        def ex = thrown(InvalidPublicAPIException)
+        ex.message == "'com.acme.A' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package doesn't belong to the allowed packages."
+    }
+
+    void "reports error if a method is annotated with an annotation that doesn't belong to the public API"() {
+        given:
+        def api = toApi(['com.acme'], [
+            'com.acme.A': '''package com.acme;
+import com.acme.internal.Ann;
+
+public class A {
+    @Ann public void foo() {}
+}
+''',
+            'com.acme.internal.Ann': '''package com.acme.internal;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD})
+public @interface Ann {}
+'''
+        ])
+
+        when:
+        def clazz = api.classes['com.acme.A']
+        def annotations = clazz.clazz.getDeclaredMethod('foo').annotations
+        api.loadStub(clazz)
+
+        then:
+        annotations.size() == 1
+        annotations[0].annotationType().name == 'com.acme.internal.Ann'
+        def ex = thrown(InvalidPublicAPIException)
+        ex.message == "'public void foo()' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package doesn't belong to the allowed packages."
+    }
+
+    void "reports error if a method parameter is annotated with an annotation that doesn't belong to the public API"() {
+        given:
+        def api = toApi(['com.acme'], [
+            'com.acme.A': '''package com.acme;
+import com.acme.internal.Ann;
+
+public class A {
+    public void foo(@Ann String bar) {}
+}
+''',
+            'com.acme.internal.Ann': '''package com.acme.internal;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.PARAMETER})
+public @interface Ann {}
+'''
+        ])
+
+        when:
+        def clazz = api.classes['com.acme.A']
+        api.loadStub(clazz)
+
+        then:
+        def ex = thrown(InvalidPublicAPIException)
+        ex.message == "'public void foo(java.lang.String)' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package doesn't belong to the allowed packages."
+    }
+
 }

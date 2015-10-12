@@ -43,12 +43,11 @@ public class ApiStubGenerator {
     private class PublicAPIAdapter extends ClassVisitor implements Opcodes {
 
         public static final String UOE_METHOD = "$unsupportedOpEx";
-        private String className;
+        private String internalClassName;
 
         public PublicAPIAdapter(ClassVisitor cv) {
             super(ASM5, cv);
         }
-
 
         /**
          * Generates an exception which is going to be thrown in each method. The reason it is in a separate method is because it reduces the bytecode size.
@@ -68,14 +67,31 @@ public class ApiStubGenerator {
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
-            className = name;
+            internalClassName = name;
             if ((access & ACC_INTERFACE) == 0) {
                 generateUnsupportedOperationExceptionMethod();
             }
         }
 
         @Override
-        public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            checkAnnotation(toClassName(internalClassName), desc);
+            return super.visitAnnotation(desc, visible);
+        }
+
+        private String toClassName(String cn) {
+            return cn.replace('/', '.');
+        }
+
+        private void checkAnnotation(String owner, String annotationDesc) {
+            String annotation = Type.getType(annotationDesc).getClassName();
+            if (!validateType(annotation)) {
+                throw new InvalidPublicAPIException(String.format("'%s' is annotated with '%s' effectively exposing it in the public API but its package doesn't belong to the allowed packages.", owner, annotation));
+            }
+        }
+
+        @Override
+        public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature, final String[] exceptions) {
             if ("<clinit>".equals(name)) {
                 // discard static initializers
                 return null;
@@ -83,29 +99,29 @@ public class ApiStubGenerator {
             if ((access & ACC_PUBLIC) == ACC_PUBLIC || (access & ACC_PROTECTED) == ACC_PROTECTED) {
                 Set<String> invalidReferencedTypes = invalidReferencedTypes(signature == null ? desc : signature);
                 if (invalidReferencedTypes.isEmpty()) {
-                    MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
+                    MethodVisitor mv = new MethodVisitor(Opcodes.ASM5, cv.visitMethod(access, name, desc, signature, exceptions)) {
+                        @Override
+                        public AnnotationVisitor visitAnnotation(String annDesc, boolean visible) {
+                            checkAnnotation(prettifyMethodDescriptor(access, name, desc), annDesc);
+                            return super.visitAnnotation(desc, visible);
+                        }
+
+                        @Override
+                        public AnnotationVisitor visitParameterAnnotation(int parameter, String annDesc, boolean visible) {
+                            checkAnnotation(prettifyMethodDescriptor(access, name, desc), annDesc);
+                            return super.visitParameterAnnotation(parameter, desc, visible);
+                        }
+                    };
                     if ((access & ACC_ABSTRACT) != ACC_ABSTRACT) {
                         mv.visitCode();
-                        mv.visitMethodInsn(INVOKESTATIC, className, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", false);
+                        mv.visitMethodInsn(INVOKESTATIC, internalClassName, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", false);
                         mv.visitInsn(ATHROW);
                         mv.visitMaxs(1, 0);
                         mv.visitEnd();
                     }
+                    return mv;
                 } else {
-                    StringBuilder methodDesc = new StringBuilder();
-                    methodDesc.append(Modifier.toString(access)).append(" ");
-                    methodDesc.append(Type.getReturnType(desc).getClassName()).append(" ");
-                    methodDesc.append(name);
-                    methodDesc.append("(");
-                    Type[] argumentTypes = Type.getArgumentTypes(desc);
-                    for (int i = 0, argumentTypesLength = argumentTypes.length; i < argumentTypesLength; i++) {
-                        Type type = argumentTypes[i];
-                        methodDesc.append(type.getClassName());
-                        if (i < argumentTypesLength - 1) {
-                            methodDesc.append(", ");
-                        }
-                    }
-                    methodDesc.append(")");
+                    String methodDesc = prettifyMethodDescriptor(access, name, desc);
                     if (invalidReferencedTypes.size() == 1) {
                         throw new InvalidPublicAPIException(String.format("In %s, type %s is exposed in the public API but doesn't belong to the allowed packages.", methodDesc, invalidReferencedTypes.iterator().next()));
                     } else {
@@ -122,6 +138,24 @@ public class ApiStubGenerator {
             return null;
         }
 
+        private String prettifyMethodDescriptor(int access, String name, String desc) {
+            StringBuilder methodDesc = new StringBuilder();
+            methodDesc.append(Modifier.toString(access)).append(" ");
+            methodDesc.append(Type.getReturnType(desc).getClassName()).append(" ");
+            methodDesc.append(name);
+            methodDesc.append("(");
+            Type[] argumentTypes = Type.getArgumentTypes(desc);
+            for (int i = 0, argumentTypesLength = argumentTypes.length; i < argumentTypesLength; i++) {
+                Type type = argumentTypes[i];
+                methodDesc.append(type.getClassName());
+                if (i < argumentTypesLength - 1) {
+                    methodDesc.append(", ");
+                }
+            }
+            methodDesc.append(")");
+            return methodDesc.toString();
+        }
+
         private Set<String> invalidReferencedTypes(String signature) {
             if (allowedPackages.isEmpty()) {
                 return Collections.emptySet();
@@ -132,7 +166,7 @@ public class ApiStubGenerator {
                 @Override
                 public void visitClassType(String name) {
                     super.visitClassType(name);
-                    String className = name.replace('/', '.');
+                    String className = toClassName(name);
                     if (!validateType(className)) {
                         result.add(className);
                     }
