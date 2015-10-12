@@ -38,11 +38,11 @@ No runtime enforcement will be done--this is the job of the module system. Gradl
 
 ### Test cases
 
-- `api` specification should be optional
-- `api` specification may contain zero or more `exports` clauses
-- Multiple `exports` clauses should be preserved, i.e. not overwrite themselves
-- Duplicate `exports` clauses should raise an error
-- Package name argument to `exports` clause should be validated per the JLS
+- ~~`api` specification should be optional~~
+- ~~`api` specification may contain zero or more `exports` clauses~~
+- ~~Multiple `exports` clauses should be preserved, i.e. not overwrite themselves~~
+- ~~Duplicate `exports` clauses should raise an error~~
+- ~~Package name argument to `exports` clause should be validated per the JLS~~
 
 ## Story: Generate an API jar based on the API specification
 

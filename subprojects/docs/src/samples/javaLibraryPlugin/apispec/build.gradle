@@ -1,0 +1,17 @@
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+
+// START SNIPPET specify-library-api
+model {
+    components {
+        main(JvmLibrarySpec) {
+            api {
+                exports 'com.example.p1'
+                exports 'com.example.p2'
+            }
+        }
+    }
+}
+// END SNIPPET specify-library-api

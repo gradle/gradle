@@ -310,4 +310,16 @@
             in testing this incubating feature can check out the documentation of the <apilink class="org.gradle.platform.base.Variant"/>
             annotation.</para>
     </section>
+    <section>
+        <title>Enforcing API boundaries at compile time</title>
+        <para>Often a library will contain many types that—despite having <literal>public</literal> visibility—are intended for internal use only within that library. JDK 9 will introduce <emphasis>Jigsaw</emphasis>, the reference implementation of the <emphasis>Java Module System</emphasis>, which will provide both compile-time and run-time enforcement of <emphasis>strong encapsulation</emphasis> at the library (aka: <emphasis>module</emphasis>) level. This means that packages not intended for public consumption can remain private to the library, regardless whether the types within those packages have public visibility.</para>
+        <para>Gradle anticipates the arrival of JDK 9 and the Java Module System with an approach to specifying and enforcing strong encapsulation at compile-time. However, users need not wait for the arrival of JDK 9 to use it; this feature can be used on any version of the Java platform that Gradle supports.</para>
+        <section>
+            <title>Specifying exported packages</title>
+        </section>
+        <sample id="apiSpecification" dir="javaLibraryPlugin/apispec" title="Specifying library api">
+            <sourcefile file="build.gradle" snippet="specify-library-api"/>
+        </sample>
+        <para>When <literal>gradle assemble</literal> is run, both an <emphasis>api jar</emphasis> and <emphasis>implementation jar</emphasis> will be generated.</para>
+    </section>
 </chapter>

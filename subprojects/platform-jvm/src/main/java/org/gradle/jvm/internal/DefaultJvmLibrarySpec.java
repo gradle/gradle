@@ -17,6 +17,7 @@
 package org.gradle.jvm.internal;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.JvmResources;
 import org.gradle.platform.base.TransformationFileType;
@@ -29,6 +30,7 @@ import java.util.*;
 public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibrarySpecInternal {
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
     private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
+    private final ApiSpec api = new ApiSpec();
 
     public DefaultJvmLibrarySpec() {
         this.languageOutputs.add(JvmResources.class);
@@ -50,5 +52,9 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
 
     public void targetPlatform(String targetPlatform) {
         this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
+    }
+
+    void api(Action<? super ApiSpec> configureAction) {
+        configureAction.execute(api);
     }
 }
