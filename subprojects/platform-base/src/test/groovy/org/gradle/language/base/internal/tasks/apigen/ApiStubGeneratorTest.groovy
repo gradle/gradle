@@ -281,4 +281,82 @@ public @interface Ann {}
         stubbedAnnotations[0].annotationType() == stubbedAnn
     }
 
+
+    def "should not remove public field"() {
+        given:
+        def api = toApi 'A': '''public class A {
+    public String foo;
+}'''
+
+        when:
+        def clazz = api.classes.A
+        def stubbed = api.loadStub(clazz)
+
+        then:
+        hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PUBLIC
+        hasField(stubbed, 'foo', String)
+
+        when:
+        def o = stubbed.newInstance()
+        o.foo()
+
+        then:
+        thrown(UnsupportedOperationException)
+
+    }
+
+    def "should not remove protected field"() {
+        given:
+        def api = toApi 'A': '''public class A {
+    protected String foo;
+}'''
+
+        when:
+        def clazz = api.classes.A
+        def stubbed = api.loadStub(clazz)
+
+        then:
+        hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PROTECTED
+        hasField(stubbed, 'foo', String)
+
+        when:
+        stubbed.newInstance()
+
+        then:
+        thrown(UnsupportedOperationException)
+
+    }
+
+    def "should remove private field"() {
+        given:
+        def api = toApi 'A': '''public class A {
+    private String foo;
+}'''
+
+        when:
+        def clazz = api.classes.A
+        def stubbed = api.loadStub(clazz)
+
+        then:
+        hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PRIVATE
+        noSuchField(stubbed, 'foo', String)
+
+    }
+
+    def "should remove package private field"() {
+        given:
+        def api = toApi 'A': '''public class A {
+    String foo;
+}'''
+
+        when:
+        def clazz = api.classes.A
+        def stubbed = api.loadStub(clazz)
+
+        then:
+        hasField(clazz.clazz, 'foo', String).modifiers == 0
+        noSuchField(stubbed, 'foo', String)
+
+    }
+
 }

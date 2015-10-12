@@ -25,6 +25,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 import javax.tools.*
+import java.lang.reflect.Field
 import java.lang.reflect.Method
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
@@ -156,6 +157,30 @@ class ApiStubGeneratorTestSupport extends Specification {
             c.getDeclaredMethod(name, argTypes)
         } catch (NoSuchMethodException ex) {
             throw new AssertionError("Should have found method $name(${Arrays.toString(argTypes)}) on class $c")
+        }
+    }
+
+    protected void noSuchField(Class c, String name, Class type) {
+        try {
+            def f = c.getDeclaredField(name)
+            if (f.type != type) {
+                throw new AssertionError("Field $name was found on class $c but with a different type: ${f.type} instead of $type")
+            }
+        } catch (NoSuchFieldException ex) {
+            return
+        }
+        throw new AssertionError("Should not have found field $name of type $type on class $c")
+    }
+
+    protected Field hasField(Class c, String name, Class type) {
+        try {
+            def f = c.getDeclaredField(name)
+            if (f.type != type) {
+                throw new AssertionError("Field $name was found on class $c but with a different type: ${f.type} instead of $type")
+            }
+            f
+        } catch (NoSuchFieldException ex) {
+            throw new AssertionError("Should have found field $name on class $c")
         }
     }
 
