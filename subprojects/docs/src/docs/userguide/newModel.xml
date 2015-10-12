@@ -178,6 +178,7 @@
             will enforce semantics such as immutability when a node of the model is not the subject of a rule. Therefore, this example declares a property
             named <emphasis>name</emphasis> on the managed type <emphasis>Person</emphasis>. This property will only be writeable when the view is mutable,
             that is to say when the <emphasis>Person</emphasis> is the subject of a <literal>Rule</literal> (see below the explanation for rules).</para>
+
             <para>Properties can be of any scalar type. A scalar type is either:
                 <itemizedlist>
                     <listitem>a primitive type (e.g. <literal>int</literal>) or its boxed type (e.g <literal>Integer</literal>)</listitem>
@@ -296,6 +297,82 @@
                 Please see the <apilink class="org.gradle.model.Managed" /> annotation
                 for more information on creating managed model objects.</para>
         </section>
+
+        <section>
+            <title>Model element types</title>
+            <para>
+                There are particular types (language types) supported by the model space and can be generalised as follows:
+            </para>
+            <table>
+                <title>Type definitions</title>
+                <thead>
+                    <th>Type</th>
+                    <th>Definition</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Scalar</td>
+                        <td>
+                            A scalar type is considered to be one of the following:
+                            <itemizedlist>
+                                <listitem>a primitive type (e.g. <literal>int</literal>) or its boxed type (e.g <literal>Integer</literal>)</listitem>
+                                <listitem>a <literal>BigInteger</literal> or <literal>BigDecimal</literal></listitem>
+                                <listitem>a <literal>String</literal></listitem>
+                                <listitem>a <literal>File</literal></listitem>
+                                <listitem>an enumeration type</listitem>
+                            </itemizedlist>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Scalar Collection</td>
+                        <td>A java.util.List or java.util.Set containing one of the scalar types</td>
+                    </tr>
+                    <tr>
+                        <td>Managed type</td>
+                        <td>Any class which is a valid managed model (i.e.annotated with @<apilink class="org.gradle.model.Managed" />)</td>
+                    </tr>
+                    <tr>
+                        <td>Managed collection</td>
+                        <td>A <apilink class="org.gradle.model.ModelMap" /> or <apilink class="org.gradle.model.ModelSet" /></td>
+                    </tr>
+                </tbody>
+            </table>
+            <para>
+                There are various contexts in which these types can be used:
+            </para>
+                <table>
+                    <title>Model type support</title>
+                    <thead>
+                        <th>Context</th>
+                        <th>Supported types</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Creating top level model elements</td>
+                            <td>
+                                <itemizedlist>
+                                    <listitem>Any managed type</listitem>
+                                    <listitem><apilink class="org.gradle.language.base.FunctionalSourceSet"/> (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
+                                </itemizedlist>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Properties of managed model elements</td>
+                            <td>
+                                The properties (attributes) of a managed model elements may be one or more of the following:
+                                <itemizedlist>
+                                    <listitem>A managed type</listitem>
+                                    <listitem>A type which is annotated with @<apilink class="org.gradle.model.Unmanaged" /></listitem>
+                                    <listitem>A Scalar Collection</listitem>
+                                    <listitem>A Managed collection containing managed types</listitem>
+                                    <listitem>A Managed collection containing `org.gradle.language.base.FunctionalSourceSet`s (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
+                                </itemizedlist>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+        </section>
+
         <section>
             <title>References, binding and scopes</title>
             <para>
