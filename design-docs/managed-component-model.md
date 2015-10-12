@@ -443,6 +443,20 @@ For example:
     - Any T where T is not constructable. Should report which types are constructable.
 - Ensure a consistent error message for each failure, should describe the available T for each case.
 
+### Implementation
+Coverage for all of this is already in place. The validation logic will change to give contextual error messages. For example:
+When attempting to define a managed model element of type `SomeManagedType` with a property of type `List<T>` where `T` is not a
+scalar type the error message should read:
+
+```
+> A model element of type: 'SomeManagedType' can not be constructed.
+  It's property 'List propertyName' is not a valid scalar collection type.
+  A scalar collection type is a List<T> or Set<T> where 'T' is a scalar type (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)
+```
+
+`org.gradle.model.internal.core.DefaultNodeInitializerRegistry` and `org.gradle.model.internal.core.ModelTypeInitializationException` should be refactored to take the context of what is being constructed
+ (i.e. is it a property, is it a top level model element, if it is a property the property's name)
+
 ## Story: Allow `@Unmanaged` properties of type `List` or `Set`
 
 Allow a read-write property marked with `@Unmanaged` of a `@Managed` type to have type `List<T>` or `Set<T>` for any `T`.
