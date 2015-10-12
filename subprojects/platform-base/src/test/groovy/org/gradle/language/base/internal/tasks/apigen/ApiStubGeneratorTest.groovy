@@ -170,5 +170,35 @@ public class B extends A {
 
     }
 
+    void "static initializer is removed"() {
+        given:
+        def api = toApi(
+            'com.acme.A': '''package com.acme;
+
+public abstract class A {
+    public static void forceInit() {}
+
+    static {
+        if (true) {
+            throw new RuntimeException("This is a static initializer");
+        }
+    }
+}''')
+        when:
+        api.classes['com.acme.A'].clazz.forceInit()
+
+        then:
+        def ex = thrown(ExceptionInInitializerError)
+        ex.cause.message == 'This is a static initializer'
+
+        when:
+        def clazz = api.loadStub(api.classes['com.acme.A'])
+        clazz.forceInit()
+
+        then:
+        ex = thrown(UnsupportedOperationException)
+        ex.message =~ /You tried to call a method on an API class/
+    }
+
 
 }

@@ -62,6 +62,10 @@ public class ApiStubGenerator {
 
         @Override
         public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+            if ("<clinit>".equals(name)) {
+                // discard static initializers
+                return null;
+            }
             if ((access & ACC_PUBLIC) == ACC_PUBLIC || (access & ACC_PROTECTED) == ACC_PROTECTED) {
                 MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
                 if ((access & ACC_ABSTRACT) != ACC_ABSTRACT) {
