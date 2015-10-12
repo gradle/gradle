@@ -15,11 +15,15 @@
  */
 package org.gradle.language.base.internal.tasks.apigen;
 
+import com.google.common.collect.Sets;
 import org.objectweb.asm.*;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
 
+import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class ApiStubGenerator {
 
@@ -47,8 +51,7 @@ public class ApiStubGenerator {
 
 
         /**
-         * Generates an exception which is going to be thrown in each method. The reason it is in a separate method
-         * is because it reduces the bytecode size.
+         * Generates an exception which is going to be thrown in each method. The reason it is in a separate method is because it reduces the bytecode size.
          */
         private void generateUnsupportedOperationExceptionMethod() {
             MethodVisitor mv = cv.visitMethod(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", null, null);
@@ -78,45 +81,76 @@ public class ApiStubGenerator {
                 return null;
             }
             if ((access & ACC_PUBLIC) == ACC_PUBLIC || (access & ACC_PROTECTED) == ACC_PROTECTED) {
-                validateSignature(signature==null?desc : signature);
-                MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
-                if ((access & ACC_ABSTRACT) != ACC_ABSTRACT) {
-                    mv.visitCode();
-                    mv.visitMethodInsn(INVOKESTATIC, className, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", false);
-                    mv.visitInsn(ATHROW);
-                    mv.visitMaxs(1, 0);
-                    mv.visitEnd();
+                Set<String> invalidReferencedTypes = invalidReferencedTypes(signature == null ? desc : signature);
+                if (invalidReferencedTypes.isEmpty()) {
+                    MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
+                    if ((access & ACC_ABSTRACT) != ACC_ABSTRACT) {
+                        mv.visitCode();
+                        mv.visitMethodInsn(INVOKESTATIC, className, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", false);
+                        mv.visitInsn(ATHROW);
+                        mv.visitMaxs(1, 0);
+                        mv.visitEnd();
+                    }
+                } else {
+                    StringBuilder methodDesc = new StringBuilder();
+                    methodDesc.append(Modifier.toString(access)).append(" ");
+                    methodDesc.append(Type.getReturnType(desc).getClassName()).append(" ");
+                    methodDesc.append(name);
+                    methodDesc.append("(");
+                    Type[] argumentTypes = Type.getArgumentTypes(desc);
+                    for (int i = 0, argumentTypesLength = argumentTypes.length; i < argumentTypesLength; i++) {
+                        Type type = argumentTypes[i];
+                        methodDesc.append(type.getClassName());
+                        if (i < argumentTypesLength - 1) {
+                            methodDesc.append(", ");
+                        }
+                    }
+                    methodDesc.append(")");
+                    if (invalidReferencedTypes.size() == 1) {
+                        throw new InvalidPublicAPIException(String.format("In %s, type %s is exposed in the public API but doesn't belong to the allowed packages.", methodDesc, invalidReferencedTypes.iterator().next()));
+                    } else {
+                        StringBuilder sb = new StringBuilder("The following types are referenced in ");
+                        sb.append(methodDesc);
+                        sb.append(" but don't belong to the allowed packages:\n");
+                        for (String invalidReferencedType : invalidReferencedTypes) {
+                            sb.append("   - ").append(invalidReferencedType).append("\n");
+                        }
+                        throw new InvalidPublicAPIException(sb.toString());
+                    }
                 }
             }
             return null;
         }
 
-        private void validateSignature(String signature) {
+        private Set<String> invalidReferencedTypes(String signature) {
             if (allowedPackages.isEmpty()) {
-                return;
+                return Collections.emptySet();
             }
             SignatureReader sr = new SignatureReader(signature);
+            final Set<String> result = Sets.newLinkedHashSet();
             sr.accept(new SignatureVisitor(Opcodes.ASM5) {
                 @Override
                 public void visitClassType(String name) {
                     super.visitClassType(name);
-                    validateType(name);
+                    String className = name.replace('/', '.');
+                    if (!validateType(className)) {
+                        result.add(className);
+                    }
                 }
             });
-
+            return result;
         }
 
-        private void validateType(String name) {
+        private boolean validateType(String className) {
             if (allowedPackages.isEmpty()) {
-                return;
+                return true;
             }
 
-            String className = name.replace('/','.');
-            String pkg = className.indexOf(".")>0?className.substring(0, className.lastIndexOf(".")):"";
+            String pkg = className.indexOf(".") > 0 ? className.substring(0, className.lastIndexOf(".")) : "";
 
             if (pkg.startsWith("java")) {
                 // special case to treat all Java classes as belonging to the public API
-                return;
+                return true;
             }
             boolean allowed = false;
             for (String allowedPackage : allowedPackages) {
@@ -125,11 +159,8 @@ public class ApiStubGenerator {
                     break;
                 }
             }
-            if (!allowed) {
-                throw new InvalidPublicAPIException("Type "+className + " is exposed in the public API but doesn't belong to the allowed packages");
-            }
+            return allowed;
         }
-
 
 
         @Override
