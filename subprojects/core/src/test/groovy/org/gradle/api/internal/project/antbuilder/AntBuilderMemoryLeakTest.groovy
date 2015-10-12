@@ -54,7 +54,7 @@ class AntBuilderMemoryLeakTest extends Specification {
         builder.classLoaderCache.size() == 1
 
         when:
-        builder.classLoaderCache.shutdown()
+        builder.classLoaderCache.stop()
 
         then:
         builder.classLoaderCache.isEmpty()

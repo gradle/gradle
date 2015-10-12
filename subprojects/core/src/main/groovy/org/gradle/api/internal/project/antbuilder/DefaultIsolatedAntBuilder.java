@@ -253,9 +253,8 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             gradleLoader = referent.gradleLoader;
         }
 
-
         public void cleanup() {
-            classLoaderCache.shutdown();
+            classLoaderCache.stop();
 
             // clean classes from Gradle Core that leaked into the Ant classloader
             gradleToIsolatedLeakPrevention.dispose(gradleLoader);

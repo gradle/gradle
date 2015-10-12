@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -23,11 +22,14 @@ import org.gradle.api.internal.classloading.MemoryLeakPrevention;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A cache which caches classloaders based on their classpath. This cache provides bridging with the classloader cleanup mechanism which makes it more complex than it should: - class loaders can be
@@ -38,12 +40,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * cleared before we have a chance to clean it up. So we use a PhantomReference to the cached class loader, in addition to the soft reference, to finalize the class loader before it gets kicked off
  * the cache.
  */
-public class ClassPathToClassLoaderCache {
+public class ClassPathToClassLoaderCache implements Stoppable {
     private final static Logger LOG = Logging.getLogger(ClassPathToClassLoaderCache.class);
 
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private final Map<ClassPath, CacheEntry> cacheEntries = Maps.newConcurrentMap();
     private final FinalizerThread finalizerThread;
+
+    // Protects the following fields
+    private final Lock lock = new ReentrantLock();
+    private final Map<ClassPath, CacheEntry> cacheEntries = Maps.newConcurrentMap();
     private final Set<CachedClassLoader> inUseClassLoaders = Sets.newHashSet();
 
     public ClassPathToClassLoaderCache() {
@@ -51,12 +55,13 @@ public class ClassPathToClassLoaderCache {
         this.finalizerThread.start();
     }
 
-    static String toCacheKey(ClassPath classPath) {
-        return Joiner.on(":").join(classPath.getAsURIs());
-    }
-
-    public void shutdown() {
+    public void stop() {
         finalizerThread.exit();
+        try {
+            finalizerThread.join();
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     public int size() {
@@ -91,60 +96,45 @@ public class ClassPathToClassLoaderCache {
                                       MemoryLeakPrevention antToGradleLeakPrevention,
                                       Factory<? extends ClassLoader> factory,
                                       Action<? super CachedClassLoader> action) {
-        lock.readLock().lock();
-        CacheEntry cacheEntry = cacheEntries.get(libClasspath);
-        CachedClassLoader cachedClassLoader = maybeGet(cacheEntry);
-        if (cachedClassLoader == null) {
-            lock.readLock().unlock();
-            lock.writeLock().lock();
-            try {
-                cacheEntry = cacheEntries.get(libClasspath);
-                cachedClassLoader = maybeGet(cacheEntry);
-                if (cachedClassLoader == null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(String.format("Classloader cache miss for classpath : %s. Creating classloader.", libClasspath.getAsURIs()));
-                    }
-                    ClassLoader classLoader = factory.create();
-                    cachedClassLoader = new CachedClassLoader(libClasspath, classLoader);
-                    cacheEntry = new CacheEntry(libClasspath, cachedClassLoader);
-                    Cleanup cleanup = new Cleanup(libClasspath, cachedClassLoader, finalizerThread.getReferenceQueue(), classLoader, gradleToIsolatedLeakPrevention, antToGradleLeakPrevention);
-                    finalizerThread.putCleanup(libClasspath, cleanup);
-                    cacheEntries.put(libClasspath, cacheEntry);
+        CachedClassLoader cachedClassLoader;
+        lock.lock();
+        try {
+            CacheEntry cacheEntry = cacheEntries.get(libClasspath);
+            cachedClassLoader = maybeGet(cacheEntry);
+            if (cachedClassLoader == null) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format("Classloader cache miss for classpath : %s. Creating classloader.", libClasspath.getAsURIs()));
                 }
-                lock.readLock().lock();
-            } finally {
-                lock.writeLock().unlock();
+                // Lock is held while creating ClassLoader - nothing else can happen while this is running
+                ClassLoader classLoader = factory.create();
+                cachedClassLoader = new CachedClassLoader(libClasspath, classLoader);
+                cacheEntry = new CacheEntry(libClasspath, cachedClassLoader);
+                Cleanup cleanup = new Cleanup(libClasspath, cachedClassLoader, finalizerThread.getReferenceQueue(), classLoader, gradleToIsolatedLeakPrevention, antToGradleLeakPrevention);
+                finalizerThread.putCleanup(libClasspath, cleanup);
+                cacheEntries.put(libClasspath, cacheEntry);
+            } else {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(String.format("Classloader found in cache: %s", libClasspath.getAsURIs()));
+                }
             }
-        } else {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Classloader found in cache: %s", libClasspath.getAsURIs()));
-            }
+
+            // in order to make sure that the CacheEntry is not collected
+            // while the cached class loader is still in use, we need to keep a strong reference onto
+            // the cached class loader as long as the action is executed
+            inUseClassLoaders.add(cachedClassLoader);
+        } finally {
+            lock.unlock();
         }
-
-        lock.readLock().unlock();
-
-        // action can safely be done outside the locking section
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Consumer %s uses cached classloader: %s", action.toString(), libClasspath.getAsURIs()));
-        }
-
-        // in order to make sure that the CacheEntry is not collected
-        // while the cached class loader is still in use, we need to keep a strong reference onto
-        // the cached class loader as long as the action is executed
-        lock.writeLock().lock();
-        inUseClassLoaders.add(cachedClassLoader);
-        lock.writeLock().unlock();
 
         try {
             action.execute(cachedClassLoader);
         } finally {
-            lock.writeLock().lock();
-            inUseClassLoaders.remove(cachedClassLoader);
-            lock.writeLock().unlock();
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("End of usage of cached classloader: %s by consumer %s", libClasspath.getAsURIs(), action.toString()));
+            lock.lock();
+            try {
+                inUseClassLoaders.remove(cachedClassLoader);
+            } finally {
+                lock.unlock();
+            }
         }
     }
 

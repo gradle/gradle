@@ -23,19 +23,21 @@ import org.gradle.internal.classpath.ClassPath;
 
 import java.lang.ref.ReferenceQueue;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
 
 class FinalizerThread extends Thread {
     private final static Logger LOG = Logging.getLogger(MemoryLeakPrevention.class);
 
-    private final ReentrantReadWriteLock lock;
-    private final Map<ClassPath, Cleanup> cleanups;
     private final ReferenceQueue<CachedClassLoader> referenceQueue;
+    private final AtomicBoolean stopped = new AtomicBoolean();
+
+    // Protects the following fields
+    private final Lock lock;
+    private final Map<ClassPath, Cleanup> cleanups;
     private final Map<ClassPath, CacheEntry> cacheEntries;
 
-    private boolean stopped;
-
-    public FinalizerThread(Map<ClassPath, CacheEntry> cacheEntries, ReentrantReadWriteLock lock) {
+    public FinalizerThread(Map<ClassPath, CacheEntry> cacheEntries, Lock lock) {
         this.setName("Classloader cache reference queue poller");
         this.setDaemon(true);
         this.referenceQueue = new ReferenceQueue<CachedClassLoader>();
@@ -47,7 +49,7 @@ class FinalizerThread extends Thread {
     public void run() {
 
         try {
-            while (!stopped) {
+            while (!stopped.get()) {
                 Cleanup entry = (Cleanup) referenceQueue.remove();
                 ClassPath key = entry.getKey();
                 removeCacheEntry(key, entry);
@@ -61,12 +63,12 @@ class FinalizerThread extends Thread {
         if (LOG.isDebugEnabled()) {
             LOG.debug(String.format("Removing classloader from cache, classpath = %s", key.getAsURIs()));
         }
-        lock.writeLock().lock();
+        lock.lock();
         try {
             cacheEntries.remove(key);
             cleanups.remove(key);
         } finally {
-            lock.writeLock().unlock();
+            lock.unlock();
         }
         try {
             entry.clear();
@@ -81,17 +83,17 @@ class FinalizerThread extends Thread {
     }
 
     public void exit() {
-        lock.writeLock().lock();
+        stopped.set(true);
+        interrupt();
+        lock.lock();
         try {
-            stopped = true;
-            interrupt();
             while (!cleanups.isEmpty()) {
                 Map.Entry<ClassPath, Cleanup> entry = cleanups.entrySet().iterator().next();
                 removeCacheEntry(entry.getKey(), entry.getValue());
             }
             LOG.debug("Completed shutdown");
         } finally {
-            lock.writeLock().unlock();
+            lock.unlock();
         }
     }
 
