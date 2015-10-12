@@ -19,6 +19,7 @@ package org.gradle.language.base.internal.tasks.apigen
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.objectweb.asm.Opcodes
+import spock.lang.Unroll
 
 import java.lang.reflect.Modifier
 
@@ -198,6 +199,31 @@ public abstract class A {
         then:
         ex = thrown(UnsupportedOperationException)
         ex.message =~ /You tried to call a method on an API class/
+    }
+
+    @Unroll
+    void "constant initial value for #type is #expected"() {
+        given:
+        def api = toApi(
+            'com.acme.A': """package com.acme;
+
+public abstract class A {
+    public static $type CONSTANT = $value;
+}""")
+        when:
+        def stubbed = api.loadStub(api.classes['com.acme.A'])
+        def stubbedValue = stubbed.CONSTANT
+
+        then:
+        stubbedValue == expected
+
+        where:
+        type      | value          | expected
+        'String'  | '"foo"'        | null
+        'String'  | 'null'         | null
+        'int'     | 123            | 0
+        'Class'   | 'String.class' | null
+        'boolean' | 'true'         | false
     }
 
 

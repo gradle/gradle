@@ -181,9 +181,7 @@ of the source classes that belong to those packages.A stub class contains only t
     - source location annotations
     - package private classes
 - Trying to call a method of the API jar at runtime throws `UnsupportedOperationException`
-- Public constants of primitive type, `Class` or `String` must have the same value in stubs and implementation (because those are subject to inlining by
-the Java compiler).
-- Other public constant types should be initialized to `null` (do not use `UnsupportedOperationException` here because it would imply the
+- Public constant types should be initialized to `null` or their default JVM value if of a primitive type (do not use `UnsupportedOperationException` here because it would imply the
 creation of a static initializer that we want to avoid).
 - Java bytecode compatibility level of the classes must be the same as the original class compatibility level
 - Throws an error if a public member references a class which is not part of the public API. For example:
