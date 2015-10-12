@@ -57,12 +57,17 @@ class ApiStubGeneratorTestSupport extends Specification {
         }
     }
 
-    @TupleConstructor
     @CompileStatic
     public static class ApiContainer {
         private final ApiClassLoader apiClassLoader = new ApiClassLoader()
-        private final ApiStubGenerator stubgen = new ApiStubGenerator()
-        Map<String, GeneratedClass> classes = [:]
+        private final ApiStubGenerator stubgen
+
+        public final Map<String, GeneratedClass> classes
+
+        public ApiContainer(List<String> allowedPackages, Map<String, GeneratedClass> classes) {
+            this.stubgen = new ApiStubGenerator(allowedPackages)
+            this.classes = classes
+        }
 
         protected Class<?> loadStub(GeneratedClass clazz) {
             apiClassLoader.loadClassFromBytes(stubgen.convertToApi(clazz.bytes))
@@ -91,7 +96,19 @@ class ApiStubGeneratorTestSupport extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    protected ApiContainer toApi(String targetVersion = '1.6', Map<String, String> sources) {
+    protected ApiContainer toApi(Map<String, String> sources) {
+        toApi('1.6', [], sources)
+    }
+
+    protected ApiContainer toApi(String targetVersion, Map<String, String> sources) {
+        toApi(targetVersion, [], sources)
+    }
+
+    protected ApiContainer toApi(List<String> packages, Map<String, String> sources) {
+        toApi('1.6', packages, sources)
+    }
+
+    protected ApiContainer toApi(String targetVersion, List<String> allowedPackages,  Map<String, String> sources) {
         def dir = temporaryFolder.createDir('out')
         def fileManager = compiler.getStandardFileManager(null, null, null)
         def diagnostics = new DiagnosticCollector<JavaFileObject>()
@@ -106,7 +123,7 @@ class ApiStubGeneratorTestSupport extends Specification {
         if (task.call()) {
             def classLoader = new URLClassLoader([dir.toURI().toURL()] as URL[], ClassLoader.systemClassLoader.parent)
             // Load the class from the classloader by name....
-            return new ApiContainer(sources.collectEntries { name, src ->
+            return new ApiContainer(allowedPackages, sources.collectEntries { name, src ->
                 [name, new GeneratedClass(new File(dir, toFileName(name, true)).bytes, classLoader.loadClass(name))]
             })
         }

@@ -15,6 +15,7 @@
  */
 package org.gradle.language.base.internal.tasks;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.FileCopyAction;
@@ -39,7 +40,7 @@ public class ApiCreatorTask extends AbstractCopyTask {
 
     @Override
     protected CopyAction createCopyAction() {
-        return new ApiFilteringAction(getFileResolver(), new ApiStubGenerator());
+        return new ApiFilteringAction(getFileResolver(), new ApiStubGenerator(ImmutableList.copyOf(apiPackages)));
     }
 
     private static final class ApiFilteringAction extends FileCopyAction {

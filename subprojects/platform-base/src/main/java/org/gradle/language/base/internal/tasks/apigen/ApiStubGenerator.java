@@ -17,7 +17,16 @@ package org.gradle.language.base.internal.tasks.apigen;
 
 import org.objectweb.asm.*;
 
+import java.util.List;
+
 public class ApiStubGenerator {
+
+    private final List<String> allowedPackages;
+
+    public ApiStubGenerator(List<String> allowedPackages) {
+        this.allowedPackages = allowedPackages;
+    }
+
     public byte[] convertToApi(byte[] clazz) {
         ClassReader cr = new ClassReader(clazz);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
@@ -25,7 +34,7 @@ public class ApiStubGenerator {
         return cw.toByteArray();
     }
 
-    private static class PublicAPIAdapter extends ClassVisitor implements Opcodes {
+    private class PublicAPIAdapter extends ClassVisitor implements Opcodes {
 
         public static final String UOE_METHOD = "$unsupportedOpEx";
         private String className;
@@ -67,6 +76,7 @@ public class ApiStubGenerator {
                 return null;
             }
             if ((access & ACC_PUBLIC) == ACC_PUBLIC || (access & ACC_PROTECTED) == ACC_PROTECTED) {
+                validateSignature(desc);
                 MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
                 if ((access & ACC_ABSTRACT) != ACC_ABSTRACT) {
                     mv.visitCode();
@@ -77,6 +87,52 @@ public class ApiStubGenerator {
                 }
             }
             return null;
+        }
+
+        private void validateSignature(String desc) {
+            if (allowedPackages.isEmpty()) {
+                return;
+            }
+            Type returnType = Type.getReturnType(desc);
+            validateType(returnType);
+            Type[] argumentTypes = Type.getArgumentTypes(desc);
+            for (Type argumentType : argumentTypes) {
+                validateType(argumentType);
+            }
+        }
+
+        private void validateType(Type type) {
+            if (allowedPackages.isEmpty()) {
+                return;
+            }
+            String className = type.getClassName();
+            if (isPrimitiveType(className)) {
+                return;
+            }
+            if (type.getElementType()!=null) {
+                validateType(type.getElementType());
+                return;
+            }
+            if (className.startsWith("java")) {
+                // special case to treat all Java classes as belonging to the public API
+                return;
+            }
+            boolean allowed = false;
+            for (String allowedPackage : allowedPackages) {
+                if (className.startsWith(allowedPackage+".")) {
+                    allowed = true;
+                    break;
+                }
+            }
+            if (!allowed) {
+                throw new InvalidPublicAPIException("Type "+className + " is exposed in the public API but doesn't belong to the allowed packages");
+            }
+        }
+
+        private boolean isPrimitiveType(String className) {
+            return "void".equals(className) || "byte".equals(className) || "short".equals(className)
+                || "int".equals(className) || "boolean".equals(className) || "long".equals(className)
+                || "char".equals(className) || "float".equals(className) || "double".equals(className);
         }
 
         @Override
