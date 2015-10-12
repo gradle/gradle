@@ -58,7 +58,7 @@ public class MemoryLeakPrevention {
         }
 
         // prepare is called before the classloader is given for consumption
-        public void prepare(ClassLoader leakingLoader, ClassLoader... affectedLoaders) throws Exception {
+        public void prepare(ClassLoader leakingLoader) throws Exception {
         }
 
         // cleanup is called before the classloader is disposed
@@ -82,11 +82,11 @@ public class MemoryLeakPrevention {
         });
     }
 
-    public void prepare(final ClassLoader... affectedLoaders) {
+    public void prepare() {
         doWithClassPath(new ErroringAction<Strategy>() {
             @Override
             protected void doExecute(Strategy strategy) throws Exception {
-                strategy.prepare(leakingLoader, affectedLoaders);
+                strategy.prepare(leakingLoader);
             }
         });
     }

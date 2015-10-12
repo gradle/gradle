@@ -72,7 +72,7 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
     }
 
     @Override
-    public void prepare(ClassLoader leakingLoader, ClassLoader... affectedLoaders) throws Exception {
+    public void prepare(ClassLoader leakingLoader) throws Exception {
         Class<?> groovySystem = leakingLoader.loadClass("groovy.lang.GroovySystem");
         try {
             Method getVersion = groovySystem.getDeclaredMethod("getVersion");

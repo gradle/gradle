@@ -26,6 +26,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -98,7 +99,6 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         if (toolsJar != null) {
             antClasspath.add(toolsJar);
         }
-
 
         ClassLoader antLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath));
         FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().getClassLoader());
@@ -185,7 +185,6 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             });
     }
 
-
     private Object newInstanceOf(String className) {
         // we must use a String literal here, otherwise using things like Foo.class.name will trigger unnecessary
         // loading of classes in the classloader of the DefaultIsolatedAntBuilder, which is not what we want.
@@ -193,7 +192,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             return gradleLoader.loadClass(className).newInstance();
         } catch (Exception e) {
             // should never happen
-            throw new RuntimeException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -218,7 +217,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             removeBuildListener.invoke(project, listeners.get(0));
             addBuildListener.invoke(project, antLogger);
         } catch (Exception ex) {
-            // when we did this in Groovy, we weren't concerned by non existent throwables ;)
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
     }
 
@@ -233,9 +232,8 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             removeBuildListener.invoke(project, antLogger);
             antBuilder.getClass().getDeclaredMethod("close").invoke(antBuilder);
         } catch (Exception ex) {
-            // when we did this in Groovy, we weren't concerned by non existent throwables ;)
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
-
     }
 
     private static class Finalizer extends PhantomReference<DefaultIsolatedAntBuilder> {
