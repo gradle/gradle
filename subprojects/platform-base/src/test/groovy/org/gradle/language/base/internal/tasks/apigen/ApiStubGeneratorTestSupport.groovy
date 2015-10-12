@@ -23,7 +23,6 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import javax.tools.*
 import java.lang.reflect.Method
@@ -141,58 +140,6 @@ class ApiStubGeneratorTestSupport extends Specification {
         } catch (NoSuchMethodException ex) {
             throw new AssertionError("Should have found method $name(${Arrays.toString(argTypes)}) on class $c")
         }
-    }
-
-    @Unroll
-    def "should create implementation class for #fqn"() {
-        given:
-        def clazz = toClass(fqn, src).clazz
-
-        expect:
-        clazz.name == fqn
-
-        where:
-        fqn          | src
-        'A'          | 'public class A {}'
-        'com.acme.A' | '''package com.acme;
-
-public class A {}
-'''
-        'com.acme.B' | '''package com.acme;
-
-public class B {
-    String getName() { return "foo"; }
-}
-'''
-    }
-
-
-    def "should compile classes together"() {
-        given:
-        def api = toApi(
-            ['com.acme.A': '''package com.acme;
-public class A extends B {}
-''',
-             'com.acme.B': '''package com.acme;
-public class B {
-    public String getId() { return "id"; }
-}
-''']
-        )
-
-        when:
-        def a = api.classes['com.acme.A'].clazz
-        def b = api.classes['com.acme.B'].clazz
-
-        then:
-        a.name == 'com.acme.A'
-        b.name == 'com.acme.B'
-
-        when:
-        def aa = a.newInstance()
-
-        then:
-        aa.id == 'id'
     }
 
 }
