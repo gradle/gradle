@@ -276,4 +276,140 @@ public interface AInternal {}
         ex.message == "'com.acme.A' declares interface 'com.acme.internal.AInternal' which package doesn't belong to the allowed packages."
     }
 
+    void "cannot have a superclass generic argument type which is not in the public API"() {
+        given:
+        def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
+import com.acme.internal.AImpl;
+import java.util.ArrayList;
+
+public class A extends ArrayList<AImpl> {
+}""",
+                                       'com.acme.internal.AImpl': '''package com.acme.internal;
+public class AImpl {}
+
+'''])
+
+        when:
+        api.loadStub(api.classes['com.acme.A'])
+
+        then:
+        def ex = thrown(InvalidPublicAPIException)
+        ex.message == "'com.acme.A' references disallowed API type 'com.acme.internal.AImpl' in superclass or interfaces."
+    }
+
+    void "cannot have an interface generic argument type which is not in the public API"() {
+        given:
+        def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
+import com.acme.internal.AImpl;
+import java.util.List;
+
+public interface A extends List<AImpl> {
+}""",
+                                       'com.acme.internal.AImpl': '''package com.acme.internal;
+public class AImpl {}
+
+'''])
+
+        when:
+        api.loadStub(api.classes['com.acme.A'])
+
+        then:
+        def ex = thrown(InvalidPublicAPIException)
+        ex.message == "'com.acme.A' references disallowed API type 'com.acme.internal.AImpl' in superclass or interfaces."
+    }
+
+    void "cannot have type in generic class signature which is not in the public API"() {
+        given:
+        def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
+import com.acme.internal.AImpl;
+import java.util.List;
+
+public interface A<T extends AImpl> extends List<T> {
+}""",
+                                       'com.acme.internal.AImpl': '''package com.acme.internal;
+public class AImpl {}
+
+'''])
+
+        when:
+        api.loadStub(api.classes['com.acme.A'])
+
+        then:
+        def ex = thrown(InvalidPublicAPIException)
+        ex.message == "'com.acme.A' references disallowed API type 'com.acme.internal.AImpl' in superclass or interfaces."
+    }
+
+    void "cannot have type in generic method return type signature which is not in the public API"() {
+        given:
+        def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
+import com.acme.internal.AImpl;
+import java.util.List;
+
+public interface A {
+    List<? super AImpl> getImpls();
+}""",
+                                       'com.acme.internal.AImpl': '''package com.acme.internal;
+public class AImpl {}
+
+'''])
+
+        when:
+        api.loadStub(api.classes['com.acme.A'])
+
+        then:
+        def ex = thrown(InvalidPublicAPIException)
+        ex.message == "In public abstract java.util.List getImpls(), type com.acme.internal.AImpl is exposed in the public API but doesn't belong to the allowed packages."
+    }
+
+    void "cannot have type in generic field type signature which is not in the public API"() {
+        given:
+        def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
+import com.acme.internal.AImpl;
+import java.util.List;
+
+public class A {
+    public List<? super AImpl> impls;
+}""",
+                                       'com.acme.internal.AImpl': '''package com.acme.internal;
+public class AImpl {}
+
+'''])
+
+        when:
+        api.loadStub(api.classes['com.acme.A'])
+
+        then:
+        def ex = thrown(InvalidPublicAPIException)
+        ex.message == "Field 'public java.util.List impls' references disallowed API type 'com.acme.internal.AImpl'"
+    }
+
+    void "cannot have multiple types in generic field type signature which is not in the public API"() {
+        given:
+        def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
+import com.acme.internal.AImpl;
+import com.acme.internal.AImpl2;
+import java.util.Map;
+
+public class A {
+    public Map<? extends AImpl, ? super AImpl2> map;
+}""",
+                                       'com.acme.internal.AImpl': '''package com.acme.internal;
+public class AImpl {}
+
+''',
+                                       'com.acme.internal.AImpl2': '''package com.acme.internal;
+public class AImpl2 {}
+
+'''])
+
+        when:
+        api.loadStub(api.classes['com.acme.A'])
+
+        then:
+        def ex = thrown(InvalidPublicAPIException)
+        ex.message == """The following types are referenced in public java.util.Map mapbut don't belong to the allowed packages:
+   - com.acme.internal.AImpl
+   - com.acme.internal.AImpl2
+"""
+    }
 }

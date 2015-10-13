@@ -68,8 +68,29 @@ public class ApiStubGenerator {
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
             internalClassName = name;
+            validateSuperTypes(name, signature, superName, interfaces);
+            if ((access & ACC_INTERFACE) == 0) {
+                generateUnsupportedOperationExceptionMethod();
+            }
+        }
+
+        private void validateSuperTypes(String name, String signature, String superName, String[] interfaces) {
             if (!validateType(toClassName(superName))) {
                 throw new InvalidPublicAPIException(String.format("'%s' extends '%s' which package doesn't belong to the allowed packages.", toClassName(name), toClassName(superName)));
+            }
+            Set<String> invalidReferencedTypes = invalidReferencedTypes(signature);
+            if (!invalidReferencedTypes.isEmpty()) {
+                if (invalidReferencedTypes.size() == 1) {
+                    throw new InvalidPublicAPIException(String.format("'%s' references disallowed API type '%s' in superclass or interfaces.", toClassName(name), invalidReferencedTypes.iterator().next()));
+                } else {
+                    StringBuilder sb = new StringBuilder("The following types are referenced in ");
+                    sb.append(toClassName(name));
+                    sb.append(" superclass but don't belong to the allowed packages:\n");
+                    for (String invalidReferencedType : invalidReferencedTypes) {
+                        sb.append("   - ").append(invalidReferencedType).append("\n");
+                    }
+                    throw new InvalidPublicAPIException(sb.toString());
+                }
             }
             if (interfaces != null) {
                 for (String intf : interfaces) {
@@ -77,9 +98,6 @@ public class ApiStubGenerator {
                         throw new InvalidPublicAPIException(String.format("'%s' declares interface '%s' which package doesn't belong to the allowed packages.", toClassName(name), toClassName(intf)));
                     }
                 }
-            }
-            if ((access & ACC_INTERFACE) == 0) {
-                generateUnsupportedOperationExceptionMethod();
             }
         }
 
@@ -171,6 +189,9 @@ public class ApiStubGenerator {
         }
 
         private Set<String> invalidReferencedTypes(String signature) {
+            if (signature==null) {
+                return Collections.emptySet();
+            }
             if (allowedPackages.isEmpty()) {
                 return Collections.emptySet();
             }
@@ -212,12 +233,27 @@ public class ApiStubGenerator {
 
 
         @Override
-        public FieldVisitor visitField(final int access, final String name, final String desc, String signature, Object value) {
+        public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, Object value) {
             if ((access & ACC_PUBLIC) == ACC_PUBLIC || (access & ACC_PROTECTED) == ACC_PROTECTED) {
+                final String fieldDescriptor = prettifyFieldDescriptor(access, name, desc);
+                Set<String> invalidReferencedTypes = invalidReferencedTypes(signature);
+                if (!invalidReferencedTypes.isEmpty()) {
+                    if (invalidReferencedTypes.size() == 1) {
+                        throw new InvalidPublicAPIException(String.format("Field '%s' references disallowed API type '%s'", fieldDescriptor, invalidReferencedTypes.iterator().next()));
+                    } else {
+                        StringBuilder sb = new StringBuilder("The following types are referenced in ");
+                        sb.append(fieldDescriptor);
+                        sb.append("but don't belong to the allowed packages:\n");
+                        for (String invalidReferencedType : invalidReferencedTypes) {
+                            sb.append("   - ").append(invalidReferencedType).append("\n");
+                        }
+                        throw new InvalidPublicAPIException(sb.toString());
+                    }
+                }
                 return new FieldVisitor(Opcodes.ASM5, cv.visitField(access, name, desc, signature, value)) {
                     @Override
                     public AnnotationVisitor visitAnnotation(String annotationDesc, boolean visible) {
-                        checkAnnotation(prettifyFieldDescriptor(access, name, desc), annotationDesc);
+                        checkAnnotation(fieldDescriptor, annotationDesc);
                         return super.visitAnnotation(annotationDesc, visible);
                     }
                 };
