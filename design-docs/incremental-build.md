@@ -29,7 +29,6 @@ metadata used for directory scanning to "visiting" the file tree so that metadat
 - Test that correct implementation is chosen for JDK platform and file encoding
 - Test that a file walker sees a snapshot of tree even if the tree is modified after walking has started.
 - Generate file tree and walk with JDK7+ file walker and non-nio2 file walker. Attributes and files should be the same for both.
-- Test that the visited files is the same as inputs.getAsFileTrees().getFiles() when snapshotting.
 - Performance gains will be measured from existing performance tests.
 - Expect existing test coverage will cover behavior of input/output snapshotting and file collection operations.
 
