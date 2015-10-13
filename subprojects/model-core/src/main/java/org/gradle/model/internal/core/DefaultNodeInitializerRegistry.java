@@ -18,6 +18,7 @@ package org.gradle.model.internal.core;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
@@ -47,7 +48,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         this.schemaStore = schemaStore;
         scalarCollectionNodeInitializerExtractionStrategy = new ScalarCollectionNodeInitializerExtractionStrategy();
         managedSetNodeInitializerExtractionStrategy = new ManagedSetNodeInitializerExtractionStrategy();
-        modelMapNodeInitializerExtractionStrategy = new ModelMapNodeInitializerExtractionStrategy();
+        modelMapNodeInitializerExtractionStrategy = new ModelMapNodeInitializerExtractionStrategy(this);
         modelSetNodeInitializerExtractionStrategy = new ModelSetNodeInitializerExtractionStrategy();
         this.allStrategies = Lists.newArrayList(
             modelSetNodeInitializerExtractionStrategy,
@@ -59,18 +60,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         additionalStrategies = Lists.newArrayList();
     }
 
-
-    private <T> NodeInitializer getNodeInitializer(ModelSchema<T> schema) {
-        for (NodeInitializerExtractionStrategy extractor : allStrategies) {
-            NodeInitializer nodeInitializer = extractor.extractNodeInitializer(schema);
-            if (nodeInitializer != null) {
-                return nodeInitializer;
-            }
-        }
-        throw canNotConstructTypeException(schema.getType());
-    }
-
-    public <T> ModelTypeInitializationException canNotConstructTypeException(ModelType<T> type) {
+    public ModelTypeInitializationException canNotConstructTypeException(NodeInitializerContext context) {
         Iterable<ModelType<?>> scalars = Iterables.concat(ScalarTypes.TYPES, ScalarTypes.NON_FINAL_TYPES);
         Iterable<ModelType<?>> managedCollectionTypes = Iterables.concat(
             modelMapNodeInitializerExtractionStrategy.supportedTypes(),
@@ -87,12 +77,28 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         for (NodeInitializerExtractionStrategy extractor : additionalStrategies) {
             Iterables.addAll(constructableTypes, extractor.supportedTypes());
         }
-        return new ModelTypeInitializationException(type, scalars, scalarCollectionNodeInitializerExtractionStrategy.supportedTypes(), managedCollectionTypes, constructableTypes);
+        return new ModelTypeInitializationException(context, schemaStore, scalars, scalarCollectionNodeInitializerExtractionStrategy.supportedTypes(), managedCollectionTypes, constructableTypes);
     }
 
     @Override
     public NodeInitializer getNodeInitializer(NodeInitializerContext nodeInitializerContext) {
-        return getNodeInitializer(schemaStore.getSchema(nodeInitializerContext.getModelType()));
+        NodeInitializer nodeInitializer = findNodeInitializer(nodeInitializerContext.getModelType());
+        if (nodeInitializer != null) {
+            return nodeInitializer;
+        }
+        throw canNotConstructTypeException(nodeInitializerContext);
+    }
+
+    @Nullable
+    public NodeInitializer findNodeInitializer(ModelType<?> type) {
+        ModelSchema<?> schema = schemaStore.getSchema(type);
+        for (NodeInitializerExtractionStrategy extractor : allStrategies) {
+            NodeInitializer nodeInitializer = extractor.extractNodeInitializer(schema);
+            if (nodeInitializer != null) {
+                return nodeInitializer;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -104,5 +110,13 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     public void registerStrategy(NodeInitializerExtractionStrategy strategy) {
         allStrategies.add(0, strategy);
         additionalStrategies.add(0, strategy);
+    }
+
+    @Override
+    public <T> boolean hasNodeInitializer(ModelType<T> type) {
+        if (null != findNodeInitializer(type)) {
+            return true;
+        }
+        return false;
     }
 }

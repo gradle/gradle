@@ -71,19 +71,20 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
         }
         ModelType<P> propertyType = property.getType();
         ModelSchema<P> propertySchema = schemaStore.getSchema(propertyType);
+
         validateProperty(propertySchema, property, nodeInitializerRegistry);
 
         ModelRuleDescriptor descriptor = modelNode.getDescriptor();
         ModelPath childPath = modelNode.getPath().child(property.getName());
         if (propertySchema instanceof ManagedImplModelSchema) {
             if (!property.isWritable()) {
-                ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(property.getType(), property.getName())))
+                ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(), property, schema.getType())))
                     .descriptor(descriptor)
                     .build();
                 modelNode.addLink(creator);
             } else {
                 if (propertySchema instanceof ScalarCollectionSchema) {
-                    ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(property.getType(), property.getName())))
+                    ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(), property, schema.getType())))
                         .descriptor(descriptor)
                         .build();
                     modelNode.addLink(creator);
@@ -100,8 +101,7 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
             ModelCreators.Builder creatorBuilder;
             if (shouldHaveANodeInitializer(property, propertySchema)) {
-                creatorBuilder = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(property.getType(), property.getName())));
-            } else {
+                creatorBuilder = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertyType, property, schema.getType())));            } else {
                 creatorBuilder = ModelCreators.of(childPath);
             }
             creatorBuilder
@@ -117,7 +117,7 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
                 if (propertySchema instanceof ModelCollectionSchema && !(propertySchema instanceof ScalarCollectionSchema)) {
                     ModelCollectionSchema<P, ?> propertyCollectionsSchema = (ModelCollectionSchema<P, ?>) propertySchema;
                     ModelType<?> elementType = propertyCollectionsSchema.getElementType();
-                    nodeInitializerRegistry.ensureHasInitializer(NodeInitializerContext.forProperty(elementType, property.getName()));
+                    nodeInitializerRegistry.ensureHasInitializer(NodeInitializerContext.forProperty(elementType, property, schema.getType()));
                 }
                 if (property.isDeclaredAsHavingUnmanagedType()) {
                     throw new UnmanagedPropertyMissingSetterException(property);

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
+
 import org.gradle.api.Action
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
@@ -31,7 +32,6 @@ import spock.lang.Unroll
 
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.regex.Pattern
 
 import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.*
@@ -1275,29 +1275,6 @@ interface Managed${typeName} {
         then:
         InvalidManagedModelElementTypeException ex = thrown()
         ex.message.contains 'setter method param must be of exactly the same type as the getter returns (expected: java.util.List<java.lang.String>, found: java.util.List<java.lang.Integer>)'
-    }
-
-    @Unroll
-    def "throws an error if we use unsupported type #collectionType.simpleName as element type of a scalar collection"() {
-        given:
-        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
-            import org.gradle.model.Managed
-
-            @Managed
-            interface CollectionType {
-                List<${collectionType.name}> getItems()
-            }
-        """
-
-        when:
-        extract(managedType)
-
-        then:
-        InvalidManagedModelElementTypeException ex = thrown()
-        ex.message.contains "property 'items' cannot be a collection of type ${collectionType.name} as it is not a scalar type. Supported element types:"
-
-        where:
-        collectionType << [Date, AtomicInteger]
     }
 
     @Unroll

@@ -43,7 +43,7 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
         ModelType<T> type = schema.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);
-        if (TYPES.contains(rawCollectionType)) {
+        if (TYPES.contains(rawCollectionType) && ScalarTypes.isScalarType(schema.getElementType())) {
             if (schema.getType().getRawClass() == List.class) {
                 return new ProjectionOnlyNodeInitializer(
                     ScalarCollectionModelProjection.get(
