@@ -436,7 +436,7 @@ For example:
 
 ## Story: Consistent validation of model types
 
-- Validate top level element of the following types (check for existing test coverage, some of this may already exist):
+- Validate model elements of the following types (check for existing test coverage, some of this may already exist):
     - ModelMap<T> and ModelSet<T> where T is not constructable. Should report which types are constructable (should not mention `@Unmanaged`)
     - List<T> and Set<T> where T is not a scalar type. Should report which types are scalar.
     - A `@Managed` type with a read-only property of type T where T is not constructable. Should report which types are constructable.
