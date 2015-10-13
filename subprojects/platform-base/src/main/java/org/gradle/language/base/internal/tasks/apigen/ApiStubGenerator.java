@@ -44,6 +44,7 @@ public class ApiStubGenerator {
 
         public static final String UOE_METHOD = "$unsupportedOpEx";
         private String internalClassName;
+        private boolean isInnerClass;
 
         public PublicAPIAdapter(ClassVisitor cv) {
             super(ASM5, cv);
@@ -84,6 +85,7 @@ public class ApiStubGenerator {
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
             internalClassName = name;
+            isInnerClass = (access & ACC_SUPER) == ACC_SUPER;
             validateSuperTypes(name, signature, superName, interfaces);
             if ((access & ACC_INTERFACE) == 0) {
                 generateUnsupportedOperationExceptionMethod();
@@ -140,7 +142,7 @@ public class ApiStubGenerator {
                 // discard static initializers
                 return null;
             }
-            if (isPublicAPI(access)) {
+            if (isPublicAPI(access) || ("<init>".equals(name) && isInnerClass)) {
                 Set<String> invalidReferencedTypes = invalidReferencedTypes(signature == null ? desc : signature);
                 if (invalidReferencedTypes.isEmpty()) {
                     MethodVisitor mv = new MethodVisitor(Opcodes.ASM5, cv.visitMethod(access, name, desc, signature, exceptions)) {
@@ -277,11 +279,5 @@ public class ApiStubGenerator {
             return null;
         }
 
-        @Override
-        public void visitInnerClass(String name, String outerName, String innerName, int access) {
-            if (isPublic(access) || (access & ACC_SUPER) == ACC_SUPER) {
-                super.visitInnerClass(name, outerName, innerName, access);
-            }
-        }
     }
 }

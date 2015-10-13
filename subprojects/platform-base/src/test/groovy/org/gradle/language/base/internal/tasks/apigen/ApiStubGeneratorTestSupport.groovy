@@ -124,9 +124,15 @@ class ApiStubGeneratorTestSupport extends Specification {
         if (task.call()) {
             def classLoader = new URLClassLoader([dir.toURI().toURL()] as URL[], ClassLoader.systemClassLoader.parent)
             // Load the class from the classloader by name....
-            return new ApiContainer(allowedPackages, sources.collectEntries { name, src ->
+            def entries = sources.collectEntries { name, src ->
                 [name, new GeneratedClass(new File(dir, toFileName(name, true)).bytes, classLoader.loadClass(name))]
-            })
+            }
+            entries.values()*.clazz.each { Class clazz ->
+                clazz.declaredClasses.collectEntries(entries) { inner ->
+                    [inner.name, new GeneratedClass(new File(dir, toFileName(inner.name, true)).bytes, classLoader.loadClass(inner.name))]
+                }
+            }
+            return new ApiContainer(allowedPackages, entries)
         }
 
         StringBuilder sb = new StringBuilder("Error in compilation of test sources:\n")
