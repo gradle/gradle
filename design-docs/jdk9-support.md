@@ -52,6 +52,12 @@ No runtime enforcement will be done--this is the job of the module system. Gradl
 
 ### Implementation details
 
+This story should **not** use the `ApiStubGenerator` yet. Instead, it should:
+- implement a new `org.gradle.language.base.internal.tasks.ApiCreatorTask` that takes a class directory as an input, as well as an `ApiSpec` and generates a new `apiClasses` directory.
+- the API classes directory should be filtered according to the `APISpec`. It is not expected that the output classes are stripped out from their non public members yet.
+- a separate `jar` task should produce a jar out of the `apiClasses` directory
+- package private classes are included in the API jar
+
 For this story, it is expected that the API jar is built after the implementation jar. It is not in the scope of this story to make the API jar buildable without building the implementation jar. Therefore, it is acceptable that the API jar task depends on the implementation jar if it helps.
 
 ### Test cases
@@ -165,10 +171,10 @@ Given a set of source classes and a list of packages, generate a jar that only c
 - Output contains:
     - public or protected elements, including nested classes
     - annotations (we don't need to deal with source-retention annotations because they are not present in the original binary)
+    - package private members
 - Output must not contain:
     - debug attributes
     - source location annotations
-    - package private classes
 - Trying to call a method of the API jar at runtime throws `UnsupportedOperationException`
 - Public constant types should be initialized to `null` or their default JVM value if of a primitive type (do not use `UnsupportedOperationException` here because it would imply the
 creation of a static initializer that we want to avoid).
@@ -205,7 +211,6 @@ AKA: API classes can reference implementation classes of the same library
 - A method body in an API class can reference implementation classes of the same library.
 - A private method signature can reference implementation classes of the same library.
 - Consuming source is not recompiled when API method body of is changed.
-- Consuming source is not recompiled when package private class is added to API.
 - Consuming source is not recompiled when comment is changed in API source file.
 - Consuming source is recompiled when signature of public API method is changed.
 
@@ -236,6 +241,7 @@ TBD - Add a dependency set at the component level, to be used as the default for
 - Show details of API binary in component report.
 - Generate stub API jar for Groovy and Scala libraries, use for compilation.
 - Discovery of annotation processor implementations.
+- Add an option to optionally exclude package private members from the API.
 
 # Feature: Java library is compiled against the API of Java libraries in binary repository
 
