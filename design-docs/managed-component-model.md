@@ -273,6 +273,7 @@ Some candidates:
 - Add methods (or a view) that allows iteration over collection when it is immutable.
 - Rename (via add-deprecate-remove) `@Mutate` to `@Configure`.
 - Allow empty managed subtypes of ModelSet and ModelMap. This is currently available internally, eg for `ComponentSpecContainer`.
+- Adjust naming schemes so that it excludes only those variant dimensions with a single value provided by a `@Defaults` rule.
 
 # Feature 7: Build author applies cross-cutting rules for software model types
 
