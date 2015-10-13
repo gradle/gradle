@@ -9,7 +9,7 @@ Tooling API stories that are not related directly to the IDE experience should g
 
 ## Feature - Expose source and target platforms of JVM language projects
 
-### Story - Expose Java source level for Java projects to Eclipse
+### Story - Expose Java source level for Java projects to Eclipse (1.5d)
 
 - For `EclipseProject`, add details of the Java source level:
     - JDT language compliance level.
@@ -31,12 +31,10 @@ Tooling API stories that are not related directly to the IDE experience should g
 - EclipseProject#sourceCompatibility
     - matches sourceCompatibility level for java projects
     - matches `eclipse.jdt.sourceCompatibility` when set
-    - for older Gradle gradle versions default value can be provided by tapi
+    - for older Gradle gradle versions default value can be provided by tapi consumer
 
 
-### Story - Expose target JDK for Java projects to Eclipse
-
-#### Implementation
+### Story - Expose target JDK for Java projects to Eclipse (3d)
 
 - For `EclipseProject`, add details of the target JVM:
     - JDK name
@@ -48,24 +46,57 @@ Tooling API stories that are not related directly to the IDE experience should g
 - For older Gradle versions:
     - TBD - reasonable defaults for Java language version
 
+#### Implementation
 
-### Story - Introduce JavaProject
+- Implement SDK detection (pointer: have a look at testfixture we already have for this: `AvailableJavaHomes`)
+- Extend EclipseProject to add TargetJvm Details (name, version, installdir)
+
+#### Test coverage
+
+- EclipseProject#targetSdk points to matching SDK
+    - for java projects targetCompatibility matches specified project#targetCompatibility
+    - for projects with eclipse plugin targetCompatibility matches `eclipse.jdt.targetCompatibility`
+    point to exact match
+    - point to exact match if available (requested 1.6 -> installed jdk 1.6 found)
+    - points to complian sdk if exact match not available
+
+
+### Story - Introduce JavaProject (3.5d)
 
 #### Implementation
 
 - add new `JavaProject` to model IDE agnostic Java Projects
 - add details about Java Source level to the `JavaModel`
     - should be based on projects `sourceCompatibility` level
+- add details about dependencies to the project
+    - project and external dependencies
+- add details about source folders to the `JavaProject` model
 - add details of the target JVM:
     - should be based on projects `targetCompatibility` level
     - Java version
     - Install directory
 
+- TBD: Classpath
 - For older Gradle versions:
     - TBD - reasonable defaults for Java language version
 
+#### Test Coverage
 
-### Story - Expose more Eclipse settings for the projects
+- Query `JavaProject` for older Gradle providers throws meaningful error message
+- Query `JavaProject` for non java projects fails with meaningful error message
+- `JavaProject` model for multi project build contains information about
+    - source folders
+    - thirdparty dependencies
+    - project dependencies
+    - target sdk
+    - source compatibility
+- respects customizations of sourcesets
+    - additional sourcesets
+    - additional sourcefolders to sourcesets are respected
+
+- TBD: provide test and runtime classpath
+
+### Story - Expose more Eclipse settings for the projects (2d)
 
 #### Implementation
 
@@ -81,6 +112,8 @@ Tooling API stories that are not related directly to the IDE experience should g
     - TBD - reasonable defaults (could be empty list or null; contract needs to be defined)
 
 #### Test coverage
+
+- TBD
 
 ### Story - Expose Java source level for Java projects to IDEA
 
