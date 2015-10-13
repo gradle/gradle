@@ -70,4 +70,23 @@ public class A {
 
     }
 
+    def "should not keep anonymous inner classes"() {
+        given:
+        def api = toApi 'A': """
+public class A {
+   public void foo() {
+       Runnable r = new Runnable() {
+          public void run() {}
+       };
+   }
+}"""
+
+        when:
+        def outer = api.classes.A
+        def stubbedOuter = api.loadStub(outer)
+
+        then:
+        stubbedOuter.classes.length == 0
+    }
+
 }
