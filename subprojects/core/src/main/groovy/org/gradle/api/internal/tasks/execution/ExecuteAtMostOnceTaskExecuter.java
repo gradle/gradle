@@ -26,12 +26,11 @@ import org.gradle.api.logging.Logging;
 /**
  * A {@link org.gradle.api.internal.tasks.TaskExecuter} which will execute a task once only.
  */
-public class ExecuteAtMostOnceTaskExecuter implements TaskExecuter {
+public class ExecuteAtMostOnceTaskExecuter extends AbstractDelegatingTaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteAtMostOnceTaskExecuter.class);
-    private final TaskExecuter executer;
 
     public ExecuteAtMostOnceTaskExecuter(TaskExecuter executer) {
-        this.executer = executer;
+        super(executer);
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {

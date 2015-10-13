@@ -81,7 +81,10 @@ public class ExecuteActionsTaskExecuterTest {
         context.checking(new Expectations() {{
             allowing(task).getTaskActions();
             will(returnValue(emptyList()));
+        }});
+        assertThat(executer.isCurrentlyUpToDate(task, state), equalTo(true));
 
+        context.checking(new Expectations() {{
             one(listener).beforeActions(task);
             inSequence(sequence);
 
@@ -106,7 +109,10 @@ public class ExecuteActionsTaskExecuterTest {
         context.checking(new Expectations() {{
             allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
+        }});
+        assertThat(executer.isCurrentlyUpToDate(task, state), equalTo(false));
 
+        context.checking(new Expectations() {{
             one(listener).beforeActions(task);
             inSequence(sequence);
 

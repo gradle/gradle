@@ -45,6 +45,12 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         sourceFiles.empty >> true
 
         when:
+        boolean plannedToBeUpToDate = executer.isCurrentlyUpToDate(task, state)
+
+        then:
+        plannedToBeUpToDate == true
+
+        when:
         executer.execute(task, state, executionContext)
 
         then:
@@ -58,6 +64,12 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         given:
         taskInputs.hasSourceFiles >> true
         sourceFiles.empty >> false
+
+        when:
+        boolean plannedToBeUpToDate = executer.isCurrentlyUpToDate(task, state)
+
+        then:
+        plannedToBeUpToDate == false
 
         when:
         executer.execute(task, state, executionContext)

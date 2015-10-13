@@ -51,6 +51,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
+    public boolean isCurrentlyUpToDate(TaskInternal task, TaskStateInternal state) {
+        return task.getTaskActions().size() == 0;
+    }
+
     private GradleException executeActions(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         logger.debug("Executing actions for {}.", task);
         final List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>(task.getTaskActions());

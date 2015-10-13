@@ -23,4 +23,10 @@ public interface TaskExecuter {
      * state.
      */
     void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context);
+
+    /**
+     * Tells whether the task is currently up-to-date and in need of re-running
+     * Note that this could potentially change after running other dependency steps
+     */
+    boolean isCurrentlyUpToDate(TaskInternal task, TaskStateInternal state);
 }

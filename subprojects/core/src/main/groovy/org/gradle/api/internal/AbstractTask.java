@@ -301,6 +301,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return this;
     }
 
+    public boolean isCurrentlyUpToDate() {
+        return getExecuter().isCurrentlyUpToDate(this, state);
+    }
+
     public final void execute() {
         getExecuter().execute(this, state, new DefaultTaskExecutionContext());
         state.rethrowFailure();

@@ -29,14 +29,13 @@ import org.gradle.internal.Cast;
 /**
  * A {@link TaskExecuter} which skips tasks whose source file collection is empty.
  */
-public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
+public class SkipEmptySourceFilesTaskExecuter extends AbstractDelegatingTaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(SkipEmptySourceFilesTaskExecuter.class);
     private final TaskInputsListener taskInputsListener;
-    private final TaskExecuter executer;
 
     public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, TaskExecuter executer) {
+        super(executer);
         this.taskInputsListener = taskInputsListener;
-        this.executer = executer;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
@@ -50,5 +49,15 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, task.getInputs().getFiles()));
         }
         executer.execute(task, state, context);
+    }
+
+    public boolean isCurrentlyUpToDate(TaskInternal task, TaskStateInternal state) {
+        FileCollection sourceFiles = task.getInputs().getSourceFiles();
+        if (task.getInputs().getHasSourceFiles() && sourceFiles.isEmpty()) {
+            LOGGER.debug("{} is up-to-date because it has no source files: ", task, sourceFiles);
+            return true;
+        } else {
+            return super.isCurrentlyUpToDate(task, state);
+        }
     }
 }

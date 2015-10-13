@@ -30,7 +30,7 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
     final TaskExecuter target = Mock()
     final TaskInternal dependency = Mock()
     final TaskStateInternal dependencyState = Mock()
-    final SkipTaskWithNoActionsExecuter executor = new SkipTaskWithNoActionsExecuter(target)
+    final SkipTaskWithNoActionsExecuter executer = new SkipTaskWithNoActionsExecuter(target)
 
     def setup() {
         TaskDependency taskDependency = Mock()
@@ -42,10 +42,16 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
     def skipsTaskWithNoActionsAndMarksUpToDateIfAllItsDependenciesWereSkipped() {
         given:
         task.actions >> []
-        dependencyState.skipped >> true
 
         when:
-        executor.execute(task, state, executionContext)
+        boolean currentlyUpToDate = executer.isCurrentlyUpToDate(task, state)
+
+        then:
+        currentlyUpToDate == true
+
+        when:
+        dependencyState.skipped >> true
+        executer.execute(task, state, executionContext)
 
         then:
         1 * state.upToDate()
@@ -56,12 +62,19 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
     def skipsTaskWithNoActionsAndMarksOutOfDateDateIfAnyOfItsDependenciesWereNotSkipped() {
         given:
         task.actions >> []
-        dependencyState.skipped >> false
 
         when:
-        executor.execute(task, state, executionContext)
+        boolean currentlyUpToDate = executer.isCurrentlyUpToDate(task, state)
 
         then:
+        currentlyUpToDate == true
+
+        when:
+        dependencyState.skipped >> false
+        executer.execute(task, state, executionContext)
+
+        then:
+        // Note that because isCurrentlyUpToDate isn't supposed to worry about checking dependency tasks, that isCurrentlyUpToDate was true but when actually run the task is still not up-to-date
         0 * target._
         0 * state._
     }
@@ -71,7 +84,13 @@ class SkipTaskWithNoActionsExecuterTest extends Specification {
         task.actions >> [{} as TaskAction]
 
         when:
-        executor.execute(task, state, executionContext)
+        boolean currentlyUpToDate = executer.isCurrentlyUpToDate(task, state)
+
+        then:
+        currentlyUpToDate == false
+
+        when:
+        executer.execute(task, state, executionContext)
 
         then:
         1 * target.execute(task, state, executionContext)
