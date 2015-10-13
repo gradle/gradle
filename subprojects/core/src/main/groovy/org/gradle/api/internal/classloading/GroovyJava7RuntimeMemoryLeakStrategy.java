@@ -78,7 +78,7 @@ public class GroovyJava7RuntimeMemoryLeakStrategy extends MemoryLeakPrevention.S
             Method getVersion = groovySystem.getDeclaredMethod("getVersion");
             String versionString = (String) getVersion.invoke(null);
             VersionNumber groovyVersion = VersionNumber.parse(versionString);
-            isFaultyGroovy = groovyVersion.getMajor() == 2 && groovyVersion.getMinor() == 4 && groovyVersion.getMicro() < 5;
+            isFaultyGroovy = groovyVersion.getMajor() == 2 && groovyVersion.getMinor() == 4;
         } catch (NoSuchMethodException ex) {
             isFaultyGroovy = false;
         }
