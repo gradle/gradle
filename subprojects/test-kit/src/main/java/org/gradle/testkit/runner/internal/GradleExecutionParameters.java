@@ -19,6 +19,7 @@ package org.gradle.testkit.runner.internal;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.util.List;
 
 public class GradleExecutionParameters {
@@ -28,14 +29,19 @@ public class GradleExecutionParameters {
     private final List<String> jvmArgs;
     private final ClassPath injectedClassPath;
     private final boolean debug;
+    private final OutputStream standardOutputStream;
+    private final OutputStream standardErrorStream;
 
-    public GradleExecutionParameters(File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, ClassPath injectedClassPath, boolean debug) {
+    public GradleExecutionParameters(File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, ClassPath injectedClassPath, boolean debug,
+                                     OutputStream standardOutputStream, OutputStream standardErrorStream) {
         this.gradleUserHome = gradleUserHome;
         this.projectDir = projectDir;
         this.buildArgs = buildArgs;
         this.jvmArgs = jvmArgs;
         this.injectedClassPath = injectedClassPath;
         this.debug = debug;
+        this.standardOutputStream = standardOutputStream;
+        this.standardErrorStream = standardErrorStream;
     }
 
     public File getGradleUserHome() {
@@ -60,6 +66,14 @@ public class GradleExecutionParameters {
 
     public boolean isDebug() {
         return debug;
+    }
+
+    public OutputStream getStandardOutputStream() {
+        return standardOutputStream;
+    }
+
+    public OutputStream getStandardErrorStream() {
+        return standardErrorStream;
     }
 
     @Override
@@ -88,7 +102,13 @@ public class GradleExecutionParameters {
         if (jvmArgs != null ? !jvmArgs.equals(that.jvmArgs) : that.jvmArgs != null) {
             return false;
         }
-        return !(injectedClassPath != null ? !injectedClassPath.equals(that.injectedClassPath) : that.injectedClassPath != null);
+        if (injectedClassPath != null ? !injectedClassPath.equals(that.injectedClassPath) : that.injectedClassPath != null) {
+            return false;
+        }
+        if (standardOutputStream != null ? !standardOutputStream.equals(that.standardOutputStream) : that.standardOutputStream != null) {
+            return false;
+        }
+        return !(standardErrorStream != null ? !standardErrorStream.equals(that.standardErrorStream) : that.standardErrorStream != null);
 
     }
 
@@ -100,6 +120,8 @@ public class GradleExecutionParameters {
         result = 31 * result + (jvmArgs != null ? jvmArgs.hashCode() : 0);
         result = 31 * result + (injectedClassPath != null ? injectedClassPath.hashCode() : 0);
         result = 31 * result + (debug ? 1 : 0);
+        result = 31 * result + (standardOutputStream != null ? standardOutputStream.hashCode() : 0);
+        result = 31 * result + (standardErrorStream != null ? standardErrorStream.hashCode() : 0);
         return result;
     }
 }

@@ -23,6 +23,7 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -242,6 +243,28 @@ public abstract class GradleRunner {
      * @since 2.9
      */
     public abstract GradleRunner withDebug(boolean debug);
+
+    /**
+     * Specifies the output stream used for capturing standard output from the test execution. The provided output stream may not be null.
+     * <p>
+     * If no output stream is specified, the standard output is captured as part of the build result.
+     *
+     * @param standardOutputStream the output stream
+     * @return this
+     * @since 2.9
+     */
+    public abstract GradleRunner withStandardOutputStream(OutputStream standardOutputStream);
+
+    /**
+     * Specifies the output stream used for capturing standard error from the test execution. The provided output stream may not be null.
+     * <p>
+     * If no output stream is specified, the standard error is captured as part of the build result.
+     *
+     * @param standardErrorStream the output stream
+     * @return this
+     * @since 2.9
+     */
+    public abstract GradleRunner withStandardErrorStream(OutputStream standardErrorStream);
 
     /**
      * Executes a build, expecting it to complete without failure.

@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner.internal;
 
+import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.testkit.runner.*;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnector;
@@ -29,6 +30,7 @@ import org.gradle.wrapper.GradleUserHomeLookup;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,8 +68,8 @@ public class TestKitGradleExecutor implements GradleExecutor {
         try {
             connection = gradleConnector.connect();
             DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
-            launcher.setStandardOutput(standardOutput);
-            launcher.setStandardError(standardError);
+            launcher.setStandardOutput(determineLauncherOutputStream(standardOutput, parameters.getStandardOutputStream()));
+            launcher.setStandardError(determineLauncherOutputStream(standardError, parameters.getStandardErrorStream()));
             launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
 
             launcher.withArguments(parameters.getBuildArgs().toArray(new String[parameters.getBuildArgs().size()]));
@@ -87,6 +89,14 @@ public class TestKitGradleExecutor implements GradleExecutor {
         }
 
         return new GradleExecutionResult(standardOutput, standardError, tasks);
+    }
+
+    private OutputStream determineLauncherOutputStream(OutputStream buildResultOutputStream, OutputStream userDefinedOutputStream) {
+        if(userDefinedOutputStream != null) {
+            return new TeeOutputStream(buildResultOutputStream, userDefinedOutputStream);
+        }
+
+        return buildResultOutputStream;
     }
 
     private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean debug) {

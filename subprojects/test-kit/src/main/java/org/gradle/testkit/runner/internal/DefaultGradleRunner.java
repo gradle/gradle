@@ -24,6 +24,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.testkit.runner.*;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +42,8 @@ public class DefaultGradleRunner extends GradleRunner {
     private List<String> jvmArguments = Collections.emptyList();
     private ClassPath classpath = ClassPath.EMPTY;
     private boolean debug;
+    private OutputStream standardOutputStream;
+    private OutputStream standardErrorStream;
 
     public DefaultGradleRunner(GradleDistribution<?> gradleDistribution) {
         this(new TestKitGradleExecutor(gradleDistribution), new TempTestKitDirProvider());
@@ -137,6 +140,26 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
+    public GradleRunner withStandardOutputStream(OutputStream standardOutputStream) {
+        if (standardOutputStream == null) {
+            throw new IllegalArgumentException("standardOutputStream argument cannot be null");
+        }
+
+        this.standardOutputStream = standardOutputStream;
+        return this;
+    }
+
+    @Override
+    public GradleRunner withStandardErrorStream(OutputStream standardErrorStream) {
+        if (standardOutputStream == null) {
+            throw new IllegalArgumentException("standardErrorStream argument cannot be null");
+        }
+
+        this.standardErrorStream = standardErrorStream;
+        return this;
+    }
+
+    @Override
     public BuildResult build() {
         return run(new Action<GradleExecutionResult>() {
             public void execute(GradleExecutionResult gradleExecutionResult) {
@@ -208,7 +231,9 @@ public class DefaultGradleRunner extends GradleRunner {
             arguments,
             jvmArguments,
             classpath,
-            debug)
+            debug,
+            standardOutputStream,
+            standardErrorStream)
         );
 
         resultVerification.execute(execResult);
