@@ -11,8 +11,6 @@ Tooling API stories that are not related directly to the IDE experience should g
 
 ### Story - Expose Java source level for Java projects to Eclipse
 
-#### Implementation
-
 - For `EclipseProject`, add details of the Java source level:
     - JDT language compliance level.
 - Improve the Java source level detection. Source level should be based on the source compatibility of the project.
@@ -20,10 +18,26 @@ Tooling API stories that are not related directly to the IDE experience should g
 - For older Gradle versions:
     - TBD - reasonable defaults for Java language version
 
+#### Implementation
+
+- Add `org.gradle.tooling.model.eclipse.EclipseProject#getSourceCompatibility(String defaultValue`).
+- Add `sourceCompatibility` property to `DefaultEclipseProject`
+- Update `EclipseModelBuilder` to set values for `sourceCompatibility` in EclipseModel
+    - if java plugin is applied take `Project.sourceCompatibility`
+    - if eclipse plugin is applied take `eclipse.jdt.sourceCompatibility`
+
+#### Test coverage
+
+- EclipseProject#sourceCompatibility
+    - matches sourceCompatibility level for java projects
+    - matches `eclipse.jdt.sourceCompatibility` when set
+    - for older Gradle gradle versions default value can be provided by tapi
+
 
 ### Story - Expose target JDK for Java projects to Eclipse
 
 #### Implementation
+
 - For `EclipseProject`, add details of the target JVM:
     - JDK name
     - JDK Java version
@@ -33,6 +47,7 @@ Tooling API stories that are not related directly to the IDE experience should g
 
 - For older Gradle versions:
     - TBD - reasonable defaults for Java language version
+
 
 ### Story - Introduce JavaProject
 
