@@ -115,7 +115,7 @@ Tooling API stories that are not related directly to the IDE experience should g
 
 - TBD
 
-### Story - Expose Java source level for Java projects to IDEA
+### Story - Expose Java source level for Java projects to IDEA (1.5d)
 
 For IDEA, need to choose between setting level on all modules vs setting level on project and inheriting.
 
@@ -128,7 +128,7 @@ For IDEA, need to choose between setting level on all modules vs setting level o
 - For older Gradle versions:
     - Default inherit from project to `true`.
 
-### Story - Expose target JDK for Java projects to IDEA
+### Story - Expose target JDK for Java projects to IDEA (2d)
 
 - For `IdeaModule`, add details of the module SDK:
     - Inherit from project?
