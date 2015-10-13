@@ -18,9 +18,7 @@ package org.gradle.language.base.internal.tasks.apigen
 
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.Opcodes
+import org.objectweb.asm.*
 import spock.lang.Unroll
 
 import java.lang.reflect.Modifier
@@ -357,6 +355,52 @@ public @interface Ann {}
         hasField(clazz.clazz, 'foo', String).modifiers == 0
         hasField(stubbed, 'foo', String).modifiers == 0
 
+    }
+
+    def "stubs should not contain any source or debug information"() {
+        given:
+        def api = toApi(
+            'com.acme.A': """package com.acme;
+
+public abstract class A {
+    public static int FOO = 666;
+    public void hello(String message) {
+        System.out.println(message);
+    }
+}""")
+        when:
+        def stubbed = api.getStubBytes(api.classes['com.acme.A'])
+        def cr = new ClassReader(stubbed)
+        cr.accept(new ClassVisitor(Opcodes.ASM5) {
+            @Override
+            void visitSource(String source, String debug) {
+                super.visitSource(source, debug)
+                if (source) {
+                    throw new AssertionError("Source information should not be visited, but found source [$source]")
+                }
+                if (debug) {
+                    throw new AssertionError("Debug information should not be visited, but found debug [$debug]")
+                }
+            }
+
+            @Override
+            MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+                new MethodVisitor(Opcodes.ASM5) {
+                    @Override
+                    void visitLineNumber(int line, Label start) {
+                        throw new AssertionError("Should not produce any line number information but method $name$desc contains line $line label $start")
+                    }
+
+                    @Override
+                    void visitLocalVariable(String lname, String ldesc, String lsignature, Label start, Label end, int index) {
+                        throw new AssertionError("Should not visit any local variable, but found $lname in method $name$desc")
+                    }
+                }
+            }
+        }, 0)
+
+        then:
+        noExceptionThrown()
     }
 
 }
