@@ -22,23 +22,9 @@ import org.gradle.util.VersionNumber;
 import java.lang.reflect.Method;
 
 public class GroovySystemLoaderFactory {
-    private final static boolean HAS_CLASS_VALUE;
     public static final NoOpGroovySystemLoader NOT_BROKEN = new NoOpGroovySystemLoader();
 
-    static {
-        boolean cv = true;
-        try {
-            Class.forName("java.lang.ClassValue");
-        } catch (ClassNotFoundException e) {
-            cv = false;
-        }
-        HAS_CLASS_VALUE = cv;
-    }
-
     public GroovySystemLoader forClassLoader(ClassLoader classLoader) {
-        if (!HAS_CLASS_VALUE) {
-            return NOT_BROKEN;
-        }
         try {
             Class<?> groovySystem;
             try {
@@ -60,7 +46,7 @@ public class GroovySystemLoaderFactory {
                 return NOT_BROKEN;
             }
             VersionNumber groovyVersion = VersionNumber.parse(versionString);
-            boolean isFaultyGroovy = groovyVersion.getMajor() == 2 && groovyVersion.getMinor() == 4 && groovyVersion.getMicro() < 5;
+            boolean isFaultyGroovy = groovyVersion.getMajor() == 2 && groovyVersion.getMinor() == 4;
             return isFaultyGroovy ? new LeakyOnJava7GroovySystemLoader(classLoader) : NOT_BROKEN;
         } catch (Exception e) {
             throw new GradleException("Could not inspect the Groovy system for ClassLoader " + classLoader, e);
