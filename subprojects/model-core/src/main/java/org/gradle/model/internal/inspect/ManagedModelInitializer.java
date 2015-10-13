@@ -87,15 +87,13 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
         ModelPath childPath = modelNode.getPath().child(property.getName());
         if (propertySchema instanceof ManagedImplModelSchema) {
             if (!property.isWritable()) {
-                ManagedImplModelSchema<P> managedPropertySchema = (ManagedImplModelSchema<P>) propertySchema;
-                ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(managedPropertySchema))
+                ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(), property.getName())))
                     .descriptor(descriptor)
                     .build();
                 modelNode.addLink(creator);
             } else {
                 if (propertySchema instanceof ScalarCollectionSchema) {
-                    ManagedImplModelSchema<P> managedPropertySchema = (ManagedImplModelSchema<P>) propertySchema;
-                    ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(managedPropertySchema))
+                    ModelCreator creator = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertySchema.getType(), property.getName())))
                         .descriptor(descriptor)
                         .build();
                     modelNode.addLink(creator);
@@ -112,7 +110,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
             ModelProjection projection = new UnmanagedModelProjection<P>(propertyType, true, true);
             ModelCreators.Builder creatorBuilder;
             if (shouldHaveANodeInitializer(property, propertySchema)) {
-                creatorBuilder = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(propertyType));
+                creatorBuilder = ModelCreators.of(childPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forProperty(propertyType, property.getName())));
             } else {
                 creatorBuilder = ModelCreators.of(childPath);
             }
@@ -130,7 +128,7 @@ public class ManagedModelInitializer<T> implements NodeInitializer {
                 ModelType<?> elementType = propertyCollectionsSchema.getElementType();
                 if (!(propertySchema instanceof ScalarCollectionSchema)) {
                     if (!property.isWritable()) {
-                        nodeInitializerRegistry.ensureHasInitializer(elementType);
+                        nodeInitializerRegistry.ensureHasInitializer(NodeInitializerContext.forProperty(elementType, property.getName()));
                     }
                 }
             }

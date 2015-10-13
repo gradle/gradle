@@ -54,8 +54,8 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         additionalStrategies = Lists.newArrayList();
     }
 
-    @Override
-    public <T> NodeInitializer getNodeInitializer(ModelSchema<T> schema) {
+
+    private <T> NodeInitializer getNodeInitializer(ModelSchema<T> schema) {
         for (NodeInitializerExtractionStrategy extractor : allStrategies) {
             NodeInitializer nodeInitializer = extractor.extractNodeInitializer(schema);
             if (nodeInitializer != null) {
@@ -86,13 +86,13 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
     }
 
     @Override
-    public <T> NodeInitializer getNodeInitializer(ModelType<T> type) {
-        return getNodeInitializer(schemaStore.getSchema(type));
+    public NodeInitializer getNodeInitializer(NodeInitializerContext nodeInitializerContext) {
+        return getNodeInitializer(schemaStore.getSchema(nodeInitializerContext.getModelType()));
     }
 
     @Override
-    public <T> void ensureHasInitializer(ModelType<T> type) {
-        getNodeInitializer(type);
+    public void ensureHasInitializer(NodeInitializerContext nodeInitializer) {
+        getNodeInitializer(nodeInitializer);
     }
 
     @Override

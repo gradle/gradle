@@ -51,7 +51,7 @@ abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>>
         collectionType = collectionProperty.type as ModelType<C>
         def collectionSchema = schemaStore.getSchema(collectionType)
         assert collectionSchema instanceof ManagedImplModelSchema
-        def nodeInitializer = nodeInitializerRegistry.getNodeInitializer(collectionSchema)
+        def nodeInitializer = nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(collectionSchema.getType()))
         reference = ModelReference.of(collectionPath, collectionType)
         registry.create(
             ModelCreators.of(collectionPath, nodeInitializer)

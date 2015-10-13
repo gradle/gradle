@@ -16,16 +16,12 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.extract.NodeInitializerExtractionStrategy;
-import org.gradle.model.internal.type.ModelType;
 
 public interface NodeInitializerRegistry {
-    <T> NodeInitializer getNodeInitializer(ModelType<T> type);
+    NodeInitializer getNodeInitializer(NodeInitializerContext nodeInitializerContext);
 
-    <T> void ensureHasInitializer(ModelType<T> type);
-
-    <T> NodeInitializer getNodeInitializer(ModelSchema<T> schema);
+    void ensureHasInitializer(NodeInitializerContext nodeInitializer);
 
     void registerStrategy(NodeInitializerExtractionStrategy strategy);
 }

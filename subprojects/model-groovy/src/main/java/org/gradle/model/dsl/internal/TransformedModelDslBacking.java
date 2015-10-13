@@ -81,7 +81,7 @@ public class TransformedModelDslBacking {
         ModelRuleDescriptor descriptor = toDescriptor(sourceLocation, modelPath);
         try {
             NodeInitializerRegistry nodeInitializerRegistry = modelRegistry.realize(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getPath(), DefaultNodeInitializerRegistry.DEFAULT_REFERENCE.getType());
-            NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(ModelType.of(type));
+            NodeInitializer nodeInitializer = nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)));
             modelRegistry.create(ModelCreators.of(modelPath, nodeInitializer).descriptor(descriptor).build());
         } catch (ModelTypeInitializationException e) {
             throw new InvalidModelRuleDeclarationException(descriptor, e);
@@ -109,7 +109,7 @@ public class TransformedModelDslBacking {
                 mutableModelNode.applyToSelf(role, InputUsingModelAction.of(reference, descriptor, actualInputs, new BiAction<T, List<ModelView<?>>>() {
                     @Override
                     public void execute(final T t, List<ModelView<?>> modelViews) {
-                        ((TransformedClosure)closure).applyRuleInputs(new PotentialInputs(modelViews, potentialInputs));
+                        ((TransformedClosure) closure).applyRuleInputs(new PotentialInputs(modelViews, potentialInputs));
                         ClosureBackedAction.execute(t, closure.rehydrate(null, closure.getThisObject(), closure.getThisObject()));
                     }
                 }));

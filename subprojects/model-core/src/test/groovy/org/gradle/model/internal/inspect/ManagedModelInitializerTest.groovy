@@ -21,9 +21,11 @@ import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.ModelTypeInitializationException
+import org.gradle.model.internal.core.NodeInitializerContext
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -177,7 +179,7 @@ interface Managed${typeName} {
     }
 
     void realizeNodeOfType(Class type) {
-        r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(store.getSchema(type))).descriptor(r.desc("bar")).build())
+        r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)))).descriptor(r.desc("bar")).build())
         r.realize("bar", type)
     }
 

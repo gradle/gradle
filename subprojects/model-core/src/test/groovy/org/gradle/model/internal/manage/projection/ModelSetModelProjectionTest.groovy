@@ -51,7 +51,7 @@ class ModelSetModelProjectionTest extends Specification {
         assert collectionSchema instanceof ManagedImplModelSchema
         registry.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
         registry.create(
-            ModelCreators.of(collectionPath, nodeInitializerRegistry.getNodeInitializer(collectionSchema))
+            ModelCreators.of(collectionPath, nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(collectionSchema.getType())))
                 .descriptor("define collection")
                 .build()
         )
