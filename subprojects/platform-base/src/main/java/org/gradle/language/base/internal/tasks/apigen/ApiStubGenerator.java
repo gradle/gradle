@@ -64,6 +64,22 @@ public class ApiStubGenerator {
             mv.visitEnd();
         }
 
+        private boolean isPackagePrivate(int access) {
+            return access == 0;
+        }
+
+        private boolean isProtected(int access) {
+            return (access & ACC_PROTECTED) == ACC_PROTECTED;
+        }
+
+        private boolean isPublic(int access) {
+            return (access & ACC_PUBLIC) == ACC_PUBLIC;
+        }
+
+        private boolean isPublicAPI(int access) {
+            return isPackagePrivate(access) || isPublic(access) || isProtected(access);
+        }
+
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
@@ -124,7 +140,7 @@ public class ApiStubGenerator {
                 // discard static initializers
                 return null;
             }
-            if ((access & ACC_PUBLIC) == ACC_PUBLIC || (access & ACC_PROTECTED) == ACC_PROTECTED) {
+            if (isPublicAPI(access)) {
                 Set<String> invalidReferencedTypes = invalidReferencedTypes(signature == null ? desc : signature);
                 if (invalidReferencedTypes.isEmpty()) {
                     MethodVisitor mv = new MethodVisitor(Opcodes.ASM5, cv.visitMethod(access, name, desc, signature, exceptions)) {
@@ -234,7 +250,7 @@ public class ApiStubGenerator {
 
         @Override
         public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, Object value) {
-            if ((access & ACC_PUBLIC) == ACC_PUBLIC || (access & ACC_PROTECTED) == ACC_PROTECTED) {
+            if (isPublicAPI(access)) {
                 final String fieldDescriptor = prettifyFieldDescriptor(access, name, desc);
                 Set<String> invalidReferencedTypes = invalidReferencedTypes(signature);
                 if (!invalidReferencedTypes.isEmpty()) {
@@ -263,10 +279,9 @@ public class ApiStubGenerator {
 
         @Override
         public void visitInnerClass(String name, String outerName, String innerName, int access) {
-            if ((access & ACC_PUBLIC) == ACC_PUBLIC || (access & ACC_SUPER) == ACC_SUPER) {
+            if (isPublic(access) || (access & ACC_SUPER) == ACC_SUPER) {
                 super.visitInnerClass(name, outerName, innerName, access);
             }
         }
     }
-
 }

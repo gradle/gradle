@@ -89,7 +89,7 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
     }
 
-    def "should remove package private method"() {
+    def "should not remove package private method"() {
         given:
         def api = toApi 'A': '''public class A {
     void foo() {}
@@ -101,7 +101,7 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
         then:
         hasMethod(clazz.clazz, 'foo').modifiers == 0
-        noSuchMethod(stubbed, 'foo')
+        hasMethod(stubbed, 'foo').modifiers == 0
 
     }
 
@@ -343,7 +343,7 @@ public @interface Ann {}
 
     }
 
-    def "should remove package private field"() {
+    def "should not remove package private field"() {
         given:
         def api = toApi 'A': '''public class A {
     String foo;
@@ -355,7 +355,7 @@ public @interface Ann {}
 
         then:
         hasField(clazz.clazz, 'foo', String).modifiers == 0
-        noSuchField(stubbed, 'foo', String)
+        hasField(stubbed, 'foo', String).modifiers == 0
 
     }
 
