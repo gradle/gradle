@@ -154,9 +154,15 @@ The last step of separating API from implementation involves the creation of a b
 - Consuming source is recompiled when API class is changed.
 - Consuming source is not recompiled when implementation class changes in an incompatible way.
 
-## Story: Allow generation of API jars
+## Story: API stub generator strips out non public elements from classes
 
-Given a set of source classes and a list of packages, generate a jar that only contains the public members of the source classes that belong to those packages.A stub class contains only the public members of the source class required at compile time.
+Given a source `byte[]` representing the bytecode of a class, generate a new `byte[]` that corresponds to the same class viewed as an API class:
+- strips out private members
+- removes method bodies
+- removes static initializers
+- removes debug information
+
+This API stub generator will serve as a base for an API jar creator.
 
 ### Implementation
 
@@ -164,7 +170,6 @@ Given a set of source classes and a list of packages, generate a jar that only c
 - Process classes using the ASM library
 - Method bodies should throw an `UnsupportedOperationException`.
 - Should consider `java.*`, `javax.*` as allowed packages, considering they will map later to the `java-base` module.
-- Conversion of the implementation to an API jar should be done through a task that takes a classes directory as input and will output another class directory.
 
 ### Test cases
 
