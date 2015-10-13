@@ -20,7 +20,8 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.classloading.MemoryLeakPrevention;
+import org.gradle.api.internal.classloading.GroovySystemLoader;
+import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
@@ -49,9 +50,6 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
 
     private final static Logger LOG = Logging.getLogger(DefaultIsolatedAntBuilder.class);
 
-    private final static String CORE_GRADLE_LOADER = "Gradle Core";
-    private final static String ANT_GRADLE_LOADER = "Ant loader";
-
     private final static Set<Finalizer> FINALIZERS = Sets.newConcurrentHashSet();
     private final static ReferenceQueue<DefaultIsolatedAntBuilder> FINALIZER_REFQUEUE = new ReferenceQueue<DefaultIsolatedAntBuilder>();
 
@@ -78,20 +76,22 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         finalizerThread.start();
     }
 
+    private final ClassLoader antLoader;
     private final ClassLoader baseAntLoader;
     private final ClassPath libClasspath;
-    private final ClassLoader gradleLoader;
+    private final ClassLoader antAdapterLoader;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderFactory classLoaderFactory;
-    private final MemoryLeakPrevention gradleToIsolatedLeakPrevention;
-    private final MemoryLeakPrevention antToGradleLeakPrevention;
     private final ClassPathToClassLoaderCache classLoaderCache;
+    private final GroovySystemLoader gradleApiGroovyLoader;
+    private final GroovySystemLoader antAdapterGroovyLoader;
 
     public DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
         this.classPathRegistry = classPathRegistry;
         this.classLoaderFactory = classLoaderFactory;
         this.libClasspath = new DefaultClassPath();
-        this.classLoaderCache = new ClassPathToClassLoaderCache();
+        GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
+        this.classLoaderCache = new ClassPathToClassLoaderCache(groovySystemLoaderFactory);
 
         List<File> antClasspath = Lists.newArrayList(classPathRegistry.getClassPath("ANT").getAsFiles());
         // Need tools.jar for compile tasks
@@ -100,7 +100,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             antClasspath.add(toolsJar);
         }
 
-        ClassLoader antLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath));
+        antLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath));
         FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().getClassLoader());
         loggingLoader.allowPackage("org.slf4j");
         loggingLoader.allowPackage("org.apache.commons.logging");
@@ -116,13 +116,10 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
 
         // Need Transformer (part of AntBuilder API) from base services
         gradleCoreUrls = gradleCoreUrls.plus(classPathRegistry.getClassPath("GRADLE_BASE_SERVICES"));
-        this.gradleLoader = new URLClassLoader(gradleCoreUrls.getAsURLArray(), baseAntLoader);
+        this.antAdapterLoader = new URLClassLoader(gradleCoreUrls.getAsURLArray(), baseAntLoader);
 
-
-        this.gradleToIsolatedLeakPrevention = new MemoryLeakPrevention(CORE_GRADLE_LOADER, this.getClass().getClassLoader(), null);
-        this.antToGradleLeakPrevention = new MemoryLeakPrevention(ANT_GRADLE_LOADER, gradleLoader, gradleCoreUrls);
-        this.gradleToIsolatedLeakPrevention.prepare();
-        this.antToGradleLeakPrevention.prepare();
+        gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
+        antAdapterGroovyLoader = groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
 
         // register finalizer for the root builder only!
         FINALIZERS.add(new Finalizer(this, FINALIZER_REFQUEUE));
@@ -131,11 +128,12 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     protected DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> libClasspath) {
         this.classPathRegistry = copy.classPathRegistry;
         this.classLoaderFactory = copy.classLoaderFactory;
+        this.antLoader = copy.antLoader;
         this.baseAntLoader = copy.baseAntLoader;
-        this.gradleLoader = copy.gradleLoader;
+        this.antAdapterLoader = copy.antAdapterLoader;
         this.libClasspath = new DefaultClassPath(libClasspath);
-        this.gradleToIsolatedLeakPrevention = copy.gradleToIsolatedLeakPrevention;
-        this.antToGradleLeakPrevention = copy.antToGradleLeakPrevention;
+        this.gradleApiGroovyLoader = copy.gradleApiGroovyLoader;
+        this.antAdapterGroovyLoader = copy.antAdapterGroovyLoader;
         this.classLoaderCache = copy.classLoaderCache;
     }
 
@@ -151,7 +149,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     }
 
     public void execute(final Closure antClosure) {
-        classLoaderCache.withCachedClassLoader(libClasspath, gradleToIsolatedLeakPrevention, antToGradleLeakPrevention,
+        classLoaderCache.withCachedClassLoader(libClasspath, gradleApiGroovyLoader, antAdapterGroovyLoader,
             new Factory<ClassLoader>() {
                 @Override
                 public ClassLoader create() {
@@ -189,7 +187,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         // we must use a String literal here, otherwise using things like Foo.class.name will trigger unnecessary
         // loading of classes in the classloader of the DefaultIsolatedAntBuilder, which is not what we want.
         try {
-            return gradleLoader.loadClass(className).newInstance();
+            return antAdapterLoader.loadClass(className).newInstance();
         } catch (Exception e) {
             // should never happen
             throw UncheckedException.throwAsUncheckedException(e);
@@ -237,28 +235,33 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     }
 
     private static class Finalizer extends PhantomReference<DefaultIsolatedAntBuilder> {
-
-        private final MemoryLeakPrevention gradleToIsolatedLeakPrevention;
-        private final MemoryLeakPrevention antToGradleLeakPrevention;
         private final ClassPathToClassLoaderCache classLoaderCache;
-        private final ClassLoader gradleLoader;
+        private final GroovySystemLoader gradleApiGroovyLoader;
+        private final GroovySystemLoader antAdapterGroovyLoader;
+        private final ClassLoader antLoader;
+        private final ClassLoader antAdapterLoader;
 
         public Finalizer(DefaultIsolatedAntBuilder referent, ReferenceQueue<? super DefaultIsolatedAntBuilder> q) {
             super(referent, q);
-            gradleToIsolatedLeakPrevention = referent.gradleToIsolatedLeakPrevention;
-            antToGradleLeakPrevention = referent.antToGradleLeakPrevention;
             classLoaderCache = referent.classLoaderCache;
-            gradleLoader = referent.gradleLoader;
+            gradleApiGroovyLoader = referent.gradleApiGroovyLoader;
+            antAdapterGroovyLoader = referent.antAdapterGroovyLoader;
+            antLoader = referent.antLoader;
+            antAdapterLoader = referent.antAdapterLoader;
         }
 
         public void cleanup() {
+            System.out.println("-> DISCARD ANT BUILDER " + antAdapterLoader);
+            System.out.println("-> DISCARD ANT " + antLoader);
+
             classLoaderCache.stop();
 
-            // clean classes from Gradle Core that leaked into the Ant classloader
-            gradleToIsolatedLeakPrevention.dispose(gradleLoader);
+            // Remove classes from core Gradle API
+            gradleApiGroovyLoader.discardTypesFrom(antAdapterLoader);
+            gradleApiGroovyLoader.discardTypesFrom(antLoader);
 
-            // clean classes from the Ant classloader that leaked into the various loader
-            antToGradleLeakPrevention.dispose(gradleLoader, this.getClass().getClassLoader());
+            // Shutdown the adapter Groovy system
+            antAdapterGroovyLoader.shutdown();
         }
     }
 }

@@ -15,35 +15,32 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
-import org.gradle.api.internal.classloading.MemoryLeakPrevention;
+import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 
 public class Cleanup extends PhantomReference<CachedClassLoader> {
-    private final static String ISOLATED_ANT_CLASS_LOADER = "Isolated Ant Classpath";
-
     private final ClassPath key;
     private final ClassLoader classLoader;
-    private final MemoryLeakPrevention classLoaderLeakPrevention;
-    private final MemoryLeakPrevention gradleToIsolatedLeakPrevention;
-    private final MemoryLeakPrevention antToIsolatedLeakPrevention;
+    private final GroovySystemLoader groovySystemForClassLoader;
+    private final GroovySystemLoader gradleApiGroovyLoader;
+    private final GroovySystemLoader antBuilderGroovyLoader;
 
     public Cleanup(ClassPath classPath,
                    CachedClassLoader cachedClassLoader,
                    ReferenceQueue<CachedClassLoader> referenceQueue,
                    ClassLoader classLoader,
-                   MemoryLeakPrevention antToIsolatedLeakPrevention,
-                   MemoryLeakPrevention gradleToIsolatedLeakPrevention) {
+                   GroovySystemLoader groovySystemForClassLoader,
+                   GroovySystemLoader gradleApiGroovyLoader,
+                   GroovySystemLoader antBuilderGroovyLoader) {
         super(cachedClassLoader, referenceQueue);
-        MemoryLeakPrevention classLoaderLeakPrevention = new MemoryLeakPrevention(ISOLATED_ANT_CLASS_LOADER, classLoader, classPath);
-        classLoaderLeakPrevention.prepare();
+        this.groovySystemForClassLoader = groovySystemForClassLoader;
+        this.gradleApiGroovyLoader = gradleApiGroovyLoader;
+        this.antBuilderGroovyLoader = antBuilderGroovyLoader;
         this.key = classPath;
         this.classLoader = classLoader;
-        this.antToIsolatedLeakPrevention = antToIsolatedLeakPrevention;
-        this.classLoaderLeakPrevention = classLoaderLeakPrevention;
-        this.gradleToIsolatedLeakPrevention = gradleToIsolatedLeakPrevention;
     }
 
     public ClassPath getKey() {
@@ -51,15 +48,8 @@ public class Cleanup extends PhantomReference<CachedClassLoader> {
     }
 
     public void cleanup() {
-
-        // clean classes from the isolated builder which leak into the various loaders
-        classLoaderLeakPrevention.dispose(classLoader, antToIsolatedLeakPrevention.getLeakingLoader(), DefaultIsolatedAntBuilder.class.getClassLoader());
-
-        // clean classes from the Gradle Core loader which leaked into the isolated builder and Ant loader
-        gradleToIsolatedLeakPrevention.dispose(classLoader);
-
-        // clean classes from the Gradle "ant" loader which leaked into the isolated builder
-        antToIsolatedLeakPrevention.dispose(classLoader);
-
+        groovySystemForClassLoader.shutdown();
+        gradleApiGroovyLoader.discardTypesFrom(classLoader);
+        antBuilderGroovyLoader.discardTypesFrom(classLoader);
     }
 }
