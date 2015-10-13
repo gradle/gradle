@@ -430,6 +430,10 @@ The `GradleRunner` abstract class will be extended to provide additional methods
 * A user can provide other instances of `OutputStream`. The standard output and error of the `BuildResult` provides the same information.
 * Providing a null `OutputStream` results in an exception thrown.
 
+### Open issues
+
+* Using `System.out` and `System.err` as default? This might produce to much log output.
+
 # Milestone 3
 
 ## Story: Integration with plugin-development-plugin
