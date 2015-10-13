@@ -24,14 +24,15 @@ public class NativeServicesTestFixture {
     static NativeServices nativeServices;
     static boolean initialized;
 
-    public static void initialize() {
+    public static synchronized void initialize() {
         if (!initialized) {
             File nativeDir = new File(System.getProperty("integTest.gradleUserHomeDir", "build/user-home"), "worker-1/test-fixtures");
             NativeServices.initialize(nativeDir);
+            initialized = true;
         }
     }
 
-    public static NativeServices getInstance() {
+    public static synchronized NativeServices getInstance() {
         if (nativeServices == null) {
             initialize();
             nativeServices = NativeServices.getInstance();
