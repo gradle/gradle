@@ -32,6 +32,14 @@ metadata used for directory scanning to "visiting" the file tree so that metadat
 - Performance gains will be measured from existing performance tests. ✔︎
 - Expect existing test coverage will cover behavior of input/output snapshotting and file collection operations. ✔︎
 
+## Story: Changes to reduce byte/char array allocations and array copying
+
+- Just do it
+
+## Story: Changes for adjusting collection sizes when final size is known
+
+- Just do it
+
 ## Story: Add caching to Specs returned from PatternSet.getAsSpecs()
 
 Evaluating patterns is a hotspot in directory scanning. The default excludes patterns 
@@ -42,34 +50,15 @@ Adding caching will improve performance of subsequent incremental builds.
 
 TBD
 
-# Feature: Use source file dependency information in up-to-date checks
+## Story: High number of UnknownDomainObjectExceptions when resolving libraries in native projects.
 
-## Story: Perform dependency analysis on source files separately from compilation
+TBD
 
-- Create a separate "figure out dependencies" step in the native plugins
-- Make include paths @Inputs for the compile task.  
-- Create the new "extract dependencies" task.  
-- Wire together everything
-- Use @InputFiles for the list of includes (but keep the incremental compiler doing what it does now for staleness)
+## Story: Add "discovered" inputs
 
-## Test coverage 
+TBD
 
-- Change in include path causes recalculation of dependencies and recompilation
-- Removing dependency information causes recalculation when compiling
-- Change in source file causes recalculation of dependencies
-- Change in header file does not cause recalculation
-- Test header parsing/extraction
-
-## Story: Reuse dependency information in incremental native compiler
-
-- Remove #include parsing from incremental compiler
-- Use dependency information from above
-- Still do source file staleness checks in the incremental compiler
-
-## Test coverage 
-
-- Existing test coverage should cover most cases
-- Remeasure performance/profiling after this is complete
+# Unprioritized
 
 ## Story: Reuse native source file dependency information within a build
 
@@ -78,8 +67,6 @@ Currently this is cached on a per-task basis, meaning it is recalculated many
 times when building multiple variants and compiling test suites. We should 
 instead move this to a cache that is shared across all tasks for a build, 
 and kept in memory across builds.
-
-# Uncategorized
 
 ## Story: Inline the data from the file hash cache into the task history cache
 
@@ -105,6 +92,10 @@ unmodified.
 
 TBD
 
+## Story: Reduce number of directory scans in up-to-date checks
+
+TBD
+
 ## Story: Reduce the in-memory size of the task history cache
 
 1. Discard history that will never be used, eg for tasks that no longer exist,
@@ -117,14 +108,6 @@ we would need to load up the snapshot.
 to the file system, and reducing the cache size.
 5. Reduce the cost of a cache miss, by spooling to an efficient transient second
 level cache, and reducing the cache size.
-
-### Test coverage
-
-TBD
-
-## Story: Reduce number of directory scans in up-to-date checks
-
-TBD
 
 ## Open Issues
 
