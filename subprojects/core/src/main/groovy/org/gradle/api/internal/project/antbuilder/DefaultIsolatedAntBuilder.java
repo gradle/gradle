@@ -251,9 +251,6 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         }
 
         public void cleanup() {
-            System.out.println("-> DISCARD ANT BUILDER " + antAdapterLoader);
-            System.out.println("-> DISCARD ANT " + antLoader);
-
             classLoaderCache.stop();
 
             // Remove classes from core Gradle API
