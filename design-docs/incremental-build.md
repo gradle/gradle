@@ -6,7 +6,7 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 These are general speed ups that improve all builds.
 
-## Story: Speed up File metadata lookup in task input/output snapshotting
+## Story: Speed up File metadata lookup in task input/output snapshotting ✔︎
 
 File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are 
 hotspots in task input/output snapshotting.
@@ -17,20 +17,20 @@ metadata used for directory scanning to "visiting" the file tree so that metadat
 
 ### Implementation
 
-- For JDK7+ with UTF-8 file encoding, use a nio2 file walker implemention.
-    - Cache isDirectory()/getSize()/getLastModified() in FileVisitDetails from BasicFileAttributes gathered from walking
-- Otherwise, use default file walker implementation (current behavior).
-    - Use a caching FileVisitDetails for getSize()/getLastModified() to cache on first use.
-    - Maybe reuse isFile/isDirectory result from the walker implementation
-- Replace calls to getFiles() in DefaultFileCollectionSnapshotter with a visitor
+- For JDK7+ with UTF-8 file encoding, use a nio2 file walker implemention. ✔︎
+    - Cache isDirectory()/getSize()/getLastModified() in FileVisitDetails from BasicFileAttributes gathered from walking ✔︎
+- Otherwise, use default file walker implementation (current behavior). ✔︎
+    - Use a caching FileVisitDetails for getSize()/getLastModified() to cache on first use. ✔︎
+    - Maybe reuse isFile/isDirectory result from the walker implementation ✔︎
+- Replace calls to getFiles() in DefaultFileCollectionSnapshotter with a visitor ✔︎
 
 ### Test coverage
 
-- Test that correct implementation is chosen for JDK platform and file encoding
-- Test that a file walker sees a snapshot of tree even if the tree is modified after walking has started.
-- Generate file tree and walk with JDK7+ file walker and non-nio2 file walker. Attributes and files should be the same for both.
-- Performance gains will be measured from existing performance tests.
-- Expect existing test coverage will cover behavior of input/output snapshotting and file collection operations.
+- Test that correct implementation is chosen for JDK platform and file encoding ✔︎
+- Test that a file walker sees a snapshot of tree even if the tree is modified after walking has started. ✔︎
+- Generate file tree and walk with JDK7+ file walker and non-nio2 file walker. Attributes and files should be the same for both. ✔︎
+- Performance gains will be measured from existing performance tests. ✔︎
+- Expect existing test coverage will cover behavior of input/output snapshotting and file collection operations. ✔︎
 
 ## Story: Add caching to Specs returned from PatternSet.getAsSpecs()
 
