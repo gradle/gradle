@@ -40,7 +40,7 @@ public class GroovySystemLoaderFactory {
             return NOT_BROKEN;
         }
         try {
-            Class<?> groovySystem = null;
+            Class<?> groovySystem;
             try {
                 groovySystem = classLoader.loadClass("groovy.lang.GroovySystem");
             } catch (ClassNotFoundException e) {

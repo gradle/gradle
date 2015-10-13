@@ -16,7 +16,6 @@
 package org.gradle.api.internal.project.antbuilder;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.internal.classloading.MemoryLeakPrevention;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
@@ -27,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 class FinalizerThread extends Thread {
-    private final static Logger LOG = Logging.getLogger(MemoryLeakPrevention.class);
+    private final static Logger LOG = Logging.getLogger(FinalizerThread.class);
 
     private final ReferenceQueue<CachedClassLoader> referenceQueue;
     private final AtomicBoolean stopped = new AtomicBoolean();
