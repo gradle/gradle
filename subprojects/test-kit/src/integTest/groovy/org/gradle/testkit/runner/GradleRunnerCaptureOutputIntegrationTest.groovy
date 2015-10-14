@@ -16,26 +16,10 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.api.UncheckedIOException
 import org.gradle.testkit.runner.fixtures.GradleRunnerCoverage
 import org.gradle.testkit.runner.fixtures.IgnoreTarget
 
 class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerIntegrationTest {
-
-    def "thrown input/output exception during writer usage fails test execution"() {
-        given:
-        Writer standardOutput = Mock(Writer)
-        buildFile << helloWorldWithStandardOutputAndError()
-
-        when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withStandardOutput(standardOutput)
-        gradleRunner.build()
-
-        then:
-        1 * standardOutput.flush() >> { throw new IOException() }
-        thrown UncheckedIOException
-    }
 
     def "can specify System.out and System.err as output"() {
         given:

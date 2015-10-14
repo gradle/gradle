@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.testkit.runner.*;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnector;
@@ -28,7 +27,10 @@ import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.wrapper.GradleUserHomeLookup;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,8 +68,8 @@ public class TestKitGradleExecutor implements GradleExecutor {
         try {
             connection = gradleConnector.connect();
             DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
-            launcher.setStandardOutput(standardOutput);
-            launcher.setStandardError(standardError);
+            launcher.setStandardOutput(determineLauncherOutputStream(standardOutput, parameters.getStandardOutput()));
+            launcher.setStandardError(determineLauncherOutputStream(standardError, parameters.getStandardError()));
             launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
 
             launcher.withArguments(parameters.getBuildArgs().toArray(new String[parameters.getBuildArgs().size()]));
@@ -81,9 +83,6 @@ public class TestKitGradleExecutor implements GradleExecutor {
         } catch(Throwable t) {
             throw new UnexpectedBuildException(t, new DefaultBuildResult(standardOutput.toString(), standardError.toString(), tasks));
         } finally {
-            writeLauncherOutputToWriter(standardOutput, parameters.getStandardOutput());
-            writeLauncherOutputToWriter(standardError, parameters.getStandardError());
-
             if (connection != null) {
                 connection.close();
             }
@@ -92,15 +91,12 @@ public class TestKitGradleExecutor implements GradleExecutor {
         return new GradleExecutionResult(standardOutput, standardError, tasks);
     }
 
-    private void writeLauncherOutputToWriter(OutputStream outputStream, Writer writer) {
+    private OutputStream determineLauncherOutputStream(OutputStream outputStream, Writer writer) {
         if (writer != null) {
-            try {
-                writer.write(outputStream.toString());
-                writer.flush();
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            return new TeeOutputStreamWriter(outputStream, writer);
         }
+
+        return outputStream;
     }
 
     private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean debug) {
