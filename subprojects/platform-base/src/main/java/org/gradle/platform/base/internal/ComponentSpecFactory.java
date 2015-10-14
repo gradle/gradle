@@ -18,9 +18,10 @@ package org.gradle.platform.base.internal;
 
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.component.BaseComponentSpec;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     public ComponentSpecFactory(String displayName) {
-        super(displayName, ComponentSpec.class);
+        super(displayName, ComponentSpec.class, BaseComponentSpec.class);
     }
 }

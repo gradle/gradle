@@ -45,10 +45,10 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
     @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
         ModelType<S> type = schema.getType();
-        InstanceFactory.DelegationInfo<? extends T> delegationInfo = instanceFactory.getDelegationInfo(type);
-        T instance = instanceFactory.create(delegationInfo.getPublicType(), modelNode, modelNode.getPath().getName());
+        InstanceFactory.ImplementationInfo<? extends T> implementationInfo = instanceFactory.getImplementationInfo(type);
+        T instance = instanceFactory.create(implementationInfo.getPublicType(), modelNode, modelNode.getPath().getName());
         configureAction.execute(instance);
-        ModelType<T> delegateType = Cast.uncheckedCast(delegationInfo.getDelegateType());
+        ModelType<T> delegateType = Cast.uncheckedCast(implementationInfo.getDelegateType());
         modelNode.setPrivateData(delegateType, instance);
         super.execute(modelNode, inputs);
     }
@@ -68,11 +68,11 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
                 ManagedProxyFactory proxyFactory = ModelViews.getInstance(inputs.get(1), ManagedProxyFactory.class);
 
                 ModelType<S> managedType = schema.getType();
-                InstanceFactory.DelegationInfo<? extends T> delegationInfo = instanceFactory.getDelegationInfo(managedType);
-                if (delegationInfo == null) {
+                InstanceFactory.ImplementationInfo<? extends T> implementationInfo = instanceFactory.getImplementationInfo(managedType);
+                if (implementationInfo == null) {
                     throw new IllegalStateException(String.format("No default implementation registered for managed type '%s'", managedType));
                 }
-                ModelType<? extends T> delegateType = delegationInfo.getDelegateType();
+                ModelType<? extends T> delegateType = implementationInfo.getDelegateType();
                 ModelSchema<? extends T> delegateSchema = schemaStore.getSchema(delegateType);
                 if (!(delegateSchema instanceof ModelStructSchema)) {
                     throw new IllegalStateException(String.format("Default implementation '%s' registered for managed type '%s' must be a struct", delegateType, managedType));
@@ -89,7 +89,7 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
                 }
 
                 // Register unmanaged internal views registered for the public type
-                for (ModelType<?> internalView : instanceFactory.getInternalViews(delegationInfo.getPublicType())) {
+                for (ModelType<?> internalView : instanceFactory.getInternalViews(implementationInfo.getPublicType())) {
                     modelNode.addProjection(UnmanagedModelProjection.of(internalView));
                 }
             }

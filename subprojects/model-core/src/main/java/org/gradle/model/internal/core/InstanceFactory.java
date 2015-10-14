@@ -24,7 +24,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Set;
 
 public interface InstanceFactory<T> {
-    ModelType<T> getBaseType();
+    ModelType<T> getBaseInterface();
 
     <S extends T> S create(ModelType<S> type, MutableModelNode modelNode, String name);
 
@@ -40,15 +40,15 @@ public interface InstanceFactory<T> {
 
     <S extends T, I extends S> void registerImplementation(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<I> implementationViewType);
 
-    <S extends T> DelegationInfo<? extends T> getDelegationInfo(ModelType<S> type);
+    <S extends T> ImplementationInfo<? extends T> getImplementationInfo(ModelType<S> type);
 
     void validateRegistrations();
 
-    class DelegationInfo<T> {
+    class ImplementationInfo<T> {
         private final ModelType<? extends T> publicType;
         private final ModelType<? extends T> delegateType;
 
-        public DelegationInfo(ModelType<? extends T> publicType, ModelType<? extends T> delegateType) {
+        public ImplementationInfo(ModelType<? extends T> publicType, ModelType<? extends T> delegateType) {
             this.publicType = publicType;
             this.delegateType = delegateType;
         }

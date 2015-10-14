@@ -257,6 +257,6 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         def failure = fails("components")
-        failure.assertHasCause "Factory registration for 'SampleBinarySpec' is invalid because the implementation type 'DefaultSampleBinarySpec' does not extend internal view 'NotImplementedInternalView'."
+        failure.assertHasCause "Factory registration for 'SampleBinarySpec' is invalid because the implementation type 'DefaultSampleBinarySpec' does not extend internal view 'NotImplementedInternalView', implementation type was registered by RegisterBinaryRules#registerBinary, internal view was registered by RegisterBinaryRules#registerInternalView"
     }
 }
