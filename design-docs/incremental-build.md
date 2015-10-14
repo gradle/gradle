@@ -6,7 +6,7 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 These are general speed ups that improve all builds.
 
-## Story: Speed up File metadata lookup in task input/output snapshotting ✔︎
+## Story: Speed up File metadata lookup in task input/output snapshotting 
 
 File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are 
 hotspots in task input/output snapshotting.
@@ -39,6 +39,10 @@ metadata used for directory scanning to "visiting" the file tree so that metadat
 ## Story: Changes for adjusting collection sizes when final size is known
 
 - Just do it
+
+## Story: Reduce the in-memory size of the task history cache by interning file paths
+
+Based on: https://github.com/gradle/gradle/commit/d26d4ce1098e0eee9896279cbeabefb1ca3e871c
 
 ## Story: Add caching to Specs returned from PatternSet.getAsSpecs()
 
