@@ -24,12 +24,10 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
@@ -65,6 +63,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
     private final String displayName;
     private final ModelType<T> baseType;
+    private final Set<ModelType<? extends T>> publicTypes = Sets.newLinkedHashSet();
     private final Map<Class<? extends T>, FactoryRegistration<? extends T>> factories = Maps.newIdentityHashMap();
     private final Map<Class<? extends T>, ImplementationTypeRegistration<? extends T>> implementationTypes = Maps.newIdentityHashMap();
     private final Map<Class<? extends T>, List<InternalViewRegistration>> internalViews = Maps.newIdentityHashMap();
@@ -77,6 +76,11 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
     @Override
     public ModelType<T> getBaseType() {
         return baseType;
+    }
+
+    @Override
+    public void registerPublicType(ModelType<? extends T> type) {
+        publicTypes.add(type);
     }
 
     @Override
@@ -95,6 +99,36 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
             throw new GradleException(getDuplicateRegistrationMessage("an implementation type", type, implementationTypeRegistration.source));
         }
         implementationTypes.put(type.getConcreteClass(), new ImplementationTypeRegistration<S>(sourceRule, implementationType));
+    }
+
+    @Override
+    public <S extends T> DelegationInfo<? extends T> getDelegationInfo(ModelType<S> type) {
+        final Set<DelegationInfo<? extends T>> delegates = Sets.newLinkedHashSet();
+        ModelSchemaUtils.walkTypeHierarchy(type.getConcreteClass(), new ModelSchemaUtils.TypeVisitor<S>() {
+            @Override
+            public void visitType(Class<? super S> superTypeClass) {
+                ModelType<? super S> superType = ModelType.of(superTypeClass);
+                ModelType<? extends T> superTypeAsBaseType = baseType.asSubclass(superType);
+                if (superTypeAsBaseType == null) {
+                    return;
+                }
+                ImplementationTypeRegistration<? extends T> registration = implementationTypes.get(superTypeAsBaseType.getConcreteClass());
+                if (registration != null) {
+                    ModelType<? extends T> implementationType = registration.implementationType;
+                    delegates.add(new DelegationInfo<T>(superTypeAsBaseType, implementationType));
+                }
+            }
+        });
+        switch (delegates.size()) {
+            case 0:
+                return null;
+            case 1:
+                return delegates.iterator().next();
+            default:
+                throw new IllegalStateException(String.format("More than one implementation type registered for %s, super-types that registered an implementation are: %s",
+                    type,
+                    Joiner.on(", ").join(delegates)));
+        }
     }
 
     @Override
@@ -143,12 +177,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
     @Override
     public Set<ModelType<? extends T>> getSupportedTypes() {
-        return ImmutableSet.copyOf(Iterables.transform(factories.keySet(), new Function<Class<? extends T>, ModelType<? extends T>>() {
-            @Override
-            public ModelType<? extends T> apply(@Nullable Class<? extends T> input) {
-                return ModelType.of(input);
-            }
-        }));
+        return ImmutableSet.copyOf(publicTypes);
     }
 
     private String getSupportedTypeNames() {

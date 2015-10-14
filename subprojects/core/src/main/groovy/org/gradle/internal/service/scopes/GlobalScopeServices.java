@@ -228,9 +228,9 @@ public class GlobalScopeServices {
         return new ManagedProxyFactory();
     }
 
-    protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, ManagedProxyFactory proxyFactory, ServiceRegistry serviceRegistry) {
+    protected ModelSchemaExtractor createModelSchemaExtractor(ModelSchemaAspectExtractor aspectExtractor, ServiceRegistry serviceRegistry) {
         List<ModelSchemaExtractionStrategy> strategies = serviceRegistry.getAll(ModelSchemaExtractionStrategy.class);
-        return new ModelSchemaExtractor(strategies, aspectExtractor, proxyFactory);
+        return new ModelSchemaExtractor(strategies, aspectExtractor);
     }
 
     protected ModelSchemaStore createModelSchemaStore(ModelSchemaExtractor modelSchemaExtractor) {

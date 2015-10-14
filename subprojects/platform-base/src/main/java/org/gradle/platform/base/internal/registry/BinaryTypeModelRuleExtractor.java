@@ -93,6 +93,7 @@ public class BinaryTypeModelRuleExtractor extends TypeModelRuleExtractor<BinaryT
 
         @Override
         public void execute(MutableModelNode modelNode, BinarySpecFactory factory, List<ModelView<?>> inputs) {
+            factory.registerPublicType(publicType);
             if (implementationType != null) {
                 registerImplementation(publicType, factory, inputs);
                 if (BINARY_SPEC_INTERNAL_MODEL_TYPE.isAssignableFrom(implementationType)) {

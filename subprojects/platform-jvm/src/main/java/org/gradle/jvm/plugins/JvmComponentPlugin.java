@@ -21,7 +21,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
 import org.gradle.jvm.internal.*;
-import org.gradle.jvm.internal.model.JarBinarySpecSpecializationNodeInitializerExtractionStrategy;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -29,9 +28,6 @@ import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.NodeInitializerRegistry;
-import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
@@ -66,17 +62,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
         @ComponentType
         void register(ComponentTypeBuilder<JvmLibrarySpec> builder) {
             builder.defaultImplementation(DefaultJvmLibrarySpec.class);
+            builder.internalView(JvmLibrarySpecInternal.class);
         }
 
         @BinaryType
         void registerJar(BinaryTypeBuilder<JarBinarySpec> builder) {
             builder.defaultImplementation(DefaultJarBinarySpec.class);
-        }
-
-        @Mutate
-        void registerJarBinarySpecSpecializationNodeInitializerExtractionStrategy(NodeInitializerRegistry nodeInitializerRegistry, @Path("schemaStore") ModelSchemaStore schemaStore, ServiceRegistry serviceRegistry) {
-            ManagedProxyFactory proxyFactory = serviceRegistry.get(ManagedProxyFactory.class);
-            nodeInitializerRegistry.registerStrategy(new JarBinarySpecSpecializationNodeInitializerExtractionStrategy(schemaStore, proxyFactory));
+            builder.internalView(JarBinarySpecInternal.class);
         }
 
         @Model

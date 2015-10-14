@@ -30,13 +30,40 @@ public interface InstanceFactory<T> {
 
     Set<ModelType<? extends T>> getSupportedTypes();
 
+    void registerPublicType(ModelType<? extends T> type);
+
     <S extends T> void registerFactory(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, String, ? super MutableModelNode> factory);
+
+    <S extends T> void registerInternalView(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<?> internalViewType);
 
     <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type);
 
     <S extends T, I extends S> void registerImplementation(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<I> implementationViewType);
 
-    <S extends T> void registerInternalView(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<?> internalViewType);
+    <S extends T> DelegationInfo<? extends T> getDelegationInfo(ModelType<S> type);
 
     void validateRegistrations();
+
+    class DelegationInfo<T> {
+        private final ModelType<? extends T> publicType;
+        private final ModelType<? extends T> delegateType;
+
+        public DelegationInfo(ModelType<? extends T> publicType, ModelType<? extends T> delegateType) {
+            this.publicType = publicType;
+            this.delegateType = delegateType;
+        }
+
+        public ModelType<? extends T> getPublicType() {
+            return publicType;
+        }
+
+        public ModelType<? extends T> getDelegateType() {
+            return delegateType;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(publicType);
+        }
+    }
 }

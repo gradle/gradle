@@ -39,13 +39,15 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
     private static final ModelType<? extends Collection<?>> COLLECTION_MODEL_TYPE = new ModelType<Collection<?>>() {
     };
+    private final ModelManagedImplStructSchema<M> schema;
+    private final ModelStructSchema<? extends M> delegateSchema;
     private final ModelSchemaStore schemaStore;
     private final ManagedProxyFactory proxyFactory;
-    private final ModelManagedImplStructSchema<M> schema;
 
-    public ManagedModelProjection(ModelManagedImplStructSchema<M> schema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+    public ManagedModelProjection(ModelManagedImplStructSchema<M> schema, ModelStructSchema<? extends M> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         super(schema.getType(), true, true);
         this.schema = schema;
+        this.delegateSchema = delegateSchema;
         this.schemaStore = schemaStore;
         this.proxyFactory = proxyFactory;
     }
@@ -67,7 +69,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
             }
 
             public M getInstance() {
-                return proxyFactory.createProxy(new State(), schema);
+                return proxyFactory.createProxy(new State(), schema, delegateSchema);
             }
 
             public void close() {

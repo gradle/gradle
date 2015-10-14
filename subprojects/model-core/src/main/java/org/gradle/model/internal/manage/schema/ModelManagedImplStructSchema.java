@@ -16,29 +16,12 @@
 
 package org.gradle.model.internal.manage.schema;
 
-import org.gradle.api.Nullable;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspect;
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.ref.WeakReference;
-
 public class ModelManagedImplStructSchema<T> extends AbstractModelStructSchema<T> implements ManagedImplModelSchema<T> {
-    private final WeakReference<Class<? extends T>> implementationType;
-    private final WeakReference<Class<?>> delegateType;
-
-    public ModelManagedImplStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects, Class<? extends T> implementationType, @Nullable Class<?> delegateType) {
+    public ModelManagedImplStructSchema(ModelType<T> type, Iterable<ModelProperty<?>> properties, Iterable<ModelSchemaAspect> aspects) {
         super(type, properties, aspects);
-        this.implementationType = new WeakReference<Class<? extends T>>(implementationType);
-        this.delegateType = new WeakReference<Class<?>>(delegateType);
-    }
-
-    public Class<? extends T> getImplementationType() {
-        return implementationType.get();
-    }
-
-    @Nullable
-    public Class<?> getDelegateType() {
-        return delegateType.get();
     }
 
     @Override

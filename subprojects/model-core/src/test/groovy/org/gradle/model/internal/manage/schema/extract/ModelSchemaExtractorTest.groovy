@@ -711,44 +711,6 @@ $type
         fail WithInstanceScopedFieldInSuperclass, Pattern.quote("instance scoped fields are not allowed (found fields: private int ${WithInstanceScopedField.name}.age, private java.lang.String ${WithInstanceScopedField.name}.name)")
     }
 
-    @Managed
-    static abstract class ThrowsInConstructor {
-        ThrowsInConstructor() {
-            throw new RuntimeException("from constructor")
-        }
-    }
-
-    def "classes that cannot be instantiated are detected as soon as they are extracted"() {
-        when:
-        extract(ThrowsInConstructor)
-
-        then:
-        InvalidManagedModelElementTypeException e = thrown()
-        e.message == "Invalid managed model type ${ThrowsInConstructor.name}: instance creation failed"
-        e.cause.message == "from constructor"
-    }
-
-    @Managed
-    static abstract class CallsSetterInConstructor {
-        abstract String getName()
-
-        abstract void setName(String name)
-
-        CallsSetterInConstructor() {
-            name = "foo"
-        }
-    }
-
-    def "calling setters from constructor is not allowed"() {
-        when:
-        extract(CallsSetterInConstructor)
-
-        then:
-        InvalidManagedModelElementTypeException e = thrown()
-        e.message == "Invalid managed model type ${CallsSetterInConstructor.name}: instance creation failed"
-        e.cause.class == UnsupportedOperationException
-        e.cause.message == "Calling setters of a managed type on itself is not allowed"
-    }
 
     @Managed
     static abstract class ProtectedAbstractMethods {
@@ -1022,10 +984,10 @@ interface Managed${typeName} {
         assert schema instanceof ModelManagedImplStructSchema
         schema.properties*.name == ["buildable", "managedCalculatedProp", "managedProp", "time", "unmanagedCalculatedProp", "unmanagedProp"]
 
-        schema.getProperty("unmanagedProp").stateManagementType == DELEGATED
+        schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedProp").isWritable() == true
 
-        schema.getProperty("unmanagedCalculatedProp").stateManagementType == DELEGATED
+        schema.getProperty("unmanagedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedCalculatedProp").isWritable() == false
 
         schema.getProperty("managedProp").stateManagementType == MANAGED
@@ -1034,10 +996,10 @@ interface Managed${typeName} {
         schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
 
-        schema.getProperty("buildable").stateManagementType == DELEGATED
+        schema.getProperty("buildable").stateManagementType == UNMANAGED
         schema.getProperty("buildable").isWritable() == false
 
-        schema.getProperty("time").stateManagementType == DELEGATED
+        schema.getProperty("time").stateManagementType == UNMANAGED
         schema.getProperty("time").isWritable() == false
     }
 

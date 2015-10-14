@@ -23,6 +23,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.BiAction;
+import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
@@ -34,6 +36,8 @@ import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
@@ -96,9 +100,17 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory));
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory));
+        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, BinarySpecFactory binarySpecFactory, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, schemaStore, proxyFactory, BiActions.doNothing()));
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, schemaStore, proxyFactory, new BiAction<BinarySpec, ModelSchema<? extends BinarySpec>>() {
+                @Override
+                public void execute(BinarySpec binarySpec, ModelSchema<? extends BinarySpec> schema) {
+                    BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binarySpec;
+                    if (!binarySpecInternal.isLegacyBinary()) {
+                        binarySpecInternal.setPublicType(schema.getType().getConcreteClass());
+                    }
+                }
+            }));
         }
 
         @Service

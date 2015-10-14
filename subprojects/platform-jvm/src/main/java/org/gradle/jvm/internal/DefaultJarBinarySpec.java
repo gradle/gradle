@@ -22,7 +22,6 @@ import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
-import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
@@ -38,7 +37,6 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File resourcesDir;
     private File jarFile;
     private ComponentSpec component;
-    private Class<? extends BinarySpec> publicType;
 
     @Override
     protected String getTypeName() {
@@ -48,15 +46,6 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     @Override
     public void setComponent(ComponentSpec componentSpec) {
         this.component = componentSpec;
-    }
-
-    @Override
-    public Class<? extends BinarySpec> getPublicType() {
-        return publicType != null ? publicType : super.getPublicType();
-    }
-
-    public void setPublicType(Class<? extends BinarySpec> publicType) {
-        this.publicType = publicType;
     }
 
     @Override

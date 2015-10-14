@@ -84,6 +84,7 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
 
         @Override
         protected void execute(MutableModelNode modelNode, ComponentSpecFactory components, List<ModelView<?>> inputs) {
+            components.registerPublicType(publicType);
             if (implementationType != null) {
                 registerImplementation(components, inputs);
             }

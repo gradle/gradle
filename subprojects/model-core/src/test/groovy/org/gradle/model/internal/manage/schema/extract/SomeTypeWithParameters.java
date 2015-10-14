@@ -17,10 +17,12 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Optional;
+import org.gradle.model.Managed;
 
 import java.util.List;
 
 // Make sure IBM JDK 6 doesn't fail on this
+@Managed
 public interface SomeTypeWithParameters {
     List<String> getValues();
 

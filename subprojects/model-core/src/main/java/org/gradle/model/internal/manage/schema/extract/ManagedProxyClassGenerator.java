@@ -19,6 +19,7 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.apache.commons.lang.StringUtils;
@@ -27,23 +28,21 @@ import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
 import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelStructSchema;
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.objectweb.asm.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 import static org.objectweb.asm.Opcodes.*;
 
 public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     /*
         Note: there is deliberately no internal synchronizing or caching at this level.
-
-        Class generation should always be performed behind a ModelSchemaCache, by way of DefaultModelSchemaStore.
-        The generated class is then attached to the schema object.
-        This allows us to avoid yet another weak class based cache, and importantly having to acquire a lock to instantiate an implementation.
+        Class generation should be performed behind a ManagedProxyFactory.
      */
 
     private static final String STATE_FIELD_NAME = "$state";
@@ -90,58 +89,86 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
      * <p>
      * The generated class will implement/extend the managed type and will:
      * <ul>
-     *     <li>provide implementations for abstract getters and setters</li>
+     *     <li>provide implementations for abstract getters and setters that delegate to model nodes</li>
      *     <li>provide a `toString()` implementation</li>
      *     <li>mix-in implementation of {@link ManagedInstance}</li>
      *     <li>provide a constructor that accepts a {@link ModelElementState}, which will be used to implement the above.</li>
      * </ul>
+     *
+     * In case a delegate schema is supplied, the generated class will also have:
+     * <ul>
+     *     <li>a constructor that also takes a delegate instance</li>
+     *     <li>methods that call through to the delegate instance</li>
+     * </ul>
      */
-    public <T, M extends T, D extends T> Class<? extends M> generate(ModelType<M> managedType, Class<D> delegateType, Iterable<ModelPropertyExtractionResult<?>> propertyResults) {
-        if (delegateType != null && !delegateType.isInterface()) {
-            throw new IllegalArgumentException("Delegate type must be null or an interface");
+    public <T, M extends T, D extends T> Class<? extends M> generate(ModelStructSchema<M> managedSchema, ModelStructSchema<D> delegateSchema) {
+        if (delegateSchema != null && Modifier.isAbstract(delegateSchema.getType().getConcreteClass().getModifiers())) {
+            throw new IllegalArgumentException("Delegate type must be null or a non-abstract type");
         }
         ClassWriter visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 
-        Class<M> managedTypeClass = managedType.getConcreteClass();
-        String generatedTypeName = managedTypeClass.getName() + "_Impl";
+        ModelType<M> managedType = managedSchema.getType();
+
+        StringBuilder generatedTypeNameBuilder = new StringBuilder(managedType.getName());
+        if (delegateSchema != null) {
+            generatedTypeNameBuilder.append("$BackedBy_").append(delegateSchema.getType().getName().replaceAll("\\.", "_"));
+        } else {
+            generatedTypeNameBuilder.append("$Impl");
+        }
+
+        String generatedTypeName = generatedTypeNameBuilder.toString();
         Type generatedType = Type.getType("L" + generatedTypeName.replaceAll("\\.", "/") + ";");
 
+        Class<M> managedTypeClass = managedType.getConcreteClass();
         Class<?> superclass;
-        ImmutableSet.Builder<String> interfaceInternalNames = ImmutableSet.builder();
+        final ImmutableSet.Builder<String> interfaceInternalNames = ImmutableSet.builder();
+        final ImmutableSet.Builder<Class<?>> typesToDelegate = ImmutableSet.builder();
+        typesToDelegate.add(managedTypeClass);
         interfaceInternalNames.add(MANAGED_INSTANCE_TYPE);
         if (managedTypeClass.isInterface()) {
             superclass = Object.class;
-            interfaceInternalNames = interfaceInternalNames.add(Type.getInternalName(managedTypeClass));
+            interfaceInternalNames.add(Type.getInternalName(managedTypeClass));
         } else {
             superclass = managedTypeClass;
         }
-        if (delegateType != null) {
-            interfaceInternalNames.add(Type.getInternalName(delegateType));
+        // TODO:LPTR This should be removed once BinaryContainer is a ModelMap
+        // We need to also implement all the interfaces of the delegate type because otherwise
+        // BinaryContainer won't recognize managed binaries as BinarySpecInternal
+        if (delegateSchema != null) {
+            ModelSchemaUtils.walkTypeHierarchy(delegateSchema.getType().getConcreteClass(), new ModelSchemaUtils.TypeVisitor<D>() {
+                @Override
+                public void visitType(Class<? super D> type) {
+                    if (type.isInterface()) {
+                        typesToDelegate.add(type);
+                        interfaceInternalNames.add(Type.getInternalName(type));
+                    }
+                }
+            });
         }
 
-        generateProxyClass(visitor, managedType, delegateType, interfaceInternalNames.build(), generatedType, Type.getType(superclass), propertyResults);
+        generateProxyClass(visitor, managedSchema, delegateSchema, interfaceInternalNames.build(), typesToDelegate.build(), generatedType, Type.getType(superclass));
 
-        Class<? extends M> generatedClass = defineClass(visitor, managedTypeClass.getClassLoader(), generatedTypeName);
-        return generatedClass;
+        return defineClass(visitor, managedTypeClass.getClassLoader(), generatedTypeName);
     }
 
-    private void generateProxyClass(ClassWriter visitor, ModelType<?> managedType, Class<?> delegateTypeClass, Collection<String> interfaceInternalNames,
-                                    Type generatedType, Type superclassType, Iterable<ModelPropertyExtractionResult<?>> propertyResults) {
+    private void generateProxyClass(ClassWriter visitor, ModelStructSchema<?> managedSchema, ModelStructSchema<?> delegateSchema, Collection<String> interfaceInternalNames,
+                                    Set<Class<?>> typesToDelegate, Type generatedType, Type superclassType) {
+        ModelType<?> managedType = managedSchema.getType();
         Class<?> managedTypeClass = managedType.getConcreteClass();
         declareClass(visitor, interfaceInternalNames, generatedType, superclassType);
         declareStateField(visitor);
         declareManagedTypeField(visitor);
         declareCanCallSettersField(visitor);
         writeStaticConstructor(visitor, generatedType, managedTypeClass);
-        writeConstructor(visitor, generatedType, superclassType, delegateTypeClass);
+        writeConstructor(visitor, generatedType, superclassType, delegateSchema);
         writeToString(visitor, generatedType, managedTypeClass);
         writeManagedInstanceMethods(visitor, generatedType);
-        if (delegateTypeClass != null) {
-            declareDelegateField(visitor, delegateTypeClass);
-            writeDelegateMethods(visitor, generatedType, delegateTypeClass);
+        if (delegateSchema != null) {
+            declareDelegateField(visitor, delegateSchema);
+            writeDelegateMethods(visitor, generatedType, delegateSchema, typesToDelegate);
         }
         writeGroovyMethods(visitor, managedTypeClass);
-        writeMutationMethods(visitor, generatedType, managedTypeClass, propertyResults);
+        writePropertyMethods(visitor, generatedType, managedSchema, delegateSchema);
         writeHashCodeMethod(visitor, generatedType);
         writeEqualsMethod(visitor, generatedType);
         visitor.visitEnd();
@@ -160,8 +187,8 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         declareStaticField(visitor, MANAGED_TYPE_FIELD_NAME, ModelType.class);
     }
 
-    private void declareDelegateField(ClassVisitor visitor, Class<?> delegateTypeClass) {
-        declareField(visitor, DELEGATE_FIELD_NAME, delegateTypeClass);
+    private void declareDelegateField(ClassVisitor visitor, ModelStructSchema<?> delegateSchema) {
+        declareField(visitor, DELEGATE_FIELD_NAME, delegateSchema.getType().getConcreteClass());
     }
 
     private void declareCanCallSettersField(ClassVisitor visitor) {
@@ -176,14 +203,14 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         return visitor.visitField(ACC_PRIVATE | ACC_STATIC, name, Type.getDescriptor(fieldClass), null, null);
     }
 
-    private void writeConstructor(ClassVisitor visitor, Type generatedType, Type superclassType, Class<?> delegateTypeClass) {
+    private void writeConstructor(ClassVisitor visitor, Type generatedType, Type superclassType, ModelStructSchema<?> delegateSchema) {
         String constructorDescriptor;
         Type delegateType;
-        if (delegateTypeClass == null) {
+        if (delegateSchema == null) {
             delegateType = null;
             constructorDescriptor = NO_DELEGATE_CONSTRUCTOR_DESCRIPTOR;
         } else {
-            delegateType = Type.getType(delegateTypeClass);
+            delegateType = Type.getType(delegateSchema.getType().getConcreteClass());
             constructorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, MODEL_ELEMENT_STATE_TYPE, delegateType);
         }
         MethodVisitor constructorVisitor = visitor.visitMethod(ACC_PUBLIC, CONSTRUCTOR_NAME, constructorDescriptor, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
@@ -326,17 +353,28 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), CAN_CALL_SETTERS_FIELD_NAME, Type.BOOLEAN_TYPE.getDescriptor());
     }
 
-    private void writeMutationMethods(ClassVisitor visitor, Type generatedType, Class<?> managedTypeClass, Iterable<ModelPropertyExtractionResult<?>> propertyResults) {
-        for (ModelPropertyExtractionResult<?> propertyResult : propertyResults) {
-            ModelProperty<?> property = propertyResult.getProperty();
+    private void writePropertyMethods(ClassVisitor visitor, Type generatedType, ModelStructSchema<?> managedSchema, ModelStructSchema<?> delegateSchema) {
+        Collection<String> delegatePropertyNames;
+        if (delegateSchema != null) {
+            ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+            for (ModelProperty<?> delegateProperty : delegateSchema.getProperties()) {
+                builder.add(delegateProperty.getName());
+            }
+            delegatePropertyNames = builder.build();
+        } else {
+            delegatePropertyNames = Collections.emptySet();
+        }
+        Class<?> managedTypeClass = managedSchema.getType().getConcreteClass();
+        for (ModelProperty<?> property : managedSchema.getProperties()) {
             String propertyName = property.getName();
+            // Delegated properties are handled in writeDelegateMethods()
+            if (delegatePropertyNames.contains(propertyName)) {
+                continue;
+            }
             switch (property.getStateManagementType()) {
                 case MANAGED:
-                    Class<?> propertyTypeClass = property.getType().getConcreteClass();
-                    writeGetter(visitor, generatedType, propertyName, propertyTypeClass, propertyResult.getGetter());
-                    if (propertyResult.getSetter() != null) {
-                        writeSetter(visitor, generatedType, propertyName, propertyTypeClass, propertyResult.getSetter().getMostSpecificSignature());
-                    }
+                    writeGetters(visitor, generatedType, property);
+                    writeSetter(visitor, generatedType, property);
                     break;
 
                 case UNMANAGED:
@@ -345,30 +383,29 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                     try {
                         getterMethod = managedTypeClass.getMethod(getterName);
                     } catch (NoSuchMethodException e) {
-                        throw new IllegalStateException("Cannot find getter '" + getterName + "' on type " + managedTypeClass.getName(), e);
+                        throw new IllegalStateException(String.format("Cannot find getter '%s' on type %s", getterName, managedTypeClass.getName()), e);
                     }
                     if (!Modifier.isFinal(getterMethod.getModifiers()) && !propertyName.equals("metaClass")) {
                         writeNonAbstractMethodWrapper(visitor, generatedType, managedTypeClass, getterMethod);
                     }
                     break;
-
-                case DELEGATED:
-                    // We'll handle all delegated methods (not just properties) separately
-                    break;
             }
         }
     }
 
-    private void writeDelegateMethods(ClassVisitor visitor, Type generatedType, Class<?> delegateTypeClass) {
-        for (Method delegateMethod : delegateTypeClass.getMethods()) {
-            writeDelegatedMethod(visitor, generatedType, delegateTypeClass, delegateMethod);
+    private void writeSetter(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
+        WeaklyTypeReferencingMethod<?, Void> weakSetter = property.getSetter();
+        // There is no setter for this property
+        if (weakSetter == null) {
+            return;
         }
-    }
 
-    private void writeSetter(ClassVisitor visitor, Type generatedType, String propertyName, Class<?> propertyTypeClass, String signature) {
+        String propertyName = property.getName();
+        Class<?> propertyTypeClass = property.getType().getConcreteClass();
         Label calledOutsideOfConstructor = new Label();
 
-        MethodVisitor methodVisitor = declareMethod(visitor, getSetterName(propertyName), Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(propertyTypeClass)), signature);
+        Method setter = weakSetter.getMethod();
+        MethodVisitor methodVisitor = declareMethod(visitor, setter.getName(), Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(propertyTypeClass)), AsmClassGeneratorUtils.signature(setter));
 
         putCanCallSettersFieldValueOnStack(methodVisitor, generatedType);
         jumpToLabelIfStackEvaluatesToTrue(methodVisitor, calledOutsideOfConstructor);
@@ -521,8 +558,14 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitFieldInsn(GETSTATIC, generatedType.getInternalName(), name, Type.getDescriptor(fieldClass));
     }
 
-    private void writeGetter(ClassVisitor visitor, Type generatedType, String propertyName, Class<?> propertyTypeClass, PropertyAccessorExtractionContext getterContext) {
-        for (Method getter : getterContext.getGetters()) {
+    private void writeGetters(ClassVisitor visitor, Type generatedType, ModelProperty<?> property) {
+        Class<?> propertyTypeClass = property.getType().getConcreteClass();
+        Set<String> processedNames = Sets.newHashSet();
+        for (WeaklyTypeReferencingMethod<?, ?> weakGetter : property.getGetters()) {
+            Method getter = weakGetter.getMethod();
+            if (!processedNames.add(getter.getName())) {
+                continue;
+            }
             MethodVisitor methodVisitor = declareMethod(
                 visitor,
                 getter.getName(),
@@ -530,7 +573,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                 AsmClassGeneratorUtils.signature(getter));
 
             putStateFieldValueOnStack(methodVisitor, generatedType);
-            putConstantOnStack(methodVisitor, propertyName);
+            putConstantOnStack(methodVisitor, property.getName());
             invokeStateGetMethod(methodVisitor);
             castFirstStackElement(methodVisitor, propertyTypeClass);
             finishVisitingMethod(methodVisitor, returnCode(propertyTypeClass));
@@ -544,10 +587,6 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private static String getGetterName(String propertyName) {
         return "get" + StringUtils.capitalize(propertyName);
-    }
-
-    private static String getSetterName(String propertyName) {
-        return "set" + StringUtils.capitalize(propertyName);
     }
 
     private void castFirstStackElement(MethodVisitor methodVisitor, Class<?> returnType) {
@@ -623,6 +662,22 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         methodVisitor.visitEnd();
     }
 
+    private void writeDelegateMethods(final ClassVisitor visitor, final Type generatedType, ModelStructSchema<?> delegateSchema, Set<Class<?>> typesToDelegate) {
+        Class<?> delegateTypeClass = delegateSchema.getType().getConcreteClass();
+        Set<Method> methodsToDelegate = Sets.newLinkedHashSet();
+        for (Class<?> typeToDelegate : typesToDelegate) {
+            methodsToDelegate.addAll(Arrays.asList(typeToDelegate.getMethods()));
+        }
+        for (Method methodToDelegate : methodsToDelegate) {
+            try {
+                delegateTypeClass.getMethod(methodToDelegate.getName(), methodToDelegate.getParameterTypes());
+            } catch (NoSuchMethodException e) {
+                continue;
+            }
+            writeDelegatedMethod(visitor, generatedType, delegateTypeClass, methodToDelegate);
+        }
+    }
+
     private void writeDelegatedMethod(ClassVisitor visitor, Type generatedType, Class<?> delegateTypeClass, Method method) {
         MethodVisitor methodVisitor = declareMethod(visitor, method.getName(), Type.getMethodDescriptor(method), AsmClassGeneratorUtils.signature(method));
         invokeDelegateMethod(methodVisitor, generatedType, delegateTypeClass, method);
@@ -644,7 +699,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
                 putMethodArgumentOnStack(methodVisitor, paramNo + 1);
             }
         }
-        methodVisitor.visitMethodInsn(INVOKEINTERFACE, Type.getInternalName(delegateTypeClass), method.getName(), Type.getMethodDescriptor(method), true);
+        methodVisitor.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(delegateTypeClass), method.getName(), Type.getMethodDescriptor(method), false);
     }
 
     private void invokeSuperMethod(MethodVisitor methodVisitor, Class<?> superClass, Method method) {
