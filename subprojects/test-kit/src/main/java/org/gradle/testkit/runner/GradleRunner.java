@@ -23,7 +23,7 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import java.io.File;
-import java.io.OutputStream;
+import java.io.Writer;
 import java.util.List;
 
 /**
@@ -245,26 +245,26 @@ public abstract class GradleRunner {
     public abstract GradleRunner withDebug(boolean debug);
 
     /**
-     * Specifies the output stream used for capturing standard output from the test execution. The provided output stream may not be null.
+     * Specifies the writer used for capturing standard output during test execution. The provided writer may not be null.
      * <p>
-     * If no output stream is specified, the standard output is captured as part of the build result.
+     * If no writer is specified, the standard output is captured as part of the build result.
      *
-     * @param standardOutputStream the output stream
+     * @param standardOutput the output writer
      * @return this
      * @since 2.9
      */
-    public abstract GradleRunner withStandardOutputStream(OutputStream standardOutputStream);
+    public abstract GradleRunner withStandardOutput(Writer standardOutput);
 
     /**
-     * Specifies the output stream used for capturing standard error from the test execution. The provided output stream may not be null.
+     * Specifies the Writer used for capturing standard error during test execution. The provided writer may not be null.
      * <p>
-     * If no output stream is specified, the standard error is captured as part of the build result.
+     * If no writer is specified, the standard error is captured as part of the build result.
      *
-     * @param standardErrorStream the output stream
+     * @param standardError the output writer
      * @return this
      * @since 2.9
      */
-    public abstract GradleRunner withStandardErrorStream(OutputStream standardErrorStream);
+    public abstract GradleRunner withStandardError(Writer standardError);
 
     /**
      * Executes a build, expecting it to complete without failure.

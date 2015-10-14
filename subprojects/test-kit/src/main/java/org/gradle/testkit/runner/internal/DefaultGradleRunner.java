@@ -24,7 +24,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.testkit.runner.*;
 
 import java.io.File;
-import java.io.OutputStream;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,8 +42,8 @@ public class DefaultGradleRunner extends GradleRunner {
     private List<String> jvmArguments = Collections.emptyList();
     private ClassPath classpath = ClassPath.EMPTY;
     private boolean debug;
-    private OutputStream standardOutputStream;
-    private OutputStream standardErrorStream;
+    private Writer standardOutput;
+    private Writer standardError;
 
     public DefaultGradleRunner(GradleDistribution<?> gradleDistribution) {
         this(new TestKitGradleExecutor(gradleDistribution), new TempTestKitDirProvider());
@@ -140,22 +140,22 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
-    public GradleRunner withStandardOutputStream(OutputStream standardOutputStream) {
-        if (standardOutputStream == null) {
-            throw new IllegalArgumentException("standardOutputStream argument cannot be null");
+    public GradleRunner withStandardOutput(Writer standardOutput) {
+        if (standardOutput == null) {
+            throw new IllegalArgumentException("standardOutput argument cannot be null");
         }
 
-        this.standardOutputStream = standardOutputStream;
+        this.standardOutput = standardOutput;
         return this;
     }
 
     @Override
-    public GradleRunner withStandardErrorStream(OutputStream standardErrorStream) {
-        if (standardOutputStream == null) {
-            throw new IllegalArgumentException("standardErrorStream argument cannot be null");
+    public GradleRunner withStandardError(Writer standardError) {
+        if (standardOutput == null) {
+            throw new IllegalArgumentException("standardError argument cannot be null");
         }
 
-        this.standardErrorStream = standardErrorStream;
+        this.standardError = standardError;
         return this;
     }
 
@@ -226,14 +226,14 @@ public class DefaultGradleRunner extends GradleRunner {
         File testKitDir = createTestKitDir(testKitDirProvider);
 
         GradleExecutionResult execResult = gradleExecutor.run(new GradleExecutionParameters(
-            testKitDir,
-            projectDirectory,
-            arguments,
-            jvmArguments,
-            classpath,
-            debug,
-            standardOutputStream,
-            standardErrorStream)
+                testKitDir,
+                projectDirectory,
+                arguments,
+                jvmArguments,
+                classpath,
+                debug,
+                standardOutput,
+                standardError)
         );
 
         resultVerification.execute(execResult);

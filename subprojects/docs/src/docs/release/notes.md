@@ -112,48 +112,35 @@ Spock:
         }
     }
 
-### Providing output streams for capturing standard output an error during test execution
+## Story: Ability to provide Writers for capturing standard output and error
 
-Any messages emitted to standard output and error during test execution are captured in the `BuildResult`. There's not direct output of these streams to the console. This makes
-diagnosing the root cause of a failed test much harder. Users would need to print out the standard output or error field of the `BuildResult` to identify the issue.
+At the moment the standard output and error can only be resolved from the `BuildResult`. There's not direct output of these streams to the console. Users cannot provide their own OutputStreams
+for other debugging or processing purposes. This story allows for specifying a Writer to the `GradleRunner` API that output will be forwarded to (e.g. `System.out`).
 
-With this release, the `GradleRunner` API exposes methods for specifying output streams for debugging or purposes of further processing.
-The following example directly prints out standard output and error messages to the console:
+### Implementation
 
-    class BuildLogicFunctionalTest extends Specification {
-        @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+The `GradleRunner` abstract class will be extended to provide additional methods.
 
-        def "can forward standard output and error to console"() {
-            given:
-            buildFile << """
-                task printOutput {
-                    doLast {
-                        println 'Hello world!'
-                        System.err.println 'Expected error message'
-                    }
-                }
-            """
-
-            when:
-            def result = GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
-                .withArguments('printOutput')
-                .withStandardOutputStream(System.out)
-                .withStandardErrorStream(System.err)
-                .build()
-
-            then:
-            noExceptionThrown()
-            result.standardOutput.contains(':printOutput')
-            result.standardOutput.contains('Hello world!')
-            result.standardError.contains('Expected error message')
-            result.tasks.collect { it.path } == [':printOutput']
-            result.taskPaths(SUCCESS) == [':printOutput']
-            result.taskPaths(SKIPPED).empty
-            result.taskPaths(UP_TO_DATE).empty
-            result.taskPaths(FAILED).empty
-        }
+    public abstract class GradleRunner {
+        public abstract GradleRunner withStandardOutput(Writer standardOutput);
+        public abstract GradleRunner withStandardError(Writer standardError);
     }
+
+* If no `Writer` is provided by the user, the Test Kit will not write the output to the console. Output from the test execution will be captured as part of the `BuildResult`.
+* A user can provide `Writer` instances for standard output and/or standard error. The relevant output from the test execution will be forwarded to the provided Writers.
+* If a user provides an `Writer`, then the corresponding standard output and/or error in the `BuildResult` provides the same information.
+
+### Test Coverage
+
+* If a user doesn't provide an `Writer`, then standard output and error are made available through the `BuildResult`.
+* Providing a null `Writer` results in an exception thrown.
+* A user can redirect the output to the console by providing `System.out` and `System.err` as input to a `Writer`. The standard output and error of the `BuildResult` provides the same information.
+* A user can provide other instances of `Writer`. The standard output and error of the `BuildResult` provides the same information.
+* `Writer` instances provided by the user capture output if an exception occurs during test execution.
+
+### Open issues
+
+* Using `System.out` and `System.err` as default? This might produce to much log output.
 
 ### Model rules improvements
 

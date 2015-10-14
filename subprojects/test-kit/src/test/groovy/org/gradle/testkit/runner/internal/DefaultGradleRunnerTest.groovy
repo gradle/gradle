@@ -271,30 +271,30 @@ $expectedReason
 
     def "throws exception if standard output is null"() {
         when:
-        createRunner().withStandardOutputStream(null)
+        createRunner().withStandardOutput(null)
 
         then:
         Throwable t = thrown(IllegalArgumentException)
-        t.message == 'standardOutputStream argument cannot be null'
+        t.message == 'standardOutput argument cannot be null'
     }
 
     def "throws exception if standard error is null"() {
         when:
-        createRunner().withStandardErrorStream(null)
+        createRunner().withStandardError(null)
 
         then:
         Throwable t = thrown(IllegalArgumentException)
-        t.message == 'standardErrorStream argument cannot be null'
+        t.message == 'standardError argument cannot be null'
     }
 
     def "standard output and error is passed on to executor"() {
         given:
-        OutputStream standardOutput = new ByteArrayOutputStream()
-        OutputStream standardError = new ByteArrayOutputStream()
+        Writer standardOutput = new StringWriter()
+        Writer standardError = new StringWriter()
         File gradleUserHomeDir = new File('some/dir')
 
         when:
-        DefaultGradleRunner defaultGradleRunner = createRunnerWithWorkingDirAndArgument().withStandardOutputStream(standardOutput).withStandardErrorStream(standardError)
+        DefaultGradleRunner defaultGradleRunner = createRunnerWithWorkingDirAndArgument().withStandardOutput(standardOutput).withStandardError(standardError)
         defaultGradleRunner.build()
 
         then:
