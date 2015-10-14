@@ -12,9 +12,10 @@ Tooling API stories that are not related directly to the IDE experience should g
 
 ### Story - Expose natures and builders for projects (2d)
 
-The Motiviation of this story is to model java projects better within the EclipseProject model. Therefore we want to provide
+The Motiviation here is to model java projects better within the EclipseProject model. Therefore we want to provide
 the Eclipse Model with information about natures and builders. A Java Project is identified
-by having an EclipseModel providing a java nature. IDEs should not guess which natures and builders to add.
+by having an EclipseModel providing a java nature. IDEs should not guess which natures and builders to add but get the information
+from the TAPI.
 
 #### The Api
 
@@ -55,7 +56,6 @@ by having an EclipseModel providing a java nature. IDEs should not guess which n
 - `EclipseProject#getBuildCommands(List<BuildCommand>)` of a Java project contains java nature (`org.eclipse.jdt.core.javanature`)
 - `EclipseProject#getBuildCommands(List<BuildCommand>)` respects custom added build commands.
 - older Gradle versions return default value when calling `EclipseProject#getBuildCommands(List<String> defaultValue)`
-
 
 
 ### Story - Expose Java source level for Java projects to Eclipse (1.5d)
