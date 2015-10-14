@@ -64,12 +64,19 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
     }
 
     private final String displayName;
+    private final ModelType<T> baseType;
     private final Map<Class<? extends T>, FactoryRegistration<? extends T>> factories = Maps.newIdentityHashMap();
     private final Map<Class<? extends T>, ImplementationTypeRegistration<? extends T>> implementationTypes = Maps.newIdentityHashMap();
     private final Map<Class<? extends T>, List<InternalViewRegistration>> internalViews = Maps.newIdentityHashMap();
 
-    public BaseInstanceFactory(String displayName) {
+    public BaseInstanceFactory(String displayName, Class<T> baseType) {
         this.displayName = displayName;
+        this.baseType = ModelType.of(baseType);
+    }
+
+    @Override
+    public ModelType<T> getBaseType() {
+        return baseType;
     }
 
     @Override

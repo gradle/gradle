@@ -96,8 +96,9 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, @Path("instanceFactoryRegistry") InstanceFactoryRegistry instanceFactoryRegistry) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry));
+        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory));
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory));
         }
 
         @Service
@@ -161,18 +162,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             // This is used by the BinaryContainer API, which we still need for the time being.
             // We are adapting it to BinarySpecFactory here so it can be used by component.binaries model maps
             binarySpecFactory.copyDomainObjectFactoriesInto(binaries);
-        }
-
-        @Service
-        InstanceFactoryRegistry instanceFactoryRegistry(BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
-            InstanceFactoryRegistry instanceFactoryRegistry = new DefaultInstanceFactoryRegistry();
-            for (ModelType<? extends BinarySpec> type : binarySpecFactory.getSupportedTypes()) {
-                instanceFactoryRegistry.register(type, ModelReference.of(BinarySpecFactory.class));
-            }
-            for (ModelType<? extends ComponentSpec> type : componentSpecFactory.getSupportedTypes()) {
-                instanceFactoryRegistry.register(type, ModelReference.of(ComponentSpecFactory.class));
-            }
-            return instanceFactoryRegistry;
         }
 
         @Defaults

@@ -21,6 +21,6 @@ import org.gradle.platform.base.ComponentSpec;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     public ComponentSpecFactory(String displayName) {
-        super(displayName);
+        super(displayName, ComponentSpec.class);
     }
 }

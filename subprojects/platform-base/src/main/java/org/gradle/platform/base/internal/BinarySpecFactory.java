@@ -35,7 +35,7 @@ public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec> {
     private final RuleAwareNamedDomainObjectFactoryRegistry<BinarySpec> domainObjectFactories = new DefaultRuleAwareNamedDomainObjectFactoryRegistry<BinarySpec>(collector);
 
     public BinarySpecFactory(String displayName) {
-        super(displayName);
+        super(displayName, BinarySpec.class);
     }
 
     public <U extends BinarySpec> void registerDomainObjectFactory(Class<U> type, ModelRuleDescriptor descriptor, NamedDomainObjectFactory<? extends U> factory) {

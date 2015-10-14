@@ -16,29 +16,34 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.type.ModelType;
 
-public class FactoryBasedNodeInitializerExtractionStrategy implements NodeInitializerExtractionStrategy {
-    private final InstanceFactoryRegistry instanceFactoryRegistry;
+public class FactoryBasedNodeInitializerExtractionStrategy<T> implements NodeInitializerExtractionStrategy {
+    private final InstanceFactory<T> instanceFactory;
 
-    public FactoryBasedNodeInitializerExtractionStrategy(InstanceFactoryRegistry instanceFactoryRegistry) {
-        this.instanceFactoryRegistry = instanceFactoryRegistry;
+    public FactoryBasedNodeInitializerExtractionStrategy(InstanceFactory<T> instanceFactory) {
+        this.instanceFactory = instanceFactory;
     }
 
     @Override
-    public <T> NodeInitializer extractNodeInitializer(ModelSchema<T> schema) {
-        ModelType<T> type = schema.getType();
-        ModelReference<InstanceFactory<? super T>> factoryReference = instanceFactoryRegistry.getFactory(type);
-        if (factoryReference == null) {
+    public <S> NodeInitializer extractNodeInitializer(ModelSchema<S> schema) {
+        ModelType<S> type = schema.getType();
+        ModelType<? extends T> typeAsBaseType = instanceFactory.getBaseType().asSubclass(type);
+        if (typeAsBaseType == null) {
             return null;
         }
-        return new FactoryBasedNodeInitializer<T, T>(factoryReference, type);
+        return getNodeInitializer(typeAsBaseType);
+    }
+
+    private <S extends T> FactoryBasedNodeInitializer<T, S> getNodeInitializer(ModelType<S> type) {
+        return new FactoryBasedNodeInitializer<T, S>(instanceFactory, type);
     }
 
     @Override
     public Iterable<ModelType<?>> supportedTypes() {
-        return instanceFactoryRegistry.supportedTypes();
+        return ImmutableSet.<ModelType<?>>copyOf(instanceFactory.getSupportedTypes());
     }
 }

@@ -24,6 +24,8 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Set;
 
 public interface InstanceFactory<T> {
+    ModelType<T> getBaseType();
+
     <S extends T> S create(ModelType<S> type, MutableModelNode modelNode, String name);
 
     Set<ModelType<? extends T>> getSupportedTypes();

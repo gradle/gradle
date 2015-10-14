@@ -18,20 +18,19 @@ package org.gradle.nativeplatform.internal.configure
 import org.gradle.api.Named
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
-import org.gradle.model.internal.core.DefaultInstanceFactoryRegistry
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy
-import org.gradle.model.internal.type.ModelType
-import org.gradle.nativeplatform.*
+import org.gradle.nativeplatform.BuildType
+import org.gradle.nativeplatform.Flavor
 import org.gradle.nativeplatform.internal.DefaultNativeLibrarySpec
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatforms
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.*
 import spock.lang.Specification
@@ -52,13 +51,10 @@ class NativeComponentRulesTest extends Specification {
     def component
 
     def setup() {
-        modelRegistry.createInstance("binarySpecFactory", new BinarySpecFactory("test"))
-        def instanceFactoryRegistry = new DefaultInstanceFactoryRegistry()
-        [StaticLibraryBinarySpec, SharedLibraryBinarySpec, NativeExecutableBinarySpec].each { type ->
-            instanceFactoryRegistry.register(ModelType.of(type), ModelReference.of(BinarySpecFactory))
-        }
+        def binarySpecFactory = new BinarySpecFactory("test")
+        modelRegistry.createInstance("binarySpecFactory", binarySpecFactory)
         def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)
-        nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry))
+        nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory))
         modelRegistry.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
         component = BaseComponentFixtures.create(DefaultNativeLibrarySpec.class, modelRegistry, id, Stub(ProjectSourceSet), instantiator)
     }
