@@ -212,11 +212,13 @@ of these types.
 
 - user can declare a base binary type and extended it with a `@Managed` subtype
 - user can declare a base component type and extended it with a `@Managed` subtype
+- user can attach internal view to custom type
 - fails on registration when:
-    - implementation type is an abstract type
-    - implementation type does not have a default constructor
-    - implementation type does not extend `BaseBinarySpec` or `BaseComponentSpec`, respectively
-    - base type does not implement `BinarySpec` or `ComponentSpec`, respectively
+    - registered implementation type is an abstract type
+    - registered implementation type does not have a default constructor
+    - registered implementation type does not extend `BaseBinarySpec` or `BaseComponentSpec`, respectively
+    - registered managed type extends base type without a default implementation (i.e. `BinarySpec`)
+    - registered managed type extends multiple interfaces that declare default implementations
 
 ## Plugin author declares default implementation for all extensible types
 
