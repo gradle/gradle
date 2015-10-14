@@ -64,9 +64,9 @@ public abstract class ManagedImplStructSchemaExtractionStrategySupport extends S
 
     @Override
     protected <R> void validateTypeHierarchy(final ModelSchemaExtractionContext<R> extractionContext, ModelType<R> type) {
-        walkTypeHierarchy(type.getConcreteClass(), new ModelSchemaUtils.TypeVisitor() {
+        walkTypeHierarchy(type.getConcreteClass(), new ModelSchemaUtils.TypeVisitor<R>() {
             @Override
-            public void visitType(Class<?> type) {
+            public void visitType(Class<? super R> type) {
                 if (type.isAnnotationPresent(Managed.class)) {
                     validateManagedType(extractionContext, type);
                 }
