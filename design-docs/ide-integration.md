@@ -9,21 +9,20 @@ Tooling API stories that are not related directly to the IDE experience should g
 
 ## Feature - Expose source and target platforms of JVM language projects
 
-
-### Story - Expose natures and builders for projects (2d)
+### Story - Expose natures and builders for projects (3d)
 
 The Motiviation here is to model java projects better within the EclipseProject model. Therefore we want to provide
 the Eclipse Model with information about natures and builders. A Java Project is identified
 by having an EclipseModel providing a java nature. IDEs should not guess which natures and builders to add but get the information
 from the TAPI.
 
-#### The Api
+#### The API
 
     interface EclipseProject {
         ...
         ...
         List<String> getProjectNatures(List<String> defaults)
-        List<BuildCommand> getBuildCommand(List<BuildCommand> defaults)
+        List<BuildCommand> getBuildCommands(List<BuildCommand> defaults)
         ...
     }
 
@@ -45,7 +44,7 @@ from the TAPI.
 - Add `List<BuildCommand> buildCommands` property to `DefaultEclipseProject`
 - Change EclipseModelBuilder to
     - Add build command with name `org.eclipse.jdt.core.javabuilder` and no arguments for all java projects in multiproject build
-    - Apply custom added build commands (via
+    - Apply custom added build commands (via `eclipse.project.buildCommand`)
 
 #### Test coverage
 
@@ -58,7 +57,36 @@ from the TAPI.
 - older Gradle versions return default value when calling `EclipseProject#getBuildCommands(List<String> defaultValue)`
 
 
-### Story - Expose Java source level for Java projects to Eclipse (1.5d)
+### Story - Expose Java source level for Java projects to Eclipse (3d)
+
+The IDE models should provide the java source compatibility level. To model java language specific information
+we want to have a dedicated model for eclipse specific java information and gradle specific java information.
+
+#### The API
+
+    interface EclipseProject {
+        EclipseJavaView getJavaView()
+    }
+
+    interface EclipseJavaView {
+        JavaView getJavaView()
+        JavaCompatibilityVersion getSourceLanguageLevel()
+    }
+
+    interface JavaView {
+        JavaCompatibilityVersion getSourceLanguageLevel()
+    }
+
+    enum JavaCompatibilityVersion {
+        VERSION_1_5,
+        VERSION_1_6,
+        VERSION_1_7,
+        ...
+    }
+
+    interface GradleProject {
+        JavaView getJavaView()
+    }
 
 - For `EclipseProject`, add details of the Java source level:
     - JDT language compliance level.
@@ -69,19 +97,31 @@ from the TAPI.
 
 #### Implementation
 
-- Add `org.gradle.tooling.model.eclipse.EclipseProject#getSourceCompatibility(String defaultValue`).
-- Add `sourceCompatibility` property to `DefaultEclipseProject`
-- Update `EclipseModelBuilder` to set values for `sourceCompatibility` in EclipseModel
-    - if java plugin is applied take `Project.sourceCompatibility`
-    - if eclipse plugin is applied take `eclipse.jdt.sourceCompatibility`
+- Add `JavaView` with `getSourceLanguageLevel()` method
+- Extend `GradleProject` model to expose `JavaView`
+- Update DefaultEclipseProject to implement new `getJavaView()` method
+- Update `EclipseModelBuilder` to set values for `SourceLanguageLevel`
+    - configure `EclipseJavaView` and `JavaView` per project if project is java project
+        - in `EclipseModel.getJavaView().getSourceLanguageLevel()`
+            - matching `eclipse.jdt.sourceCompatibility`
+        - in `EclipseModel.getGradleProject().getJavaView().getSourceLanguageLevel()`
+            - matching `Project.sourceCompatibility` (mixedin via JavaConvention)
+    - return `null` for `EclipseProject.getJavaView()` and `GradleProject.getJavaView()` if project not a java project
+
+- Update DefaultGradleProject to implement new `getJavaView()` method
+- Update `GradleProjectBuilder` to set values for `SourceLanguageLevel` in JavaView
+    - configure `JavaView` per project if project is java project
+        - in `GradleProject.getJavaView().getSourceLanguageLevel()`
+            - matching `Project.sourceCompatibility` (mixedin via JavaConvention)
+    - return `null` for `GradleProject.getJavaView()` if project is not a java project
 
 #### Test coverage
 
-- EclipseProject#sourceCompatibility
-    - matches sourceCompatibility level for java projects
-    - matches `eclipse.jdt.sourceCompatibility` when set
-    - for older Gradle gradle versions default value can be provided by tapi consumer
-
+- `EclipseProject.getJavaView()` returns null for non java projects
+- `GradleProject.getJavaView()` returns null for non java projects
+- `GradleProject.getJavaView().getSourceLanguageLevel()` matches sourceCompatibility property mixedin from JavaConvention
+- `EclipseProject.getJavaView().getSourceLanguageLevel()` matches `eclipse.jdt.sourceCompatibility`
+- `EclipseProject.getJavaView().getSourceLanguageLevel()` respects cusomization via `eclipse.jdt.sourceCompatibility`
 
 ### Story - Expose target JDK for Java projects to Eclipse (3d)
 
