@@ -410,25 +410,31 @@ This story improves usability of the test kit by not imposing any dependencies b
 At the moment the standard output and error can only be resolved from the `BuildResult`. There's not direct output of these streams to the console. Users cannot provide their own OutputStreams
 for other debugging or processing purposes. This story allows for specifying OutputStreams to the `GradleRunner` API that output will be forwarded to (e.g. `System.out`).
 
+## Story: Ability to provide Writers for capturing standard output and error
+
+At the moment the standard output and error can only be resolved from the `BuildResult`. There's not direct output of these streams to the console. Users cannot provide their own OutputStreams
+for other debugging or processing purposes. This story allows for specifying a Writer to the `GradleRunner` API that output will be forwarded to (e.g. `System.out`).
+
 ### Implementation
 
 The `GradleRunner` abstract class will be extended to provide additional methods.
 
     public abstract class GradleRunner {
-        public abstract GradleRunner withStandardOutputStream(OutputStream outputStream);
-        public abstract GradleRunner withStandardErrorStream(OutputStream outputStream);
+        public abstract GradleRunner withStandardOutput(Writer standardOutput);
+        public abstract GradleRunner withStandardError(Writer standardError);
     }
 
-* If no OutputStream is provided by the user, the Test Kit will not write the output to the console. Output from the test execution will be captured as part of the `BuildResult`.
-* A user can provide OutputStreams for standard output and/or standard error. The relevant output from the test execution will be forwarded to the provided OutputStreams.
-* If a user provides an `OutputStream`, then the corresponding OutputStream in the `BuildResult` provides the same information.
+* If no `Writer` is provided by the user, the Test Kit will not write the output to the console. Output from the test execution will be captured as part of the `BuildResult`.
+* A user can provide `Writer` instances for standard output and/or standard error. The relevant output from the test execution will be forwarded to the provided Writers.
+* If a user provides an `Writer`, then the corresponding standard output and/or error in the `BuildResult` provides the same information.
 
 ### Test Coverage
 
-* If a user doesn't provide an `OutputStream`, then an internal one is provided and made available through the `BuildResult`.
-* A user can redirect the output to the console by providing `System.out` and `System.err`. The standard output and error of the `BuildResult` provides the same information.
-* A user can provide other instances of `OutputStream`. The standard output and error of the `BuildResult` provides the same information.
-* Providing a null `OutputStream` results in an exception thrown.
+* If a user doesn't provide an `Writer`, then standard output and error are made available through the `BuildResult`.
+* Providing a null `Writer` results in an exception thrown.
+* A user can redirect the output to the console by providing `System.out` and `System.err` as input to a `Writer`. The standard output and error of the `BuildResult` provides the same information.
+* A user can provide other instances of `Writer`. The standard output and error of the `BuildResult` provides the same information.
+* `Writer` instances provided by the user capture output if an exception occurs during test execution.
 
 ### Open issues
 

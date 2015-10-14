@@ -226,14 +226,14 @@ public class DefaultGradleRunner extends GradleRunner {
         File testKitDir = createTestKitDir(testKitDirProvider);
 
         GradleExecutionResult execResult = gradleExecutor.run(new GradleExecutionParameters(
-                testKitDir,
-                projectDirectory,
-                arguments,
-                jvmArguments,
-                classpath,
-                debug,
-                standardOutput,
-                standardError)
+            testKitDir,
+            projectDirectory,
+            arguments,
+            jvmArguments,
+            classpath,
+            debug,
+            standardOutput,
+            standardError)
         );
 
         resultVerification.execute(execResult);
