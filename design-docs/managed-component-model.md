@@ -213,6 +213,8 @@ of these types.
 - user can declare a base binary type and extended it with a `@Managed` subtype
 - user can declare a base component type and extended it with a `@Managed` subtype
 - user can attach internal view to custom type
+- internal views registered for managed super-type are available on custom managed type
+- internal views registered for unmanaged super-type are available on custom managed type
 - fails on registration when:
     - registered implementation type is an abstract type
     - registered implementation type does not have a default constructor
