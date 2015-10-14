@@ -235,9 +235,10 @@ public class ApiStubGenerator {
 
             String pkg = className.indexOf(".") > 0 ? className.substring(0, className.lastIndexOf(".")) : "";
 
-            if (pkg.startsWith("java")) {
-                // special case to treat all Java classes as belonging to the public API
-                return true;
+            for (String javaBasePackage : JavaBaseModule.PACKAGES) {
+                if (pkg.equals(javaBasePackage)) {
+                    return true;
+                }
             }
             boolean allowed = false;
             for (String allowedPackage : allowedPackages) {
