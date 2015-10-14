@@ -39,7 +39,7 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
         where:
         testProject       | maxExecutionTimeRegression
         "small"           | millis(800)
-        "multi"           | millis(800)
+        "multi"           | millis(500)
         "lotDependencies" | millis(500)
     }
 
