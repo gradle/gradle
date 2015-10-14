@@ -17,27 +17,22 @@
 package org.gradle.model.internal.inspect
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
-import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.core.ModelTypeInitializationException
-import org.gradle.model.internal.core.NodeInitializerContext
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ManagedModelInitializerTest extends Specification {
 
-    @Shared
-    def store = DefaultModelSchemaStore.getInstance()
+    def store = DefaultModelSchemaStore.instance
+    def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
     def r = new ModelRegistryHelper()
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(store)
     def classLoader = new GroovyClassLoader(getClass().classLoader)
-    static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
+    static final List<Class<?>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
     def setup() {
         r.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
@@ -169,7 +164,7 @@ interface Managed${typeName} {
     void failWhenRealized(Class type, String... expectedMessages) {
         try {
             realizeNodeOfType(type)
-            throw new AssertionError("node realisation of type ${getName(type)} should have failed with a cause of:\n$expectedMessages\n")
+            throw new AssertionError("node realisation of type $type.name should have failed with a cause of:\n$expectedMessages\n")
         }
         catch (ModelRuleExecutionException e) {
             assertExpected(e.cause, expectedMessages)

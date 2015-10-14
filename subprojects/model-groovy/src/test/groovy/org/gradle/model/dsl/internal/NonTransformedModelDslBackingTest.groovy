@@ -20,15 +20,14 @@ import org.gradle.model.Managed
 import org.gradle.model.ModelSet
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 class NonTransformedModelDslBackingTest extends Specification {
 
+    def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
     def modelRegistry = new ModelRegistryHelper()
-    def schemaStore = DefaultModelSchemaStore.instance
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
     def modelDsl
 
     def setup() {
