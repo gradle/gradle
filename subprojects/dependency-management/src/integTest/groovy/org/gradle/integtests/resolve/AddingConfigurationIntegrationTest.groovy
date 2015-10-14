@@ -51,6 +51,9 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "addConfigs"
+
+        and:
+        output.contains("The plus(Iterable<FileCollection>) method and using the '+' operator in conjunction with an Iterable<FileCollection> object have been deprecated and are scheduled to be removed in 3.0.  Please use the plus(FileCollection) method or the '+' operator with a FileCollection object instead.")
     }
 
     def "can subtract configurations" () {
@@ -84,5 +87,8 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "addConfigs"
+
+        and:
+        output.contains("The minus(Iterable<FileCollection>) method and using the '-' operator in conjunction with an Iterable<FileCollection> object have been deprecated and are scheduled to be removed in 3.0.  Please use the minus(FileCollection) method or the '-' operator with a FileCollection object instead.")
     }
 }
