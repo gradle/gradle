@@ -77,6 +77,10 @@ class ApiStubGeneratorTestSupport extends Specification {
         protected byte[] getStubBytes(GeneratedClass clazz) {
             stubgen.convertToApi(clazz.bytes)
         }
+
+        protected boolean belongsToAPI(GeneratedClass clazz) {
+            stubgen.belongsToAPI(clazz.bytes)
+        }
     }
 
     @TupleConstructor
@@ -130,6 +134,14 @@ class ApiStubGeneratorTestSupport extends Specification {
             entries.values()*.clazz.each { Class clazz ->
                 clazz.declaredClasses.collectEntries(entries) { inner ->
                     [inner.name, new GeneratedClass(new File(dir, toFileName(inner.name, true)).bytes, classLoader.loadClass(inner.name))]
+                }
+                // brute force to discover anonymous inner classes. That's just for tests.
+                10.times { i ->
+                    def innerClassName = "${clazz.name}\$$i"
+                    def f = new File(dir, toFileName(innerClassName, true))
+                    if (f.exists()) {
+                        entries[innerClassName] = new GeneratedClass(f.bytes, classLoader.loadClass(innerClassName))
+                    }
                 }
             }
             return new ApiContainer(allowedPackages, entries)

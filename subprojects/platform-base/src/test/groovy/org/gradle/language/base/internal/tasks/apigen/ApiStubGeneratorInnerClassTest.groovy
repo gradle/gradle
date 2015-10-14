@@ -46,6 +46,8 @@ public class A {
         def stubbedInner = api.loadStub(inner)
 
         then:
+        api.belongsToAPI(outer)
+        api.belongsToAPI(inner)
         inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
         stubbedInner.modifiers == access
         hasMethod(stubbedInner, 'foo').modifiers == Modifier.PUBLIC
@@ -86,6 +88,8 @@ public class A {
         def stubbedOuter = api.loadStub(outer)
 
         then:
+        api.belongsToAPI(outer)
+        !api.belongsToAPI(inner)
         inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
         stubbedOuter.classes.length == 0
 
@@ -109,9 +113,12 @@ public class A {
 
         when:
         def outer = api.classes.A
+        def inner = api.classes['A$1']
         def stubbedOuter = api.loadStub(outer)
 
         then:
+        api.belongsToAPI(outer)
+        !api.belongsToAPI(inner)
         stubbedOuter.classes.length == 0
     }
 

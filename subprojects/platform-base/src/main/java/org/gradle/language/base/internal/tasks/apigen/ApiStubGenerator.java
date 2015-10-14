@@ -24,8 +24,13 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 public class ApiStubGenerator {
+
+    // See JLS3 "Binary Compatibility" (13.1)
+    private static Pattern ANONYMOUS_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+$");
 
     private final List<String> allowedPackages;
     private final boolean hasDeclaredAPI;
@@ -35,11 +40,90 @@ public class ApiStubGenerator {
         this.hasDeclaredAPI = !allowedPackages.isEmpty();
     }
 
+    /**
+     * Returns true if the binary class found in parameter is belonging to the API.
+     * It will check if the class package is in the list of authorized packages, and if
+     * the access flags are ok with regards to the list of packages: if the list is
+     * empty, then package private classes are included, whereas if the list is not
+     * empty, an API has been declared and the class should be excluded.
+     * Therefore, this method should be called on every .class file to process before
+     * it is either copied or processed through {@link #convertToApi(byte[])}.
+     * @param clazz the bytecode of the class to test
+     * @return true if this class should be exposed in the API.
+     */
+    public boolean belongsToAPI(byte[] clazz) {
+        ClassReader cr = new ClassReader(clazz);
+        final AtomicBoolean isAPI = new AtomicBoolean();
+        cr.accept(new ClassVisitor(Opcodes.ASM5) {
+            @Override
+            public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                String className = toClassName(name);
+                isAPI.set(validateType(className) && isPublicAPI(access) && !ANONYMOUS_CLASS_PATTERN.matcher(name).matches());
+            }
+        }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
+        return isAPI.get();
+    }
+
+    /**
+     * Strips out all the non public elements of a class and generates a new class out of it, based
+     * on the list of allowed packages.
+     * @param clazz the bytecode of a class
+     * @return bytecode for the same class, stripped out of all non public members
+     */
     public byte[] convertToApi(byte[] clazz) {
         ClassReader cr = new ClassReader(clazz);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         cr.accept(new PublicAPIAdapter(cw), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return cw.toByteArray();
+    }
+
+    private static String toClassName(String cn) {
+        return cn.replace('/', '.');
+    }
+
+    private static String extractPackageName(String className) {
+        return className.indexOf(".") > 0 ? className.substring(0, className.lastIndexOf(".")) : "";
+    }
+
+    private boolean validateType(String className) {
+        if (!hasDeclaredAPI) {
+            return true;
+        }
+
+        String pkg = extractPackageName(className);
+
+        for (String javaBasePackage : JavaBaseModule.PACKAGES) {
+            if (pkg.equals(javaBasePackage)) {
+                return true;
+            }
+        }
+        boolean allowed = false;
+        for (String allowedPackage : allowedPackages) {
+            if (pkg.equals(allowedPackage)) {
+                allowed = true;
+                break;
+            }
+        }
+        return allowed;
+    }
+
+    private boolean isProtected(int access) {
+        return (access & Opcodes.ACC_PROTECTED) == Opcodes.ACC_PROTECTED;
+    }
+
+    private boolean isPublic(int access) {
+        return (access & Opcodes.ACC_PUBLIC) == Opcodes.ACC_PUBLIC;
+    }
+
+    private boolean isPublicAPI(int access) {
+        return (isPackagePrivate(access) && !hasDeclaredAPI) || isPublic(access) || isProtected(access);
+    }
+
+    private boolean isPackagePrivate(int access) {
+        return access == 0
+            || access == Opcodes.ACC_STATIC
+            || access == Opcodes.ACC_SUPER
+            || access == (Opcodes.ACC_SUPER | Opcodes.ACC_STATIC);
     }
 
     private class PublicAPIAdapter extends ClassVisitor implements Opcodes {
@@ -67,21 +151,6 @@ public class ApiStubGenerator {
             mv.visitEnd();
         }
 
-        private boolean isPackagePrivate(int access) {
-            return access == 0 || access == ACC_STATIC;
-        }
-
-        private boolean isProtected(int access) {
-            return (access & ACC_PROTECTED) == ACC_PROTECTED;
-        }
-
-        private boolean isPublic(int access) {
-            return (access & ACC_PUBLIC) == ACC_PUBLIC;
-        }
-
-        private boolean isPublicAPI(int access) {
-            return (isPackagePrivate(access) && !hasDeclaredAPI) || isPublic(access) || isProtected(access);
-        }
 
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
@@ -125,10 +194,6 @@ public class ApiStubGenerator {
         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
             checkAnnotation(toClassName(internalClassName), desc);
             return super.visitAnnotation(desc, visible);
-        }
-
-        private String toClassName(String cn) {
-            return cn.replace('/', '.');
         }
 
         private void checkAnnotation(String owner, String annotationDesc) {
@@ -229,29 +294,6 @@ public class ApiStubGenerator {
             });
             return result;
         }
-
-        private boolean validateType(String className) {
-            if (!hasDeclaredAPI) {
-                return true;
-            }
-
-            String pkg = className.indexOf(".") > 0 ? className.substring(0, className.lastIndexOf(".")) : "";
-
-            for (String javaBasePackage : JavaBaseModule.PACKAGES) {
-                if (pkg.equals(javaBasePackage)) {
-                    return true;
-                }
-            }
-            boolean allowed = false;
-            for (String allowedPackage : allowedPackages) {
-                if (pkg.equals(allowedPackage)) {
-                    allowed = true;
-                    break;
-                }
-            }
-            return allowed;
-        }
-
 
         @Override
         public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, Object value) {
