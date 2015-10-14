@@ -128,21 +128,12 @@ class ApiStubGeneratorTestSupport extends Specification {
         if (task.call()) {
             def classLoader = new URLClassLoader([dir.toURI().toURL()] as URL[], ClassLoader.systemClassLoader.parent)
             // Load the class from the classloader by name....
-            def entries = sources.collectEntries { name, src ->
-                [name, new GeneratedClass(new File(dir, toFileName(name, true)).bytes, classLoader.loadClass(name))]
-            }
-            entries.values()*.clazz.each { Class clazz ->
-                clazz.declaredClasses.collectEntries(entries) { inner ->
-                    [inner.name, new GeneratedClass(new File(dir, toFileName(inner.name, true)).bytes, classLoader.loadClass(inner.name))]
+            def entries = [:].withDefault { String cn ->
+                def f = new File(dir, toFileName(cn, true))
+                if (f.exists()) {
+                    return new GeneratedClass(f.bytes, classLoader.loadClass(cn))
                 }
-                // brute force to discover anonymous inner classes. That's just for tests.
-                10.times { i ->
-                    def innerClassName = "${clazz.name}\$$i"
-                    def f = new File(dir, toFileName(innerClassName, true))
-                    if (f.exists()) {
-                        entries[innerClassName] = new GeneratedClass(f.bytes, classLoader.loadClass(innerClassName))
-                    }
-                }
+                throw new AssertionError("Cannot find class $cn. Test is very likely not written correctly.")
             }
             return new ApiContainer(allowedPackages, entries)
         }

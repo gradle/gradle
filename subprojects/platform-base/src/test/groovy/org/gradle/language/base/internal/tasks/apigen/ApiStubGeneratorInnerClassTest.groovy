@@ -122,4 +122,24 @@ public class A {
         stubbedOuter.classes.length == 0
     }
 
+    def "should not keep anonymous local classes"() {
+        given:
+        def api = toApi 'A': """
+public class A {
+   public void foo() {
+       class Person { }
+   }
+}"""
+
+        when:
+        def outer = api.classes.A
+        def inner = api.classes['A$1Person']
+        def stubbedOuter = api.loadStub(outer)
+
+        then:
+        api.belongsToAPI(outer)
+        !api.belongsToAPI(inner)
+        stubbedOuter.classes.length == 0
+    }
+
 }

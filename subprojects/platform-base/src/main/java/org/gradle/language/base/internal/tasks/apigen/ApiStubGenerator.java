@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 public class ApiStubGenerator {
 
     // See JLS3 "Binary Compatibility" (13.1)
-    private static Pattern ANONYMOUS_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+$");
+    private final static Pattern AIC_LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
 
     private final List<String> allowedPackages;
     private final boolean hasDeclaredAPI;
@@ -58,7 +58,7 @@ public class ApiStubGenerator {
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 String className = toClassName(name);
-                isAPI.set(validateType(className) && isPublicAPI(access) && !ANONYMOUS_CLASS_PATTERN.matcher(name).matches());
+                isAPI.set(validateType(className) && isPublicAPI(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
             }
         }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
         return isAPI.get();
