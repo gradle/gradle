@@ -108,10 +108,11 @@ This API stub generator will serve as a base for an API jar creator.
 - Output contains:
     - public or protected elements, including nested classes
     - annotations (we don't need to deal with source-retention annotations because they are not present in the original binary)
-    - package private members
+    - package private members if the list of packages is empty (no declared API)
 - Output must not contain:
     - debug attributes
     - source location annotations
+    - package private members if the list of packages is **not** empty (an API has been declared)
 - Trying to call a method of the API jar at runtime throws `UnsupportedOperationException`
 - Public constant types should be initialized to `null` or their default JVM value if of a primitive type (do not use `UnsupportedOperationException` here because it would imply the
 creation of a static initializer that we want to avoid).

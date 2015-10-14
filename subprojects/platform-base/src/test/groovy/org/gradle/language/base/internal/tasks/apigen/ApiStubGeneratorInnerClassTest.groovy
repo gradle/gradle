@@ -30,7 +30,7 @@ class ApiStubGeneratorInnerClassTest extends ApiStubGeneratorTestSupport {
     private final static int ACC_PRIVATESTATIC = Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC
 
     @Unroll
-    def "should not remove #modifier inner class"() {
+    def "should not remove #modifier inner class if no API is declared"() {
         given:
         def api = toApi 'A': """
 public class A {
@@ -66,6 +66,32 @@ public class A {
         'public static'    | ACC_PUBLICSTATIC
         'protected static' | ACC_PROTECTEDSTATIC
         'private static'   | ACC_PRIVATESTATIC
+        'static'           | Opcodes.ACC_STATIC
+
+    }
+
+    @Unroll
+    def "should remove #modifier inner class if API is declared"() {
+        given:
+        def api = toApi ([''], ['A': """
+public class A {
+   $modifier class Inner {
+      public void foo() {}
+   }
+}"""])
+
+        when:
+        def outer = api.classes.A
+        def inner = api.classes['A$Inner']
+        def stubbedOuter = api.loadStub(outer)
+
+        then:
+        inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
+        stubbedOuter.classes.length == 0
+
+        where:
+        modifier           | access
+        ''                 | 0
         'static'           | Opcodes.ACC_STATIC
 
     }

@@ -28,9 +28,11 @@ import java.util.Set;
 public class ApiStubGenerator {
 
     private final List<String> allowedPackages;
+    private final boolean hasDeclaredAPI;
 
     public ApiStubGenerator(List<String> allowedPackages) {
         this.allowedPackages = allowedPackages;
+        this.hasDeclaredAPI = !allowedPackages.isEmpty();
     }
 
     public byte[] convertToApi(byte[] clazz) {
@@ -66,7 +68,7 @@ public class ApiStubGenerator {
         }
 
         private boolean isPackagePrivate(int access) {
-            return access == 0;
+            return access == 0 || access == ACC_STATIC;
         }
 
         private boolean isProtected(int access) {
@@ -78,7 +80,7 @@ public class ApiStubGenerator {
         }
 
         private boolean isPublicAPI(int access) {
-            return isPackagePrivate(access) || isPublic(access) || isProtected(access);
+            return (isPackagePrivate(access) && !hasDeclaredAPI) || isPublic(access) || isProtected(access);
         }
 
         @Override
@@ -210,7 +212,7 @@ public class ApiStubGenerator {
             if (signature==null) {
                 return Collections.emptySet();
             }
-            if (allowedPackages.isEmpty()) {
+            if (!hasDeclaredAPI) {
                 return Collections.emptySet();
             }
             SignatureReader sr = new SignatureReader(signature);
@@ -229,7 +231,7 @@ public class ApiStubGenerator {
         }
 
         private boolean validateType(String className) {
-            if (allowedPackages.isEmpty()) {
+            if (!hasDeclaredAPI) {
                 return true;
             }
 
@@ -280,5 +282,12 @@ public class ApiStubGenerator {
             return null;
         }
 
+        @Override
+        public void visitInnerClass(String name, String outerName, String innerName, int access) {
+            if (isPackagePrivate(access) && hasDeclaredAPI) {
+                return;
+            }
+            super.visitInnerClass(name, outerName, innerName, access);
+        }
     }
 }

@@ -87,10 +87,11 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
     }
 
-    def "should not remove package private method"() {
+    def "should not remove package private method if no API is defined"() {
         given:
         def api = toApi 'A': '''public class A {
     void foo() {}
+    static void bar() {}
 }'''
 
         when:
@@ -99,7 +100,28 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
         then:
         hasMethod(clazz.clazz, 'foo').modifiers == 0
+        hasMethod(clazz.clazz, 'bar').modifiers == Opcodes.ACC_STATIC
         hasMethod(stubbed, 'foo').modifiers == 0
+        hasMethod(stubbed, 'bar').modifiers == Opcodes.ACC_STATIC
+
+    }
+
+    def "should remove package private method if API is defined"() {
+        given:
+        def api = toApi ([''], ['A': '''public class A {
+    void foo() {}
+    static void bar() {}
+}'''])
+
+        when:
+        def clazz = api.classes.A
+        def stubbed = api.loadStub(clazz)
+
+        then:
+        hasMethod(clazz.clazz, 'foo').modifiers == 0
+        hasMethod(clazz.clazz, 'bar').modifiers == Opcodes.ACC_STATIC
+        noSuchMethod(stubbed, 'foo')
+        noSuchMethod(stubbed, 'bar')
 
     }
 
