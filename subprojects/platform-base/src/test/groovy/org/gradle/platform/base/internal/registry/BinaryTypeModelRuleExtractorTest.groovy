@@ -32,7 +32,7 @@ import org.gradle.platform.base.BinaryType
 import org.gradle.platform.base.BinaryTypeBuilder
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.binary.BaseBinarySpec
-import org.gradle.platform.base.internal.BinarySpecFactory
+import org.gradle.platform.base.binary.internal.BinarySpecFactory
 import org.gradle.platform.base.internal.testinterfaces.BinarySpecInternalView
 import org.gradle.platform.base.internal.testinterfaces.NotImplementedBinarySpecInternalView
 import spock.lang.Unroll

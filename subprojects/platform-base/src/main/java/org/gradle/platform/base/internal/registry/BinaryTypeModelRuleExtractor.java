@@ -38,7 +38,7 @@ import org.gradle.platform.base.BinaryType;
 import org.gradle.platform.base.BinaryTypeBuilder;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
-import org.gradle.platform.base.internal.BinarySpecFactory;
+import org.gradle.platform.base.binary.internal.BinarySpecFactory;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecAware;
 import org.gradle.platform.base.internal.builder.TypeBuilderFactory;

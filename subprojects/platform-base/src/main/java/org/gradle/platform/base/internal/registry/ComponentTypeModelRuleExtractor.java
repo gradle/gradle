@@ -35,7 +35,7 @@ import org.gradle.platform.base.ComponentSpecIdentifier;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.ComponentTypeBuilder;
 import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.platform.base.internal.ComponentSpecFactory;
+import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.internal.builder.TypeBuilderFactory;

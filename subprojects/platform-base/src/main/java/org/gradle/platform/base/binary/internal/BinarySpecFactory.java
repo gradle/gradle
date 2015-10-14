@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal;
+package org.gradle.platform.base.binary.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.NamedDomainObjectFactory;

@@ -34,7 +34,9 @@ import org.gradle.language.base.internal.model.ComponentBinaryRules;
 import org.gradle.language.base.internal.model.ComponentRules;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -44,7 +46,12 @@ import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializ
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.binary.internal.BinarySpecFactory;
+import org.gradle.platform.base.component.internal.ComponentSpecFactory;
+import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.DefaultPlatformContainer;
+import org.gradle.platform.base.internal.DefaultPlatformResolvers;
+import org.gradle.platform.base.internal.PlatformResolvers;
 
 import javax.inject.Inject;
 

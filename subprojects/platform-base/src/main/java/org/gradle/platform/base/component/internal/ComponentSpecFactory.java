@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal;
+package org.gradle.platform.base.component.internal;
 
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.platform.base.ComponentSpec;

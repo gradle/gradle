@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativeplatform.internal.configure
+
 import org.gradle.api.Named
 import org.gradle.internal.BiActions
 import org.gradle.internal.reflect.DirectInstantiator
@@ -33,8 +34,12 @@ import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatforms
 import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.binary.internal.BinarySpecFactory
 import org.gradle.platform.base.component.BaseComponentFixtures
-import org.gradle.platform.base.internal.*
+import org.gradle.platform.base.internal.DefaultBinaryNamingSchemeBuilder
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.platform.base.internal.DefaultPlatformRequirement
+import org.gradle.platform.base.internal.PlatformResolvers
 import spock.lang.Specification
 
 class NativeComponentRulesTest extends Specification {
