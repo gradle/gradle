@@ -49,7 +49,7 @@ class ManagedModelInitializerTest extends Specification {
 
         then:
         def ex = thrown(ModelRuleExecutionException)
-        ex.cause.message == TextUtil.normaliseLineSeparators("""A model element of type: '$ManagedWithInvalidModelMap.name' can not be constructed.
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedWithInvalidModelMap.name' can not be constructed.
 It's property 'org.gradle.model.ModelMap<java.io.FileInputStream> map' is not a valid managed collection
 A managed collection can not contain 'java.io.FileInputStream's
 A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
@@ -71,7 +71,7 @@ A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T
 
         then:
         def ex = thrown(ModelRuleExecutionException)
-        ex.cause.message == TextUtil.normaliseLineSeparators("""A model element of type: '$ManagedWithUnsupportedType.name' can not be constructed.
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedWithUnsupportedType.name' can not be constructed.
 It's property 'java.io.FileInputStream stream' can not be constructed
 It must be one of:
     - A managed collection. A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
@@ -95,7 +95,7 @@ It must be one of:
 
         then:
         def ex = thrown(ModelRuleExecutionException)
-        ex.cause.message == TextUtil.normaliseLineSeparators("""A model element of type: '$ManagedWithInvalidScalarCollection.name' can not be constructed.
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedWithInvalidScalarCollection.name' can not be constructed.
 It's property 'java.util.List<java.io.FileInputStream> scalarThings' is not a valid scalar collection
 A scalar collection can not contain 'java.io.FileInputStream's
 A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)""")
