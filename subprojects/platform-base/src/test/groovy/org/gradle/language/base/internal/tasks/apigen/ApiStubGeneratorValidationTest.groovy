@@ -62,7 +62,7 @@ public class AImpl {}
 
         then:
         def ex = thrown(InvalidPublicAPIException)
-        ex.message == "In $methodDescriptor, type com.acme.internal.AImpl is exposed in the public API but doesn't belong to the allowed packages."
+        ex.message == "In $methodDescriptor, type com.acme.internal.AImpl is exposed in the public API but its package is not one of the allowed packages."
 
         where:
         descriptor                  | method                                           | methodDescriptor
@@ -95,7 +95,7 @@ public class AInternal {}
 
         then:
         def ex = thrown(InvalidPublicAPIException)
-        ex.message == """The following types are referenced in public com.acme.internal.AImpl toImpl(com.acme.internal.AInternal) but don't belong to the allowed packages:
+        ex.message == """The following types are referenced in public com.acme.internal.AImpl toImpl(com.acme.internal.AInternal) but their package is not one of the allowed packages:
    - com.acme.internal.AInternal
    - com.acme.internal.AImpl
 """
@@ -131,7 +131,7 @@ public @interface Ann {}
         annotations.size() == 1
         annotations[0].annotationType().name == 'com.acme.internal.Ann'
         def ex = thrown(InvalidPublicAPIException)
-        ex.message == "'com.acme.A' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package doesn't belong to the allowed packages."
+        ex.message == "'com.acme.A' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package is not one of the allowed packages."
     }
 
     void "reports error if a method is annotated with an annotation that doesn't belong to the public API"() {
@@ -166,7 +166,7 @@ public @interface Ann {}
         annotations.size() == 1
         annotations[0].annotationType().name == 'com.acme.internal.Ann'
         def ex = thrown(InvalidPublicAPIException)
-        ex.message == "'public void foo()' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package doesn't belong to the allowed packages."
+        ex.message == "'public void foo()' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package is not one of the allowed packages."
     }
 
     void "reports error if a field is annotated with an annotation that doesn't belong to the public API"() {
@@ -201,7 +201,7 @@ public @interface Ann {}
         annotations.size() == 1
         annotations[0].annotationType().name == 'com.acme.internal.Ann'
         def ex = thrown(InvalidPublicAPIException)
-        ex.message == "'public java.lang.String foo' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package doesn't belong to the allowed packages."
+        ex.message == "'public java.lang.String foo' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package is not one of the allowed packages."
     }
 
     void "reports error if a method parameter is annotated with an annotation that doesn't belong to the public API"() {
@@ -233,7 +233,7 @@ public @interface Ann {}
 
         then:
         def ex = thrown(InvalidPublicAPIException)
-        ex.message == "'public void foo(java.lang.String)' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package doesn't belong to the allowed packages."
+        ex.message == "'public void foo(java.lang.String)' is annotated with 'com.acme.internal.Ann' effectively exposing it in the public API but its package is not one of the allowed packages."
     }
 
     void "cannot have a superclass which is not in the public API"() {
@@ -253,7 +253,7 @@ public class AImpl {}
 
         then:
         def ex = thrown(InvalidPublicAPIException)
-        ex.message == "'com.acme.A' extends 'com.acme.internal.AImpl' which package doesn't belong to the allowed packages."
+        ex.message == "'com.acme.A' extends 'com.acme.internal.AImpl' and its package is not one of the allowed packages."
     }
 
     void "cannot have an interface which is not in the public API"() {
@@ -273,7 +273,7 @@ public interface AInternal {}
 
         then:
         def ex = thrown(InvalidPublicAPIException)
-        ex.message == "'com.acme.A' declares interface 'com.acme.internal.AInternal' which package doesn't belong to the allowed packages."
+        ex.message == "'com.acme.A' declares interface 'com.acme.internal.AInternal' and its package is not one of the allowed packages."
     }
 
     void "cannot have a superclass generic argument type which is not in the public API"() {
@@ -358,7 +358,7 @@ public class AImpl {}
 
         then:
         def ex = thrown(InvalidPublicAPIException)
-        ex.message == "In public abstract java.util.List getImpls(), type com.acme.internal.AImpl is exposed in the public API but doesn't belong to the allowed packages."
+        ex.message == "In public abstract java.util.List getImpls(), type com.acme.internal.AImpl is exposed in the public API but its package is not one of the allowed packages."
     }
 
     void "cannot have type in generic field type signature which is not in the public API"() {
@@ -407,7 +407,7 @@ public class AImpl2 {}
 
         then:
         def ex = thrown(InvalidPublicAPIException)
-        ex.message == """The following types are referenced in public java.util.Map mapbut don't belong to the allowed packages:
+        ex.message == """The following types are referenced in public java.util.Map map but their package is not one of the allowed packages:
    - com.acme.internal.AImpl
    - com.acme.internal.AImpl2
 """

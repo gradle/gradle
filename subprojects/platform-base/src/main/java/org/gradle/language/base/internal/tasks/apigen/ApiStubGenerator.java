@@ -94,7 +94,7 @@ public class ApiStubGenerator {
 
         private void validateSuperTypes(String name, String signature, String superName, String[] interfaces) {
             if (!validateType(toClassName(superName))) {
-                throw new InvalidPublicAPIException(String.format("'%s' extends '%s' which package doesn't belong to the allowed packages.", toClassName(name), toClassName(superName)));
+                throw new InvalidPublicAPIException(String.format("'%s' extends '%s' and its package is not one of the allowed packages.", toClassName(name), toClassName(superName)));
             }
             Set<String> invalidReferencedTypes = invalidReferencedTypes(signature);
             if (!invalidReferencedTypes.isEmpty()) {
@@ -103,7 +103,7 @@ public class ApiStubGenerator {
                 } else {
                     StringBuilder sb = new StringBuilder("The following types are referenced in ");
                     sb.append(toClassName(name));
-                    sb.append(" superclass but don't belong to the allowed packages:\n");
+                    sb.append(" superclass but their package don't belong to the allowed packages:\n");
                     for (String invalidReferencedType : invalidReferencedTypes) {
                         sb.append("   - ").append(invalidReferencedType).append("\n");
                     }
@@ -113,7 +113,7 @@ public class ApiStubGenerator {
             if (interfaces != null) {
                 for (String intf : interfaces) {
                     if (!validateType(toClassName(intf))) {
-                        throw new InvalidPublicAPIException(String.format("'%s' declares interface '%s' which package doesn't belong to the allowed packages.", toClassName(name), toClassName(intf)));
+                        throw new InvalidPublicAPIException(String.format("'%s' declares interface '%s' and its package is not one of the allowed packages.", toClassName(name), toClassName(intf)));
                     }
                 }
             }
@@ -132,7 +132,7 @@ public class ApiStubGenerator {
         private void checkAnnotation(String owner, String annotationDesc) {
             String annotation = Type.getType(annotationDesc).getClassName();
             if (!validateType(annotation)) {
-                throw new InvalidPublicAPIException(String.format("'%s' is annotated with '%s' effectively exposing it in the public API but its package doesn't belong to the allowed packages.", owner, annotation));
+                throw new InvalidPublicAPIException(String.format("'%s' is annotated with '%s' effectively exposing it in the public API but its package is not one of the allowed packages.", owner, annotation));
             }
         }
 
@@ -169,11 +169,11 @@ public class ApiStubGenerator {
                 } else {
                     String methodDesc = prettifyMethodDescriptor(access, name, desc);
                     if (invalidReferencedTypes.size() == 1) {
-                        throw new InvalidPublicAPIException(String.format("In %s, type %s is exposed in the public API but doesn't belong to the allowed packages.", methodDesc, invalidReferencedTypes.iterator().next()));
+                        throw new InvalidPublicAPIException(String.format("In %s, type %s is exposed in the public API but its package is not one of the allowed packages.", methodDesc, invalidReferencedTypes.iterator().next()));
                     } else {
                         StringBuilder sb = new StringBuilder("The following types are referenced in ");
                         sb.append(methodDesc);
-                        sb.append(" but don't belong to the allowed packages:\n");
+                        sb.append(" but their package is not one of the allowed packages:\n");
                         for (String invalidReferencedType : invalidReferencedTypes) {
                             sb.append("   - ").append(invalidReferencedType).append("\n");
                         }
@@ -262,7 +262,7 @@ public class ApiStubGenerator {
                     } else {
                         StringBuilder sb = new StringBuilder("The following types are referenced in ");
                         sb.append(fieldDescriptor);
-                        sb.append("but don't belong to the allowed packages:\n");
+                        sb.append(" but their package is not one of the allowed packages:\n");
                         for (String invalidReferencedType : invalidReferencedTypes) {
                             sb.append("   - ").append(invalidReferencedType).append("\n");
                         }
