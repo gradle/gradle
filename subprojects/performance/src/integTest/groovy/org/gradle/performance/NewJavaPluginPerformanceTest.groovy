@@ -37,7 +37,7 @@ class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
         }
-        runner.maxMemoryRegression = DataAmount.mbytes(100)
+        runner.maxMemoryRegression = DataAmount.mbytes(150)
 
         when:
         def result = runner.run()
