@@ -9,6 +9,55 @@ Tooling API stories that are not related directly to the IDE experience should g
 
 ## Feature - Expose source and target platforms of JVM language projects
 
+
+### Story - Expose natures and builders for projects (2d)
+
+The Motiviation of this story is to model java projects better within the EclipseProject model. Therefore we want to provide
+the Eclipse Model with information about natures and builders. A Java Project is identified
+by having an EclipseModel providing a java nature. IDEs should not guess which natures and builders to add.
+
+#### The Api
+
+    interface EclipseProject {
+        ...
+        ...
+        List<String> getProjectNatures(List<String> defaults)
+        List<BuildCommand> getBuildCommand(List<BuildCommand> defaults)
+        ...
+    }
+
+    interface BuildCommand {
+        String getName()
+        Map<String,String> getArguments()
+    }
+
+
+#### Implementation
+
+- Add `List<String> getProjectNatures(List<String> defaults)` to the EclipseProject interface.
+- Add `List<String> projectNatures` property (setter + getter) to `DefaultEclipseProject`
+- Change EclipseModelBuilder to
+    - Add `org.eclipse.jdt.core.javanature` nature for all java projects in the multiproject build to EclipseProject.
+    - Add all natures declared via `eclipse.project.buildCommand` to EclipseProject model.
+
+- Add `getBuildCommand(List<BuildCommand> defaults)` to the EclipseProject interface.
+- Add `List<BuildCommand> buildCommands` property to `DefaultEclipseProject`
+- Change EclipseModelBuilder to
+    - Add build command with name `org.eclipse.jdt.core.javabuilder` and no arguments for all java projects in multiproject build
+    - Apply custom added build commands (via
+
+#### Test coverage
+
+- `EclipseProject#getProjectNatures(List<String>)` of a Java project contains java nature (`org.eclipse.jdt.core.javanature`)
+- `EclipseProject#getProjectNatures(List<String>)` respects custom added natures (via `eclipse.eclipse.project.natures`)
+- older Gradle versions return default value when calling `EclipseProject#getProjectNatures(List<String> defaultValue)`
+
+- `EclipseProject#getBuildCommands(List<BuildCommand>)` of a Java project contains java nature (`org.eclipse.jdt.core.javanature`)
+- `EclipseProject#getBuildCommands(List<BuildCommand>)` respects custom added build commands.
+- older Gradle versions return default value when calling `EclipseProject#getBuildCommands(List<String> defaultValue)`
+
+
+
 ### Story - Expose Java source level for Java projects to Eclipse (1.5d)
 
 - For `EclipseProject`, add details of the Java source level:
@@ -95,25 +144,6 @@ Tooling API stories that are not related directly to the IDE experience should g
     - additional sourcefolders to sourcesets are respected
 
 - TBD: provide test and runtime classpath
-
-### Story - Expose more Eclipse settings for the projects (2d)
-
-#### Implementation
-
-- Expose Eclipse natures via `EclipseProject`
-    - consume information from eclipse plugin configuration
-    - declare reasonable defaults for java projects
-
-- Expose Eclipse buildSpec (`builders`) via `EclipseProject`
-    - consume information from eclipse plugin configuration
-    - declare reasonable defaults for java projects
-
-- For older Gradle versions:
-    - TBD - reasonable defaults (could be empty list or null; contract needs to be defined)
-
-#### Test coverage
-
-- TBD
 
 ### Story - Expose Java source level for Java projects to IDEA (1.5d)
 
