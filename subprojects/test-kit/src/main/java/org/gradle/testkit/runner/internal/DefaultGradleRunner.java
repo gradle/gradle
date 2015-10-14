@@ -65,9 +65,7 @@ public class DefaultGradleRunner extends GradleRunner {
 
     @Override
     public DefaultGradleRunner withTestKitDir(final File testKitDir) {
-        if (testKitDir == null) {
-            throw new IllegalArgumentException("testKitDir argument cannot be null");
-        }
+        validateArgumentNotNull(testKitDir, "testKitDir");
         this.testKitDirProvider = new ConstantTestKitDirProvider(testKitDir);
         return this;
     }
@@ -141,22 +139,22 @@ public class DefaultGradleRunner extends GradleRunner {
 
     @Override
     public GradleRunner withStandardOutput(Writer standardOutput) {
-        if (standardOutput == null) {
-            throw new IllegalArgumentException("standardOutput argument cannot be null");
-        }
-
+        validateArgumentNotNull(standardOutput, "standardOutput");
         this.standardOutput = standardOutput;
         return this;
     }
 
     @Override
     public GradleRunner withStandardError(Writer standardError) {
-        if (standardOutput == null) {
-            throw new IllegalArgumentException("standardError argument cannot be null");
-        }
-
+        validateArgumentNotNull(standardError, "standardError");
         this.standardError = standardError;
         return this;
+    }
+
+    private void validateArgumentNotNull(Object argument, String argumentName) {
+        if (argument == null) {
+            throw new IllegalArgumentException(String.format("%s argument cannot be null", argumentName));
+        }
     }
 
     @Override

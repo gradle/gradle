@@ -405,11 +405,6 @@ This story improves usability of the test kit by not imposing any dependencies b
 - User tests cannot access classes from `gradle-core` (or any other part of the Gradle runtime) in tests where `gradleTestKit()` was used
 - Configuration containing just `gradleTestKit()` contains no other files than `gradle-test-kit` and `gradle-tooling-api`
 
-## Story: Ability to provide OutputStreams for standard output and error
-
-At the moment the standard output and error can only be resolved from the `BuildResult`. There's not direct output of these streams to the console. Users cannot provide their own OutputStreams
-for other debugging or processing purposes. This story allows for specifying OutputStreams to the `GradleRunner` API that output will be forwarded to (e.g. `System.out`).
-
 ## Story: Ability to provide Writers for capturing standard output and error
 
 At the moment the standard output and error can only be resolved from the `BuildResult`. There's not direct output of these streams to the console. Users cannot provide their own OutputStreams
