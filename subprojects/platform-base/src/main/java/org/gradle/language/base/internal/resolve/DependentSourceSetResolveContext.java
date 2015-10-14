@@ -41,7 +41,7 @@ public class DependentSourceSetResolveContext implements ResolveContext {
 
     @Override
     public String getName() {
-        return DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME;
+        return DefaultLibraryBinaryIdentifier.CONFIGURATION_API;
     }
 
     @Override

@@ -39,10 +39,10 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         );
         DefaultLibraryLocalComponentMetaData metaData = new DefaultLibraryLocalComponentMetaData(id, componentId);
         metaData.addConfiguration(
-            DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME,
+            DefaultLibraryBinaryIdentifier.CONFIGURATION_API,
             String.format("Request metadata: %s", componentId.getDisplayName()),
             Collections.<String>emptySet(),
-            Collections.singleton(DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME),
+            Collections.singleton(DefaultLibraryBinaryIdentifier.CONFIGURATION_API),
             true,
             true,
             buildDependencies);

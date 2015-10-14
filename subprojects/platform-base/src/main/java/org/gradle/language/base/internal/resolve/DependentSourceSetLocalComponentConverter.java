@@ -77,7 +77,7 @@ public class DependentSourceSetLocalComponentConverter implements LocalComponent
                 // currently we use "null" as variant value, because there's only one variant: API
                 ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
                 DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(Strings.nullToEmpty(projectPath), Strings.nullToEmpty(libraryName), mvi.getVersion());
-                DependencyMetaData localComponentDependencyMetaData = createDependencyMetaData(selector, requested, DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME);
+                DependencyMetaData localComponentDependencyMetaData = createDependencyMetaData(selector, requested, DefaultLibraryBinaryIdentifier.CONFIGURATION_API);
                 metaData.addDependency(localComponentDependencyMetaData);
             }
         }
@@ -85,7 +85,7 @@ public class DependentSourceSetLocalComponentConverter implements LocalComponent
 
     private DependencyMetaData createDependencyMetaData(ComponentSelector selector, ModuleVersionSelector requested, String configuration) {
         return new LocalComponentDependencyMetaData(
-                selector, requested, DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME, configuration,
+                selector, requested, DefaultLibraryBinaryIdentifier.CONFIGURATION_API, configuration,
                 Collections.<IvyArtifactName>emptySet(),
                 EXCLUDE_RULES,
                 false, false, true);

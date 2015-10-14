@@ -60,7 +60,7 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         component.componentId.displayName == /project ':myPath' library 'myLib' variant 'api'/
         component.dependencies.empty
         !component.changing
-        component.configurationNames == [DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME] as Set
+        component.configurationNames == [DefaultLibraryBinaryIdentifier.CONFIGURATION_API] as Set
         component.source == null
     }
 

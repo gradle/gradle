@@ -37,7 +37,7 @@ public class JvmLocalLibraryDependencyResolver extends AbstractLocalLibraryDepen
         JarBinarySpec jarBinarySpec = (JarBinarySpec) selectedBinary;
         DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(jarBinarySpec.getId(), buildDependencies);
         LibraryPublishArtifact jarBinary = new LibraryPublishArtifact("jar", jarBinarySpec.getApiJarFile());
-        metaData.addArtifacts(DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME, Collections.singleton(jarBinary));
+        metaData.addArtifacts(DefaultLibraryBinaryIdentifier.CONFIGURATION_API, Collections.singleton(jarBinary));
         return metaData;
     }
 

@@ -19,7 +19,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 
 public class DefaultLibraryBinaryIdentifier implements LibraryBinaryIdentifier {
-    public static final String CONFIGURATION_NAME = "Component configuration";
+    public static final String CONFIGURATION_API = "API";
 
     private final String projectPath;
     private final String libraryName;
