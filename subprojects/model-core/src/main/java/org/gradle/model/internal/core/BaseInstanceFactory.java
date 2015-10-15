@@ -253,8 +253,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
             ModelType<? extends S> implementationType = implementationRegistration.getImplementationType();
             for (InternalViewRegistration<?> internalViewRegistration : internalViewRegistrations) {
                 ModelType<?> internalView = internalViewRegistration.getInternalView();
-                ModelType<?> asSubclass = internalView.asSubclass(implementationType);
-                if (asSubclass == null) {
+                if (!internalView.isAssignableFrom(implementationType)) {
                     throw new IllegalStateException(String.format("Factory registration for '%s' is invalid because the implementation type '%s' does not implement internal view '%s', "
                             + "implementation type was registered by %s, "
                             + "internal view was registered by %s",

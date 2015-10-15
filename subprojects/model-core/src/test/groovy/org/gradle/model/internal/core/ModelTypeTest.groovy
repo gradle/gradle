@@ -119,19 +119,40 @@ class ModelTypeTest extends Specification {
         anything.simpleName == "?"
     }
 
-    def "isSubclass"() {
+    def "asSubtype"() {
+        expect:
+        ModelType.of(String).asSubtype(ModelType.of(String)) == ModelType.of(String)
+        ModelType.of(String).asSubtype(ModelType.of(CharSequence)) == ModelType.of(String)
+    }
+
+    def "asSubtype failures"() {
         def extendsString = ModelType.paramType(getClass().getDeclaredMethod("m1", List.class), 0).typeVariables[0]
         def superString = ModelType.paramType(getClass().getDeclaredMethod("m2", List.class), 0).typeVariables[0]
         def anything = ModelType.paramType(getClass().getDeclaredMethod("m3", List.class), 0).typeVariables[0]
 
-        expect:
-        !ModelType.of(String).asSubclass(ModelType.of(String))
-        ModelType.of(CharSequence).asSubclass(ModelType.of(String))
-        !ModelType.of(String).asSubclass(ModelType.of(CharSequence))
-        !anything.asSubclass(superString)
-        !superString.asSubclass(anything)
-        !superString.asSubclass(extendsString)
-        !extendsString.asSubclass(superString)
+        when: ModelType.of(CharSequence).asSubtype(ModelType.of(String))
+        then: thrown ClassCastException
+
+        when: anything.asSubtype(superString)
+        then: thrown IllegalStateException
+
+        when: superString.asSubtype(anything)
+        then: thrown IllegalStateException
+
+        when: superString.asSubtype(extendsString)
+        then: thrown IllegalStateException
+
+        when: extendsString.asSubtype(superString)
+        then: thrown IllegalStateException
+
+        when: ModelType.of(String).asSubtype(anything)
+        then: thrown IllegalArgumentException
+
+        when: ModelType.of(String).asSubtype(extendsString)
+        then: thrown IllegalArgumentException
+
+        when: ModelType.of(String).asSubtype(superString)
+        then: thrown IllegalArgumentException
     }
 
     def "has wildcards"() {

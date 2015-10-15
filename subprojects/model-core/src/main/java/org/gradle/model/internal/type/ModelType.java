@@ -125,21 +125,28 @@ public abstract class ModelType<T> {
         }
     }
 
-    @Nullable
-    public ModelType<? extends T> asSubclass(ModelType<?> modelType) {
-        if (isWildcard() || modelType.isWildcard()) {
-            return null;
+    /**
+     * Casts this {@code ModelType} object to represent a subclass of the class
+     * represented by the specified class object.  Checks that the cast
+     * is valid, and throws a {@code ClassCastException} if it is not.  If
+     * this method succeeds, it always returns a reference to this {@code ModelType} object.
+     *
+     * @throws ClassCastException if this cannot be cast as the subtype of the given type.
+     * @throws IllegalStateException if this is a wildcard.
+     * @throws IllegalArgumentException if the given type is a wildcard.
+     */
+    public <U> ModelType<? extends U> asSubtype(ModelType<U> modelType) {
+        if (isWildcard()) {
+            throw new IllegalStateException(this + " is a wildcard type");
+        }
+        if (modelType.isWildcard()) {
+            throw new IllegalArgumentException(modelType + " is a wildcard type");
         }
 
-        Class<? super T> thisClass = getRawClass();
-        Class<?> otherClass = modelType.getRawClass();
-        boolean isSubclass = thisClass.isAssignableFrom(otherClass) && !thisClass.equals(otherClass);
-
-        if (isSubclass) {
-            @SuppressWarnings("unchecked") ModelType<? extends T> cast = (ModelType<? extends T>) modelType;
-            return cast;
+        if (modelType.getRawClass().isAssignableFrom(getRawClass())) {
+            return Cast.uncheckedCast(this);
         } else {
-            return null;
+            throw new ClassCastException(String.format("'%s' cannot be cast as a subtype of '%s'", this, modelType));
         }
     }
 

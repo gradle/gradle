@@ -45,9 +45,7 @@ public class FactoryBasedNodeInitializerExtractionStrategy<T> implements NodeIni
 
     @Override
     public <S> NodeInitializer extractNodeInitializer(ModelSchema<S> schema) {
-        ModelType<S> type = schema.getType();
-        ModelType<? extends T> typeAsBaseType = instanceFactory.getBaseInterface().asSubclass(type);
-        if (typeAsBaseType == null) {
+        if (!instanceFactory.getBaseInterface().isAssignableFrom(schema.getType())) {
             return null;
         }
         return getNodeInitializer(Cast.<ModelSchema<? extends T>>uncheckedCast(schema));

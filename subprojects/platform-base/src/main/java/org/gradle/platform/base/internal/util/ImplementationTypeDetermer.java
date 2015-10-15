@@ -39,12 +39,12 @@ public class ImplementationTypeDetermer<T, U extends T> {
         }
 
         ModelType<? extends T> implementationType = ModelType.of(implementation);
-        ModelType<? extends U> asSubclass = baseImplementation.asSubclass(implementationType);
 
-        if (asSubclass == null) {
+        if (!baseImplementation.isAssignableFrom(implementationType)) {
             throw new InvalidModelException(String.format("%s implementation '%s' must extend '%s'.", StringUtils.capitalize(modelName), implementationType, baseImplementation));
         }
 
+        ModelType<? extends U> asSubclass = implementationType.asSubtype(baseImplementation);
         if (!type.isAssignableFrom(asSubclass)) {
             throw new InvalidModelException(String.format("%s implementation '%s' must implement '%s'.", StringUtils.capitalize(modelName), asSubclass, type));
         }

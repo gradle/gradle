@@ -63,7 +63,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         return new ChildNodeInitializerStrategy<T>() {
             @Override
             public <S extends T> NodeInitializer initializer(ModelType<S> type) {
-                if (baseItemModelType.asSubclass(type) == null) {
+                if (!baseItemModelType.isAssignableFrom(type) || baseItemModelType.equals(type)) {
                     throw new IllegalArgumentException(String.format("%s is not a subtype of %s", type, baseItemModelType));
                 }
                 return nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(type));
