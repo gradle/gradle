@@ -129,7 +129,6 @@ we want to have a dedicated model for eclipse specific java information and grad
 - `EclipseProject.getJavaView()` returns null for non java projects
 - `GradleProject.getJavaView()` returns null for non java projects
 - `GradleProject.getJavaView().getSourceLanguageLevel()` matches sourceCompatibility property mixedin from JavaConvention
-- `EclipseProject.getJavaView().getSourceLanguageLevel()` matches `eclipse.jdt.sourceCompatibility`
 - `EclipseProject.getJavaView().getSourceLanguageLevel()` respects cusomization via `eclipse.jdt.sourceCompatibility`
 
 ### Story - Expose Java source level for Java projects to IDEA
@@ -167,7 +166,6 @@ we want to have a dedicated model for eclipse specific java information and grad
 - `IdeaModule.getJavaView()` returns null for non java projects
 - `IdeaModule.getGradleProject().getJavaView()` returns null for non java projects
 - `IdeaModule.getGradleProject().getSourceLanguageLevel()` matches sourceCompatibility property mixedin from JavaConvention
-- `IdeaModule.getJavaView().getSourceLanguageLevel()` matches `idea.project.languageLevel`
 - `IdeaModule.getJavaView().getSourceLanguageLevel()` respects customization via `idea.project.languageLevel`
 
 
