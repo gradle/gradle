@@ -92,7 +92,7 @@ class BaseInstanceFactoryTest extends Specification {
         instanceFactory.create(ModelType.of(OtherThingSpec), Mock(MutableModelNode), "test")
         then:
         def ex = thrown IllegalArgumentException
-        ex.message == "Cannot create a BaseInstanceFactoryTest.OtherThingSpec because this type is not known to things. Known types are: BaseInstanceFactoryTest.ThingSpec"
+        ex.message == "Cannot create a '$OtherThingSpec.name' because this type is not known to things. Known types are: $ThingSpec.name"
     }
 
     def "fails when an implementation is registered that doesn't extend the base type"() {

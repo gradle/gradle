@@ -99,7 +99,7 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
         TypeRegistration<S> registration = getRegistration(type);
         if (registration == null || registration.implementationRegistration == null) {
             throw new IllegalArgumentException(
-                String.format("Cannot create a %s because this type is not known to %s. Known types are: %s", type.getSimpleName(), displayName, getSupportedTypeNames()));
+                String.format("Cannot create a '%s' because this type is not known to %s. Known types are: %s", type, displayName, getSupportedTypeNames()));
         }
         BiFunction<? extends S, String, ? super MutableModelNode> factory = registration.implementationRegistration.getFactory();
         return factory.apply(name, modelNode);
@@ -112,8 +112,8 @@ public class BaseInstanceFactory<T> implements InstanceFactory<T> {
 
     private String getSupportedTypeNames() {
         List<String> names = Lists.newArrayList();
-        for (ModelType<?> clazz : registrations.keySet()) {
-            names.add(clazz.getSimpleName());
+        for (ModelType<?> type : registrations.keySet()) {
+            names.add(type.toString());
         }
         Collections.sort(names);
         return names.isEmpty() ? "(None)" : Joiner.on(", ").join(names);

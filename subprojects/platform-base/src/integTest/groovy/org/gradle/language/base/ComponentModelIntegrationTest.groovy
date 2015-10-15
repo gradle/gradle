@@ -557,7 +557,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("Cannot create a DefaultCustomComponent because this type is not known to components. Known types are: CustomComponent"))
+        failure.assertThatCause(containsText("Cannot create a 'DefaultCustomComponent' because this type is not known to components. Known types are: CustomComponent"))
     }
 
     def "reasonable error message when creating component with no implementation"() {
@@ -576,7 +576,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failure.assertThatCause(containsText("Cannot create a AnotherCustomComponent because this type is not known to components. Known types are: CustomComponent"))
+        failure.assertThatCause(containsText("Cannot create a 'AnotherCustomComponent' because this type is not known to components. Known types are: CustomComponent"))
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {
