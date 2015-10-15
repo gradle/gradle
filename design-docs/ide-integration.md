@@ -9,12 +9,16 @@ Tooling API stories that are not related directly to the IDE experience should g
 
 ## Feature - Expose source and target platforms of JVM language projects
 
-### Story - Expose natures and builders for projects (3d)
+### Story - Expose natures and builders for projects
 
 The Motiviation here is to model java projects better within the EclipseProject model. Therefore we want to provide
 the Eclipse Model with information about natures and builders. A Java Project is identified
 by having an EclipseModel providing a java nature. IDEs should not guess which natures and builders to add but get the information
 from the TAPI.
+
+#### Estimate
+
+- 3 days
 
 #### The API
 
@@ -57,10 +61,14 @@ from the TAPI.
 - older Gradle versions return default value when calling `EclipseProject#getBuildCommands(List<String> defaultValue)`
 
 
-### Story - Expose Java source level for Java projects to Eclipse (3d)
+### Story - Expose Java source level for Java projects to Eclipse
 
 The IDE models should provide the java source compatibility level. To model java language specific information
 we want to have a dedicated model for eclipse specific java information and gradle specific java information.
+
+#### Estimate
+
+- 3 days
 
 #### The API
 
@@ -124,7 +132,11 @@ we want to have a dedicated model for eclipse specific java information and grad
 - `EclipseProject.getJavaView().getSourceLanguageLevel()` matches `eclipse.jdt.sourceCompatibility`
 - `EclipseProject.getJavaView().getSourceLanguageLevel()` respects cusomization via `eclipse.jdt.sourceCompatibility`
 
-### Story - Expose Java source level for Java projects to IDEA (2d)
+### Story - Expose Java source level for Java projects to IDEA
+
+#### Estimate
+
+- 2 days
 
 #### The API
 
@@ -159,7 +171,13 @@ we want to have a dedicated model for eclipse specific java information and grad
 - `IdeaModule.getJavaView().getSourceLanguageLevel()` respects cusomization via `idea.project.languageLevel`
 
 
-### Story - Expose target JDK for Java projects to Eclipse (3d)
+### Story - Expose target JDK for Java projects to Eclipse
+
+#### Estimate
+
+- 3 days
+
+#### Implementation
 
 - For `EclipseProject`, add details of the target JVM:
     - JDK name
@@ -185,7 +203,13 @@ we want to have a dedicated model for eclipse specific java information and grad
     - point to exact match if available (requested 1.6 -> installed jdk 1.6 found)
     - points to complian sdk if exact match not available
 
-### Story - Expose target JDK for Java projects to IDEA (2d)
+### Story - Expose target JDK for Java projects to IDEA
+
+#### Estimate
+
+- 2 days
+
+#### Implementation
 
 - For `IdeaModule`, add details of the module SDK:
     - Inherit from project?
@@ -203,7 +227,11 @@ we want to have a dedicated model for eclipse specific java information and grad
     - TBD - reasonable defaults for other versions?
 
 
-### Story - Introduce JavaProject (3.5d)
+### Story - Introduce JavaProject
+
+#### Estimate
+
+- 3.5 days
 
 #### Implementation
 
