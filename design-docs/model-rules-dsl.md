@@ -22,6 +22,7 @@
 - Allow configuration of an element to take the configuration of a sibling as input.
 - Out-of-scope: allow configuration of an element to take the configuration of siblings with type as input.
 
+For example:
 
     model {
         components {
@@ -61,6 +62,7 @@
 - Allow configuration for a nested structure to take configuration for a sibling as input.
 - Allow arbitrary code to conditionally configure a nested target.
 
+For example:
 
     model {
         components {
@@ -120,6 +122,7 @@ For example:
 
 - Allow input references using subject parameter
 
+For example:
 
     model {
         tasks {
