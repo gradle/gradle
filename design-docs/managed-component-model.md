@@ -480,14 +480,10 @@ the user that an element of type `T` cannot be added to the collection. Error me
 - Fix `ComponentModelIntegrationTest.reasonable error message when creating component with default implementation`. This used to report the available types.
 - Add `ComponentModelIntegrationTest.reasonable error message when creating binary with no implementation`.
 - Add `ComponentModelIntegrationTest.reasonable error message when creating binary with default implementation`.
-- Add `ManagedNodeBackedModelMapTest.reasonable error message when creating object with no implementation`.
-- Add `ManagedNodeBackedModelMapTest.reasonable error message when creating object with default implementation`.
-- Add `UnmanagedNodeBackedModelMapTest.reasonable error message when creating object with no implementation`.
-- Add `UnmanagedNodeBackedModelMapTest.reasonable error message when creating object with default implementation`.
-- Add `DomainObjectCollectionBackedModelMapTest.reasonable error message when creating object with no implementation`.
-- Add `DomainObjectCollectionBackedModelMapTest.reasonable error message when creating object with default implementation`.
-- Add `ModelSetIntegrationTest.reasonable error message when creating object with no implementation`.
-- Add `ModelSetIntegrationTest.reasonable error message when creating object with default implementation`.
+- Add `ManagedNodeBackedModelMapTest.reasonable error message when creating a non-constructable type`.
+- Add `UnmanagedNodeBackedModelMapTest.reasonable error message when creating a non-constructable type`.
+- Add `DomainObjectCollectionBackedModelMapTest.reasonable error message when creating a non-constructable type`.
+- Add `ModelSetIntegrationTest.reasonable error message when creating a non-constructable type`.
 
 For all theses tests, assert that the reported constructable types list contains appropriate types and only them.
 
