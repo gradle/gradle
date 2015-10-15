@@ -19,7 +19,6 @@ package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
-    // TODO:LPTR Add test for extending ComponentSpec that doesn't have a default implementation
     def "can declare custom managed component"() {
         buildFile << """
             apply plugin: "jvm-component"
