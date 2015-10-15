@@ -132,6 +132,6 @@ public class ModelProperty<T> {
 
     @Override
     public String toString() {
-        return stateManagementType.name().toLowerCase() + " " + getName() + "(" + getType().getSimpleName() + ")";
+        return stateManagementType.name().toLowerCase() + " " + getName() + "(" + getType().getDisplayName() + ")";
     }
 }

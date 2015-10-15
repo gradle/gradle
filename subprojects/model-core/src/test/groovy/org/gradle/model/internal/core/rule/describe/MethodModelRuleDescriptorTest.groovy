@@ -27,7 +27,7 @@ class MethodModelRuleDescriptorTest extends Specification {
         MethodModelRuleDescriptor.of(getClass(), method).describeTo(sb)
 
         then:
-        sb.toString() == ModelType.of(getClass()).simpleName + "#" + method
+        sb.toString() == ModelType.of(getClass()).displayName + "#" + method
 
         where:
         method << [

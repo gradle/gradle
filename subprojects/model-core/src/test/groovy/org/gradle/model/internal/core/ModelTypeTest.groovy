@@ -21,16 +21,17 @@ import spock.lang.Specification
 
 class ModelTypeTest extends Specification {
     class Nested {}
+    interface NestedInterface {}
 
     def "represents classes"() {
         expect:
         def type = ModelType.of(String)
         type.toString() == String.name
-        type.simpleName == String.simpleName
+        type.displayName == String.simpleName
 
         def nested = ModelType.of(Nested)
         nested.toString() == Nested.name
-        nested.simpleName == "ModelTypeTest.Nested"
+        nested.displayName == "ModelTypeTest.Nested"
     }
 
     def "represents type variables"() {
@@ -45,7 +46,7 @@ class ModelTypeTest extends Specification {
 
         and:
         type.toString() == "java.util.Map<java.lang.String, java.util.Map<java.lang.Integer, java.lang.Float>>"
-        type.simpleName == "Map<String, Map<Integer, Float>>"
+        type.displayName == "Map<String, Map<Integer, Float>>"
     }
 
     def "generic type compatibility"() {
@@ -113,10 +114,10 @@ class ModelTypeTest extends Specification {
         objects.toString() == "?"
         anything.toString() == "?"
 
-        extendsString.simpleName == "? extends String"
-        superString.simpleName == "? super String"
-        objects.simpleName == "?"
-        anything.simpleName == "?"
+        extendsString.displayName == "? extends String"
+        superString.displayName == "? super String"
+        objects.displayName == "?"
+        anything.displayName == "?"
     }
 
     def "asSubtype"() {

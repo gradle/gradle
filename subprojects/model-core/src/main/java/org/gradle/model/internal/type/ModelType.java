@@ -219,12 +219,18 @@ public abstract class ModelType<T> {
         return wrapper.getRepresentation(true);
     }
 
-    public String getSimpleName() {
+    /**
+     * Returns a human-readable name for the type.
+     */
+    public String getDisplayName() {
         return wrapper.getRepresentation(false);
     }
 
-    public static String getSimpleName(ModelType<?> type) {
-        return type == null ? null : type.getSimpleName();
+    /**
+     * Returns a human-readable name for the given type.
+     */
+    public static String getDisplayName(ModelType<?> type) {
+        return type == null ? null : type.getDisplayName();
     }
 
     public String toString() {

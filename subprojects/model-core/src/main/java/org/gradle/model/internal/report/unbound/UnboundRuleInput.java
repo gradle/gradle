@@ -77,7 +77,7 @@ public class UnboundRuleInput {
     }
 
     public static Builder type(ModelType<?> type) {
-        return type(type.getSimpleName());
+        return type(type.getDisplayName());
     }
 
     @NotThreadSafe

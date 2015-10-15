@@ -36,7 +36,7 @@ public class BindingPredicate extends ModelPredicate {
 
     @Override
     public String toString() {
-        return "{type: " + ModelType.getSimpleName(getType()) + ", path: " + getPath() + ", scope: " + getScope() + ", state: " + getState() + "}";
+        return "{type: " + ModelType.getDisplayName(getType()) + ", path: " + getPath() + ", scope: " + getScope() + ", state: " + getState() + "}";
     }
 
     @Nullable

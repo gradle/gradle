@@ -283,7 +283,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     }
 
     private static String derivedDescription(ModelNode modelNode, ModelType<?> elementType) {
-        return ModelMap.class.getSimpleName() + '<' + elementType.getSimpleName() + "> '" + modelNode.getPath() + "'";
+        return ModelMap.class.getSimpleName() + '<' + elementType.getDisplayName() + "> '" + modelNode.getPath() + "'";
     }
 
     public <S extends T> ModelMap<S> toSubType(Class<S> type) {

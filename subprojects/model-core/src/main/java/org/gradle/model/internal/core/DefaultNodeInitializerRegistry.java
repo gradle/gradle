@@ -65,7 +65,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         TreeSet<ModelType<?>> constructableTypes = new TreeSet<ModelType<?>>(new Comparator<ModelType<?>>() {
             @Override
             public int compare(ModelType<?> o1, ModelType<?> o2) {
-                return o1.getSimpleName().compareTo(o2.getSimpleName());
+                return o1.getDisplayName().compareTo(o2.getDisplayName());
             }
         });
         for (NodeInitializerExtractionStrategy extractor : additionalStrategies) {

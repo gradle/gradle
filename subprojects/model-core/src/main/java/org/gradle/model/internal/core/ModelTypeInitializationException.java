@@ -115,7 +115,7 @@ public class ModelTypeInitializationException extends GradleException {
         return Joiner.on(", ").join(ImmutableSet.copyOf(Iterables.transform(types, new Function<ModelType<?>, String>() {
             @Override
             public String apply(ModelType<?> input) {
-                return input.getSimpleName();
+                return input.getDisplayName();
             }
         })));
     }
