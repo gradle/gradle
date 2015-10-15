@@ -38,17 +38,13 @@ public class ModelTypeInitializationException extends GradleException {
     public ModelTypeInitializationException(NodeInitializerContext context,
                                             ModelSchemaStore schemaStore,
                                             Iterable<ModelType<?>> scalarTypes,
-                                            Iterable<ModelType<?>> scalarCollectionTypes,
-                                            Iterable<ModelType<?>> managedCollectionTypes,
                                             Iterable<ModelType<?>> constructableTypes) {
-        super(toMessage(context, schemaStore, scalarTypes, scalarCollectionTypes, managedCollectionTypes, constructableTypes));
+        super(toMessage(context, schemaStore, scalarTypes, constructableTypes));
     }
 
     private static String toMessage(NodeInitializerContext context,
                                     ModelSchemaStore schemaStore,
                                     Iterable<ModelType<?>> scalarTypes,
-                                    Iterable<ModelType<?>> scalarCollectionTypes,
-                                    Iterable<ModelType<?>> managedCollectionTypes,
                                     Iterable<ModelType<?>> constructableTypes) {
 
 
@@ -70,22 +66,17 @@ public class ModelTypeInitializationException extends GradleException {
             } else {
                 s.append(String.format("It's property '%s %s' can not be constructed%n", modelProperty.getType().getName(), modelProperty.getName()));
                 s.append(String.format("It must be one of:%n"));
+                s.append(String.format("    - %s%n", managedTypesDescription()));
                 s.append("    - A managed collection. ");
                 explainManagedCollections(s, 1, constructableTypes);
                 s.append(String.format("%n    - A scalar collection. %s%n    - %s", explainScalarCollections(scalarTypes), describeUnmanagedProperties()));
                 maybeAppendConstructables(s, constructableTypes, 1);
             }
         } else {
-            s.append(String.format("A model element of type: '%s' can not be constructed.%n", context.getModelType()));
-            s.append(String.format("It must be one the following:\n"
-                + "  - A supported scalar type (%s)\n"
-                + "  - An enumerated type (Enum)\n"
-                + "  - An explicitly managed type (i.e. annotated with @Managed)\n"
-                + "  - An explicitly unmanaged property (i.e. annotated with @Unmanaged)\n"
-                + "  - A scalar collection type (%s)\n"
-                + "  - A managed collection type (%s)\n", context.getModelType(), describe(scalarTypes), describe(scalarCollectionTypes), describe(managedCollectionTypes)));
-
-            maybeAppendConstructables(s, constructableTypes, 2);
+            s.append(String.format("A model element of type: '%s' can not be constructed.%n", context.getModelType().getName()));
+            s.append(String.format("It must be one of:%n"));
+            s.append(String.format("    - %s", managedTypesDescription()));
+            maybeAppendConstructables(s, constructableTypes, 1);
         }
         return s.toString();
     }
@@ -99,9 +90,13 @@ public class ModelTypeInitializationException extends GradleException {
     }
 
     private static String explainManagedCollections(StringBuffer s, int pad, Iterable<ModelType<?>> constructableTypes) {
-        s.append(String.format("A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:%n        - A managed type (annotated with @Managed)"));
+        s.append(String.format("A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:%n        - %s", managedTypesDescription()));
         maybeAppendConstructables(s, constructableTypes, pad + 1);
         return s.toString();
+    }
+
+    private static String managedTypesDescription() {
+        return "A managed type (annotated with @Managed)";
     }
 
     private static void maybeAppendConstructables(StringBuffer s, Iterable<ModelType<?>> constructableTypes, int pad) {

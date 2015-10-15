@@ -62,12 +62,6 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
 
     public ModelTypeInitializationException canNotConstructTypeException(NodeInitializerContext context) {
         Iterable<ModelType<?>> scalars = Iterables.concat(ScalarTypes.TYPES, ScalarTypes.NON_FINAL_TYPES);
-        Iterable<ModelType<?>> managedCollectionTypes = Iterables.concat(
-            modelMapNodeInitializerExtractionStrategy.supportedTypes(),
-            managedSetNodeInitializerExtractionStrategy.supportedTypes(),
-            modelSetNodeInitializerExtractionStrategy.supportedTypes()
-        );
-
         TreeSet<ModelType<?>> constructableTypes = new TreeSet<ModelType<?>>(new Comparator<ModelType<?>>() {
             @Override
             public int compare(ModelType<?> o1, ModelType<?> o2) {
@@ -77,7 +71,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         for (NodeInitializerExtractionStrategy extractor : additionalStrategies) {
             Iterables.addAll(constructableTypes, extractor.supportedTypes());
         }
-        return new ModelTypeInitializationException(context, schemaStore, scalars, scalarCollectionNodeInitializerExtractionStrategy.supportedTypes(), managedCollectionTypes, constructableTypes);
+        return new ModelTypeInitializationException(context, schemaStore, scalars, constructableTypes);
     }
 
     @Override
@@ -114,9 +108,6 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
 
     @Override
     public <T> boolean hasNodeInitializer(ModelType<T> type) {
-        if (null != findNodeInitializer(type)) {
-            return true;
-        }
-        return false;
+        return null != findNodeInitializer(type);
     }
 }
