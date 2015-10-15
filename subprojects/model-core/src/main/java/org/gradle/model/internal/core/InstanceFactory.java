@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -30,40 +29,22 @@ public interface InstanceFactory<T> {
 
     Set<ModelType<? extends T>> getSupportedTypes();
 
-    void registerPublicType(ModelType<? extends T> type);
-
-    <S extends T> void registerFactory(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, String, ? super MutableModelNode> factory);
-
-    <S extends T> void registerInternalView(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<?> internalViewType);
+    <S extends T> TypeRegistrationBuilder<S> register(ModelType<S> publicType, ModelRuleDescriptor sourceRule);
 
     <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type);
-
-    <S extends T, I extends S> void registerImplementation(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<I> implementationViewType);
 
     <S extends T> ImplementationInfo<? extends T> getImplementationInfo(ModelType<S> type);
 
     void validateRegistrations();
 
-    class ImplementationInfo<T> {
-        private final ModelType<? extends T> publicType;
-        private final ModelType<? extends T> delegateType;
+    interface TypeRegistrationBuilder<T> {
+        TypeRegistrationBuilder<T> withImplementation(ModelType<? extends T> implementationType, BiFunction<? extends T, String, ? super MutableModelNode> factory);
 
-        public ImplementationInfo(ModelType<? extends T> publicType, ModelType<? extends T> delegateType) {
-            this.publicType = publicType;
-            this.delegateType = delegateType;
-        }
+        TypeRegistrationBuilder<T> withInternalView(ModelType<?> internalView);
+    }
 
-        public ModelType<? extends T> getPublicType() {
-            return publicType;
-        }
-
-        public ModelType<? extends T> getDelegateType() {
-            return delegateType;
-        }
-
-        @Override
-        public String toString() {
-            return String.valueOf(publicType);
-        }
+    interface ImplementationInfo<T> {
+        ModelType<? extends T> getPublicType();
+        ModelType<? extends T> getDelegateType();
     }
 }
