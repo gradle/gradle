@@ -134,6 +134,14 @@ class BaseInstanceFactoryTest extends Specification {
         ex.message == "Cannot register implementation for type '$ThingSpec.name' because an implementation for this type was already registered by test rule"
     }
 
+    def "fails when asking for implementation info for a non-managed type"() {
+        when:
+        instanceFactory.getManagedSubtypeImplementationInfo(ModelType.of(ThingSpec))
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message == "Type '$ThingSpec.name' is not managed"
+    }
+
     def "fails validation if default implementation does not implement internal view"() {
         instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("impl rule"))
             .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
@@ -167,7 +175,7 @@ class BaseInstanceFactoryTest extends Specification {
         instanceFactory.validateRegistrations()
         then:
         def ex = thrown IllegalStateException
-        ex.message == "Factory registration for '$UnmanagedThingSpec.name' is invalid because only managed types can extend unmanaged type '$ThingSpec.name'"
+        ex.message == "Factory registration for '$UnmanagedThingSpec.name' is invalid because no implementation was registered"
     }
 
     def "fails validation if unmanaged type extends two interface with a default implementation"() {

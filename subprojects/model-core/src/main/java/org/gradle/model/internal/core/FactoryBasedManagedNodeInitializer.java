@@ -45,7 +45,7 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
     @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
         ModelType<S> type = schema.getType();
-        InstanceFactory.ImplementationInfo<? extends T> implementationInfo = instanceFactory.getImplementationInfo(type);
+        InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(type);
         T instance = instanceFactory.create(implementationInfo.getPublicType(), modelNode, modelNode.getPath().getName());
         configureAction.execute(instance);
         ModelType<T> delegateType = Cast.uncheckedCast(implementationInfo.getDelegateType());
@@ -68,7 +68,7 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
                 ManagedProxyFactory proxyFactory = ModelViews.getInstance(inputs.get(1), ManagedProxyFactory.class);
 
                 ModelType<S> managedType = schema.getType();
-                InstanceFactory.ImplementationInfo<? extends T> implementationInfo = instanceFactory.getImplementationInfo(managedType);
+                InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(managedType);
                 if (implementationInfo == null) {
                     throw new IllegalStateException(String.format("No default implementation registered for managed type '%s'", managedType));
                 }
