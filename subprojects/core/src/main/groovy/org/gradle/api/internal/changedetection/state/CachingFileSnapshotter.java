@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
@@ -29,10 +30,12 @@ public class CachingFileSnapshotter implements FileSnapshotter, FileTreeElementS
     private final PersistentIndexedCache<String, FileInfo> cache;
     private final Hasher hasher;
     private final FileInfoSerializer serializer = new FileInfoSerializer();
+    private final StringInterner stringInterner;
 
-    public CachingFileSnapshotter(Hasher hasher, PersistentStore store) {
+    public CachingFileSnapshotter(Hasher hasher, PersistentStore store, StringInterner stringInterner) {
         this.hasher = hasher;
         this.cache = store.createCache("fileHashes", String.class, serializer);
+        this.stringInterner = stringInterner;
     }
 
     public FileInfo snapshot(File file) {
@@ -56,7 +59,7 @@ public class CachingFileSnapshotter implements FileSnapshotter, FileTreeElementS
 
         byte[] hash = hasher.hash(file);
         info = new FileInfo(hash, length, timestamp);
-        cache.put(absolutePath, info);
+        cache.put(stringInterner.intern(absolutePath), info);
         return info;
     }
 

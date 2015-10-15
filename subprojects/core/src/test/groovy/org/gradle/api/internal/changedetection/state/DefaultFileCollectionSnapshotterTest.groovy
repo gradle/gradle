@@ -17,6 +17,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTreeElement
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -30,7 +31,7 @@ import spock.lang.Specification
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileTreeElementSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, new StringInterner())
 
     def listener = Mock(ChangeListener)
     @Rule

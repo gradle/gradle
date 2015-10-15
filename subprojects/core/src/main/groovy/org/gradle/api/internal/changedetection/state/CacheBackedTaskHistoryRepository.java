@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Decoder;
@@ -29,11 +30,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private final TaskArtifactStateCacheAccess cacheAccess;
     private final FileSnapshotRepository snapshotRepository;
     private final PersistentIndexedCache<String, TaskHistory> taskHistoryCache;
-    private final TaskHistorySerializer serializer = new TaskHistorySerializer();
+    private final TaskHistorySerializer serializer;
+    private final StringInterner stringInterner;
 
-    public CacheBackedTaskHistoryRepository(TaskArtifactStateCacheAccess cacheAccess, FileSnapshotRepository snapshotRepository) {
+    public CacheBackedTaskHistoryRepository(TaskArtifactStateCacheAccess cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner) {
         this.cacheAccess = cacheAccess;
         this.snapshotRepository = snapshotRepository;
+        this.stringInterner = stringInterner;
+        this.serializer = new TaskHistorySerializer(stringInterner);
         taskHistoryCache = cacheAccess.createCache("taskArtifacts", String.class, serializer);
     }
 
@@ -100,10 +104,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         });
     }
 
-    private static Set<String> outputFiles(TaskInternal task) {
+    private Set<String> outputFiles(TaskInternal task) {
         Set<String> outputFiles = new HashSet<String>();
         for (File file : task.getOutputs().getFiles()) {
-            outputFiles.add(file.getAbsolutePath());
+            outputFiles.add(stringInterner.intern(file.getAbsolutePath()));
         }
         return outputFiles;
     }
@@ -136,11 +140,16 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private static class TaskHistorySerializer implements Serializer<TaskHistory> {
 
         private ClassLoader classLoader;
+        private final StringInterner stringInterner;
+
+        public TaskHistorySerializer(StringInterner stringInterner) {
+            this.stringInterner = stringInterner;
+        }
 
         public TaskHistory read(Decoder decoder) throws Exception {
             byte executions = decoder.readByte();
             TaskHistory history = new TaskHistory();
-            LazyTaskExecution.TaskHistorySerializer executionSerializer = new LazyTaskExecution.TaskHistorySerializer(classLoader);
+            LazyTaskExecution.TaskHistorySerializer executionSerializer = new LazyTaskExecution.TaskHistorySerializer(classLoader, stringInterner);
             for (int i = 0; i < executions; i++) {
                 LazyTaskExecution exec = executionSerializer.read(decoder);
                 history.configurations.add(exec);
@@ -151,7 +160,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public void write(Encoder encoder, TaskHistory value) throws Exception {
             int size = value.configurations.size();
             encoder.writeByte((byte) size);
-            LazyTaskExecution.TaskHistorySerializer executionSerializer = new LazyTaskExecution.TaskHistorySerializer(classLoader);
+            LazyTaskExecution.TaskHistorySerializer executionSerializer = new LazyTaskExecution.TaskHistorySerializer(classLoader, stringInterner);
             for (LazyTaskExecution execution : value.configurations) {
                 executionSerializer.write(encoder, execution);
             }
@@ -228,10 +237,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         static class TaskHistorySerializer implements Serializer<LazyTaskExecution> {
-            private InputPropertiesSerializer inputPropertiesSerializer;
+            private final InputPropertiesSerializer inputPropertiesSerializer;
+            private final StringInterner stringInterner;
 
-            public TaskHistorySerializer(ClassLoader classLoader) {
+            public TaskHistorySerializer(ClassLoader classLoader, StringInterner stringInterner) {
                 this.inputPropertiesSerializer = new InputPropertiesSerializer(classLoader);
+                this.stringInterner = stringInterner;
             }
 
             public LazyTaskExecution read(Decoder decoder) throws Exception {
@@ -242,7 +253,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 int outputFiles = decoder.readInt();
                 Set<String> files = new HashSet<String>();
                 for (int j = 0; j < outputFiles; j++) {
-                    files.add(decoder.readString());
+                    files.add(stringInterner.intern(decoder.readString()));
                 }
                 execution.setOutputFiles(files);
 

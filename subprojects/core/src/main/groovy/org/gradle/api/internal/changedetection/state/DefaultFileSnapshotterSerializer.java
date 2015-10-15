@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -24,12 +25,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 class DefaultFileSnapshotterSerializer implements Serializer<DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl> {
+    private final StringInterner stringInterner;
+
+    public DefaultFileSnapshotterSerializer(StringInterner stringInterner) {
+        this.stringInterner = stringInterner;
+    }
+
     public DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl read(Decoder decoder) throws Exception {
         Map<String, DefaultFileCollectionSnapshotter.IncrementalFileSnapshot> snapshots = new HashMap<String, DefaultFileCollectionSnapshotter.IncrementalFileSnapshot>();
         DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl snapshot = new DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl(snapshots);
         int snapshotsCount = decoder.readSmallInt();
         for (int i = 0; i < snapshotsCount; i++) {
-            String key = decoder.readString();
+            String key = stringInterner.intern(decoder.readString());
             byte fileSnapshotKind = decoder.readByte();
             if (fileSnapshotKind == 1) {
                 snapshots.put(key, new DefaultFileCollectionSnapshotter.DirSnapshot());
