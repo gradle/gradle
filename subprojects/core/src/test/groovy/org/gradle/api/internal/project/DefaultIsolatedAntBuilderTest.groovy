@@ -29,6 +29,7 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.logging.ConfigureLogging
 import org.gradle.logging.TestOutputEventListener
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,7 +50,12 @@ class DefaultIsolatedAntBuilderTest {
     @Before
     public void attachAppender() {
         classpath = registry.getClassPath("GROOVY").asFiles
-        logging.setLevel(LogLevel.INFO);
+        logging.setLevel(LogLevel.INFO)
+    }
+
+    @After
+    public void cleanup() {
+        builder.stop()
     }
 
     @Test
