@@ -37,6 +37,8 @@ def coveredProjects = (buckets.collect { it.value }).flatten()
 def uncoveredProjects = subprojects.collect { ":${it.name}" } - coveredProjects
 assert uncoveredProjects == [] : "The following projects should be added to a bucket: ${uncoveredProjects}"
 
+ext.runtimeProjectPaths = runtimeProjects.collect { it.path }
+
 //Make sure there are no duplicates between buckets
 for (int bucket : buckets.keySet().collect{it as int}) {
     for (int other=bucket+1; other<=buckets.size(); other++) {
@@ -44,8 +46,6 @@ for (int bucket : buckets.keySet().collect{it as int}) {
         assert duplicates == [] : "Duplicates were found between bucket ${bucket} and ${other}: ${duplicates}"
     }
 }
-
-ext.runtimeProjectPaths = runtimeProjects.collect { it.path }
 
 //Create appropriate build types for each bucket
 buildTypes.toArray().each { buildType ->
