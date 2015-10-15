@@ -53,7 +53,7 @@ class ManagedModelInitializerTest extends Specification {
         then:
         def ex = thrown(ModelRuleExecutionException)
         ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedWithInvalidModelMap.name' can not be constructed.
-It's property 'org.gradle.model.ModelMap<java.io.FileInputStream> map' is not a valid managed collection
+Its property 'org.gradle.model.ModelMap<java.io.FileInputStream> map' is not a valid managed collection
 A managed collection can not contain 'java.io.FileInputStream's
 A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
         - A managed type (annotated with @Managed)""")
@@ -75,7 +75,7 @@ A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T
         then:
         def ex = thrown(ModelRuleExecutionException)
         ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedWithUnsupportedType.name' can not be constructed.
-It's property 'java.io.FileInputStream stream' can not be constructed
+Its property 'java.io.FileInputStream stream' can not be constructed
 It must be one of:
     - A managed type (annotated with @Managed)
     - A managed collection. A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
@@ -100,7 +100,7 @@ It must be one of:
         then:
         def ex = thrown(ModelRuleExecutionException)
         ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedWithInvalidScalarCollection.name' can not be constructed.
-It's property 'java.util.List<java.io.FileInputStream> scalarThings' is not a valid scalar collection
+Its property 'java.util.List<java.io.FileInputStream> scalarThings' is not a valid scalar collection
 A scalar collection can not contain 'java.io.FileInputStream's
 A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)""")
     }
@@ -117,7 +117,7 @@ A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one o
         then:
         def ex = thrown(ModelRuleExecutionException)
         ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedReadOnlyWithInvalidProperty.name' can not be constructed.
-It's property 'java.io.FileInputStream stream' can not be constructed
+Its property 'java.io.FileInputStream stream' can not be constructed
 It must be one of:
     - A managed type (annotated with @Managed)
     - A managed collection. A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
@@ -138,7 +138,7 @@ It must be one of:
         then:
         def ex = thrown(ModelRuleExecutionException)
         ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedReadWriteWithInvalidProperty.name' can not be constructed.
-It's property 'java.io.FileInputStream stream' can not be constructed
+Its property 'java.io.FileInputStream stream' can not be constructed
 It must be one of:
     - A managed type (annotated with @Managed)
     - A managed collection. A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
@@ -188,7 +188,7 @@ It must be one of:
         expect:
         failWhenRealized(type,
             canNotBeConstructed("${type.name}"),
-            "It's property '$failingProperty.name $propertyName' can not be constructed",
+            "Its property '$failingProperty.name $propertyName' can not be constructed",
             "It must be one of:",
             "    - A managed collection.",
             "    - A scalar collection.",
@@ -205,7 +205,7 @@ It must be one of:
         expect:
         failWhenRealized(MissingUnmanaged,
             canNotBeConstructed(MissingUnmanaged.name),
-            "It's property 'java.io.InputStream thing' can not be constructed",
+            "Its property 'java.io.InputStream thing' can not be constructed",
             "It must be one of:",
             "- An unmanaged property (i.e. annotated with @Unmanaged)"
         )
@@ -271,7 +271,7 @@ interface Managed${typeName} {
 
         then:
         failWhenRealized(managedType, canNotBeConstructed("CollectionType"),
-            "It's property '${collectionType.name}<java.lang.String> items' can not be constructed")
+            "Its property '${collectionType.name}<java.lang.String> items' can not be constructed")
         where:
         collectionType << [LinkedList, ArrayList, SortedSet, TreeSet]
     }
@@ -310,7 +310,7 @@ interface Managed${typeName} {
 
         then:
         failWhenRealized(managedType, canNotBeConstructed("CollectionType"),
-            "It's property 'java.util.List<${innerType.name}> items' is not a valid scalar collection",
+            "Its property 'java.util.List<${innerType.name}> items' is not a valid scalar collection",
             "A scalar collection can not contain '${innerType.name}'s")
 
         where:

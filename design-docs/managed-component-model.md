@@ -455,7 +455,7 @@ scalar type the error message should read:
 
 ```
 > A model element of type: 'SomeManagedType' can not be constructed.
-  It's property 'List propertyName' is not a valid scalar collection type.
+  Its property 'List propertyName' is not a valid scalar collection type.
   A scalar collection type is a List<T> or Set<T> where 'T' is a scalar type (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)
 ```
 

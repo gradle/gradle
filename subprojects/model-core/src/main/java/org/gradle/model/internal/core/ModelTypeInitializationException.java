@@ -55,17 +55,17 @@ public class ModelTypeInitializationException extends GradleException {
             s.append(String.format("A model element of type: '%s' can not be constructed.%n", context.getContainingType().get().getName()));
             ModelProperty<?> modelProperty = modelPropertyOptional.get();
             if (isManagedCollection(modelProperty.getType())) {
-                s.append(String.format("It's property '%s %s' is not a valid managed collection%n", modelProperty.getType().getName(), modelProperty.getName()));
+                s.append(String.format("Its property '%s %s' is not a valid managed collection%n", modelProperty.getType().getName(), modelProperty.getName()));
                 ModelCollectionSchema<?, ?> schema = (ModelCollectionSchema) schemaStore.getSchema(modelProperty.getType());
                 s.append(String.format("A managed collection can not contain '%s's%n", schema.getElementType()));
                 appendManagedCollections(s, 1, constructableTypes);
             } else if (isScalarCollection(modelProperty.getType(), schemaStore)) {
                 ModelCollectionSchema<?, ?> schema = (ModelCollectionSchema) schemaStore.getSchema(modelProperty.getType());
-                s.append(String.format("It's property '%s %s' is not a valid scalar collection%n", modelProperty.getType().getName(), modelProperty.getName()));
+                s.append(String.format("Its property '%s %s' is not a valid scalar collection%n", modelProperty.getType().getName(), modelProperty.getName()));
                 s.append(String.format("A scalar collection can not contain '%s's%n", schema.getElementType()));
                 s.append(explainScalarCollections(scalarTypes));
             } else {
-                s.append(String.format("It's property '%s %s' can not be constructed%n", modelProperty.getType().getName(), modelProperty.getName()));
+                s.append(String.format("Its property '%s %s' can not be constructed%n", modelProperty.getType().getName(), modelProperty.getName()));
                 s.append(String.format("It must be one of:%n"));
                 s.append(String.format("    - %s%n", MANAGED_TYPE_DESCRIPTION));
                 s.append("    - A managed collection. ");
