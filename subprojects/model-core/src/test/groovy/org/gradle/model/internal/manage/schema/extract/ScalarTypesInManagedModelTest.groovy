@@ -15,7 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
-import groovy.transform.NotYetImplemented
+
 import org.gradle.api.artifacts.Configuration
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
@@ -73,11 +73,10 @@ class ScalarTypesInManagedModelTest extends Specification {
             File]
     }
 
-    @NotYetImplemented
     @Unroll
     def "can have a #type as an @Unmanaged property"() {
         when:
-        def clazz = classloader.parseClass """
+        def clazz = classLoader.parseClass """
             import org.gradle.api.artifacts.Configuration.State
             import org.gradle.model.Managed
             import org.gradle.model.Unmanaged

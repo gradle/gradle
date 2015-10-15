@@ -59,10 +59,10 @@ public class ModelTypeInitializationException extends GradleException {
                 ModelCollectionSchema<?, ?> schema = (ModelCollectionSchema) schemaStore.getSchema(modelProperty.getType());
                 s.append(String.format("A managed collection can not contain '%s's%n", schema.getElementType()));
                 appendManagedCollections(s, 1, constructableTypes);
-            } else if (isScalarCollection(modelProperty.getType(), schemaStore)) {
-                ModelCollectionSchema<?, ?> schema = (ModelCollectionSchema) schemaStore.getSchema(modelProperty.getType());
+            } else if (isAnUnamagedCollection(modelProperty.getType(), schemaStore) && !modelProperty.isDeclaredAsHavingUnmanagedType()) {
+                ModelType<?> innerType = modelProperty.getType().getTypeVariables().get(0);
                 s.append(String.format("Its property '%s %s' is not a valid scalar collection%n", modelProperty.getType().getName(), modelProperty.getName()));
-                s.append(String.format("A scalar collection can not contain '%s's%n", schema.getElementType()));
+                s.append(String.format("A scalar collection can not contain '%s's%n", innerType));
                 s.append(explainScalarCollections(scalarTypes));
             } else {
                 s.append(String.format("Its property '%s %s' can not be constructed%n", modelProperty.getType().getName(), modelProperty.getName()));
@@ -106,9 +106,9 @@ public class ModelTypeInitializationException extends GradleException {
         return Strings.padStart("", padding * 4, ' ');
     }
 
-    private static boolean isScalarCollection(ModelType<?> type, ModelSchemaStore schemaStore) {
+    private static boolean isAnUnamagedCollection(ModelType<?> type, ModelSchemaStore schemaStore) {
         ModelSchema<?> schema = schemaStore.getSchema(type);
-        return schema instanceof ScalarCollectionSchema;
+        return schema instanceof UnmanagedCollectionSchema;
     }
 
     private static String describe(Iterable<ModelType<?>> types) {

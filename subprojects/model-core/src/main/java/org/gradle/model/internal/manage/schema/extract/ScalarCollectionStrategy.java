@@ -36,9 +36,12 @@ public class ScalarCollectionStrategy implements ModelSchemaExtractionStrategy {
         ModelType<T> type = extractionContext.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);
-        if (TYPES.contains(rawCollectionType) && type.getTypeVariables().size()>0) {
-            ModelType<?> elementType = type.getTypeVariables().get(0);
-            extractionContext.found(createSchema(type, elementType));
+        List<ModelType<?>> typeVariables = type.getTypeVariables();
+        if (TYPES.contains(rawCollectionType) && typeVariables.size() > 0) {
+            ModelType<?> firstVariableType = typeVariables.get(0);
+            if (ScalarTypes.isScalarType(firstVariableType)) {
+                extractionContext.found(createSchema(type, firstVariableType));
+            }
         }
     }
 
