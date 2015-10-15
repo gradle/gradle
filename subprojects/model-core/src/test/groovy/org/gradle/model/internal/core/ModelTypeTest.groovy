@@ -34,6 +34,14 @@ class ModelTypeTest extends Specification {
         nested.displayName == "ModelTypeTest.Nested"
     }
 
+    def "represents nested interfaces"() {
+        def nestedInterface = ModelType.of(NestedInterface)
+
+        expect:
+        nestedInterface.toString() == NestedInterface.name
+        nestedInterface.displayName == "ModelTypeTest.NestedInterface"
+    }
+
     def "represents type variables"() {
         when:
         def type = new ModelType<Map<String, Map<Integer, Float>>>() {}
