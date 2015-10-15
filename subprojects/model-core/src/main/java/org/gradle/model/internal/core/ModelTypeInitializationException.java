@@ -35,6 +35,9 @@ import org.gradle.model.internal.type.ModelType;
 @Incubating
 public class ModelTypeInitializationException extends GradleException {
 
+    private static final String MANAGED_TYPE_DESCRIPTION = "A managed type (annotated with @Managed)";
+    private static final String UNMANAGED_PROPERTY_DESCRIPTION = "An unmanaged property (i.e. annotated with @Unmanaged)";
+
     public ModelTypeInitializationException(NodeInitializerContext context,
                                             ModelSchemaStore schemaStore,
                                             Iterable<ModelType<?>> scalarTypes,
@@ -46,8 +49,6 @@ public class ModelTypeInitializationException extends GradleException {
                                     ModelSchemaStore schemaStore,
                                     Iterable<ModelType<?>> scalarTypes,
                                     Iterable<ModelType<?>> constructableTypes) {
-
-
         Optional<ModelProperty<?>> modelPropertyOptional = context.getModelProperty();
         StringBuffer s = new StringBuffer();
         if (modelPropertyOptional.isPresent()) {
@@ -57,7 +58,7 @@ public class ModelTypeInitializationException extends GradleException {
                 s.append(String.format("It's property '%s %s' is not a valid managed collection%n", modelProperty.getType().getName(), modelProperty.getName()));
                 ModelCollectionSchema<?, ?> schema = (ModelCollectionSchema) schemaStore.getSchema(modelProperty.getType());
                 s.append(String.format("A managed collection can not contain '%s's%n", schema.getElementType()));
-                explainManagedCollections(s, 1, constructableTypes);
+                appendManagedCollections(s, 1, constructableTypes);
             } else if (isScalarCollection(modelProperty.getType(), schemaStore)) {
                 ModelCollectionSchema<?, ?> schema = (ModelCollectionSchema) schemaStore.getSchema(modelProperty.getType());
                 s.append(String.format("It's property '%s %s' is not a valid scalar collection%n", modelProperty.getType().getName(), modelProperty.getName()));
@@ -66,37 +67,29 @@ public class ModelTypeInitializationException extends GradleException {
             } else {
                 s.append(String.format("It's property '%s %s' can not be constructed%n", modelProperty.getType().getName(), modelProperty.getName()));
                 s.append(String.format("It must be one of:%n"));
-                s.append(String.format("    - %s%n", managedTypesDescription()));
+                s.append(String.format("    - %s%n", MANAGED_TYPE_DESCRIPTION));
                 s.append("    - A managed collection. ");
-                explainManagedCollections(s, 1, constructableTypes);
-                s.append(String.format("%n    - A scalar collection. %s%n    - %s", explainScalarCollections(scalarTypes), describeUnmanagedProperties()));
+                appendManagedCollections(s, 1, constructableTypes);
+                s.append(String.format("%n    - A scalar collection. %s%n    - %s", explainScalarCollections(scalarTypes), UNMANAGED_PROPERTY_DESCRIPTION));
                 maybeAppendConstructables(s, constructableTypes, 1);
             }
         } else {
             s.append(String.format("A model element of type: '%s' can not be constructed.%n", context.getModelType().getName()));
             s.append(String.format("It must be one of:%n"));
-            s.append(String.format("    - %s", managedTypesDescription()));
+            s.append(String.format("    - %s", MANAGED_TYPE_DESCRIPTION));
             maybeAppendConstructables(s, constructableTypes, 1);
         }
         return s.toString();
-    }
-
-    private static String describeUnmanagedProperties() {
-        return "An unmanaged property (i.e. annotated with @Unmanaged)";
     }
 
     private static String explainScalarCollections(Iterable<ModelType<?>> scalarTypes) {
         return String.format("A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (%s)", describe(scalarTypes));
     }
 
-    private static String explainManagedCollections(StringBuffer s, int pad, Iterable<ModelType<?>> constructableTypes) {
-        s.append(String.format("A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:%n        - %s", managedTypesDescription()));
+    private static String appendManagedCollections(StringBuffer s, int pad, Iterable<ModelType<?>> constructableTypes) {
+        s.append(String.format("A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:%n        - %s", MANAGED_TYPE_DESCRIPTION));
         maybeAppendConstructables(s, constructableTypes, pad + 1);
         return s.toString();
-    }
-
-    private static String managedTypesDescription() {
-        return "A managed type (annotated with @Managed)";
     }
 
     private static void maybeAppendConstructables(StringBuffer s, Iterable<ModelType<?>> constructableTypes, int pad) {
