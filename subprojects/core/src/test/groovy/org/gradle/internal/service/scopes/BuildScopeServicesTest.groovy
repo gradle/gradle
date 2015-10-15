@@ -85,6 +85,10 @@ public class BuildScopeServicesTest extends Specification {
         registry = new BuildScopeServices(sessionServices, false)
     }
 
+    def cleanup() {
+        registry?.close()
+    }
+
     def delegatesToParentForUnknownService() {
         setup:
         sessionServices.get(String) >> "value"
@@ -216,7 +220,7 @@ public class BuildScopeServicesTest extends Specification {
     def providesAnIsolatedAntBuilder() {
         setup:
         def factory = expectParentServiceLocated(ClassLoaderFactory)
-        _ * factory.createIsolatedClassLoader(_) >> getClass().getClassLoader()
+        _ * factory.createIsolatedClassLoader(_) >> new URLClassLoader([] as URL[], getClass().classLoader)
 
         expect:
 
@@ -281,7 +285,7 @@ public class BuildScopeServicesTest extends Specification {
         operationLoggerFactory instanceof DefaultBuildOperationLoggerFactory
     }
 
-    def "closes session when single use" () {
+    def "closes session when single use"() {
         when:
         new BuildScopeServices(sessionServices, true).close()
 
