@@ -38,6 +38,10 @@ class BaseInstanceFactoryTest extends Specification {
 
     static interface OtherThingSpec extends ThingSpec {}
     static @Managed interface ManagedThingSpec extends ThingSpec {}
+    static @Managed interface ChildManagedThingSpec extends ManagedThingSpec {}
+    static @Managed interface ManagedThingSpecInternal {}
+    static @Managed interface ManagedThingSpecInternalExtendingThingSpecInternal extends ThingSpecInternal {}
+    static @Managed interface ManagedThingSpecInternalExtendingOtherThingSpec extends OtherThingSpec {}
     static interface UnmanagedThingSpec extends ThingSpec {}
     static @Managed interface BothThingSpec extends ThingSpec, OtherThingSpec {}
 
@@ -68,6 +72,27 @@ class BaseInstanceFactoryTest extends Specification {
 
         expect:
         instanceFactory.getInternalViews(ModelType.of(ThingSpec)) == ([ModelType.of(ThingSpecInternal)] as Set)
+    }
+
+    def "internal views registered for super-type are returned"() {
+        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("base"))
+            .withInternalView(ModelType.of(ThingSpecInternal))
+        instanceFactory.register(ModelType.of(ManagedThingSpec), new SimpleModelRuleDescriptor("managed"))
+            .withInternalView(ModelType.of(ManagedThingSpecInternal))
+        instanceFactory.register(ModelType.of(ChildManagedThingSpec), new SimpleModelRuleDescriptor("child"))
+
+        expect:
+        instanceFactory.getInternalViews(ModelType.of(ThingSpec)) == ([
+            ModelType.of(ThingSpecInternal),
+        ] as Set)
+        instanceFactory.getInternalViews(ModelType.of(ManagedThingSpec)) == ([
+            ModelType.of(ThingSpecInternal),
+            ModelType.of(ManagedThingSpecInternal)
+        ] as Set)
+        instanceFactory.getInternalViews(ModelType.of(ChildManagedThingSpec)) == ([
+            ModelType.of(ThingSpecInternal),
+            ModelType.of(ManagedThingSpecInternal)
+        ] as Set)
     }
 
     def "can create instance"() {
@@ -152,7 +177,7 @@ class BaseInstanceFactoryTest extends Specification {
         instanceFactory.validateRegistrations()
         then:
         def ex = thrown IllegalStateException
-        ex.message == "Factory registration for '$ThingSpec.name' is invalid because the implementation type '$DefaultThingSpec.name' does not extend internal view '$NotImplementedInternalViewSpec.name'" +
+        ex.message == "Factory registration for '$ThingSpec.name' is invalid because the implementation type '$DefaultThingSpec.name' does not implement internal view '$NotImplementedInternalViewSpec.name'" +
             ", implementation type was registered by impl rule, internal view was registered by view rule"
     }
 
@@ -190,5 +215,57 @@ class BaseInstanceFactoryTest extends Specification {
         then:
         def ex = thrown IllegalStateException
         ex.message == "Factory registration for '$BothThingSpec.name' is invalid because it has multiple default implementations registered, super-types that registered an implementation are: $ThingSpec.name, $OtherThingSpec.name"
+    }
+
+    def "fails when registering non-interface internal view"() {
+        when:
+        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
+            .withInternalView(ModelType.of(Object))
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message == "Internal view '$Object.name' registered for '$ThingSpec.name' must be an interface"
+    }
+
+    def "fails when registering unmanaged internal view for managed type"() {
+        when:
+        instanceFactory.register(ModelType.of(ManagedThingSpec), new SimpleModelRuleDescriptor("thing"))
+            .withInternalView(ModelType.of(ThingSpecInternal))
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message == "Internal view '$ThingSpecInternal.name' registered for managed type '$ManagedThingSpec.name' must be managed"
+    }
+
+    def "fails when registering managed internal view for unmanaged type"() {
+        when:
+        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
+            .withInternalView(ModelType.of(ManagedThingSpecInternal))
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message == "Internal view '$ManagedThingSpecInternal.name' registered for unmanaged type '$ThingSpec.name' must be unmanaged"
+    }
+
+    def "can register managed internal view for managed type that extends interface that is implemented by delegate type"() {
+        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
+            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+        instanceFactory.register(ModelType.of(ManagedThingSpec), new SimpleModelRuleDescriptor("managed thing"))
+            .withInternalView(ModelType.of(ManagedThingSpecInternalExtendingThingSpecInternal))
+
+        when:
+        instanceFactory.validateRegistrations()
+        then:
+        noExceptionThrown()
+    }
+
+    def "fails when registering managed internal view for managed type that extends interface that is not implemented by delegate type"() {
+        instanceFactory.register(ModelType.of(ThingSpec), new SimpleModelRuleDescriptor("thing"))
+            .withImplementation(ModelType.of(DefaultThingSpec), factoryMock)
+        instanceFactory.register(ModelType.of(ManagedThingSpec), new SimpleModelRuleDescriptor("managed thing"))
+            .withInternalView(ModelType.of(ManagedThingSpecInternalExtendingOtherThingSpec))
+
+        when:
+        instanceFactory.validateRegistrations()
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "Factory registration for '$ManagedThingSpec.name' is invalid because the default implementation type '$DefaultThingSpec.name' does not implement unmanaged internal view '$OtherThingSpec.name', internal view was registered by managed thing"
     }
 }

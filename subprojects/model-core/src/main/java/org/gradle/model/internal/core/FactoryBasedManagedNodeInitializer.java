@@ -79,28 +79,25 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
                 }
                 ModelStructSchema<? extends T> delegateStructSchema = Cast.uncheckedCast(delegateSchema);
 
-                // Register managed projections
-                addManagedProjection(modelNode, managedType, delegateStructSchema, schemaStore, proxyFactory);
-
-                // TODO:LPTR get all internal views (managed and unmanaged) in one go, including internal views defined for super-types
-                // Register managed internal views
+                addProjection(modelNode, managedType, delegateStructSchema, schemaStore, proxyFactory);
                 for (ModelType<?> internalView : instanceFactory.getInternalViews(managedType)) {
-                    addManagedProjection(modelNode, internalView, delegateStructSchema, schemaStore, proxyFactory);
-                }
-
-                // Register unmanaged internal views registered for the public type
-                for (ModelType<?> internalView : instanceFactory.getInternalViews(implementationInfo.getPublicType())) {
-                    modelNode.addProjection(UnmanagedModelProjection.of(internalView));
+                    addProjection(modelNode, internalView, delegateStructSchema, schemaStore, proxyFactory);
                 }
             }
 
-            private <D> void addManagedProjection(MutableModelNode modelNode, ModelType<?> type, ModelStructSchema<? extends D> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+            private <D> void addProjection(MutableModelNode modelNode, ModelType<?> type, ModelStructSchema<? extends D> delegateSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
                 ModelSchema<?> schema = schemaStore.getSchema(type);
                 if (!(schema instanceof ModelStructSchema)) {
                     throw new IllegalStateException("View type must be a struct: " + type);
                 }
-                ModelManagedImplStructSchema<D> structSchema = Cast.uncheckedCast(schema);
-                modelNode.addProjection(new ManagedModelProjection<D>(structSchema, delegateSchema, schemaStore, proxyFactory));
+                ModelProjection projection;
+                if (schema instanceof ModelManagedImplStructSchema) {
+                    ModelManagedImplStructSchema<D> structSchema = Cast.uncheckedCast(schema);
+                    projection = new ManagedModelProjection<D>(structSchema, delegateSchema, schemaStore, proxyFactory);
+                } else {
+                    projection = UnmanagedModelProjection.of(type);
+                }
+                modelNode.addProjection(projection);
             }
         };
     }
