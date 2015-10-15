@@ -20,16 +20,16 @@ def buckets = [
         ":diagnostics", ":jetty", ":cli", ":reporting", ":toolingApiBuilders", ":openApi"],
 
     "2": [":toolingApi", ":dependencyManagement", ":testKit", ":distributions",
-        ":pluginUse", ":sonar", ":buildInit", ":languageGroovy", ":internalTesting",
+        ":pluginUse",  ":buildInit", ":languageGroovy", ":internalTesting",
         ":languageJvm", ":performance", ":publish", ":resources", ":baseServicesGroovy", ":resourcesHttp",
         ":pluginDevelopment", ":osgi"],
 
     "3": [":launcher", ":plugins", ":codeQuality", ":languageJava",
-        ":ui", ":maven", ":javascript", ":antlr", ":messaging", ":ear",
+        ":ui", ":javascript", ":antlr", ":messaging", ":ear",
         ":resourcesS3", ":wrapper", ":resourcesSftp", ":signing", ":modelGroovy", ":baseServices"],
 
-    "4": [":docs", ":integTest", ":core", ":languageNative", ":ide", ":platformJvm", ":platformNative", ":modelCore", ":testingNative",
-        ":ideNative", ":native"]
+    "4": [":docs", ":integTest", ":core", ":languageNative", ":ide", ":platformJvm", ":platformNative",
+          ":modelCore", ":sonar", ":maven", ":testingNative", ":ideNative", ":native"]
 ]
 
 //Make sure all projects are accounted for
