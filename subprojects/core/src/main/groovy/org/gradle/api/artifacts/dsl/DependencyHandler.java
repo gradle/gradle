@@ -144,7 +144,7 @@ import java.util.Map;
  *
  * <p>The other is a map notation:</p>
  *
- * <code><i>configurationName</i> group: <i>group</i>:, name: <i>name</i>, version: <i>version</i>, classifier:
+ * <code><i>configurationName</i> group: <i>group</i>, name: <i>name</i>, version: <i>version</i>, classifier:
  * <i>classifier</i>, ext: <i>extension</i></code>
  *
  * <p>In both notations, all properties, except name, are optional.</p>
