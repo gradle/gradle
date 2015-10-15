@@ -9,7 +9,7 @@ This release provide significant improvements to for consumers of the TestKit.
 #### Debugging of tests executed with TestKit API from an IDE
 
 Identifying the root cause of a failing functional test can be tricky. Debugging test execution from an IDE can help to discover problems
-by stepping through the code line by line. By default TestKit executes functional tests in a forked daemon process. Setting up remote debugging for a daemon process
+by stepping through the code line by line. By default, TestKit executes functional tests in a forked daemon process. Setting up remote debugging for a daemon process
 is inconvenient and cumbersome.
 
 This release makes it more convenient for the end user to debug tests from an IDE. By setting the system property `org.gradle.testkit.debug` to `true` in the IDE run configuration,
@@ -20,15 +20,15 @@ Alternatively, debugging behavior can also be set programmatically through the `
 
 #### Unexpected build failure provide access to the build result
 
-With previous versions of Gradle, any unexpected failure during functional test executions resulted in throwing a
+With previous versions of Gradle TestKit, any unexpected failure during functional test executions resulted in throwing a
 <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildSuccess.html">UnexpectedBuildSuccess</a> or a
 <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildFailure.html">UnexpectedBuildFailure</a>.
 These types provide basic diagnostics about the root cause of the failure in textual form assigned to the exception `message` field. Suffice to say that a String is not very
 convenient for further inspections or assertions of the build outcome.
 
-This release also provides the `BuildResult` with the method <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildException.html#getBuildResult()">UnexpectedBuildException.getBuildResult()</a>.
-`UnexpectedBuildException` is the parent class of the exceptions `UnexpectedBuildSuccess` and `UnexpectedBuildFailure`. The following code example demonstrates the use of build result from
-fo an unexpected build failure:
+This release provides the `BuildResult` with the method <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildException.html#getBuildResult()">UnexpectedBuildException.getBuildResult()</a>.
+`UnexpectedBuildException` is the parent class of the exceptions `UnexpectedBuildSuccess` and `UnexpectedBuildFailure`. The following code example demonstrates the use of a build result from
+an unexpected build failure in a [Spock](http://spockframework.org/) test:
 
     class BuildLogicFunctionalTest extends Specification {
         @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
