@@ -63,6 +63,29 @@
                 </listitem>
             </itemizedlist>
         </para>
+        <para>Additionaly, the software model allows us to better identify concepts that are traditionally merged together:</para>
+        <para>
+            <itemizedlist>
+                <listitem>An <firstterm>API</firstterm> is a set of classes, interfaces, methods that are exposed to a consumer.</listitem>
+                <listitem>An <firstterm>API specification</firstterm> is the specification of classes, interfaces or methods that belong to an API. It can be found
+                    in various forms, like <literal>module-info.java</literal> in Jigsaw, or the <literal>api { ... }</literal> block that Gradle defines as part of those stories.
+                    Usually, we can simplify this to a list of packages, called <firstterm>exported packages</firstterm>.</listitem>
+                <listitem>A <firstterm>runtime jar</firstterm> consists of <firstterm>API classes</firstterm> and <firstterm>non-API classes</firstterm> used at execution time. There can be multiple runtime jars
+                    depending on combinations of the variant dimensions: target platform, hardware infrastructure, target application server, ...</listitem>
+                <listitem><firstterm>API classes</firstterm> are classes of a <firstterm>variant</firstterm> which match the <firstterm>API specification</firstterm></listitem>
+                <listitem><firstterm>Non-API classes</firstterm> are classes of a <firstterm>variant</firstterm> which do not match the <firstterm>API specification</firstterm>. They can be refered to as <firstterm>internal classes</firstterm>.</listitem>
+                <listitem>A <firstterm>stubbed API class</firstterm> is an <firstterm>API class</firstterm> for which its implementation and non public members have been removed. It is meant to be used when
+                    a consumer is going to be compiled against an <firstterm>API</firstterm>.</listitem>
+                <listitem>An <firstterm>API jar</firstterm> is a collection of <firstterm>API classes</firstterm>. There can be multiple API jars depending on the combinations of variant dimensions.</listitem>
+                <listitem>A <firstterm>stubbed API jar</firstterm> is a collection of <firstterm>stubbed API classes</firstterm>. There can be multiple stubbed API jars depending on the combinations of variant dimensions.</listitem>
+            </itemizedlist>
+            <para>
+                We avoid the use of the term <firstterm>implementation</firstterm> because it is too vague: both <firstterm>API classes</firstterm> and <firstterm>Non-API classes</firstterm> can have an implementation.
+                For example, an <firstterm>API class</firstterm> can be an interface, but also a concrete class. Implementation is an overloaded term in the Java ecosystem, and often
+                refers to a class implementing an interface. This is not the case here: a concrete class can be member of an API, but to compile against an API, you don't
+                need the implementation of the class: all you need is the signatures.
+            </para>
+        </para>
     </section>
 
     <section>
