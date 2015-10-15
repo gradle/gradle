@@ -85,6 +85,9 @@ public class LeakyOnJava7GroovySystemLoader implements GroovySystemLoader {
 
     @Override
     public void discardTypesFrom(ClassLoader classLoader) {
+        if (classLoader == leakingLoader) {
+            throw new IllegalStateException("Cannot remove own types from Groovy loader.");
+        }
         // Remove cached value for every class seen by this ClassLoader that was loaded by the given ClassLoader
         try {
             Iterator<?> it = globalClassSetIterator();
