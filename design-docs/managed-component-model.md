@@ -469,15 +469,27 @@ Allow a read-write property marked with `@Unmanaged` of a `@Managed` type to hav
 ## Story: Report available types for a `ModelMap` or `ModelSet` when element type is not constructable
 
 When adding an element to a `ModelMap<T>` or `ModelSet<T>` and `T` is not constructable, use a specific error message that informs
-the user that an element of type `T` cannot be added to the collection. Error message should include the known types:
+the user that an element of type `T` cannot be added to the collection. Error message should include the constructable types:
 
 - When `T` extends BinarySpec or ComponentSpec, report on the registered subtypes.
-- Otherwise, report on the general types that are assignable to `T`.
+- Otherwise, report on the constructable types that are assignable to `T`.
 
 ### Test cases
 
 - Fix `ComponentModelIntegrationTest.reasonable error message when creating component with no implementation`. This used to report the available types.
 - Fix `ComponentModelIntegrationTest.reasonable error message when creating component with default implementation`. This used to report the available types.
+- Add `ComponentModelIntegrationTest.reasonable error message when creating binary with no implementation`.
+- Add `ComponentModelIntegrationTest.reasonable error message when creating binary with default implementation`.
+- Add `ManagedNodeBackedModelMapTest.reasonable error message when creating object with no implementation`.
+- Add `ManagedNodeBackedModelMapTest.reasonable error message when creating object with default implementation`.
+- Add `UnmanagedNodeBackedModelMapTest.reasonable error message when creating object with no implementation`.
+- Add `UnmanagedNodeBackedModelMapTest.reasonable error message when creating object with default implementation`.
+- Add `DomainObjectCollectionBackedModelMapTest.reasonable error message when creating object with no implementation`.
+- Add `DomainObjectCollectionBackedModelMapTest.reasonable error message when creating object with default implementation`.
+- Add `ModelSetIntegrationTest.reasonable error message when creating object with no implementation`.
+- Add `ModelSetIntegrationTest.reasonable error message when creating object with default implementation`.
+
+For all theses tests, assert that the reported constructable types list contains appropriate types and only them.
 
 ## Story: Validate model types more eagerly
 
