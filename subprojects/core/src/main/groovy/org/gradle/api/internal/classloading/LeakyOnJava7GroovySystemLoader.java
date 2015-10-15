@@ -62,6 +62,9 @@ public class LeakyOnJava7GroovySystemLoader implements GroovySystemLoader {
 
     @Override
     public void shutdown() {
+        if (leakingLoader == getClass().getClassLoader()) {
+            throw new IllegalStateException("Cannot shut down the main Groovy loader.");
+        }
         // Remove cached value for every class seen by this ClassLoader
         try {
             Iterator<?> it = globalClassSetIterator();
