@@ -59,6 +59,13 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         when:
         Class<? extends SomeType> proxyClass = generate(SomeType)
+
+        then:
+        ManagedInstance.methods.each { method ->
+            assert proxyClass.getMethod(method.name, method.parameterTypes).synthetic
+        }
+
+        when:
         SomeType impl = proxyClass.newInstance(state)
 
         then:

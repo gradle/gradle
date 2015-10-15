@@ -321,7 +321,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeManagedInstanceGetBackingNodeMethod(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC | ACC_SYNTHETIC, "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         methodVisitor.visitCode();
         putStateFieldValueOnStack(methodVisitor, generatedType);
         methodVisitor.visitMethodInsn(INVOKEINTERFACE, MODEL_ELEMENT_STATE_TYPE.getInternalName(), "getBackingNode", GET_BACKING_NODE_METHOD_DESCRIPTOR, true);
@@ -329,7 +329,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     }
 
     private void writeManagedInstanceGetManagedTypeMethod(ClassVisitor visitor, Type generatedType) {
-        MethodVisitor managedTypeVisitor = visitor.visitMethod(ACC_PUBLIC, "getManagedType", GET_MANAGED_TYPE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
+        MethodVisitor managedTypeVisitor = visitor.visitMethod(ACC_PUBLIC | ACC_SYNTHETIC, "getManagedType", GET_MANAGED_TYPE_METHOD_DESCRIPTOR, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
         managedTypeVisitor.visitCode();
         putManagedTypeFieldValueOnStack(managedTypeVisitor, generatedType);
         finishVisitingMethod(managedTypeVisitor, ARETURN);
