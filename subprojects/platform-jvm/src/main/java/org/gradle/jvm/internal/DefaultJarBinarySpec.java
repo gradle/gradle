@@ -53,46 +53,57 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
         return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
 
+    @Override
     public JvmBinaryTasks getTasks() {
         return tasks;
     }
 
+    @Override
     public JavaToolChain getToolChain() {
         return toolChain;
     }
 
+    @Override
     public void setToolChain(JavaToolChain toolChain) {
         this.toolChain = toolChain;
     }
 
+    @Override
     public JavaPlatform getTargetPlatform() {
         return platform;
     }
 
+    @Override
     public void setTargetPlatform(JavaPlatform platform) {
         this.platform = platform;
     }
 
+    @Override
     public File getJarFile() {
         return jarFile;
     }
 
+    @Override
     public void setJarFile(File jarFile) {
         this.jarFile = jarFile;
     }
 
+    @Override
     public File getClassesDir() {
         return classesDir;
     }
 
+    @Override
     public void setClassesDir(File classesDir) {
         this.classesDir = classesDir;
     }
 
+    @Override
     public File getResourcesDir() {
         return resourcesDir;
     }
 
+    @Override
     public void setResourcesDir(File resourcesDir) {
         this.resourcesDir = resourcesDir;
     }

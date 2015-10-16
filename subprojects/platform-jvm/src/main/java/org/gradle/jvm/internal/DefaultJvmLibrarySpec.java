@@ -42,14 +42,17 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
         return "JVM library";
     }
 
+    @Override
     public Set<Class<? extends TransformationFileType>> getInputTypes() {
         return languageOutputs;
     }
 
+    @Override
     public List<PlatformRequirement> getTargetPlatforms() {
         return Collections.unmodifiableList(targetPlatforms);
     }
 
+    @Override
     public void targetPlatform(String targetPlatform) {
         this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
     }
