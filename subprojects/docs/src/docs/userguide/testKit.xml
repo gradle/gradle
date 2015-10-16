@@ -208,7 +208,7 @@
                 The following screenshot shows the use of the system property in a IntelliJ run configuration:
             </para>
             <imageobject>
-                <imagedata fileref="img/testkit-idea-run-config.jpg" width="989px" depth="464px"/>
+                <imagedata fileref="img/testkit-idea-run-config.png" width="989px" depth="464px"/>
             </imageobject>
             <para>
                 Alternatively, the debug mode can also be activated through the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withDebug"/>.
