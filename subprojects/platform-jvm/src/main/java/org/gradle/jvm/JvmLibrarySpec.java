@@ -21,9 +21,13 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.LibrarySpec;
 import org.gradle.platform.base.PlatformAwareComponentSpec;
 
+import java.util.Set;
+
 /**
  * Definition of a JVM library component that is to be built by Gradle.
  */
 @Incubating @HasInternalProtocol
 public interface JvmLibrarySpec extends LibrarySpec, JvmComponentSpec, PlatformAwareComponentSpec {
+
+    Set<String> getExportedPackages();
 }

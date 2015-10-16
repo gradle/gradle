@@ -57,4 +57,8 @@ class ApiSpec {
                 format("Invalid public API specification: package '%s' has already been exported", packageName));
         }
     }
+
+    public Set<PackageName> getExports() {
+        return exports;
+    }
 }

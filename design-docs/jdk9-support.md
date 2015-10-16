@@ -49,7 +49,7 @@ No runtime enforcement will be done--this is the job of the module system. Gradl
 - ~~Duplicate `exports` clauses should raise an error~~
 - ~~Package name argument to `exports` clause should be validated per the JLS~~
 
-## Story: Generate an API jar based on the API specification
+## Story: Create API jar according to API specification
 
 - All JVM libraries should produce an API jar and a runtime jar.
 - Build a jar containing those packages from compiled classes for each variant of the library.
@@ -58,22 +58,23 @@ No runtime enforcement will be done--this is the job of the module system. Gradl
 ### Implementation details
 
 This story should **not** use the `ApiStubGenerator` yet. Instead, it should:
+
 - configure a new copy task that a class directory as input, and produces an `apiClasses` directory based on the packages exported in the api specification.
-- filter the API classes directory according to the `APISpec`. It is not expected that the output classes are stripped out from their non public members yet.
+- filter the API classes directory according to the api spec. Included classes should **not** be stripped of their non-public members yet.
 - a separate `jar` task should produce a jar out of the `apiClasses` directory
-- package private classes, inner classes and local classes are included in the API jar (a later story will allow us to remove them)
+- package private classes, inner classes and local classes should remain included in the API jar for now (a later story will allow us to remove them)
 
 For this story, it is expected that the API jar is built after the runtime jar. It is not in the scope of this story to make the API jar buildable without building the runtime jar. Therefore, it is acceptable that the API jar task depends on the runtime jar if it helps.
 
 ### Test cases
 
-- Default to all packages: if no `api` section is found, assume that all packages of the library are exported
-- API jar can be built for each variant of the library and contains only API classes
-- `assemble` task builds the API jar and implementation jar for each buildable variant
-- API jar contains exported packages
-- API jar does not contain non exported packages
-- If no API specification is present, API jar and implementation jars are identical (same contents)
-- Building the API jar should trigger compilation of classes
+- ~~Default to all packages: if no `api` section is found, assume that all packages of the library are exported~~
+- ~~API jar can be built for each variant of the library and contains only API classes~~
+- ~~`assemble` task builds the API jar and implementation jar for each buildable variant~~
+- ~~API jar contains exported packages~~
+- ~~API jar does not contain non exported packages~~
+- ~~If no API specification is present, API jar and implementation jars are identical (same contents)~~
+- ~~Building the API jar should trigger compilation of classes~~
 - Changes to the API specification should not trigger recompilation of the classes
 - Changes to the API specification should not trigger repackaging of the implementation jar
 - Changes to the API specification should trigger regeneration of the API jar
@@ -93,6 +94,7 @@ For this story, it is expected that the API jar is built after the runtime jar. 
 ## Story: API stub generator strips out non public elements from classes
 
 Given a source `byte[]` representing the bytecode of a class, generate a new `byte[]` that corresponds to the same class viewed as an API class:
+
 - strips out private members
 - removes method bodies
 - removes static initializers

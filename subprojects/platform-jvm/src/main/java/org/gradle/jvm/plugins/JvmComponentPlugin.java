@@ -16,8 +16,8 @@
 
 package org.gradle.jvm.plugins;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
+import org.gradle.api.tasks.Copy;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
@@ -39,6 +39,9 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+
+import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
  * Base plugin for JVM component support. Applies the
@@ -99,12 +102,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
         public void createBinaries(ModelMap<JarBinarySpec> binaries, BinaryNamingSchemeBuilder namingSchemeBuilder,
                                    PlatformResolvers platforms, final JvmLibrarySpec jvmLibrary) {
             List<JavaPlatform> selectedPlatforms = resolvePlatforms(platforms, jvmLibrary);
+            final Set<String> exportedPackages = jvmLibrary.getExportedPackages();
             for (final JavaPlatform platform : selectedPlatforms) {
                 String binaryName = buildBinaryName(jvmLibrary, namingSchemeBuilder, selectedPlatforms, platform);
                 binaries.create(binaryName, new Action<JarBinarySpec>() {
                     @Override
                     public void execute(JarBinarySpec jarBinary) {
                         jarBinary.setTargetPlatform(platform);
+                        jarBinary.setExportedPackages(exportedPackages);
                     }
                 });
             }
@@ -139,16 +144,49 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         @BinaryTasks
         public void createTasks(ModelMap<Task> tasks, final JarBinarySpec binary) {
-            String taskName = "create" + StringUtils.capitalize(binary.getName());
-            tasks.create(taskName, Jar.class, new Action<Jar>() {
+            final String jarArchiveName = binary.getJarFile().getName();
+
+            String runtimeJarName = binary.getName();
+            final File runtimeClassesDir = binary.getClassesDir();
+            final File runtimeJarDestDir = binary.getJarFile().getParentFile();
+            final String createRuntimeJar = "create" + capitalize(binary.getName());
+            tasks.create(createRuntimeJar, Jar.class, new Action<Jar>() {
                 @Override
                 public void execute(Jar jar) {
                     jar.setDescription(String.format("Creates the binary file for %s.", binary));
-                    jar.from(binary.getClassesDir());
+                    jar.from(runtimeClassesDir);
                     jar.from(binary.getResourcesDir());
+                    jar.setDestinationDir(runtimeJarDestDir);
+                    jar.setArchiveName(jarArchiveName);
+                }
+            });
 
-                    jar.setDestinationDir(binary.getJarFile().getParentFile());
-                    jar.setArchiveName(binary.getJarFile().getName());
+            String libName = runtimeJarName.replace("Jar", "");
+            String apiJarName = runtimeJarName.replace("Jar", "ApiJar");
+            final File apiClassesDir = new File(runtimeClassesDir.getParent(), "apiClasses");
+            final String extractApiClasses = "extract" + capitalize(libName + "ApiClasses");
+            tasks.create(extractApiClasses, Copy.class, new Action<Copy>() {
+                @Override
+                public void execute(Copy copy) {
+                    copy.from(runtimeClassesDir);
+                    copy.into(apiClassesDir);
+                    for (String packageName : binary.getExportedPackages()) {
+                        copy.include(packageName.replace('.', '/') + "/**/*");
+                    }
+                    copy.dependsOn(createRuntimeJar);
+                }
+            });
+
+            final File apiJarDestDir = new File(runtimeJarDestDir.getParentFile(), apiJarName);
+            String createApiJar = "create" + capitalize(apiJarName);
+            tasks.create(createApiJar, Jar.class, new Action<Jar>() {
+                @Override
+                public void execute(Jar jar) {
+                    jar.setDescription(String.format("Creates the API binary file for %s.", binary));
+                    jar.from(apiClassesDir);
+                    jar.setDestinationDir(apiJarDestDir);
+                    jar.setArchiveName(jarArchiveName);
+                    jar.dependsOn(extractApiClasses);
                 }
             });
         }

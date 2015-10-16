@@ -16,6 +16,9 @@
 
 package org.gradle.jvm.internal;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.jvm.JvmByteCode;
@@ -30,7 +33,7 @@ import java.util.*;
 public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibrarySpecInternal {
     private final Set<Class<? extends TransformationFileType>> languageOutputs = new HashSet<Class<? extends TransformationFileType>>();
     private final List<PlatformRequirement> targetPlatforms = Lists.newArrayList();
-    private final ApiSpec api = new ApiSpec();
+    private final ApiSpec apiSpec = new ApiSpec();
 
     public DefaultJvmLibrarySpec() {
         this.languageOutputs.add(JvmResources.class);
@@ -57,7 +60,18 @@ public class DefaultJvmLibrarySpec extends BaseComponentSpec implements JvmLibra
         this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
     }
 
-    void api(Action<? super ApiSpec> configureAction) {
-        configureAction.execute(api);
+    void api(Action<ApiSpec> configureAction) {
+        configureAction.execute(apiSpec);
+    }
+
+    @Override
+    public Set<String> getExportedPackages() {
+        Iterable<String> transform = Iterables.transform(apiSpec.getExports(), new Function<PackageName, String>() {
+            @Override
+            public String apply(PackageName packageName) {
+                return packageName.toString();
+            }
+        });
+        return ImmutableSet.copyOf(transform);
     }
 }

@@ -28,6 +28,8 @@ import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 
 public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpecInternal {
     private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(super.getTasks());
@@ -37,6 +39,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File resourcesDir;
     private File jarFile;
     private ComponentSpec component;
+    private Set<String> exportedPackages = Collections.emptySet();
 
     @Override
     protected String getTypeName() {
@@ -106,6 +109,16 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     @Override
     public void setResourcesDir(File resourcesDir) {
         this.resourcesDir = resourcesDir;
+    }
+
+    @Override
+    public void setExportedPackages(Set<String> exportedPackages) {
+        this.exportedPackages = exportedPackages;
+    }
+
+    @Override
+    public Set<String> getExportedPackages() {
+        return exportedPackages;
     }
 
     @Override
