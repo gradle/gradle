@@ -25,8 +25,6 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.testkit.runner.TaskOutcome.*
-
 class BuildLogicFunctionalTest extends Specification {
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
