@@ -17,9 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.api.Nullable;
-import org.gradle.model.internal.core.ModelAction;
-import org.gradle.model.internal.core.ModelPath;
-import org.gradle.model.internal.core.ModelProjection;
+import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.projection.ManagedModelProjection;
@@ -33,6 +31,17 @@ public class ManagedModelInitializer<T> extends AbstractManagedModelInitializer<
 
     public ManagedModelInitializer(ModelManagedImplStructSchema<T> modelSchema, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
         super(modelSchema, schemaStore, proxyFactory);
+    }
+
+    @Override
+    public List<? extends ModelReference<?>> getInputs() {
+        return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
+    }
+
+    @Override
+    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+        NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
+        addPropertyLinks(modelNode, nodeInitializerRegistry, schema.getProperties());
     }
 
     @Override

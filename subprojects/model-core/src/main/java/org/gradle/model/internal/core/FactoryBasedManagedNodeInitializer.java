@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
@@ -23,12 +24,10 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.AbstractManagedModelInitializer;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.projection.ManagedModelProjection;
-import org.gradle.model.internal.manage.schema.ModelManagedImplStructSchema;
-import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.ModelStructSchema;
+import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -43,6 +42,11 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
     }
 
     @Override
+    public List<? extends ModelReference<?>> getInputs() {
+        return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
+    }
+
+    @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
         ModelType<S> type = schema.getType();
         InstanceFactory.ManagedSubtypeImplementationInfo<? extends T> implementationInfo = instanceFactory.getManagedSubtypeImplementationInfo(type);
@@ -50,7 +54,35 @@ public class FactoryBasedManagedNodeInitializer<T, S extends T> extends Abstract
         configureAction.execute(instance);
         ModelType<T> delegateType = Cast.uncheckedCast(implementationInfo.getDelegateType());
         modelNode.setPrivateData(delegateType, instance);
-        super.execute(modelNode, inputs);
+
+        NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
+        ModelStructSchema<T> delegateSchema = Cast.uncheckedCast(schemaStore.getSchema(delegateType));
+        addPropertyLinks(modelNode, nodeInitializerRegistry, getProperties(delegateSchema));
+    }
+
+    private Collection<ModelProperty<?>> getProperties(ModelStructSchema<T> delegateSchema) {
+        ImmutableSet.Builder<ModelProperty<?>> properties = ImmutableSet.builder();
+        addNonDelegatedManagedProperties(schema, delegateSchema, properties);
+        for (ModelType<?> internalView : instanceFactory.getInternalViews(schema.getType())) {
+            ModelSchema<?> internalViewSchema = schemaStore.getSchema(internalView);
+            if (!(internalViewSchema instanceof ModelManagedImplStructSchema)) {
+                continue;
+            }
+            addNonDelegatedManagedProperties((ModelManagedImplStructSchema<?>) internalViewSchema, delegateSchema, properties);
+        }
+        return properties.build();
+    }
+
+    private void addNonDelegatedManagedProperties(ModelManagedImplStructSchema<?> schema, ModelStructSchema<T> delegateSchema, ImmutableSet.Builder<ModelProperty<?>> properties) {
+        for (ModelProperty<?> property : schema.getProperties()) {
+            if (property.getStateManagementType() != ModelProperty.StateManagementType.MANAGED) {
+                continue;
+            }
+            if (delegateSchema.hasProperty(property.getName())) {
+                continue;
+            }
+            properties.add(property);
+        }
     }
 
     @Override

@@ -24,8 +24,7 @@ import org.gradle.model.internal.manage.projection.ManagedModelProjection;
 import org.gradle.model.internal.manage.schema.*;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Collection;
 
 public abstract class AbstractManagedModelInitializer<T> implements NodeInitializer {
 
@@ -39,22 +38,16 @@ public abstract class AbstractManagedModelInitializer<T> implements NodeInitiali
         this.proxyFactory = proxyFactory;
     }
 
-    @Override
-    public List<? extends ModelReference<?>> getInputs() {
-        return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
-    }
-
-    @Override
-    public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-        NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
-        for (ModelProperty<?> property : schema.getProperties()) {
+    protected void addPropertyLinks(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry, Collection<ModelProperty<?>> properties) {
+        for (ModelProperty<?> property : properties) {
             addPropertyLink(modelNode, property, nodeInitializerRegistry);
         }
         if (isANamedType()) {
             // Only initialize "name" child node if the schema has such a managed property.
             // This is not the case for a managed subtype of an unmanaged type that implements Named.
             ModelProperty<?> nameProperty = schema.getProperty("name");
-            if (nameProperty != null && nameProperty.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)) {
+            if (nameProperty != null && nameProperty.getStateManagementType().equals(ModelProperty.StateManagementType.MANAGED)
+                && properties.contains(nameProperty)) {
                 MutableModelNode nameLink = modelNode.getLink("name");
                 if (nameLink == null) {
                     throw new IllegalStateException("expected name node for " + modelNode.getPath());
