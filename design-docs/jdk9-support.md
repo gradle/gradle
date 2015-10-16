@@ -133,6 +133,7 @@ This doesn't have to use the `ApiSpec` (or whatever it is called) if it is not a
 
 When stripping out non public members of a class, the stub generator should check if the methods or classes which are exported do not expose classes which do not belong
 to the list of exported packages. Special treatment should be done to allow the JDK base classes to be part of the API.
+Validation at this point should be optional and disabled by default.
 
 # Test cases
 

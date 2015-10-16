@@ -22,6 +22,7 @@ import spock.lang.Unroll
 
 @Requires(TestPrecondition.JDK6_OR_LATER)
 class ApiStubGeneratorValidationTest extends ApiStubGeneratorTestSupport {
+
     @Unroll
     def "should not throw an error if exposing a JDK class #type in method return type"() {
         given:
@@ -47,6 +48,9 @@ public abstract class A {
     @Unroll
     def "should throw an error if an implementation class is exposed in the public API in a #descriptor"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
 import com.acme.internal.AImpl;
 import java.util.List;
@@ -78,8 +82,44 @@ public class AImpl {}
         'generic type in parameter' | 'public void getImpl(List<AImpl> impls) { }'     | 'public void getImpl(java.util.List)'
     }
 
+    @Unroll
+    def "should not throw an error if an implementation class is exposed in the public API in a #descriptor but validation is disabled"() {
+        given:
+        def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
+import com.acme.internal.AImpl;
+import java.util.List;
+
+public class A {
+    $method
+}""",
+                                       'com.acme.internal.AImpl': '''package com.acme.internal;
+public class AImpl {}
+
+'''])
+
+        when:
+        def clazz = api.classes['com.acme.A']
+        def internal = api.classes['com.acme.internal.AImpl']
+        api.loadStub(clazz)
+
+        then:
+        api.belongsToAPI(clazz)
+        !api.belongsToAPI(internal)
+        noExceptionThrown()
+
+        where:
+        descriptor                  | method                                           | methodDescriptor
+        'return type'               | 'public AImpl getImpl() { return new AImpl(); }' | 'public com.acme.internal.AImpl getImpl()'
+        'parameter'                 | 'public void getImpl(AImpl impl) { }'            | 'public void getImpl(com.acme.internal.AImpl)'
+        'generic type'              | 'public List<AImpl> getImpl() { return null; }'  | 'public java.util.List getImpl()'
+        'generic type in parameter' | 'public void getImpl(List<AImpl> impls) { }'     | 'public void getImpl(java.util.List)'
+    }
+
     def "should throw an error listing all invalid exposed types for a single method"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
 import com.acme.internal.AImpl;
 import com.acme.internal.AInternal;
@@ -114,6 +154,9 @@ public class AInternal {}
 
     void "reports error if class is annotated with an annotation that doesn't belong to the public API"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], [
             'com.acme.A': '''package com.acme;
 import com.acme.internal.Ann;
@@ -150,6 +193,9 @@ public @interface Ann {}
 
     void "reports error if a method is annotated with an annotation that doesn't belong to the public API"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], [
             'com.acme.A': '''package com.acme;
 import com.acme.internal.Ann;
@@ -188,6 +234,9 @@ public @interface Ann {}
 
     void "reports error if a field is annotated with an annotation that doesn't belong to the public API"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], [
             'com.acme.A': '''package com.acme;
 import com.acme.internal.Ann;
@@ -226,6 +275,9 @@ public @interface Ann {}
 
     void "reports error if a method parameter is annotated with an annotation that doesn't belong to the public API"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], [
             'com.acme.A': '''package com.acme;
 import com.acme.internal.Ann;
@@ -261,6 +313,9 @@ public @interface Ann {}
 
     void "cannot have a superclass which is not in the public API"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
 import com.acme.internal.AImpl;
 
@@ -281,6 +336,9 @@ public class AImpl {}
 
     void "cannot have an interface which is not in the public API"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
 import com.acme.internal.AInternal;
 
@@ -305,6 +363,9 @@ public interface AInternal {}
 
     void "cannot have a superclass generic argument type which is not in the public API"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
 import com.acme.internal.AImpl;
 import java.util.ArrayList;
@@ -330,6 +391,9 @@ public class AImpl {}
 
     void "cannot have an interface generic argument type which is not in the public API"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
 import com.acme.internal.AImpl;
 import java.util.List;
@@ -355,6 +419,9 @@ public class AImpl {}
 
     void "cannot have type in generic class signature which is not in the public API"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
 import com.acme.internal.AImpl;
 import java.util.List;
@@ -380,6 +447,9 @@ public class AImpl {}
 
     void "cannot have type in generic method return type signature which is not in the public API"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
 import com.acme.internal.AImpl;
 import java.util.List;
@@ -406,6 +476,9 @@ public class AImpl {}
 
     void "cannot have type in generic field type signature which is not in the public API"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
 import com.acme.internal.AImpl;
 import java.util.List;
@@ -432,6 +505,9 @@ public class AImpl {}
 
     void "cannot have multiple types in generic field type signature which is not in the public API"() {
         given:
+        validationEnabled()
+
+        and:
         def api = toApi(['com.acme'], ['com.acme.A'             : """package com.acme;
 import com.acme.internal.AImpl;
 import com.acme.internal.AImpl2;

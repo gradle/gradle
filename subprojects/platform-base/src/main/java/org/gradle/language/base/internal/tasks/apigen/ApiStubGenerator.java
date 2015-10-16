@@ -32,12 +32,18 @@ public class ApiStubGenerator {
     // See JLS3 "Binary Compatibility" (13.1)
     private final static Pattern AIC_LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
 
+    private final boolean validateExposedTypes;
     private final List<String> allowedPackages;
     private final boolean hasDeclaredAPI;
 
     public ApiStubGenerator(List<String> allowedPackages) {
+        this(allowedPackages, false);
+    }
+
+    public ApiStubGenerator(List<String> allowedPackages, boolean validateExposedTypes) {
         this.allowedPackages = allowedPackages;
         this.hasDeclaredAPI = !allowedPackages.isEmpty();
+        this.validateExposedTypes = validateExposedTypes;
     }
 
     /**
@@ -58,7 +64,7 @@ public class ApiStubGenerator {
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 String className = toClassName(name);
-                isAPI.set(validateType(className) && isPublicAPI(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
+                isAPI.set(belongsToApi(className) && isPublicAPI(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
             }
         }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
         return isAPI.get();
@@ -86,6 +92,10 @@ public class ApiStubGenerator {
     }
 
     private boolean validateType(String className) {
+        return !validateExposedTypes || belongsToApi(className);
+    }
+
+    private boolean belongsToApi(String className) {
         if (!hasDeclaredAPI) {
             return true;
         }
@@ -277,7 +287,7 @@ public class ApiStubGenerator {
             if (signature==null) {
                 return Collections.emptySet();
             }
-            if (!hasDeclaredAPI) {
+            if (!validateExposedTypes || !hasDeclaredAPI) {
                 return Collections.emptySet();
             }
             SignatureReader sr = new SignatureReader(signature);

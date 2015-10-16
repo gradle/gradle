@@ -65,8 +65,8 @@ class ApiStubGeneratorTestSupport extends Specification {
 
         public final Map<String, GeneratedClass> classes
 
-        public ApiContainer(List<String> allowedPackages, Map<String, GeneratedClass> classes) {
-            this.stubgen = new ApiStubGenerator(allowedPackages)
+        public ApiContainer(List<String> allowedPackages, Map<String, GeneratedClass> classes, boolean validateApi) {
+            this.stubgen = new ApiStubGenerator(allowedPackages, validateApi)
             this.classes = classes
         }
 
@@ -100,6 +100,12 @@ class ApiStubGeneratorTestSupport extends Specification {
 
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    private boolean validateApi
+
+    protected void validationEnabled() {
+        validateApi = true
+    }
 
     protected ApiContainer toApi(Map<String, String> sources) {
         toApi('1.6', [], sources)
@@ -135,7 +141,7 @@ class ApiStubGeneratorTestSupport extends Specification {
                 }
                 throw new AssertionError("Cannot find class $cn. Test is very likely not written correctly.")
             }
-            return new ApiContainer(allowedPackages, entries)
+            return new ApiContainer(allowedPackages, entries, validateApi)
         }
 
         StringBuilder sb = new StringBuilder("Error in compilation of test sources:\n")
