@@ -87,7 +87,6 @@ For this story, it is expected that the API jar is built after the runtime jar. 
 ### Test cases
 
 - Compilation fails when consuming source references a non-API class.
-- Consuming source is not recompiled when non-API class does not change.
 - Consuming source is recompiled when API class is changed.
 - Consuming source is not recompiled when non-API class changes.
 
