@@ -143,7 +143,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
-        def builders = rootProject.getProjectNatures([Mock(BuildCommand.class)])
+        def builders = rootProject.getBuildCommands([Mock(BuildCommand.class)])
 
         then:
         builders.isEmpty()
