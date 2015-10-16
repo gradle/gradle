@@ -1,9 +1,13 @@
 :compileCoreJarCoreJava
 :processCoreJarCoreResources
 :createCoreJar
+:extractCoreApiClasses
+:createCoreApiJar
 :coreJar
 :compileServerJarServerJava
 :createServerJar
+:extractServerApiClasses
+:createServerApiJar
 :serverJar
 
 BUILD SUCCESSFUL

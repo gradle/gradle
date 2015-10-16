@@ -146,7 +146,6 @@ public class JvmComponentPlugin implements Plugin<Project> {
         public void createTasks(ModelMap<Task> tasks, final JarBinarySpec binary) {
             final String jarArchiveName = binary.getJarFile().getName();
 
-            String runtimeJarName = binary.getName();
             final File runtimeClassesDir = binary.getClassesDir();
             final File runtimeJarDestDir = binary.getJarFile().getParentFile();
             final String createRuntimeJar = "create" + capitalize(binary.getName());
@@ -161,7 +160,12 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 }
             });
 
-            String libName = runtimeJarName.replace("Jar", "");
+            String binaryName = binary.getName();
+            if (!binaryName.endsWith("Jar")) {
+                return;
+            }
+
+            String libName = binaryName.replace("Jar", "");
             final File apiClassesDir = new File(new File(runtimeClassesDir.getParentFile().getParentFile(), "apiClasses"), runtimeClassesDir.getName());
             final String extractApiClasses = "extract" + capitalize(libName + "ApiClasses");
             tasks.create(extractApiClasses, Copy.class, new Action<Copy>() {
