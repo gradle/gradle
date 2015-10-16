@@ -33,6 +33,7 @@ import java.util.List;
 public class DefaultGradleRunner extends GradleRunner {
 
     public static final String DIAGNOSTICS_MESSAGE_SEPARATOR = "-----";
+    public static final String DEBUG_SYS_PROP = "org.gradle.testkit.debug";
     private final GradleExecutor gradleExecutor;
 
     private TestKitDirProvider testKitDirProvider;
@@ -56,7 +57,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private boolean isDebugEnabled() {
-        return Boolean.parseBoolean(System.getProperty(DEBUG_SYS_PROP, "false"));
+        return Boolean.getBoolean(DEBUG_SYS_PROP);
     }
 
     public TestKitDirProvider getTestKitDirProvider() {

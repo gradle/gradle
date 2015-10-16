@@ -55,8 +55,6 @@ import java.util.List;
 @Incubating
 public abstract class GradleRunner {
 
-    public static final String DEBUG_SYS_PROP = "org.gradle.testkit.debug";
-
     /**
      * Creates a new Gradle runner.
      * <p>
