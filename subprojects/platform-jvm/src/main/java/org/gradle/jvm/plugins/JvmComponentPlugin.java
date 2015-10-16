@@ -173,7 +173,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     copy.from(runtimeClassesDir);
                     copy.into(apiClassesDir);
                     for (String packageName : binary.getExportedPackages()) {
-                        copy.include(packageName.replace('.', '/') + "/**/*");
+                        copy.include(packageName.replace('.', '/') + "/*");
                     }
                     copy.dependsOn(createRuntimeJar);
                 }
