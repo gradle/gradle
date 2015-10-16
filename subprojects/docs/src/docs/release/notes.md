@@ -6,7 +6,7 @@ Here are the new features introduced in this Gradle release.
 
 This release provide significant improvements to for consumers of the TestKit.
 
-#### Debugging of tests executed with TestKit API from an IDE
+#### Easier debugging of test build with TestKit from an IDE
 
 Identifying the root cause of a failing functional test can be tricky. Debugging test execution from an IDE can help to discover problems
 by stepping through the code line by line. By default, TestKit executes functional tests in a forked daemon process. Setting up remote debugging for a daemon process
