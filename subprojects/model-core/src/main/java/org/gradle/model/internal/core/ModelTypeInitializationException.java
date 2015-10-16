@@ -50,9 +50,9 @@ public class ModelTypeInitializationException extends GradleException {
                                     Iterable<ModelType<?>> scalarTypes,
                                     Iterable<ModelType<?>> constructableTypes) {
         Optional<ModelProperty<?>> modelPropertyOptional = context.getModelProperty();
-        StringBuffer s = new StringBuffer();
+        StringBuilder s = new StringBuilder();
         if (modelPropertyOptional.isPresent()) {
-            s.append(String.format("A model element of type: '%s' can not be constructed.%n", context.getContainingType().get().getName()));
+            s.append(String.format("A model element of type: '%s' can not be constructed.%n", context.getDeclaringType().get().getName()));
             ModelProperty<?> modelProperty = modelPropertyOptional.get();
             if (isManagedCollection(modelProperty.getType())) {
                 s.append(String.format("Its property '%s %s' is not a valid managed collection%n", modelProperty.getType().getName(), modelProperty.getName()));
@@ -86,13 +86,13 @@ public class ModelTypeInitializationException extends GradleException {
         return String.format("A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (%s)", describe(scalarTypes));
     }
 
-    private static String appendManagedCollections(StringBuffer s, int pad, Iterable<ModelType<?>> constructableTypes) {
+    private static String appendManagedCollections(StringBuilder s, int pad, Iterable<ModelType<?>> constructableTypes) {
         s.append(String.format("A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:%n        - %s", MANAGED_TYPE_DESCRIPTION));
         maybeAppendConstructables(s, constructableTypes, pad + 1);
         return s.toString();
     }
 
-    private static void maybeAppendConstructables(StringBuffer s, Iterable<ModelType<?>> constructableTypes, int pad) {
+    private static void maybeAppendConstructables(StringBuilder s, Iterable<ModelType<?>> constructableTypes, int pad) {
         if (!Iterables.isEmpty(constructableTypes)) {
             String padding = pad(pad);
             s.append(String.format("%n%s- or a type which Gradle is capable of constructing:", padding));

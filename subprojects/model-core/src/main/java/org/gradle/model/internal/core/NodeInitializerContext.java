@@ -23,12 +23,12 @@ import org.gradle.model.internal.type.ModelType;
 public class NodeInitializerContext {
     private final ModelType<?> modelType;
     private final Optional<ModelProperty<?>> modelProperty;
-    private final Optional<? extends ModelType<?>> containingType;
+    private final Optional<? extends ModelType<?>> declaringType;
 
-    public NodeInitializerContext(ModelType<?> modelType, Optional<ModelProperty<?>> modelProperty, Optional<? extends ModelType<?>> containingType) {
+    public NodeInitializerContext(ModelType<?> modelType, Optional<ModelProperty<?>> modelProperty, Optional<? extends ModelType<?>> declaringType) {
         this.modelType = modelType;
         this.modelProperty = modelProperty;
-        this.containingType = containingType;
+        this.declaringType = declaringType;
     }
 
     public static NodeInitializerContext forType(ModelType<?> modelType) {
@@ -47,7 +47,7 @@ public class NodeInitializerContext {
         return modelProperty;
     }
 
-    public Optional<? extends ModelType<?>> getContainingType() {
-        return containingType;
+    public Optional<? extends ModelType<?>> getDeclaringType() {
+        return declaringType;
     }
 }
