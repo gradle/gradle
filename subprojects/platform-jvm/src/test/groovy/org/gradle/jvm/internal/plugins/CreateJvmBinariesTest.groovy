@@ -37,7 +37,6 @@ import org.gradle.platform.base.internal.PlatformResolvers
 import spock.lang.Specification
 
 class CreateJvmBinariesTest extends Specification {
-    def buildDir = new File("buildDir")
     def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
     def toolChain = Mock(JavaToolChainInternal)
     def rule = new JvmComponentPlugin.Rules()
@@ -54,7 +53,7 @@ class CreateJvmBinariesTest extends Specification {
 
         when:
         library.functionalSourceSet.addAll([source1, source2])
-        rule.createBinaries(binaries, library, platforms, namingSchemeBuilder, buildDir)
+        rule.createBinaries(binaries, namingSchemeBuilder, platforms, library)
 
         then:
         1 * platforms.resolve(JavaPlatform, _) >> platform
