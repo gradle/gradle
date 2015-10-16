@@ -19,10 +19,13 @@ package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.archive.ZipTestFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
+@Requires(TestPrecondition.ONLINE)
 class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType")
