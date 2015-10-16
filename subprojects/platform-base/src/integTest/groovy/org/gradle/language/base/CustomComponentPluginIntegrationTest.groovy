@@ -17,12 +17,10 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 
 class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
-        EnableModelDsl.enable(executer)
         buildFile << """
 interface SampleComponent extends ComponentSpec {
     String getVersion()
@@ -326,7 +324,7 @@ BUILD SUCCESSFUL"""))
         then:
         failure.assertHasDescription "A problem occurred configuring root project 'custom-component'."
         failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin#register"
-        failure.assertHasCause "Cannot register a factory for type SampleComponent because a factory for this type was already registered by MySamplePlugin#register."
+        failure.assertHasCause "Cannot register implementation for type 'SampleComponent' because an implementation for this type was already registered by MySamplePlugin#register"
     }
 
     def buildWithCustomComponentPlugin() {

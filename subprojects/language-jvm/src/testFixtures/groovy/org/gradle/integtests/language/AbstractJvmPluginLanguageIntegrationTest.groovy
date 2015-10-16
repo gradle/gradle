@@ -18,7 +18,6 @@ package org.gradle.integtests.language
 
 import com.sun.xml.internal.ws.util.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 
@@ -37,8 +36,6 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
     }
 
     def setup() {
-        EnableModelDsl.enable(executer)
-
         buildFile << """
         plugins {
             id 'jvm-component'
@@ -55,8 +52,10 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
             myLib(JvmLibrarySpec)
         }
         tasks {
-            create("validate") {
+            validate(Task) {
                 def components = \$("components")
+                def sources = \$("sources")
+                def binaries = \$("binaries")
                 doLast {
                     def myLib = components.myLib
                     assert myLib instanceof JvmLibrarySpec
@@ -65,9 +64,9 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
                     assert myLib.sources.${languageName} instanceof ${sourceSetTypeName}
                     assert myLib.sources.resources instanceof JvmResourceSet
 
-                    assert project.sources as Set == myLib.sources as Set
+                    assert sources as Set == myLib.sources as Set
 
-                    project.binaries.withType(JarBinarySpec) { jvmBinary ->
+                    binaries.withType(JarBinarySpec).each { jvmBinary ->
                         assert jvmBinary.inputs.toList() == myLib.sources.values().toList()
                     }
                 }
@@ -95,8 +94,10 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
             }
         }
         tasks {
-            create("validate") {
+            validate(Task) {
                 def components = \$("components")
+                def sources = \$("sources")
+                def binaries = \$("binaries")
                 doLast {
                     def myLib = components.myLib
                     assert myLib instanceof JvmLibrarySpec
@@ -107,9 +108,9 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
                     assert myLib.sources.resources instanceof JvmResourceSet
                     assert myLib.sources.extraResources instanceof JvmResourceSet
 
-                    assert project.sources as Set == myLib.sources as Set
+                    assert sources as Set == myLib.sources as Set
 
-                    project.binaries.withType(JarBinarySpec) { jvmBinary ->
+                    binaries.withType(JarBinarySpec).each { jvmBinary ->
                         assert jvmBinary.inputs.toList() == myLib.sources.values().toList()
                     }
                 }

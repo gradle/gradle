@@ -18,7 +18,6 @@ package org.gradle.model.internal.registry;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
@@ -33,13 +32,6 @@ import java.util.Set;
 
 abstract class ModelNodeInternal implements MutableModelNode {
 
-    private static final Supplier<List<MutatorRuleBinder<?>>> LIST_SUPPLIER = new Supplier<List<MutatorRuleBinder<?>>>() {
-        @Override
-        public List<MutatorRuleBinder<?>> get() {
-            return Lists.newArrayList();
-        }
-    };
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelNodeInternal.class);
 
     private CreatorRuleBinder creatorBinder;
@@ -48,6 +40,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private ModelNode.State state = ModelNode.State.Known;
     private boolean hidden;
     private final List<ModelRuleDescriptor> executedRules = Lists.newArrayList();
+    private final List<ModelActionBinder> initializerRuleBinders = Lists.newArrayList();
 
     public ModelNodeInternal(CreatorRuleBinder creatorBinder) {
         this.creatorBinder = creatorBinder;
@@ -58,8 +51,8 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     public void replaceCreatorRuleBinder(CreatorRuleBinder newCreatorBinder) {
-        if (getState() != State.Known) {
-            throw new IllegalStateException("Cannot replace creator rule binder when not in known state (node: " + this + ", state: " + getState() + ")");
+        if (isAtLeast(State.Created)) {
+            throw new IllegalStateException("Cannot replace creator rule binder when node is already created (node: " + this + ", state: " + getState() + ")");
         }
 
         ModelCreator newCreator = newCreatorBinder.getCreator();
@@ -77,6 +70,14 @@ abstract class ModelNodeInternal implements MutableModelNode {
         }
 
         this.creatorBinder = newCreatorBinder;
+    }
+
+    public List<ModelActionBinder> getInitializerRuleBinders() {
+        return initializerRuleBinders;
+    }
+
+    public void addInitializerRuleBinder(ModelActionBinder binder) {
+        initializerRuleBinders.add(binder);
     }
 
     @Override
@@ -137,10 +138,16 @@ abstract class ModelNodeInternal implements MutableModelNode {
     public abstract ModelNodeInternal getLink(String name);
 
     public ModelPromise getPromise() {
+        if (!state.isAtLeast(State.ProjectionsDefined)) {
+            throw new IllegalStateException(String.format("Cannot get promise for %s in state %s when projections are not yet defined", getPath(), state));
+        }
         return creatorBinder.getCreator().getPromise();
     }
 
     public ModelAdapter getAdapter() {
+        if (!state.isAtLeast(State.Created)) {
+            throw new IllegalStateException(String.format("Cannot get adapter for %s in state %s when node is not created", getPath(), state));
+        }
         return creatorBinder.getCreator().getAdapter();
     }
 
@@ -151,10 +158,15 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     public abstract Iterable<? extends ModelNodeInternal> getLinks();
 
+    @Override
+    public boolean isAtLeast(State state) {
+        return this.getState().compareTo(state) >= 0;
+    }
+
     public void reset() {
-        if (getState() != State.Known) {
-            setState(State.Known);
-            setPrivateData(ModelType.untyped(), null);
+        if (isAtLeast(State.Created)) {
+            setState(State.ProjectionsDefined);
+            resetPrivateData();
 
             for (ModelNodeInternal dependent : dependents) {
                 if (LOGGER.isInfoEnabled()) {
@@ -173,6 +185,8 @@ abstract class ModelNodeInternal implements MutableModelNode {
         }
     }
 
+    protected abstract void resetPrivateData();
+
     @Override
     public Optional<String> getValueDescription() {
         this.ensureUsable();
@@ -182,7 +196,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
     @Override
     public Optional<String> getTypeDescription() {
         this.ensureUsable();
-        ModelView<?> modelView = getAdapter().asReadOnly(ModelType.untyped(), this, null);
+        ModelView<?> modelView = getAdapter().asImmutable(ModelType.untyped(), this, null);
         if (modelView != null) {
             ModelType<?> type = modelView.getType();
             if (type != null) {

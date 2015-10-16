@@ -17,11 +17,13 @@ model {
     }
 }
 // END SNIPPET flavors
-binaries.withType(SharedLibraryBinarySpec) {
-    cppCompiler.define "DLL_EXPORT"
-}
 
 model {
+    binaries {
+        withType(SharedLibraryBinarySpec) {
+            cppCompiler.define "DLL_EXPORT"
+        }
+    }
     components {
         main(NativeExecutableSpec) {
             binaries.all {

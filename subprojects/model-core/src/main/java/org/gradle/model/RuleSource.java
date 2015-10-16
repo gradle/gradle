@@ -67,8 +67,8 @@ import org.gradle.api.Incubating;
  * <ul>
  * <li>Constructors are not allowed.</li>
  * <li>Inheritance hierarchies are not allowed (i.e. all rules sources must directly extend {@link RuleSource}).</li>
- * <li>Instance variables are now allowed.</li>
- * <li>Non-final static variables are now allowed (i.e. constants are allowed).</li>
+ * <li>Instance variables are not allowed.</li>
+ * <li>Non-final static variables are not allowed (i.e. constants are allowed).</li>
  * <li>Methods cannot be overloaded.</li>
  * <li>Implementations cannot be generic (i.e. cannot use type parameters).</li>
  * </ul>

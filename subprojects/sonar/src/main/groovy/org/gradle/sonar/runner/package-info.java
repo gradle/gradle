@@ -18,5 +18,7 @@
  * Integration with Sonar.
  * <p>
  * Please see <a href="http://gradle.org/current/docs/userguide/sonar_runner_plugin.html">Sonar Runner Plugin</a>
+ *
+ * @deprecated The 'sonar-runner' been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
 package org.gradle.sonar.runner;

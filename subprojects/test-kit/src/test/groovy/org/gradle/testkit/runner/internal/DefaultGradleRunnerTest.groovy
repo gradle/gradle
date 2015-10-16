@@ -17,8 +17,8 @@
 package org.gradle.testkit.runner.internal
 
 import org.gradle.api.GradleException
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
@@ -27,8 +27,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultGradleRunnerTest extends Specification {
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
-    File gradleHome = Mock(File)
+    @Rule
+    SetSystemProperties sysProp = new SetSystemProperties()
     GradleExecutor gradleExecutor = Mock(GradleExecutor)
     TestKitDirProvider testKitDirProvider = Mock(TestKitDirProvider)
     File workingDir = new File('my/tests')
@@ -42,9 +42,20 @@ class DefaultGradleRunnerTest extends Specification {
         then:
         defaultGradleRunner.projectDir == workingDir
         defaultGradleRunner.arguments == arguments
-        defaultGradleRunner.classpath == []
+        defaultGradleRunner.pluginClasspath == []
         !defaultGradleRunner.debug
+        !defaultGradleRunner.standardOutput
+        !defaultGradleRunner.standardError
         0 * testKitDirProvider.getDir()
+    }
+
+    def "throws exception if custom test kit directory"() {
+        when:
+        createRunner().withTestKitDir(null)
+
+        then:
+        Throwable t = thrown(IllegalArgumentException)
+        t.message == 'testKitDir argument cannot be null'
     }
 
     def "can set custom test kit directory"() {
@@ -121,7 +132,7 @@ class DefaultGradleRunnerTest extends Specification {
 
     def "returned classpath is unmodifiable"() {
         when:
-        createRunner().classpath << new URI('file:///Users/foo/bar/test.jar')
+        createRunner().pluginClasspath << new URI('file:///Users/foo/bar/test.jar')
 
         then:
         thrown(UnsupportedOperationException)
@@ -131,28 +142,28 @@ class DefaultGradleRunnerTest extends Specification {
         given:
         def originalArguments = ['arg1', 'arg2']
         def originalJvmArguments = ['arg3', 'arg4']
-        def originalClasspath = [new URI('file:///Users/foo/bar/test.jar')]
-        DefaultGradleRunner defaultGradleRunner = createRunner()
+        def originalClasspath = [new File('/Users/foo/bar/test.jar').absoluteFile]
+        def defaultGradleRunner = createRunner()
 
         when:
         defaultGradleRunner.withArguments(originalArguments)
         defaultGradleRunner.withJvmArguments(originalJvmArguments)
-        defaultGradleRunner.withClasspath(originalClasspath)
+        defaultGradleRunner.withPluginClasspath(originalClasspath)
 
         then:
         defaultGradleRunner.arguments == originalArguments
         defaultGradleRunner.jvmArguments == originalJvmArguments
-        defaultGradleRunner.classpath == originalClasspath
+        defaultGradleRunner.pluginClasspath == originalClasspath
 
         when:
         originalArguments << 'arg5'
         originalJvmArguments << 'arg6'
-        originalClasspath << new URI('file:///Users/foo/bar/other.jar')
+        originalClasspath << new File('file:///Users/foo/bar/other.jar')
 
         then:
         defaultGradleRunner.arguments == ['arg1', 'arg2']
         defaultGradleRunner.jvmArguments == ['arg3', 'arg4']
-        defaultGradleRunner.classpath == [new URI('file:///Users/foo/bar/test.jar')]
+        defaultGradleRunner.pluginClasspath == [new File('/Users/foo/bar/test.jar').absoluteFile]
     }
 
     def "throws exception if working directory is not provided when build is requested"() {
@@ -219,7 +230,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], [], false) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(new GradleExecutionParameters(gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false, null, null)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
     }
 
     def "temporary working space directory is not created if Gradle user home directory is not provided by user when build and fail is requested"() {
@@ -232,7 +243,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], [], false) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(new GradleExecutionParameters(gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false, null, null)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
     }
 
     def "debug flag is passed on to executor"() {
@@ -245,7 +256,7 @@ $expectedReason
 
         then:
         1 * testKitDirProvider.getDir() >> gradleUserHomeDir
-        1 * gradleExecutor.run(gradleHome, gradleUserHomeDir, workingDir, arguments, [], [], debug) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+        1 * gradleExecutor.run(new GradleExecutionParameters(gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, debug, null, null)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
 
         where:
         debug << [true, false]
@@ -254,7 +265,7 @@ $expectedReason
     @Unroll
     def "debug flag is #description for system property value '#systemPropertyValue'"() {
         given:
-        System.properties[GradleRunner.DEBUG_SYS_PROP] = systemPropertyValue
+        System.properties[DefaultGradleRunner.DEBUG_SYS_PROP] = systemPropertyValue
 
         when:
         DefaultGradleRunner defaultGradleRunner = createRunner()
@@ -269,8 +280,69 @@ $expectedReason
         "test"              | false        | 'disabled'
     }
 
+    def "throws exception if standard output is null"() {
+        when:
+        createRunner().withStandardError(new StringWriter()).withStandardOutput(null)
+
+        then:
+        Throwable t = thrown(IllegalArgumentException)
+        t.message == 'standardOutput argument cannot be null'
+    }
+
+    def "throws exception if standard error is null"() {
+        when:
+        createRunner().withStandardOutput(new StringWriter()).withStandardError(null)
+
+        then:
+        Throwable t = thrown(IllegalArgumentException)
+        t.message == 'standardError argument cannot be null'
+    }
+
+    def "standard output is passed on to executor"() {
+        given:
+        Writer standardOutput = new StringWriter()
+        File gradleUserHomeDir = new File('some/dir')
+
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunnerWithWorkingDirAndArgument().withStandardOutput(standardOutput)
+        defaultGradleRunner.build()
+
+        then:
+        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * gradleExecutor.run(new GradleExecutionParameters(gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false, standardOutput, null)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+    }
+
+    def "standard error is passed on to executor"() {
+        given:
+        Writer standardError = new StringWriter()
+        File gradleUserHomeDir = new File('some/dir')
+
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunnerWithWorkingDirAndArgument().withStandardError(standardError)
+        defaultGradleRunner.build()
+
+        then:
+        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * gradleExecutor.run(new GradleExecutionParameters(gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false, null, standardError)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+    }
+
+    def "standard output and error is passed on to executor"() {
+        given:
+        Writer standardOutput = new StringWriter()
+        Writer standardError = new StringWriter()
+        File gradleUserHomeDir = new File('some/dir')
+
+        when:
+        DefaultGradleRunner defaultGradleRunner = createRunnerWithWorkingDirAndArgument().withStandardOutput(standardOutput).withStandardError(standardError)
+        defaultGradleRunner.build()
+
+        then:
+        1 * testKitDirProvider.getDir() >> gradleUserHomeDir
+        1 * gradleExecutor.run(new GradleExecutionParameters(gradleUserHomeDir, workingDir, arguments, [], ClassPath.EMPTY, false, standardOutput, standardError)) >> new GradleExecutionResult(new ByteArrayOutputStream(), new ByteArrayOutputStream(), null)
+    }
+
     private DefaultGradleRunner createRunner() {
-        new DefaultGradleRunner(gradleHome, gradleExecutor, testKitDirProvider)
+        new DefaultGradleRunner(gradleExecutor, testKitDirProvider)
     }
 
     private DefaultGradleRunner createRunnerWithWorkingDirAndArgument() {

@@ -53,22 +53,6 @@ BUILD SUCCESSFUsL
         ex.message.startsWith "Expected to find an end of report marker '${ModelReportParser.END_OF_REPORT_MARKER}'"
     }
 
-    def "fails when missing a root node"() {
-        when:
-        ModelReportParser.parse("""1
-2
-3
-4
-5
-6
-+ incorrect
-BUILD SUCCESSFUL
-""")
-        then:
-        def ex = thrown(AssertionError)
-        ex.message.startsWith "Expected to find the root node '${ModelReportParser.ROOT_NODE_MARKER}'"
-    }
-
     def "should parse a report with no children"() {
         def modelReport = ModelReportParser.parse(""":model
 
@@ -76,7 +60,6 @@ BUILD SUCCESSFUL
 My Report
 
 
-+ model
 BUILD SUCCESSFUL
 """)
         expect:
@@ -93,29 +76,28 @@ BUILD SUCCESSFUL
 My Report
 
 
-+ model
-    + nullCredentials
-          | Type: \t PasswordCredentials
-        + password
-              | Type: \t java.lang.String
-        + username
-              | Type: \t java.lang.String
-    + numbers
-          | Type: \t Numbers
-        + value
-              | Value: \t 5
-              | Type: \t java.lang.Integer
-    + primaryCredentials
-          | Type: \t PasswordCredentials
-          | Rules:
-                ⤷ Rule1
-                ⤷ Rule2
-        + password
-              | Value: \t hunter2
-              | Type: \t java.lang.String
-        + username
-              | Value: \t uname
-              | Type: \t java.lang.String
++ nullCredentials
+      | Type: \t PasswordCredentials
+    + password
+          | Type: \t java.lang.String
+    + username
+          | Type: \t java.lang.String
++ numbers
+      | Type: \t Numbers
+    + value
+          | Value: \t 5
+          | Type: \t java.lang.Integer
++ primaryCredentials
+      | Type: \t PasswordCredentials
+      | Rules:
+            ⤷ Rule1
+            ⤷ Rule2
+    + password
+          | Value: \t hunter2
+          | Type: \t java.lang.String
+    + username
+          | Value: \t uname
+          | Type: \t java.lang.String
 
 BUILD SUCCESSFUL
 """)

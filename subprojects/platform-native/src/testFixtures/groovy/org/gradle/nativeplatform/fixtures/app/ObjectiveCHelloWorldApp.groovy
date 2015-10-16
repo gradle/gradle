@@ -146,12 +146,16 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
 
     public String getExtraConfiguration(String binaryName = null) {
         return """
-            binaries.matching { ${binaryName ? "it.name == '$binaryName'" : "true"} }.all {
-                if (targetPlatform.operatingSystem.macOsX) {
-                    linker.args "-framework", "Foundation"
-                } else {
-                    objcCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-                    linker.args "-lgnustep-base", "-lobjc"
+            model {
+                binaries {
+                    ${binaryName ? binaryName : "all"} {
+                        if (targetPlatform.operatingSystem.macOsX) {
+                            linker.args "-framework", "Foundation"
+                        } else {
+                            objcCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+                            linker.args "-lgnustep-base", "-lobjc"
+                        }
+                    }
                 }
             }
         """

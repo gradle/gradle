@@ -33,6 +33,7 @@ import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.progress.BuildOperationDetails;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -46,7 +47,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
@@ -83,7 +83,7 @@ public class DefaultGradleLauncherTest {
     private ModelConfigurationListener modelListenerMock = context.mock(ModelConfigurationListener.class);
     private BuildCompletionListener buildCompletionListener = context.mock(BuildCompletionListener.class);
     private BuildOperationExecutor buildOperationExecutor = new TestBuildOperationExecutor();
-    private Closeable buildServices = context.mock(Closeable.class);
+    private BuildScopeServices buildServices = context.mock(BuildScopeServices.class);
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before

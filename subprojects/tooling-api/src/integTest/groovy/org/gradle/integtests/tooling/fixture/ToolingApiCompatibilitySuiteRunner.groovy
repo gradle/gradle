@@ -82,9 +82,6 @@ class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner
 
         @Override
         protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
-            if (!gradle.daemonSupported) {
-                return false
-            }
             if (!gradle.daemonIdleTimeoutConfigurable && OperatingSystem.current().isWindows()) {
                 //Older daemon don't have configurable ttl and they hung for 3 hours afterwards.
                 // This is a real problem on windows due to eager file locking and continuous CI failures.

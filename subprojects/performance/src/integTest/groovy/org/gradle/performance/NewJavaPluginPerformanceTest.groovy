@@ -16,23 +16,28 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.measure.DataAmount
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(ManualPerformanceTest)
+@Category(Experiment)
 class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' build")
+    @Unroll("Project '#testProject' measuring incremental build speed")
     def "build new java project"() {
         given:
-        runner.testId = "build new java project $testProject"
+        runner.testId = "build new java project $testProject" + (parallelWorkers ? " (parallel)" : "")
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.6', 'last']
+        runner.targetVersions = ['2.7', '2.8', 'last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xmx1g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/tmp"]
+        runner.gradleOpts = ["-Xmx2g", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        if (parallelWorkers) {
+            runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
+        }
+        runner.maxMemoryRegression = DataAmount.mbytes(150)
 
         when:
         def result = runner.run()
@@ -41,7 +46,10 @@ class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject              | maxExecutionTimeRegression
-        "bigNewMultiprojectJava" | millis(5000)
+        testProject                | maxExecutionTimeRegression | parallelWorkers
+        "smallNewMultiprojectJava" | millis(1000)               | 0
+        "smallNewMultiprojectJava" | millis(1000)               | 4
+        "largeNewMultiprojectJava" | millis(5000)               | 0
+        "largeNewMultiprojectJava" | millis(5000)               | 4
     }
 }

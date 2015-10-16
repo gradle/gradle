@@ -16,16 +16,14 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import org.gradle.model.internal.manage.schema.extract.ManagedImplStructSchemaExtractionStrategySupport;
+import org.gradle.model.internal.manage.schema.extract.ManagedImplStructStrategy;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.internal.BinarySpecInternal;
 
 // Needed as a separate Java class because Groovy compiler won't recognize type parameter <R>
-public class BinarySpecSpecializationSchemaExtractionStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
+public class BinarySpecSpecializationSchemaExtractionStrategy extends ManagedImplStructStrategy {
 
     protected BinarySpecSpecializationSchemaExtractionStrategy(ModelSchemaAspectExtractor aspectExtractor) {
-        super(aspectExtractor, BinarySpecInternal.class, BinarySpec.class);
+        super(aspectExtractor);
     }
 
 }

@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.logging.StandardOutputRedirector;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -29,7 +29,10 @@ import javax.inject.Inject
 /**
  * Analyzes a project hierarchy and writes the results to the
  * Sonar database.
+ *
+ * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
+@Deprecated
 class SonarAnalyze extends ConventionTask {
     /**
      * Entry point to Sonar configuration.

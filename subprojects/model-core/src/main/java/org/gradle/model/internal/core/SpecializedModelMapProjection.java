@@ -21,6 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.ModelMap;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessor;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
@@ -36,13 +37,13 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     private final ModelType<E> elementType;
 
     private final Class<? extends P> viewImpl;
-    private final ChildNodeInitializerStrategy<E> creatorStrategy;
+    private final ChildNodeInitializerStrategyAccessor<? super E> creatorStrategyAccessor;
 
-    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, Class<? extends P> viewImpl, ChildNodeInitializerStrategy<E> creatorStrategy) {
+    public SpecializedModelMapProjection(ModelType<P> publicType, ModelType<E> elementType, Class<? extends P> viewImpl, ChildNodeInitializerStrategyAccessor<? super E> creatorStrategyAccessor) {
         this.publicType = publicType;
         this.elementType = elementType;
         this.viewImpl = viewImpl;
-        this.creatorStrategy = creatorStrategy;
+        this.creatorStrategyAccessor = creatorStrategyAccessor;
     }
 
     @Override
@@ -57,8 +58,8 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
-        if (canBeViewedAsReadOnly(type)) {
+    public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode node, @Nullable ModelRuleDescriptor ruleDescriptor) {
+        if (canBeViewedAsImmutable(type)) {
             return Cast.uncheckedCast(toView(node, ruleDescriptor, false));
         } else {
             return null;
@@ -67,8 +68,8 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
 
     @Nullable
     @Override
-    public <T> ModelView<? extends T> asWritable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
-        if (canBeViewedAsWritable(type)) {
+    public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies) {
+        if (canBeViewedAsMutable(type)) {
             return Cast.uncheckedCast(toView(node, ruleDescriptor, true));
         } else {
             return null;
@@ -76,8 +77,9 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     }
 
     private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
+        ChildNodeInitializerStrategy<? super E> creatorStrategy = creatorStrategyAccessor.getStrategy(modelNode);
         DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor, mutable, true);
-        String description = publicType.getSimpleName() + " '" + modelNode.getPath() + "'";
+        String description = publicType.getDisplayName() + " '" + modelNode.getPath() + "'";
         ModelMap<E> rawView = new NodeBackedModelMap<E>(description, elementType, ruleDescriptor, modelNode, false, state, creatorStrategy);
         P instance = DirectInstantiator.instantiate(viewImpl, rawView);
         return InstanceModelView.of(modelNode.getPath(), publicType, instance, state.closer());
@@ -108,13 +110,13 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     }
 
     @Override
-    public <T> boolean canBeViewedAsWritable(ModelType<T> targetType) {
+    public <T> boolean canBeViewedAsMutable(ModelType<T> targetType) {
         return targetType.equals(publicType) || targetType.equals(ModelType.of(Object.class));
     }
 
     @Override
-    public <T> boolean canBeViewedAsReadOnly(ModelType<T> targetType) {
-        return canBeViewedAsWritable(targetType);
+    public <T> boolean canBeViewedAsImmutable(ModelType<T> targetType) {
+        return canBeViewedAsMutable(targetType);
     }
 
     @Override

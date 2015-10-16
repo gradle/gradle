@@ -41,12 +41,14 @@ class DuplicateObjectiveCBaseNamesTestApp extends TestNativeComponent{
 
     public String getExtraConfiguration() {
         return """
-            binaries.all {
-                if (targetPlatform.operatingSystem.macOsX) {
-                    linker.args "-framework", "Foundation"
-                } else {
-                    objcCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-                    linker.args "-lgnustep-base", "-lobjc"
+            binaries {
+                all {
+                    if (targetPlatform.operatingSystem.macOsX) {
+                        linker.args "-framework", "Foundation"
+                    } else {
+                        objcCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+                        linker.args "-lgnustep-base", "-lobjc"
+                    }
                 }
             }
         """

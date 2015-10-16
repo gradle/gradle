@@ -16,8 +16,6 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-
 public interface ModelSchemaExtractionStrategy {
-    <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store);
+    <T> void extract(ModelSchemaExtractionContext<T> extractionContext);
 }

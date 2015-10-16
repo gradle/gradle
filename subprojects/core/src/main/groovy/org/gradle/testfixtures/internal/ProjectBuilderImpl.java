@@ -33,9 +33,9 @@ import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
+import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -73,8 +73,7 @@ public class ProjectBuilderImpl {
 
         NativeServices.initialize(userHomeDir);
 
-        ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(getGlobalServices(), startParameter);
-        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(buildSessionScopeServices, startParameter, homeDir);
+        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(getGlobalServices(), startParameter, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
@@ -94,7 +93,7 @@ public class ProjectBuilderImpl {
             globalServices = ServiceRegistryBuilder
                     .builder()
                     .displayName("global services")
-                    .parent(new TestGlobalScopeServices.TestLoggingServices())
+                    .parent(LoggingServiceRegistry.newNestedLogging())
                     .parent(NativeServices.getInstance())
                     .provider(new TestGlobalScopeServices())
                     .build();

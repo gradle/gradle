@@ -19,10 +19,12 @@ package org.gradle.testkit.runner.internal;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gradle.api.Action;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.testkit.runner.*;
 
 import java.io.File;
-import java.net.URI;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,23 +33,23 @@ import java.util.List;
 public class DefaultGradleRunner extends GradleRunner {
 
     public static final String DIAGNOSTICS_MESSAGE_SEPARATOR = "-----";
-    private final File gradleHome;
     private final GradleExecutor gradleExecutor;
 
     private TestKitDirProvider testKitDirProvider;
 
     private File projectDirectory;
-    private List<String> arguments = new ArrayList<String>();
-    private List<String> jvmArguments = new ArrayList<String>();
-    private List<URI> classpath = new ArrayList<URI>();
+    private List<String> arguments = Collections.emptyList();
+    private List<String> jvmArguments = Collections.emptyList();
+    private ClassPath classpath = ClassPath.EMPTY;
     private boolean debug;
+    private Writer standardOutput;
+    private Writer standardError;
 
-    public DefaultGradleRunner(File gradleHome) {
-        this(gradleHome, new TestKitGradleExecutor(), new TempTestKitDirProvider());
+    public DefaultGradleRunner(GradleDistribution<?> gradleDistribution) {
+        this(new TestKitGradleExecutor(gradleDistribution), new TempTestKitDirProvider());
     }
 
-    DefaultGradleRunner(File gradleHome, GradleExecutor gradleExecutor, TestKitDirProvider testKitDirProvider) {
-        this.gradleHome = gradleHome;
+    DefaultGradleRunner(GradleExecutor gradleExecutor, TestKitDirProvider testKitDirProvider) {
         this.gradleExecutor = gradleExecutor;
         this.testKitDirProvider = testKitDirProvider;
         debug = isDebugEnabled();
@@ -63,15 +65,13 @@ public class DefaultGradleRunner extends GradleRunner {
 
     @Override
     public DefaultGradleRunner withTestKitDir(final File testKitDir) {
-        if (testKitDir == null) {
-            throw new IllegalArgumentException("testKitDir argument cannot be null");
-        }
+        validateArgumentNotNull(testKitDir, "testKitDir");
         this.testKitDirProvider = new ConstantTestKitDirProvider(testKitDir);
         return this;
     }
 
     public DefaultGradleRunner withJvmArguments(List<String> jvmArguments) {
-        this.jvmArguments = new ArrayList<String>(jvmArguments);
+        this.jvmArguments = Collections.unmodifiableList(new ArrayList<String>(jvmArguments));
         return this;
     }
 
@@ -92,12 +92,12 @@ public class DefaultGradleRunner extends GradleRunner {
 
     @Override
     public List<String> getArguments() {
-        return Collections.unmodifiableList(arguments);
+        return arguments;
     }
 
     @Override
     public DefaultGradleRunner withArguments(List<String> arguments) {
-        this.arguments = new ArrayList<String>(arguments);
+        this.arguments = Collections.unmodifiableList(new ArrayList<String>(arguments));
         return this;
     }
 
@@ -107,13 +107,22 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
-    public List<URI> getClasspath() {
-        return Collections.unmodifiableList(classpath);
+    public List<? extends File> getPluginClasspath() {
+        return classpath.getAsFiles();
     }
 
     @Override
-    public GradleRunner withClasspath(List<URI> classpath) {
-        this.classpath = new ArrayList<URI>(classpath);
+    public GradleRunner withPluginClasspath(Iterable<? extends File> classpath) {
+        List<File> f = new ArrayList<File>();
+        for (File file : classpath) {
+            // These objects are going across the wire.
+            // 1. Convert any subclasses back to File in case the subclass isn't available in Gradle.
+            // 2. Make them absolute here to deal with a different root at the server
+            f.add(new File(file.getAbsolutePath()));
+        }
+        if (!f.isEmpty()) {
+            this.classpath = new DefaultClassPath(f);
+        }
         return this;
     }
 
@@ -129,11 +138,31 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
+    public GradleRunner withStandardOutput(Writer standardOutput) {
+        validateArgumentNotNull(standardOutput, "standardOutput");
+        this.standardOutput = standardOutput;
+        return this;
+    }
+
+    @Override
+    public GradleRunner withStandardError(Writer standardError) {
+        validateArgumentNotNull(standardError, "standardError");
+        this.standardError = standardError;
+        return this;
+    }
+
+    private void validateArgumentNotNull(Object argument, String argumentName) {
+        if (argument == null) {
+            throw new IllegalArgumentException(String.format("%s argument cannot be null", argumentName));
+        }
+    }
+
+    @Override
     public BuildResult build() {
         return run(new Action<GradleExecutionResult>() {
             public void execute(GradleExecutionResult gradleExecutionResult) {
                 if (!gradleExecutionResult.isSuccessful()) {
-                    throw new UnexpectedBuildFailure(createDiagnosticsMessage("Unexpected build execution failure", gradleExecutionResult));
+                    throw new UnexpectedBuildFailure(createDiagnosticsMessage("Unexpected build execution failure", gradleExecutionResult), createBuildResult(gradleExecutionResult));
                 }
             }
         });
@@ -144,7 +173,7 @@ public class DefaultGradleRunner extends GradleRunner {
         return run(new Action<GradleExecutionResult>() {
             public void execute(GradleExecutionResult gradleExecutionResult) {
                 if (gradleExecutionResult.isSuccessful()) {
-                    throw new UnexpectedBuildSuccess(createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult));
+                    throw new UnexpectedBuildSuccess(createDiagnosticsMessage("Unexpected build execution success", gradleExecutionResult), createBuildResult(gradleExecutionResult));
                 }
             }
         });
@@ -194,18 +223,22 @@ public class DefaultGradleRunner extends GradleRunner {
 
         File testKitDir = createTestKitDir(testKitDirProvider);
 
-        GradleExecutionResult execResult = gradleExecutor.run(
-            gradleHome,
+        GradleExecutionResult execResult = gradleExecutor.run(new GradleExecutionParameters(
             testKitDir,
             projectDirectory,
             arguments,
             jvmArguments,
             classpath,
-            debug
+            debug,
+            standardOutput,
+            standardError)
         );
 
         resultVerification.execute(execResult);
+        return createBuildResult(execResult);
+    }
 
+    private BuildResult createBuildResult(GradleExecutionResult execResult) {
         return new DefaultBuildResult(
             execResult.getStandardOutput(),
             execResult.getStandardError(),

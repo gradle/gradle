@@ -32,12 +32,11 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.Serializable;
-import java.net.URI;
 import java.util.*;
 
 /**
- * <p>{@code StartParameter} defines the configuration used by a Gradle instance to execute a build. The properties of {@code StartParameter} generally
- * correspond to the command-line options of Gradle.
+ * <p>{@code StartParameter} defines the configuration used by a Gradle instance to execute a build. The properties of {@code StartParameter} generally correspond to the command-line options of
+ * Gradle.
  *
  * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
  *
@@ -77,7 +76,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean configureOnDemand;
     private int maxWorkerCount;
     private boolean continuous;
-    private List<URI> classpath = new ArrayList<URI>();
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
@@ -162,7 +160,6 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.parallelProjectExecution = parallelProjectExecution;
         p.configureOnDemand = configureOnDemand;
         p.maxWorkerCount = maxWorkerCount;
-        p.classpath = classpath;
         return p;
     }
 
@@ -224,8 +221,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     }
 
     /**
-     * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed.
-     * If {@link TaskExecutionRequest}s are set for this build then names from these task parameters are returned.
+     * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed. If {@link TaskExecutionRequest}s are set for this build then names from
+     * these task parameters are returned.
      *
      * @return the names of the tasks to execute in this build. Never returns null.
      */
@@ -442,7 +439,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     @Incubating
     public List<File> getAllInitScripts() {
         CompositeInitScriptFinder initScriptFinder = new CompositeInitScriptFinder(
-                new UserHomeInitScriptFinder(getGradleUserHomeDir()), new DistributionInitScriptFinder(gradleHomeDir)
+            new UserHomeInitScriptFinder(getGradleUserHomeDir()), new DistributionInitScriptFinder(gradleHomeDir)
         );
 
         List<File> scripts = new ArrayList<File>(getInitScripts());
@@ -566,14 +563,11 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     /**
      * Returns the number of parallel threads to use for build execution.
      *
-     * <0: Automatically determine the optimal number of executors to use.
-     *  0: Do not use parallel execution.
-     * >0: Use this many parallel execution threads.
-     *
-     * @deprecated Use getMaxWorkerCount or isParallelProjectExecutionEnabled instead.
+     * <0: Automatically determine the optimal number of executors to use. 0: Do not use parallel execution. >0: Use this many parallel execution threads.
      *
      * @see #getMaxWorkerCount()
      * @see #isParallelProjectExecutionEnabled()
+     * @deprecated Use getMaxWorkerCount or isParallelProjectExecutionEnabled instead.
      */
     @Deprecated
     public int getParallelThreadCount() {
@@ -590,7 +584,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     @Deprecated
     public void setParallelThreadCount(int parallelThreadCount) {
-        setParallelProjectExecutionEnabled(parallelThreadCount!=0);
+        setParallelProjectExecutionEnabled(parallelThreadCount != 0);
 
         if (parallelThreadCount < 1) {
             setMaxWorkerCount(Runtime.getRuntime().availableProcessors());
@@ -626,9 +620,8 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      *
      * Defaults to the number of processors available to the Java virtual machine.
      *
-     * @see java.lang.Runtime#availableProcessors()
-     *
      * @return maximum number of concurrent workers, always >= 1.
+     * @see java.lang.Runtime#availableProcessors()
      */
     @Incubating
     public int getMaxWorkerCount() {
@@ -661,28 +654,27 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     @Override
     public String toString() {
         return "StartParameter{"
-                + "taskRequests=" + taskRequests
-                + ", excludedTaskNames=" + excludedTaskNames
-                + ", currentDir=" + currentDir
-                + ", searchUpwards=" + searchUpwards
-                + ", projectProperties=" + projectProperties
-                + ", systemPropertiesArgs=" + systemPropertiesArgs
-                + ", gradleUserHomeDir=" + gradleUserHomeDir
-                + ", gradleHome=" + gradleHomeDir
-                + ", logLevel=" + getLogLevel()
-                + ", showStacktrace=" + getShowStacktrace()
-                + ", buildFile=" + buildFile
-                + ", initScripts=" + initScripts
-                + ", dryRun=" + dryRun
-                + ", rerunTasks=" + rerunTasks
-                + ", recompileScripts=" + recompileScripts
-                + ", offline=" + offline
-                + ", refreshDependencies=" + refreshDependencies
-                + ", parallelProjectExecution=" + parallelProjectExecution
-                + ", configureOnDemand=" + configureOnDemand
-                + ", maxWorkerCount=" + maxWorkerCount
-                + ", classpath=" + classpath
-                + '}';
+            + "taskRequests=" + taskRequests
+            + ", excludedTaskNames=" + excludedTaskNames
+            + ", currentDir=" + currentDir
+            + ", searchUpwards=" + searchUpwards
+            + ", projectProperties=" + projectProperties
+            + ", systemPropertiesArgs=" + systemPropertiesArgs
+            + ", gradleUserHomeDir=" + gradleUserHomeDir
+            + ", gradleHome=" + gradleHomeDir
+            + ", logLevel=" + getLogLevel()
+            + ", showStacktrace=" + getShowStacktrace()
+            + ", buildFile=" + buildFile
+            + ", initScripts=" + initScripts
+            + ", dryRun=" + dryRun
+            + ", rerunTasks=" + rerunTasks
+            + ", recompileScripts=" + recompileScripts
+            + ", offline=" + offline
+            + ", refreshDependencies=" + refreshDependencies
+            + ", parallelProjectExecution=" + parallelProjectExecution
+            + ", configureOnDemand=" + configureOnDemand
+            + ", maxWorkerCount=" + maxWorkerCount
+            + '}';
     }
 
     /**
@@ -707,24 +699,4 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         this.continuous = enabled;
     }
 
-    /**
-     * Returns the injected classpath URIs used for loading classes.
-     *
-     * @return Classpath URIs
-     */
-    @Incubating
-    public List<URI> getClasspath() {
-        return classpath;
-    }
-
-    /**
-     * Specifies classpath URIs used for loading user-defined classes. This list is in addition to the default classpath.
-     *
-     * @param classpath Classpath URIs
-     * @see #getClasspath()
-     */
-    @Incubating
-    public void setClasspath(List<URI> classpath) {
-        this.classpath = classpath;
-    }
 }

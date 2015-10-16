@@ -87,7 +87,7 @@ public class WeaklyTypeReferencingMethod<T, R> {
     public Annotation[] getAnnotations() {
         //we could retrieve annotations at construction time and hold references to them but unfortunately
         //in IBM JDK strong references are held from annotation instance to class in which it is used so we have to reflect
-        return findMethod().getAnnotations();
+        return getMethod().getAnnotations();
     }
 
     public Type[] getGenericParameterTypes() {
@@ -99,7 +99,7 @@ public class WeaklyTypeReferencingMethod<T, R> {
     }
 
     public R invoke(T target, Object... args) {
-        Method method = findMethod();
+        Method method = getMethod();
         method.setAccessible(true);
         try {
             Object result = method.invoke(target, args);
@@ -111,7 +111,7 @@ public class WeaklyTypeReferencingMethod<T, R> {
         }
     }
 
-    private Method findMethod() {
+    public Method getMethod() {
         ModelType<Class<?>> classType = new ModelType<Class<?>>() {
         };
         Class<?>[] paramTypesArray = Iterables.toArray(Iterables.transform(paramTypes, new Function<ModelType<?>, Class<?>>() {

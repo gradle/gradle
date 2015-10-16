@@ -17,7 +17,6 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 /**
  * Tests the information provided when a model rule fails to bind.
@@ -25,10 +24,6 @@ import org.gradle.integtests.fixtures.EnableModelDsl
  * @see ModelRuleBindingValidationIntegrationTest
  */
 class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "unbound rule by-type subject and inputs are reported"() {
         given:
@@ -229,7 +224,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasDescription("A problem occurred configuring root project")
         failure.assertHasCause("There is a problem with model rule Plugin3.Rules#m.")
         failure.assertHasCause("""Type-only model reference of type java.lang.String (parameter 1) is ambiguous as multiple model elements are available for this type:
   - s1 (created by: Plugin1.Rules#s1)

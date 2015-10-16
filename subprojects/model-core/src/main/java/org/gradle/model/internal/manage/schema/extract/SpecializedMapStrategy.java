@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.type.ModelType;
 
@@ -32,7 +31,7 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
     private final ManagedCollectionProxyClassGenerator generator = new ManagedCollectionProxyClassGenerator();
 
     @Override
-    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store) {
+    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         Type type = extractionContext.getType().getType();
         if (!(type instanceof Class)) {
             return;
@@ -53,7 +52,7 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
             return;
         }
         ModelType<?> elementType = ModelType.of(parameterizedSuperType.getActualTypeArguments()[0]);
-        Class<?> proxyImpl = generator.generate(ModelMapGroovyDecorator.class, contractType);
+        Class<?> proxyImpl = generator.generate(ModelMapGroovyDecorator.Managed.class, contractType);
         extractionContext.found(new SpecializedMapSchema<T>(extractionContext.getType(), elementType, proxyImpl));
     }
 

@@ -81,7 +81,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
         }
 
         @Finalize
-        public void configureGoogleTestTestSuiteSources(TestSuiteContainer testSuites, @Path("buildDir") File buildDir) {
+        public void configureGoogleTestTestSuiteSources(TestSuiteContainer testSuites) {
             for (final GoogleTestTestSuiteSpec suite : testSuites.withType(GoogleTestTestSuiteSpec.class).values()) {
                 if (!suite.getSources().containsKey("cpp")) {
                     suite.getSources().create("cpp", CppSourceSet.class);

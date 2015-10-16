@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform
 
 import groovy.transform.NotYetImplemented
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -30,9 +29,6 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     @LeaksFileHandles
     def "can configure the binaries of a C++ application"() {

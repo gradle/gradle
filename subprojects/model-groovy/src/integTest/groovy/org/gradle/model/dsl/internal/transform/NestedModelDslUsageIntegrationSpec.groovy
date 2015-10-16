@@ -17,17 +17,12 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking
 import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.containsString
 
 class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     @Unroll
     def "model block can be used in nested context in build script - #code"() {
@@ -148,7 +143,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
             def c = {
                 strings {
-                    add \$("foo")
+                    add foo
                 }
             }
 

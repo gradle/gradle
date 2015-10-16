@@ -16,7 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.Lists;
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -38,6 +38,7 @@ import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -60,8 +61,10 @@ import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
@@ -84,20 +87,34 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
 
-import java.io.Closeable;
-import java.util.List;
-
 /**
  * Contains the singleton services for a single build invocation.
  */
 public class BuildScopeServices extends DefaultServiceRegistry {
-    List<Closeable> additionalCloseables = Lists.newArrayList();
 
-    public BuildScopeServices(final ServiceRegistry parent) {
-        super(parent);
+    private final BuildSessionScopeServices sessionServices;
+    private final boolean singleUseSession;
+
+    public static BuildScopeServices forSession(BuildSessionScopeServices sessionServices) {
+        return new BuildScopeServices(sessionServices, false);
+    }
+
+    public static BuildScopeServices singleSession(ServiceRegistry parent, StartParameter startParameter) {
+        return new BuildScopeServices(parent, startParameter);
+    }
+
+    protected BuildScopeServices(ServiceRegistry parent, StartParameter startParameter) {
+        this(new BuildSessionScopeServices(parent, startParameter, ClassPath.EMPTY), true);
+    }
+
+    @VisibleForTesting
+    BuildScopeServices(final BuildSessionScopeServices sessionServices, boolean singleUseSession) {
+        super(sessionServices);
+        this.sessionServices = sessionServices;
+        this.singleUseSession = singleUseSession;
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
-                for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+                for (PluginServiceRegistry pluginServiceRegistry : sessionServices.getAll(PluginServiceRegistry.class)) {
                     pluginServiceRegistry.registerBuildServices(registration);
                 }
             }
@@ -126,9 +143,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ClassPathRegistry createClassPathRegistry() {
         return new DefaultClassPathRegistry(
-                new DefaultClassPathProvider(get(ModuleRegistry.class)),
-                new DependencyClassPathProvider(get(ModuleRegistry.class),
-                        get(PluginModuleRegistry.class))
+            new DefaultClassPathProvider(get(ModuleRegistry.class)),
+            new DependencyClassPathProvider(get(ModuleRegistry.class),
+                get(PluginModuleRegistry.class))
         );
     }
 
@@ -146,70 +163,70 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected BuildLoader createBuildLoader() {
         return new ProjectPropertySettingBuildLoader(
-                get(IGradlePropertiesLoader.class),
-                new InstantiatingBuildLoader(get(IProjectFactory.class)));
+            get(IGradlePropertiesLoader.class),
+            new InstantiatingBuildLoader(get(IProjectFactory.class)));
     }
 
     protected ProjectEvaluator createProjectEvaluator() {
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
-                new PluginsProjectConfigureActions(get(ClassLoaderRegistry.class).getPluginsClassLoader()),
-                new BuildScriptProcessor(get(ScriptPluginFactory.class)),
-                new DelayedConfigurationActions()
+            new PluginsProjectConfigureActions(get(ClassLoaderRegistry.class).getPluginsClassLoader()),
+            new BuildScriptProcessor(get(ScriptPluginFactory.class)),
+            new DelayedConfigurationActions()
         );
         return new LifecycleProjectEvaluator(withActionsEvaluator);
     }
 
     protected ITaskFactory createITaskFactory() {
         return new DependencyAutoWireTaskFactory(
-                new AnnotationProcessingTaskFactory(
-                        new TaskFactory(
-                                get(ClassGenerator.class))
-                )
+            new AnnotationProcessingTaskFactory(
+                new TaskFactory(
+                    get(ClassGenerator.class))
+            )
         );
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager, FileCacheBackedScriptClassCompiler scriptCompiler, ClassLoaderCache classLoaderCache) {
         ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
         return new DefaultScriptCompilerFactory(
-                new CachingScriptClassCompiler(
-                        new ShortCircuitEmptyScriptCompiler(
-                                scriptCompiler,
-                                classLoaderCache
-                        )
-                ),
-                new DefaultScriptRunnerFactory(
-                        scriptExecutionListener,
-                        DirectInstantiator.INSTANCE
+            new CachingScriptClassCompiler(
+                new ShortCircuitEmptyScriptCompiler(
+                    scriptCompiler,
+                    classLoaderCache
                 )
+            ),
+            new DefaultScriptRunnerFactory(
+                scriptExecutionListener,
+                DirectInstantiator.INSTANCE
+            )
         );
     }
 
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
-            CacheRepository cacheRepository, final StartParameter startParameter,
-            ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
+        CacheRepository cacheRepository, final StartParameter startParameter,
+        ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
         CacheValidator scriptCacheInvalidator = new CacheValidator() {
             public boolean isValid() {
                 return !startParameter.isRecompileScripts();
             }
         };
         return new FileCacheBackedScriptClassCompiler(
-                cacheRepository,
-                scriptCacheInvalidator,
-                new DefaultScriptCompilationHandler(classLoaderCache, importsReader),
-                progressLoggerFactory
+            cacheRepository,
+            scriptCacheInvalidator,
+            new DefaultScriptCompilationHandler(classLoaderCache, importsReader),
+            progressLoggerFactory
         );
     }
 
     protected ScriptPluginFactory createScriptObjectConfigurerFactory() {
         return new DefaultScriptPluginFactory(
-                get(ScriptCompilerFactory.class),
-                getFactory(LoggingManagerInternal.class),
-                get(Instantiator.class),
-                get(ScriptHandlerFactory.class),
-                get(PluginRequestApplicator.class),
-                get(FileLookup.class),
-                get(DocumentationRegistry.class),
-                get(ModelRuleSourceDetector.class)
+            get(ScriptCompilerFactory.class),
+            getFactory(LoggingManagerInternal.class),
+            get(Instantiator.class),
+            get(ScriptHandlerFactory.class),
+            get(PluginRequestApplicator.class),
+            get(FileLookup.class),
+            get(DocumentationRegistry.class),
+            get(ModelRuleSourceDetector.class)
         );
     }
 
@@ -217,45 +234,45 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                                                   ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
                                                   BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor) {
         return new NotifyingSettingsLoader(
-                new SettingsHandler(
-                        new DefaultSettingsFinder(
-                                new BuildLayoutFactory()),
-                        settingsProcessor,
-                        new BuildSourceBuilder(
-                                gradleLauncherFactory,
-                                classLoaderScopeRegistry.getCoreAndPluginsScope(),
-                                cacheRepository,
-                                buildOperationExecutor)
-                ),
-                buildLoader);
+            new SettingsHandler(
+                new DefaultSettingsFinder(
+                    new BuildLayoutFactory()),
+                settingsProcessor,
+                new BuildSourceBuilder(
+                    gradleLauncherFactory,
+                    classLoaderScopeRegistry.getCoreAndPluginsScope(),
+                    cacheRepository,
+                    buildOperationExecutor)
+            ),
+            buildLoader);
     }
 
     protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {
         return new InitScriptHandler(
-                new DefaultInitScriptProcessor(
-                        scriptPluginFactory,
-                        scriptHandlerFactory
-                ),
-                buildOperationExecutor
+            new DefaultInitScriptProcessor(
+                scriptPluginFactory,
+                scriptHandlerFactory
+            ),
+            buildOperationExecutor
         );
     }
 
     protected SettingsProcessor createSettingsProcessor(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, Instantiator instantiator,
                                                         ServiceRegistryFactory serviceRegistryFactory, IGradlePropertiesLoader propertiesLoader, BuildOperationExecutor buildOperationExecutor) {
         return new NotifyingSettingsProcessor(
-                new PropertiesLoadingSettingsProcessor(
-                        new ScriptEvaluatingSettingsProcessor(
-                                scriptPluginFactory,
-                                scriptHandlerFactory,
-                                new SettingsFactory(
-                                        instantiator,
-                                        serviceRegistryFactory
-                                ),
-                                propertiesLoader
-                        ),
-                        propertiesLoader
+            new PropertiesLoadingSettingsProcessor(
+                new ScriptEvaluatingSettingsProcessor(
+                    scriptPluginFactory,
+                    scriptHandlerFactory,
+                    new SettingsFactory(
+                        instantiator,
+                        serviceRegistryFactory
+                    ),
+                    propertiesLoader
                 ),
-                buildOperationExecutor);
+                propertiesLoader
+            ),
+            buildOperationExecutor);
     }
 
     protected ExceptionAnalyser createExceptionAnalyser(ListenerManager listenerManager, LoggingConfiguration loggingConfiguration) {
@@ -268,9 +285,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ScriptHandlerFactory createScriptHandlerFactory() {
         return new DefaultScriptHandlerFactory(
-                get(DependencyManagementServices.class),
-                get(FileResolver.class),
-                get(DependencyMetaDataProvider.class)
+            get(DependencyManagementServices.class),
+            get(FileResolver.class),
+            get(DependencyMetaDataProvider.class)
         );
     }
 
@@ -332,13 +349,19 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultAuthenticationSchemeRegistry();
     }
 
-    public List<Closeable> getAdditionalCloseables() {
-        return additionalCloseables;
-    }
-
     @Override
     public void close() {
-        super.close();
-        CompositeStoppable.stoppable(additionalCloseables).stop();
+        if (singleUseSession) {
+            // This song and dance is to let CompositeStoppable deal with making sure everything
+            // is closed when something errors while stopping
+            CompositeStoppable.stoppable(new Stoppable() {
+                @Override
+                public void stop() {
+                    BuildScopeServices.super.close();
+                }
+            }, sessionServices).stop();
+        } else {
+            super.close();
+        }
     }
 }

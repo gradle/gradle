@@ -16,45 +16,52 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Nullable;
+import org.gradle.internal.Cast;
 import org.gradle.model.collection.ManagedSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
-import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
 import org.gradle.model.internal.manage.schema.ModelCollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
+import java.util.Collections;
+import java.util.List;
+
 public class ManagedSetNodeInitializerExtractionStrategy extends CollectionNodeInitializerExtractionSupport {
+    @SuppressWarnings("deprecation")
     private static final ModelType<ManagedSet<?>> MANAGED_SET_MODEL_TYPE = new ModelType<ManagedSet<?>>() {
     };
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema, NodeInitializerRegistry nodeInitializerRegistry) {
+    protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema) {
         if (MANAGED_SET_MODEL_TYPE.isAssignableFrom(schema.getType())) {
-            ModelProjection projection = TypedModelProjection.of(
-                ModelTypes.managedSet(schema.getElementType()),
-                new ManagedSetModelViewFactory<E>(schema.getElementType(), nodeInitializerRegistry)
-            );
-            return new ProjectionOnlyNodeInitializer(projection);
+            return new ManagedSetNodeInitializer<T, E>(schema);
         }
         return null;
     }
 
+    @Override
+    public Iterable<ModelType<?>> supportedTypes() {
+        return ImmutableList.<ModelType<?>>of(MANAGED_SET_MODEL_TYPE);
+    }
+
+    @SuppressWarnings("deprecation")
     private static class ManagedSetModelViewFactory<T> implements ModelViewFactory<ManagedSet<T>> {
         private final ModelType<T> elementType;
-        private final NodeInitializerRegistry nodeInitializerRegistry;
 
-        public ManagedSetModelViewFactory(ModelType<T> elementType, NodeInitializerRegistry nodeInitializerRegistry) {
+        public ManagedSetModelViewFactory(ModelType<T> elementType) {
             this.elementType = elementType;
-            this.nodeInitializerRegistry = nodeInitializerRegistry;
         }
 
         @Override
         public ModelView<ManagedSet<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
             ModelType<ManagedSet<T>> setType = ModelTypes.managedSet(elementType);
             DefaultModelViewState state = new DefaultModelViewState(setType, ruleDescriptor, writable, !writable);
-            NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry));
+            ChildNodeInitializerStrategy<T> childCreator = Cast.uncheckedCast(modelNode.getPrivateData(ChildNodeInitializerStrategy.class));
+            NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType.toString() + " '" + modelNode.getPath() + "'", elementType, ruleDescriptor, modelNode, state, childCreator);
             return InstanceModelView.of(modelNode.getPath(), setType, set, state.closer());
         }
 
@@ -75,6 +82,42 @@ public class ManagedSetNodeInitializerExtractionStrategy extends CollectionNodeI
         @Override
         public int hashCode() {
             return elementType.hashCode();
+        }
+    }
+
+    private static class ManagedSetNodeInitializer<T, E> implements NodeInitializer {
+        private final ModelCollectionSchema<T, E> schema;
+
+        public ManagedSetNodeInitializer(ModelCollectionSchema<T, E> schema) {
+            this.schema = schema;
+        }
+
+        @Override
+        public List<? extends ModelReference<?>> getInputs() {
+            return Collections.singletonList(ModelReference.of(NodeInitializerRegistry.class));
+        }
+
+        @Override
+        public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+            NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
+            ChildNodeInitializerStrategy<T> childCreator = new ManagedChildNodeCreatorStrategy<T>(nodeInitializerRegistry);
+            modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childCreator);
+        }
+
+        @Override
+        public List<? extends ModelProjection> getProjections() {
+            return Collections.singletonList(
+                TypedModelProjection.of(
+                    ModelTypes.managedSet(schema.getElementType()),
+                    new ManagedSetModelViewFactory<E>(schema.getElementType())
+                )
+            );
+        }
+
+        @Nullable
+        @Override
+        public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
+            return null;
         }
     }
 }

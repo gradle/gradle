@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.parameters
 
 import com.google.common.collect.Sets
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable
 import org.gradle.tooling.internal.protocol.InternalLaunchable
@@ -30,16 +31,16 @@ class ConsumerOperationParametersTest extends Specification {
     def "can build consumer operation parameters for provided properties"() {
         given:
         def tasks = ['a', 'b']
-        def classpath = [new URI('file:///Users/foo/bar/test.jar'), new URI('file:///Users/foo/bar/resources')]
+        def classpath = new DefaultClassPath(new File('/Users/foo/bar/test.jar'), new File('/Users/foo/bar/resources'))
 
         when:
         builder.tasks = tasks
-        builder.classpath = classpath
+        builder.injectedPluginClasspath = classpath
         def params = builder.build()
 
         then:
         params.tasks == tasks
-        params.classpath == classpath
+        params.injectedPluginClasspath == classpath.asFiles
         params.launchables == null
     }
 

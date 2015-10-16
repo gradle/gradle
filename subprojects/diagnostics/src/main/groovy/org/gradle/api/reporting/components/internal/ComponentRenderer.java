@@ -35,7 +35,7 @@ public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportB
 
     @Override
     public void render(ComponentSpec component, TextReportBuilder builder) {
-        builder.subheading(StringUtils.capitalize(component.getDisplayName()));
+        builder.heading(StringUtils.capitalize(component.getDisplayName()));
         builder.getOutput().println();
         builder.collection("Source sets", CollectionUtils.sort(component.getSources().values(), SourceSetRenderer.SORT_ORDER), sourceSetRenderer, "source sets");
         builder.getOutput().println();

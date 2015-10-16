@@ -17,7 +17,6 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -42,7 +41,6 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "registers language in languageRegistry"(){
         given:
-        EnableModelDsl.enable(executer)
         buildFile << """
 model {
     tasks {

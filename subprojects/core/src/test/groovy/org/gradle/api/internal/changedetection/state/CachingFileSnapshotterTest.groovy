@@ -46,9 +46,9 @@ class CachingFileSnapshotterTest extends Specification {
         result.hash == hash
 
         and:
-        1 * cache.get(file) >> null
+        1 * cache.get(file.getAbsolutePath()) >> null
         1 * target.hash(file) >> hash
-        1 * cache.put(file, _) >> { File key, CachingFileSnapshotter.FileInfo fileInfo ->
+        1 * cache.put(file.getAbsolutePath(), _) >> { String key, CachingFileSnapshotter.FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -64,9 +64,9 @@ class CachingFileSnapshotterTest extends Specification {
         result.hash == hash
 
         and:
-        1 * cache.get(file) >> new CachingFileSnapshotter.FileInfo(hash, 1024, file.lastModified())
+        1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, 1024, file.lastModified())
         1 * target.hash(file) >> hash
-        1 * cache.put(file, _) >> { File key, CachingFileSnapshotter.FileInfo fileInfo ->
+        1 * cache.put(file.getAbsolutePath(), _) >> { String key, CachingFileSnapshotter.FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -82,9 +82,9 @@ class CachingFileSnapshotterTest extends Specification {
         result.hash == hash
 
         and:
-        1 * cache.get(file) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), 124)
+        1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), 124)
         1 * target.hash(file) >> hash
-        1 * cache.put(file, _) >> { File key, CachingFileSnapshotter.FileInfo fileInfo ->
+        1 * cache.put(file.getAbsolutePath(), _) >> { String key, CachingFileSnapshotter.FileInfo fileInfo ->
             fileInfo.hash == hash
             fileInfo.length == file.length()
             fileInfo.timestamp == file.lastModified()
@@ -100,7 +100,7 @@ class CachingFileSnapshotterTest extends Specification {
         result.hash == hash
 
         and:
-        1 * cache.get(file) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), file.lastModified())
+        1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), file.lastModified())
         0 * _._
     }
 }

@@ -17,11 +17,8 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Action;
-import org.gradle.model.InvalidModelRuleException;
-import org.gradle.model.ModelRuleBindingException;
-import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.report.AmbiguousBindingReporter;
 
 class OneOfTypeBinderCreationListener extends ModelBinding {
     private final Action<ModelBinding> bindAction;
@@ -31,16 +28,13 @@ class OneOfTypeBinderCreationListener extends ModelBinding {
         this.bindAction = bindAction;
     }
 
-    public void onCreate(ModelNodeInternal node) {
-        ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
-        ModelPath path = node.getPath();
-        if (boundTo != null) {
-            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
-                    new AmbiguousBindingReporter(predicate.getReference(), boundTo.getPath(), boundTo.getDescriptor(), path, creatorDescriptor).asString()
-            ));
-        } else {
-            boundTo = node;
-            bindAction.execute(this);
-        }
+    @Override
+    public boolean canBindInState(ModelNode.State state) {
+        return state.isAtLeast(ModelNode.State.ProjectionsDefined);
+    }
+
+    public void doOnBind(ModelNodeInternal node) {
+        boundTo = node;
+        bindAction.execute(this);
     }
 }

@@ -17,40 +17,29 @@
 package org.gradle.model.dsl.internal.transform;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class InputReferences {
-    private final List<String> relativePaths = Lists.newArrayList();
-    private final List<Integer> relativePathLineNumbers = Lists.newArrayList();
-    private final List<String> absolutePaths = Lists.newArrayList();
+    private final Set<String> relativePaths = Sets.newLinkedHashSet();
+    private final Set<String> absolutePaths = Sets.newLinkedHashSet();
     private final List<Integer> absolutePathLineNumbers = Lists.newArrayList();
 
     public List<String> getAbsolutePaths() {
-        return absolutePaths;
+        return Lists.newArrayList(absolutePaths);
     }
 
     public List<Integer> getAbsolutePathLineNumbers() {
         return absolutePathLineNumbers;
     }
 
-    public List<String> getRelativePaths() {
-        return relativePaths;
-    }
-
-    public List<Integer> getRelativePathLineNumbers() {
-        return relativePathLineNumbers;
-    }
-
-    public void relativePath(String path, int lineNumber) {
-        relativePaths.add(path);
-        relativePathLineNumbers.add(lineNumber);
-    }
-
     public void absolutePath(String path, int lineNumber) {
-        absolutePaths.add(path);
-        absolutePathLineNumbers.add(lineNumber);
+        if (absolutePaths.add(path)) {
+            absolutePathLineNumbers.add(lineNumber);
+        }
     }
 
     public boolean isEmpty() {
@@ -61,13 +50,6 @@ public class InputReferences {
         absolutePaths.addAll(Arrays.asList(paths));
         for (int lineNumber : lineNumbers) {
             absolutePathLineNumbers.add(lineNumber);
-        }
-    }
-
-    public void relativePaths(String[] paths, int[] lineNumbers) {
-        relativePaths.addAll(Arrays.asList(paths));
-        for (int lineNumber : lineNumbers) {
-            relativePathLineNumbers.add(lineNumber);
         }
     }
 }

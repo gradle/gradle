@@ -15,12 +15,12 @@
  */
 
 package org.gradle.model
-
 import org.gradle.api.Named
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
+import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
 import org.gradle.model.internal.registry.UnboundModelRulesException
 import org.gradle.model.internal.type.ModelType
@@ -28,7 +28,6 @@ import org.gradle.model.internal.type.ModelTypes
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
-
 // TODO - extract out a common fixture for model map “impls”
 // This guy shares some duplication with UnmanagedNodeBackedModelMapTest
 class ManagedNodeBackedModelMapTest extends Specification {
@@ -37,11 +36,11 @@ class ManagedNodeBackedModelMapTest extends Specification {
     def registry = new ModelRegistryHelper()
     def itemType = ModelType.of(NamedThingInterface)
     def modelMapType = ModelTypes.modelMap(itemType)
-    def schemaStore = DefaultModelSchemaStore.instance
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
+    def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
 
     def setup() {
-        registry.create(ModelCreators.of(path, nodeInitializerRegistry.getNodeInitializer(schemaStore.getSchema(modelMapType))).descriptor("creator").build())
+        registry.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
+        registry.create(ModelCreators.of(path, nodeInitializerRegistry.getNodeInitializer(modelMapType)).descriptor("creator").build())
     }
 
     void mutate(@DelegatesTo(ModelMap) Closure<?> action) {
@@ -308,10 +307,9 @@ class ManagedNodeBackedModelMapTest extends Specification {
         realize()
 
         then:
-        ModelRuleExecutionException e = thrown()
-        e.cause instanceof InvalidModelRuleException
-        e.cause.cause instanceof ModelRuleBindingException
-        e.cause.cause.message.startsWith("Model reference to element '${path.child('foo')}' with type java.lang.String is invalid due to incompatible types.")
+        InvalidModelRuleException e = thrown()
+        e.cause instanceof ModelRuleBindingException
+        e.cause.message.startsWith("Model reference to element '${path.child('foo')}' with type java.lang.String is invalid due to incompatible types.")
     }
 
     static class SetOtherToName extends RuleSource {
@@ -853,6 +851,17 @@ class ManagedNodeBackedModelMapTest extends Specification {
         then:
         def e = thrown ModelRuleExecutionException
         e.cause instanceof InvalidManagedModelElementTypeException
+    }
+
+    def "is managed instance"() {
+        when:
+        mutate {
+            assert it instanceof ManagedInstance
+            assert withType(SpecialNamedThingInterface) instanceof ManagedInstance
+        }
+
+        then:
+        realize()
     }
 
 }

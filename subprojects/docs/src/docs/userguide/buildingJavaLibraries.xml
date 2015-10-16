@@ -63,6 +63,29 @@
                 </listitem>
             </itemizedlist>
         </para>
+        <para>Additionaly, the software model allows us to better identify concepts that are traditionally merged together:</para>
+        <para>
+            <itemizedlist>
+                <listitem>An <firstterm>API</firstterm> is a set of classes, interfaces, methods that are exposed to a consumer.</listitem>
+                <listitem>An <firstterm>API specification</firstterm> is the specification of classes, interfaces or methods that belong to an API. It can be found
+                    in various forms, like <literal>module-info.java</literal> in Jigsaw, or the <literal>api { ... }</literal> block that Gradle defines as part of those stories.
+                    Usually, we can simplify this to a list of packages, called <firstterm>exported packages</firstterm>.</listitem>
+                <listitem>A <firstterm>runtime jar</firstterm> consists of <firstterm>API classes</firstterm> and <firstterm>non-API classes</firstterm> used at execution time. There can be multiple runtime jars
+                    depending on combinations of the variant dimensions: target platform, hardware infrastructure, target application server, ...</listitem>
+                <listitem><firstterm>API classes</firstterm> are classes of a <firstterm>variant</firstterm> which match the <firstterm>API specification</firstterm></listitem>
+                <listitem><firstterm>Non-API classes</firstterm> are classes of a <firstterm>variant</firstterm> which do not match the <firstterm>API specification</firstterm>. They can be refered to as <firstterm>internal classes</firstterm>.</listitem>
+                <listitem>A <firstterm>stubbed API class</firstterm> is an <firstterm>API class</firstterm> for which its implementation and non public members have been removed. It is meant to be used when
+                    a consumer is going to be compiled against an <firstterm>API</firstterm>.</listitem>
+                <listitem>An <firstterm>API jar</firstterm> is a collection of <firstterm>API classes</firstterm>. There can be multiple API jars depending on the combinations of variant dimensions.</listitem>
+                <listitem>A <firstterm>stubbed API jar</firstterm> is a collection of <firstterm>stubbed API classes</firstterm>. There can be multiple stubbed API jars depending on the combinations of variant dimensions.</listitem>
+            </itemizedlist>
+            <para>
+                We avoid the use of the term <firstterm>implementation</firstterm> because it is too vague: both <firstterm>API classes</firstterm> and <firstterm>Non-API classes</firstterm> can have an implementation.
+                For example, an <firstterm>API class</firstterm> can be an interface, but also a concrete class. Implementation is an overloaded term in the Java ecosystem, and often
+                refers to a class implementing an interface. This is not the case here: a concrete class can be member of an API, but to compile against an API, you don't
+                need the implementation of the class: all you need is the signatures.
+            </para>
+        </para>
     </section>
 
     <section>
@@ -265,7 +288,7 @@
             <para>The <literal>targetPlatform</literal> DSL defines which platforms a library should be built against:</para>
             <sample id="newJavaTargetPlatforms" dir="javaLibraryPlugin/targetplatforms" title="Declaring target platforms">
                 <sourcefile file="core/build.gradle" snippet="declare-target-platforms"/>
-                <output args=":core:build" ignoreExtraLines="true"/>
+                <output args=":core:build" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms.out"/>
             </sample>
             <para>When building the application, Gradle generates two binaries: <literal>java5MainJar</literal> and <literal>java6MainJar</literal>
                 corresponding to the target versions of Java. These artifacts will participate in dependency resolution as described
@@ -276,9 +299,9 @@
             <para>For each <apilink class="org.gradle.jvm.JvmLibrarySpec"/> it is possible to define additional source sets for each binary. A common use case for this
             is having specific dependencies for each variant and source sets that conform to those dependencies. The example below configures a <literal>java6</literal> source set on the <literal>java6MainJar</literal>
             binary:</para>
-            <sample id="newJavaTargetPlatforms" dir="javaLibraryPlugin/targetplatforms" title="Declaring binary specific sources">
+            <sample id="newJavaTargetPlatforms-java6MainJar" dir="javaLibraryPlugin/targetplatforms" title="Declaring binary specific sources">
                 <sourcefile file="core/build.gradle" snippet="binary-specific-sourceset"/>
-                <output args=":core:java6MainJar" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-java6MainJar.out"/>
+                <output args="clean :core:java6MainJar" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-java6MainJar.out"/>
             </sample>
         </section>
         <section id="java_dependency_resolution">
@@ -294,9 +317,9 @@
                     <listitem>for multiple compatible binaries <literal>D(java 5), D(java 6), ...D(java m)</literal>, choose the compatible D binary with the highest Java version</listitem>
                 </itemizedlist>
             </para>
-            <sample id="newJavaTargetPlatforms" dir="javaLibraryPlugin/targetplatforms" title="Declaring target platforms">
+            <sample id="newJavaTargetPlatforms-server" dir="javaLibraryPlugin/targetplatforms" title="Declaring target platforms">
                 <sourcefile file="server/build.gradle" snippet="dependency-with-platform"/>
-                <output args=":server:build" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-server.out"/>
+                <output args="clean :server:build" ignoreExtraLines="true" outputFile="newJavaTargetPlatforms-server.out"/>
             </sample>
             <para>In the example above, Gradle automatically chooses the Java 6 variant of the dependency for the Java 6 variant of the <literal>server</literal> component,
             and chooses the Java 5 version of the dependency for the Java 5 variant of the <literal>server</literal> component.
@@ -306,8 +329,20 @@
     <section>
         <title>Custom variant resolution</title>
         <para>The Java plugin, in addition to the target platform resolution, supports resolution of custom variants. Custom variants
-            can be defined on custom binary types, as long as they extends <apilink class="org.gradle.jvm.JarBinarySpec"/>. Users interested
+            can be defined on custom binary types, as long as they extend <apilink class="org.gradle.jvm.JarBinarySpec"/>. Users interested
             in testing this incubating feature can check out the documentation of the <apilink class="org.gradle.platform.base.Variant"/>
             annotation.</para>
+    </section>
+    <section>
+        <title>Enforcing API boundaries at compile time</title>
+        <para>Often a library will contain many types that—despite having <literal>public</literal> visibility—are intended for internal use only within that library. JDK 9 will introduce <emphasis>Jigsaw</emphasis>, the reference implementation of the <emphasis>Java Module System</emphasis>, which will provide both compile-time and run-time enforcement of <emphasis>strong encapsulation</emphasis> at the library (aka: <emphasis>module</emphasis>) level. This means that packages not intended for public consumption can remain private to the library, regardless whether the types within those packages have public visibility.</para>
+        <para>Gradle anticipates the arrival of JDK 9 and the Java Module System with an approach to specifying and enforcing strong encapsulation at compile-time. However, users need not wait for the arrival of JDK 9 to use it; this feature can be used on any version of the Java platform that Gradle supports.</para>
+        <section>
+            <title>Specifying exported packages</title>
+        </section>
+        <sample id="apiSpecification" dir="javaLibraryPlugin/apispec" title="Specifying library api">
+            <sourcefile file="build.gradle" snippet="specify-library-api"/>
+        </sample>
+        <para>When <literal>gradle assemble</literal> is run, both an <emphasis>api jar</emphasis> and <emphasis>implementation jar</emphasis> will be generated.</para>
     </section>
 </chapter>

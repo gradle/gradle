@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.file.*;
+import org.gradle.api.internal.file.collections.FilteredFileTree;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -26,10 +27,7 @@ import org.gradle.internal.Cast;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
@@ -64,7 +62,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     public FileTree matching(PatternFilterable patterns) {
         PatternSet patternSet = new PatternSet();
         patternSet.copyFrom(patterns);
-        return new FilteredFileTree(this, patternSet.getAsSpec());
+        return new FilteredFileTreeImpl(this, patternSet.getAsSpec());
     }
 
     public Map<String, File> getAsMap() {
@@ -114,11 +112,11 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return visit(DefaultGroovyMethods.asType(closure, FileVisitor.class));
     }
 
-    private static class FilteredFileTree extends AbstractFileTree {
+    private static class FilteredFileTreeImpl extends AbstractFileTree implements FilteredFileTree {
         private final AbstractFileTree fileTree;
         private final Spec<FileTreeElement> spec;
 
-        public FilteredFileTree(AbstractFileTree fileTree, Spec<FileTreeElement> spec) {
+        public FilteredFileTreeImpl(AbstractFileTree fileTree, Spec<FileTreeElement> spec) {
             this.fileTree = fileTree;
             this.spec = spec;
         }
@@ -154,6 +152,16 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         public void registerWatchPoints(FileSystemSubset.Builder builder) {
             // TODO: we aren't considering the filter
             fileTree.registerWatchPoints(builder);
+        }
+
+        @Override
+        public FileTreeInternal getOriginalFileTree() {
+            return fileTree;
+        }
+
+        @Override
+        public Spec<FileTreeElement> getFilter() {
+            return spec;
         }
     }
 

@@ -22,4 +22,6 @@ import org.gradle.api.Project
      def Project project
      def String moduleName
      def Closure updateModuleName
+
+     boolean deduplicated = false
 }

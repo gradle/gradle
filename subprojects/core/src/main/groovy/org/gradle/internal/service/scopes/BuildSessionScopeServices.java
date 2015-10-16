@@ -18,8 +18,6 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.deployment.internal.DefaultDeploymentRegistry;
-import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
@@ -29,12 +27,16 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
 import org.gradle.cache.internal.DefaultCacheScopeMapping;
+import org.gradle.deployment.internal.DefaultDeploymentRegistry;
+import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
@@ -44,7 +46,8 @@ import org.gradle.util.GradleVersion;
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
  */
 public class BuildSessionScopeServices extends DefaultServiceRegistry {
-    public BuildSessionScopeServices(final ServiceRegistry parent, final StartParameter startParameter) {
+
+    public BuildSessionScopeServices(final ServiceRegistry parent, final StartParameter startParameter, ClassPath injectedPluginClassPath) {
         super(parent);
         register(new Action<ServiceRegistration>() {
             @Override
@@ -55,12 +58,13 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
+        add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
     }
 
     DeploymentRegistry createDeploymentRegistry() {
         return new DefaultDeploymentRegistry();
     }
-    
+
     protected Factory<WorkerProcessBuilder> createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
                                                                        FileResolver fileResolver) {
         return new DefaultWorkerProcessFactory(

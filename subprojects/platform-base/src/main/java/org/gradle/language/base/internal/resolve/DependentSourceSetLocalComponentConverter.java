@@ -18,14 +18,18 @@ package org.gradle.language.base.internal.resolve;
 import com.google.common.base.Strings;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
+import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetaData;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
@@ -60,26 +64,30 @@ public class DependentSourceSetLocalComponentConverter implements LocalComponent
         for (DependencySpec dependency : allDependencies.getDependencies()) {
 
             String projectPath = dependency.getProjectPath();
-            if (Strings.isNullOrEmpty(projectPath)) {
-                projectPath = defaultProject;
-            }
             String libraryName = dependency.getLibraryName();
-            // currently we use "null" as variant value, because there's only one variant: API
-            ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
-            DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(
-                Strings.nullToEmpty(projectPath), Strings.nullToEmpty(libraryName), mvi.getVersion());
-            LocalComponentDependencyMetaData localComponentDependencyMetaData = new LocalComponentDependencyMetaData(
-                selector,
-                requested,
-                DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME,
-                DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME,
-                Collections.<IvyArtifactName>emptySet(),
-                EXCLUDE_RULES,
-                false,
-                false,
-                true);
-            metaData.addDependency(localComponentDependencyMetaData);
+            if (projectPath == null && libraryName != null && libraryName.contains(":")) {
+                String[] components = libraryName.split(":");
+                ModuleVersionSelector requested = new DefaultModuleVersionSelector(components[0], components[1], components[2]);
+                ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
+                metaData.addDependency(createDependencyMetaData(selector, requested, "compile"));
+            } else {
+                if (Strings.isNullOrEmpty(projectPath)) {
+                    projectPath = defaultProject;
+                }
+                // currently we use "null" as variant value, because there's only one variant: API
+                ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName);
+                DefaultModuleVersionSelector requested = new DefaultModuleVersionSelector(Strings.nullToEmpty(projectPath), Strings.nullToEmpty(libraryName), mvi.getVersion());
+                DependencyMetaData localComponentDependencyMetaData = createDependencyMetaData(selector, requested, DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME);
+                metaData.addDependency(localComponentDependencyMetaData);
+            }
         }
     }
 
+    private DependencyMetaData createDependencyMetaData(ComponentSelector selector, ModuleVersionSelector requested, String configuration) {
+        return new LocalComponentDependencyMetaData(
+                selector, requested, DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME, configuration,
+                Collections.<IvyArtifactName>emptySet(),
+                EXCLUDE_RULES,
+                false, false, true);
+    }
 }

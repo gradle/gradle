@@ -111,25 +111,31 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "can reference rule-added tasks in model"() {
         given:
-        buildFile << """
+        buildFile << '''
         class BinaryTasksPlugin implements Plugin<Project> {
             void apply(final Project project) {}
 
             static class Rules extends RuleSource {
                 @BinaryTasks
                 void createSampleComponentComponents(ModelMap<Task> tasks, SampleBinary binary) {
-                    tasks.create("\${binary.name}Task")
+                    tasks.create("${binary.name}Task")
                 }
             }
         }
         apply plugin:BinaryTasksPlugin
-
-        task checkModel << {
-            assert project.binaries.size() == 2
-            assert project.binaries.sampleLibBinaryOne != null
-            assert project.binaries.sampleLibBinaryOne.tasks*.name == ['sampleLibBinaryOneTask']
+        model {
+            tasks {
+                checkModel(Task) {
+                    doLast {
+                        def binaries = $('binaries')
+                        assert binaries.size() == 2
+                        assert binaries.sampleLibBinaryOne != null
+                        assert binaries.sampleLibBinaryOne.tasks*.name == ['sampleLibBinaryOneTask']
+                    }
+                }
+            }
         }
-"""
+'''
         expect:
         succeeds "checkModel"
     }
@@ -199,13 +205,13 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         succeeds "sampleLibBinaryOne"
 
         then:
-        notExecuted ":sampleLibOtherBinaryOtherTask"
+        executedTasks == [":sampleLibBinaryOne"]
 
         when:
         succeeds "sampleLibOtherBinary"
 
         then:
-        executed ":sampleLibOtherBinaryOtherTask"
+        executedTasks == [":sampleLibOtherBinaryOtherTask", ":sampleLibOtherBinary"]
     }
 
     def "can use additional parameters as rule inputs"() {

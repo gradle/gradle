@@ -26,9 +26,8 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.progress.BuildOperationExecutor;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.logging.LoggingManagerInternal;
-
-import java.io.Closeable;
 
 public class DefaultGradleLauncher extends GradleLauncher {
 
@@ -48,7 +47,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
-    private final Closeable buildServices;
+    private final BuildScopeServices buildServices;
 
     /**
      * Creates a new instance.
@@ -58,7 +57,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  LoggingManagerInternal loggingManager, BuildListener buildListener,
                                  ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
-                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, Closeable buildServices) {
+                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, BuildScopeServices buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
@@ -160,9 +159,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     /**
-     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the
-     * execution of the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for supported listener
-     * types.</p>
+     * <p>Adds a listener to this build instance. The listener is notified of events which occur during the execution of the build. See {@link org.gradle.api.invocation.Gradle#addListener(Object)} for
+     * supported listener types.</p>
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
@@ -172,8 +170,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     /**
-     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to
-     * standard output by Gradle's logging system
+     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard output by Gradle's logging system
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */
@@ -183,8 +180,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     /**
-     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to
-     * standard error by Gradle's logging system
+     * <p>Adds a {@link StandardOutputListener} to this build instance. The listener is notified of any text written to standard error by Gradle's logging system
      *
      * @param listener The listener to add. Has no effect if the listener has already been added.
      */

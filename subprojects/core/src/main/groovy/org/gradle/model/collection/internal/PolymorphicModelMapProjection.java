@@ -17,7 +17,6 @@
 package org.gradle.model.collection.internal;
 
 import org.gradle.api.internal.PolymorphicNamedEntityInstantiator;
-import org.gradle.model.internal.core.ChildNodeInitializerStrategy;
 import org.gradle.model.internal.core.ModelProjection;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
@@ -26,16 +25,16 @@ import java.util.Collection;
 
 public class PolymorphicModelMapProjection<T> extends ModelMapModelProjection<T> {
 
-    public static <T> ModelProjection ofEager(ModelType<T> itemType, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
-        return new PolymorphicModelMapProjection<T>(itemType, true, creatorStrategy);
+    public static <T> ModelProjection ofEager(ModelType<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
+        return new PolymorphicModelMapProjection<T>(itemType, true, creatorStrategyAccessor);
     }
 
-    public static <T> ModelProjection of(ModelType<T> itemType, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
-        return new PolymorphicModelMapProjection<T>(itemType, false, creatorStrategy);
+    public static <T> ModelProjection of(ModelType<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
+        return new PolymorphicModelMapProjection<T>(itemType, false, creatorStrategyAccessor);
     }
 
-    private PolymorphicModelMapProjection(ModelType<T> baseItemType, boolean eager, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
-        super(baseItemType, eager, false, creatorStrategy);
+    private PolymorphicModelMapProjection(ModelType<T> baseItemType, boolean eager, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
+        super(baseItemType, eager, false, creatorStrategyAccessor);
     }
 
     @Override

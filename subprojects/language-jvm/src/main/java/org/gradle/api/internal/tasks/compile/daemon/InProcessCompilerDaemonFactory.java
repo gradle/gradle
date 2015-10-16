@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import org.gradle.api.internal.classloading.GroovySystemLoader;
+import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.internal.UncheckedException;
@@ -35,6 +37,7 @@ import java.util.concurrent.Callable;
 public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
     private final ClassLoaderFactory classLoaderFactory;
     private final File gradleUserHomeDir;
+    private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
 
     public InProcessCompilerDaemonFactory(ClassLoaderFactory classLoaderFactory, File gradleUserHomeDir) {
         this.classLoaderFactory = classLoaderFactory;
@@ -45,6 +48,7 @@ public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
         return new CompilerDaemon() {
             public <T extends CompileSpec> CompileResult execute(Compiler<T> compiler, T spec) {
                 ClassLoader groovyClassLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(forkOptions.getClasspath()));
+                GroovySystemLoader groovyLoader = groovySystemLoaderFactory.forClassLoader(groovyClassLoader);
                 FilteringClassLoader filteredGroovy = classLoaderFactory.createFilteringClassLoader(groovyClassLoader);
                 for (String packageName : forkOptions.getSharedPackages()) {
                     filteredGroovy.allowPackage(packageName);
@@ -69,6 +73,8 @@ public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
                     return (CompileResult) inputStream.readObject();
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
+                } finally {
+                    groovyLoader.shutdown();
                 }
             }
         };

@@ -31,6 +31,18 @@ import java.util.*;
 public class DefaultClassPath implements ClassPath, Serializable {
     private final List<File> files;
 
+    DefaultClassPath() {
+        this.files = Collections.emptyList();
+    }
+
+    public static ClassPath of(Collection<File> files) {
+        if (files == null || files.isEmpty()) {
+            return EMPTY;
+        } else {
+            return new DefaultClassPath(files);
+        }
+    }
+
     public DefaultClassPath(Iterable<File> files) {
         Set<File> noDuplicates = new LinkedHashSet<File>();
         for (File file : files) {

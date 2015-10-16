@@ -62,11 +62,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
         @ComponentType
         void register(ComponentTypeBuilder<JvmLibrarySpec> builder) {
             builder.defaultImplementation(DefaultJvmLibrarySpec.class);
+            builder.internalView(JvmLibrarySpecInternal.class);
         }
 
         @BinaryType
         void registerJar(BinaryTypeBuilder<JarBinarySpec> builder) {
             builder.defaultImplementation(DefaultJarBinarySpec.class);
+            builder.internalView(JarBinarySpecInternal.class);
         }
 
         @Model

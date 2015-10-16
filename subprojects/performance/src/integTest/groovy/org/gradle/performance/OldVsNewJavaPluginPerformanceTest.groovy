@@ -34,22 +34,22 @@ class OldVsNewJavaPluginPerformanceTest extends AbstractCrossBuildPerformanceTes
         runner.testId = "$size project old vs new java plugin $scenario build"
         runner.buildSpec {
             projectName("${size}NewJava").displayName("new plugin").invocation {
-                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl()
+                tasksToRun(*tasks).useDaemon()
             }
         }
         runner.buildSpec {
             projectName("${size}NewJava").displayName("new plugin (reuse)").invocation {
-                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl().enableModelReuse()
+                tasksToRun(*tasks).useDaemon().enableModelReuse()
             }
         }
         runner.buildSpec {
             projectName("${size}NewJava").displayName("new plugin (reuse + tooling api)").invocation {
-                tasksToRun(*tasks).useToolingApi().enableTransformedModelDsl().enableModelReuse()
+                tasksToRun(*tasks).useToolingApi().enableModelReuse()
             }
         }
         runner.buildSpec {
             projectName("${size}NewJava").displayName("new plugin (no client logging)").invocation {
-                tasksToRun(*tasks).useDaemon().enableTransformedModelDsl().disableDaemonLogging()
+                tasksToRun(*tasks).useDaemon().disableDaemonLogging()
             }
         }
         runner.baseline {

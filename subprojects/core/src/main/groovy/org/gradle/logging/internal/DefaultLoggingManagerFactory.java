@@ -21,18 +21,35 @@ import org.gradle.logging.LoggingManagerInternal;
 
 public class DefaultLoggingManagerFactory implements Factory<LoggingManagerInternal> {
     private final LoggingSystem slfLoggingSystem;
+    private final LoggingSystem javaUtilLoggingSystem;
     private final LoggingSystem stdOutLoggingSystem;
     private final LoggingSystem stdErrLoggingSystem;
     private final LoggingOutputInternal loggingOutput;
+    private final DefaultLoggingManager rootManager;
+    private boolean created;
 
-    public DefaultLoggingManagerFactory(LoggingConfigurer loggingConfigurer, LoggingOutputInternal loggingOutput, LoggingSystem stdOutLoggingSystem, LoggingSystem stdErrLoggingSystem) {
+    public DefaultLoggingManagerFactory(LoggingConfigurer loggingConfigurer, LoggingOutputInternal loggingOutput, LoggingSystem javaUtilLoggingSystem, LoggingSystem stdOutLoggingSystem, LoggingSystem stdErrLoggingSystem) {
         this.loggingOutput = loggingOutput;
+        this.javaUtilLoggingSystem = javaUtilLoggingSystem;
         this.stdOutLoggingSystem = stdOutLoggingSystem;
         this.stdErrLoggingSystem = stdErrLoggingSystem;
         slfLoggingSystem = new LoggingSystemAdapter(loggingConfigurer);
+        rootManager = newManager();
+    }
+
+    public LoggingManagerInternal getRoot() {
+        return rootManager;
     }
 
     public LoggingManagerInternal create() {
-        return new DefaultLoggingManager(slfLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingOutput);
+        if (!created) {
+            created = true;
+            return getRoot();
+        }
+        return newManager();
+    }
+
+    private DefaultLoggingManager newManager() {
+        return new DefaultLoggingManager(slfLoggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingOutput);
     }
 }

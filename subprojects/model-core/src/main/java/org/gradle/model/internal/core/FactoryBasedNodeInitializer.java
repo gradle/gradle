@@ -16,35 +16,48 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.internal.Cast;
+import org.gradle.api.Nullable;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
 import java.util.List;
 
 public class FactoryBasedNodeInitializer<T, S extends T> implements NodeInitializer {
-    private final ModelReference<? extends InstanceFactory<? super T, String>> factoryReference;
+    private final InstanceFactory<T> instanceFactory;
     private final ModelType<S> type;
 
-    public FactoryBasedNodeInitializer(ModelReference<? extends InstanceFactory<? super T, String>> factoryReference, ModelType<S> type) {
-        this.factoryReference = factoryReference;
+    public FactoryBasedNodeInitializer(InstanceFactory<T> instanceFactory, ModelType<S> type) {
+        this.instanceFactory = instanceFactory;
         this.type = type;
     }
 
     @Override
     public List<? extends ModelReference<?>> getInputs() {
-        return Collections.singletonList(factoryReference);
+        return Collections.emptyList();
     }
 
     @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-        InstanceFactory<? super T, String> instantiator = Cast.uncheckedCast(inputs.get(0).getInstance());
-        S item = instantiator.create(type.getConcreteClass(), modelNode, modelNode.getPath().getName());
+        S item = instanceFactory.create(type, modelNode, modelNode.getPath().getName());
         modelNode.setPrivateData(type, item);
     }
 
     @Override
     public List<? extends ModelProjection> getProjections() {
         return Collections.singletonList(UnmanagedModelProjection.of(type));
+    }
+
+    @Nullable
+    @Override
+    public ModelAction getProjector(final ModelPath path, final ModelRuleDescriptor descriptor) {
+        return new AbstractModelAction<Object>(ModelReference.of(path), descriptor) {
+            @Override
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                for (ModelType<?> internalView : instanceFactory.getInternalViews(type)) {
+                    modelNode.addProjection(UnmanagedModelProjection.of(internalView));
+                }
+            }
+        };
     }
 }

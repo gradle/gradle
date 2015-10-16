@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import org.codehaus.groovy.ast.Parameter;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.*;
 import org.codehaus.groovy.classgen.BytecodeExpression;
@@ -29,6 +30,10 @@ import java.util.ListIterator;
 public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitorSupport {
     private Expression replacementExpr;
 
+    /**
+     * Visits the given expression, potentially replacing it. If {@link #replaceVisitedExpressionWith(Expression)} is called while visiting the expression,
+     * this new value will be returned. Otherwise, the original value will be returned.
+     */
     public Expression replaceExpr(Expression expr) {
         replacementExpr = null;
         expr.visit(this);
@@ -200,7 +205,12 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitClosureExpression(ClosureExpression expr) {
-        super.visitClosureExpression(expr);
+        for (Parameter parameter : expr.getParameters()) {
+            if (parameter.hasInitialExpression()) {
+                parameter.setInitialExpression(replaceExpr(parameter.getInitialExpression()));
+            }
+        }
+        expr.getCode().visit(this);
         replaceVisitedExpressionWith(expr);
     }
 
@@ -381,7 +391,7 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
 
     @Override
     public void visitExpressionStatement(ExpressionStatement stat) {
-        replaceExpr(stat.getExpression());
+        stat.setExpression(replaceExpr(stat.getExpression()));
     }
 
     @Override

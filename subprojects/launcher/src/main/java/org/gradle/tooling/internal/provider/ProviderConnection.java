@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.*;
-import org.gradle.internal.Factory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.ServiceRegistry;
@@ -52,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -140,19 +140,21 @@ public class ProviderConnection {
     }
 
     private BuildActionExecuter<ProviderOperationParameters> createExecuter(ProviderOperationParameters operationParameters, Parameters params) {
-        LoggingServiceRegistry loggingServices;
+        LoggingManagerInternal loggingManager;
         BuildActionExecuter<BuildActionParameters> executer;
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
-            loggingServices = this.loggingServices;
+            loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
+            loggingManager.captureSystemSources();
             executer = embeddedExecutor;
         } else {
-            loggingServices = LoggingServiceRegistry.newNestedLogging();
+            LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
+            loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
-            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(loggingServices.get(OutputEventListener.class), params.daemonParams, operationParameters.getStandardInput(SafeStreams.emptyInput()));
+            InputStream standardInput = operationParameters.getStandardInput();
+            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(loggingServices.get(OutputEventListener.class), params.daemonParams, standardInput == null ? SafeStreams.emptyInput() : standardInput);
             executer = clientServices.get(DaemonClient.class);
         }
-        Factory<LoggingManagerInternal> loggingManagerFactory = loggingServices.getFactory(LoggingManagerInternal.class);
-        return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer, params.daemonParams), loggingManagerFactory);
+        return new LoggingBridgingBuildActionExecuter(new DaemonBuildActionExecuter(executer, params.daemonParams), loggingManager);
     }
 
     private Parameters initParams(ProviderOperationParameters operationParameters) {
@@ -173,11 +175,11 @@ public class ProviderConnection {
         }
 
         //override the params with the explicit settings provided by the tooling api
-        List<String> jvmArguments = operationParameters.getJvmArguments(null);
+        List<String> jvmArguments = operationParameters.getJvmArguments();
         if (jvmArguments != null) {
             daemonParams.setJvmArgs(jvmArguments);
         }
-        File javaHome = operationParameters.getJavaHome(null);
+        File javaHome = operationParameters.getJavaHome();
         if (javaHome != null) {
             daemonParams.setJvm(Jvm.forHome(javaHome));
         }

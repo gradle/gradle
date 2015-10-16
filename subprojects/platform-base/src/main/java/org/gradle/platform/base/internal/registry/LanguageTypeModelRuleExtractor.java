@@ -57,7 +57,7 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         ImmutableList<Class<?>> dependencies = ImmutableList.<Class<?>>of(ComponentModelBasePlugin.class);
         ModelType<? extends BaseLanguageSourceSet> implementation = implementationTypeDetermer.determineImplementationType(type, builder);
         if (implementation != null) {
-            ModelAction<?> mutator = new RegisterTypeRule(type, implementation, ((LanguageTypeBuilderInternal) builder).getLanguageName(), ruleDefinition.getDescriptor());
+            ModelAction mutator = new RegisterTypeRule(type, implementation, ((LanguageTypeBuilderInternal) builder).getLanguageName(), ruleDefinition.getDescriptor());
             return new ExtractedModelAction(ModelActionRole.Defaults, dependencies, mutator);
         }
         return new DependencyOnlyExtractedModelRule(dependencies);
@@ -81,37 +81,20 @@ public class LanguageTypeModelRuleExtractor extends TypeModelRuleExtractor<Langu
         }
     }
 
-    protected static class RegisterTypeRule implements ModelAction<LanguageRegistry> {
+    protected static class RegisterTypeRule extends AbstractModelActionWithView<LanguageRegistry> {
         private final ModelType<? extends LanguageSourceSet> type;
         private final ModelType<? extends BaseLanguageSourceSet> implementation;
-        private String languageName;
-        private final ModelRuleDescriptor descriptor;
-        private final ModelReference<LanguageRegistry> subject;
-        private final List<ModelReference<?>> inputs;
+        private final String languageName;
 
         protected RegisterTypeRule(ModelType<? extends LanguageSourceSet> type, ModelType<? extends BaseLanguageSourceSet> implementation, String languageName, ModelRuleDescriptor descriptor) {
+            super(ModelReference.of(LanguageRegistry.class), descriptor, ModelReference.of("serviceRegistry", ServiceRegistry.class));
             this.type = type;
             this.implementation = implementation;
             this.languageName = languageName;
-            this.descriptor = descriptor;
-
-            subject = ModelReference.of(LanguageRegistry.class);
-            inputs = ImmutableList.<ModelReference<?>>of(ModelReference.of(ServiceRegistry.class));
         }
 
-        public ModelReference<LanguageRegistry> getSubject() {
-            return subject;
-        }
-
-        public List<ModelReference<?>> getInputs() {
-            return inputs;
-        }
-
-        public ModelRuleDescriptor getDescriptor() {
-            return descriptor;
-        }
-
-        public void execute(MutableModelNode modelNode, LanguageRegistry languageRegistry, List<ModelView<?>> inputs) {
+        @Override
+        protected void execute(MutableModelNode modelNode, LanguageRegistry languageRegistry, List<ModelView<?>> inputs) {
             ServiceRegistry serviceRegistry = ModelViews.assertType(inputs.get(0), ModelType.of(ServiceRegistry.class)).getInstance();
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);

@@ -17,28 +17,17 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
+import spock.lang.Issue
 import spock.lang.Unroll
 
-class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
+import static org.gradle.util.Matchers.containsText
+
+class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTest {
 
     def "setup"() {
-        EnableModelDsl.enable(executer)
-        buildScript """
-            interface CustomComponent extends ComponentSpec {}
-            class DefaultCustomComponent extends BaseComponentSpec implements CustomComponent {}
-
-            class ComponentTypeRules extends RuleSource {
-                @ComponentType
-                void registerCustomComponentType(ComponentTypeBuilder<CustomComponent> builder) {
-                    builder.defaultImplementation(DefaultCustomComponent)
-                }
-            }
-
-            apply type: ComponentTypeRules
-
+        withCustomComponentType()
+        buildFile << """
             model {
                 components {
                     main(CustomComponent)
@@ -47,32 +36,8 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    void withCustomLanguage() {
-        buildFile << """
-            interface CustomLanguageSourceSet extends LanguageSourceSet {
-                String getData();
-            }
-            class DefaultCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {
-                final String data = "foo"
-
-                public boolean getMayHaveSources() {
-                    true
-                }
-            }
-
-            class LanguageTypeRules extends RuleSource {
-                @LanguageType
-                void registerCustomLanguage(LanguageTypeBuilder<CustomLanguageSourceSet> builder) {
-                    builder.defaultImplementation(DefaultCustomLanguageSourceSet)
-                }
-            }
-
-            apply type: LanguageTypeRules
-        """
-    }
-
     void withMainSourceSet() {
-        withCustomLanguage()
+        withCustomLanguageType()
         buildFile << """
             model {
                 components {
@@ -87,20 +52,9 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void withBinaries() {
+        withCustomBinaryType()
         buildFile << """
-            interface CustomBinary extends BinarySpec {
-                String getData();
-            }
-            class DefaultCustomBinary extends BaseBinarySpec implements CustomBinary {
-                final String data = "bar"
-            }
-
-            class BinaryRules extends RuleSource {
-                @BinaryType
-                void registerCustomBinary(BinaryTypeBuilder<CustomBinary> builder) {
-                    builder.defaultImplementation(DefaultCustomBinary)
-                }
-
+            class ComponentBinaryRules extends RuleSource {
                 @ComponentBinaries
                 void addBinaries(ModelMap<CustomBinary> binaries, CustomComponent component) {
                     binaries.create("main", CustomBinary)
@@ -108,7 +62,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            apply type: BinaryRules
+            apply type: ComponentBinaryRules
 
             model {
                 components {
@@ -120,60 +74,7 @@ class ComponentModelIntegrationTest extends AbstractIntegrationSpec {
 
     void withLanguageTransforms() {
         withMainSourceSet()
-        buildFile << """
-            import org.gradle.language.base.internal.registry.*
-            import org.gradle.language.base.internal.*
-            import org.gradle.language.base.*
-            import org.gradle.internal.reflect.*
-            import org.gradle.internal.service.*
-
-
-            class CustomLanguageTransformation implements LanguageTransform {
-                Class getSourceSetType() {
-                    CustomLanguageSourceSet
-                }
-
-                Class getOutputType() {
-                    CustomTransformationFileType
-                }
-
-                Map<String, Class<?>> getBinaryTools() {
-                    throw new UnsupportedOperationException()
-                }
-
-                SourceTransformTaskConfig getTransformTask() {
-                    new SourceTransformTaskConfig() {
-                        String getTaskPrefix() {
-                            "custom"
-                        }
-
-                        Class<? extends DefaultTask> getTaskType() {
-                            DefaultTask
-                        }
-
-                        void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
-                        }
-                    }
-                }
-
-                boolean applyToBinary(BinarySpec binary) {
-                    true
-                }
-            }
-
-            class CustomTransformationFileType implements TransformationFileType {
-            }
-
-
-            class LanguageRules extends RuleSource {
-                @Mutate
-                void registerLanguageTransformation(LanguageTransformContainer transforms) {
-                    transforms.add(new CustomLanguageTransformation())
-                }
-            }
-
-            apply type: LanguageRules
-        """
+        withCustomLanguageTransform()
     }
 
     def "component container is visible to rules as various types"() {
@@ -288,7 +189,6 @@ model {
                 }
             }
         """
-
         when:
         succeeds "model"
 
@@ -657,7 +557,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failureHasCause("Cannot create a DefaultCustomComponent because this type is not known to this collection. Known types are: CustomComponent")
+        failure.assertThatCause(containsText("Cannot create a 'DefaultCustomComponent' because this type is not known to components. Known types are: CustomComponent"))
     }
 
     def "reasonable error message when creating component with no implementation"() {
@@ -676,7 +576,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         fails "model"
 
         and:
-        failureHasCause("Cannot create a AnotherCustomComponent because this type is not known to this collection. Known types are: CustomComponent")
+        failure.assertThatCause(containsText("Cannot create a 'AnotherCustomComponent' because this type is not known to components. Known types are: CustomComponent"))
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {
@@ -881,5 +781,88 @@ afterEach DefaultCustomComponent 'newComponent'"""))
 
         then:
         output.contains "component names: [main, viaCollectionBuilder, viaModelMap]"
+    }
+
+    @Issue("android problem with 2.8-rc-1")
+    def "plugin can declare a top level element and register a component type"() {
+        buildFile << """
+            @Managed
+            interface MyModel {
+                String value
+            }
+
+            // Define some binary and component types.
+            interface SampleBinarySpec extends BinarySpec {}
+            class DefaultSampleBinary extends BaseBinarySpec implements SampleBinarySpec {}
+
+            interface SampleComponent extends ComponentSpec{}
+            class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
+
+            class MyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    project.plugins.apply(ComponentModelBasePlugin)
+                }
+
+                static class Rules extends RuleSource {
+                    @Model
+                    void createManagedModel(MyModel value) {
+                        println "createManagedModel"
+                    }
+
+                    @ComponentType
+                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {
+                        println "registerComponent"
+                        builder.defaultImplementation(DefaultSampleComponent)
+                    }
+                }
+
+            }
+
+            apply plugin: MyPlugin
+        """
+
+        expect:
+        succeeds "components"
+    }
+
+    @Issue("android problem with 2.8-rc-1")
+    def "plugin can declare a top level element and register a component type and use the JavaBasePlugin"() {
+        buildFile << """
+            @Managed
+            public interface MyModel {
+            }
+
+            // Define some binary and component types.
+            interface SampleBinarySpec extends BinarySpec {}
+            class DefaultSampleBinary extends BaseBinarySpec implements SampleBinarySpec {}
+
+            interface SampleComponent extends ComponentSpec{}
+            class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
+
+            class MyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    project.getPlugins().apply(ComponentModelBasePlugin.class);
+                    project.getPlugins().apply(JavaBasePlugin.class);
+                }
+
+                static class Rules extends RuleSource {
+                    @Model("android")
+                    public void createManagedModel(MyModel value) {
+                        println "createManagedModel"
+                    }
+
+                    @ComponentType
+                    void registerComponent(ComponentTypeBuilder<SampleComponent> builder) {
+                        println "registerComponent"
+                        builder.defaultImplementation(DefaultSampleComponent)
+                    }
+                }
+
+            }
+
+            apply plugin: MyPlugin
+        """
+        expect:
+        succeeds "components"
     }
 }

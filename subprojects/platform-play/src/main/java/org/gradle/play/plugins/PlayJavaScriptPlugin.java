@@ -52,7 +52,7 @@ public class PlayJavaScriptPlugin extends RuleSource {
 
     @Mutate
     void createJavascriptSourceSets(ModelMap<PlayApplicationSpec> components) {
-        components.beforeEach(new Action<PlayApplicationSpec>() {
+        components.afterEach(new Action<PlayApplicationSpec>() {
             @Override
             public void execute(PlayApplicationSpec playComponent) {
                 playComponent.getSources().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {

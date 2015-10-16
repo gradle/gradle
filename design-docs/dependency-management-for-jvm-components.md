@@ -40,6 +40,10 @@ Later work:
 
 [Done](done/dependency-management-for-jvm-components.md)
 
+## Open issues
+
+- Dependency container is not reachable through a public API.
+
 # Feature 2: Custom component built from Java source
 
 This feature allows a plugin author to define a component type that is built from Java source and Java libraries.

@@ -183,7 +183,7 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
                 Iterables.transform(modelNode.getLinks(elementType), new Function<MutableModelNode, T>() {
                     @Override
                     public T apply(MutableModelNode input) {
-                        return input.asReadOnly(elementType, descriptor).getInstance();
+                        return input.asImmutable(elementType, descriptor).getInstance();
                     }
                 })
             );

@@ -26,7 +26,6 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BuildScopeServices
-import org.gradle.internal.service.scopes.BuildScopeServicesFactory
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.ProjectScopeServices
 import org.gradle.logging.LoggingServiceRegistry
@@ -81,8 +80,7 @@ class ToolingApiDistributionResolver {
                 .build()
         StartParameter startParameter = new StartParameter()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
-        BuildScopeServicesFactory buildScopeServicesFactory = globalRegistry.get(BuildScopeServicesFactory.class);
-        BuildScopeServices topLevelRegistry = buildScopeServicesFactory.create(startParameter);
+        BuildScopeServices topLevelRegistry = BuildScopeServices.singleSession(globalRegistry, startParameter)
         ProjectScopeServices projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.createRootProject())
 
         stopLater.add(projectRegistry)

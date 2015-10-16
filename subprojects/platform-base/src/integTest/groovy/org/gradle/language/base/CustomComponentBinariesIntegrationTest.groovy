@@ -87,19 +87,26 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
     def "can register binaries using @ComponentBinaries when viewing binaries container as #binariesContainerType.simpleName"() {
         when:
         buildFile << withSimpleComponentBinaries(binariesContainerType)
-        buildFile << """
+        buildFile << '''
 
-
-        task checkModel << {
-            assert project.binaries.size() == 2
-            def sampleBinary = project.binaries.sampleLibBinary
-            def othersSampleBinary = project.binaries.sampleLibOtherBinary
-            assert sampleBinary instanceof SampleBinary
-            assert sampleBinary.displayName == "DefaultSampleBinary 'sampleLibBinary'"
-            assert othersSampleBinary instanceof OtherSampleBinary
-            assert othersSampleBinary.displayName == "OtherSampleBinaryImpl 'sampleLibOtherBinary'"
+        model {
+            tasks {
+                checkModel(Task) {
+                    doLast {
+                        def binaries = $('binaries')
+                        assert binaries.size() == 2
+                        def sampleBinary = binaries.sampleLibBinary
+                        def othersSampleBinary = binaries.sampleLibOtherBinary
+                        assert sampleBinary instanceof SampleBinary
+                        assert sampleBinary.displayName == "DefaultSampleBinary 'sampleLibBinary'"
+                        assert othersSampleBinary instanceof OtherSampleBinary
+                        assert othersSampleBinary.displayName == "OtherSampleBinaryImpl 'sampleLibOtherBinary'"
+                    }
+                }
+            }
         }
-"""
+'''
+
         then:
         succeeds "checkModel"
 
@@ -132,16 +139,23 @@ Binaries
     def "links components sourceSets to binaries"() {
         when:
         buildFile << withSimpleComponentBinaries()
-        buildFile << """
-        task checkSourceSets << {
-            def sampleBinarySourceSet = project.binaries.sampleLibBinary.inputs.toList()[0]
-            def othersSampleBinarySourceSet = project.binaries.sampleLibOtherBinary.inputs.toList()[0]
-            assert sampleBinarySourceSet instanceof DefaultLibrarySourceSet
-            assert sampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
-            assert othersSampleBinarySourceSet instanceof DefaultLibrarySourceSet
-            assert othersSampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
-        }
-"""
+        buildFile << '''
+            model {
+                tasks {
+                    checkSourceSets(Task) {
+                        doLast {
+                            def binaries = $('binaries')
+                            def sampleBinarySourceSet = binaries.sampleLibBinary.inputs.toList()[0]
+                            def othersSampleBinarySourceSet = binaries.sampleLibOtherBinary.inputs.toList()[0]
+                            assert sampleBinarySourceSet instanceof DefaultLibrarySourceSet
+                            assert sampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
+                            assert othersSampleBinarySourceSet instanceof DefaultLibrarySourceSet
+                            assert othersSampleBinarySourceSet.displayName == "DefaultLibrarySourceSet 'sampleLib:librarySource'"
+                        }
+                    }
+                }
+            }
+'''
         then:
         succeeds "checkSourceSets"
     }
@@ -160,16 +174,22 @@ Binaries
         "assemble"        | "assemble task"
     }
 
-    def "Can access lifecycle task of binary via BinarySpec.buildTask"(){
+    def "can access lifecycle task of binary via BinarySpec.buildTask"(){
         when:
         buildFile << withSimpleComponentBinaries()
-        buildFile << """
-
-        task tellTaskName << {
-            assert project.binaries.sampleLibBinary.buildTask instanceof Task
-            assert project.binaries.sampleLibBinary.buildTask.name ==  "sampleLibBinary"
-        }
-"""
+        buildFile << '''
+            model {
+                tasks {
+                    tellTaskName(Task) {
+                        doLast {
+                            def binaries = $('binaries')
+                            assert binaries.sampleLibBinary.buildTask instanceof Task
+                            assert binaries.sampleLibBinary.buildTask.name == "sampleLibBinary"
+                        }
+                    }
+                }
+            }
+'''
         then:
         succeeds "tellTaskName"
     }

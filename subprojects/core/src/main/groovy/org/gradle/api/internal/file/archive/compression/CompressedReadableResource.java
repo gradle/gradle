@@ -19,4 +19,5 @@ package org.gradle.api.internal.file.archive.compression;
 import org.gradle.api.resources.ReadableResource;
 
 public interface CompressedReadableResource extends ReadableResource {
+    ReadableResource getCompressedResource();
 }

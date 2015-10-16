@@ -16,6 +16,8 @@
 
 package org.gradle.model.internal.core;
 
+import org.gradle.model.internal.registry.ModelRegistry;
+
 import java.util.List;
 
 public class DependencyOnlyExtractedModelRule implements ExtractedModelRule {
@@ -27,23 +29,7 @@ public class DependencyOnlyExtractedModelRule implements ExtractedModelRule {
     }
 
     @Override
-    public Type getType() {
-        return Type.DEPENDENCIES;
-    }
-
-    @Override
-    public ModelCreator getCreator() {
-        return null;
-    }
-
-    @Override
-    public ModelActionRole getActionRole() {
-        return null;
-    }
-
-    @Override
-    public ModelAction<?> getAction() {
-        return null;
+    public void apply(ModelRegistry modelRegistry, ModelPath scope) {
     }
 
     public List<Class<?>> getRuleDependencies() {

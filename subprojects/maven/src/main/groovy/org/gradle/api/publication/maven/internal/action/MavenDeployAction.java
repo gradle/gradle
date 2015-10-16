@@ -65,7 +65,7 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
             request.addArtifact(artifact);
         }
 
-        LOGGER.info("Deploying to " + gradleRepo.getUrl());
+        LOGGER.info("Deploying to {}", gradleRepo.getUrl());
         repositorySystem.deploy(session, request);
     }
 

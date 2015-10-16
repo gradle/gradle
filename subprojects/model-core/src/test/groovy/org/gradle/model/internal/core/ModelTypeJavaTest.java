@@ -37,12 +37,12 @@ public class ModelTypeJavaTest {
 // Suppress - checkstyle gets confused with type params on the outer type
 //CHECKSTYLE:OFF
         ModelType<?> type = new ModelType<Nested<? super Long>.Child<? extends Runnable>>() {};
-        assertEquals(type.getSimpleName(), "ModelTypeJavaTest.Nested<? super Long>.Child<? extends Runnable>");
+        assertEquals(type.getDisplayName(), "ModelTypeJavaTest.Nested<? super Long>.Child<? extends Runnable>");
         assertEquals(type.toString(), "org.gradle.model.internal.core.ModelTypeJavaTest.Nested<? super java.lang.Long>.Child<? extends java.lang.Runnable>");
 
         ModelType<?> listType = new ModelType<List<? extends Nested<Number>.Child<? extends Runnable>>>() {};
 
-        assertEquals(listType.getSimpleName(), "List<? extends ModelTypeJavaTest.Nested<Number>.Child<? extends Runnable>>");
+        assertEquals(listType.getDisplayName(), "List<? extends ModelTypeJavaTest.Nested<Number>.Child<? extends Runnable>>");
         assertEquals(listType.toString(), "java.util.List<? extends org.gradle.model.internal.core.ModelTypeJavaTest.Nested<java.lang.Number>.Child<? extends java.lang.Runnable>>");
 //CHECKSTYLE:ON
     }

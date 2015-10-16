@@ -1,0 +1,108 @@
+digraph G {
+    fontname = "Bitstream Vera Sans"
+    fontsize = 8
+
+    node [
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+        shape = "record"
+    ]
+
+    edge [
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+    ]
+
+    BuildableModelElement [
+        label = "{BuildableModelElement|\l}"
+    ]
+
+    LanguageSourceSet [
+        label = "{LanguageSourceSet|\l}"
+    ]
+
+    BinarySpec [
+        label = "{BinarySpec|\l}"
+    ]
+
+    JvmClassesSpec [
+        label = "{JvmClassesSpec|+classesDir : File\l}"
+    ]
+
+    JvmBinarySpec [
+        label = "{JvmBinarySpec|+toolChain : JavaToolChain\l+targetPlatform: JavaPlatform}"
+    ]
+
+    JvmVariantSpec [
+        label = "{JvmVariantSpec\l(renamed from JarBinarySpec)|+toolChain : JavaToolChain\l+targetPlatform: JavaPlatform\l+id:  LibraryBinaryIdentifier\l}"
+    ]
+
+    JarSpec [
+        label = "{JarSpec|+jarFile : File \l}"
+    ]
+
+    CustomVariantSpec [
+        label = "{CustomVariantSpec|+customVariantDimension :  VariantDimensionType\l}"
+    ]
+
+    JvmLibrarySpec [
+       label = "{JvmLibrarySpec|\l}"
+    ]
+
+    CustomLibrarySpec [
+       label = "{CustomLibrarySpec|\l}"
+    ]
+
+    edge [
+       arrowhead = "empty"
+    ]
+
+    BinarySpec -> BuildableModelElement
+    JvmClassesSpec -> BuildableModelElement
+    JvmBinarySpec -> BinarySpec
+    JvmVariantSpec -> JvmBinarySpec
+    JarSpec -> BuildableModelElement
+    CustomVariantSpec -> JvmVariantSpec
+
+    edge [
+        arrowhead = "none"
+
+        headlabel = "*"
+        label = "inputs"
+        taillabel = ""
+    ]
+
+    BinarySpec -> LanguageSourceSet
+    JarSpec -> JvmClassesSpec
+    JvmClassesSpec -> LanguageSourceSet
+
+    edge [
+        arrowhead = "none"
+
+        headlabel = ""
+        label = "api"
+        taillabel = ""
+    ]
+
+    JvmVariantSpec -> JarSpec
+
+    edge [
+        arrowhead = "none"
+
+        headlabel = ""
+        label = "impl"
+        taillabel = ""
+    ]
+
+    JvmVariantSpec -> JarSpec
+
+    edge [
+        arrowhead = "open"
+        headlabel = "*"
+        label = "produces"
+        taillabel = ""
+    ]
+
+    JvmLibrarySpec -> JvmBinarySpec
+    CustomLibrarySpec -> CustomVariantSpec
+}

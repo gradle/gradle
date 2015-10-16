@@ -83,12 +83,11 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
             throw new InvalidModelException(String.format("%s type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", StringUtils.capitalize(modelName), subType.toString()));
         }
 
-        ModelType<? extends T> asSubclass = baseInterface.asSubclass(subType);
-        if (asSubclass == null) {
+        if (!baseInterface.isAssignableFrom(subType) || baseInterface.equals(subType)) {
             throw new InvalidModelException(String.format("%s type '%s' is not a subtype of '%s'.", StringUtils.capitalize(modelName), subType.toString(), baseInterface.toString()));
         }
 
-        return asSubclass;
+        return subType.asSubtype(baseInterface);
     }
 
     protected InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?, ?> ruleDefinition, InvalidModelException e) {
@@ -99,20 +98,32 @@ public abstract class TypeModelRuleExtractor<A extends Annotation, T, U extends 
     }
 
     protected ModelType<? extends U> determineImplementationType(ModelType<? extends T> type, TypeBuilderInternal<T> builder) {
+        for (Class<?> internalView : builder.getInternalViews()) {
+            if (!internalView.isInterface()) {
+                throw new InvalidModelException(String.format("Internal view '%s' must be an interface.", internalView.getName()));
+            }
+        }
+
         Class<? extends T> implementation = builder.getDefaultImplementation();
         if (implementation == null) {
             return null;
         }
 
         ModelType<? extends T> implementationType = ModelType.of(implementation);
-        ModelType<? extends U> asSubclass = baseImplementation.asSubclass(implementationType);
 
-        if (asSubclass == null) {
+        if (!baseImplementation.isAssignableFrom(implementationType)) {
             throw new InvalidModelException(String.format("%s implementation '%s' must extend '%s'.", StringUtils.capitalize(modelName), implementationType, baseImplementation));
         }
 
+        ModelType<? extends U> asSubclass = implementationType.asSubtype(baseImplementation);
         if (!type.isAssignableFrom(asSubclass)) {
             throw new InvalidModelException(String.format("%s implementation '%s' must implement '%s'.", StringUtils.capitalize(modelName), asSubclass, type));
+        }
+
+        for (Class<?> internalView : builder.getInternalViews()) {
+            if (!internalView.isAssignableFrom(implementation)) {
+                throw new InvalidModelException(String.format("%s implementation '%s' must implement internal view '%s'.", StringUtils.capitalize(modelName), asSubclass, internalView.getName()));
+            }
         }
 
         try {

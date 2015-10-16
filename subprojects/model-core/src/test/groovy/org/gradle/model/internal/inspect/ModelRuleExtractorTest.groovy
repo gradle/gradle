@@ -15,13 +15,8 @@
  */
 
 package org.gradle.model.internal.inspect
-
 import org.gradle.model.*
-import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
-import org.gradle.model.internal.core.ExtractedModelRule
-import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelPath
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException
@@ -38,7 +33,7 @@ import java.beans.Introspector
 
 class ModelRuleExtractorTest extends Specification {
     ModelRegistry registry = new DefaultModelRegistry(null)
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
 
     static class ModelThing {
         final String name
@@ -69,21 +64,27 @@ class ModelRuleExtractorTest extends Specification {
     void registerRules(Class<?> clazz) {
         def rules = extract(clazz)
         rules.each {
-            if (it.type == ExtractedModelRule.Type.CREATOR) {
-                registry.create(it.creator)
-            } else if (it.type == ExtractedModelRule.Type.ACTION) {
-                registry.configure(it.actionRole, it.action)
-            }
+            it.apply(registry, ModelPath.ROOT)
         }
     }
 
     def "can inspect class with simple model creation rule"() {
+        def mockRegistry = Mock(ModelRegistry)
+
         when:
         def rule = extract(SimpleModelCreationRuleInferredName).first()
 
         then:
-        rule.type == ExtractedModelRule.Type.CREATOR
-        rule.creator.path.toString() == "modelPath"
+        rule instanceof ExtractedModelCreator
+
+        when:
+        rule.apply(mockRegistry, ModelPath.ROOT)
+
+        then:
+        1 * mockRegistry.create(_) >> { ModelCreator creator ->
+            assert creator.path.toString() == "modelPath"
+        }
+        0 * _
     }
 
     static class ParameterizedModel extends RuleSource {
@@ -113,10 +114,10 @@ class ModelRuleExtractorTest extends Specification {
         registerRules(ParameterizedModel)
 
         then:
-        registry.realizeNode(ModelPath.path("strings")).promise.canBeViewedAsReadOnly(new ModelType<List<String>>() {})
-        registry.realizeNode(ModelPath.path("superStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? super String>>() {})
-        registry.realizeNode(ModelPath.path("extendsStrings")).promise.canBeViewedAsReadOnly(new ModelType<List<? extends String>>() {})
-        registry.realizeNode(ModelPath.path("wildcard")).promise.canBeViewedAsReadOnly(new ModelType<List<?>>() {})
+        registry.realizeNode(ModelPath.path("strings")).promise.canBeViewedAsImmutable(new ModelType<List<String>>() {})
+        registry.realizeNode(ModelPath.path("superStrings")).promise.canBeViewedAsImmutable(new ModelType<List<? super String>>() {})
+        registry.realizeNode(ModelPath.path("extendsStrings")).promise.canBeViewedAsImmutable(new ModelType<List<? extends String>>() {})
+        registry.realizeNode(ModelPath.path("wildcard")).promise.canBeViewedAsImmutable(new ModelType<List<?>>() {})
     }
 
     static class HasGenericModelRule extends RuleSource {
@@ -149,7 +150,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         def e = thrown(InvalidModelRuleDeclarationException)
-        e.message == "${ModelType.of(HasMultipleRuleAnnotations).simpleName}#thing is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate]"
+        e.message == "${ModelType.of(HasMultipleRuleAnnotations).displayName}#thing is not a valid model rule method: can only be one of [annotated with @Model and returning a model element, annotated with @Service and returning a model element, @annotated with @Model and taking a managed model element, annotated with @Defaults, annotated with @Mutate, annotated with @Finalize, annotated with @Validate]"
     }
 
     static class ConcreteGenericModelType extends RuleSource {
@@ -163,7 +164,7 @@ class ModelRuleExtractorTest extends Specification {
         when:
         registerRules(ConcreteGenericModelType)
         def node = registry.realizeNode(new ModelPath("strings"))
-        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
+        def type = node.adapter.asImmutable(new ModelType<List<String>>() {}, node, null).type
 
         then:
         type.parameterized
@@ -181,7 +182,7 @@ class ModelRuleExtractorTest extends Specification {
         when:
         registerRules(ConcreteGenericModelTypeImplementingGenericInterface)
         def node = registry.realizeNode(new ModelPath("strings"))
-        def type = node.adapter.asReadOnly(new ModelType<List<String>>() {}, node, null).type
+        def type = node.adapter.asImmutable(new ModelType<List<String>>() {}, node, null).type
 
         then:
         type.parameterized
@@ -287,7 +288,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         def node = registry.realizeNode(path)
-        node.adapter.asReadOnly(type, node, null).instance.sort() == ["1", "2"]
+        node.adapter.asImmutable(type, node, null).instance.sort() == ["1", "2"]
     }
 
     static class MutationAndFinalizeRules extends RuleSource {
@@ -322,7 +323,7 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         def node = registry.realizeNode(path)
-        node.adapter.asReadOnly(type, node, null).instance == ["1", "2"]
+        node.adapter.asImmutable(type, node, null).instance == ["1", "2"]
     }
 
     def "methods are processed ordered by their to string representation"() {
@@ -355,21 +356,6 @@ class ModelRuleExtractorTest extends Specification {
 
         then:
         thrown InvalidModelRuleDeclarationException
-    }
-
-    static class RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged extends RuleSource {
-        @Model
-        void bar(NonManaged foo) {
-        }
-    }
-
-    def "type of the first argument of void returning model definition has to be @Managed annotated"() {
-        when:
-        registerRules(RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged)
-
-        then:
-        InvalidModelRuleDeclarationException e = thrown()
-        e.message == 'ModelRuleExtractorTest.RuleSetCreatingAnInterfaceThatIsNotAnnotatedWithManaged#bar is not a valid model rule method: a void returning model element creation rule has to take an instance of a managed type as the first argument'
     }
 
     static class RuleSourceCreatingAClassAnnotatedWithManaged extends RuleSource {
@@ -451,7 +437,7 @@ ${managedType.name}
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "Declaration of model rule ${ModelType.of(RuleSourceCreatingManagedWithNonManageableParent).simpleName}#bar is invalid."
+        e.message == "Declaration of model rule ${ModelType.of(RuleSourceCreatingManagedWithNonManageableParent).displayName}#bar is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == TextUtil.toPlatformLineSeparators("""Invalid managed model type $invalidTypeName: cannot be a parameterized type.
 The type was analyzed due to the following dependencies:

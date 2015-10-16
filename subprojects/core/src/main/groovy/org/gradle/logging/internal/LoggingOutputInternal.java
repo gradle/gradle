@@ -20,6 +20,9 @@ import org.gradle.logging.ConsoleOutput;
 
 import java.io.OutputStream;
 
+/**
+ * Allows various logging consumers to be attached to the output of the logging system.
+ */
 public interface LoggingOutputInternal extends LoggingOutput {
     /**
      * Adds System.out and System.err as logging destinations. The output will include plain text only, with no color or dynamic text.

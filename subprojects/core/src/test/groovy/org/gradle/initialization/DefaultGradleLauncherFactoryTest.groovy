@@ -16,6 +16,7 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildSessionScopeServices
@@ -27,7 +28,7 @@ import spock.lang.Specification
 class DefaultGradleLauncherFactoryTest extends Specification {
     def startParameter = new StartParameter()
     final ServiceRegistry globalServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServicesTestFixture.getInstance()).addProvider(new GlobalScopeServices(false))
-    final ServiceRegistry sessionServices = new BuildSessionScopeServices(globalServices, startParameter)
+    final ServiceRegistry sessionServices = new BuildSessionScopeServices(globalServices, startParameter, ClassPath.EMPTY)
     final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(globalServices)
 
     def "makes services from build context available as build scoped services"() {

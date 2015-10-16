@@ -31,6 +31,7 @@ import java.util.Map;
 /**
  * A listener which logs the execution of tasks.
  */
+@Deprecated
 public class TaskExecutionLogger implements TaskExecutionListener {
 
     private final Map<Task, ProgressLogger> currentTasks = new HashMap<Task, ProgressLogger>();

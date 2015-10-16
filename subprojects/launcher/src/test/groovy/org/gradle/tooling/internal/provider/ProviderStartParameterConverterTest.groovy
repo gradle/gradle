@@ -28,7 +28,7 @@ class ProviderStartParameterConverterTest extends Specification {
     def params = Stub(ProviderOperationParameters)
 
     def "allows configuring the start parameter with build arguments"() {
-        params.getArguments(_) >> ['-PextraProperty=foo', '-m']
+        params.getArguments() >> ['-PextraProperty=foo', '-m']
 
         when:
         def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
@@ -42,7 +42,7 @@ class ProviderStartParameterConverterTest extends Specification {
         given:
         def projectDir = temp.createDir('projectDir')
         params.getProjectDir() >> projectDir
-        params.getArguments(_) >> ['-p', 'otherDir']
+        params.getArguments() >> ['-p', 'otherDir']
 
         when:
         def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
@@ -57,7 +57,7 @@ class ProviderStartParameterConverterTest extends Specification {
         def projectDir = temp.createDir('projectDir')
         params.getGradleUserHomeDir() >> dotGradle
         params.getProjectDir() >> projectDir
-        params.getArguments(_) >> ['-g', 'otherDir']
+        params.getArguments() >> ['-g', 'otherDir']
 
         when:
         def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
@@ -68,7 +68,7 @@ class ProviderStartParameterConverterTest extends Specification {
 
     def "can overwrite searchUpwards via build arguments"() {
         given:
-        params.getArguments(_) >> ['-u']
+        params.getArguments() >> ['-u']
 
         when:
         def start = new ProviderStartParameterConverter().toStartParameter(params, [:])
@@ -79,7 +79,7 @@ class ProviderStartParameterConverterTest extends Specification {
 
     def "searchUpwards configured directly on the action wins over the command line setting"() {
         given:
-        params.getArguments(_) >> ['-u']
+        params.getArguments() >> ['-u']
         params.isSearchUpwards() >> true
 
         when:

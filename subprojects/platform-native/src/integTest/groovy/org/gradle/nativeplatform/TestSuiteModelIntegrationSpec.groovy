@@ -18,12 +18,10 @@ package org.gradle.nativeplatform
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 
 class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
     def "setup"() {
-        EnableModelDsl.enable(executer)
         buildScript """
             apply type: NativeBinariesTestPlugin
 

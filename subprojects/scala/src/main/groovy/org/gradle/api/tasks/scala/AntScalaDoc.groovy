@@ -20,6 +20,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.internal.project.IsolatedAntBuilder
 
+@Deprecated
 class AntScalaDoc {
     private static Logger logger = LoggerFactory.getLogger(AntScalaDoc)
 

@@ -122,10 +122,6 @@ class GradleInvocationSpec {
             gradleOpts("-Dorg.gradle.daemon.disable-output=true")
         }
 
-        Builder enableTransformedModelDsl() {
-            gradleOpts("-Dorg.gradle.model.dsl=true")
-        }
-
         Builder disableParallelWorkers() {
             gradleOpts("-D${GradleProperties.WORKERS_PROPERTY}=1")
         }

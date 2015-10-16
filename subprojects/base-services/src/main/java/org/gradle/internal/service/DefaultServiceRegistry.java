@@ -89,7 +89,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     public DefaultServiceRegistry(String displayName, Collection<? extends ServiceRegistry> parents) {
-        this.displayName = displayName != null ? displayName : getClass().getSimpleName();
+        this.displayName = displayName != null ? displayName : getClass().getSimpleName().intern();
         this.parentServices = parents.isEmpty() ? null : new CompositeProvider();
         this.ownServices = new OwnServices();
         allServices.providers.add(ownServices);

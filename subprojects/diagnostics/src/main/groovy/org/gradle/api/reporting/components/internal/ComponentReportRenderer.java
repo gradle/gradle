@@ -17,15 +17,15 @@
 package org.gradle.api.reporting.components.internal;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.gradle.logging.StyledTextOutput.Style.Info;
 
@@ -62,7 +62,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
             } else {
                 seen = true;
             }
-            componentRenderer.render(component, getBuilder());
+            getBuilder().item(component, componentRenderer);
             componentSourceSets.addAll(component.getSources().values());
             componentBinaries.addAll(component.getBinaries().values());
         }
@@ -77,10 +77,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
         }
         if (!additionalSourceSets.isEmpty()) {
             getBuilder().getOutput().println();
-            getBuilder().subheading("Additional source sets");
-            for (LanguageSourceSet sourceSet : additionalSourceSets) {
-                sourceSetRenderer.render(sourceSet, getBuilder());
-            }
+            getBuilder().collection("Additional source sets", additionalSourceSets, sourceSetRenderer, "source sets");
         }
     }
 
@@ -93,14 +90,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
         }
         if (!additionalBinaries.isEmpty()) {
             getBuilder().getOutput().println();
-            getBuilder().subheading("Additional binaries");
-            for (BinarySpec binary : additionalBinaries) {
-                try {
-                    binaryRenderer.render(binary, getBuilder());
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
+            getBuilder().collection("Additional binaries", additionalBinaries, binaryRenderer, "binaries");
         }
     }
 }

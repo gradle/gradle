@@ -72,6 +72,7 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     void reset() {
+        // This method wasn't static in older tooling API versions
         new ConnectorServices().reset()
     }
 

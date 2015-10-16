@@ -45,7 +45,7 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
 
     private DefaultMethodRuleDefinition(Method method, ModelType<T> instanceType, ModelType<R> returnType) {
         this.method = new WeaklyTypeReferencingMethod<T, R>(instanceType, returnType, method);
-        
+
         ImmutableList.Builder<ModelReference<?>> referencesBuilder = ImmutableList.builder();
         for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
             Annotation[] paramAnnotations = method.getParameterAnnotations()[i];
@@ -83,6 +83,12 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
         return references.size() > 1 ? references.subList(1, references.size()) : Collections.<ModelReference<?>>emptyList();
     }
 
+    @Override
+    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+        return getAnnotation(annotationType) != null;
+    }
+
+    @Override
     public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
         for (Annotation annotation : method.getAnnotations()) {
             if (annotationType.isAssignableFrom(annotation.getClass())) {

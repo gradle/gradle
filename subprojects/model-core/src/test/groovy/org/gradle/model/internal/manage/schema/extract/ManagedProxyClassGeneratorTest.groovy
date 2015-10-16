@@ -15,27 +15,21 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
-
 import com.google.common.base.Optional
-import com.google.common.collect.ImmutableMap
+import groovy.transform.NotYetImplemented
+import org.gradle.model.Managed
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.manage.instance.ManagedInstance
 import org.gradle.model.internal.manage.instance.ModelElementState
-import org.gradle.model.internal.manage.schema.ModelProperty
-import org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType
-import org.gradle.model.internal.method.WeaklyTypeReferencingMethod
+import org.gradle.model.internal.manage.schema.ModelStructSchema
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
-
-import java.lang.reflect.Method
-
-import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.*
 
 class ManagedProxyClassGeneratorTest extends Specification {
     static def generator = new ManagedProxyClassGenerator()
     static Map<Class<?>, Map<Class<?>, Class<?>>> generated = [:].withDefault { [:] }
+    def schemaStore = DefaultModelSchemaStore.instance
 
     def "generates a proxy class for an interface"() {
         expect:
@@ -65,6 +59,13 @@ class ManagedProxyClassGeneratorTest extends Specification {
 
         when:
         Class<? extends SomeType> proxyClass = generate(SomeType)
+
+        then:
+        ManagedInstance.methods.each { method ->
+            assert proxyClass.getMethod(method.name, method.parameterTypes).synthetic
+        }
+
+        when:
         SomeType impl = proxyClass.newInstance(state)
 
         then:
@@ -107,25 +108,30 @@ class ManagedProxyClassGeneratorTest extends Specification {
         BooleanGetter5 | false           | true
     }
 
+    @Managed
     static interface BooleanGetter1 {
         boolean getFlag()
     }
 
+    @Managed
     static interface BooleanGetter2 {
         boolean isFlag()
     }
 
+    @Managed
     static interface BooleanGetter3 {
         boolean getFlag()
 
         boolean isFlag()
     }
 
+    @Managed
     static interface BooleanGetter4 extends BooleanGetter1 {
         // make sure that getters from parents are used
         boolean isFlag()
     }
 
+    @Managed
     static interface BooleanGetter5 extends BooleanGetter2 {
         // make sure that overrides do not generate duplicates
         boolean isFlag()
@@ -186,7 +192,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         }
 
         when:
-        Class<? extends ManagedSubType> proxyClass = generate(ManagedSubType, InternalUnmanagedType)
+        Class<? extends ManagedSubType> proxyClass = generate(ManagedSubType, UnmanagedImplType)
         def unmanagedInstance = new UnmanagedImplType()
         ManagedSubType impl = proxyClass.newInstance(state, unmanagedInstance)
 
@@ -204,15 +210,6 @@ class ManagedProxyClassGeneratorTest extends Specification {
         then:
         greeting == "Hello Lajos"
 
-        expect:
-        ((InternalUnmanagedType) impl).add(2, 3) == 5
-
-        when:
-        ((InternalUnmanagedType) impl).throwError()
-        then:
-        def ex = thrown RuntimeException
-        ex.message == "error"
-
         when:
         impl.managedValue = "Tibor"
         then:
@@ -223,6 +220,65 @@ class ManagedProxyClassGeneratorTest extends Specification {
         then:
         managedValue == "Tibor"
         1 * state.get("managedValue") >> { "Tibor" }
+
+        when:
+        Class<? extends InternalUnmanagedType> proxyClassInternal = generate(InternalUnmanagedType, UnmanagedImplType)
+        InternalUnmanagedType internalImpl = proxyClassInternal.newInstance(state, unmanagedInstance)
+
+        then:
+        unmanagedInstance.unmanagedValue == "Lajos"
+
+        when:
+        internalImpl.unmanagedValue = "Geza"
+        then:
+        unmanagedInstance.unmanagedValue == "Geza"
+
+        expect:
+        internalImpl.add(2, 3) == 5
+
+        when:
+        internalImpl.throwError()
+        then:
+        def ex = thrown RuntimeException
+        ex.message == "error"
+    }
+
+    static interface OverloadingNumber {
+        Number getValue()
+    }
+
+    static interface OverloadingInteger extends OverloadingNumber {
+        @Override
+        Integer getValue()
+    }
+
+    static class OverloadingNumberImpl implements OverloadingNumber {
+        @Override
+        Number getValue() { 1.0d }
+    }
+
+    static class OverloadingIntegerImpl extends OverloadingNumberImpl implements OverloadingInteger {
+        @Override
+        Integer getValue() { 2 }
+    }
+
+    @Managed
+    static interface CustomManagedOverloading extends OverloadingNumber {
+    }
+
+    def "can call overloaded delegate method"() {
+        def node = Stub(MutableModelNode)
+        def state = Mock(ModelElementState) {
+            getBackingNode() >> node
+        }
+
+        Class<? extends CustomManagedOverloading> proxyClass = generate(CustomManagedOverloading, OverloadingIntegerImpl)
+
+        when:
+        OverloadingNumber impl = proxyClass.newInstance(state, new OverloadingIntegerImpl())
+
+        then:
+        impl.value == 2
     }
 
     def "mixes in toString() implementation that delegates to element state"() {
@@ -255,7 +311,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         e.message == "No such property: unknown for class: ${SomeType.name}"
     }
 
-    @Ignore
+    @NotYetImplemented
     def "reports contract type rather than implementation class when attempting to set read-only property"() {
         given:
         def impl = newInstance(SomeTypeWithReadOnly)
@@ -297,13 +353,13 @@ class ManagedProxyClassGeneratorTest extends Specification {
         def loader = new GroovyClassLoader(getClass().classLoader)
         when:
         def interfaceWithPrimitiveProperty = loader.parseClass """
+            @org.gradle.model.Managed
             interface PrimitiveProperty {
                 $primitiveType.name getPrimitiveProperty()
 
                 void setPrimitiveProperty($primitiveType.name value)
             }
         """
-
 
         def data = [:]
         def state = Mock(ModelElementState)
@@ -313,8 +369,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         state.set(_, _) >> { args ->
             data[args[0]] = args[1]
         }
-        def properties = [property(interfaceWithPrimitiveProperty, 'primitiveProperty', MANAGED)]
-        def proxy = generate(interfaceWithPrimitiveProperty, null, properties)
+        def proxy = generate(interfaceWithPrimitiveProperty)
         def instance = proxy.newInstance(state)
 
         then:
@@ -343,6 +398,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         def loader = new GroovyClassLoader(getClass().classLoader)
         when:
         def clazz = loader.parseClass """
+            @org.gradle.model.Managed
             interface PrimitiveProperty {
                 List<$scalarType.name> getItems()
 
@@ -359,8 +415,7 @@ class ManagedProxyClassGeneratorTest extends Specification {
         state.set(_, _) >> { args ->
             data[args[0]] = args[1]
         }
-        def properties = [property(clazz, 'items', MANAGED)]
-        def proxy = generate(clazz, null, properties)
+        def proxy = generate(clazz)
         def instance = proxy.newInstance(state)
 
         then:
@@ -403,47 +458,26 @@ class ManagedProxyClassGeneratorTest extends Specification {
         return generated.newInstance(Stub(ModelElementState))
     }
 
-    def <T, M extends T, D extends T> Class<? extends T> generate(Class<T> managedType, Class<D> delegateType = null, Collection<ModelPropertyExtractionResult<?>> properties = managedProperties[managedType]) {
+    def <T, M extends T, D extends T> Class<? extends T> generate(Class<T> managedType, Class<D> delegateType = null) {
         Map<Class<?>, Class<?>> generatedForDelegateType = generated[managedType]
         Class<? extends T> generated = generatedForDelegateType[delegateType] as Class<? extends T>
         if (generated == null) {
-            generated = generator.generate(ModelType.of(managedType), delegateType, properties)
+            def managedSchema = schemaStore.getSchema(managedType)
+            def delegateSchema = delegateType == null ? null : schemaStore.getSchema(delegateType)
+            generated = generator.generate((ModelStructSchema) managedSchema, (ModelStructSchema) delegateSchema)
             generatedForDelegateType[delegateType] = generated
         }
         return generated
     }
 
-    private static def property(Class<?> parentType, String name, StateManagementType stateManagementType) {
-        List<Method> getters = []
-        try {
-            getters << parentType.getMethod("get${name.capitalize()}");
-        } catch (NoSuchMethodException ex) {
-        }
-        try {
-            getters << parentType.getMethod("is${name.capitalize()}");
-        } catch (NoSuchMethodException ex) {
-        }
-        def type = ModelType.returnType(getters[0])
-        def getterRefs = getters.collect { new WeaklyTypeReferencingMethod(ModelType.of(parentType), type, it) }
-        def getterContext = new PropertyAccessorExtractionContext(getters)
-        def setterContext;
-        try {
-            def setter = parentType.getMethod("set${name.capitalize()}", type.getRawClass())
-            setterContext = new PropertyAccessorExtractionContext([setter])
-        } catch (ignore) {
-            setterContext = null
-        }
-        return new ModelPropertyExtractionResult<?>(
-            ModelProperty.of(type, name, stateManagementType, setterContext != null, Collections.emptySet(), getterRefs),
-            getterContext, setterContext)
-    }
-
+    @Managed
     static interface SomeType {
         Integer getValue()
 
         void setValue(Integer value)
     }
 
+    @Managed
     static abstract class SomeTypeWithReadOnly {
         abstract Integer getValue()
 
@@ -452,6 +486,14 @@ class ManagedProxyClassGeneratorTest extends Specification {
         String getReadOnly() {
             return "read-only"
         }
+    }
+
+    @Managed
+    static interface SomeTypeWithParameters {
+        List<String> getValues();
+
+        Optional<Boolean> getOptional();
+        void setOptional(Optional<Boolean> optional);
     }
 
     static interface PublicUnmanagedType {
@@ -487,27 +529,11 @@ class ManagedProxyClassGeneratorTest extends Specification {
         }
     }
 
+    @Managed
     static interface ManagedSubType extends PublicUnmanagedType {
         String getManagedValue()
 
         void setManagedValue(String managedValue)
     }
 
-    static Map<Class<?>, Collection<ModelPropertyExtractionResult<?>>> managedProperties =
-        ImmutableMap.copyOf([
-            (SomeType)              : [property(SomeType, "value", MANAGED)],
-            (SomeTypeWithReadOnly)  : [property(SomeTypeWithReadOnly, "value", MANAGED),
-                                       property(SomeTypeWithReadOnly, "readOnly", UNMANAGED)],
-            (PublicUnmanagedType)   : [property(PublicUnmanagedType, "unmanagedValue", UNMANAGED)],
-
-            (ManagedSubType)        : [property(ManagedSubType, "unmanagedValue", DELEGATED),
-                                       property(ManagedSubType, "managedValue", MANAGED)],
-            (SomeTypeWithParameters): [property(SomeTypeWithParameters, "values", MANAGED),
-                                       property(SomeTypeWithParameters, "optional", MANAGED)],
-            (BooleanGetter1)        : [property(BooleanGetter1, "flag", MANAGED)],
-            (BooleanGetter2)        : [property(BooleanGetter2, "flag", MANAGED)],
-            (BooleanGetter3)        : [property(BooleanGetter3, "flag", MANAGED)],
-            (BooleanGetter4)        : [property(BooleanGetter4, "flag", MANAGED)],
-            (BooleanGetter5)        : [property(BooleanGetter5, "flag", MANAGED)],
-        ])
 }

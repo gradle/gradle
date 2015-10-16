@@ -117,7 +117,9 @@ public interface ModelRegistry {
 
     ModelRegistry create(ModelCreator creator);
 
-    <T> ModelRegistry configure(ModelActionRole role, ModelAction<T> action);
+    ModelRegistry configure(ModelActionRole role, ModelAction action);
+
+    ModelRegistry configure(ModelActionRole role, ModelAction action, ModelPath scope);
 
     ModelRegistry apply(Class<? extends RuleSource> rules);
 

@@ -30,6 +30,10 @@ public abstract class ModelViews {
         }
     }
 
+    public static <T> ModelView<T> assertType(ModelView<?> untypedView, Class<T> type) {
+        return assertType(untypedView, ModelType.of(type));
+    }
+
     public static <T> ModelView<T> assertType(ModelView<?> untypedView, ModelReference<T> reference) {
         return assertType(untypedView, reference.getType());
     }

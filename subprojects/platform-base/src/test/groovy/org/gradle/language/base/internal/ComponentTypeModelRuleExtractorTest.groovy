@@ -15,18 +15,17 @@
  */
 
 package org.gradle.language.base.internal
-import org.gradle.language.base.internal.testinterfaces.NotComponentSpec
-import org.gradle.language.base.internal.testinterfaces.SomeComponentSpec
+
+import org.gradle.language.base.internal.testinterfaces.*
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
-import org.gradle.model.internal.core.ExtractedModelRule
-import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.ModelReference
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
+import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.*
 import org.gradle.platform.base.component.BaseComponentSpec
-import org.gradle.platform.base.internal.ComponentSpecFactory
+import org.gradle.platform.base.component.internal.ComponentSpecFactory
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
 import org.gradle.platform.base.internal.registry.ComponentTypeModelRuleExtractor
 import spock.lang.Unroll
@@ -43,23 +42,24 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
     Class<?> ruleClass = Rules
 
     def "applies ComponentModelBasePlugin and creates component type rule"() {
+        def mockRegistry = Mock(ModelRegistry)
+
         when:
         def registration = ruleHandler.registration(ruleDefinitionForMethod("validTypeRule"))
 
         then:
+        registration instanceof ExtractedModelAction
         registration.ruleDependencies == [ComponentModelBasePlugin]
-        registration.type == ExtractedModelRule.Type.ACTION
-        registration.actionRole == ModelActionRole.Defaults
-        registration.action.subject == ModelReference.of(FACTORY_REGISTRY_TYPE)
-    }
 
-    def "applies ComponentModelBasePlugin only when implementation not set"() {
         when:
-        def registration = ruleHandler.registration(ruleDefinitionForMethod("noImplementationSet"))
+        registration.apply(mockRegistry, ModelPath.ROOT)
 
         then:
-        registration.ruleDependencies == [ComponentModelBasePlugin]
-        registration.type == ExtractedModelRule.Type.DEPENDENCIES
+        1 * mockRegistry.configure(_, _, _) >> { ModelActionRole role, ModelAction action, ModelPath scope ->
+            assert role == ModelActionRole.Defaults
+            assert action.subject == ModelReference.of(FACTORY_REGISTRY_TYPE)
+        }
+        0 * _
     }
 
     @Unroll
@@ -77,31 +77,44 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         ex.cause.message == expectedMessage
 
         where:
-        methodName                         | expectedMessage                                                                                                         | descr
-        "extraParameter"                   | "Method annotated with @ComponentType must have a single parameter of type '${ComponentTypeBuilder.name}'."             | "additional rule parameter"
-        "binaryTypeBuilder"                | "Method annotated with @ComponentType must have a single parameter of type '${ComponentTypeBuilder.name}'."             | "wrong builder type"
-        "returnValue"                      | "Method annotated with @ComponentType must not have a return value."                                                    | "method with return type"
-        "implementationSetMultipleTimes"   | "Method annotated with @ComponentType cannot set default implementation multiple times."                                | "implementation set multiple times"
-        "noTypeParam"                      | "Parameter of type '${ComponentTypeBuilder.name}' must declare a type parameter."                                       | "missing type parameter"
-        "wildcardType"                     | "Component type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                               | "wildcard type parameter"
-        "extendsType"                      | "Component type '? extends ${ComponentSpec.name}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)." | "extends type parameter"
-        "superType"                        | "Component type '? super ${ComponentSpec.name}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."   | "super type parameter"
-        "notComponentSpec"                 | "Component type '${NotComponentSpec.name}' is not a subtype of '${ComponentSpec.name}'."                                | "type not extending ComponentSpec"
-        "notCustomComponent"               | "Component type '${ComponentSpec.name}' is not a subtype of '${ComponentSpec.name}'."                                   | "type is ComponentSpec"
-        "notImplementingLibraryType"       | "Component implementation '${NotImplementingCustomComponent.name}' must implement '${SomeComponentSpec.name}'."         | "implementation not implementing type class"
-        "notExtendingDefaultSampleLibrary" | "Component implementation '${NotExtendingBaseComponentSpec.name}' must extend '${BaseComponentSpec.name}'."             | "implementation not extending BaseComponentSpec"
-        "noDefaultConstructor"             | "Component implementation '${NoDefaultConstructor.name}' must have public default constructor."                         | "implementation with no public default constructor"
+        methodName                         | expectedMessage                                                                                                                            | descr
+        "extraParameter"                   | "Method annotated with @ComponentType must have a single parameter of type '${ComponentTypeBuilder.name}'."                                | "additional rule parameter"
+        "binaryTypeBuilder"                | "Method annotated with @ComponentType must have a single parameter of type '${ComponentTypeBuilder.name}'."                                | "wrong builder type"
+        "returnValue"                      | "Method annotated with @ComponentType must not have a return value."                                                                       | "method with return type"
+        "implementationSetMultipleTimes"   | "Method annotated with @ComponentType cannot set default implementation multiple times."                                                   | "implementation set multiple times"
+        "noTypeParam"                      | "Parameter of type '${ComponentTypeBuilder.name}' must declare a type parameter."                                                          | "missing type parameter"
+        "wildcardType"                     | "Component type '?' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                                                  | "wildcard type parameter"
+        "extendsType"                      | "Component type '? extends ${ComponentSpec.name}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                    | "extends type parameter"
+        "superType"                        | "Component type '? super ${ComponentSpec.name}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."                      | "super type parameter"
+        "notComponentSpec"                 | "Component type '${NotComponentSpec.name}' is not a subtype of '${ComponentSpec.name}'."                                                   | "type not extending ComponentSpec"
+        "notCustomComponent"               | "Component type '${ComponentSpec.name}' is not a subtype of '${ComponentSpec.name}'."                                                      | "type is ComponentSpec"
+        "notImplementingLibraryType"       | "Component implementation '${NotImplementingCustomComponent.name}' must implement '${SomeComponentSpec.name}'."                            | "implementation not implementing type class"
+        "notExtendingDefaultSampleLibrary" | "Component implementation '${NotExtendingBaseComponentSpec.name}' must extend '${BaseComponentSpec.name}'."                                | "implementation not extending BaseComponentSpec"
+        "noDefaultConstructor"             | "Component implementation '${NoDefaultConstructor.name}' must have public default constructor."                                            | "implementation with no public default constructor"
+        "internalViewNotInterface"         | "Internal view '${NonInterfaceInternalView.name}' must be an interface."                                                                   | "non-interface internal view"
+        "notExtendingInternalView"         | "Component implementation '${SomeComponentSpecImpl.name}' must implement internal view '${NotImplementedComponentSpecInternalView.name}'." | "implementation not extending internal view"
+        "repeatedInternalView"             | "Internal view '${ComponentSpecInternalView.name}' must not be specified multiple times."                                                  | "internal view specified multiple times"
     }
 
+    static interface SomeComponentSpec extends ComponentSpec {}
 
-
-    static class SomeComponentSpecImpl extends BaseComponentSpec implements SomeComponentSpec {}
+    static class SomeComponentSpecImpl extends BaseComponentSpec implements SomeComponentSpec, ComponentSpecInternalView, BareInternalView {}
 
     static class SomeComponentSpecOtherImpl extends SomeComponentSpecImpl {}
 
     static class NotImplementingCustomComponent extends BaseComponentSpec implements ComponentSpec {}
 
     abstract static class NotExtendingBaseComponentSpec implements SomeComponentSpec {}
+
+    abstract static class NonInterfaceInternalView implements ComponentSpec {}
+
+    static interface ComponentSpecInternalView extends ComponentSpec {}
+
+    static interface BareInternalView {}
+
+    static interface NotComponentSpec {}
+
+    static interface NotImplementedComponentSpecInternalView extends ComponentSpec {}
 
     static class NoDefaultConstructor extends BaseComponentSpec implements SomeComponentSpec {
         NoDefaultConstructor(String arg) {
@@ -112,6 +125,8 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         @ComponentType
         static void validTypeRule(ComponentTypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(SomeComponentSpecImpl)
+            builder.internalView(ComponentSpecInternalView)
+            builder.internalView(BareInternalView)
         }
 
         @ComponentType
@@ -173,6 +188,25 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         @ComponentType
         static void noDefaultConstructor(ComponentTypeBuilder<SomeComponentSpec> builder) {
             builder.defaultImplementation(NoDefaultConstructor)
+        }
+
+        @ComponentType
+        static void internalViewNotInterface(ComponentTypeBuilder<SomeComponentSpec> builder) {
+            builder.defaultImplementation(SomeComponentSpecImpl)
+            builder.internalView(NonInterfaceInternalView)
+        }
+
+        @ComponentType
+        static void notExtendingInternalView(ComponentTypeBuilder<SomeComponentSpec> builder) {
+            builder.defaultImplementation(SomeComponentSpecImpl)
+            builder.internalView(NotImplementedComponentSpecInternalView)
+        }
+
+        @ComponentType
+        static void repeatedInternalView(ComponentTypeBuilder<SomeComponentSpec> builder) {
+            builder.defaultImplementation(SomeComponentSpecImpl)
+            builder.internalView(ComponentSpecInternalView)
+            builder.internalView(ComponentSpecInternalView)
         }
     }
 }

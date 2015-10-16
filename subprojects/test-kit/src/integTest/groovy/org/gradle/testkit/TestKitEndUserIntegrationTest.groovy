@@ -22,10 +22,19 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.fixtures.GradleRunnerType
+import org.gradle.testkit.runner.fixtures.MultiGradleRunnerSpecRunner
 import org.gradle.testkit.runner.internal.TempTestKitDirProvider
 import org.gradle.util.GFileUtils
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.junit.runner.RunWith
 
+@RunWith(MultiGradleRunnerSpecRunner)
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
+
+    static GradleRunnerType gradleRunnerType
+
     def setup() {
         executer.requireGradleHome().withStackTraceChecksDisabled()
         buildFile << buildFileForGroovyProject()
@@ -33,7 +42,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def "use of GradleRunner API in test class without declaring test-kit dependency causes compilation error"() {
         given:
-        writeTest(buildLogicFunctionalTestCreatingGradleRunner())
+        writeTest(buildLogicFunctionalTestCreatingGradleRunner(gradleRunnerType.debug))
 
         when:
         fails('build')
@@ -57,7 +66,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         GFileUtils.copyFile(gradleTestKitLib, new File(libDir, gradleTestKitLib.name))
 
         buildFile << libDirDependency()
-        writeTest(buildLogicFunctionalTestCreatingGradleRunner())
+        writeTest(buildLogicFunctionalTestCreatingGradleRunner(gradleRunnerType.debug))
 
         when:
         fails('build')
@@ -82,7 +91,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         }
 
         buildFile << libDirDependency()
-        writeTest(buildLogicFunctionalTestCreatingGradleRunner())
+        writeTest(buildLogicFunctionalTestCreatingGradleRunner(gradleRunnerType.debug))
 
         when:
         fails('build')
@@ -94,7 +103,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def "successfully execute functional test and verify expected result"() {
         buildFile << gradleTestKitDependency()
-        writeTest successfulSpockTest('BuildLogicFunctionalTest')
+        writeTest successfulSpockTest('BuildLogicFunctionalTest', gradleRunnerType.debug)
 
         when:
         succeeds('build')
@@ -106,20 +115,12 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def "successfully execute functional tests with parallel forks"() {
         buildFile << gradleTestKitDependency()
-        buildFile << """
-            test {
-                maxParallelForks = 3
-
-                testLogging {
-                    events 'started'
-                }
-            }
-        """
+        buildFile << parallelTests()
 
         def testClassNames = (1..10).collect { "BuildLogicFunctionalTest$it" }
 
         testClassNames.each { testClassName ->
-            writeTest successfulSpockTest(testClassName), testClassName
+            writeTest successfulSpockTest(testClassName, gradleRunnerType.debug), testClassName
         }
 
         when:
@@ -129,7 +130,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":test", ":build")
 
         testClassNames.each { testClassName ->
-            assert result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
+            result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
         }
 
         assertDaemonsAreStopping()
@@ -171,6 +172,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
                         .withTestKitDir(testGradleUserHomeDir.root)
+                        .withDebug($gradleRunnerType.debug)
                         .build()
 
                     then:
@@ -338,6 +340,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
+                        .withDebug($gradleRunnerType.debug)
                         .build()
 
                     then:
@@ -447,13 +450,13 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             class BuildLogicFunctionalTest extends Specification {
                 @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
                 File buildFile
-                List<URI> pluginClasspath
+                List<File> pluginClasspath
 
                 def setup() {
                     buildFile = testProjectDir.newFile('build.gradle')
                     pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
                       .readLines()
-                      .collect { new File(it).toURI() }
+                      .collect { new File(it) }
                 }
 
                 def "execute helloWorld task"() {
@@ -472,7 +475,8 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld', 'byeWorld')
-                        .withClasspath(pluginClasspath)
+                        .withPluginClasspath(pluginClasspath)
+                        .withDebug($gradleRunnerType.debug)
                         .build()
 
                     then:
@@ -493,6 +497,197 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped(':test')
         assertDaemonsAreStopping()
+    }
+
+    def "can control debug mode through system property"() {
+        buildFile << gradleTestKitDependency()
+        buildFile << """
+            test {
+                systemProperty '$GradleRunner.DEBUG_SYS_PROP', '$gradleRunnerType.debug'
+            }
+        """
+        writeTest """
+            package org.gradle.test
+
+            import org.gradle.testkit.runner.GradleRunner
+            import static org.gradle.testkit.runner.TaskOutcome.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                File buildFile
+
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
+                }
+
+                def "execute helloWorld task"() {
+                    given:
+                    buildFile << '''
+                        task helloWorld {
+                            doLast {
+                                println 'Hello world!'
+                            }
+                        }
+                    '''
+
+                    when:
+                    def gradleRunner = GradleRunner.create()
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('helloWorld')
+                    def result = gradleRunner.build()
+
+                    then:
+                    gradleRunner.debug == $gradleRunnerType.debug
+                    result.standardOutput.contains('Hello world!')
+                    result.standardError == ''
+                    result.taskPaths(SUCCESS) == [':helloWorld']
+                    result.taskPaths(SKIPPED).empty
+                    result.taskPaths(UP_TO_DATE).empty
+                    result.taskPaths(FAILED).empty
+                }
+            }
+        """
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(":test", ":build")
+        assertDaemonsAreStopping()
+    }
+
+    @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
+    def "can provide a series of version-based Gradle distributions to execute test"() {
+        buildFile << gradleTestKitDependency()
+        writeTest """
+            package org.gradle.test
+
+            import org.gradle.testkit.runner.GradleRunner
+            import org.gradle.testkit.runner.VersionBasedGradleDistribution
+            import static org.gradle.testkit.runner.TaskOutcome.*
+            import org.junit.Rule
+            import org.junit.rules.TemporaryFolder
+            import spock.lang.Specification
+
+            class BuildLogicFunctionalTest extends Specification {
+                @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                File buildFile
+
+                def setup() {
+                    buildFile = testProjectDir.newFile('build.gradle')
+                }
+
+                def "execute helloWorld task"() {
+                    given:
+                    buildFile << '''
+                        task helloWorld {
+                            doLast {
+                                logger.quiet 'Hello world!'
+                            }
+                        }
+                    '''
+
+                    when:
+                    def gradleRunner = GradleRunner.create(new VersionBasedGradleDistribution('$gradleVersion'))
+                        .withProjectDir(testProjectDir.root)
+                        .withArguments('helloWorld')
+                        .withDebug($gradleRunnerType.debug)
+                    def result = gradleRunner.build()
+
+                    then:
+                    result.standardOutput.contains('Hello world!')
+                    result.standardError == ''
+                    result.taskPaths(SUCCESS) == [':helloWorld']
+                    result.taskPaths(SKIPPED).empty
+                    result.taskPaths(UP_TO_DATE).empty
+                    result.taskPaths(FAILED).empty
+                }
+            }
+        """
+
+        when:
+        succeeds('build')
+
+        then:
+        executedAndNotSkipped(":test", ":build")
+        assertDaemonsAreStopping()
+
+        where:
+        gradleVersion << ['2.6', '2.7']
+    }
+
+    @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
+    def "successfully execute functional tests with parallel forks for multiple Gradle distributions"() {
+        buildFile << gradleTestKitDependency()
+        buildFile << parallelTests()
+
+        def testClassNames = (1..10).collect { "BuildLogicFunctionalTest$it" }
+
+        testClassNames.each { testClassName ->
+            writeTest """
+                package org.gradle.test
+
+                import org.gradle.testkit.runner.GradleRunner
+                import org.gradle.testkit.runner.VersionBasedGradleDistribution
+                import static org.gradle.testkit.runner.TaskOutcome.*
+                import org.junit.Rule
+                import org.junit.rules.TemporaryFolder
+                import spock.lang.Specification
+
+                class $testClassName extends Specification {
+                    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+                    File buildFile
+
+                    def setup() {
+                        buildFile = testProjectDir.newFile('build.gradle')
+                    }
+
+                    def "execute helloWorld task"() {
+                        given:
+                        buildFile << '''
+                            task helloWorld {
+                                doLast {
+                                    logger.quiet 'Hello world!'
+                                }
+                            }
+                        '''
+
+                        when:
+                        def gradleRunner = GradleRunner.create(new VersionBasedGradleDistribution('$gradleVersion'))
+                            .withProjectDir(testProjectDir.root)
+                            .withArguments('helloWorld')
+                            .withDebug($gradleRunnerType.debug)
+                        def result = gradleRunner.build()
+
+                        then:
+                        result.standardOutput.contains('Hello world!')
+                        result.standardError == ''
+                        result.taskPaths(SUCCESS) == [':helloWorld']
+                        result.taskPaths(SKIPPED).empty
+                        result.taskPaths(UP_TO_DATE).empty
+                        result.taskPaths(FAILED).empty
+                    }
+                }
+            """, testClassName
+        }
+
+        when:
+        ExecutionResult result = succeeds('build')
+
+        then:
+        executedAndNotSkipped(":test", ":build")
+
+        testClassNames.each { testClassName ->
+            result.assertOutputContains("org.gradle.test.${testClassName} > execute helloWorld task STARTED")
+        }
+
+        assertDaemonsAreStopping()
+
+        where:
+        gradleVersion << ['2.6', '2.7']
     }
 
     private DaemonLogsAnalyzer createDaemonLogAnalyzer() {
@@ -547,7 +742,19 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private static String buildLogicFunctionalTestCreatingGradleRunner() {
+    private static String parallelTests() {
+        """
+            test {
+                maxParallelForks = 3
+
+                testLogging {
+                    events 'started'
+                }
+            }
+        """
+    }
+
+    private static String buildLogicFunctionalTestCreatingGradleRunner(boolean debug) {
         """
             package org.gradle.test
 
@@ -557,13 +764,13 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             class BuildLogicFunctionalTest extends Specification {
                 def "create GradleRunner"() {
                     expect:
-                    GradleRunner.create()
+                    GradleRunner.create().withDebug($debug)
                 }
             }
         """
     }
 
-    private static String successfulSpockTest(String className) {
+    private static String successfulSpockTest(String className, boolean debug) {
         """
             package org.gradle.test
 
@@ -595,6 +802,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
+                        .withDebug($debug)
                         .build()
 
                     then:

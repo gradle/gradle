@@ -145,7 +145,7 @@ model {
     task { foo(Task) { println "hi" } }
 }
 
-model { println "hi" }
+model { thing { println "hi" } }
 """)
 
         expect:
@@ -165,7 +165,7 @@ model {
 
 def something() { return 12 }
 
-model { println "hi" }
+model { thing { println "hi" } }
 
 class Thing { }
 

@@ -18,29 +18,29 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 @ThreadSafe
-public class ScalarCollectionStrategy extends CollectionStrategy {
+public class ScalarCollectionStrategy implements ModelSchemaExtractionStrategy {
 
     public final static List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(
         ModelType.of(List.class),
         ModelType.of(Set.class)
     );
 
-    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext, ModelSchemaStore store) {
+    public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);
-        if (TYPES.contains(rawCollectionType)) {
-            ModelType<?> elementType = type.getTypeVariables().get(0);
-            if (ScalarTypes.isScalarType(elementType)) {
-                validateType(rawCollectionType, extractionContext, type);
-                extractionContext.found(createSchema(type, elementType));
+        List<ModelType<?>> typeVariables = type.getTypeVariables();
+        if (TYPES.contains(rawCollectionType) && typeVariables.size() > 0) {
+            ModelType<?> firstVariableType = typeVariables.get(0);
+            if (ScalarTypes.isScalarType(firstVariableType)) {
+                extractionContext.found(createSchema(type, firstVariableType));
             }
         }
     }

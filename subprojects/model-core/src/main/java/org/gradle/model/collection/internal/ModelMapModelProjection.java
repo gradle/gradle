@@ -42,30 +42,30 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     @SuppressWarnings("deprecation")
     private final static Set<Class<?>> SUPPORTED_CONTAINER_TYPES = ImmutableSet.<Class<?>>of(ModelMap.class, CollectionBuilder.class);
 
-    public static <T> ModelProjection unmanaged(ModelType<T> itemType, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
-        return new ModelMapModelProjection<T>(itemType, false, false, creatorStrategy);
+    public static <T> ModelProjection unmanaged(ModelType<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
+        return new ModelMapModelProjection<T>(itemType, false, false, creatorStrategyAccessor);
     }
 
-    public static <T> ModelProjection unmanaged(Class<T> itemType, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
-        return unmanaged(ModelType.of(itemType), creatorStrategy);
+    public static <T> ModelProjection unmanaged(Class<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
+        return unmanaged(ModelType.of(itemType), creatorStrategyAccessor);
     }
 
-    public static <T> ModelProjection managed(ModelType<T> itemType, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
-        return new ModelMapModelProjection<T>(itemType, false, true, creatorStrategy);
+    public static <T> ModelProjection managed(ModelType<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
+        return new ModelMapModelProjection<T>(itemType, false, true, creatorStrategyAccessor);
     }
 
     protected final Class<I> baseItemType;
     protected final ModelType<I> baseItemModelType;
     private final boolean eager;
-    private final ChildNodeInitializerStrategy<? super I> creatorStrategy;
+    private final ChildNodeInitializerStrategyAccessor<? super I> creatorStrategyAccessor;
     private final boolean managed;
 
-    protected ModelMapModelProjection(ModelType<I> baseItemModelType, boolean eager, boolean managed, ChildNodeInitializerStrategy<? super I> creatorStrategy) {
+    protected ModelMapModelProjection(ModelType<I> baseItemModelType, boolean eager, boolean managed, ChildNodeInitializerStrategyAccessor<? super I> creatorStrategyAccessor) {
         this.baseItemModelType = baseItemModelType;
         this.eager = eager;
         this.managed = managed;
         this.baseItemType = baseItemModelType.getConcreteClass();
-        this.creatorStrategy = creatorStrategy;
+        this.creatorStrategyAccessor = creatorStrategyAccessor;
     }
 
     protected Collection<? extends Class<?>> getCreatableTypes(MutableModelNode node) {
@@ -112,19 +112,19 @@ public class ModelMapModelProjection<I> implements ModelProjection {
         return null;
     }
 
-    public <T> boolean canBeViewedAsWritable(ModelType<T> targetType) {
+    public <T> boolean canBeViewedAsMutable(ModelType<T> targetType) {
         return itemType(targetType) != null;
     }
 
-    public <T> boolean canBeViewedAsReadOnly(ModelType<T> type) {
-        return canBeViewedAsWritable(type);
+    public <T> boolean canBeViewedAsImmutable(ModelType<T> type) {
+        return canBeViewedAsMutable(type);
     }
 
-    public <T> ModelView<? extends T> asReadOnly(ModelType<T> type, MutableModelNode modelNode, @Nullable ModelRuleDescriptor ruleDescriptor) {
+    public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode modelNode, @Nullable ModelRuleDescriptor ruleDescriptor) {
         return doAs(type, modelNode, ruleDescriptor, false);
     }
 
-    public <T> ModelView<? extends T> asWritable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
+    public <T> ModelView<? extends T> asMutable(ModelType<T> targetType, MutableModelNode node, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> inputs) {
         return doAs(targetType, node, ruleDescriptor, true);
     }
 
@@ -138,6 +138,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     }
 
     private <T, S extends I> ModelView<ModelMap<S>> toView(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, MutableModelNode node, Class<S> itemClass, boolean mutable, boolean canReadChildren) {
+        ChildNodeInitializerStrategy<? super I> creatorStrategy = creatorStrategyAccessor.getStrategy(node);
         DefaultModelViewState state = new DefaultModelViewState(targetType, sourceDescriptor, mutable, canReadChildren);
         ModelType<S> itemType = ModelType.of(itemClass);
         ModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, eager, state, creatorStrategy);

@@ -299,10 +299,13 @@ model {
     components {
         main.targetPlatform "$currentOs"
     }
-}
-
-binaries.matching({ it.targetPlatform.operatingSystem.windows }).all {
-    cppCompiler.define "FRENCH"
+    binaries {
+        all {
+            if (targetPlatform.operatingSystem.windows) {
+                cppCompiler.define "FRENCH"
+            }
+        }
+    }
 }
         """
         and:

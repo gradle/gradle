@@ -142,7 +142,7 @@
                 The process of “realizing” a model element is effectively executing all the rules for which it is the subject, transitioning it to its final state.
                 There is a strong analogy here to Gradle's task graph and task execution model.
                 Just as tasks depend on each other and Gradle ensures that dependencies are satisfied before executing a task,
-                rules effectively depend on each other (i.e. a rule depends on all rules who's subject is one of the inputs) and Gradle ensures that all dependencies are satisfied
+                rules effectively depend on each other (i.e. a rule depends on all rules whose subject is one of the inputs) and Gradle ensures that all dependencies are satisfied
                 before executing the rule.
             </para>
             <para>
@@ -174,12 +174,20 @@
             <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed type">
                 <sourcefile file='build.gradle' snippet='managed-type'/>
             </sample>
-            <para>By defining a couple of getter/setter, you are effectively declaring a managed property. A managed property is a property for which Gradle
+            <para>By defining a getter/setter pair, you are effectively declaring a managed property. A managed property is a property for which Gradle
             will enforce semantics such as immutability when a node of the model is not the subject of a rule. Therefore, this example declares a property
-            named <emphasis>name</emphasis> on the managed type <emphasis>Person</emphasis>. This property will only be writeable when the view is mutable,
+            named <emphasis>name</emphasis> on the managed type <emphasis>Person</emphasis>. This property will only be writable when the view is mutable,
             that is to say when the <emphasis>Person</emphasis> is the subject of a <literal>Rule</literal> (see below the explanation for rules).</para>
-            <para>Properties can be of any primitive type (e.g. <literal>int</literal>), boxed type (e.g <literal>Integer</literal>), <literal>String</literal>,
-                <literal>File</literal> or enumeration. In addition, properties can also be of any type which is itself managed:</para>
+
+            <para>Properties can be of any scalar type. A scalar type is either:
+                <itemizedlist>
+                    <listitem>a primitive type (e.g. <literal>int</literal>) or its boxed type (e.g <literal>Integer</literal>)</listitem>
+                    <listitem>a <literal>BigInteger</literal> or <literal>BigDecimal</literal></listitem>
+                    <listitem>a <literal>String</literal></listitem>
+                    <listitem>a <literal>File</literal></listitem>
+                    <listitem>an enumeration type</listitem>
+                </itemizedlist>
+                In addition, properties can also be of any type which is itself managed:</para>
             <table>
                 <thead>
                     <td>Property type</td><td>Nullable</td><td>Example</td>
@@ -258,12 +266,23 @@
                     </tr>
                     <tr>
                         <td>
-                            A <literal>ManagedSet</literal>.
+                            A <literal>ManagedSet</literal>. A managed set supports the creation of new named model elements, but not their removal.
                         </td>
                         <td>Only if read/write</td>
                         <td>
                             <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed set">
                                 <sourcefile file='build.gradle' snippet='property-type-managedset'/>
+                            </sample>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            A <literal>Set</literal> or <literal>List</literal> of scalar types. All classic operations on collections are supported: add, remove, clear...
+                        </td>
+                        <td>Only if read/write</td>
+                        <td>
+                            <sample id='basicRuleSourcePlugin' dir='modelRules/basicRuleSourcePlugin' title="a managed set">
+                                <sourcefile file='build.gradle' snippet='property-type-collection-scalar'/>
                             </sample>
                         </td>
                     </tr>
@@ -278,6 +297,82 @@
                 Please see the <apilink class="org.gradle.model.Managed" /> annotation
                 for more information on creating managed model objects.</para>
         </section>
+
+        <section>
+            <title>Model element types</title>
+            <para>
+                There are particular types (language types) supported by the model space and can be generalised as follows:
+            </para>
+            <table>
+                <title>Type definitions</title>
+                <thead>
+                    <th>Type</th>
+                    <th>Definition</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Scalar</td>
+                        <td>
+                            A scalar type is considered to be one of the following:
+                            <itemizedlist>
+                                <listitem>a primitive type (e.g. <literal>int</literal>) or its boxed type (e.g <literal>Integer</literal>)</listitem>
+                                <listitem>a <literal>BigInteger</literal> or <literal>BigDecimal</literal></listitem>
+                                <listitem>a <literal>String</literal></listitem>
+                                <listitem>a <literal>File</literal></listitem>
+                                <listitem>an enumeration type</listitem>
+                            </itemizedlist>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Scalar Collection</td>
+                        <td>A java.util.List or java.util.Set containing one of the scalar types</td>
+                    </tr>
+                    <tr>
+                        <td>Managed type</td>
+                        <td>Any class which is a valid managed model (i.e.annotated with @<apilink class="org.gradle.model.Managed" />)</td>
+                    </tr>
+                    <tr>
+                        <td>Managed collection</td>
+                        <td>A <apilink class="org.gradle.model.ModelMap" /> or <apilink class="org.gradle.model.ModelSet" /></td>
+                    </tr>
+                </tbody>
+            </table>
+            <para>
+                There are various contexts in which these types can be used:
+            </para>
+                <table>
+                    <title>Model type support</title>
+                    <thead>
+                        <th>Context</th>
+                        <th>Supported types</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Creating top level model elements</td>
+                            <td>
+                                <itemizedlist>
+                                    <listitem>Any managed type</listitem>
+                                    <listitem><apilink class="org.gradle.language.base.FunctionalSourceSet"/> (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
+                                </itemizedlist>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Properties of managed model elements</td>
+                            <td>
+                                The properties (attributes) of a managed model elements may be one or more of the following:
+                                <itemizedlist>
+                                    <listitem>A managed type</listitem>
+                                    <listitem>A type which is annotated with @<apilink class="org.gradle.model.Unmanaged" /></listitem>
+                                    <listitem>A Scalar Collection</listitem>
+                                    <listitem>A Managed collection containing managed types</listitem>
+                                    <listitem>A Managed collection containing `org.gradle.language.base.FunctionalSourceSet`s (when the <apilink class="org.gradle.language.base.plugins.LanguageBasePlugin"/> plugin has been applied)</listitem>
+                                </itemizedlist>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+        </section>
+
         <section>
             <title>References, binding and scopes</title>
             <para>
@@ -376,7 +471,7 @@
             The only input is our person element.
             As the person is being used as an input here, it will have been realised before executing this rule.
             That is, the task container effectively <emphasis>depends on</emphasis> the person element.
-            If there are other configuration rules for the person element, potentially specified in a build script or other plugin, the will also be guaranteed to have been executed.
+            If there are other configuration rules for the person element, potentially specified in a build script or other plugin, they will also be guaranteed to have been executed.
         </para>
         <para>
             As <literal>Person</literal> is a <apilink class="org.gradle.model.Managed" /> type in this example, any attempt to modify the person parameter in this method would result in an exception being thrown.
@@ -441,7 +536,7 @@ model {
         <title>The model report</title>
         <para>
             The built-in <apilink class="org.gradle.api.reporting.model.ModelReport"/> task displays a hierarchical view of the elements in the model space.
-            Each item prefixed with a `+`, excluding the topmost `+ model`, on the model report is a model element and the visual nesting of these elements correlates to the model
+            Each item prefixed with a `+` on the model report is a model element and the visual nesting of these elements correlates to the model
             path (e.g. `tasks.help`). The model report displays the following details about each model element:
         </para>
 

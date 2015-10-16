@@ -17,7 +17,6 @@
 package org.gradle.sonar.runner;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.listener.ActionBroadcast;
 
 /**
@@ -48,8 +47,10 @@ import org.gradle.listener.ActionBroadcast;
  * Please see the “Sonar Runner Plugin” chapter of the Gradle User Guide for details on which properties are set and their values.
  * <p>
  * Please see the {@link SonarProperties} class for more information on the mechanics of setting Sonar properties, including laziness and property types.
+ *
+ * @deprecated The 'sonar-runner' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
-@Incubating
+@Deprecated
 public class SonarRunnerExtension {
 
     public static final String SONAR_RUNNER_CONFIGURATION_NAME = "sonarRunner";

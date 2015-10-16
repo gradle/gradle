@@ -15,19 +15,15 @@
  */
 
 package org.gradle.jvm.plugins
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
-
     def "does not create library or binaries when not configured"() {
         when:
-        buildFile << """
+        buildFile << '''
     plugins {
         id 'jvm-component'
     }
@@ -35,13 +31,14 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         tasks {
             create("validate") {
                 doLast {
-                    assert \$("components").size() == 0
-                    assert project.binaries.empty
+                    assert $("components").size() == 0
+                    assert $("binaries").size() == 0
+                    assert $("sources").size() == 0
                 }
             }
         }
     }
-"""
+'''
         then:
         succeeds "validate"
 
@@ -51,7 +48,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "defines jvm library and binary model objects and lifecycle task"() {
         when:
-        buildFile << """
+        buildFile << '''
     plugins {
         id 'jvm-component'
     }
@@ -62,8 +59,9 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         }
         tasks {
             create("validate") {
-            def components = \$("components")
                 doLast {
+                    def components = $("components")
+                    def binaries = $("binaries")
                     assert components.size() == 1
                     def myLib = components.myLib
                     assert myLib.name == 'myLib'
@@ -71,10 +69,10 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
                     assert myLib.sources.size() == 0
 
-                    assert project.binaries.size() == 1
-                    assert myLib.binaries.values() as Set == project.binaries as Set
+                    assert binaries.size() == 1
+                    assert myLib.binaries.values() as Set == binaries as Set
 
-                    def myLibJar = (project.binaries as List)[0]
+                    def myLibJar = (binaries.values() as List)[0]
                     assert myLibJar instanceof JarBinarySpec
                     assert myLibJar.name == 'myLibJar'
                     assert myLibJar.displayName == "Jar 'myLibJar'"
@@ -92,7 +90,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
             }
         }
     }
-"""
+'''
 
         then:
         succeeds "validate"
@@ -222,14 +220,15 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         tasks {
             create("validate") {
                 def components = \$("components")
+                def binaries = \$("binaries")
                 doLast {
                     assert components.size() == 2
                     assert components.myLibOne instanceof JvmLibrarySpec
                     assert components.myLibTwo instanceof JvmLibrarySpec
 
-                    assert project.binaries.size() == 2
-                    assert project.binaries.myLibOneJar == components.myLibOne.binaries.values()[0]
-                    assert project.binaries.myLibTwoJar == components.myLibTwo.binaries.values()[0]
+                    assert binaries.size() == 2
+                    assert binaries.myLibOneJar == components.myLibOne.binaries.values()[0]
+                    assert binaries.myLibTwoJar == components.myLibTwo.binaries.values()[0]
                 }
             }
         }

@@ -156,7 +156,7 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
         """
 
         expect:
-        succeeds "customJar"
+        succeeds "tasks", "customJar"
         new JarTestFixture(file("build/jars/customJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
     }
 
@@ -165,14 +165,16 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             ${registerCustomJarBinaryType()}
 
-            binaries {
-                customJar(CustomJarBinarySpec)
+            model {
+                binaries {
+                    customJar(CustomJarBinarySpec)
+                }
             }
         """
 
         expect:
         def ex = fails "customJar"
-        ex.assertHasCause "Cannot create a CustomJarBinarySpec because this type is not known to this container. Known types are: (None)"
+        ex.assertHasCause "Cannot create a CustomJarBinarySpec because this type is not known to this container. Known types are: JarBinarySpec"
     }
 
     def "illegal managed subtype yields error at rule execution time"() {

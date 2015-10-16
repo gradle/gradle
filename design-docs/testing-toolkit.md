@@ -148,7 +148,7 @@ Add methods to `BuildResult` to query the result.
     * All successful, failed or skipped tasks can be retrieved as executed tasks from `GradleRunner`.
 * A build that has  `buildSrc` project does not list executed tasks from that project when retrieved from `GradleRunner`.
 
-## Story: Test daemons are isolated from the environment they are running in
+## Story: Test daemons are isolated from the environment they are running in (DONE)
 
 The previous stories set up the basic mechanics for the test-kit. Daemons started by test-kit should be isolated from the machine environment:
 
@@ -188,7 +188,7 @@ for debugging purposes. Should we potentially allow the user to set a Gradle use
 
 We'll support that scenario when we get to the corresponding story.
 
-## Story: Functional test defines classes under test to make visible to test builds
+## Story: Functional test defines classes under test to make visible to test builds (DONE)
 
 Provide an API for functional tests to define a classpath containing classes under test:
 
@@ -314,7 +314,7 @@ specific Gradle version. Example: Plugin X is built with 2.3, but check if it is
 
 A user interacts with the following interfaces/classes:
 
-    package org.gradle.testkit.functional.dist;
+    package org.gradle.testkit.runner;
 
     public interface GradleDistribution<T> {
         T getHandle();
@@ -324,20 +324,20 @@ A user interacts with the following interfaces/classes:
     public final class URILocatedGradleDistribution implements GradleDistribution<URI> { /* ... */ }
     public final class InstalledGradleDistribution implements GradleDistribution<File> { /* ... */ }
 
-    package org.gradle.testkit.functional;
+    package org.gradle.testkit.runner;
 
-    public class GradleRunnerFactory {
-        public static GradleRunner create(GradleDistribution gradleDistribution) { /* ... */ }
+    public abstract class GradleRunner {
+        public static GradleRunner create(GradleDistribution<?> gradleDistribution) { /* ... */ }
     }
 
 A functional test using Spock could look as such:
 
-    class UserFunctionalTest extends Specification {
+    class BuildLogicFunctionalTest extends Specification {
         @Unroll
-        def "run build with #gradleDistribution"() {
+        def "run build with Gradle version #gradleVersion"() {
             given:
-            File testProjectDir = new File("${System.getProperty('user.home')}/tmp/gradle-build")
-            File buildFile = new File(testProjectDir, 'build.gradle')
+            @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+            File buildFile = testProjectDir.newFile('build.gradle')
 
             buildFile << """
                 task helloWorld {
@@ -348,17 +348,25 @@ A functional test using Spock could look as such:
             """
 
             when:
-            def result = GradleRunnerFactory.create(gradleDistribution).with {
-                workingDir = testProjectDir
-                arguments << "helloWorld"
-                succeed()
+            def result = GradleRunner.create(new VersionBasedGradleDistribution(gradleVersion))
+                .withProjectDir(testProjectDir.root)
+                .withArguments('helloWorld')
+                .build()
             }
 
             then:
-            result.standardOutput.contains "Hello World!"
+            noExceptionThrown()
+            result.standardOutput.contains(':helloWorld')
+            result.standardOutput.contains('Hello world!')
+            !result.standardError
+            result.tasks.collect { it.path } == [':helloWorld']
+            result.taskPaths(SUCCESS) == [':helloWorld']
+            result.taskPaths(SKIPPED).empty
+            result.taskPaths(UP_TO_DATE).empty
+            result.taskPaths(FAILED).empty
 
             where:
-            gradleDistribution << [new VersionBasedGradleDistribution("2.4"), new VersionBasedGradleDistribution("2.5")]
+            gradleVersion << ['2.6', '2.7']
         }
     }
 
@@ -368,19 +376,64 @@ A functional test using Spock could look as such:
     * Gradle version String e.g. `"2.4"`
     * Gradle URI e.g. `new URI("http://services.gradle.org/distributions/gradle-2.4-bin.zip")`
     * Gradle installation e.g. `new File("/Users/foo/bar/gradle-installation/gradle-2.4-bin")`
-* Each test executed with a specific Gradle version creates a unique temporary test directory.
-* Tests executed with the different Gradle versions run with an isolated daemon.
 
 ### Test coverage
 
-* `GradleRunnerFactory` throws and exception if `GradleDistribution` is provided that doesn't match the supported types.
+* `GradleRunner` throws an exception if `GradleDistribution` is provided that doesn't match the supported types.
 * A test can be executed with Gradle distribution provided by the user. The version of the distribution can be a different from the Gradle version used to build the project.
+* A test can be executed with a series of Gradle distributions of the same type or different types.
+* Tests can be executed in parallel for multiple Gradle versions.
+* A test using a unknown or unsupported for a Gradle distribution fails the build.
 
 ### Open issues
 
-* Execution of tests in parallel for multiple Gradle versions
-* JUnit Runner implementation to simplify definition of Gradle distributions
+* Should we provide a JUnit Runner implementation to simplify definition of Gradle distributions? The use case would be a matrix combination of multiple Gradle distributions and a list of `where`
+arguments.
+* Do we need to deal with TestKit runtime behavior backward compatibility e.g. no isolated daemon environment when executing test with a Gradle version that doesn't support it yet?
 
+## Story: Test kit does not require any of the Gradle runtime
+
+This story improves usability of the test kit by not imposing any dependencies beyond the `gradle-test-kit` and `gradle-tooling-api` jars (including no transitive dependencies).
+
+### Implementation
+
+- Push responsibility for finding a Gradle distribution based on a class (i.e. what GradleDistributionLocator) does into the tooling API
+- Remove the dependency on `gradle-core` in the test kit project
+
+### Test Coverage
+
+- User tests cannot access classes from `gradle-core` (or any other part of the Gradle runtime) in tests where `gradleTestKit()` was used
+- Configuration containing just `gradleTestKit()` contains no other files than `gradle-test-kit` and `gradle-tooling-api`
+
+## Story: Ability to provide Writers for capturing standard output and error
+
+At the moment the standard output and error can only be resolved from the `BuildResult`. There's not direct output of these streams to the console. Users cannot provide their own OutputStreams
+for other debugging or processing purposes. This story allows for specifying a Writer to the `GradleRunner` API that output will be forwarded to (e.g. `System.out`).
+
+### Implementation
+
+The `GradleRunner` abstract class will be extended to provide additional methods.
+
+    public abstract class GradleRunner {
+        public abstract GradleRunner withStandardOutput(Writer standardOutput);
+        public abstract GradleRunner withStandardError(Writer standardError);
+    }
+
+* If no `Writer` is provided by the user, the Test Kit will not write the output to the console. Output from the test execution will be captured as part of the `BuildResult`.
+* A user can provide `Writer` instances for standard output and/or standard error. The relevant output from the test execution will be forwarded to the provided Writers.
+* If a user provides an `Writer`, then the corresponding standard output and/or error in the `BuildResult` provides the same information.
+
+### Test Coverage
+
+* If a user doesn't provide an `Writer`, then standard output and error are made available through the `BuildResult`.
+* Providing a null `Writer` results in an exception thrown.
+* A user can redirect the output to the console by providing `System.out` and `System.err` as input to a `Writer`. The standard output and error of the `BuildResult` provides the same information.
+* A user can provide other instances of `Writer`. The standard output and error of the `BuildResult` provides the same information.
+* `Writer` instances provided by the user capture output if an exception occurs during test execution.
+
+### Open issues
+
+* Using `System.out` and `System.err` as default? This might produce to much log output.
 
 # Milestone 3
 

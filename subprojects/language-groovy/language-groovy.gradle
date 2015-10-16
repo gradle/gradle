@@ -8,7 +8,6 @@ dependencies {
     integTestRuntime project(':plugins')
 }
 
-strictCompile()
 useClassycle(exclude: ["org/gradle/api/internal/tasks/compile/**"])
 useTestFixtures()
 useTestFixtures(project: ':languageJvm', sourceSet: 'integTest')

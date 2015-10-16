@@ -15,10 +15,10 @@
  */
 
 package org.gradle.language.base.internal.resolve
+
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
-import org.gradle.internal.component.model.ComponentResolveMetaData
 import org.gradle.language.base.internal.DependentSourceSetInternal
 import org.gradle.language.base.internal.model.VariantsMetaData
 import org.gradle.platform.base.DependencySpecContainer
@@ -27,37 +27,25 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DependentSourceSetLocalComponentConverterTest extends Specification {
+    def sourceSet = Mock(DependentSourceSetInternal)
+    def dependencySpecs = Mock(DependencySpecContainer)
+    def project = ':myPath'
+    def context
+    def factory = new DependentSourceSetLocalComponentConverter()
+
+    def setup() {
+        sourceSet.dependencies >> dependencySpecs
+        context = createContext(project, 'myLib', 'api', sourceSet, Mock(VariantsMetaData))
+    }
 
     def "can convert dependent source set resolve context"() {
-        given:
-        def context = createContext(':foo', 'myLib', 'api', Mock(DependentSourceSetInternal), Mock(VariantsMetaData))
-
-        when:
-        def factory = new DependentSourceSetLocalComponentConverter()
-
-        then:
+        expect:
         factory.canConvert(context)
     }
 
     def "can convert a simple component"() {
-        given: "a dependent sourceset that doesn't define any dependency"
-        def sourceSet = Mock(DependentSourceSetInternal)
-        def dependencySpecs = Mock(DependencySpecContainer)
+        when:
         dependencySpecs.dependencies >> { [] as Set }
-        def project = ':myPath'
-
-        dependencySpecs.iterator() >> { [].iterator() }
-        sourceSet.dependencies >> dependencySpecs
-
-        def context = createContext(project, 'myLib', 'api', sourceSet, Mock(VariantsMetaData))
-
-        when: "we create a local component factory"
-        def factory = new DependentSourceSetLocalComponentConverter()
-
-        then: "the factory can convert the resolve context"
-        factory.canConvert(context)
-
-        when: "we convert the context to a local component"
         def component = factory.convert(context)
 
         then: "component metadata reflects the library configuration"
@@ -78,41 +66,11 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
 
     @Unroll
     def "can convert a dependent component with #dependenciesDescriptor"() {
-        given: "a dependent sourceset that defines dependencies"
-        def sourceSet = Mock(DependentSourceSetInternal)
-        def dependencySpecs = Mock(DependencySpecContainer)
-        def project = ':myPath'
-
-        sourceSet.dependencies >> dependencySpecs
-
-        def context = createContext(project, 'myLib', 'api', sourceSet, Mock(VariantsMetaData))
-
-        when: "we create a local component factory"
-        def factory = new DependentSourceSetLocalComponentConverter()
-
-        then: "the factory can convert the resolve context"
-        factory.canConvert(context)
-
-        when: "we convert the context to a local component"
+        when:
         dependencySpecs.dependencies >> dependencies
         def component = factory.convert(context)
 
-        then: "component metadata reflects the library configuration"
-        component.id instanceof ModuleVersionIdentifier
-        component.id.group == ':myPath'
-        component.id.name == 'myLib'
-        component.id.version == '<local component>'
-        component.id.toString() == ':myPath:myLib:<local component>'
-
-        and: "metadata reflects the appropriate library information"
-        component instanceof ComponentResolveMetaData
-        component.componentId instanceof LibraryBinaryIdentifier
-        component.componentId.displayName == /project ':myPath' library 'myLib' variant 'api'/
-        !component.changing
-        component.configurationNames == [DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME] as Set
-        component.source == null
-
-        and: "component metadata dependencies correspond to the defined dependencies"
+        then: "component metadata dependencies correspond to the defined dependencies"
         component.dependencies.size() == dependencies.size()
         dependencies.eachWithIndex { spec, i ->
             def componentDep = component.dependencies[i]
@@ -128,6 +86,19 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         [new DefaultDependencySpec('someLib', ':myPath'), new DefaultDependencySpec('someLib', ':myPath2')] | '2 deps on 2 different projects'
         [new DefaultDependencySpec('someLib', null)]                                                        | 'a single dependency on the current project'
 
+    }
+
+    def "can convert a component with an external dependency"() {
+        when: "we convert the context to a local component"
+        dependencySpecs.dependencies >> [new DefaultDependencySpec('someGroup:someLib:someVersion', null)]
+        def component = factory.convert(context)
+
+        then:
+        component.dependencies.size() == 1
+        def componentDep = component.dependencies[0]
+        componentDep.requested.group == "someGroup"
+        componentDep.requested.name == "someLib"
+        componentDep.requested.version == 'someVersion'
     }
 
     private static createContext(String path, String library, String variant, DependentSourceSetInternal dependentSourceSetInternal, VariantsMetaData variantsMetaData) {

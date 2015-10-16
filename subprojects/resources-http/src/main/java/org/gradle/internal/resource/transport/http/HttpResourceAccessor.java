@@ -93,7 +93,7 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
 
     private void abortOpenResources() {
         for (Closeable openResource : openResources) {
-            LOGGER.warn("Forcing close on abandoned resource: " + openResource);
+            LOGGER.warn("Forcing close on abandoned resource: {}", openResource);
             try {
                 openResource.close();
             } catch (IOException e) {

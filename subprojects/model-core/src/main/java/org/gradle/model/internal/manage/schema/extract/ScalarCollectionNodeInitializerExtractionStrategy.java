@@ -39,11 +39,11 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
     );
 
     @Override
-    protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema, NodeInitializerRegistry nodeInitializerRegistry) {
+    protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema) {
         ModelType<T> type = schema.getType();
         Class<? super T> rawClass = type.getRawClass();
         ModelType<? super T> rawCollectionType = ModelType.of(rawClass);
-        if (TYPES.contains(rawCollectionType)) {
+        if (TYPES.contains(rawCollectionType) && ScalarTypes.isScalarType(schema.getElementType())) {
             if (schema.getType().getRawClass() == List.class) {
                 return new ProjectionOnlyNodeInitializer(
                     ScalarCollectionModelProjection.get(
@@ -61,6 +61,11 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
             }
         }
         return null;
+    }
+
+    @Override
+    public Iterable<ModelType<?>> supportedTypes() {
+        return ImmutableList.copyOf(TYPES);
     }
 
     private static class ScalarCollectionModelProjection<E> extends TypedModelProjection<E> {

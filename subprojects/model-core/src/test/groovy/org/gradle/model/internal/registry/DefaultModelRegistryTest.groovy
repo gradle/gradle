@@ -15,14 +15,16 @@
  */
 
 package org.gradle.model.internal.registry
-
 import org.gradle.api.Action
 import org.gradle.api.Transformer
+import org.gradle.internal.Actions
 import org.gradle.internal.BiAction
+import org.gradle.internal.BiActions
 import org.gradle.model.ConfigurationCycleException
 import org.gradle.model.InvalidModelRuleException
 import org.gradle.model.ModelRuleBindingException
 import org.gradle.model.internal.core.*
+import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
@@ -106,6 +108,7 @@ class DefaultModelRegistryTest extends Specification {
 
         when:
         registry.create("foo") { it.descriptor("foo creator").unmanaged(String, Number, Stub(Transformer)) }
+        registry.bindAllReferences()
 
         then:
         InvalidModelRuleException e = thrown()
@@ -145,10 +148,10 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.createInstance("other-1", 12)
         registry.create("foo") { it.descriptor("foo creator").unmanaged(String, Number, Stub(Transformer)) }
-        registry.realize("foo")
+        registry.createInstance("other-2", 11)
 
         when:
-        registry.createInstance("other-2", 11)
+        registry.bindAllReferences()
 
         then:
         InvalidModelRuleException e = thrown()
@@ -217,15 +220,14 @@ class DefaultModelRegistryTest extends Specification {
     }
 
     def "parent of input is implicitly closed when input is not known"() {
-        def creatorAction = Mock(Transformer)
-        def mutatorAction = Mock(Action)
-
         given:
-        registry.create("bar") { it.unmanaged(String, "foo.child", creatorAction) }
-        registry.createInstance("foo", 12.toInteger())
-        registry.mutate { it.path "foo" type Integer node mutatorAction }
-        mutatorAction.execute(_) >> { MutableModelNode node -> node.addLink(registry.instanceCreator("foo.child", 12.toInteger())) }
-        creatorAction.transform(12) >> "[12]"
+        registry.create("bar") { it.unmanaged(String, "foo.child", { input -> "[$input]" }) }
+        registry.createInstance("foo", "foo")
+        registry.mutate {
+            it.path "foo" type String node {
+                node -> node.addLink(registry.instanceCreator("foo.child", 12))
+            }
+        }
 
         expect:
         registry.realize("bar") == "[12]"
@@ -237,7 +239,8 @@ class DefaultModelRegistryTest extends Specification {
         def target = registry.node("target")
         registry.create("ref") { parentBuilder ->
             parentBuilder.unmanagedNode(Object) { node ->
-                node.addReference(registry.creator("ref.direct").unmanagedNode(String, {}))
+                def refDirectCreator = registry.creator("ref.direct").descriptor("ref.direct creator").unmanagedNode(String, {})
+                node.addReference(refDirectCreator)
                 node.getLink("direct").setTarget(target)
             }
         }
@@ -251,7 +254,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry.create("parent") { parentBuilder ->
             parentBuilder.unmanagedNode(Object) { node ->
-                node.addLink(registry.creator("parent.child").unmanaged(String, "value"))
+                node.addLink(registry.creator("parent.child").descriptor("parent.child creator").unmanaged(String, "value"))
             }
         }
 
@@ -297,6 +300,21 @@ class DefaultModelRegistryTest extends Specification {
         registry.realize("parent.child", String) == "value"
     }
 
+    def "child can be made known"() {
+        given:
+        registry.create("parent") { parentBuilder ->
+            parentBuilder.unmanagedNode(String) { node ->
+                node.addLink(registry.creator("parent.child").unmanagedNode(String, {}))
+            }
+        }
+
+        when:
+        registry.realize("parent.child", String)
+
+        then:
+        noExceptionThrown()
+    }
+
     def "cannot change a reference after it has been self-closed"() {
         given:
         registry.createInstance("target", "value")
@@ -323,6 +341,7 @@ class DefaultModelRegistryTest extends Specification {
         given:
         registry
             .create("foo", new Bean(), action)
+            .configure(ModelActionRole.DefineRules, registry.action().path("foo").type(Bean).action(action))
             .configure(ModelActionRole.Defaults, registry.action().path("foo").type(Bean).action(action))
             .configure(ModelActionRole.Initialize, registry.action().path("foo").type(Bean).action(action))
             .configure(ModelActionRole.Mutate, registry.action().path("foo").type(Bean).action(action))
@@ -333,12 +352,15 @@ class DefaultModelRegistryTest extends Specification {
         def value = registry.realize("foo", Bean).value
 
         then:
-        value == "create > defaults > initialize > mutate > finalize"
+        value == "create > rules > defaults > initialize > mutate > finalize"
 
         and:
         1 * action.execute(_) >> { Bean bean ->
             assert bean.value == null
             bean.value = "create"
+        }
+        1 * action.execute(_) >> { Bean bean ->
+            bean.value += " > rules"
         }
         1 * action.execute(_) >> { Bean bean ->
             bean.value += " > defaults"
@@ -353,7 +375,7 @@ class DefaultModelRegistryTest extends Specification {
             bean.value += " > finalize"
         }
         1 * action.execute(_) >> { Bean bean ->
-            assert bean.value == "create > defaults > initialize > mutate > finalize"
+            assert bean.value == "create > rules > defaults > initialize > mutate > finalize"
         }
         0 * action._
 
@@ -455,22 +477,22 @@ class DefaultModelRegistryTest extends Specification {
         registry.createInstance("a", new Bean())
         registry.createInstance("b", new Bean())
         registry.configure(ModelActionRole.Finalize) {
-            it.path("b").action(ModelReference.of(ModelPath.path("a"), ModelType.of(Bean), ModelNode.State.DefaultsApplied)) { Bean b, Bean a ->
+            it.path("b").descriptor("b-finalize").action(ModelReference.of(ModelPath.path("a"), ModelType.of(Bean), ModelNode.State.DefaultsApplied)) { Bean b, Bean a ->
                 b.value = "$b.value $a.value"
             }
         }
         registry.configure(ModelActionRole.Mutate) {
-            it.path("b").action { Bean b ->
+            it.path("b").descriptor("b-mutate").action { Bean b ->
                 b.value = "b-mutate"
             }
         }
         registry.configure(ModelActionRole.Mutate) {
-            it.path("a").action { Bean a ->
+            it.path("a").descriptor("a-mutate").action { Bean a ->
                 a.value = "a-mutate"
             }
         }
         registry.configure(ModelActionRole.Defaults) {
-            it.path("a").action { Bean a ->
+            it.path("a").descriptor("a-defaults").action { Bean a ->
                 a.value = "a-defaults"
             }
         }
@@ -481,20 +503,16 @@ class DefaultModelRegistryTest extends Specification {
     }
 
     def "can attach a mutator with inputs to all elements linked from an element"() {
-        def creatorAction = Mock(Action)
-        def mutatorAction = Mock(BiAction)
-
         given:
-        registry.create("parent") { it.unmanagedNode Integer, creatorAction }
-        creatorAction.execute(_) >> { MutableModelNode node ->
-            node.applyToAllLinks(ModelActionRole.Mutate, registry.action().type(Bean).action(String, mutatorAction))
+        registry.create("parent") { it.unmanagedNode Integer, { MutableModelNode node ->
+            node.applyToAllLinks(ModelActionRole.Mutate, registry.action().type(Bean).action(String, { Bean bean, String prefix ->
+                bean.value = "$prefix: $bean.value"
+            }))
             node.addLink(registry.instanceCreator("parent.foo", new Bean(value: "foo")))
             node.addLink(registry.instanceCreator("parent.bar", new Bean(value: "bar")))
         }
-        mutatorAction.execute(_, _) >> { Bean bean, String prefix -> bean.value = "$prefix: $bean.value" }
+        }
         registry.createInstance("prefix", "prefix")
-
-        registry.realize("parent") // TODO - should not need this
 
         expect:
         registry.realize("parent.foo", Bean).value == "prefix: foo"
@@ -566,7 +584,9 @@ class DefaultModelRegistryTest extends Specification {
             node.addLink(registry.instanceCreator("parent.foo", new Bean(value: "foo")))
             node.addLink(registry.instanceCreator("parent.bar", new Bean(value: "bar")))
         }
-        mutatorAction.execute(_, _) >> { Bean bean, String prefix -> bean.value = "$prefix: $bean.value" }
+        mutatorAction.execute(_, _) >> { Bean bean, String prefix ->
+            bean.value = "$prefix: $bean.value"
+        }
         registry.create(registry.instanceCreator("prefix", "prefix"))
 
         registry.realize("parent") // TODO - should not need this
@@ -623,13 +643,49 @@ class DefaultModelRegistryTest extends Specification {
     }
 
     @Unroll
-    def "cannot add action for #targetRole mutation when in #fromRole mutation"() {
+    def "cannot bind action targeting type for role #targetRole where type is not available"() {
+        when:
+        registry.configure(targetRole, ModelReference.of("thing", Bean), Actions.doNothing())
+
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "Cannot bind subject 'ModelReference{path=thing, scope=null, type=${Bean.name}, state=GraphClosed}' to role '${targetRole}' because it is targeting a type and subject types are not yet available in that role"
+
+        where:
+        targetRole << ModelActionRole.values().findAll { !it.subjectViewAvailable }
+    }
+
+    @Unroll
+    def "cannot execute action with role #targetRole where view is not available"() {
+        registry.configure(targetRole, new AbstractModelActionWithView<Bean>(ModelReference.of("thing"), new SimpleModelRuleDescriptor(targetRole.name())) {
+            @Override
+            protected void execute(MutableModelNode modelNode, Bean view, List<ModelView<?>> inputs) {
+            }
+        })
+
+        when:
+        registry.createInstance("thing", new Bean(value: "thing"))
+        registry.atStateOrLater(ModelPath.path("thing"), targetRole.targetState)
+
+        then:
+        def ex = thrown ModelRuleExecutionException
+        ex.cause instanceof IllegalStateException
+        ex.cause.message == "Cannot get view for node thing in state ${targetRole.targetState.previous()}"
+
+        where:
+        targetRole << ModelActionRole.values().findAll { !it.subjectViewAvailable }
+    }
+
+    @Unroll
+    def "cannot add action for #targetRole mutation when in later #fromRole mutation"() {
         def action = Stub(Action)
 
         given:
         registry.createInstance("thing", "value")
             .configure(fromRole) { it.path("thing").node(action) }
-        action.execute(_) >> { MutableModelNode node -> registry.configure(targetRole) { it.path("thing").type(String).descriptor("X").action {} } }
+        action.execute(_) >> { MutableModelNode node -> registry
+            .configure(targetRole) { it.path("thing").type(String).descriptor("X").action {} }
+        }
 
         when:
         registry.realize("thing")
@@ -640,31 +696,25 @@ class DefaultModelRegistryTest extends Specification {
         e.cause.message == "Cannot add rule X for model element 'thing' at state ${targetRole.targetState.previous()} as this element is already at state ${fromRole.targetState.previous()}."
 
         where:
-        fromRole                   | targetRole
-        ModelActionRole.Initialize | ModelActionRole.Defaults
-        ModelActionRole.Mutate     | ModelActionRole.Defaults
-        ModelActionRole.Mutate     | ModelActionRole.Initialize
-        ModelActionRole.Finalize   | ModelActionRole.Defaults
-        ModelActionRole.Finalize   | ModelActionRole.Initialize
-        ModelActionRole.Finalize   | ModelActionRole.Mutate
-        ModelActionRole.Validate   | ModelActionRole.Defaults
-        ModelActionRole.Validate   | ModelActionRole.Initialize
-        ModelActionRole.Validate   | ModelActionRole.Mutate
-        ModelActionRole.Validate   | ModelActionRole.Finalize
+        [fromRole, targetRole] << ModelActionRole.values().collectMany { fromRole ->
+            return ModelActionRole.values().findAll { it.ordinal() < fromRole.ordinal() && it.subjectViewAvailable }.collect { targetRole ->
+                [ fromRole, targetRole ]
+            }
+        }
     }
 
     @Unroll
-    def "cannot add action for #targetRole mutation when in #fromState state"() {
+    def "cannot add action for #targetRole mutation when in later #fromState state"() {
         def action = Stub(Action)
 
         given:
         registry.createInstance("thing", "value")
             .createInstance("another", "value")
             .configure(ModelActionRole.Mutate) {
-            it.path("another").node(action)
-        }
+                it.path("another").node(action)
+            }
         action.execute(_) >> {
-            MutableModelNode node -> registry.configure(targetRole) { it.path("thing").type(String).descriptor("X").action {} }
+            MutableModelNode node -> registry.configure(targetRole) { it.path("thing").descriptor("X").action {} }
         }
 
         when:
@@ -677,27 +727,17 @@ class DefaultModelRegistryTest extends Specification {
         e.cause.message == "Cannot add rule X for model element 'thing' at state ${targetRole.targetState.previous()} as this element is already at state ${fromState}."
 
         where:
-        fromState                       | targetRole
-        ModelNode.State.DefaultsApplied | ModelActionRole.Defaults
-        ModelNode.State.Initialized     | ModelActionRole.Initialize
-        ModelNode.State.Initialized     | ModelActionRole.Defaults
-        ModelNode.State.Mutated         | ModelActionRole.Mutate
-        ModelNode.State.Mutated         | ModelActionRole.Defaults
-        ModelNode.State.Mutated         | ModelActionRole.Initialize
-        ModelNode.State.Finalized       | ModelActionRole.Finalize
-        ModelNode.State.Finalized       | ModelActionRole.Defaults
-        ModelNode.State.Finalized       | ModelActionRole.Initialize
-        ModelNode.State.Finalized       | ModelActionRole.Mutate
-        ModelNode.State.SelfClosed      | ModelActionRole.Validate
-        ModelNode.State.SelfClosed      | ModelActionRole.Defaults
-        ModelNode.State.SelfClosed      | ModelActionRole.Initialize
-        ModelNode.State.SelfClosed      | ModelActionRole.Mutate
-        ModelNode.State.SelfClosed      | ModelActionRole.Finalize
+        [fromState, targetRole] << ModelNode.State.values().collectMany { fromState ->
+            return ModelActionRole.values().findAll { it.targetState.ordinal() <= fromState.ordinal() }.collect { targetRole ->
+                [ fromState, targetRole ]
+            }
+        }
     }
 
-    def "can add action for #targetRole mutation when in #fromRole mutation"() {
+    @Unroll
+    def "can add action for #targetRole when in #fromRole action"() {
         given:
-        registry.createInstance("thing", new Bean(value: "initial")).configure(fromRole) {
+        registry.configure(fromRole) {
             it.path("thing").node { MutableModelNode node ->
                 registry.configure(targetRole) {
                     it.path("thing").type(Bean).action {
@@ -706,6 +746,7 @@ class DefaultModelRegistryTest extends Specification {
                 }
             }
         }
+        registry.createInstance("thing", new Bean(value: "initial"))
 
         when:
         def thing = registry.realize("thing", Bean)
@@ -714,33 +755,21 @@ class DefaultModelRegistryTest extends Specification {
         thing.value == "mutated"
 
         where:
-        fromRole                   | targetRole
-        ModelActionRole.Defaults   | ModelActionRole.Defaults
-        ModelActionRole.Defaults   | ModelActionRole.Initialize
-        ModelActionRole.Defaults   | ModelActionRole.Mutate
-        ModelActionRole.Defaults   | ModelActionRole.Finalize
-        ModelActionRole.Defaults   | ModelActionRole.Validate
-        ModelActionRole.Initialize | ModelActionRole.Initialize
-        ModelActionRole.Initialize | ModelActionRole.Mutate
-        ModelActionRole.Initialize | ModelActionRole.Finalize
-        ModelActionRole.Initialize | ModelActionRole.Validate
-        ModelActionRole.Mutate     | ModelActionRole.Mutate
-        ModelActionRole.Mutate     | ModelActionRole.Finalize
-        ModelActionRole.Mutate     | ModelActionRole.Validate
-        ModelActionRole.Finalize   | ModelActionRole.Finalize
-        ModelActionRole.Finalize   | ModelActionRole.Validate
-        ModelActionRole.Validate   | ModelActionRole.Validate
+        [fromRole, targetRole] << ModelActionRole.values().collectMany { fromRole ->
+            return ModelActionRole.values().findAll { it.subjectViewAvailable && it.ordinal() >= fromRole.ordinal() }.collect { targetRole ->
+                return [ fromRole, targetRole ]
+            }
+        }
     }
 
-    def "closes inputs for mutation discovered after running mutation with role #targetRole"() {
+    @Unroll
+    def "closes inputs for mutation discovered after running action with role #targetRole"() {
         given:
         registry.createInstance("thing", new Bean(value: "initial"))
             .configure(targetRole) {
-            it.path("thing").node { MutableModelNode node ->
+            it.path("thing").descriptor("outside").node { MutableModelNode node ->
                 registry.configure(targetRole) {
-                    it.path("thing").type(Bean).action("other", ModelType.of(Bean)) { subject, dep ->
-                        subject.value = dep.value
-                    }
+                    it.path("thing").type(Bean).descriptor("inside").action("other", ModelType.of(Bean), action)
                 }
             }
         }
@@ -752,23 +781,28 @@ class DefaultModelRegistryTest extends Specification {
         def thing = registry.realize("thing", Bean)
 
         then:
-        thing.value == "input value"
+        thing.value == expected
 
         where:
-        targetRole << ModelActionRole.values().find { it.targetState != null }
+        [targetRole, action, expected] << ModelActionRole.values().findAll { it.subjectViewAvailable }.collect { role ->
+            return [role, { subject, dep -> subject.value = dep.value }, "input value"]
+        }
     }
 
-    def "can add action for #targetRole mutation when in #fromState state"() {
+    @Unroll
+    def "can add action for #targetRole mutation when in earlier #fromState state"() {
         def action = Stub(Action)
 
         given:
         registry.createInstance("thing", "value")
             .createInstance("another", "value")
             .configure(ModelActionRole.Mutate) {
-            it.path("another").node(action)
-        }
+                it.path("another").node(action)
+            }
         action.execute(_) >> {
-            MutableModelNode node -> registry.configure(targetRole) { it.path("thing").type(String).descriptor("X").action {} }
+            MutableModelNode node -> registry.configure(targetRole) {
+                it.path("thing").descriptor("X").action {}
+            }
         }
 
         when:
@@ -779,54 +813,64 @@ class DefaultModelRegistryTest extends Specification {
         noExceptionThrown()
 
         where:
-        fromState                       | targetRole
-        ModelNode.State.DefaultsApplied | ModelActionRole.Initialize
-        ModelNode.State.DefaultsApplied | ModelActionRole.Mutate
-        ModelNode.State.DefaultsApplied | ModelActionRole.Finalize
-        ModelNode.State.DefaultsApplied | ModelActionRole.Validate
-        ModelNode.State.Initialized     | ModelActionRole.Mutate
-        ModelNode.State.Initialized     | ModelActionRole.Finalize
-        ModelNode.State.Initialized     | ModelActionRole.Validate
-        ModelNode.State.Mutated         | ModelActionRole.Finalize
-        ModelNode.State.Mutated         | ModelActionRole.Validate
-        ModelNode.State.Finalized       | ModelActionRole.Validate
+        [fromState, targetRole] << (ModelNode.State.values() - ModelNode.State.Known).collectMany { fromState ->
+            return ModelActionRole.values().findAll { it.targetState.ordinal() > fromState.ordinal() }.collect { targetRole ->
+                [ fromState, targetRole ]
+            }
+        }
     }
 
-    def "can get node at state"() {
+    @Unroll
+    def "can get node at state #state"() {
         given:
-        registry.createInstance("thing", new Bean(value: "created"))
         ModelActionRole.values().each { role ->
-            registry.configure(role, {
-                it.path "thing" type Bean action {
-                    if (it) {
+            registry.configure(role, { builder ->
+                builder.path "thing"
+                if (role.subjectViewAvailable) {
+                    builder.type Bean
+                    return builder.action({
                         it.value = role.name()
-                    }
+                    })
+                } else {
+                    return builder.node(Actions.doNothing())
                 }
             })
         }
+        registry.createInstance("thing", new Bean(value: "created"))
 
         expect:
         registry.atState(ModelPath.path("thing"), state).getPrivateData(ModelType.of(Bean))?.value == expected
 
         where:
-        state                           | expected
-        ModelNode.State.Known           | null
-        ModelNode.State.Created         | "created"
-        ModelNode.State.DefaultsApplied | ModelActionRole.Defaults.name()
-        ModelNode.State.Initialized     | ModelActionRole.Initialize.name()
-        ModelNode.State.Mutated         | ModelActionRole.Mutate.name()
-        ModelNode.State.Finalized       | ModelActionRole.Finalize.name()
-        ModelNode.State.SelfClosed      | ModelActionRole.Validate.name()
-        ModelNode.State.GraphClosed     | ModelActionRole.Validate.name()
+        state                              | expected
+        ModelNode.State.Known              | null
+        ModelNode.State.ProjectionsDefined | null
+        ModelNode.State.Created            | "created"
+        ModelNode.State.RulesDefined       | ModelActionRole.DefineRules.name()
+        ModelNode.State.DefaultsApplied    | ModelActionRole.Defaults.name()
+        ModelNode.State.Initialized        | ModelActionRole.Initialize.name()
+        ModelNode.State.Mutated            | ModelActionRole.Mutate.name()
+        ModelNode.State.Finalized          | ModelActionRole.Finalize.name()
+        ModelNode.State.SelfClosed         | ModelActionRole.Validate.name()
+        ModelNode.State.GraphClosed        | ModelActionRole.Validate.name()
     }
 
-    def "asking for element at known state does not invoke creator"() {
+
+    def "can get node at state Known"() {
+        registry.createInstance("thing", new Bean(value: "created"))
+
+        expect:
+        registry.atState(ModelPath.path("thing"), ModelNode.State.Known).path.toString() == "thing"
+    }
+
+    @Unroll
+    def "asking for element at state #state does not invoke creator"() {
         given:
         def events = []
         registry.create("thing", new Bean(), { events << "created" })
 
         when:
-        registry.atState(ModelPath.path("thing"), ModelNode.State.Known)
+        registry.atState(ModelPath.path("thing"), state)
 
         then:
         events == []
@@ -836,14 +880,18 @@ class DefaultModelRegistryTest extends Specification {
 
         then:
         events == ["created"]
+
+        where:
+        state << [ModelNode.State.Known, ModelNode.State.ProjectionsDefined]
     }
 
-    def "asking for unknown element at any state returns null"() {
+    @Unroll
+    def "asking for unknown element at state #state returns null"() {
         expect:
         registry.atState(ModelPath.path("thing"), state) == null
 
         where:
-        state << ModelNode.State.values().toList()
+        state << ModelNode.State.values()
     }
 
     def "getting self closed collection defines all links but does not realise them until graph closed"() {
@@ -874,32 +922,29 @@ class DefaultModelRegistryTest extends Specification {
         events == ["collection mutated", "c1 created"]
     }
 
-    def "cannot request model node at earlier state when at #state"() {
+    @Unroll
+    def "cannot request model node at earlier state #targetState when at #fromState"() {
         given:
         registry.createInstance("thing", new Bean())
-
-        expect:
-        registry.atState(ModelPath.path("thing"), state)
+        registry.atState(ModelPath.path("thing"), fromState)
 
         when:
-        // This has to be in a when block to stop Spock rewriting it
-        ModelNode.State.values().findAll { it.ordinal() < state.ordinal() }.each { earlier ->
-            try {
-                registry.atState(ModelPath.path("thing"), earlier)
-                throw new AssertionError("Expected error")
-            } catch (IllegalStateException e) {
-                assert e.message == "Cannot lifecycle model node 'thing' to state ${earlier.name()} as it is already at ${state.name()}"
-            }
-        }
+        registry.atState(ModelPath.path("thing"), targetState)
 
         then:
-        true
+        def e = thrown IllegalStateException
+        e.message == "Cannot lifecycle model node 'thing' to state ${targetState.name()} as it is already at ${fromState.name()}"
 
         where:
-        state << ModelNode.State.values().toList()
+        [fromState, targetState] << ModelNode.State.values().collectMany { fromState ->
+            return ModelNode.State.values().findAll { it.ordinal() < fromState.ordinal() }.collect { targetState ->
+                [ fromState, targetState ]
+            }
+        }
     }
 
-    def "is benign to request element at current state"() {
+    @Unroll
+    def "is benign to request element at current state #state"() {
         given:
         registry.createInstance("thing", new Bean())
 
@@ -913,10 +958,11 @@ class DefaultModelRegistryTest extends Specification {
         noExceptionThrown()
 
         where:
-        state << ModelNode.State.values().toList()
+        state << ModelNode.State.values() - ModelNode.State.Known
     }
 
-    def "is benign to request element at prior state"() {
+    @Unroll
+    def "is benign to request element at prior state #state"() {
         given:
         registry.createInstance("thing", new Bean())
 
@@ -930,17 +976,17 @@ class DefaultModelRegistryTest extends Specification {
         noExceptionThrown()
 
         where:
-        state << ModelNode.State.values().toList()
+        state << ModelNode.State.values() - ModelNode.State.Known
     }
 
-    def "requesting at current state does not reinvoke actions"() {
+    @Unroll
+    def "requesting at state #state does not reinvoke actions"() {
         given:
         def events = []
-        registry.createInstance("thing", new Bean())
         def uptoRole = ModelActionRole.values().findAll { it.ordinal() <= role.ordinal() }
-        uptoRole.each { r ->
-            registry.configure(r) { it.path "thing" type Bean action { events << r.name() } }
-        }
+        uptoRole.each { r -> configureAction(r, "thing", Bean, { events << r.name() }) }
+
+        registry.createInstance("thing", new Bean())
 
         when:
         registry.atState(ModelPath.path("thing"), state)
@@ -955,13 +1001,23 @@ class DefaultModelRegistryTest extends Specification {
         events == uptoRole*.name()
 
         where:
-        state                           | role
-        ModelNode.State.DefaultsApplied | ModelActionRole.Defaults
-        ModelNode.State.Initialized     | ModelActionRole.Initialize
-        ModelNode.State.Mutated         | ModelActionRole.Mutate
-        ModelNode.State.Finalized       | ModelActionRole.Finalize
-        ModelNode.State.SelfClosed      | ModelActionRole.Validate
-        ModelNode.State.GraphClosed     | ModelActionRole.Validate
+        [state, role] << ModelActionRole.values().collect { role -> [role.targetState, role]}
+    }
+
+    private <T> void configureAction(ModelActionRole role, String path, def type, Action<? super MutableModelNode> nodeAction, Action<? super T> viewAction = null) {
+        registry.configure(role) {
+            it.path path
+            if (role.subjectViewAvailable) {
+                it.type type
+                if (viewAction != null) {
+                    it.action viewAction
+                } else {
+                    it.node nodeAction
+                }
+            } else {
+                it.node nodeAction
+            }
+        }
     }
 
     def "reports unbound subjects"() {
@@ -1217,10 +1273,120 @@ foo
          \\- foo""")
     }
 
-    class Bean {
+    def "node can be viewed via projection registered via projector"() {
+        registry.configure(ModelActionRole.DefineProjections) { it.path "foo" descriptor "project" node { node ->
+            node.addProjection UnmanagedModelProjection.of(BeanInternal)
+        } }
+        registry
+            .create("foo") { it.unmanaged(Bean, new AdvancedBean(name: "foo")) }
+            .mutate (BeanInternal) { bean ->
+                bean.internal = "internal"
+            }
+
+        expect:
+        def bean = registry.realize("foo")
+        assert bean instanceof AdvancedBean
+        bean.internal == "internal"
+    }
+
+    def "can register projection after node is registered"() {
+        registry
+            .create("foo") { it.unmanaged(Bean, new AdvancedBean(name: "foo")) }
+            .mutate (BeanInternal) { bean ->
+            bean.internal = "internal"
+        }
+        registry.configure(ModelActionRole.DefineProjections) { it.path "foo" descriptor "project" node { node ->
+            node.addProjection UnmanagedModelProjection.of(BeanInternal)
+        } }
+
+        expect:
+        def bean = registry.realize("foo")
+        assert bean instanceof AdvancedBean
+        bean.internal == "internal"
+    }
+
+    def "cannot register projection after node is transitioned to projections defined"() {
+        given:
+        registry.create("foo") { it.unmanaged(Bean, new AdvancedBean(name: "foo")) }
+        registry.atState("foo", ModelNode.State.ProjectionsDefined)
+
+        when:
+        registry.configure(ModelActionRole.DefineProjections) { it.path "foo" descriptor "project" node {} }
+
+        then:
+        def ex = thrown IllegalStateException
+        ex.message == "Cannot add rule project for model element 'foo' at state Known as this element is already at state ProjectionsDefined."
+    }
+
+    def "transitions children of scope to projections defined when defining scope when node matching input type is not already in projections defined state"() {
+        registry.create(registry.creator("dep").unmanaged(Bean, new Bean()))
+        registry.create(registry.creator("target").unmanaged(String, {}))
+        registry.create(registry.creator("childA").unmanaged(String, {}))
+        registry.create(registry.creator("childB").unmanaged(String, {}))
+        registry.configure(ModelActionRole.Mutate, registry.action().path("target").action(Bean, BiActions.doNothing()))
+
+        when:
+        registry.realize("target")
+
+        then:
+        registry.state("dep") == ModelNode.State.GraphClosed
+        registry.state("target") == ModelNode.State.GraphClosed
+        registry.state("childA") == ModelNode.State.ProjectionsDefined
+        registry.state("childB") == ModelNode.State.ProjectionsDefined
+    }
+
+    def "does not transition children of scope to projections defined when node matching input type is already in projections defined state"() {
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).service(true).build())
+        registry.create(registry.creator("target").unmanaged(String, {}))
+        registry.create(registry.creator("childA").unmanaged(String, {}))
+        registry.create(registry.creator("childB").unmanaged(String, {}))
+        registry.configure(ModelActionRole.Mutate, registry.action().path("target").action(Bean, BiActions.doNothing()))
+
+        when:
+        registry.realize("target")
+
+        then:
+        registry.state("dep") == ModelNode.State.GraphClosed
+        registry.state("target") == ModelNode.State.GraphClosed
+        registry.state("childA") == ModelNode.State.Known
+        registry.state("childB") == ModelNode.State.Known
+    }
+
+    def "fails when another child in scope with matching bound rule's target type is discovered"() {
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of("dep", Bean), new Bean()).service(true).descriptor("dep creator").build())
+        registry.create(registry.creator("target").unmanaged(String, {}))
+        registry.create(registry.creator("childA").unmanaged(String, {}))
+        registry.create(registry.creator("childB").unmanaged(String, {}))
+        registry.configure(ModelActionRole.Mutate, registry.action().path("target").action(Bean, BiActions.doNothing()))
+
+        when:
+        registry.create(ModelCreators.bridgedInstance(ModelReference.of("dep2", Bean), new Bean()).descriptor("dep2 creator").build())
+
+        then:
+        noExceptionThrown()
+
+        when:
+        registry.bindAllReferences()
+
+        then:
+        def ex = thrown InvalidModelRuleException
+        ex.cause instanceof ModelRuleBindingException
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""Type-only model reference of type $Bean.name ($Bean.name) is ambiguous as multiple model elements are available for this type:
+  - dep (created by: dep creator)
+  - dep2 (created by: dep2 creator)""")
+    }
+
+    static class Bean {
         String name
         String value
     }
 
+    static interface BeanInternal {
+        String getInternal()
+        void setInternal(String internal)
+    }
 
+    static class AdvancedBean extends Bean implements BeanInternal {
+        String internal
+    }
 }

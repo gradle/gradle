@@ -16,38 +16,47 @@
 
 package org.gradle.model.internal.core;
 
+import com.google.common.collect.*;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.BiAction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.List;
+import java.util.Set;
 
 @ThreadSafe
 public class ProjectionBackedModelCreator implements ModelCreator {
     private final ModelPath path;
     private final ModelRuleDescriptor descriptor;
+    private final boolean service;
     private final boolean ephemeral;
-    private final boolean hidden;
     private final ModelProjection projection;
-    private final List<? extends ModelReference<?>> inputs;
-    private final BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer;
+    private final List<ModelProjection> projections;
+    private final ListMultimap<ModelActionRole, ? extends ModelAction> actions;
 
     public ProjectionBackedModelCreator(
         ModelPath path,
         ModelRuleDescriptor descriptor,
+        boolean service,
         boolean ephemeral,
-        boolean hidden,
-        List<? extends ModelReference<?>> inputs,
-        ModelProjection projection,
-        BiAction<? super MutableModelNode, ? super List<ModelView<?>>> initializer
-    ) {
+        final boolean hidden,
+        Iterable<? extends ModelProjection> initialProjections,
+        Multimap<ModelActionRole, ? extends ModelAction> actions) {
         this.path = path;
         this.descriptor = descriptor;
+        this.service = service;
         this.ephemeral = ephemeral;
-        this.hidden = hidden;
-        this.projection = projection;
-        this.inputs = inputs;
-        this.initializer = initializer;
+        this.projections = Lists.newArrayList(initialProjections);
+        this.projection = new ChainingModelProjection(projections);
+
+        ImmutableListMultimap.Builder<ModelActionRole, ModelAction> actionsBuilder = ImmutableListMultimap.builder();
+        actionsBuilder.putAll(actions);
+        actionsBuilder.put(ModelActionRole.DefineProjections, new AbstractModelAction<Object>(ModelReference.of(path), descriptor) {
+            @Override
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                modelNode.setHidden(hidden);
+            }
+        });
+        this.actions = actionsBuilder.build();
     }
 
     public ModelPath getPath() {
@@ -62,9 +71,23 @@ public class ProjectionBackedModelCreator implements ModelCreator {
         return projection;
     }
 
-    public void create(MutableModelNode node, List<ModelView<?>> inputs) {
-        node.setHidden(hidden);
-        initializer.execute(node, inputs);
+    @Override
+    public ModelProjection getProjection() {
+        return projection;
+    }
+
+    @Override
+    public ListMultimap<ModelActionRole, ? extends ModelAction> getActions() {
+        return actions;
+    }
+
+    @Override
+    public Set<? extends ModelReference<?>> getInputs() {
+        final ImmutableSet.Builder<ModelReference<?>> builder = ImmutableSet.builder();
+        for (ModelAction action : actions.values()) {
+            builder.addAll(action.getInputs());
+        }
+        return builder.build();
     }
 
     @Override
@@ -72,12 +95,18 @@ public class ProjectionBackedModelCreator implements ModelCreator {
         return ephemeral;
     }
 
-    public List<? extends ModelReference<?>> getInputs() {
-        return inputs;
+    @Override
+    public boolean isService() {
+        return service;
     }
 
+    @Override
     public ModelRuleDescriptor getDescriptor() {
         return descriptor;
     }
 
+    @Override
+    public void addProjection(ModelProjection projection) {
+        projections.add(projection);
+    }
 }

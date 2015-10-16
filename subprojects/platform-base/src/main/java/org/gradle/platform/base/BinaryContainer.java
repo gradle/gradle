@@ -15,7 +15,8 @@
  */
 package org.gradle.platform.base;
 
-import org.gradle.api.*;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Incubating;
 
 /**
  * A container for project binaries, which represent physical artifacts that can run on a particular platform or runtime.

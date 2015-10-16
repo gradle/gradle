@@ -76,7 +76,8 @@ import java.lang.annotation.Target;
  * <p>
  * Properties that are themselves of a managed type are also supported.
  * <p>
- * Currently, the only collection types that are supported are {@link ModelSet} and {@link ModelMap}.
+ * Currently, the only collection types that are supported are {@link ModelSet} and {@link ModelMap}, as well as {@link java.util.Set} or {@link java.util.List}
+ * of {@link org.gradle.model.internal.manage.schema.extract.ScalarTypes scalar types}, where scalar types is either one of the supported immutable JDK types above or an enumeration.
  * <p>
  * Properties of any other type must have their getter annotated with {@link Unmanaged}.
  * An unmanaged property is not transparent to the model infrastructure and is guaranteed to be immutable when realized.

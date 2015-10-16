@@ -32,8 +32,10 @@ public interface ModelNode {
 
     // Note: order is crucial here. Nodes are traversed through these states in the order defined below
     enum State {
-        Known(true), // Initial state. Only type info is available here
+        Known(true), // Initial state. Only path and some projections are known here
+        ProjectionsDefined(true), // All projections are defined
         Created(true), // Private data has been created, initial rules discovered
+        RulesDefined(true), // Rules are defined
         DefaultsApplied(true), // Default values have been applied
         Initialized(true),
         Mutated(true),
@@ -50,6 +52,10 @@ public interface ModelNode {
         public State previous() {
             return ModelNode.State.values()[ordinal() - 1];
         }
+
+        public boolean isAtLeast(State state) {
+            return this.ordinal() >= state.ordinal();
+        }
     }
 
     boolean isEphemeral();
@@ -61,13 +67,13 @@ public interface ModelNode {
     State getState();
 
     /**
-     * Creates a read-only view over this node's value.
+     * Creates an immutable view over this node's value.
      *
      * Callers should try to {@link ModelView#close()} the returned view when it is done with, allowing any internal cleanup to occur.
      *
-     * Throws if this node can't be expressed as a read-only view of the requested type.
+     * Throws if this node can't be expressed as an immutable view of the requested type.
      */
-    <T> ModelView<? extends T> asReadOnly(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
+    <T> ModelView<? extends T> asImmutable(ModelType<T> type, @Nullable ModelRuleDescriptor ruleDescriptor);
 
     Set<String> getLinkNames(ModelType<?> type);
 

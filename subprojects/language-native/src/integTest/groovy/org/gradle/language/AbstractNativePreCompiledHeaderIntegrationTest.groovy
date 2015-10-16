@@ -505,7 +505,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         pchDirs.each { pchHeaderDirName ->
             def outputDirectories = file(pchHeaderDirName).listFiles().findAll { it.isDirectory() }
             assert outputDirectories.size() == 1
-            assert outputDirectories[0].assertContainsDescendants("prefix-headers.${getSuffix()}")
+            outputDirectories[0].assertContainsDescendants("prefix-headers.${getSuffix()}")
         }
         true
     }

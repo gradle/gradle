@@ -84,15 +84,10 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
     private class BinaryTaskRule<R, T extends BinarySpec> extends ModelMapBasedRule<R, Task, T, T> {
 
         public BinaryTaskRule(Class<T> binaryType, MethodRuleDefinition<R, ?> ruleDefinition) {
-            super(ModelReference.of(binaryType), binaryType, ruleDefinition);
+            super(ModelReference.of(binaryType), binaryType, ruleDefinition, ModelReference.of(ITaskFactory.class));
         }
 
-        @Override
-        public List<ModelReference<?>> getInputs() {
-            return ImmutableList.<ModelReference<?>>builder().add(ModelReference.of(ITaskFactory.class)).addAll(super.getInputs()).build();
-        }
-
-        public void execute(final MutableModelNode modelNode, final T binary, List<ModelView<?>> inputs) {
+        protected void execute(final MutableModelNode modelNode, final T binary, List<ModelView<?>> inputs) {
             NamedEntityInstantiator<Task> taskFactory = Cast.uncheckedCast(ModelViews.getInstance(inputs.get(0), ITaskFactory.class));
             ModelMap<Task> cast = DomainObjectCollectionBackedModelMap.wrap(
                 Task.class,

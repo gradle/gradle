@@ -147,7 +147,13 @@ Support read-write collection properties defined using both a getter and a sette
     - `CharSequence` to `File` conversion relative to project directory, as per `Project.file()`.
     - Any scalar type to `String`.
 - Update user guide, Javadocs and sample
-- Implementation must reuse `NotationConverter` infrastructure.
+
+#### Implementation
+
+- Update `ManagedProxyClassGenerator.writeSetter()` to add an overloaded setter with a single `Object` argument in addition to the typed setter for each mutable property.
+- Groovy will invoke the setter that corresponds to the runtime type, so for values that don't need coercion the typed setters will be invoked. `Object` isn't a valid managed model type, so the overloaded setter will only be invoked for values that need coercion and for unsupported types.
+- There are a few cases where Groovy already coerces values, including anything to `String`, `String`/`GString` to `Enum`, and `String`/`GString` with length 1 to `char`/`Character` or `byte`/`Byte`
+- The implementation of the overloaded setters will reuse the `NotationConverter` infrastructure, passing the value and the expected type, and will invoke the real setter with the coerced value, or fail with a helpful message if the conversion isn't supported or an error occurs (e.g. trying to set an `int` property from "27b/6")
 
 #### Test cases
 
@@ -163,7 +169,6 @@ TBD: make some kind of 'project layout' or 'file resolver' service available as 
 - TBD: convert input values? eg add String values to a List<File>?
 - Update user guide, Javadocs and samples
 
-
 #### Test cases
 
 - Nice error message when configuring a property that does not exist, for each supported pattern.
@@ -173,7 +178,7 @@ TBD: make some kind of 'project layout' or 'file resolver' service available as 
 
 - support the 'setter method' pattern from legacy domain types. For a simple type, the 'setter method' is equivalent to calling `set` or using `=`(equals) in the DSL:
 
-<!-- -->=
+<!-- -->
 
     model {
         thing {

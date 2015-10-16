@@ -15,17 +15,13 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
 class ComponentTypeSampleIntegTest extends AbstractIntegrationSpec {
     @Rule Sample componentTypeSample = new Sample(temporaryFolder, "customModel/componentType")
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "can create custom component with binaries"() {
         given:

@@ -65,7 +65,7 @@ class RealizableTaskCollectionTest extends Specification {
         collection.realizeRuleTaskTypes()
 
         then:
-        registry.state("tasks.redundant") == ModelNode.State.Known
+        registry.state("tasks.redundant") == ModelNode.State.ProjectionsDefined
     }
 
     def "realize is idempotent"() {

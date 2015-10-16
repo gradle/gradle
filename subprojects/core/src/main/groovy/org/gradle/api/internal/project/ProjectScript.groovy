@@ -18,6 +18,7 @@
 
 package org.gradle.api.internal.project
 
+import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
@@ -32,6 +33,10 @@ abstract class ProjectScript extends DefaultScript {
 
     def void apply(Map options) {
         scriptTarget.apply(options)
+    }
+
+    Project getProject() {
+        scriptTarget
     }
 
     ScriptHandler getBuildscript() {

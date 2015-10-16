@@ -21,16 +21,25 @@ import spock.lang.Specification
 
 class ModelTypeTest extends Specification {
     class Nested {}
+    interface NestedInterface {}
 
     def "represents classes"() {
         expect:
         def type = ModelType.of(String)
         type.toString() == String.name
-        type.simpleName == String.simpleName
+        type.displayName == String.simpleName
 
         def nested = ModelType.of(Nested)
         nested.toString() == Nested.name
-        nested.simpleName == "ModelTypeTest.Nested"
+        nested.displayName == "ModelTypeTest.Nested"
+    }
+
+    def "represents nested interfaces"() {
+        def nestedInterface = ModelType.of(NestedInterface)
+
+        expect:
+        nestedInterface.toString() == NestedInterface.name
+        nestedInterface.displayName == "ModelTypeTest.NestedInterface"
     }
 
     def "represents type variables"() {
@@ -45,7 +54,7 @@ class ModelTypeTest extends Specification {
 
         and:
         type.toString() == "java.util.Map<java.lang.String, java.util.Map<java.lang.Integer, java.lang.Float>>"
-        type.simpleName == "Map<String, Map<Integer, Float>>"
+        type.displayName == "Map<String, Map<Integer, Float>>"
     }
 
     def "generic type compatibility"() {
@@ -113,25 +122,46 @@ class ModelTypeTest extends Specification {
         objects.toString() == "?"
         anything.toString() == "?"
 
-        extendsString.simpleName == "? extends String"
-        superString.simpleName == "? super String"
-        objects.simpleName == "?"
-        anything.simpleName == "?"
+        extendsString.displayName == "? extends String"
+        superString.displayName == "? super String"
+        objects.displayName == "?"
+        anything.displayName == "?"
     }
 
-    def "isSubclass"() {
+    def "asSubtype"() {
+        expect:
+        ModelType.of(String).asSubtype(ModelType.of(String)) == ModelType.of(String)
+        ModelType.of(String).asSubtype(ModelType.of(CharSequence)) == ModelType.of(String)
+    }
+
+    def "asSubtype failures"() {
         def extendsString = ModelType.paramType(getClass().getDeclaredMethod("m1", List.class), 0).typeVariables[0]
         def superString = ModelType.paramType(getClass().getDeclaredMethod("m2", List.class), 0).typeVariables[0]
         def anything = ModelType.paramType(getClass().getDeclaredMethod("m3", List.class), 0).typeVariables[0]
 
-        expect:
-        !ModelType.of(String).asSubclass(ModelType.of(String))
-        ModelType.of(CharSequence).asSubclass(ModelType.of(String))
-        !ModelType.of(String).asSubclass(ModelType.of(CharSequence))
-        !anything.asSubclass(superString)
-        !superString.asSubclass(anything)
-        !superString.asSubclass(extendsString)
-        !extendsString.asSubclass(superString)
+        when: ModelType.of(CharSequence).asSubtype(ModelType.of(String))
+        then: thrown ClassCastException
+
+        when: anything.asSubtype(superString)
+        then: thrown IllegalStateException
+
+        when: superString.asSubtype(anything)
+        then: thrown IllegalStateException
+
+        when: superString.asSubtype(extendsString)
+        then: thrown IllegalStateException
+
+        when: extendsString.asSubtype(superString)
+        then: thrown IllegalStateException
+
+        when: ModelType.of(String).asSubtype(anything)
+        then: thrown IllegalArgumentException
+
+        when: ModelType.of(String).asSubtype(extendsString)
+        then: thrown IllegalArgumentException
+
+        when: ModelType.of(String).asSubtype(superString)
+        then: thrown IllegalArgumentException
     }
 
     def "has wildcards"() {

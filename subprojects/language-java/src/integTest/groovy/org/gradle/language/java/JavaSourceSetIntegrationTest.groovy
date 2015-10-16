@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.language.java
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class JavaSourceSetIntegrationTest extends AbstractIntegrationSpec {
-
-    void setup() {
-        EnableModelDsl.enable(super.executer)
-    }
 
     def "can define dependencies on Java source set"() {
         given:

@@ -17,14 +17,9 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.util.TextUtil
 
 class ModelSetIntegrationTest extends AbstractIntegrationSpec {
-
-    def setup() {
-        EnableModelDsl.enable(executer)
-    }
 
     def "rule can create a managed collection of interface backed managed model elements"() {
         when:
@@ -107,9 +102,10 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
+                def people = $('people')
                 create("printPeople") {
                   doLast {
-                    def names = $("people")*.name.sort().join(", ")
+                    def names = people*.name.sort().join(", ")
                     println "people: $names"
                   }
                 }
@@ -156,10 +152,11 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
             model {
               tasks {
+                def g = $('group')
                 create("printGroup") {
                   doLast {
-                    def members = $("group").members*.name.sort().join(", ")
-                    def name = $("group").name
+                    def members = g.members*.name.sort().join(", ")
+                    def name = g.name
                     println "$name: $members"
                   }
                 }
@@ -319,8 +316,7 @@ finalize
         succeeds "printPeople"
 
         and:
-        output.contains TextUtil.toPlatformLineSeparators('''
-p1 defined
+        output.contains TextUtil.toPlatformLineSeparators('''p1 defined
 p2 defined
 p3 defined
 construct Person

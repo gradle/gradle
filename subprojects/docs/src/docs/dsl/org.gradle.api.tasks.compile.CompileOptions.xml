@@ -72,6 +72,10 @@
                 <td>sourcepath</td>
                 <td><literal>null</literal></td>
             </tr>
+            <tr>
+                <td>incremental</td>
+                <td><literal>false</literal></td>
+            </tr>
         </table>
     </section>
     <section>

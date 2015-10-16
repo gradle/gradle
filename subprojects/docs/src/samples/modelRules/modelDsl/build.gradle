@@ -5,7 +5,7 @@ interface Person {
 }
 
 class PersonRules extends RuleSource {
- @Mutate void createHelloTask(ModelMap<Task> tasks, Person p) {
+  @Mutate void createHelloTask(ModelMap<Task> tasks, Person p) {
     tasks.create("hello") {
       doLast {
         println "Hello $p.firstName $p.lastName!"

@@ -16,13 +16,13 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-public class TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy extends ManagedImplStructSchemaExtractionStrategySupport {
+public class TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy extends ManagedImplStructStrategy {
     public TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(Class<?> delegateType) {
         this(delegateType, new ModelSchemaAspectExtractor());
     }
 
     public TestUnmanagedTypeWithManagedSuperTypeExtractionStrategy(Class<?> delegateType, ModelSchemaAspectExtractor aspectExtractor) {
-        super(aspectExtractor, delegateType, delegateType);
+        super(aspectExtractor);
     }
 
 }

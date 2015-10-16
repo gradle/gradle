@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform
 
-import org.gradle.integtests.fixtures.EnableModelDsl
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -56,7 +55,6 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         sample cppExe
 
         when:
-        EnableModelDsl.enable(executer)
         run "installMain"
 
         then:
@@ -95,8 +93,10 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     def flavors() {
-        when:
+        given:
         sample flavors
+
+        when:
         run "installEnglishMainExecutable"
 
         then:
@@ -127,8 +127,10 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     def variants() {
-        when:
+        given:
         sample variants
+
+        when:
         run "assemble"
 
         then:
@@ -192,6 +194,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     def "target platforms"() {
         given:
         sample targetPlatforms
+
         and:
         targetPlatforms.dir.file("build.gradle") << """
 model {

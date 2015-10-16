@@ -63,7 +63,7 @@ public class Jetty6PluginServer implements JettyPluginServer {
 
         for (int i = 0; i < connectors.length; i++) {
             Connector connector = (Connector) connectors[i];
-            LOGGER.debug("Setting Connector: " + connector.getClass().getName() + " on port " + connector.getPort());
+            LOGGER.debug("Setting Connector: {} on port {}", connector.getClass().getName(), connector.getPort());
             this.server.addConnector(connector);
         }
     }
@@ -107,7 +107,7 @@ public class Jetty6PluginServer implements JettyPluginServer {
      * @see org.gradle.api.plugins.jetty.internal.JettyPluginServer#start()
      */
     public void start() throws Exception {
-        LOGGER.info("Starting jetty " + this.server.getClass().getPackage().getImplementationVersion() + " ...");
+        LOGGER.info("Starting jetty {} ...", this.server.getClass().getPackage().getImplementationVersion());
         this.server.start();
     }
 

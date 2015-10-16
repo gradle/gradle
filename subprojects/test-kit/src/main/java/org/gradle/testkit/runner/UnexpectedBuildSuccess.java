@@ -25,8 +25,8 @@ import org.gradle.api.Incubating;
  * @see GradleRunner#buildAndFail()
  */
 @Incubating
-public class UnexpectedBuildSuccess extends RuntimeException {
-    public UnexpectedBuildSuccess(String message) {
-        super(message);
+public class UnexpectedBuildSuccess extends UnexpectedBuildException {
+    public UnexpectedBuildSuccess(String message, BuildResult buildResult) {
+        super(message, buildResult);
     }
 }

@@ -102,26 +102,6 @@ class ModuleNameDeduperTest extends Specification {
         sub2App.moduleName == "sub2-app"
     }
 
-    def "removes duplicate words from project name"() {
-        given:
-        TargetStub myProjectApp1 = new TargetStub(projectMock("myproject-app", root.project))
-        TargetStub myProjectBar1 = new TargetStub(projectMock("myproject-bar", root.project))
-        TargetStub myProjectApp2 = new TargetStub(projectMock("myproject-app", myProjectBar1.project))
-
-        def dedupeMe = [root, myProjectApp1, myProjectBar1, myProjectApp2]
-        assert myProjectApp1.moduleName == "myproject-app"
-        assert myProjectBar1.moduleName == "myproject-bar"
-        assert myProjectApp2.moduleName == "myproject-app"
-
-        when:
-        deduper.dedupe(dedupeMe)
-
-        then:
-        myProjectApp1.moduleName == "myproject-app"
-        myProjectBar1.moduleName == "myproject-bar"
-        myProjectApp2.moduleName == "myproject-bar-app"
-    }
-
     def "allows deduplication with parent not part of the target list"() {
         given:
         TargetStub bar = new TargetStub(projectMock("bar", root.project))
@@ -155,5 +135,29 @@ class ModuleNameDeduperTest extends Specification {
         fooServices.moduleName == "foo-services"
         fooServicesApp.moduleName == "foo-services-app"
         barServicesApp.moduleName == "bar-services-app"
+    }
+
+    def "removes duplicate words from prefix"() {
+        given:
+        TargetStub bar = new TargetStub(projectMock("bar", root.project))
+        TargetStub barServices = new TargetStub(projectMock("services", bar.project))
+        TargetStub barServicesApp = new TargetStub(projectMock("services-app", barServices.project))
+        TargetStub barServicesAppApp = new TargetStub(projectMock("app-app", barServices.project))
+        TargetStub foo = new TargetStub(projectMock("foo", root.project))
+        TargetStub fooServices = new TargetStub(projectMock("services", foo.project))
+        TargetStub fooServicesApp = new TargetStub(projectMock("services-app", fooServices.project))
+        TargetStub fooServicesAppApp = new TargetStub(projectMock("app-app", fooServices.project))
+        def dedupeMe = [barServices, barServicesApp, fooServices, fooServicesApp, fooServicesAppApp, barServicesAppApp]
+
+        when:
+        deduper.dedupe(dedupeMe)
+
+        then:
+        barServices.moduleName == "bar-services"
+        fooServices.moduleName == "foo-services"
+        fooServicesApp.moduleName == "foo-services-app"
+        barServicesApp.moduleName == "bar-services-app"
+        barServicesAppApp.moduleName == "bar-services-app-app"
+        fooServicesAppApp.moduleName == "foo-services-app-app"
     }
 }

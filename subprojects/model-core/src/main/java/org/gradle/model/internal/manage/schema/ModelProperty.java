@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
@@ -40,31 +41,25 @@ public class ModelProperty<T> {
          * The state of the property is handled by the view.
          */
         UNMANAGED,
-
-        /**
-         * The state of the property is handled by an unmanaged delegate.
-         */
-        DELEGATED
     }
 
     private final String name;
     private final ModelType<T> type;
     private final StateManagementType stateManagementType;
-    private final boolean writable;
     private final Set<ModelType<?>> declaredBy;
     private final List<WeaklyTypeReferencingMethod<?, T>> getters;
+    private final WeaklyTypeReferencingMethod<?, Void> setter;
+    private final boolean declaredAsHavingUnmanagedType;
 
-    private ModelProperty(ModelType<T> type, String name, StateManagementType stateManagementType, boolean writable, Set<ModelType<?>> declaredBy, List<WeaklyTypeReferencingMethod<?, T>> getters) {
+    public ModelProperty(ModelType<T> type, String name, StateManagementType stateManagementType, Set<ModelType<?>> declaredBy,
+                         List<WeaklyTypeReferencingMethod<?, T>> getters, @Nullable WeaklyTypeReferencingMethod<?, Void> setter, boolean declaredAsHavingUnmanagedType) {
         this.name = name;
         this.type = type;
         this.stateManagementType = stateManagementType;
-        this.writable = writable;
         this.declaredBy = ImmutableSet.copyOf(declaredBy);
         this.getters = ImmutableList.copyOf(getters);
-    }
-
-    public static <T> ModelProperty<T> of(ModelType<T> type, String name, StateManagementType stateManagementType, boolean writable, Set<ModelType<?>> declaredBy, List<WeaklyTypeReferencingMethod<?, T>> getters) {
-        return new ModelProperty<T>(type, name, stateManagementType, writable, declaredBy, getters);
+        this.setter = setter;
+        this.declaredAsHavingUnmanagedType = declaredAsHavingUnmanagedType;
     }
 
     public String getName() {
@@ -80,7 +75,7 @@ public class ModelProperty<T> {
     }
 
     public boolean isWritable() {
-        return writable;
+        return setter != null;
     }
 
     public Set<ModelType<?>> getDeclaredBy() {
@@ -95,8 +90,16 @@ public class ModelProperty<T> {
         return getters;
     }
 
+    public WeaklyTypeReferencingMethod<?, Void> getSetter() {
+        return setter;
+    }
+
     public <I> T getPropertyValue(I instance) {
         return Cast.<WeaklyTypeReferencingMethod<I, T>>uncheckedCast(firstGetter()).invoke(instance);
+    }
+
+    public boolean isDeclaredAsHavingUnmanagedType() {
+        return declaredAsHavingUnmanagedType;
     }
 
     @Override
@@ -113,7 +116,8 @@ public class ModelProperty<T> {
         return Objects.equal(this.name, that.name)
             && Objects.equal(this.type, that.type)
             && Objects.equal(this.stateManagementType, that.stateManagementType)
-            && writable == that.writable;
+            && this.declaredAsHavingUnmanagedType == that.declaredAsHavingUnmanagedType
+            && isWritable() == that.isWritable();
     }
 
     @Override
@@ -121,12 +125,13 @@ public class ModelProperty<T> {
         int result = name.hashCode();
         result = 31 * result + type.hashCode();
         result = 31 * result + stateManagementType.hashCode();
-        result = 31 * result + Boolean.valueOf(writable).hashCode();
+        result = 31 * result + Boolean.valueOf(isWritable()).hashCode();
+        result = 31 * result + Boolean.valueOf(declaredAsHavingUnmanagedType).hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return stateManagementType.name().toLowerCase() + " " + getName() + "(" + getType().getSimpleName() + ")";
+        return stateManagementType.name().toLowerCase() + " " + getName() + "(" + getType().getDisplayName() + ")";
     }
 }

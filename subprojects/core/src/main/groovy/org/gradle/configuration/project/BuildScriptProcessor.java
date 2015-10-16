@@ -37,7 +37,7 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
             ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource(), project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);
             configurer.apply(project);
         } finally {
-            LOGGER.debug("Timing: Running the build script took " + clock.getTime());
+            LOGGER.debug("Timing: Running the build script took {}", clock.getTime());
         }
     }
 }

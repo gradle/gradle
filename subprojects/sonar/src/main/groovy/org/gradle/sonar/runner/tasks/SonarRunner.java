@@ -19,7 +19,6 @@ package org.gradle.sonar.runner.tasks;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
@@ -47,8 +46,10 @@ import java.util.Properties;
  * <p>
  * For more information on how to configure the SonarQube Runner, and on which properties are available, see the
  * <a href="http://redirect.sonarsource.com/doc/analyzing-with-sq-runner.html">SonarQube Runner documentation</a>.
+ *
+ * @deprecated The 'sonar-runner' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
-@Incubating
+@Deprecated
 public class SonarRunner extends DefaultTask {
 
     private static final Logger LOGGER = Logging.getLogger(SonarRunner.class);
@@ -86,7 +87,7 @@ public class SonarRunner extends DefaultTask {
                 .systemProperty("project.settings", propertyFile.getAbsolutePath())
 
                 // This value is set in the properties file, but SonarQube Runner 2.4 requires it on the command line as well
-                // http://forums.gradle.org/gradle/topics/gradle-2-2-nightly-sonarrunner-task-fails-with-toolversion-2-4
+                    // http://forums.gradle.org/gradle/topics/gradle-2-2-nightly-sonarrunner-task-fails-with-toolversion-2-4
                 .systemProperty("project.home", getProject().getProjectDir().getAbsolutePath())
 
                 .setClasspath(sonarRunnerConfiguration)

@@ -20,14 +20,13 @@ import org.gradle.model.Model
 import org.gradle.model.Mutate
 import org.gradle.model.Path
 import org.gradle.model.RuleSource
-import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.registry.DefaultModelRegistry
 import spock.lang.Specification
 
 class MutationRuleExecutionOrderTest extends Specification {
-    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance, new DefaultNodeInitializerRegistry(DefaultModelSchemaStore.instance)))
+    def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(DefaultModelSchemaStore.instance))
     def modelRegistry = new ModelRegistryHelper(new DefaultModelRegistry(extractor))
 
     static class MutationRecorder {
@@ -81,7 +80,7 @@ class MutationRuleExecutionOrderTest extends Specification {
         modelRegistry.apply(MixedRules)
 
         then:
-        modelRegistry.get("recorder", MutationRecorder).mutations == ["a", "b"]
+        modelRegistry.get("recorder", MutationRecorder).mutations == ["b", "a"]
     }
 
     static class MutationRulesWithInputs extends RuleSource {

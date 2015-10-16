@@ -28,6 +28,8 @@ public interface MethodRuleDefinition<R, S> {
 
     String getMethodName();
 
+    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
+
     <A extends Annotation> A getAnnotation(Class<A> annotationType);
 
     ModelType<R> getReturnType();

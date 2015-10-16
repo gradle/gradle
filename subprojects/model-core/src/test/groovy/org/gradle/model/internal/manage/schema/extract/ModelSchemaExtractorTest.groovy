@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
+
 import org.gradle.api.Action
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
@@ -24,6 +25,7 @@ import org.gradle.model.Unmanaged
 import org.gradle.model.internal.manage.schema.*
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.TextUtil
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -37,21 +39,10 @@ import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagem
 @SuppressWarnings("GroovyPointlessBoolean")
 class ModelSchemaExtractorTest extends Specification {
 
-    private static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = [
-        String,
-        Boolean,
-        Character,
-        Integer,
-        Long,
-        Double,
-        BigInteger,
-        BigDecimal,
-        File
-    ]
-
-    def classLoader = new GroovyClassLoader(getClass().classLoader)
     @Shared
     def store = DefaultModelSchemaStore.getInstance()
+    def classLoader = new GroovyClassLoader(getClass().classLoader)
+    static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
     static interface NotAnnotatedInterface {}
 
@@ -94,16 +85,6 @@ class ModelSchemaExtractorTest extends Specification {
         expect:
         fail NoGettersOrSetters, Pattern.quote("only paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").returns(void.class).owner(NoGettersOrSetters).takes(String)})")
         fail HasExtraNonPropertyMethods, Pattern.quote("nly paired getter/setter methods are supported (invalid methods: ${MethodDescription.name("foo").returns(void.class).owner(HasExtraNonPropertyMethods).takes(String)})")
-    }
-
-    @Managed
-    static interface OnlyGetter {
-        String getName()
-    }
-
-    def "must be symmetrical"() {
-        expect:
-        fail OnlyGetter, "read only property 'name' has non managed type java.lang.String, only managed types can be used"
     }
 
     @Managed
@@ -179,21 +160,6 @@ class ModelSchemaExtractorTest extends Specification {
     def "setter only"() {
         expect:
         fail SetterOnly, "only paired getter/setter methods are supported"
-    }
-
-    @Managed
-    static interface NonStringProperty {
-        Object getName()
-
-        void setName(Object name)
-    }
-
-    def "only selected unmanaged property types are allowed"() {
-        expect:
-        fail type, Pattern.quote("an unmanaged type")
-
-        where:
-        type << [NonStringProperty, ClassWithExtendedFileType]
     }
 
     @Unroll
@@ -551,6 +517,8 @@ class ModelSchemaExtractorTest extends Specification {
         ]
     }
 
+    //TODO - AK
+    @Ignore
     def "type argument of a managed set has to be managed"() {
         given:
         def type = new ModelType<ModelSet<Object>>() {}
@@ -635,16 +603,13 @@ $type
         fail HasUnmanagedOnManaged, Pattern.quote("property 'myEnum' is marked as @Unmanaged, but is of @Managed type")
     }
 
-    @Managed
-    static interface MissingUnmanaged {
-        InputStream getThing();
-
-        void setThing(InputStream inputStream);
+    private void fail(extractType, String msgPattern) {
+        fail(extractType, extractType, msgPattern)
     }
 
-    def "unmanaged types must be annotated with unmanaged"() {
+    def "subtype can declare property unmanaged"() {
         expect:
-        fail MissingUnmanaged, Pattern.quote("it is an unmanaged type (please annotate the getter with @org.gradle.model.Unmanaged if you want this property to be unmanaged)")
+        extract(ExtendsMissingUnmanaged).getProperty("thing").type.rawClass == InputStream
     }
 
     @Managed
@@ -653,15 +618,6 @@ $type
         InputStream getThing();
 
         void setThing(InputStream inputStream);
-    }
-
-    private void fail(extractType, String msgPattern) {
-        fail(extractType, extractType, msgPattern)
-    }
-
-    def "subtype can declare property unmanaged"() {
-        expect:
-        extract(ExtendsMissingUnmanaged).getProperty("thing").type.rawClass == InputStream
     }
 
     @Managed
@@ -755,44 +711,6 @@ $type
         fail WithInstanceScopedFieldInSuperclass, Pattern.quote("instance scoped fields are not allowed (found fields: private int ${WithInstanceScopedField.name}.age, private java.lang.String ${WithInstanceScopedField.name}.name)")
     }
 
-    @Managed
-    static abstract class ThrowsInConstructor {
-        ThrowsInConstructor() {
-            throw new RuntimeException("from constructor")
-        }
-    }
-
-    def "classes that cannot be instantiated are detected as soon as they are extracted"() {
-        when:
-        extract(ThrowsInConstructor)
-
-        then:
-        InvalidManagedModelElementTypeException e = thrown()
-        e.message == "Invalid managed model type ${ThrowsInConstructor.name}: instance creation failed"
-        e.cause.message == "from constructor"
-    }
-
-    @Managed
-    static abstract class CallsSetterInConstructor {
-        abstract String getName()
-
-        abstract void setName(String name)
-
-        CallsSetterInConstructor() {
-            name = "foo"
-        }
-    }
-
-    def "calling setters from constructor is not allowed"() {
-        when:
-        extract(CallsSetterInConstructor)
-
-        then:
-        InvalidManagedModelElementTypeException e = thrown()
-        e.message == "Invalid managed model type ${CallsSetterInConstructor.name}: instance creation failed"
-        e.cause.class == UnsupportedOperationException
-        e.cause.message == "Calling setters of a managed type on itself is not allowed"
-    }
 
     @Managed
     static abstract class ProtectedAbstractMethods {
@@ -867,14 +785,6 @@ $type
         extract(ModelType.of(clazz))
     }
 
-    private String getName(ModelType<?> modelType) {
-        modelType
-    }
-
-    private String getName(Class<?> clazz) {
-        clazz.name
-    }
-
     @Unroll
     def "can extract a simple managed type with a property of #type"() {
         when:
@@ -887,32 +797,7 @@ $type
         type << JDK_SCALAR_TYPES
     }
 
-    @Unroll
-    def "should enforce properties of #type are managed"() {
-        when:
-        Class<?> generatedClass = managedClassWithoutSetter(type)
-
-        then:
-        fail generatedClass, "has non managed type ${type.name}, only managed types can be used"
-
-        where:
-        type << JDK_SCALAR_TYPES
-    }
-
-    @Managed
-    static interface ClassWithExtendedFileType {
-        ExtendedFile getExtendedFile()
-
-        void setExtendedFile(ExtendedFile extendedFile)
-    }
-
-    static class ExtendedFile extends File {
-        ExtendedFile(String pathname) {
-            super(pathname)
-        }
-    }
-
-    private Class<?> managedClass(Class<?> type) {
+    Class<?> managedClass(Class<?> type) {
         String typeName = type.getSimpleName()
         return classLoader.parseClass("""
 import org.gradle.model.Managed
@@ -925,18 +810,6 @@ interface Managed${typeName} {
 """)
     }
 
-    private Class<?> managedClassWithoutSetter(Class<?> type) {
-        String typeName = type.getSimpleName()
-        return classLoader.parseClass("""
-import org.gradle.model.Managed
-
-@Managed
-interface Managed${typeName} {
-    ${typeName} get${typeName}()
-}
-""")
-    }
-
     static class CustomThing {}
 
     static class UnmanagedThing {}
@@ -944,7 +817,7 @@ interface Managed${typeName} {
     def "can register custom strategy"() {
         when:
         def strategy = Mock(ModelSchemaExtractionStrategy) {
-            extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore store ->
+            extract(_) >> { ModelSchemaExtractionContext extractionContext ->
                 if (extractionContext.type.rawClass == CustomThing) {
                     extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
                 }
@@ -967,12 +840,12 @@ interface Managed${typeName} {
         def customSchema = store.getSchema(CustomThing)
 
         then:
-        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+        1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(CustomThing)
             extractionContext.child(ModelType.of(UnmanagedThing), "child")
             extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
         }
-        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+        1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
         }
 
@@ -990,13 +863,13 @@ interface Managed${typeName} {
         store.getSchema(CustomThing)
 
         then:
-        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+        1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(CustomThing)
             extractionContext.addValidator(validator)
             extractionContext.child(ModelType.of(UnmanagedThing), "child")
             extractionContext.found(new ModelValueSchema<CustomThing>(extractionContext.type))
         }
-        1 * strategy.extract(_, _) >> { ModelSchemaExtractionContext extractionContext, ModelSchemaStore mss ->
+        1 * strategy.extract(_) >> { ModelSchemaExtractionContext extractionContext ->
             assert extractionContext.type == ModelType.of(UnmanagedThing)
             return null;
         }
@@ -1005,27 +878,18 @@ interface Managed${typeName} {
         1 * validator.execute(_)
     }
 
-    @Managed
-    static abstract class UnmanagedModelMapInManagedType {
-        abstract ModelMap<InputStream> getThings()
-    }
-
-    def "model map type must be managed in a managed type"() {
+    def "model map type doesn't have to be managed type in an unmanaged type"() {
         expect:
-        fail UnmanagedModelMapInManagedType, "property 'things' cannot be a model map of type $InputStream.name as it is not a $Managed.name type."
+        extract(UnmanagedModelMapInUnmanagedType).getProperty("things").type.rawClass == ModelMap
     }
 
     static abstract class UnmanagedModelMapInUnmanagedType {
         ModelMap<InputStream> getThings() { null }
     }
 
-    def "model map type doesn't have to be managed type in an unmanaged type"() {
-        expect:
-        extract(UnmanagedModelMapInUnmanagedType).getProperty("things").type.rawClass == ModelMap
-    }
-
     static class SimpleUnmanagedType {
         String prop
+
         String getCalculatedProp() {
             "calc"
         }
@@ -1066,7 +930,7 @@ interface Managed${typeName} {
 
         then:
         assert schema instanceof ModelUnmanagedImplStructSchema
-        schema.properties*.name == ["buildable","time", "unmanagedCalculatedProp", "unmanagedProp"]
+        schema.properties*.name == ["buildable", "time", "unmanagedCalculatedProp", "unmanagedProp"]
 
         schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedProp").isWritable() == true
@@ -1120,10 +984,10 @@ interface Managed${typeName} {
         assert schema instanceof ModelManagedImplStructSchema
         schema.properties*.name == ["buildable", "managedCalculatedProp", "managedProp", "time", "unmanagedCalculatedProp", "unmanagedProp"]
 
-        schema.getProperty("unmanagedProp").stateManagementType == DELEGATED
+        schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedProp").isWritable() == true
 
-        schema.getProperty("unmanagedCalculatedProp").stateManagementType == DELEGATED
+        schema.getProperty("unmanagedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedCalculatedProp").isWritable() == false
 
         schema.getProperty("managedProp").stateManagementType == MANAGED
@@ -1132,10 +996,10 @@ interface Managed${typeName} {
         schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
 
-        schema.getProperty("buildable").stateManagementType == DELEGATED
+        schema.getProperty("buildable").stateManagementType == UNMANAGED
         schema.getProperty("buildable").isWritable() == false
 
-        schema.getProperty("time").stateManagementType == DELEGATED
+        schema.getProperty("time").stateManagementType == UNMANAGED
         schema.getProperty("time").isWritable() == false
     }
 
@@ -1200,7 +1064,9 @@ interface Managed${typeName} {
     @Managed
     static abstract class MyTypeOfAspect {
         abstract String getProp()
+
         abstract void setProp(String prop)
+
         String getCalculatedProp() {
             return "calc"
         }
@@ -1266,42 +1132,21 @@ interface Managed${typeName} {
         schema instanceof ManagedImplModelSchema
         def redundant = schema.properties[0]
         assert redundant instanceof ModelProperty
-        redundant.getters.size()==2
-    }
-
-    @Managed
-    static interface OnlyGetGetter {
-        boolean getThing()
-    }
-
-    @Managed
-    static interface OnlyIsGetter {
-        boolean isThing()
+        redundant.getters.size() == 2
     }
 
     @Managed
     interface IsNotAllowedForOtherTypeThanBoolean {
         String isThing()
+
         void setThing(String thing)
     }
 
     @Managed
     interface IsNotAllowedForOtherTypeThanBooleanWithBoxedBoolean {
         Boolean isThing()
+
         void setThing(Boolean thing)
-    }
-
-    @Unroll
-    def "must have a setter - #managedType.simpleName"() {
-        when:
-        store.getSchema(managedType)
-
-        then:
-        def ex = thrown(InvalidManagedModelElementTypeException)
-        ex.message =~ "read only property 'thing' has non managed type boolean, only managed types can be used"
-
-        where:
-        managedType << [OnlyIsGetter, OnlyGetGetter]
     }
 
     def "supports a boolean property with an is style getter"() {
@@ -1348,6 +1193,7 @@ interface Managed${typeName} {
     @Managed
     interface HasIsAndGetPropertyWithDifferentTypes {
         boolean isValue()
+
         String getValue()
     }
 
@@ -1409,6 +1255,59 @@ interface Managed${typeName} {
 
         where:
         type << JDK_SCALAR_TYPES
+    }
+
+    def "displays a reasonable error message when getter and setter of a property of collection of scalar types do not use the same generic type"() {
+        given:
+        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            @Managed
+            interface CollectionType {
+                List<String> getItems()
+                void setItems(List<Integer> integers)
+            }
+        """
+
+        when:
+        extract(managedType)
+
+        then:
+        InvalidManagedModelElementTypeException ex = thrown()
+        ex.message.contains 'setter method param must be of exactly the same type as the getter returns (expected: java.util.List<java.lang.String>, found: java.util.List<java.lang.Integer>)'
+    }
+
+    @Unroll
+    def "should not throw an error if we use unsupported collection type #collectionType.simpleName on a non-managed type"() {
+        given:
+        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
+
+            interface CollectionType {
+                ${collectionType.name}<String> getItems()
+            }
+        """
+
+        when:
+        def schema = extract(managedType)
+
+        then:
+        assert schema instanceof ModelUnmanagedImplStructSchema
+        schema.properties*.name == ["items"]
+
+        schema.getProperty("items").stateManagementType == UNMANAGED
+        schema.getProperty("items").isWritable() == false
+
+        where:
+        collectionType << [LinkedList, ArrayList, SortedSet, TreeSet]
+    }
+
+    String getName(ModelType<?> modelType) {
+        modelType
+    }
+
+    String getName(Class<?> clazz) {
+        clazz.name
     }
 }
 

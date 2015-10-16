@@ -22,6 +22,8 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.ProjectSourceSet
+import org.gradle.model.internal.core.ModelPath
+import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.internal.BinarySpecInternal
 import org.gradle.platform.base.internal.DefaultBinaryContainer
@@ -36,14 +38,14 @@ class LanguageBasePluginTest extends Specification {
         project.pluginManager.apply(LanguageBasePlugin)
     }
 
-    def "adds a 'binaries' container to the project"() {
+    def "adds a 'binaries' container to the project model"() {
         expect:
-        project.extensions.findByName("binaries") instanceof BinaryContainer
+        project.modelRegistry.find(ModelPath.path("binaries"), ModelType.of(BinaryContainer)) != null
     }
 
-    def "adds a 'sources' container to the project"() {
+    def "adds a 'sources' container to the project model"() {
         expect:
-        project.extensions.findByName("sources") instanceof ProjectSourceSet
+        project.modelRegistry.find(ModelPath.path("sources"), ModelType.of(ProjectSourceSet)) != null
     }
 
     def "copies binary tasks into task container"() {

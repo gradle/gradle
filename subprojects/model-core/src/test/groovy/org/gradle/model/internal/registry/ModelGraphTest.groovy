@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.registry
 
+import org.gradle.model.internal.core.ModelNode.State
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelPromise
 import org.gradle.model.internal.type.ModelType
@@ -47,6 +48,29 @@ class ModelGraphTest extends Specification {
         0 * listener.onCreate(_)
     }
 
+    def "notifies listener when node added in projected state"() {
+        def listener = Mock(ModelCreationListener)
+        def a = node("a")
+        def b = node("b")
+
+        given:
+        graph.addListener(listener)
+
+        when:
+        graph.add(a)
+
+        then:
+        1 * listener.onCreate(a)
+        0 * listener.onCreate(_)
+
+        when:
+        graph.add(b)
+
+        then:
+        1 * listener.onCreate(b)
+        0 * listener.onCreate(_)
+    }
+
     def "notifies listener of existing nodes"() {
         def listener = Mock(ModelCreationListener)
         def a = node("a")
@@ -63,6 +87,27 @@ class ModelGraphTest extends Specification {
         1 * listener.onCreate(graph.root)
         1 * listener.onCreate(a)
         1 * listener.onCreate(b)
+        0 * listener.onCreate(_)
+    }
+
+    def "notifies listener when node reaches projected state"() {
+        def listener = Mock(ModelCreationListener)
+        def a = node("a", String, State.Known)
+
+        given:
+        graph.addListener(listener)
+
+        when:
+        graph.add(a)
+
+        then:
+        0 * listener.onCreate(_)
+
+        when:
+        graph.nodeProjectionsDefined(a)
+
+        then:
+        1 * listener.onCreate(a)
         0 * listener.onCreate(_)
     }
 
@@ -189,13 +234,28 @@ class ModelGraphTest extends Specification {
         when:
         graph.add(a)
         graph.add(b)
+
+        then:
+        0 * listener.onCreate(_)
+
+        when:
         graph.addListener(listener)
-        graph.add(c)
-        graph.add(d)
 
         then:
         1 * listener.onCreate(b)
+        0 * listener.onCreate(_)
+
+        when:
+        graph.add(c)
+
+        then:
         1 * listener.onCreate(c)
+        0 * listener.onCreate(_)
+
+        when:
+        graph.add(d)
+
+        then:
         0 * listener.onCreate(_)
     }
 
@@ -376,11 +436,13 @@ class ModelGraphTest extends Specification {
         0 * listener1.onCreate(_)
     }
 
-    def node(String path, Class<?> type = String) {
+    def node(String path, Class<?> type = String, State state = State.ProjectionsDefined) {
         return Stub(ModelNodeInternal) {
             getPath() >> ModelPath.path(path)
+            getState() >> state
+            isAtLeast(_) >> { target -> state.isAtLeast(target) }
             getPromise() >> Stub(ModelPromise) {
-                canBeViewedAsWritable(_) >> { ModelType t -> return t.concreteClass == type }
+                canBeViewedAsMutable(_) >> { ModelType t -> return t.concreteClass == type }
             }
             toString() >> "node $path"
         }

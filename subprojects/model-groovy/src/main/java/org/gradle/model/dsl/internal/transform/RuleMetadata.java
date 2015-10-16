@@ -31,15 +31,6 @@ public @interface RuleMetadata {
 
     int[] absoluteInputLineNumbers() default {};
 
-    /**
-     * Candidate input references, should be resolved relative to the subject of the rule.
-     */
-    String[] relativeInputPaths() default {};
-
-    int[] relativeInputLineNumbers() default {};
-
-    String scriptSourceDescription();
-
     int lineNumber();
 
     int columnNumber();

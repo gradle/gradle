@@ -1,26 +1,21 @@
 // only the projects that contribute runtime code
-def runtimeProjects = subprojects - [':docs', ':distributions', ':performance'].collect { project(it) }
+ext.runtimeProjects = subprojects - [':docs', ':distributions', ':performance'].collect { project(it) }
 
 def runtimeProjectTasks = { String taskName ->
     runtimeProjects.collect { it.tasks.findByPath(taskName) }.findAll { it != null }
 }
 
-task runtimeTests {
-    dependsOn { runtimeProjectTasks("test") }
+ext.testGroupings = [
+    "runtimeTests": "test",
+    "runtimeIntegTests": "integTest",
+    "runtimeForkingIntegTests": "forkingIntegTest",
+    "runtimeDaemonIntegTests": "daemonIntegTest",
+    "runtimeParallelIntegTests": "parallelIntegTest"
+]
+
+testGroupings.each { grouping, testTask ->
+    task "${grouping}" {
+        dependsOn { runtimeProjectTasks(testTask) }
+    }
 }
 
-task runtimeIntegTests {
-    dependsOn { runtimeProjectTasks("integTest") }
-}
-
-task runtimeForkingIntegTests {
-    dependsOn { runtimeProjectTasks("forkingIntegTest") }
-}
-
-task runtimeDaemonIntegTests {
-    dependsOn { runtimeProjectTasks("daemonIntegTest") }
-}
-
-task runtimeParallelIntegTests {
-    dependsOn { runtimeProjectTasks("parallelIntegTest") }
-}

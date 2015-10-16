@@ -79,15 +79,14 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
         List<ModelReference<?>> references = ruleDefinition.getReferences();
         ModelType<? extends S> dependency = null;
         for (ModelReference<?> reference : references) {
-            ModelType<? extends S> newDependency = expectedDependency.asSubclass(reference.getType());
-            if (newDependency != null) {
+            if (expectedDependency.isAssignableFrom(reference.getType())) {
                 if (dependency != null) {
                     throw new InvalidModelException(String.format("Method %s must have one parameter extending %s. Found multiple parameter extending %s.", getDescription(),
                             expectedDependency.getConcreteClass().getSimpleName(),
                             expectedDependency.getConcreteClass().getSimpleName()));
 
                 }
-                dependency = newDependency;
+                dependency = reference.getType().asSubtype(expectedDependency);
             }
         }
 

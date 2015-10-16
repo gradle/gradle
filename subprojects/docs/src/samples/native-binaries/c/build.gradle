@@ -39,15 +39,19 @@ model {
 // END SNIPPET executables
 
 // START SNIPPET compiler-args
-binaries.all {
-    // Define toolchain-specific compiler and linker options
-    if (toolChain in Gcc) {
-        cCompiler.args "-O2"
-        linker.args "-Xlinker", "-S"
-    }
-    if (toolChain in VisualCpp) {
-        cCompiler.args "/Zi"
-        linker.args "/DEBUG"
+model {
+    binaries {
+        all {
+            // Define toolchain-specific compiler and linker options
+            if (toolChain in Gcc) {
+                cCompiler.args "-O2"
+                linker.args "-Xlinker", "-S"
+            }
+            if (toolChain in VisualCpp) {
+                cCompiler.args "/Zi"
+                linker.args "/DEBUG"
+            }
+        }
     }
 }
 // END SNIPPET compiler-args
@@ -55,10 +59,14 @@ binaries.all {
 // START SNIPPET all-shared-libraries
 // For any shared library binaries built with Visual C++,
 // define the DLL_EXPORT macro
-binaries.withType(SharedLibraryBinarySpec) {
-    if (toolChain in VisualCpp) {
-        cCompiler.args "/Zi"
-        cCompiler.define "DLL_EXPORT"
+model {
+    binaries {
+        withType(SharedLibraryBinarySpec) {
+            if (toolChain in VisualCpp) {
+                cCompiler.args "/Zi"
+                cCompiler.define "DLL_EXPORT"
+            }
+        }
     }
 }
 // END SNIPPET all-shared-libraries

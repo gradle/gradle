@@ -23,7 +23,7 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import java.io.File;
-import java.net.URI;
+import java.io.Writer;
 import java.util.List;
 
 /**
@@ -75,15 +75,44 @@ public abstract class GradleRunner {
     public static GradleRunner create() {
         GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator(GradleRunner.class);
         final File gradleHome = gradleDistributionLocator.getGradleHome();
-        if (gradleHome == null) {
-            try {
-                File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
-                throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was loaded from " + classpathForClass + " which is not a Gradle distribution");
-            } catch (Exception e) {
-                throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was not loaded from a Gradle distribution");
+        return create(new InstalledGradleDistribution(gradleHome));
+    }
+
+    /**
+     * Creates a new Gradle runner for a Gradle distribution.
+     * <p>
+     * A valid Gradle distribution is either installed in the filesystem, available as version on <i>https://services.gradle.org/distributions</i>,
+     * or can be downloaded from an URI.
+     * <p>
+     * Gradle distributions have to be provided as implementation of a {@link GradleDistribution}. Custom implementations of
+     * {@link GradleDistribution} are not allowed.
+     *
+     * @param gradleDistribution the Gradle distribution to be used
+     * @return a new Gradle runner
+     * @since 2.9
+     */
+    public static GradleRunner create(GradleDistribution<?> gradleDistribution) {
+        if (!(gradleDistribution instanceof InstalledGradleDistribution
+            || gradleDistribution instanceof URILocatedGradleDistribution
+            || gradleDistribution instanceof VersionBasedGradleDistribution)) {
+            throw new IllegalArgumentException(String.format("Invalid Gradle distribution type: %s", gradleDistribution.getClass().getName()));
+        }
+
+        validateGradleDistribution(gradleDistribution);
+        return new DefaultGradleRunner(gradleDistribution);
+    }
+
+    private static void validateGradleDistribution(GradleDistribution<?> gradleDistribution) {
+        if (gradleDistribution instanceof InstalledGradleDistribution) {
+            if (((InstalledGradleDistribution)gradleDistribution).getHandle() == null) {
+                try {
+                    File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
+                    throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was loaded from " + classpathForClass + " which is not a Gradle distribution");
+                } catch (Exception e) {
+                    throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was not loaded from a Gradle distribution");
+                }
             }
         }
-        return new DefaultGradleRunner(gradleHome);
     }
 
     /**
@@ -141,8 +170,8 @@ public abstract class GradleRunner {
      * <p>
      * Effectively, the command line arguments to Gradle.
      * This includes all tasks, flags, properties etc.
-     *
-     * The returned list is an unmodifiable view of items.
+     * <p>
+     * The returned list is immutable.
      *
      * @return the build arguments
      */
@@ -167,50 +196,77 @@ public abstract class GradleRunner {
     public abstract GradleRunner withArguments(String... arguments);
 
     /**
-     * The injected classpath for the build e.g. classes under test, external libraries.
+     * The injected plugin classpath for the build.
+     * <p>
+     * The returned list is immutable.
+     * Returns an empty list if no classpath was provided with {@link #withPluginClasspath(Iterable)}.
      *
-     * The returned list is an unmodifiable view of items.
-     * Returns an empty list if no classpath was provided with {@link #withClasspath(List)}.
-     *
-     * @return the classpath URIs
+     * @return the classpath of plugins to make available to the build under test
      * @since 2.8
      */
-    public abstract List<URI> getClasspath();
+    public abstract List<? extends File> getPluginClasspath();
 
     /**
-     * Sets the injected classpath for the build.
-     * The provided list of URIs is additive to the default classpath.
+     * Sets the injected plugin classpath for the build.
+     * <p>
+     * Plugins from the given classpath are able to be resolved using the <code>plugins { }</code> syntax in the build under test.
+     * Please consult the “Test Kit” Gradle User Guide chapter for more information and usage examples.
      *
-     * @param classpath the classpath URIs
+     * @param classpath the classpath of plugins to make available to the build under test
      * @return this
-     * @see #getClasspath()
+     * @see #getPluginClasspath()
      * @since 2.8
      */
-    public abstract GradleRunner withClasspath(List<URI> classpath);
+    public abstract GradleRunner withPluginClasspath(Iterable<? extends File> classpath);
 
     /**
      * Indicates if test execution is debuggable from an IDE. Enabled debugging effectively executes the tests in same JVM process
      * as the "main" Gradle process.
      * <p>
-     * If tests are executed from an IDE, debugging is enabled by default. If tests are not executed from an IDE, debugging is disabled.
+     * The debug mode can be enabled by providing the system property <code>org.gradle.testkit.debug</code> with the value
+     * <code>true</code> in the IDE run configuration.
      * <p>
-     * The debug flag can be set programmatically by invoking the method {@link #withDebug(boolean)} which takes precedence over
-     * the default debug value chosen based on the test execution environment.
+     * Alternatively, the debug flag can be set programmatically by invoking the method {@link #withDebug(boolean)} which takes precedence over
+     * the default debug mode. By default the debug mode is disabled.
      *
      * @return the debug flag
-     * @since 2.8
+     * @since 2.9
      */
     public abstract boolean isDebug();
 
     /**
-     * Enables/disables test execution for debugging purposes.
+     * Enables or disables debugging for test execution.
      *
      * @param debug the debug flag
      * @return this
      * @see #isDebug()
-     * @since 2.8
+     * @since 2.9
      */
     public abstract GradleRunner withDebug(boolean debug);
+
+    /**
+     * Specifies the writer used for capturing standard output during test execution. The provided writer may not be null.
+     * <p>
+     * If no writer is specified, the standard output is only captured as part of the build result.
+     * If a writer is specified, the standard output captures the same output as the build result.
+     *
+     * @param standardOutput the writer used to capture standard output
+     * @return this
+     * @since 2.9
+     */
+    public abstract GradleRunner withStandardOutput(Writer standardOutput);
+
+    /**
+     * Specifies the writer used for capturing standard error during test execution. The provided writer may not be null.
+     * <p>
+     * If no writer is specified, the standard error is only captured as part of the build result.
+     * If a writer is specified, the standard error captures the same output as the build result.
+     *
+     * @param standardError the writer used to capture standard error
+     * @return this
+     * @since 2.9
+     */
+    public abstract GradleRunner withStandardError(Writer standardError);
 
     /**
      * Executes a build, expecting it to complete without failure.

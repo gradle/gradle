@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.Transformer;
-import org.gradle.internal.Actions;
+import org.gradle.internal.BiAction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -30,6 +30,7 @@ import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.BridgedCollections;
+import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
 import org.gradle.model.collection.internal.ModelMapModelProjection;
 import org.gradle.model.collection.internal.PolymorphicModelMapProjection;
 import org.gradle.model.internal.core.*;
@@ -44,6 +45,7 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -86,12 +88,12 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
     private final MutableModelNode sources;
     private MutableModelNode modelNode;
 
-    public static <T extends BaseComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, MutableModelNode modelNode, ProjectSourceSet allSourceSets, Instantiator instantiator, NodeInitializerRegistry nodeInitializerRegistry) {
+    public static <T extends BaseComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, MutableModelNode modelNode, ProjectSourceSet allSourceSets, Instantiator instantiator) {
         if (type.equals(BaseComponentSpec.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseComponentSpec.");
         }
         FunctionalSourceSet mainSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet.class, identifier.getName(), instantiator, allSourceSets);
-        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, type.getSimpleName(), mainSourceSet, instantiator, nodeInitializerRegistry));
+        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, type.getSimpleName(), mainSourceSet, instantiator));
         try {
             try {
                 return instantiator.newInstance(type);
@@ -119,12 +121,19 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         modelNode = info.modelNode;
         modelNode.addLink(
             ModelCreators.of(
-                modelNode.getPath().child("binaries"), Actions.doNothing())
+                modelNode.getPath().child("binaries"), ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, List<ModelView<?>>>() {
+                    @Override
+                    public void execute(MutableModelNode node, List<ModelView<?>> modelViews) {
+                        NodeInitializerRegistry nodeInitializerRegistry = (NodeInitializerRegistry) modelViews.get(0).getInstance();
+                        ChildNodeInitializerStrategy<BinarySpec> childFactory = NodeBackedModelMap.createUsingRegistry(ModelType.of(BinarySpec.class), nodeInitializerRegistry);
+                        node.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
+                    }
+                })
                 .descriptor(modelNode.getDescriptor(), ".binaries")
                 .withProjection(
                     ModelMapModelProjection.unmanaged(
                         BinarySpec.class,
-                        NodeBackedModelMap.createUsingRegistry(ModelType.of(BinarySpec.class), info.nodeInitializerRegistry)
+                        ChildNodeInitializerStrategyAccessors.fromPrivateData()
                     )
                 )
                 .build()
@@ -146,7 +155,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
                 .withProjection(
                     PolymorphicModelMapProjection.ofEager(
                         LanguageSourceSetInternal.PUBLIC_MODEL_TYPE,
-                        NodeBackedModelMap.createUsingParentNode(SOURCE_SET_CREATOR)
+                        ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(SOURCE_SET_CREATOR))
                     )
                 )
                 .withProjection(UnmanagedModelProjection.of(FunctionalSourceSet.class))
@@ -187,7 +196,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
         sources.ensureUsable();
-        return sources.asWritable(
+        return sources.asMutable(
             ModelTypes.modelMap(LanguageSourceSet.class),
             RuleContext.nest(modelNode.toString() + ".getSources()"),
             Collections.<ModelView<?>>emptyList()
@@ -202,7 +211,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
     @Override
     public ModelMap<BinarySpec> getBinaries() {
         binaries.ensureUsable();
-        return binaries.asWritable(
+        return binaries.asMutable(
             ModelTypes.modelMap(BinarySpecInternal.PUBLIC_MODEL_TYPE),
             RuleContext.nest(identifier.toString() + ".getBinaries()"),
             Collections.<ModelView<?>>emptyList()
@@ -228,22 +237,19 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
         final String typeName;
         final FunctionalSourceSet sourceSets;
         final Instantiator instantiator;
-        final NodeInitializerRegistry nodeInitializerRegistry;
 
         private ComponentInfo(
             ComponentSpecIdentifier componentIdentifier,
             MutableModelNode modelNode,
             String typeName,
             FunctionalSourceSet sourceSets,
-            Instantiator instantiator,
-            NodeInitializerRegistry nodeInitializerRegistry
+            Instantiator instantiator
         ) {
             this.componentIdentifier = componentIdentifier;
             this.modelNode = modelNode;
             this.typeName = typeName;
             this.sourceSets = sourceSets;
             this.instantiator = instantiator;
-            this.nodeInitializerRegistry = nodeInitializerRegistry;
         }
     }
 

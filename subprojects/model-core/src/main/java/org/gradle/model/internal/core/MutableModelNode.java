@@ -33,7 +33,7 @@ public interface MutableModelNode extends ModelNode {
      *
      * Throws if this node can't be expressed as a mutable view of the requested type.
      */
-    <T> ModelView<? extends T> asWritable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies);
+    <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor, List<ModelView<?>> implicitDependencies);
 
     /**
      * Adds a reference node to the graph. A reference node is a node that refers to some other node elsewhere in the graph, similar to a symbolic link.
@@ -57,7 +57,7 @@ public interface MutableModelNode extends ModelNode {
     /**
      * Applies an action to this node.
      */
-    <T> void applyToSelf(ModelActionRole type, ModelAction<T> action);
+    void applyToSelf(ModelActionRole type, ModelAction action);
 
     /**
      * Applies an action to all nodes linked from this node.
@@ -65,7 +65,7 @@ public interface MutableModelNode extends ModelNode {
      * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
      * requested type available.
      */
-    <T> void applyToAllLinks(ModelActionRole type, ModelAction<T> action);
+    void applyToAllLinks(ModelActionRole type, ModelAction action);
 
     /**
      * Applies an action to all nodes linked from this node, including all nodes transitively linked from this node.
@@ -73,14 +73,14 @@ public interface MutableModelNode extends ModelNode {
      * The type returned by {@link ModelAction#getSubject()} is used to filter the nodes, such that the action is applied only to those linked nodes with a view of the
      * requested type available.
      */
-    <T> void applyToAllLinksTransitive(ModelActionRole type, ModelAction<T> action);
+    void applyToAllLinksTransitive(ModelActionRole type, ModelAction action);
 
     /**
      * Applies an action to a linked node.
      *
      * The path returned by {@link ModelAction#getSubject()} is used to select the link to apply the action to.
      */
-    <T> void applyToLink(ModelActionRole type, ModelAction<T> action);
+    void applyToLink(ModelActionRole type, ModelAction action);
 
     /**
      * Applies the given rules to a node linked from this node.
@@ -130,9 +130,13 @@ public interface MutableModelNode extends ModelNode {
 
     void ensureAtLeast(ModelNode.State state);
 
+    boolean isAtLeast(ModelNode.State state);
+
     void setHidden(boolean hidden);
 
     boolean isMutable();
 
     MutableModelNode getParent();
+
+    void addProjection(ModelProjection projection);
 }

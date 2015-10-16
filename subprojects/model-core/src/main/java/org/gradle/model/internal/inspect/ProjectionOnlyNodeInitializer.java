@@ -16,7 +16,9 @@
 
 package org.gradle.model.internal.inspect;
 
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,5 +44,11 @@ public class ProjectionOnlyNodeInitializer implements NodeInitializer {
     @Override
     public List<? extends ModelProjection> getProjections() {
         return Collections.singletonList(projection);
+    }
+
+    @Nullable
+    @Override
+    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
+        return null;
     }
 }

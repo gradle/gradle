@@ -25,6 +25,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
 import org.gradle.util.GradleVersion
+import org.gradle.util.SingleMessageLogger
 
 import javax.inject.Inject
 
@@ -41,7 +42,10 @@ import javax.inject.Inject
  * @see SonarAnalyze
  * @see SonarRootModel
  * @see SonarProjectModel
+ *
+ * @deprecated The 'sonar' plugin has been superseded by the official plugin from SonarQube, please see: http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle
  */
+@Deprecated
 class SonarPlugin implements Plugin<ProjectInternal> {
     static final String SONAR_ANALYZE_TASK_NAME = "sonarAnalyze"
 
@@ -53,6 +57,8 @@ class SonarPlugin implements Plugin<ProjectInternal> {
     }
 
     void apply(ProjectInternal project) {
+        SingleMessageLogger.nagUserOfDeprecated("The 'sonar' plugin", "please use the official plugin from SonarQube (http://docs.sonarqube.org/display/SONAR/Analyzing+with+Gradle)")
+
         def task = configureSonarTask(project)
         def model = configureSonarRootModel(project)
         task.rootModel = model

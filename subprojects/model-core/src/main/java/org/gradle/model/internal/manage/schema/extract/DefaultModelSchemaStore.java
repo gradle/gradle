@@ -39,7 +39,7 @@ public class DefaultModelSchemaStore implements ModelSchemaStore {
     }
 
     public <T> ModelSchema<T> getSchema(ModelType<T> type) {
-        return schemaExtractor.extract(type, this, cache);
+        return schemaExtractor.extract(type, cache);
     }
 
     @Override

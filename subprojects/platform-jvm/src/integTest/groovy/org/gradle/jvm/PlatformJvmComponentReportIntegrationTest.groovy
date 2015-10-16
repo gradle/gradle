@@ -60,7 +60,7 @@ JVM library 'someLib'
 Source sets
     Java source 'someLib:java'
         srcDir: src/someLib/java
-        dependencies
+        dependencies:
             library 'library-only'
             project 'project-only'
             project 'some-project' library 'some-library'
@@ -252,7 +252,7 @@ Binaries
         source sets:
             Java source 'someLib:java2'
                 srcDir: src/main/java2
-                dependencies
+                dependencies:
                     library 'some-library'
     Jar 'java6SomeLibJar'
         build using task: :java6SomeLibJar

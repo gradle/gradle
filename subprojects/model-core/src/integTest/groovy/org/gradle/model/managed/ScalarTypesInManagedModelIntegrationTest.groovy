@@ -567,4 +567,150 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    def "read-only backing set preserves order of insertion"() {
+        given: "a managed type that uses a Set of strings"
+        buildScript '''
+            @Managed
+            interface User {
+                Set<String> getGroups()
+            }
+
+            model {
+                user(User) {
+                    groups.addAll(["users", "general"])
+                    groups.add("other")
+                    groups.add("alpha")
+                }
+            }
+
+            class RulePlugin extends RuleSource {
+                @Mutate
+                void checkUser(ModelMap<Task> tasks, User user) {
+                    tasks.create("check") {
+                        doLast {
+                            def items = user.groups
+                            assert items == ['users', 'general', 'other', 'alpha'] as LinkedHashSet
+                        }
+                    }
+                }
+            }
+            apply plugin: RulePlugin
+        '''
+
+        when: "we check the contents of the collection"
+        succeeds 'check'
+
+        then: "the order is preserved"
+        noExceptionThrown()
+
+    }
+
+    def "read-write backing set preserves order of insertion"() {
+        given: "a managed type that uses a read-write Set of strings"
+        buildScript '''
+            @Managed
+            interface User {
+                Set<String> getGroups()
+                void setGroups(Set<String> groups)
+            }
+
+            model {
+                user(User) {
+                    def sortedSet = new TreeSet(['users', 'general'])
+                    groups = sortedSet
+                    sortedSet.add('not found')
+                    groups.add('other')
+                }
+            }
+
+            class RulePlugin extends RuleSource {
+                @Mutate
+                void checkUser(ModelMap<Task> tasks, User user) {
+                    tasks.create("check") {
+                        doLast {
+                            def items = user.groups
+                            assert items == ['general', 'users', 'other'] as LinkedHashSet
+                        }
+                    }
+                }
+            }
+            apply plugin: RulePlugin
+        '''
+
+        when: "we check the contents of the collection"
+        succeeds 'check'
+
+        then: "the order is preserved"
+        noExceptionThrown()
+
+    }
+
+    def "read-write backing set retains null value"() {
+        buildScript '''
+            @Managed
+            interface User {
+                Set<String> getGroups()
+                void setGroups(Set<String> groups)
+            }
+
+            model {
+                user(User) {
+                    groups = null
+                }
+            }
+
+            class RulePlugin extends RuleSource {
+                @Mutate
+                void checkUser(ModelMap<Task> tasks, User user) {
+                    tasks.create("check") {
+                        doLast {
+                            def items = user.groups
+                            assert items == null
+                        }
+                    }
+                }
+            }
+            apply plugin: RulePlugin
+        '''
+
+        expect:
+        succeeds 'check'
+    }
+
+    def "cannot mutate read-write scalar collection when not target of a rule"() {
+        given: "a managed type that uses a read-write Set of strings"
+        buildScript '''
+            @Managed
+            interface User {
+                Set<String> getGroups()
+                void setGroups(Set<String> groups)
+            }
+
+            model {
+                user(User) {
+                    groups =  new TreeSet(['users', 'general'])
+                    groups.add('other')
+                }
+            }
+
+            class RulePlugin extends RuleSource {
+                @Mutate
+                void checkUser(ModelMap<Task> tasks, User user) {
+                    tasks.create("check") {
+                        doLast {
+                            user.groups.add('foo')
+                        }
+                    }
+                }
+            }
+            apply plugin: RulePlugin
+        '''
+
+        when: "we try to mutate a read-write collection explicitly set outside of a rule subject"
+        fails 'check'
+
+        then: "mutation is not allowed"
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'java.util.Set<java.lang.String>' given to rule 'RulePlugin#checkUser'")
+    }
+
 }

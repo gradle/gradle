@@ -178,17 +178,18 @@ model {
     components {
         main(NativeExecutableSpec)
     }
-}
-
-binaries.all {
-    sources {
-        testCpp(CppSourceSet) {
-            source.srcDir "src/test/cpp"
-            exportedHeaders.srcDir "src/test/headers"
-        }
-        testC(CSourceSet) {
-            source.srcDir "src/test/c"
-            exportedHeaders.srcDir "src/test/headers"
+    binaries {
+        all {
+            sources {
+                testCpp(CppSourceSet) {
+                    source.srcDir "src/test/cpp"
+                    exportedHeaders.srcDir "src/test/headers"
+                }
+                testC(CSourceSet) {
+                    source.srcDir "src/test/c"
+                    exportedHeaders.srcDir "src/test/headers"
+                }
+            }
         }
     }
 }
@@ -229,7 +230,7 @@ model {
 
         then:
         fails "mainExecutable"
-        failure.assertHasCause("Exception thrown while executing model rule: model.components > create(main) > components.main.getSources() > create(java)");
+        failure.assertHasCause("Exception thrown while executing model rule: model.components @ build.gradle line 7, column 5 > create(main) > components.main.getSources() > create(java)");
         failure.assertHasCause("Cannot create a JavaSourceSet because this type is not known to this container. Known types are: CSourceSet, CppSourceSet")
     }
 
@@ -302,11 +303,13 @@ model {
     components {
         main(NativeLibrarySpec)
     }
+    binaries {
+        withType(StaticLibraryBinarySpec) {
+            staticLibArchiver.args "not_a_file"
+        }
+    }
 }
 
-binaries.withType(StaticLibraryBinarySpec) {
-    staticLibArchiver.args "not_a_file"
-}
         """
 
         and:

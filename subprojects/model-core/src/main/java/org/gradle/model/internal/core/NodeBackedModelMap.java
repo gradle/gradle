@@ -63,10 +63,10 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         return new ChildNodeInitializerStrategy<T>() {
             @Override
             public <S extends T> NodeInitializer initializer(ModelType<S> type) {
-                if (baseItemModelType.asSubclass(type) == null) {
+                if (!baseItemModelType.isAssignableFrom(type) || baseItemModelType.equals(type)) {
                     throw new IllegalArgumentException(String.format("%s is not a subtype of %s", type, baseItemModelType));
                 }
-                return nodeInitializerRegistry.getNodeInitializer(type);
+                return nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(type));
             }
         };
     }
@@ -100,6 +100,12 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
                     @Override
                     public List<? extends ModelProjection> getProjections() {
                         return Collections.singletonList(UnmanagedModelProjection.of(type));
+                    }
+
+                    @Nullable
+                    @Override
+                    public ModelAction getProjector(ModelPath path, ModelRuleDescriptor descriptor) {
+                        return null;
                     }
                 };
             }
@@ -234,9 +240,9 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
         }
         link.ensureUsable();
         if (viewState.isCanMutate()) {
-            return link.asWritable(elementType, sourceDescriptor, null).getInstance();
+            return link.asMutable(elementType, sourceDescriptor, null).getInstance();
         } else {
-            return link.asReadOnly(elementType, sourceDescriptor).getInstance();
+            return link.asImmutable(elementType, sourceDescriptor).getInstance();
         }
     }
 
@@ -277,7 +283,7 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     }
 
     private static String derivedDescription(ModelNode modelNode, ModelType<?> elementType) {
-        return ModelMap.class.getSimpleName() + '<' + elementType.getSimpleName() + "> '" + modelNode.getPath() + "'";
+        return ModelMap.class.getSimpleName() + '<' + elementType.getDisplayName() + "> '" + modelNode.getPath() + "'";
     }
 
     public <S extends T> ModelMap<S> toSubType(Class<S> type) {

@@ -47,6 +47,9 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     private BeanDynamicObject(Object bean, boolean includeProperties, boolean implementsMissing) {
+        if (bean == null) {
+            throw new IllegalArgumentException("Value is null");
+        }
         this.bean = bean;
         this.includeProperties = includeProperties;
         this.implementsMissing = implementsMissing;

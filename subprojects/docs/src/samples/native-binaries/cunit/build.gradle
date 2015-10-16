@@ -31,11 +31,15 @@ model {
     }
 }
 // START SNIPPET configure-test-binary
-binaries.withType(CUnitTestSuiteBinarySpec) {
-    lib library: "cunit", linkage: "static"
+model {
+    binaries {
+        withType(CUnitTestSuiteBinarySpec) {
+            lib library: "cunit", linkage: "static"
 
-    if (flavor == flavors.failing) {
-        cCompiler.define "PLUS_BROKEN"
+            if (flavor == flavors.failing) {
+                cCompiler.define "PLUS_BROKEN"
+            }
+        }
     }
 }
 // END SNIPPET configure-test-binary
