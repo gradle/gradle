@@ -488,6 +488,14 @@ class ManagedProxyClassGeneratorTest extends Specification {
         }
     }
 
+    @Managed
+    static interface SomeTypeWithParameters {
+        List<String> getValues();
+
+        Optional<Boolean> getOptional();
+        void setOptional(Optional<Boolean> optional);
+    }
+
     static interface PublicUnmanagedType {
         String getUnmanagedValue()
 

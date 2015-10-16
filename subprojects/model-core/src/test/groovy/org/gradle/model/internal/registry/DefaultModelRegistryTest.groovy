@@ -1381,6 +1381,11 @@ foo
         String value
     }
 
+    static interface BeanInternal {
+        String getInternal()
+        void setInternal(String internal)
+    }
+
     static class AdvancedBean extends Bean implements BeanInternal {
         String internal
     }

@@ -20,7 +20,6 @@ import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.AbstractBuildableModelElement
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.testinterfaces.CustomLanguageSourceSet
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.InvalidModelRuleDeclarationException
@@ -103,6 +102,8 @@ class LanguageTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtr
         registration instanceof DependencyOnlyExtractedModelRule
         registration.ruleDependencies == [ComponentModelBasePlugin]
     }
+
+    static interface CustomLanguageSourceSet extends LanguageSourceSet {}
 
     static class ImplementingCustomLanguageSourceSet extends BaseLanguageSourceSet implements CustomLanguageSourceSet {
     }

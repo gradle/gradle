@@ -16,12 +16,12 @@
 
 package org.gradle.platform.base.internal.registry
 import org.gradle.api.Task
-import org.gradle.language.base.internal.testinterfaces.SomeBinarySpec
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks
 import org.gradle.platform.base.InvalidModelException
 import spock.lang.Unroll
@@ -83,6 +83,8 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
         }
         0 * _
     }
+
+    static interface SomeBinarySpec extends BinarySpec {}
 
     class Rules {
 
