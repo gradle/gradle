@@ -80,17 +80,21 @@ class DependentSourceSetLocalComponentConverterTest extends Specification {
         }
 
         where:
-        dependencies                                                                                        | dependenciesDescriptor
-        [new DefaultDependencySpec('someLib', ':myPath')]                                                   | 'single dependency with explicit project'
-        [new DefaultDependencySpec('someLib', ':myPath'), new DefaultDependencySpec('someLib2', ':myPath')] | '2 deps on the same project'
-        [new DefaultDependencySpec('someLib', ':myPath'), new DefaultDependencySpec('someLib', ':myPath2')] | '2 deps on 2 different projects'
-        [new DefaultDependencySpec('someLib', null)]                                                        | 'a single dependency on the current project'
+        dependencies                                                                  | dependenciesDescriptor
+        [dependencySpec('someLib', ':myPath')]                                        | 'single dependency with explicit project'
+        [dependencySpec('someLib', ':myPath'), dependencySpec('someLib2', ':myPath')] | '2 deps on the same project'
+        [dependencySpec('someLib', ':myPath'), dependencySpec('someLib', ':myPath2')] | '2 deps on 2 different projects'
+        [dependencySpec('someLib', null)]                                             | 'a single dependency on the current project'
 
+    }
+
+    private static DefaultDependencySpec dependencySpec(String name, String project) {
+        new DefaultDependencySpec(name, project, false)
     }
 
     def "can convert a component with an external dependency"() {
         when: "we convert the context to a local component"
-        dependencySpecs.dependencies >> [new DefaultDependencySpec('someGroup:someLib:someVersion', null)]
+        dependencySpecs.dependencies >> [dependencySpec('someGroup:someLib:someVersion', null)]
         def component = factory.convert(context)
 
         then:

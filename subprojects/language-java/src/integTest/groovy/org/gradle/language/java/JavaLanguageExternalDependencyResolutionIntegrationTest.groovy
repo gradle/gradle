@@ -169,4 +169,62 @@ model {
         file('mainLibs').assertHasDescendants('other.jar')
         file('otherLibs').assertHasDescendants('compileDep-1.0.jar')
     }
+
+    def "resolved classpath includes transitive api-scoped dependencies of local components"() {
+        given:
+        mavenRepo.module("org.gradle", "compileDep").publish()
+        mavenRepo.module("org.gradle", "apiDep").publish()
+
+        buildFile << """
+plugins {
+    id 'jvm-component'
+    id 'java-lang'
+}
+repositories {
+    maven { url '${mavenRepo.uri}' }
+}
+model {
+    components {
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'other'
+                    }
+                }
+            }
+        }
+        other(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'org.gradle:apiDep:1.0' exported(true)
+                        library 'org.gradle:compileDep:1.0'
+                        library 'apiLib' exported(true)
+                        library 'compileLib'
+                    }
+                }
+            }
+        }
+        apiLib(JvmLibrarySpec) {
+        }
+        compileLib(JvmLibrarySpec) {
+        }
+    }
+    tasks {
+        create('copyDeps', Copy) {
+            into 'mainLibs'
+            from compileMainJarMainJava.classpath
+        }
+    }
+}
+"""
+        file('src/main/java/TestApp.java') << '''public class TestApp {}'''
+
+        when:
+        succeeds ':copyDeps'
+
+        then:
+        file('mainLibs').assertHasDescendants('other.jar', 'apiLib.jar', 'apiDep-1.0.jar')
+    }
 }

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.resolve
+
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleVersionSelector
@@ -36,6 +37,7 @@ import org.gradle.jvm.internal.DefaultJavaPlatformVariantDimensionSelector
 import org.gradle.jvm.internal.JarBinarySpecInternal
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.model.DefaultVariantDimensionSelectorFactory
 import org.gradle.language.base.internal.model.VariantsMetaData
 import org.gradle.model.ModelMap
@@ -49,6 +51,8 @@ import org.gradle.platform.base.LibrarySpec
 import org.gradle.platform.base.internal.VariantAspectExtractionStrategy
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import static org.gradle.util.WrapUtil.toDomainObjectSet
 
 class JvmLocalLibraryDependencyResolverTest extends Specification {
 
@@ -234,6 +238,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
                 binary.targetPlatform >> platform
                 binary.jarFile >> new File("api.jar")
                 binary.apiJarFile >> new File("api.jar")
+                binary.inputs >> toDomainObjectSet(LanguageSourceSet)
                 def values = [binary]
                 binaries.values() >> { values }
                 binaries.withType(JarBinarySpec) >> {
