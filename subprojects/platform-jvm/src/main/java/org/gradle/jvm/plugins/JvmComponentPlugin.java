@@ -143,11 +143,10 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         @BinaryTasks
-        public void createTasks(ModelMap<Task> tasks, final JarBinarySpec binary) {
-            final String jarArchiveName = binary.getJarFile().getName();
-
+        public void createTasks(ModelMap<Task> tasks, final JarBinarySpec binary, @Path("buildDir") File buildDir) {
             final File runtimeClassesDir = binary.getClassesDir();
             final File runtimeJarDestDir = binary.getJarFile().getParentFile();
+            final String runtimeJarArchiveName = binary.getJarFile().getName();
             final String createRuntimeJar = "create" + capitalize(binary.getName());
             tasks.create(createRuntimeJar, Jar.class, new Action<Jar>() {
                 @Override
@@ -156,7 +155,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                     jar.from(runtimeClassesDir);
                     jar.from(binary.getResourcesDir());
                     jar.setDestinationDir(runtimeJarDestDir);
-                    jar.setArchiveName(jarArchiveName);
+                    jar.setArchiveName(runtimeJarArchiveName);
                 }
             });
 
@@ -166,7 +165,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             }
 
             String libName = binaryName.replace("Jar", "");
-            final File apiClassesDir = new File(new File(runtimeClassesDir.getParentFile().getParentFile(), "apiClasses"), runtimeClassesDir.getName());
+            final File apiClassesDir = new File(new File(buildDir, "apiClasses"), runtimeClassesDir.getName());
             final String extractApiClasses = "extract" + capitalize(libName + "ApiClasses");
             tasks.create(extractApiClasses, Copy.class, new Action<Copy>() {
                 @Override
@@ -180,14 +179,16 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 }
             });
 
+            final File apiJarDestDir = binary.getApiJarFile().getParentFile();
+            final String apiJarArchiveName = binary.getApiJarFile().getName();
             String createApiJar = "create" + capitalize(binary.getName().replace("Jar", "ApiJar"));
             tasks.create(createApiJar, Jar.class, new Action<Jar>() {
                 @Override
                 public void execute(Jar jar) {
                     jar.setDescription(String.format("Creates the API binary file for %s.", binary));
                     jar.from(apiClassesDir);
-                    jar.setDestinationDir(binary.getApiJarFile().getParentFile());
-                    jar.setArchiveName(binary.getApiJarFile().getName());
+                    jar.setDestinationDir(apiJarDestDir);
+                    jar.setArchiveName(apiJarArchiveName);
                     jar.dependsOn(extractApiClasses);
                 }
             });
