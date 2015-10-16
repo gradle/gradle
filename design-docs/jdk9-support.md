@@ -58,8 +58,8 @@ No runtime enforcement will be done--this is the job of the module system. Gradl
 ### Implementation details
 
 This story should **not** use the `ApiStubGenerator` yet. Instead, it should:
-- implement a new `org.gradle.language.base.internal.tasks.ApiCreatorTask` that takes a class directory as an input, as well as an `ApiSpec` and generates a new `apiClasses` directory.
-- the API classes directory should be filtered according to the `APISpec`. It is not expected that the output classes are stripped out from their non public members yet.
+- configure a new copy task that a class directory as input, and produces an `apiClasses` directory based on the packages exported in the api specification.
+- filter the API classes directory according to the `APISpec`. It is not expected that the output classes are stripped out from their non public members yet.
 - a separate `jar` task should produce a jar out of the `apiClasses` directory
 - package private classes, inner classes and local classes are included in the API jar (a later story will allow us to remove them)
 
