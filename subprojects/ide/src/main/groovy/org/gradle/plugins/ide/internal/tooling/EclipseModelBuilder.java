@@ -126,11 +126,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         }
         eclipseProject.setTasks(tasks);
 
-        List<String> natures = new ArrayList<String>();
-        for (String n : eclipseModel.getProject().getNatures()) {
-            natures.add(n);
-        }
-        eclipseProject.setProjectNatures(natures);
+        eclipseProject.setProjectNatures(new ArrayList<String>(eclipseModel.getProject().getNatures()));
 
         List<DefaultEclipseBuildCommand> buildCommands = new ArrayList<DefaultEclipseBuildCommand>();
         for (BuildCommand b : eclipseModel.getProject().getBuildCommands()) {
