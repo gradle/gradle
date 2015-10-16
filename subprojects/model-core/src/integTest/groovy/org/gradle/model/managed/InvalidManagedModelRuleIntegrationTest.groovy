@@ -173,6 +173,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         fails "model"
 
         and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#createPerson")
         failure.assertHasCause("Invalid managed model type 'Person': read only property 'name' has non managed type java.lang.String, only managed types can be used")
     }
 }

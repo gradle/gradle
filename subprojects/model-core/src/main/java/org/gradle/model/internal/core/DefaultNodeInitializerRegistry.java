@@ -27,6 +27,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
@@ -62,7 +63,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
 
     public ModelTypeInitializationException canNotConstructTypeException(NodeInitializerContext context) {
         Iterable<ModelType<?>> scalars = Iterables.concat(ScalarTypes.TYPES, ScalarTypes.NON_FINAL_TYPES);
-        TreeSet<ModelType<?>> constructableTypes = new TreeSet<ModelType<?>>(new Comparator<ModelType<?>>() {
+        Set<ModelType<?>> constructableTypes = new TreeSet<ModelType<?>>(new Comparator<ModelType<?>>() {
             @Override
             public int compare(ModelType<?> o1, ModelType<?> o2) {
                 return o1.getDisplayName().compareTo(o2.getDisplayName());
