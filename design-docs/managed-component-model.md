@@ -205,8 +205,6 @@ This default implementation is then used as the super class for all `@Managed` s
 - Allow for binaries and components.
 - Change core plugins to declare default implementations for `ComponentSpec` and `BinarySpec`. This will allow `@Managed` subtypes of each
 of these types.
-- Update user guide and samples to show how to implement a custom `@Managed` `ComponentSpec` and `BinarySpec` type
-- Update user guide to show how to attach an internal view to the custom type
 
 ### Test cases
 
@@ -222,9 +220,22 @@ of these types.
     - registered managed type extends base type without a default implementation (i.e. `BinarySpec`)
     - registered managed type extends multiple interfaces that declare default implementations
 
+
+## Core plugins use managed binary and component types
+
+- Convert binary and component types where possible to `@Managed` types in core plugins. Convert these types:
+    - TBD
+- Update user guide and samples to show how to implement a custom `@Managed` `ComponentSpec` and `BinarySpec` type
+- Update user guide to show how to attach an internal view to the custom type
+
+
 ## Plugin author declares default implementation for all extensible types
 
-Extend the previous story for `LanguageSourceSet` and `FunctionalSourceSet`.
+Extend story "Plugin author declares default implementation for extensible binary and component type"
+for `LanguageSourceSet`.
+
+- Update user guide and samples to show how to implement a custom `@Managed` `LanguageSourceSet` type
+
 
 ## Plugin author declares internal view for custom non-managed source set types
 
