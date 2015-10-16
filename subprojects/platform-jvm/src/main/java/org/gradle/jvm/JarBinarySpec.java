@@ -43,6 +43,16 @@ public interface JarBinarySpec extends JvmBinarySpec {
      */
     void setJarFile(File jarFile);
 
+    /**
+     * The API jar file output for this binary.
+     */
+    File getApiJarFile();
+
+    /**
+     * Sets the API jar file output for this binary.
+     */
+    void setApiJarFile(File jarFile);
+
     void setExportedPackages(Set<String> exportedPackages);
 
     Set<String> getExportedPackages();

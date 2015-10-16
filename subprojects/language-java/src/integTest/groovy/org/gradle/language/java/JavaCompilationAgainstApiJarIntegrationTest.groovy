@@ -16,7 +16,6 @@
 
 package org.gradle.language.java
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JavaCompilationAgainstApiJarIntegrationTest extends AbstractIntegrationSpec {
@@ -29,7 +28,6 @@ plugins {
 '''
     }
 
-    @NotYetImplemented
     def "fails compilation if trying to compile a non-API class"() {
         given: "a library that declares a public API"
         applyJavaPlugin(buildFile)
@@ -57,7 +55,7 @@ model {
 
 public class Person {}
 '''
-        file('src/myLib/java/com/acme/internal/PersonInternal.java') << '''package com.acme.internal;
+        file('src/myLib/java/internal/PersonInternal.java') << '''package internal;
 import com.acme.Person;
 
 public class PersonInternal extends Person {}
@@ -66,7 +64,7 @@ public class PersonInternal extends Person {}
         and: "another library trying to consume a non-API class"
         file('src/main/java/com/acme/TestApp.java') << '''package com.acme;
 
-import com.acme.internal.PersonInternal;
+import internal.PersonInternal;
 
 public class TestApp {
     private PersonInternal person;
@@ -108,7 +106,7 @@ model {
 
 public class Person {}
 '''
-        file('src/myLib/java/com/acme/internal/PersonInternal.java') << '''package com.acme.internal;
+        file('src/myLib/java/internal/PersonInternal.java') << '''package internal;
 import com.acme.Person;
 
 public class PersonInternal extends Person {}
@@ -132,6 +130,7 @@ public class TestApp {
         succeeds ':mainJar'
 
         when:
+        sleep(1000)
         file('src/myLib/java/com/acme/Person.java').write '''package com.acme;
 
 public class Person {
@@ -146,7 +145,6 @@ public class Person {
         executedAndNotSkipped(':compileMainJarMainJava')
     }
 
-    @NotYetImplemented
     def "consuming source is not recompiled when non-API class changes"() {
         given: "a library that declares a public API"
         applyJavaPlugin(buildFile)
@@ -174,7 +172,7 @@ model {
 
 public class Person {}
 '''
-        file('src/myLib/java/com/acme/internal/PersonInternal.java') << '''package com.acme.internal;
+        file('src/myLib/java/internal/PersonInternal.java') << '''package internal;
 import com.acme.Person;
 
 public class PersonInternal extends Person {}
@@ -198,7 +196,8 @@ public class TestApp {
         succeeds ':mainJar'
 
         when:
-        file('src/myLib/java/com/acme/internal/PersonInternal.java').write '''package com.acme.internal;
+        sleep(1000)
+        file('src/myLib/java/internal/PersonInternal.java').write '''package internal;
 import com.acme.Person;
 
 public class PersonInternal extends Person {

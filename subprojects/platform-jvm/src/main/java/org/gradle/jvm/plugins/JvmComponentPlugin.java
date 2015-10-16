@@ -162,8 +162,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             });
 
             String libName = runtimeJarName.replace("Jar", "");
-            String apiJarName = runtimeJarName.replace("Jar", "ApiJar");
-            final File apiClassesDir = new File(runtimeClassesDir.getParent(), "apiClasses");
+            final File apiClassesDir = new File(new File(runtimeClassesDir.getParentFile().getParentFile(), "apiClasses"), runtimeClassesDir.getName());
             final String extractApiClasses = "extract" + capitalize(libName + "ApiClasses");
             tasks.create(extractApiClasses, Copy.class, new Action<Copy>() {
                 @Override
@@ -177,15 +176,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 }
             });
 
-            final File apiJarDestDir = new File(runtimeJarDestDir.getParentFile(), apiJarName);
-            String createApiJar = "create" + capitalize(apiJarName);
+            String createApiJar = "create" + capitalize(binary.getName().replace("Jar", "ApiJar"));
             tasks.create(createApiJar, Jar.class, new Action<Jar>() {
                 @Override
                 public void execute(Jar jar) {
                     jar.setDescription(String.format("Creates the API binary file for %s.", binary));
                     jar.from(apiClassesDir);
-                    jar.setDestinationDir(apiJarDestDir);
-                    jar.setArchiveName(jarArchiveName);
+                    jar.setDestinationDir(binary.getApiJarFile().getParentFile());
+                    jar.setArchiveName(binary.getApiJarFile().getName());
                     jar.dependsOn(extractApiClasses);
                 }
             });

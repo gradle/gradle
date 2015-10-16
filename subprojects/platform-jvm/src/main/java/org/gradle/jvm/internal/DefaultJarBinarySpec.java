@@ -38,6 +38,7 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File classesDir;
     private File resourcesDir;
     private File jarFile;
+    private File apiJarFile;
     private ComponentSpec component;
     private Set<String> exportedPackages = Collections.emptySet();
 
@@ -89,6 +90,16 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     @Override
     public void setJarFile(File jarFile) {
         this.jarFile = jarFile;
+    }
+
+    @Override
+    public File getApiJarFile() {
+        return apiJarFile;
+    }
+
+    @Override
+    public void setApiJarFile(File apiJarFile) {
+        this.apiJarFile = apiJarFile;
     }
 
     @Override

@@ -233,6 +233,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
                 binary.buildTask >> Mock(Task)
                 binary.targetPlatform >> platform
                 binary.jarFile >> new File("api.jar")
+                binary.apiJarFile >> new File("api.jar")
                 def values = [binary]
                 binaries.values() >> { values }
                 binaries.withType(JarBinarySpec) >> {
