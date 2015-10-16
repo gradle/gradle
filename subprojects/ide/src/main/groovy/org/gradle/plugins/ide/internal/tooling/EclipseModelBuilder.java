@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
@@ -124,6 +125,18 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
             tasks.add(new DefaultEclipseTask(eclipseProject, t.getPath(), t.getName(), t.getDescription()));
         }
         eclipseProject.setTasks(tasks);
+
+        List<String> natures = new ArrayList<String>();
+        for (String n : eclipseModel.getProject().getNatures()) {
+            natures.add(n);
+        }
+        eclipseProject.setProjectNatures(natures);
+
+        List<DefaultEclipseBuildCommand> buildCommands = new ArrayList<DefaultEclipseBuildCommand>();
+        for (BuildCommand b : eclipseModel.getProject().getBuildCommands()) {
+            buildCommands.add(new DefaultEclipseBuildCommand(b.getName(), b.getArguments()));
+        }
+        eclipseProject.setBuildCommands(buildCommands);
 
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);

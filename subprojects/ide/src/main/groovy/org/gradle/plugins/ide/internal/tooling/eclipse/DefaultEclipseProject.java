@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.internal.tooling.eclipse;
 import com.google.common.collect.Lists;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
+import org.gradle.tooling.model.eclipse.BuildCommand;
 
 import java.io.File;
 import java.io.Serializable;
@@ -40,6 +41,8 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
     private Iterable<? extends DefaultEclipseTask> tasks;
     private Iterable<? extends DefaultEclipseLinkedResource> linkedResources;
     private DefaultGradleProject gradleProject;
+    private List<String> projectNatures;
+    private List<DefaultEclipseBuildCommand> buildCommands;
 
     public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends DefaultEclipseProject> children) {
         this.name = name;
@@ -134,4 +137,12 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
         this.gradleProject = gradleProject;
         return this;
     }
+
+    public List<String> getProjectNatures() { return projectNatures; }
+
+    public void setProjectNatures(List<String> projectNatures) { this.projectNatures = projectNatures; }
+
+    public List<DefaultEclipseBuildCommand> getBuildCommands() { return buildCommands; }
+
+    public void setBuildCommands(List<DefaultEclipseBuildCommand> buildCommands) { this.buildCommands = buildCommands; }
 }
