@@ -25,6 +25,7 @@
 
     <xsl:param name="use.extensions">1</xsl:param>
     <xsl:param name="toc.section.depth">1</xsl:param>
+    <xsl:param name="toc.max.depth">2</xsl:param>
     <xsl:param name="section.autolabel">1</xsl:param>
     <xsl:param name="section.label.includes.component.label">1</xsl:param>
     <xsl:param name="css.decoration">0</xsl:param>
