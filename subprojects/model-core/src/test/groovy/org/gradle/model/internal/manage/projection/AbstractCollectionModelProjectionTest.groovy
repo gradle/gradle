@@ -19,6 +19,7 @@ import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.ModelViewClosedException
 import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import org.gradle.model.internal.manage.schema.ManagedImplModelSchema
 import org.gradle.model.internal.manage.schema.ModelStructSchema
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
@@ -28,7 +29,7 @@ import spock.lang.Specification
 abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>> extends Specification {
 
     def schemaStore = DefaultModelSchemaStore.instance
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(schemaStore)
+    def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
     def collectionPath = ModelPath.path("collection")
     def registry = new ModelRegistryHelper()
     def internalType

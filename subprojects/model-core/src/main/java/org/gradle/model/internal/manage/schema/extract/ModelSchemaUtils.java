@@ -21,6 +21,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.*;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Nullable;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.Managed;
 import org.gradle.util.CollectionUtils;
@@ -62,11 +63,11 @@ public class ModelSchemaUtils {
      *
      * <p>Methods are returned in the order of their specialization, most specialized methods first.</p>
      */
-    public static Multimap<String, Method> getCandidateMethods(Class<?> clazz) {
+    public static <T> ListMultimap<String, Method> getCandidateMethods(Class<T> clazz) {
         final ImmutableListMultimap.Builder<String, Method> methodsBuilder = ImmutableListMultimap.builder();
-        walkTypeHierarchy(clazz, new TypeVisitor() {
+        walkTypeHierarchy(clazz, new TypeVisitor<T>() {
             @Override
-            public void visitType(Class<?> type) {
+            public void visitType(Class<? super T> type) {
                 for (Method method : type.getDeclaredMethods()) {
                     int modifiers = method.getModifiers();
                     if (method.isSynthetic() || Modifier.isStatic(modifiers) || !Modifier.isPublic(modifiers)) {
@@ -91,11 +92,11 @@ public class ModelSchemaUtils {
      * @param clazz the type of whose type hierarchy to visit.
      * @param visitor the visitor to call for each type in the hierarchy.
      */
-    public static void walkTypeHierarchy(Class<?> clazz, TypeVisitor visitor) {
+    public static <T> void walkTypeHierarchy(Class<T> clazz, TypeVisitor<? extends T> visitor) {
         Set<Class<?>> seenInterfaces = Sets.newHashSet();
-        Queue<Class<?>> queue = new ArrayDeque<Class<?>>();
+        Queue<Class<? super T>> queue = new ArrayDeque<Class<? super T>>();
         queue.add(clazz);
-        Class<?> type;
+        Class<? super T> type;
         while ((type = queue.poll()) != null) {
             // Do not process Object's or GroovyObject's methods
             if (type.equals(Object.class) || type.equals(GroovyObject.class)) {
@@ -104,20 +105,20 @@ public class ModelSchemaUtils {
 
             visitor.visitType(type);
 
-            Class<?> superclass = type.getSuperclass();
+            Class<? super T> superclass = type.getSuperclass();
             if (superclass != null) {
                 queue.add(superclass);
             }
             for (Class<?> iface : type.getInterfaces()) {
                 if (seenInterfaces.add(iface)) {
-                    queue.add(iface);
+                    queue.add(Cast.<Class<? super T>>uncheckedCast(iface));
                 }
             }
         }
     }
 
-    public interface TypeVisitor {
-        void visitType(Class<?> type);
+    public interface TypeVisitor<T> {
+        void visitType(Class<? super T> type);
     }
 
     /**

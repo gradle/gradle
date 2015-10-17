@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.extract;
+package org.gradle.model.internal.manage.schema;
 
-import com.google.common.base.Optional;
+import org.gradle.model.internal.type.ModelType;
 
-import java.util.List;
+public class UnmanagedCollectionSchema<T> implements ModelSchema<T> {
+    private final ModelSchema<T> delegate;
 
-// Make sure IBM JDK 6 doesn't fail on this
-public interface SomeTypeWithParameters {
-    List<String> getValues();
+    public UnmanagedCollectionSchema(ModelSchema<T> delegate) {
+        this.delegate = delegate;
+    }
 
-    Optional<Boolean> getOptional();
-    void setOptional(Optional<Boolean> optional);
+    @Override
+    public ModelType<T> getType() {
+        return delegate.getType();
+    }
 }

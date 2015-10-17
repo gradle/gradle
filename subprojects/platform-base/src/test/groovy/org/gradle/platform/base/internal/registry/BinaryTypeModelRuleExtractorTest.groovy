@@ -16,9 +16,6 @@
 
 package org.gradle.platform.base.internal.registry
 
-import org.gradle.language.base.internal.testinterfaces.BareInternalView
-import org.gradle.language.base.internal.testinterfaces.NotBinarySpec
-import org.gradle.language.base.internal.testinterfaces.SomeBinarySpec
 import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.Managed
@@ -32,9 +29,7 @@ import org.gradle.platform.base.BinaryType
 import org.gradle.platform.base.BinaryTypeBuilder
 import org.gradle.platform.base.InvalidModelException
 import org.gradle.platform.base.binary.BaseBinarySpec
-import org.gradle.platform.base.internal.BinarySpecFactory
-import org.gradle.platform.base.internal.testinterfaces.BinarySpecInternalView
-import org.gradle.platform.base.internal.testinterfaces.NotImplementedBinarySpecInternalView
+import org.gradle.platform.base.binary.internal.BinarySpecFactory
 import spock.lang.Unroll
 
 import java.lang.annotation.Annotation
@@ -111,6 +106,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         "repeatedInternalView"             | "Internal view '${BinarySpecInternalView.name}' must not be specified multiple times."                                               | "internal view specified multiple times"
     }
 
+    static interface SomeBinarySpec extends BinarySpec {}
 
     static class SomeBinarySpecImpl extends BaseBinarySpec implements SomeBinarySpec, BinarySpecInternalView, BareInternalView {}
 
@@ -120,7 +116,15 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
 
     abstract static class NotExtendingBaseBinarySpec implements SomeBinarySpec {}
 
+    static interface BinarySpecInternalView extends BinarySpec {}
+
+    static interface BareInternalView {}
+
     abstract static class NonInterfaceInternalView implements BinarySpec {}
+
+    static interface NotImplementedBinarySpecInternalView extends BinarySpec {}
+
+    static interface NotBinarySpec {}
 
     static class NoDefaultConstructor extends BaseBinarySpec implements SomeBinarySpec {
         NoDefaultConstructor(String arg) {

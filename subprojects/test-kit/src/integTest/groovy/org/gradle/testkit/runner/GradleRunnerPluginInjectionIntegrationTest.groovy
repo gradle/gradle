@@ -387,7 +387,7 @@ class GradleRunnerPluginInjectionIntegrationTest extends AbstractGradleRunnerInt
 
         def processEnvironment = NativeServicesTestFixture.instance.get(ProcessEnvironment)
         when:
-        def orig = processEnvironment.getProcessDir()
+        def orig = new File("").getAbsoluteFile()
         def result = null
         try {
             if (!processEnvironment.maybeSetProcessDir(file("changed"))) {

@@ -22,13 +22,14 @@ import org.gradle.jvm.JvmBinaryTasks;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
-import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.binary.BaseBinarySpec;
 import org.gradle.platform.base.internal.BinaryBuildAbility;
 import org.gradle.platform.base.internal.ToolSearchBuildAbility;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 
 public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpecInternal {
     private final JvmBinaryTasks tasks = new DefaultJvmBinaryTasks(super.getTasks());
@@ -37,8 +38,9 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File classesDir;
     private File resourcesDir;
     private File jarFile;
+    private File apiJarFile;
     private ComponentSpec component;
-    private Class<? extends BinarySpec> publicType;
+    private Set<String> exportedPackages = Collections.emptySet();
 
     @Override
     protected String getTypeName() {
@@ -51,61 +53,83 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     }
 
     @Override
-    public Class<? extends BinarySpec> getPublicType() {
-        return publicType != null ? publicType : super.getPublicType();
-    }
-
-    public void setPublicType(Class<? extends BinarySpec> publicType) {
-        this.publicType = publicType;
-    }
-
-    @Override
     public LibraryBinaryIdentifier getId() {
         return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
 
+    @Override
     public JvmBinaryTasks getTasks() {
         return tasks;
     }
 
+    @Override
     public JavaToolChain getToolChain() {
         return toolChain;
     }
 
+    @Override
     public void setToolChain(JavaToolChain toolChain) {
         this.toolChain = toolChain;
     }
 
+    @Override
     public JavaPlatform getTargetPlatform() {
         return platform;
     }
 
+    @Override
     public void setTargetPlatform(JavaPlatform platform) {
         this.platform = platform;
     }
 
+    @Override
     public File getJarFile() {
         return jarFile;
     }
 
+    @Override
     public void setJarFile(File jarFile) {
         this.jarFile = jarFile;
     }
 
+    @Override
+    public File getApiJarFile() {
+        return apiJarFile;
+    }
+
+    @Override
+    public void setApiJarFile(File apiJarFile) {
+        this.apiJarFile = apiJarFile;
+    }
+
+    @Override
     public File getClassesDir() {
         return classesDir;
     }
 
+    @Override
     public void setClassesDir(File classesDir) {
         this.classesDir = classesDir;
     }
 
+    @Override
     public File getResourcesDir() {
         return resourcesDir;
     }
 
+    @Override
     public void setResourcesDir(File resourcesDir) {
         this.resourcesDir = resourcesDir;
+    }
+
+    @Override
+    public void setExportedPackages(Set<String> exportedPackages) {
+        this.exportedPackages = exportedPackages;
+    }
+
+    @Override
+    public Set<String> getExportedPackages() {
+        return exportedPackages;
     }
 
     @Override

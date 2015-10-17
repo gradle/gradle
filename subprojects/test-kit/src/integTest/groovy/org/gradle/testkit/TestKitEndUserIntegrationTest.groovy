@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.fixtures.GradleRunnerType
 import org.gradle.testkit.runner.fixtures.MultiGradleRunnerSpecRunner
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.TempTestKitDirProvider
 import org.gradle.util.GFileUtils
 import org.gradle.util.Requires
@@ -503,7 +504,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         buildFile << gradleTestKitDependency()
         buildFile << """
             test {
-                systemProperty '$GradleRunner.DEBUG_SYS_PROP', '$gradleRunnerType.debug'
+                systemProperty '$DefaultGradleRunner.DEBUG_SYS_PROP', '$gradleRunnerType.debug'
             }
         """
         writeTest """

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal;
+package org.gradle.platform.base.component.internal;
 
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.component.BaseComponentSpec;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     public ComponentSpecFactory(String displayName) {
-        super(displayName);
+        super(displayName, ComponentSpec.class, BaseComponentSpec.class);
     }
 }

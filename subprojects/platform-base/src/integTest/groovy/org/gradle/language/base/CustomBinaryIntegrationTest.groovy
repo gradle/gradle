@@ -282,7 +282,7 @@ model {
         then:
         failure.assertHasDescription "A problem occurred configuring root project 'custom-binary'."
         failure.assertHasCause "Exception thrown while executing model rule: MyOtherPlugin.Rules1#register"
-        failure.assertHasCause "Cannot register a factory for type SampleBinary because a factory for this type was already registered by MySamplePlugin.Rules#register."
+        failure.assertHasCause "Cannot register implementation for type 'SampleBinary' because an implementation for this type was already registered by MySamplePlugin.Rules#register"
     }
 
     def "additional binaries listed in components report"() {

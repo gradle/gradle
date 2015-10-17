@@ -16,7 +16,6 @@
 package org.gradle.api.internal.project.antbuilder;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -34,47 +33,19 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.lang.ref.PhantomReference;
-import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Method;
 import java.net.URLClassLoader;
 import java.util.List;
-import java.util.Set;
 import java.util.Vector;
 
-public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
+public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable {
 
     private final static Logger LOG = Logging.getLogger(DefaultIsolatedAntBuilder.class);
-
-    private final static Set<Finalizer> FINALIZERS = Sets.newConcurrentHashSet();
-    private final static ReferenceQueue<DefaultIsolatedAntBuilder> FINALIZER_REFQUEUE = new ReferenceQueue<DefaultIsolatedAntBuilder>();
-
-    static {
-        // this thread is responsible for polling phantom references from the finalizer queue
-        // where we will be able to trigger cleanup of resources when the root ant builder is
-        // about to be garbage collected
-        Thread finalizerThread = new Thread() {
-            @Override
-            public void run() {
-                while (!isInterrupted()) {
-                    try {
-                        Finalizer builder = (Finalizer) FINALIZER_REFQUEUE.remove();
-                        FINALIZERS.remove(builder);
-                        builder.cleanup();
-                        builder.clear();
-                    } catch (InterruptedException e) {
-                        break;
-                    }
-                }
-            }
-        };
-        finalizerThread.setDaemon(true);
-        finalizerThread.start();
-    }
 
     private final ClassLoader antLoader;
     private final ClassLoader baseAntLoader;
@@ -120,9 +91,6 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
 
         gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
         antAdapterGroovyLoader = groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
-
-        // register finalizer for the root builder only!
-        FINALIZERS.add(new Finalizer(this, FINALIZER_REFQUEUE));
     }
 
     protected DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> libClasspath) {
@@ -234,31 +202,15 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         }
     }
 
-    private static class Finalizer extends PhantomReference<DefaultIsolatedAntBuilder> {
-        private final ClassPathToClassLoaderCache classLoaderCache;
-        private final GroovySystemLoader gradleApiGroovyLoader;
-        private final GroovySystemLoader antAdapterGroovyLoader;
-        private final ClassLoader antLoader;
-        private final ClassLoader antAdapterLoader;
+    @Override
+    public void stop() {
+        classLoaderCache.stop();
 
-        public Finalizer(DefaultIsolatedAntBuilder referent, ReferenceQueue<? super DefaultIsolatedAntBuilder> q) {
-            super(referent, q);
-            classLoaderCache = referent.classLoaderCache;
-            gradleApiGroovyLoader = referent.gradleApiGroovyLoader;
-            antAdapterGroovyLoader = referent.antAdapterGroovyLoader;
-            antLoader = referent.antLoader;
-            antAdapterLoader = referent.antAdapterLoader;
-        }
+        // Remove classes from core Gradle API
+        gradleApiGroovyLoader.discardTypesFrom(antAdapterLoader);
+        gradleApiGroovyLoader.discardTypesFrom(antLoader);
 
-        public void cleanup() {
-            classLoaderCache.stop();
-
-            // Remove classes from core Gradle API
-            gradleApiGroovyLoader.discardTypesFrom(antAdapterLoader);
-            gradleApiGroovyLoader.discardTypesFrom(antLoader);
-
-            // Shutdown the adapter Groovy system
-            antAdapterGroovyLoader.shutdown();
-        }
+        // Shutdown the adapter Groovy system
+        antAdapterGroovyLoader.shutdown();
     }
 }

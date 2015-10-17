@@ -15,15 +15,13 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
-import groovy.transform.NotYetImplemented
+
 import org.gradle.api.artifacts.Configuration
 import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
 import org.gradle.model.internal.core.ModelCreators
 import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.core.NodeInitializerContext
 import org.gradle.model.internal.fixture.ModelRegistryHelper
-import org.gradle.model.internal.type.ModelType
-import spock.lang.Shared
+import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -31,10 +29,8 @@ import java.util.regex.Pattern
 
 class ScalarTypesInManagedModelTest extends Specification {
 
-    @Shared
-    def store = DefaultModelSchemaStore.getInstance()
     def r = new ModelRegistryHelper()
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(store)
+    def nodeInitializerRegistry = TestNodeInitializerRegistry.INSTANCE
 
     def classLoader = new GroovyClassLoader(this.class.classLoader)
 
@@ -77,11 +73,10 @@ class ScalarTypesInManagedModelTest extends Specification {
             File]
     }
 
-    @NotYetImplemented
     @Unroll
     def "can have a #type as an @Unmanaged property"() {
         when:
-        def clazz = classloader.parseClass """
+        def clazz = classLoader.parseClass """
             import org.gradle.api.artifacts.Configuration.State
             import org.gradle.model.Managed
             import org.gradle.model.Unmanaged
@@ -115,7 +110,7 @@ class ScalarTypesInManagedModelTest extends Specification {
     }
 
     private void realize(Class type) {
-        r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(NodeInitializerContext.forType(ModelType.of(type)))).descriptor(r.desc("bar")).build())
+        r.create(ModelCreators.of(r.path("bar"), nodeInitializerRegistry.getNodeInitializer(type)).descriptor(r.desc("bar")).build())
         r.realize("bar", type)
     }
 }

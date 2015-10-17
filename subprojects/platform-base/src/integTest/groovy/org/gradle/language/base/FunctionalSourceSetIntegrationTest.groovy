@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
@@ -97,17 +98,47 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         modelNode.functionalSources.@nodeValue[0] == "source set 'functionalSources'"
     }
 
-    def "can define a FunctionalSourceSet as a property and managed collection element"() {
+    def "can define a FunctionalSourceSet as a property of a managed type"() {
         buildFile << """
         apply plugin: 'language-base'
 
         @Managed
         interface BuildType {
+            //Readonly
             FunctionalSourceSet getSources()
 
+            //Read/write
             FunctionalSourceSet getInputs()
             void setInputs(FunctionalSourceSet sources)
+        }
 
+        class Rules extends RuleSource {
+            @Model
+            void buildType(BuildType buildType) { }
+        }
+
+        apply plugin: Rules
+        """
+
+        expect:
+        succeeds "model"
+        def buildType = ModelReportOutput.from(output).modelNode.buildType
+
+        buildType.inputs.@type[0] == 'org.gradle.language.base.FunctionalSourceSet'
+        buildType.inputs.@nodeValue[0] == "source set 'inputs'"
+        buildType.inputs.@creator[0] == 'Rules#buildType'
+
+        buildType.sources.@type[0] == 'org.gradle.language.base.FunctionalSourceSet'
+        buildType.sources.@nodeValue[0] == "source set 'sources'"
+        buildType.sources.@creator[0] == 'Rules#buildType'
+    }
+
+    def "can have FunctionalSourceSets as managed collection"() {
+        buildFile << """
+        apply plugin: 'language-base'
+
+        @Managed
+        interface BuildType {
             ModelMap<FunctionalSourceSet> getComponentSources()
             ModelSet<FunctionalSourceSet> getTestSources()
         }
@@ -129,14 +160,6 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "model"
         def buildType = ModelReportOutput.from(output).modelNode.buildType
-
-        buildType.inputs.@type[0] == 'org.gradle.language.base.FunctionalSourceSet'
-        buildType.inputs.@nodeValue[0] == "source set 'inputs'"
-        buildType.inputs.@creator[0] == 'Rules#buildType'
-
-        buildType.inputs.@type[0] == 'org.gradle.language.base.FunctionalSourceSet'
-        buildType.inputs.@nodeValue[0] == "source set 'inputs'"
-        buildType.inputs.@creator[0] == 'Rules#buildType'
 
         buildType.componentSources.@type[0] == 'org.gradle.model.ModelMap<org.gradle.language.base.FunctionalSourceSet>'
         buildType.componentSources.@creator[0] == 'Rules#buildType'

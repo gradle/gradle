@@ -6,10 +6,10 @@ Here are the new features introduced in this Gradle release.
 
 This release provide significant improvements to for consumers of the TestKit.
 
-#### Debugging of tests executed with TestKit API from an IDE
+#### Easier debugging of test build with TestKit from an IDE
 
 Identifying the root cause of a failing functional test can be tricky. Debugging test execution from an IDE can help to discover problems
-by stepping through the code line by line. By default TestKit executes functional tests in a forked daemon process. Setting up remote debugging for a daemon process
+by stepping through the code line by line. By default, TestKit executes functional tests in a forked daemon process. Setting up remote debugging for a daemon process
 is inconvenient and cumbersome.
 
 This release makes it more convenient for the end user to debug tests from an IDE. By setting the system property `org.gradle.testkit.debug` to `true` in the IDE run configuration,
@@ -20,15 +20,15 @@ Alternatively, debugging behavior can also be set programmatically through the `
 
 #### Unexpected build failure provide access to the build result
 
-With previous versions of Gradle, any unexpected failure during functional test executions resulted in throwing a
+With previous versions of Gradle TestKit, any unexpected failure during functional test executions resulted in throwing a
 <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildSuccess.html">UnexpectedBuildSuccess</a> or a
 <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildFailure.html">UnexpectedBuildFailure</a>.
 These types provide basic diagnostics about the root cause of the failure in textual form assigned to the exception `message` field. Suffice to say that a String is not very
 convenient for further inspections or assertions of the build outcome.
 
-This release also provides the `BuildResult` with the method <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildException.html#getBuildResult()">UnexpectedBuildException.getBuildResult()</a>.
-`UnexpectedBuildException` is the parent class of the exceptions `UnexpectedBuildSuccess` and `UnexpectedBuildFailure`. The following code example demonstrates the use of build result from
-fo an unexpected build failure:
+This release provides the `BuildResult` with the method <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildException.html#getBuildResult()">UnexpectedBuildException.getBuildResult()</a>.
+`UnexpectedBuildException` is the parent class of the exceptions `UnexpectedBuildSuccess` and `UnexpectedBuildFailure`. The following code example demonstrates the use of a build result from
+an unexpected build failure in a [Spock](http://spockframework.org/) test:
 
     class BuildLogicFunctionalTest extends Specification {
         @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
@@ -112,7 +112,44 @@ Spock:
         }
     }
 
-### Model rules improvements 
+### Providing Writers for capturing standard output an error during test execution
+
+Any messages emitted to standard output and error during test execution are captured in the `BuildResult`. There's not direct output of these streams to the console. This makes
+diagnosing the root cause of a failed test much harder. Users would need to print out the standard output or error field of the `BuildResult` to identify the issue.
+
+With this release, the `GradleRunner` API exposes methods for specifying `Writer` instances for debugging or purposes of further processing.
+The following example directly prints out standard output and error messages to the console:
+
+    class BuildLogicFunctionalTest extends Specification {
+        @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+
+        def "can forward standard output and error to console"() {
+            given:
+            buildFile << """
+                task printOutput {
+                    doLast {
+                        println 'Hello world!'
+                        System.err.println 'Expected error message'
+                    }
+                }
+            """
+
+            when:
+            def result = GradleRunner.create()
+                .withProjectDir(testProjectDir.root)
+                .withArguments('printOutput')
+                .withStandardOutput(new BufferedWriter(new OutputStreamWriter(System.out)))
+                .withStandardError(new BufferedWriter(new OutputStreamWriter(System.err)))
+                .build()
+
+            then:
+            noExceptionThrown()
+            result.standardOutput.contains('Hello world!')
+            result.standardError.contains('Expected error message')
+        }
+    }
+
+### Model rules improvements
 
 TBD: DSL now supports `$.p` expressions in DSL rules:
 
@@ -182,7 +219,7 @@ TBD
 
 TBD
 
-- The `model { }` block can now contain only rule blocks. 
+- The `model { }` block can now contain only rule blocks.
 
 ## External contributions
 

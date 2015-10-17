@@ -29,6 +29,8 @@ import org.gradle.wrapper.GradleUserHomeLookup;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.OutputStream;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,8 +68,8 @@ public class TestKitGradleExecutor implements GradleExecutor {
         try {
             connection = gradleConnector.connect();
             DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
-            launcher.setStandardOutput(standardOutput);
-            launcher.setStandardError(standardError);
+            launcher.setStandardOutput(determineLauncherOutputStream(standardOutput, parameters.getStandardOutput()));
+            launcher.setStandardError(determineLauncherOutputStream(standardError, parameters.getStandardError()));
             launcher.addProgressListener(new TaskExecutionProgressListener(tasks));
 
             launcher.withArguments(parameters.getBuildArgs().toArray(new String[parameters.getBuildArgs().size()]));
@@ -87,6 +89,14 @@ public class TestKitGradleExecutor implements GradleExecutor {
         }
 
         return new GradleExecutionResult(standardOutput, standardError, tasks);
+    }
+
+    private OutputStream determineLauncherOutputStream(OutputStream outputStream, Writer writer) {
+        if (writer != null) {
+            return new TeeOutputStreamWriter(outputStream, writer);
+        }
+
+        return outputStream;
     }
 
     private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean debug) {

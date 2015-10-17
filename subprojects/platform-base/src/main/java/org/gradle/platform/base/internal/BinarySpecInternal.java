@@ -26,6 +26,8 @@ public interface BinarySpecInternal extends BinarySpec {
 
     Class<? extends BinarySpec> getPublicType();
 
+    void setPublicType(Class<? extends BinarySpec> publicType);
+
     void setBuildable(boolean buildable);
 
     BinaryBuildAbility getBuildAbility();

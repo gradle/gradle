@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.core;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -24,17 +23,38 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Set;
 
 public interface InstanceFactory<T> {
+    ModelType<T> getBaseInterface();
+
     <S extends T> S create(ModelType<S> type, MutableModelNode modelNode, String name);
 
     Set<ModelType<? extends T>> getSupportedTypes();
 
-    <S extends T> void registerFactory(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, BiFunction<? extends S, String, ? super MutableModelNode> factory);
+    <S extends T> TypeRegistrationBuilder<S> register(ModelType<S> publicType, ModelRuleDescriptor sourceRule);
 
     <S extends T> Set<ModelType<?>> getInternalViews(ModelType<S> type);
 
-    <S extends T, I extends S> void registerImplementation(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<I> implementationViewType);
-
-    <S extends T> void registerInternalView(ModelType<S> type, @Nullable ModelRuleDescriptor sourceRule, ModelType<?> internalViewType);
+    /**
+     * Return information about the implementation of a managed type with an unmanaged super-type.
+     */
+    <S extends T> ManagedSubtypeImplementationInfo<? extends T> getManagedSubtypeImplementationInfo(ModelType<S> managedType);
 
     void validateRegistrations();
+
+    interface TypeRegistrationBuilder<T> {
+        TypeRegistrationBuilder<T> withImplementation(ModelType<? extends T> implementationType, BiFunction<? extends T, String, ? super MutableModelNode> factory);
+
+        TypeRegistrationBuilder<T> withInternalView(ModelType<?> internalView);
+    }
+
+    interface ManagedSubtypeImplementationInfo<T> {
+        /**
+         * The public type that has a registered default implementation that can be used to create the delegate for the managed subtype.
+         */
+        ModelType<? extends T> getPublicType();
+
+        /**
+         * The default implementation type that can be used as a delegate for any managed subtypes of the public type.
+         */
+        ModelType<? extends T> getDelegateType();
+    }
 }

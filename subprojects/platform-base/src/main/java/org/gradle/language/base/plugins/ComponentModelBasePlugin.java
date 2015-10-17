@@ -23,6 +23,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.BiAction;
+import org.gradle.internal.BiActions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
@@ -32,15 +34,24 @@ import org.gradle.language.base.internal.model.ComponentBinaryRules;
 import org.gradle.language.base.internal.model.ComponentRules;
 import org.gradle.language.base.internal.registry.*;
 import org.gradle.model.*;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelCreator;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
+import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
+import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.manage.schema.extract.FactoryBasedNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.binary.internal.BinarySpecFactory;
+import org.gradle.platform.base.component.internal.ComponentSpecFactory;
+import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.DefaultPlatformContainer;
+import org.gradle.platform.base.internal.DefaultPlatformResolvers;
+import org.gradle.platform.base.internal.PlatformResolvers;
 
 import javax.inject.Inject;
 
@@ -96,8 +107,17 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, @Path("instanceFactoryRegistry") InstanceFactoryRegistry instanceFactoryRegistry) {
-            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy(instanceFactoryRegistry));
+        void registerNodeInitializerExtractors(NodeInitializerRegistry nodeInitializerRegistry, ComponentSpecFactory componentSpecFactory, BinarySpecFactory binarySpecFactory, ModelSchemaStore schemaStore, ManagedProxyFactory proxyFactory) {
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<ComponentSpec>(componentSpecFactory, schemaStore, proxyFactory, BiActions.doNothing()));
+            nodeInitializerRegistry.registerStrategy(new FactoryBasedNodeInitializerExtractionStrategy<BinarySpec>(binarySpecFactory, schemaStore, proxyFactory, new BiAction<BinarySpec, ModelSchema<? extends BinarySpec>>() {
+                @Override
+                public void execute(BinarySpec binarySpec, ModelSchema<? extends BinarySpec> schema) {
+                    BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binarySpec;
+                    if (!binarySpecInternal.isLegacyBinary()) {
+                        binarySpecInternal.setPublicType(schema.getType().getConcreteClass());
+                    }
+                }
+            }));
         }
 
         @Service
@@ -161,18 +181,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
             // This is used by the BinaryContainer API, which we still need for the time being.
             // We are adapting it to BinarySpecFactory here so it can be used by component.binaries model maps
             binarySpecFactory.copyDomainObjectFactoriesInto(binaries);
-        }
-
-        @Service
-        InstanceFactoryRegistry instanceFactoryRegistry(BinarySpecFactory binarySpecFactory, ComponentSpecFactory componentSpecFactory) {
-            InstanceFactoryRegistry instanceFactoryRegistry = new DefaultInstanceFactoryRegistry();
-            for (ModelType<? extends BinarySpec> type : binarySpecFactory.getSupportedTypes()) {
-                instanceFactoryRegistry.register(type, ModelReference.of(BinarySpecFactory.class));
-            }
-            for (ModelType<? extends ComponentSpec> type : componentSpecFactory.getSupportedTypes()) {
-                instanceFactoryRegistry.register(type, ModelReference.of(ComponentSpecFactory.class));
-            }
-            return instanceFactoryRegistry;
         }
 
         @Defaults

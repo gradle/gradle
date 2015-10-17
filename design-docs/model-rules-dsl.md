@@ -12,6 +12,71 @@
 
 - Replace `$('path')` with `$.path`
 
+## Story: DSL rule configures elements of ModelMap 
+
+- Apply to creation, configure by name, configure all, configure all with type, before each, after each, etc.
+- Apply to chained withType and rule method calls
+- Allow arbitrary code to do:
+    - for each in collection, apply a rule
+    - if some condition is true, apply a rule
+- Allow configuration of an element to take the configuration of a sibling as input.
+- Out-of-scope: allow configuration of an element to take the configuration of siblings with type as input.
+
+For example:
+
+    model {
+        components {
+            main(JavaLibrary) {
+                // Can reference other elements, this is treated as an input to the inner rule, not the outer components { } rule.
+                targetPlatform = $.platforms.java9
+            }
+            test {
+                // Can reference a sibling as input
+                targetPlatform = $.components.main.targetPlatform
+            }
+            beforeEach {
+                targetPlatform = $.platforms.java6
+            }
+            withType(SpecialLibrary).beforeEach {
+                targetPlatform = $.platforms.java7
+            }
+            if (somecode) {
+                // Conditional creation
+                otherLib(JavaApplication) {
+                    targetPlatform = $.platforms.java12
+                }
+            }
+            for (def item: [some, collection]) {
+                // For each item in a collection create a library
+                create("${item}Lib", JavaLibrary) {
+                    targetPlatform = $.platforms.java7
+                }
+            }
+            [some, collection].each { create(...) { ... } } // out-of-scope for this story, won't work
+        }
+    }
+    
+## Story: DSL rule configures child of a structure
+ 
+- Defer configuration, apply only to rule targets, eg nested structured or nested model containers.
+- Allow configuration for a nested structure to take configuration for a sibling as input.
+- Allow arbitrary code to conditionally configure a nested target.
+
+For example:
+
+    model {
+        components {
+            main {
+                sources {
+                    baseDir = $.project.projectDir('src')
+                }
+                binaries {
+                    outputDir = $.sources.baseDir
+                }
+            }
+        }
+    }    
+
 ## Story: DSL rule references input relative to subject 
 
 - Allow a closure parameter to be declared, this lvar can be used to reference inputs
@@ -53,42 +118,11 @@ For example:
         }
     }
 
-## Story: DSL rule configures element of ModelMap 
-
-- Allow input references using subject parameter
-- Named, all, with type, before, after, etc
-
-
-    model {
-        components {
-            all {
-                targetPlatform platforms.java6
-            }
-        }
-    }
-    
-## Story: DSL rule configures child of a structure
- 
-- Allow input references using subject parameter
-
-
-    model {
-        components {
-            main {
-                sources {
-                    ...
-                }
-                binaries {
-                    ...
-                }
-            }
-        }
-    }
-
 ## Story: DSL rule configures task action 
 
 - Allow input references using subject parameter
 
+For example:
 
     model {
         tasks {

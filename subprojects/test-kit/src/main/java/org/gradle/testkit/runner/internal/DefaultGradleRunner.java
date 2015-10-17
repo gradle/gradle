@@ -24,6 +24,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.testkit.runner.*;
 
 import java.io.File;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,6 +33,7 @@ import java.util.List;
 public class DefaultGradleRunner extends GradleRunner {
 
     public static final String DIAGNOSTICS_MESSAGE_SEPARATOR = "-----";
+    public static final String DEBUG_SYS_PROP = "org.gradle.testkit.debug";
     private final GradleExecutor gradleExecutor;
 
     private TestKitDirProvider testKitDirProvider;
@@ -41,6 +43,8 @@ public class DefaultGradleRunner extends GradleRunner {
     private List<String> jvmArguments = Collections.emptyList();
     private ClassPath classpath = ClassPath.EMPTY;
     private boolean debug;
+    private Writer standardOutput;
+    private Writer standardError;
 
     public DefaultGradleRunner(GradleDistribution<?> gradleDistribution) {
         this(new TestKitGradleExecutor(gradleDistribution), new TempTestKitDirProvider());
@@ -53,7 +57,7 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private boolean isDebugEnabled() {
-        return Boolean.parseBoolean(System.getProperty(DEBUG_SYS_PROP, "false"));
+        return Boolean.getBoolean(DEBUG_SYS_PROP);
     }
 
     public TestKitDirProvider getTestKitDirProvider() {
@@ -62,9 +66,7 @@ public class DefaultGradleRunner extends GradleRunner {
 
     @Override
     public DefaultGradleRunner withTestKitDir(final File testKitDir) {
-        if (testKitDir == null) {
-            throw new IllegalArgumentException("testKitDir argument cannot be null");
-        }
+        validateArgumentNotNull(testKitDir, "testKitDir");
         this.testKitDirProvider = new ConstantTestKitDirProvider(testKitDir);
         return this;
     }
@@ -134,6 +136,26 @@ public class DefaultGradleRunner extends GradleRunner {
     public GradleRunner withDebug(boolean debug) {
         this.debug = debug;
         return this;
+    }
+
+    @Override
+    public GradleRunner withStandardOutput(Writer standardOutput) {
+        validateArgumentNotNull(standardOutput, "standardOutput");
+        this.standardOutput = standardOutput;
+        return this;
+    }
+
+    @Override
+    public GradleRunner withStandardError(Writer standardError) {
+        validateArgumentNotNull(standardError, "standardError");
+        this.standardError = standardError;
+        return this;
+    }
+
+    private void validateArgumentNotNull(Object argument, String argumentName) {
+        if (argument == null) {
+            throw new IllegalArgumentException(String.format("%s argument cannot be null", argumentName));
+        }
     }
 
     @Override
@@ -208,7 +230,9 @@ public class DefaultGradleRunner extends GradleRunner {
             arguments,
             jvmArguments,
             classpath,
-            debug)
+            debug,
+            standardOutput,
+            standardError)
         );
 
         resultVerification.execute(execResult);

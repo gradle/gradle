@@ -58,6 +58,9 @@ class AntBuilderMemoryLeakTest extends Specification {
 
         then:
         builder.classLoaderCache.isEmpty()
+
+        cleanup:
+        builder.stop()
     }
 
     @Ignore("Test doesn't fail fast enough")
@@ -96,5 +99,8 @@ class AntBuilderMemoryLeakTest extends Specification {
         assert i>1
         assert classes.length == 0
         builder.classLoaderCache.empty || builder.classLoaderCache.size() < i-1
+
+        cleanup:
+        builder.stop()
     }
 }

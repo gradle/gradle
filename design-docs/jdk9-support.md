@@ -13,6 +13,11 @@ Useful links:
 - [Explanation of source layout for Jigsaw](http://openjdk.java.net/projects/jigsaw/doc/ModulesAndJavac.pdf)
 - [The module descriptor syntax](http://cr.openjdk.java.net/~mr/jigsaw/spec/lang-vm.html)
 
+# Terminology
+
+The stories found here use the terminology defined in the `buildingJavaLibraries.xml` chapter. Please make sure you have those terms in mind before going further.
+
+
 # Feature: Java library author specifies library API
 
 Given a description of the API of a library, Gradle will prevent at compile time the consumers of a library from using classes that are not part of the API of the library. This is intended to help teams materialize and describe the APIs of and dependencies between the various components of their software stack, and enforce the boundaries between them, helping prepare them for transition to the Java module system.
@@ -44,39 +49,233 @@ No runtime enforcement will be done--this is the job of the module system. Gradl
 - ~~Duplicate `exports` clauses should raise an error~~
 - ~~Package name argument to `exports` clause should be validated per the JLS~~
 
-## Story: Generate an API jar based on the API specification
+## Story: Create API jar according to API specification
 
-- All JVM libraries should produce an API and an implementation jar.
+- All JVM libraries should produce an API jar and a runtime jar.
 - Build a jar containing those packages from compiled classes for each variant of the library.
 - Not used yet by consumers, this story is simply to produce the API artifact.
 
 ### Implementation details
 
 This story should **not** use the `ApiStubGenerator` yet. Instead, it should:
-- implement a new `org.gradle.language.base.internal.tasks.ApiCreatorTask` that takes a class directory as an input, as well as an `ApiSpec` and generates a new `apiClasses` directory.
-- the API classes directory should be filtered according to the `APISpec`. It is not expected that the output classes are stripped out from their non public members yet.
-- a separate `jar` task should produce a jar out of the `apiClasses` directory
-- package private classes are included in the API jar
 
-For this story, it is expected that the API jar is built after the implementation jar. It is not in the scope of this story to make the API jar buildable without building the implementation jar. Therefore, it is acceptable that the API jar task depends on the implementation jar if it helps.
+- configure a new copy task that a class directory as input, and produces an `apiClasses` directory based on the packages exported in the api specification.
+- filter the API classes directory according to the api spec. Included classes should **not** be stripped of their non-public members yet.
+- a separate `jar` task should produce a jar out of the `apiClasses` directory
+- package private classes, inner classes and local classes should remain included in the API jar for now (a later story will allow us to remove them)
+
+For this story, it is expected that the API jar is built after the runtime jar. It is not in the scope of this story to make the API jar buildable without building the runtime jar. Therefore, it is acceptable that the API jar task depends on the runtime jar if it helps.
 
 ### Test cases
 
-- Default to all packages: if no `api` section is found, assume that all packages of the library are exported
-- API jar can be built for each variant of the library and contains only API classes
-- `assemble` task builds the API jar and implementation jar for each buildable variant
-- API jar contains exported packages
-- API jar does not contain non exported packages
-- If no API specification is present, API jar and implementation jars are identical (same contents)
-- Building the API jar should trigger compilation of classes
+- ~~Default to all packages: if no `api` section is found, assume that all packages of the library are exported~~
+- ~~API jar can be built for each variant of the library and contains only API classes~~
+- ~~`assemble` task builds the API jar and implementation jar for each buildable variant~~
+- ~~API jar contains exported packages~~
+- ~~API jar does not contain non exported packages~~
+- ~~If no API specification is present, API jar and implementation jars are identical (same contents)~~
+- ~~Building the API jar should trigger compilation of classes~~
 - Changes to the API specification should not trigger recompilation of the classes
 - Changes to the API specification should not trigger repackaging of the implementation jar
 - Changes to the API specification should trigger regeneration of the API jar
 - If the API specification does not change, the API jar should not be rebuilt
 
+### Open issues
+
+- Do we need to verify that each exported package actually maps to some classes?
+- What happens if none of the exported packages map to any classes: empty API jar?
+
+## Story: Non-API classes of library are not visible when compiling consuming Java source
+
+- When compiling Java source against a library use the API jar of the selected variant.
+- Applies to local libraries only. A later story adds support for libraries from a binary repository.
+
+### Test cases
+
+- Compilation fails when consuming source references a non-API class.
+- Consuming source is recompiled when API class is changed.
+- Consuming source is not recompiled when non-API class changes.
+
+## Story: API stub generator strips out non public elements from classes
+
+Given a source `byte[]` representing the bytecode of a class, generate a new `byte[]` that corresponds to the same class viewed as an API class:
+
+- strips out private members
+- removes method bodies
+- removes static initializers
+- removes debug information
+- provides a way to determine if a class file should belong to the API jar based on its package and access modifiers
+
+This stubbed API class generator will serve as a base for an stubbed API jar creator and as a finer grained filtering medium for including classes
+in the API jar.
+
+### Implementation
+
+- Should take `.class` files as input, **not** source files
+- Process classes using the ASM library
+- Method bodies should throw an `UnsupportedOperationException`.
+- Should consider `java.*`, `javax.*` as allowed packages, considering they will map later to the `java-base` module.
+
+### Test cases
+
+- Output contains:
+    - public or protected elements, including nested classes
+    - annotations (we don't need to deal with source-retention annotations because they are not present in the original binary)
+    - package private members if the list of packages is empty (no declared API)
+- Output must not contain:
+    - debug attributes
+    - source location annotations
+    - package private members if the list of packages is **not** empty (an API has been declared)
+- Trying to call a method of the API jar at runtime throws `UnsupportedOperationException`
+- Public constant types should be initialized to `null` or their default JVM value if of a primitive type (do not use `UnsupportedOperationException` here because it would imply the
+creation of a static initializer that we want to avoid).
+- Java bytecode compatibility level of the classes must be the same as the original class compatibility level
+
+### Out of scope
+
+This doesn't have to use the `ApiSpec` (or whatever it is called) if it is not available when work on this story is started; a simple list of packages would be sufficient.
+
+## Story: Validates stubbed API classes according to the API specification
+
+When stripping out non public members of a class, the stub generator should check if the methods or classes which are exported do not expose classes which do not belong
+to the list of exported packages. Special treatment should be done to allow the JDK base classes to be part of the API.
+Validation at this point should be optional and disabled by default.
+
+# Test cases
+
+- Allows classes from the base JDK to be referenced in exposed members: superclasses, interfaces, annotations, method parameters, fields.
+- Throws an error if an exposed member references a class which is not part of the API. For example, given:
+    ```
+    package p1;
+    public class A {
+       public B foo()
+    }
+
+    package p2;
+    public class B {
+    }
+    ```
+
+    if only package `p1` has been specified as part of the library's API, then `foo` has a return type in violation of this contract. An error should be raised accordingly.
+
+
+## Story: Consuming Java source is not recompiled when specification of API of a library has not changed
+
+AKA: API classes can reference non-API classes of the same library
+
+Produce a stubbed API jar instead of an API jar.
+
+- Replace the API jar generator input from a list of packages to the `ApiSpec` class (if this has not already been done).
+- Generate stub classes in the API jar using the API class stub generator.
+
+### Test cases
+
+- A method body in an API class can reference non-API classes of the same library.
+- A private method signature can reference non-API classes of the same library.
+- Consuming source is not recompiled when API class method body of is changed.
+- Consuming source is not recompiled when comment is changed in API source file.
+- Consuming source is recompiled when signature of public API method is changed.
+
+## Story: Consuming an API jar should throw an error
+
+Make sure that if a user puts a stubbed API jar on classpath, during execution of the program, an error is thrown. This should already be implemented
+at this point, this story is about adding intergration tests that make sure that we really provide sensible error messages to the user. If necessary,
+update the error messages so that they are clearly understandable.
+
+### Test cases
+
+- class `B` of library `LB` instantiates class `A` of library `LA`
+   * Should not throw an error if runtime jar of `LA` is used
+   * Should throw `UnsupportedOperationException` if the stubbed API jar is used
+
+- class `B` of library `LB` calls static method of class `A` of library `LA`
+   * Should not throw an error if runtime jar of `LA` is used
+   * Should throw `UnsupportedOperationException` if the stubbed API jar is used
+
+
+## Story: Consuming Java source is recompiled when API class changes in an incompatible way
+
+AKA: adding a private method to the an API class should not trigger recompilation of consuming sources.
+
+### Test cases
+
+- Adding a private field to an API class should not trigger recompilation of the consuming library
+- Adding a private method to an API class should not trigger recompilation of the consuming library
+- Updating the method body of an API class should not trigger recompilation of the consuming library
+- Changing an API method signature of an API class should trigger recompilation of the consuming library
+- Changing an API field of an API class should trigger recompilation of the consuming library
+- Changing the superclass or interfaces of an API class should trigger recompilation of the consuming library
+
+## Story: Java library API references the APIs of other libraries
+
+- For a given library, Dependency DSL allows any library dependency to be exported in the library API.
+- When library B is exported by library A, then the API of A includes the API of B, and so the API of both A and B is visible to consumers of A at compile time.
+- APIs of exported libraries are resolved transitively
+
+Given the example:
+
+    model {
+        main(JvmLibrarySpec) {
+            sources.java.dependencies {
+                library "A"
+            }
+        }
+        A(JvmLibrarySpec) {
+            sources.java.dependencies {
+                library "B" exported(true)
+                library "D"
+            }
+        }
+        B(JvmLibrarySpec) {
+            sources.java.dependencies {
+                library "C" exported(true)
+            }
+        }
+        C(JvmLibrarySpec) {}
+        D(JvmLibrarySpec) {}
+    }
+
+- The compile classpath for 'main' includes the APIs of `A`, `B` and `C`, but not `D`.
+- `D` is not exported in the API of `B`, and so is added to the compile classpath of `B` only
+
+### Test cases
+
+- When compiling sources for `main`` that has a dependency on `A` above:
+    - Compile classpath includes API jars from `A`, `B` and `C`
+    - Compile classpath does _not_ include API jar from `D`
+- No failure attempting to build `main`, where `D` contains bad code
+- Reasonable error message attempting to build `main`, where `C` contains bad code
+
+### Open issues
+
+- Declare a dependency set at the component level, to be used as the default for all its source sets.
+
+## Story: Java Library API includes exported dependencies but no exported classes
+
+- A library may have no API classes of its own: the API of such a library consists of the exported APIs of dependent libraries.
+    - In this case, the library will have an empty api jar
+    - An example would be a library that provides an implementation of an API defined in a dependency.
+- Any library must have a non-empty API: at a minimum it must export either API classes or the API of other libraries
+    - A 'library' with an empty API is not a library - it is some other kind of component
+- Simply declaring exported packages is not enough: the exported packages must include some API classes
+- Should permit explicitly declaring an empty set of exported packages. Will need to differentiate between:
+    a) where a library doesn't declare any exported packages (so we assume all classes are in the API)
+    b) where a library explicitly declares that the set of exported packages is empty
+
+### Questions:
+
+- Does such a library have an empty API jar, or is the API jar missing?
+
+### Test cases
+
+- When compiling sources for `main` that has dependency on `libraryA` that has no API classes
+    - Useful error message if `libraryA` also has no exported dependencies : it is invalid for `libraryA` to have an empty API
+    - Same applies for a transitively referenced library: must either have classes or library dependencies exported in the API
+    - Where `libraryA` declares exported dependencies, then the api jars of these exported dependencies are available for compilation.
+
 ## Story: Extract a buildable element to represent the compiled classes of the library variant
 
-The next 3 stories form a larger effort to decouple the generation of the API jar from the generation of the implementation jar. A new binary spec type should likely be introduced, supporting only classes found in a directory. Replace the configuration of compile tasks from `JarBinarySpec` to the new binary type. Compose `JarBinarySpec` with that new specification.
+The next 3 stories form a larger effort to decouple the generation of the API jar from the generation of the runtime jar. A new binary spec type should likely be introduced, supporting only classes found in a directory. Replace the configuration of compile tasks from `JarBinarySpec` to the new binary type. Compose `JarBinarySpec` with that new specification.
 
 The idea is to move from this model:
 
@@ -106,10 +305,10 @@ The first step involves the creation of a buildable element to represent the com
 - Building the jar should depend on the classes
 - Components report should show details of the `classes` element for a library variant
 
-## Story: Extract a buildable element to represent the implementation Jar of the library variant
+## Story: Extract a buildable element to represent the runtime jar of the library variant
 
-The second step in order to separate API jars from implementation jars involves the creation of a separate
-buildable element to represent the implementation Jar of a variant.
+The second step in order to separate API jars from runtime jars involves the creation of a separate
+buildable element to represent the runtime jar of a variant.
 
 ### Implementation
 
@@ -124,9 +323,9 @@ buildable element to represent the implementation Jar of a variant.
 
 - Components report should show details of the `jar` element for a library variant.
 
-## Story: Add a buildable element to represent the API of the library variant
+## Story: Add a buildable element to represent the API jar of the library variant
 
-The last step of separating API from implementation involves the creation of a buildable element to represent the API of a library. Once this story is implemented it must be possible to reuse the same directory of classes for building both the API and the implementation jars of a variant.
+The last step of separating API from implementation involves the creation of a buildable element to represent the API jar of a library. Once this story is implemented it must be possible to reuse the same directory of classes for building both the API and the implementation jars of a variant.
 
 ### Implementation
 
@@ -138,102 +337,9 @@ The last step of separating API from implementation involves the creation of a b
 
 ### Test cases
 
-- Building the API jar should not depend on the implementation jar
-- Building the implementation jar should not depend on the API jar
-- Building the implementation jar and the API jar should depend on the same compilation tasks
-
-## Story: Implementation classes of library are not visible when compiling consuming Java source
-
-- When compiling Java source against a library use the API jar of the selected variant.
-- Applies to local libraries only. A later story adds support for libraries from a binary repository.
-
-### Test cases
-
-- Compilation fails when consuming source references an implementation class.
-- Consuming source is not recompiled when implementation class does not change.
-- Consuming source is recompiled when API class is changed.
-- Consuming source is not recompiled when implementation class changes in an incompatible way.
-
-## Story: API stub generator strips out non public elements from classes
-
-Given a source `byte[]` representing the bytecode of a class, generate a new `byte[]` that corresponds to the same class viewed as an API class:
-- strips out private members
-- removes method bodies
-- removes static initializers
-- removes debug information
-
-This API stub generator will serve as a base for an API jar creator.
-
-### Implementation
-
-- Should take `.class` files as input, **not** source files
-- Process classes using the ASM library
-- Method bodies should throw an `UnsupportedOperationException`.
-- Should consider `java.*`, `javax.*` as allowed packages, considering they will map later to the `java-base` module.
-
-### Test cases
-
-- Output contains:
-    - public or protected elements, including nested classes
-    - annotations (we don't need to deal with source-retention annotations because they are not present in the original binary)
-    - package private members
-- Output must not contain:
-    - debug attributes
-    - source location annotations
-- Trying to call a method of the API jar at runtime throws `UnsupportedOperationException`
-- Public constant types should be initialized to `null` or their default JVM value if of a primitive type (do not use `UnsupportedOperationException` here because it would imply the
-creation of a static initializer that we want to avoid).
-- Java bytecode compatibility level of the classes must be the same as the original class compatibility level
-- Throws an error if a public member references a class which is not part of the API. For example, given:
-    ```
-    package p1;
-    public class A {
-       public B foo()
-    }
-
-    package p2;
-    public class B {
-    }
-    ```
-
-    if only package `p1` has been specified as part of the library's API, then `foo` has a return type in violation of this contract. An error should be raised accordingly.
-
-### Out of scope
-
-This doesn't have to use the `ApiSpec` (or whatever it is called) if it is not available when work on this story is started; a simple list of packages would be sufficient.
-
-## Story: Consuming Java source is not recompiled when API of library has not changed
-
-AKA: API classes can reference implementation classes of the same library
-
-- Replace the API jar generator input from a list of packages to the `ApiSpec` class (if this has not already been done).
-- Generate stub classes in the API jar using the API jar generator.
-- Generate stub API jar for all libraries, regardless of whether the library explicitly specifies its API or not (i.e., a library always has an API).
-- Generation task should be incremental.
-
-### Test cases
-
-- A method body in an API class can reference implementation classes of the same library.
-- A private method signature can reference implementation classes of the same library.
-- Consuming source is not recompiled when API method body of is changed.
-- Consuming source is not recompiled when comment is changed in API source file.
-- Consuming source is recompiled when signature of public API method is changed.
-
-## Story: Java library API references the APIs of other libraries
-
-- Extend dependency DSL to allow a dependency of a library to be exported.
-- When library A is exported by library B, then the API of B includes the API of A, and so the API of both A and B is visible to consumers at compile time.
-- Resolve compile time graph transitively.
-- A library may have no API classes of its own, and may simply export other libraries. For example, some library that implements an API defined somewhere else.
-- A library must have a non-empty API (otherwise it is not a library - it is some other kind of component)
-
-TBD - Add a dependency set at the component level, to be used as the default for all its source sets.
-
-### Test cases
-
-- Consuming source can use API class that is transitively included in the compile time dependency graph.
-- Consuming source cannot use implementation class of library that is transitively included in the compile time dependency graph.
-- A library may include no API classes.
+- Building the API jar should not depend on the runtime jar
+- Building the runtime jar should not depend on the API jar
+- Building the runtime jar and the API jar should depend on the same compilation tasks
 
 ## Story: Dependencies report shows compile time dependency graph of a Java library
 
@@ -242,13 +348,13 @@ TBD - Add a dependency set at the component level, to be used as the default for
 ## Backlog
 
 - Validate dependencies of API classes at build time to verify all API dependencies are exported.
-- Complain about exported dependencies that are not referenced by the API.
+- Complain about exported dependencies that are not referenced by the API specification.
 - Show details of API binary in component report.
 - Generate stub API jar for Groovy and Scala libraries, use for compilation.
 - Discovery of annotation processor implementations.
 - Add an option to optionally exclude package private members from the API.
 
-# Feature: Java library is compiled against the API of Java libraries in binary repository
+# Feature: Java library is compiled against the API jar of Java libraries in binary repository
 
 ## Story: Java library sources are compiled against library Jar resolved from Maven repository
 
@@ -290,9 +396,9 @@ TBD - Add a dependency set at the component level, to be used as the default for
 
 - Use artifacts and dependencies from some conventional configuration (eg `compile`, or `default` if not present) an for Ivy module.
 
-## Story: Generate an API jar for external dependencies
+## Story: Generate a stubbed API jar for external dependencies
 
-- Generate API stub for external Jar and use this for compilation. Cache the generated API jar.
+- Generate stubbed API for external Jar and use this for compilation. Cache the generated stubbed API jar.
 - Verify library is not recompiled when API of external library has not changed (eg method body change, add private element).
 - Dependencies report shows external libraries in compile time dependency graph.
 

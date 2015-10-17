@@ -15,6 +15,7 @@
  */
 
 package org.gradle.model.internal.manage.schema.extract
+
 import org.gradle.api.Action
 import org.gradle.internal.reflect.MethodDescription
 import org.gradle.model.Managed
@@ -31,7 +32,6 @@ import spock.lang.Unroll
 
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.regex.Pattern
 
 import static org.gradle.model.internal.manage.schema.ModelProperty.StateManagementType.*
@@ -711,44 +711,6 @@ $type
         fail WithInstanceScopedFieldInSuperclass, Pattern.quote("instance scoped fields are not allowed (found fields: private int ${WithInstanceScopedField.name}.age, private java.lang.String ${WithInstanceScopedField.name}.name)")
     }
 
-    @Managed
-    static abstract class ThrowsInConstructor {
-        ThrowsInConstructor() {
-            throw new RuntimeException("from constructor")
-        }
-    }
-
-    def "classes that cannot be instantiated are detected as soon as they are extracted"() {
-        when:
-        extract(ThrowsInConstructor)
-
-        then:
-        InvalidManagedModelElementTypeException e = thrown()
-        e.message == "Invalid managed model type ${ThrowsInConstructor.name}: instance creation failed"
-        e.cause.message == "from constructor"
-    }
-
-    @Managed
-    static abstract class CallsSetterInConstructor {
-        abstract String getName()
-
-        abstract void setName(String name)
-
-        CallsSetterInConstructor() {
-            name = "foo"
-        }
-    }
-
-    def "calling setters from constructor is not allowed"() {
-        when:
-        extract(CallsSetterInConstructor)
-
-        then:
-        InvalidManagedModelElementTypeException e = thrown()
-        e.message == "Invalid managed model type ${CallsSetterInConstructor.name}: instance creation failed"
-        e.cause.class == UnsupportedOperationException
-        e.cause.message == "Calling setters of a managed type on itself is not allowed"
-    }
 
     @Managed
     static abstract class ProtectedAbstractMethods {
@@ -1022,10 +984,10 @@ interface Managed${typeName} {
         assert schema instanceof ModelManagedImplStructSchema
         schema.properties*.name == ["buildable", "managedCalculatedProp", "managedProp", "time", "unmanagedCalculatedProp", "unmanagedProp"]
 
-        schema.getProperty("unmanagedProp").stateManagementType == DELEGATED
+        schema.getProperty("unmanagedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedProp").isWritable() == true
 
-        schema.getProperty("unmanagedCalculatedProp").stateManagementType == DELEGATED
+        schema.getProperty("unmanagedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("unmanagedCalculatedProp").isWritable() == false
 
         schema.getProperty("managedProp").stateManagementType == MANAGED
@@ -1034,10 +996,10 @@ interface Managed${typeName} {
         schema.getProperty("managedCalculatedProp").stateManagementType == UNMANAGED
         schema.getProperty("managedCalculatedProp").isWritable() == false
 
-        schema.getProperty("buildable").stateManagementType == DELEGATED
+        schema.getProperty("buildable").stateManagementType == UNMANAGED
         schema.getProperty("buildable").isWritable() == false
 
-        schema.getProperty("time").stateManagementType == DELEGATED
+        schema.getProperty("time").stateManagementType == UNMANAGED
         schema.getProperty("time").isWritable() == false
     }
 
@@ -1313,29 +1275,6 @@ interface Managed${typeName} {
         then:
         InvalidManagedModelElementTypeException ex = thrown()
         ex.message.contains 'setter method param must be of exactly the same type as the getter returns (expected: java.util.List<java.lang.String>, found: java.util.List<java.lang.Integer>)'
-    }
-
-    @Unroll
-    def "throws an error if we use unsupported type #collectionType.simpleName as element type of a scalar collection"() {
-        given:
-        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
-            import org.gradle.model.Managed
-
-            @Managed
-            interface CollectionType {
-                List<${collectionType.name}> getItems()
-            }
-        """
-
-        when:
-        extract(managedType)
-
-        then:
-        InvalidManagedModelElementTypeException ex = thrown()
-        ex.message.contains "property 'items' cannot be a collection of type ${collectionType.name} as it is not a scalar type. Supported element types:"
-
-        where:
-        collectionType << [Date, AtomicInteger]
     }
 
     @Unroll

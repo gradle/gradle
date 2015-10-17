@@ -30,7 +30,7 @@ class ApiStubGeneratorInnerClassTest extends ApiStubGeneratorTestSupport {
     private final static int ACC_PRIVATESTATIC = Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC
 
     @Unroll
-    def "should not remove #modifier inner class"() {
+    def "should not remove #modifier inner class if no API is declared"() {
         given:
         def api = toApi 'A': """
 public class A {
@@ -46,6 +46,8 @@ public class A {
         def stubbedInner = api.loadStub(inner)
 
         then:
+        api.belongsToAPI(outer)
+        api.belongsToAPI(inner)
         inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
         stubbedInner.modifiers == access
         hasMethod(stubbedInner, 'foo').modifiers == Modifier.PUBLIC
@@ -70,6 +72,34 @@ public class A {
 
     }
 
+    @Unroll
+    def "should remove #modifier inner class if API is declared"() {
+        given:
+        def api = toApi ([''], ['A': """
+public class A {
+   $modifier class Inner {
+      public void foo() {}
+   }
+}"""])
+
+        when:
+        def outer = api.classes.A
+        def inner = api.classes['A$Inner']
+        def stubbedOuter = api.loadStub(outer)
+
+        then:
+        api.belongsToAPI(outer)
+        !api.belongsToAPI(inner)
+        inner.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
+        stubbedOuter.classes.length == 0
+
+        where:
+        modifier           | access
+        ''                 | 0
+        'static'           | Opcodes.ACC_STATIC
+
+    }
+
     def "should not keep anonymous inner classes"() {
         given:
         def api = toApi 'A': """
@@ -83,9 +113,32 @@ public class A {
 
         when:
         def outer = api.classes.A
+        def inner = api.classes['A$1']
         def stubbedOuter = api.loadStub(outer)
 
         then:
+        api.belongsToAPI(outer)
+        !api.belongsToAPI(inner)
+        stubbedOuter.classes.length == 0
+    }
+
+    def "should not keep anonymous local classes"() {
+        given:
+        def api = toApi 'A': """
+public class A {
+   public void foo() {
+       class Person { }
+   }
+}"""
+
+        when:
+        def outer = api.classes.A
+        def inner = api.classes['A$1Person']
+        def stubbedOuter = api.loadStub(outer)
+
+        then:
+        api.belongsToAPI(outer)
+        !api.belongsToAPI(inner)
         stubbedOuter.classes.length == 0
     }
 

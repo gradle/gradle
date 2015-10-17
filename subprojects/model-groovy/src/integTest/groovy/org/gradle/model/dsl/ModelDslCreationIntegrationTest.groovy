@@ -15,7 +15,6 @@
  */
 
 package org.gradle.model.dsl
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.util.Matchers.containsText
@@ -147,6 +146,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
     def "cannot create non managed types"() {
         when:
         buildScript '''
+            apply plugin: 'language-base'
             interface Thing {
                 String getName()
                 void setName(String name)
@@ -168,7 +168,14 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "dependencies" // something that doesn't actually require thing1 to be built
-        failure.assertThatCause(containsText("model.thing1 @ build.gradle"))
-        failure.assertThatCause(containsText("A model element of type: 'Thing' can not be constructed."))
+        failure.assertThatCause(containsText('model.thing1 @ build.gradle'))
+        failure.assertThatCause(containsText("Declaration of model rule model.thing1 @ build.gradle line 9, column 17 is invalid."))
+        //TODO AK - reenable and fx on windows
+        failureCauseContains("""A model element of type: 'Thing' can not be constructed.
+It must be one of:
+    - A managed type (annotated with @Managed)
+    - or a type which Gradle is capable of constructing:
+        - org.gradle.language.base.FunctionalSourceSet""")
     }
 }
+

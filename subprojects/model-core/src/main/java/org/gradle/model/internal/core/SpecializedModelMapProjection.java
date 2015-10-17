@@ -79,7 +79,7 @@ public class SpecializedModelMapProjection<P extends ModelMap<E>, E> implements 
     private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
         ChildNodeInitializerStrategy<? super E> creatorStrategy = creatorStrategyAccessor.getStrategy(modelNode);
         DefaultModelViewState state = new DefaultModelViewState(publicType, ruleDescriptor, mutable, true);
-        String description = publicType.getSimpleName() + " '" + modelNode.getPath() + "'";
+        String description = publicType.getDisplayName() + " '" + modelNode.getPath() + "'";
         ModelMap<E> rawView = new NodeBackedModelMap<E>(description, elementType, ruleDescriptor, modelNode, false, state, creatorStrategy);
         P instance = DirectInstantiator.instantiate(viewImpl, rawView);
         return InstanceModelView.of(modelNode.getPath(), publicType, instance, state.closer());

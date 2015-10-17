@@ -86,7 +86,13 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     public String makeName(String... words) {
-        StringBuilder builder = new StringBuilder();
+        int expectedLength = 0;
+        for (String word : words) {
+            if (word != null) {
+                expectedLength += word.length();
+            }
+        }
+        StringBuilder builder = new StringBuilder(expectedLength);
         for (String word : words) {
             if (word == null || word.length() == 0) {
                 continue;

@@ -20,22 +20,24 @@ def buckets = [
         ":diagnostics", ":jetty", ":cli", ":reporting", ":toolingApiBuilders", ":openApi"],
 
     "2": [":toolingApi", ":dependencyManagement", ":testKit", ":distributions",
-        ":pluginUse", ":sonar", ":buildInit", ":languageGroovy", ":internalTesting",
+        ":pluginUse",  ":buildInit", ":languageGroovy", ":internalTesting",
         ":languageJvm", ":performance", ":publish", ":resources", ":baseServicesGroovy", ":resourcesHttp",
         ":pluginDevelopment", ":osgi"],
 
     "3": [":launcher", ":plugins", ":codeQuality", ":languageJava",
-        ":ui", ":maven", ":javascript", ":antlr", ":messaging", ":ear",
+        ":ui", ":javascript", ":antlr", ":messaging", ":ear",
         ":resourcesS3", ":wrapper", ":resourcesSftp", ":signing", ":modelGroovy", ":baseServices"],
 
-    "4": [":docs", ":integTest", ":core", ":languageNative", ":ide", ":platformJvm", ":platformNative", ":modelCore", ":testingNative",
-        ":ideNative", ":native"]
+    "4": [":docs", ":integTest", ":core", ":languageNative", ":ide", ":platformJvm", ":platformNative",
+          ":modelCore", ":sonar", ":maven", ":testingNative", ":ideNative", ":native"]
 ]
 
 //Make sure all projects are accounted for
 def coveredProjects = (buckets.collect { it.value }).flatten()
 def uncoveredProjects = subprojects.collect { ":${it.name}" } - coveredProjects
 assert uncoveredProjects == [] : "The following projects should be added to a bucket: ${uncoveredProjects}"
+
+ext.runtimeProjectPaths = runtimeProjects.collect { it.path }
 
 //Make sure there are no duplicates between buckets
 for (int bucket : buckets.keySet().collect{it as int}) {
@@ -44,8 +46,6 @@ for (int bucket : buckets.keySet().collect{it as int}) {
         assert duplicates == [] : "Duplicates were found between bucket ${bucket} and ${other}: ${duplicates}"
     }
 }
-
-ext.runtimeProjectPaths = runtimeProjects.collect { it.path }
 
 //Create appropriate build types for each bucket
 buildTypes.toArray().each { buildType ->

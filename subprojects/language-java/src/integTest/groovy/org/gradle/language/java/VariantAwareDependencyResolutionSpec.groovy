@@ -35,7 +35,7 @@ abstract class VariantAwareDependencyResolutionSpec extends AbstractIntegrationS
                         while (!(t instanceof PlatformJavaCompile)) {
                             t = t.taskDependencies.getDependencies(t)[0]
                         }
-                        assert t.classpath.files == [file("\${buildDir}/jars/$target/second.jar")] as Set
+                        assert t.classpath.files == [file("\${buildDir}/jars/${target.replace('Jar','ApiJar')}/second.jar")] as Set
                     }
                 }
 """

@@ -57,8 +57,8 @@ class DependentSourceSetResolveContextTest extends Specification {
 
         where:
         path       | library  | contextName
-        ':myPath'  | 'myLib'  | DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME
-        ':myPath'  | 'myLib2' | DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME
-        ':myPath2' | 'myLib'  | DefaultLibraryBinaryIdentifier.CONFIGURATION_NAME
+        ':myPath'  | 'myLib'  | DefaultLibraryBinaryIdentifier.CONFIGURATION_API
+        ':myPath'  | 'myLib2' | DefaultLibraryBinaryIdentifier.CONFIGURATION_API
+        ':myPath2' | 'myLib'  | DefaultLibraryBinaryIdentifier.CONFIGURATION_API
     }
 }

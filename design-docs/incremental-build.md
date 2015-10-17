@@ -6,7 +6,7 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 These are general speed ups that improve all builds.
 
-## Story: Speed up File metadata lookup in task input/output snapshotting
+## Story: Speed up File metadata lookup in task input/output snapshotting 
 
 File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are 
 hotspots in task input/output snapshotting.
@@ -17,21 +17,42 @@ metadata used for directory scanning to "visiting" the file tree so that metadat
 
 ### Implementation
 
-- For JDK7+ with UTF-8 file encoding, use a nio2 file walker implemention.
-    - Cache isDirectory()/getSize()/getLastModified() in FileVisitDetails from BasicFileAttributes gathered from walking
-- Otherwise, use default file walker implementation (current behavior).
-    - Use a caching FileVisitDetails for getSize()/getLastModified() to cache on first use.
-    - Maybe reuse isFile/isDirectory result from the walker implementation
-- Replace calls to getFiles() in DefaultFileCollectionSnapshotter with a visitor
+- For JDK7+ with UTF-8 file encoding, use a nio2 file walker implemention. ✔︎
+    - Cache isDirectory()/getSize()/getLastModified() in FileVisitDetails from BasicFileAttributes gathered from walking ✔︎
+- Otherwise, use default file walker implementation (current behavior). ✔︎
+    - Use a caching FileVisitDetails for getSize()/getLastModified() to cache on first use. ✔︎
+    - Maybe reuse isFile/isDirectory result from the walker implementation ✔︎
+- Replace calls to getFiles() in DefaultFileCollectionSnapshotter with a visitor ✔︎
 
 ### Test coverage
 
-- Test that correct implementation is chosen for JDK platform and file encoding
-- Test that a file walker sees a snapshot of tree even if the tree is modified after walking has started.
-- Generate file tree and walk with JDK7+ file walker and non-nio2 file walker. Attributes and files should be the same for both.
-- Test that the visited files is the same as inputs.getAsFileTrees().getFiles() when snapshotting.
-- Performance gains will be measured from existing performance tests.
-- Expect existing test coverage will cover behavior of input/output snapshotting and file collection operations.
+- Test that correct implementation is chosen for JDK platform and file encoding ✔︎
+- Test that a file walker sees a snapshot of tree even if the tree is modified after walking has started. ✔︎
+- Generate file tree and walk with JDK7+ file walker and non-nio2 file walker. Attributes and files should be the same for both. ✔︎
+- Performance gains will be measured from existing performance tests. ✔︎
+- Expect existing test coverage will cover behavior of input/output snapshotting and file collection operations. ✔︎
+
+## Story: Changes to reduce byte/char array allocations and array copying
+
+- Just do it
+
+## Story: Changes for adjusting collection sizes when final size is known
+
+- Just do it
+
+## Story: Reduce the in-memory size of the task history cache by interning file paths
+
+### Implementation
+
+- Use Guava's [`Interners.newWeakInterner()`](http://google.github.io/guava/releases/18.0/api/docs/com/google/common/collect/Interners.html#newWeakInterner%28%29) to create a cache `StringInterner` for sharing the file path Strings. Place this cache in `GlobalScopeServices` so that the instance lives across multiple builds in the daemon.
+- use the `StringInterner` to intern all duplicate path names contained in `fileSnapshots`, `taskArtifacts`, `outputFileStates` and `fileHashes` caches.
+- Implementation can be based on the solution developed in the spike. The commit is https://github.com/gradle/gradle/commit/d26d4ce1098e0eee9896279cbeabefb1ca3e871c .
+
+### Test coverage
+
+- Add basic unit test coverage for StringInterner
+  - interning different string instances with similar content return the first instance that was interned
+  - allows calling method with null, returns null in that case
 
 ## Story: Add caching to Specs returned from PatternSet.getAsSpecs()
 
@@ -43,34 +64,15 @@ Adding caching will improve performance of subsequent incremental builds.
 
 TBD
 
-# Feature: Use source file dependency information in up-to-date checks
+## Story: High number of UnknownDomainObjectExceptions when resolving libraries in native projects.
 
-## Story: Perform dependency analysis on source files separately from compilation
+TBD
 
-- Create a separate "figure out dependencies" step in the native plugins
-- Make include paths @Inputs for the compile task.  
-- Create the new "extract dependencies" task.  
-- Wire together everything
-- Use @InputFiles for the list of includes (but keep the incremental compiler doing what it does now for staleness)
+## Story: Add "discovered" inputs
 
-## Test coverage 
+TBD
 
-- Change in include path causes recalculation of dependencies and recompilation
-- Removing dependency information causes recalculation when compiling
-- Change in source file causes recalculation of dependencies
-- Change in header file does not cause recalculation
-- Test header parsing/extraction
-
-## Story: Reuse dependency information in incremental native compiler
-
-- Remove #include parsing from incremental compiler
-- Use dependency information from above
-- Still do source file staleness checks in the incremental compiler
-
-## Test coverage 
-
-- Existing test coverage should cover most cases
-- Remeasure performance/profiling after this is complete
+# Unprioritized
 
 ## Story: Reuse native source file dependency information within a build
 
@@ -79,8 +81,6 @@ Currently this is cached on a per-task basis, meaning it is recalculated many
 times when building multiple variants and compiling test suites. We should 
 instead move this to a cache that is shared across all tasks for a build, 
 and kept in memory across builds.
-
-# Uncategorized
 
 ## Story: Inline the data from the file hash cache into the task history cache
 
@@ -106,6 +106,10 @@ unmodified.
 
 TBD
 
+## Story: Reduce number of directory scans in up-to-date checks
+
+TBD
+
 ## Story: Reduce the in-memory size of the task history cache
 
 1. Discard history that will never be used, eg for tasks that no longer exist,
@@ -118,14 +122,6 @@ we would need to load up the snapshot.
 to the file system, and reducing the cache size.
 5. Reduce the cost of a cache miss, by spooling to an efficient transient second
 level cache, and reducing the cache size.
-
-### Test coverage
-
-TBD
-
-## Story: Reduce number of directory scans in up-to-date checks
-
-TBD
 
 ## Open Issues
 
@@ -143,3 +139,41 @@ TBD
 ### Test coverage
 
 - TBD
+
+
+## Background information about the in-memory caches
+
+### Task History related caches
+
+File path Strings are duplicated in memory in different in-memory caches. The different in-memory caches in Gradle are:
+  - [`fileSnapshots` used in `CacheBackedFileSnapshotRepository`](https://github.com/gradle/gradle/blob/b96e5802f277872b3484947ce9970180b139563a/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/state/CacheBackedFileSnapshotRepository.java#L29)
+    - key is Long id
+    - value is `FileCollectionSnapshot`, serialized with `DefaultFileSnapshotterSerializer`
+  - [`taskArtifacts` used in `CacheBackedTaskHistoryRepository`](https://github.com/gradle/gradle/blob/b96e5802f277872b3484947ce9970180b139563a/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/state/CacheBackedTaskHistoryRepository.java#L37)
+    - key is String, a task path
+    - value is `CacheBackedTaskHistoryRepository.TaskHistory`, serialized with `CacheBackedTaskHistoryRepository.TaskHistorySerializer`
+  - [`outputFileStates` used in `OutputFilesCollectionSnapshotter`](https://github.com/gradle/gradle/blob/b96e5802f277872b3484947ce9970180b139563a/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/state/OutputFilesCollectionSnapshotter.java#L54)
+    - key is String, a output directory path
+    - value is Long, a random id
+  - [`fileHashes` used in `CachingFileSnapshotter`](https://github.com/gradle/gradle/blob/b96e5802f277872b3484947ce9970180b139563a/subprojects/core/src/main/groovy/org/gradle/api/internal/changedetection/state/CachingFileSnapshotter.java#L35)
+    - key is String, a file path
+    - value is `CachingFileSnapshotter.FileInfo`, serialized with `CachingFileSnapshotter.FileInfoSerializer`
+  - [`compilationState` in nativeplatform's `DefaultCompilationStateCacheFactory`](https://github.com/gradle/gradle/blob/master/subprojects/language-native/src/main/java/org/gradle/language/nativeplatform/internal/incremental/DefaultCompilationStateCacheFactory.java#L28)
+    - key is String, a task path
+    - value is `org.gradle.language.nativeplatform.internal.incremental.CompilationState`, serialized with `CompilationStateSerializer`
+
+The in-memory caches are a decorator for the underlying persistent cache. In-memory cache decorators are created in InMemoryTaskArtifactCache and live as part of that instance which is in the `GlobalScopeServices`. Persistent cache instances are typically part of the [`TaskExecutionServices`](https://github.com/gradle/gradle/blob/ef18b81c9ee03cf58a49e69a3c6f5abb4557d8f7/subprojects/core/src/main/groovy/org/gradle/internal/service/scopes/TaskExecutionServices.java#L73-L81) which are in `GradleScopeServices` (instances live for the duration of a single build execution). In-memory cache decorators are only used in the Gradle daemon process.
+
+### Relationship of `fileSnapshots` and `taskArtifacts` caches
+
+The `taskArtifacts` cache contains `TaskHistory` entries. Each `TaskHistory` can contain multiple task executions (`CacheBackedTaskHistoryRepository.LazyTaskExecution`). Each `LazyTaskExecution` contains it's input and output filesnapshots (`FileCollectionSnapshot`). 
+Input and output instances are lazily loaded from the `fileSnapshots` cache when the `TaskHistory` instance gets loaded in an incremental build.
+
+The life-time of the `TaskHistory` instance can be seen in the 
+[`SkipUpToDateTaskExecuter.execute`](https://github.com/gradle/gradle/blob/3a0cfd6ac94eb9db4c7884c46ef4f9e973dca114/subprojects/core/src/main/groovy/org/gradle/api/internal/tasks/execution/SkipUpToDateTaskExecuter.java#L66) method. The in-memory `TaskHistory` instance is persisted in the call to it's `update` method. This call originates from the `TaskArtifactState.afterTask` call in the `SkipUpToDateTaskExecuter.execute` method.
+
+When the `TaskHistory` gets persisted, it adds the current task execution to the list of executions and limits the number of executions to 3 by removing any additional task executions. When the task execution (`LazyTaskExecution`) gets persisted, the input and output file snapshots get persisted in the `filesnapshots` cache. This serves at least 2 purposes: the filesnapshot don't have to be loaded when the `TaskHistory` is loaded. It also prevents updating the input and output filesnapshots to the persistent storage when the `TaskHistory` instance gets updated. When the `TaskHistory` instance gets updated, all data gets re-serialized to disk.
+
+### Other caches
+
+- `HashClassPathSnapshotter` uses an unbounded cache instantiated in [`GlobalScopeServices`](https://github.com/gradle/gradle/blob/56404fa2cd7c466d7a5e19e8920906beffa9f919/subprojects/core/src/main/groovy/org/gradle/internal/service/scopes/GlobalScopeServices.java#L211-L212)

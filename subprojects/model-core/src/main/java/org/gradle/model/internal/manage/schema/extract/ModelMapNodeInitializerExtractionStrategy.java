@@ -33,10 +33,18 @@ import java.util.List;
 public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeInitializerExtractionSupport {
     private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {
     };
+    private final NodeInitializerRegistry nodeInitializerRegistry;
+
+    public ModelMapNodeInitializerExtractionStrategy(NodeInitializerRegistry nodeInitializerRegistry) {
+        this.nodeInitializerRegistry = nodeInitializerRegistry;
+    }
 
     @Override
     protected <T, E> NodeInitializer extractNodeInitializer(ModelCollectionSchema<T, E> schema) {
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(schema.getType())) {
+            if (!nodeInitializerRegistry.hasNodeInitializer(schema.getElementType())) {
+                return null;
+            }
             return new ModelMapNodeInitializer<T, E>(schema);
         }
         return null;
@@ -61,7 +69,9 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
 
         @Override
         public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+
             NodeInitializerRegistry nodeInitializerRegistry = ModelViews.assertType(inputs.get(0), NodeInitializerRegistry.class).getInstance();
+
             ManagedChildNodeCreatorStrategy<E> childCreator = new ManagedChildNodeCreatorStrategy<E>(nodeInitializerRegistry);
             modelNode.setPrivateData(ChildNodeInitializerStrategy.class, childCreator);
         }

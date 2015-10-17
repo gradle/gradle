@@ -156,7 +156,7 @@ class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec 
         """
 
         expect:
-        succeeds "customJar"
+        succeeds "tasks", "customJar"
         new JarTestFixture(file("build/jars/customJar/sampleLib.jar")).isManifestPresentAndFirstEntry()
     }
 

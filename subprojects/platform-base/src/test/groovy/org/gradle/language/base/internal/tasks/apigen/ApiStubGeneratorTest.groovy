@@ -37,6 +37,7 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
         def stubbed = api.loadStub(clazz)
 
         then:
+        api.belongsToAPI(clazz)
         clazz.clazz.getDeclaredMethod('foo').modifiers == Modifier.PUBLIC
         hasMethod(stubbed, 'foo')
 
@@ -60,6 +61,7 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
         def stubbed = api.loadStub(clazz)
 
         then:
+        api.belongsToAPI(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Modifier.PROTECTED
         hasMethod(stubbed, 'foo')
 
@@ -82,15 +84,17 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
         def stubbed = api.loadStub(clazz)
 
         then:
+        api.belongsToAPI(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Modifier.PRIVATE
         noSuchMethod(stubbed, 'foo')
 
     }
 
-    def "should not remove package private method"() {
+    def "should not remove package private method if no API is defined"() {
         given:
         def api = toApi 'A': '''public class A {
     void foo() {}
+    static void bar() {}
 }'''
 
         when:
@@ -98,8 +102,31 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
         def stubbed = api.loadStub(clazz)
 
         then:
+        api.belongsToAPI(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == 0
+        hasMethod(clazz.clazz, 'bar').modifiers == Opcodes.ACC_STATIC
         hasMethod(stubbed, 'foo').modifiers == 0
+        hasMethod(stubbed, 'bar').modifiers == Opcodes.ACC_STATIC
+
+    }
+
+    def "should remove package private method if API is defined"() {
+        given:
+        def api = toApi ([''], ['A': '''public class A {
+    void foo() {}
+    static void bar() {}
+}'''])
+
+        when:
+        def clazz = api.classes.A
+        def stubbed = api.loadStub(clazz)
+
+        then:
+        api.belongsToAPI(clazz)
+        hasMethod(clazz.clazz, 'foo').modifiers == 0
+        hasMethod(clazz.clazz, 'bar').modifiers == Opcodes.ACC_STATIC
+        noSuchMethod(stubbed, 'foo')
+        noSuchMethod(stubbed, 'bar')
 
     }
 
@@ -114,6 +141,7 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
         def stubbed = api.loadStub(clazz)
 
         then:
+        api.belongsToAPI(clazz)
         hasMethod(clazz.clazz, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
         hasMethod(stubbed, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
 
@@ -142,6 +170,8 @@ public class B extends A {
         def stubbedB = api.loadStub(clazzB)
 
         then:
+        api.belongsToAPI(clazzA)
+        api.belongsToAPI(clazzB)
         hasMethod(clazzA.clazz, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
         hasMethod(clazzA.clazz, 'bar').modifiers == Opcodes.ACC_PUBLIC
         hasMethod(stubbedA, 'foo').modifiers == Opcodes.ACC_ABSTRACT + Opcodes.ACC_PUBLIC
@@ -266,13 +296,16 @@ public @interface Ann {}
         ])
 
         when:
-        def clazz = api.classes.A.clazz
-        def annotations = clazz.annotations
-        def stubbed = api.loadStub(api.classes.A)
-        def stubbedAnn = api.loadStub(api.classes.Ann)
+        def clazz = api.classes.A
+        def annotations = clazz.clazz.annotations
+        def stubbed = api.loadStub(clazz)
+        def annClazz = api.classes.Ann
+        def stubbedAnn = api.loadStub(annClazz)
         def stubbedAnnotations = stubbed.annotations
 
         then:
+        api.belongsToAPI(clazz)
+        api.belongsToAPI(annClazz)
         annotations.size() == 1
         annotations[0].annotationType().name == 'Ann'
         stubbedAnnotations.size() == 1
@@ -291,6 +324,7 @@ public @interface Ann {}
         def stubbed = api.loadStub(clazz)
 
         then:
+        api.belongsToAPI(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PUBLIC
         hasField(stubbed, 'foo', String)
 
@@ -314,6 +348,7 @@ public @interface Ann {}
         def stubbed = api.loadStub(clazz)
 
         then:
+        api.belongsToAPI(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PROTECTED
         hasField(stubbed, 'foo', String)
 
@@ -336,12 +371,13 @@ public @interface Ann {}
         def stubbed = api.loadStub(clazz)
 
         then:
+        api.belongsToAPI(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == Modifier.PRIVATE
         noSuchField(stubbed, 'foo', String)
 
     }
 
-    def "should not remove package private field"() {
+    def "should not remove package private field if no API is declared"() {
         given:
         def api = toApi 'A': '''public class A {
     String foo;
@@ -352,8 +388,26 @@ public @interface Ann {}
         def stubbed = api.loadStub(clazz)
 
         then:
+        api.belongsToAPI(clazz)
         hasField(clazz.clazz, 'foo', String).modifiers == 0
         hasField(stubbed, 'foo', String).modifiers == 0
+
+    }
+
+    def "should remove package private field if API is declared"() {
+        given:
+        def api = toApi ([''],['A': '''public class A {
+    String foo;
+}'''])
+
+        when:
+        def clazz = api.classes.A
+        def stubbed = api.loadStub(clazz)
+
+        then:
+        api.belongsToAPI(clazz)
+        hasField(clazz.clazz, 'foo', String).modifiers == 0
+        noSuchField(stubbed, 'foo', String)
 
     }
 
@@ -401,6 +455,32 @@ public abstract class A {
 
         then:
         noExceptionThrown()
+    }
+
+    def "package private class belongs to API if no API declared"() {
+        given:
+        def api = toApi 'A': '''class A {
+    String foo;
+}'''
+
+        when:
+        def clazz = api.classes.A
+
+        then:
+        api.belongsToAPI(clazz)
+    }
+
+    def "package private class does not belong to API if API declared"() {
+        given:
+        def api = toApi ([''], ['A': '''class A {
+    String foo;
+}'''])
+
+        when:
+        def clazz = api.classes.A
+
+        then:
+        !api.belongsToAPI(clazz)
     }
 
 }

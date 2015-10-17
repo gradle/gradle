@@ -15,32 +15,167 @@
  */
 
 package org.gradle.model.internal.inspect
+
+import org.gradle.api.credentials.Credentials
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.DefaultNodeInitializerRegistry
-import org.gradle.model.internal.core.ModelCreators
-import org.gradle.model.internal.core.ModelRuleExecutionException
-import org.gradle.model.internal.core.ModelTypeInitializationException
-import org.gradle.model.internal.core.NodeInitializerContext
+import org.gradle.model.Unmanaged
+import org.gradle.model.internal.core.*
 import org.gradle.model.internal.fixture.ModelRegistryHelper
+import org.gradle.model.internal.fixture.TestNodeInitializerRegistry
+import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Shared
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.concurrent.atomic.AtomicInteger
+
 class ManagedModelInitializerTest extends Specification {
 
-    @Shared
-    def store = DefaultModelSchemaStore.getInstance()
+    def store = DefaultModelSchemaStore.instance
+    def nodeInitializerRegistry
     def r = new ModelRegistryHelper()
-    def nodeInitializerRegistry = new DefaultNodeInitializerRegistry(store)
     def classLoader = new GroovyClassLoader(getClass().classLoader)
-    static final List<Class<? extends Serializable>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
+    static final List<Class<?>> JDK_SCALAR_TYPES = ScalarTypes.TYPES.rawClass
 
     def setup() {
+        nodeInitializerRegistry = new TestNodeInitializerRegistry() //Not shared across tests as test may add constructable types only applying to that particular test
         r.create(ModelCreators.serviceInstance(DefaultNodeInitializerRegistry.DEFAULT_REFERENCE, nodeInitializerRegistry).build())
+    }
+
+    def "should fail with a contextual exception for managed collections properties"() {
+        when:
+        realizeNodeOfType(ManagedWithInvalidModelMap)
+
+        then:
+        def ex = thrown(ModelRuleExecutionException)
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedWithInvalidModelMap.name' can not be constructed.
+Its property 'org.gradle.model.ModelMap<java.io.FileInputStream> map' is not a valid managed collection
+A managed collection can not contain 'java.io.FileInputStream's
+A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
+        - A managed type (annotated with @Managed)""")
+    }
+
+    @Managed
+    interface ManagedWithInvalidModelMap {
+        ModelMap<FileInputStream> getMap()
+    }
+
+    def "should fail with a contextual exception for a managed model element with an unknown property type"() {
+        when:
+        def constructableTypesRegistry = new DefaultConstructableTypesRegistry()
+        NodeInitializer nodeInitializer = Mock()
+        constructableTypesRegistry.registerConstructableType(ModelType.of(Credentials), nodeInitializer)
+        nodeInitializerRegistry.registerStrategy(constructableTypesRegistry)
+        realizeNodeOfType(ManagedWithUnsupportedType)
+
+        then:
+        def ex = thrown(ModelRuleExecutionException)
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedWithUnsupportedType.name' can not be constructed.
+Its property 'java.io.FileInputStream stream' can not be constructed
+It must be one of:
+    - A managed type (annotated with @Managed)
+    - A managed collection. A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
+        - A managed type (annotated with @Managed)
+        - or a type which Gradle is capable of constructing:
+            - org.gradle.api.credentials.Credentials
+    - A scalar collection. A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)
+    - An unmanaged property (i.e. annotated with @Unmanaged)
+    - or a type which Gradle is capable of constructing:
+        - org.gradle.api.credentials.Credentials""")
+    }
+
+    @Managed
+    interface ManagedWithUnsupportedType {
+        FileInputStream getStream()
+    }
+
+    def "should fail with a contextual exception for scalar collection properties"() {
+        when:
+        realizeNodeOfType(ManagedWithInvalidScalarCollection)
+
+        then:
+        def ex = thrown(ModelRuleExecutionException)
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedWithInvalidScalarCollection.name' can not be constructed.
+Its property 'java.util.List<java.io.FileInputStream> scalarThings' is not a valid scalar collection
+A scalar collection can not contain 'java.io.FileInputStream's
+A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)""")
+    }
+
+    @Managed
+    interface ManagedWithInvalidScalarCollection {
+        List<FileInputStream> getScalarThings()
+    }
+
+    def "should fail with a contextual exception for a managed type with an invalid readonly property"() {
+        when:
+        realizeNodeOfType(ManagedReadOnlyWithInvalidProperty)
+
+        then:
+        def ex = thrown(ModelRuleExecutionException)
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedReadOnlyWithInvalidProperty.name' can not be constructed.
+Its property 'java.io.FileInputStream stream' can not be constructed
+It must be one of:
+    - A managed type (annotated with @Managed)
+    - A managed collection. A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
+        - A managed type (annotated with @Managed)
+    - A scalar collection. A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)
+    - An unmanaged property (i.e. annotated with @Unmanaged)""")
+    }
+
+    @Managed
+    interface ManagedReadOnlyWithInvalidProperty {
+        FileInputStream getStream()
+    }
+
+    def "should fail with a contextual exception for a managed type with an invalid readwrite property"() {
+        when:
+        realizeNodeOfType(ManagedReadWriteWithInvalidProperty)
+
+        then:
+        def ex = thrown(ModelRuleExecutionException)
+        ex.cause.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$ManagedReadWriteWithInvalidProperty.name' can not be constructed.
+Its property 'java.io.FileInputStream stream' can not be constructed
+It must be one of:
+    - A managed type (annotated with @Managed)
+    - A managed collection. A valid managed collection takes the form of ModelSet<T> or ModelMap<T> where 'T' is:
+        - A managed type (annotated with @Managed)
+    - A scalar collection. A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one of (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)
+    - An unmanaged property (i.e. annotated with @Unmanaged)""")
+    }
+
+    @Managed
+    interface ManagedReadWriteWithInvalidProperty {
+        FileInputStream getStream()
+
+        void setStream(FileInputStream stream)
+    }
+
+    def "should fail with a reasonable exception when a type is not managed and not constructable"() {
+        when:
+        realizeNodeOfType(NonManaged)
+
+        then:
+        def ex = thrown(ModelTypeInitializationException)
+        ex.message == TextUtil.toPlatformLineSeparators("""A model element of type: '$NonManaged.name' can not be constructed.
+It must be one of:
+    - A managed type (annotated with @Managed)""")
+    }
+
+    def "should not fail with an exception for a managed type with an invalid readwrite but unmanaged property"() {
+        expect:
+        realizeNodeOfType(ManagedReadWriteWithInvalidUnmanagedProperty)
+    }
+
+    @Managed
+    interface ManagedReadWriteWithInvalidUnmanagedProperty {
+        @Unmanaged
+        FileInputStream getStream()
+
+        void setStream(FileInputStream stream)
     }
 
     def "must be symmetrical"() {
@@ -49,35 +184,37 @@ class ManagedModelInitializerTest extends Specification {
     }
 
     @Unroll
-    def "only selected unmanaged property types are allowed"() {
+    def "only selected unmanaged property types are allowed #type"() {
         expect:
         failWhenRealized(type,
-            canNotBeConstructed("${failingProperty.name}"),
-            "It must be one the following:",
-            "- A supported scalar type (",
-            "- An enumerated type (Enum)",
-            "- An explicitly managed type (i.e. annotated with @Managed)",
-            "- An explicitly unmanaged property (i.e. annotated with @Unmanaged)",
-            "- A scalar collection type ("
+            canNotBeConstructed("${type.name}"),
+            "Its property '$failingProperty.name $propertyName' can not be constructed",
+            "It must be one of:",
+            "    - A managed collection.",
+            "    - A scalar collection.",
+            "    - An unmanaged property (i.e. annotated with @Unmanaged)"
         )
 
         where:
-        type                                           | failingProperty
-        NonStringProperty         | Object
-        ClassWithExtendedFileType | ExtendedFile
+        type                      | failingProperty | propertyName
+        NonStringProperty         | Object          | 'name'
+        ClassWithExtendedFileType | ExtendedFile    | 'extendedFile'
     }
 
     def "unmanaged types must be annotated with unmanaged"() {
         expect:
         failWhenRealized(MissingUnmanaged,
-            canNotBeConstructed('java.io.InputStream'),
-            "- An explicitly unmanaged property (i.e. annotated with @Unmanaged)")
+            canNotBeConstructed(MissingUnmanaged.name),
+            "Its property 'java.io.InputStream thing' can not be constructed",
+            "It must be one of:",
+            "- An unmanaged property (i.e. annotated with @Unmanaged)"
+        )
     }
 
     @Unroll
     def "should enforce properties of #type are managed"() {
         when:
-        Class<?> generatedClass = managedClassWithoutSetter(type)
+        Class<?> generatedClass = readOnlyManagedClass(type)
 
         then:
         failWhenRealized generatedClass, "has non managed type ${type.name}, only managed types can be used"
@@ -86,7 +223,7 @@ class ManagedModelInitializerTest extends Specification {
         type << JDK_SCALAR_TYPES
     }
 
-    Class<?> managedClassWithoutSetter(Class<?> type) {
+    Class<?> readOnlyManagedClass(Class<?> type) {
         String typeName = type.getSimpleName()
         return classLoader.parseClass("""
 import org.gradle.model.Managed
@@ -98,21 +235,23 @@ interface Managed${typeName} {
 """)
     }
 
-    def "model map type must be managed in a managed type"() {
-        expect:
-        failWhenRealized(UnmanagedModelMapInManagedType,
-            canNotBeConstructed(InputStream.name),
-            "- A managed collection type (ModelMap<?>, ManagedSet<?>, ModelSet<?>)"
-        )
+    Class<?> managedClass(Class<?> type) {
+        String typeName = type.getSimpleName()
+        return classLoader.parseClass("""
+import org.gradle.model.Managed
+
+@Managed
+interface Managed${typeName} {
+    ${typeName} get${typeName}()`
+    void set${typeName}($typeName arg)
+}
+""")
     }
 
     @Unroll
     def "must have a setter - #managedType.simpleName"() {
-        when:
+        expect:
         failWhenRealized(managedType, "Invalid managed model type '$managedType.name': read only property 'thing' has non managed type boolean, only managed types can be used")
-
-        then:
-        true
 
         where:
         managedType << [OnlyIsGetter, OnlyGetGetter]
@@ -131,13 +270,12 @@ interface Managed${typeName} {
         """
 
         then:
-        failWhenRealized(managedType, canNotBeConstructed("${collectionType.name}<java.lang.String>"),
-            "- A scalar collection type (List, Set)",
-            "- A managed collection type (ModelMap<?>, ManagedSet<?>, ModelSet<?>)")
-
+        failWhenRealized(managedType, canNotBeConstructed("CollectionType"),
+            "Its property '${collectionType.name}<java.lang.String> items' can not be constructed")
         where:
         collectionType << [LinkedList, ArrayList, SortedSet, TreeSet]
     }
+
 
     @Unroll
     def "can initialize a model node with a managed collection property of type #collectionType"() {
@@ -158,18 +296,31 @@ interface Managed${typeName} {
         collectionType << [Set, List]
     }
 
+    @Unroll
+    def "throws an error if we use unsupported type #collectionType.simpleName as element type of a scalar collection"() {
+        when:
+        def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+            import org.gradle.model.Managed
 
-    def "type of the first argument of void returning model definition has to be @Managed annotated"() {
-        expect:
-        failWhenRealized(NonManaged,
-            canNotBeConstructed("$NonManaged.name"),
-            "- An explicitly managed type (i.e. annotated with @Managed)")
+            @Managed
+            interface CollectionType {
+                List<${innerType.name}> getItems()
+            }
+        """
+
+        then:
+        failWhenRealized(managedType, canNotBeConstructed("CollectionType"),
+            "Its property 'java.util.List<${innerType.name}> items' is not a valid scalar collection",
+            "A scalar collection can not contain '${innerType.name}'s")
+
+        where:
+        innerType << [Date, AtomicInteger]
     }
 
     void failWhenRealized(Class type, String... expectedMessages) {
         try {
             realizeNodeOfType(type)
-            throw new AssertionError("node realisation of type ${getName(type)} should have failed with a cause of:\n$expectedMessages\n")
+            throw new AssertionError("node realisation of type ${type} should have failed with a cause of:\n$expectedMessages\n")
         }
         catch (ModelRuleExecutionException e) {
             assertExpected(e.cause, expectedMessages)

@@ -35,6 +35,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
+import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
@@ -99,7 +100,7 @@ public abstract class AbstractLocalLibraryDependencyResolver<T extends BinarySpe
                     BinarySpec selectedBinary = compatibleBinaries.iterator().next();
                     DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
                     buildDependencies.add(selectedBinary);
-                    LocalComponentMetaData metaData = createLocalComponentMetaData(selectedBinary, buildDependencies);
+                    DefaultLibraryLocalComponentMetaData metaData = (DefaultLibraryLocalComponentMetaData) createLocalComponentMetaData(selectedBinary, buildDependencies, selectorProjectPath);
                     result.resolved(metaData);
                 }
             }
@@ -173,6 +174,6 @@ public abstract class AbstractLocalLibraryDependencyResolver<T extends BinarySpe
         }
     }
 
-    protected abstract LocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, TaskDependency buildDependencies);
+    protected abstract LocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, TaskDependency buildDependencies, String projectPath);
 
 }

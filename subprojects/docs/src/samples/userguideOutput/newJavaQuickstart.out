@@ -1,6 +1,8 @@
 :compileMainJarMainJava
 :processMainJarMainResources
 :createMainJar
+:extractMainApiClasses
+:createMainApiJar
 :mainJar
 :assemble
 :check UP-TO-DATE

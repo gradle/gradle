@@ -86,7 +86,6 @@ class DefaultModelSchemaStoreTest extends Specification {
             System.gc()
             store.cleanUp()
             store.size() == 0
-            schema.implementationType == null // collected too
         }
 
         where:
@@ -101,11 +100,9 @@ class DefaultModelSchemaStoreTest extends Specification {
 
         // Remove soft references (dependent on Groovy internals)
         ModelStoreTestUtils.removeClassFromGlobalClassSet(schema.type.rawClass)
-        ModelStoreTestUtils.removeClassFromGlobalClassSet(schema.implementationType)
 
         // Remove soft references
         Introspector.flushFromCaches(schema.type.rawClass)
-        Introspector.flushFromCaches(schema.implementationType)
     }
 
     def "canonicalizes introspection for different sites of generic type"() {

@@ -24,20 +24,116 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 public class ApiStubGenerator {
 
+    // See JLS3 "Binary Compatibility" (13.1)
+    private final static Pattern AIC_LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
+
+    private final boolean validateExposedTypes;
     private final List<String> allowedPackages;
+    private final boolean hasDeclaredAPI;
 
     public ApiStubGenerator(List<String> allowedPackages) {
-        this.allowedPackages = allowedPackages;
+        this(allowedPackages, false);
     }
 
+    public ApiStubGenerator(List<String> allowedPackages, boolean validateExposedTypes) {
+        this.allowedPackages = allowedPackages;
+        this.hasDeclaredAPI = !allowedPackages.isEmpty();
+        this.validateExposedTypes = validateExposedTypes;
+    }
+
+    /**
+     * Returns true if the binary class found in parameter is belonging to the API.
+     * It will check if the class package is in the list of authorized packages, and if
+     * the access flags are ok with regards to the list of packages: if the list is
+     * empty, then package private classes are included, whereas if the list is not
+     * empty, an API has been declared and the class should be excluded.
+     * Therefore, this method should be called on every .class file to process before
+     * it is either copied or processed through {@link #convertToApi(byte[])}.
+     * @param clazz the bytecode of the class to test
+     * @return true if this class should be exposed in the API.
+     */
+    public boolean belongsToAPI(byte[] clazz) {
+        ClassReader cr = new ClassReader(clazz);
+        final AtomicBoolean isAPI = new AtomicBoolean();
+        cr.accept(new ClassVisitor(Opcodes.ASM5) {
+            @Override
+            public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                String className = toClassName(name);
+                isAPI.set(belongsToApi(className) && isPublicAPI(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
+            }
+        }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
+        return isAPI.get();
+    }
+
+    /**
+     * Strips out all the non public elements of a class and generates a new class out of it, based
+     * on the list of allowed packages.
+     * @param clazz the bytecode of a class
+     * @return bytecode for the same class, stripped out of all non public members
+     */
     public byte[] convertToApi(byte[] clazz) {
         ClassReader cr = new ClassReader(clazz);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         cr.accept(new PublicAPIAdapter(cw), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return cw.toByteArray();
+    }
+
+    private static String toClassName(String cn) {
+        return cn.replace('/', '.');
+    }
+
+    private static String extractPackageName(String className) {
+        return className.indexOf(".") > 0 ? className.substring(0, className.lastIndexOf(".")) : "";
+    }
+
+    private boolean validateType(String className) {
+        return !validateExposedTypes || belongsToApi(className);
+    }
+
+    private boolean belongsToApi(String className) {
+        if (!hasDeclaredAPI) {
+            return true;
+        }
+
+        String pkg = extractPackageName(className);
+
+        for (String javaBasePackage : JavaBaseModule.PACKAGES) {
+            if (pkg.equals(javaBasePackage)) {
+                return true;
+            }
+        }
+        boolean allowed = false;
+        for (String allowedPackage : allowedPackages) {
+            if (pkg.equals(allowedPackage)) {
+                allowed = true;
+                break;
+            }
+        }
+        return allowed;
+    }
+
+    private boolean isProtected(int access) {
+        return (access & Opcodes.ACC_PROTECTED) == Opcodes.ACC_PROTECTED;
+    }
+
+    private boolean isPublic(int access) {
+        return (access & Opcodes.ACC_PUBLIC) == Opcodes.ACC_PUBLIC;
+    }
+
+    private boolean isPublicAPI(int access) {
+        return (isPackagePrivate(access) && !hasDeclaredAPI) || isPublic(access) || isProtected(access);
+    }
+
+    private boolean isPackagePrivate(int access) {
+        return access == 0
+            || access == Opcodes.ACC_STATIC
+            || access == Opcodes.ACC_SUPER
+            || access == (Opcodes.ACC_SUPER | Opcodes.ACC_STATIC);
     }
 
     private class PublicAPIAdapter extends ClassVisitor implements Opcodes {
@@ -65,21 +161,6 @@ public class ApiStubGenerator {
             mv.visitEnd();
         }
 
-        private boolean isPackagePrivate(int access) {
-            return access == 0;
-        }
-
-        private boolean isProtected(int access) {
-            return (access & ACC_PROTECTED) == ACC_PROTECTED;
-        }
-
-        private boolean isPublic(int access) {
-            return (access & ACC_PUBLIC) == ACC_PUBLIC;
-        }
-
-        private boolean isPublicAPI(int access) {
-            return isPackagePrivate(access) || isPublic(access) || isProtected(access);
-        }
 
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
@@ -94,7 +175,7 @@ public class ApiStubGenerator {
 
         private void validateSuperTypes(String name, String signature, String superName, String[] interfaces) {
             if (!validateType(toClassName(superName))) {
-                throw new InvalidPublicAPIException(String.format("'%s' extends '%s' which package doesn't belong to the allowed packages.", toClassName(name), toClassName(superName)));
+                throw new InvalidPublicAPIException(String.format("'%s' extends '%s' and its package is not one of the allowed packages.", toClassName(name), toClassName(superName)));
             }
             Set<String> invalidReferencedTypes = invalidReferencedTypes(signature);
             if (!invalidReferencedTypes.isEmpty()) {
@@ -103,7 +184,7 @@ public class ApiStubGenerator {
                 } else {
                     StringBuilder sb = new StringBuilder("The following types are referenced in ");
                     sb.append(toClassName(name));
-                    sb.append(" superclass but don't belong to the allowed packages:\n");
+                    sb.append(" superclass but their package don't belong to the allowed packages:\n");
                     for (String invalidReferencedType : invalidReferencedTypes) {
                         sb.append("   - ").append(invalidReferencedType).append("\n");
                     }
@@ -113,7 +194,7 @@ public class ApiStubGenerator {
             if (interfaces != null) {
                 for (String intf : interfaces) {
                     if (!validateType(toClassName(intf))) {
-                        throw new InvalidPublicAPIException(String.format("'%s' declares interface '%s' which package doesn't belong to the allowed packages.", toClassName(name), toClassName(intf)));
+                        throw new InvalidPublicAPIException(String.format("'%s' declares interface '%s' and its package is not one of the allowed packages.", toClassName(name), toClassName(intf)));
                     }
                 }
             }
@@ -125,14 +206,10 @@ public class ApiStubGenerator {
             return super.visitAnnotation(desc, visible);
         }
 
-        private String toClassName(String cn) {
-            return cn.replace('/', '.');
-        }
-
         private void checkAnnotation(String owner, String annotationDesc) {
             String annotation = Type.getType(annotationDesc).getClassName();
             if (!validateType(annotation)) {
-                throw new InvalidPublicAPIException(String.format("'%s' is annotated with '%s' effectively exposing it in the public API but its package doesn't belong to the allowed packages.", owner, annotation));
+                throw new InvalidPublicAPIException(String.format("'%s' is annotated with '%s' effectively exposing it in the public API but its package is not one of the allowed packages.", owner, annotation));
             }
         }
 
@@ -169,11 +246,11 @@ public class ApiStubGenerator {
                 } else {
                     String methodDesc = prettifyMethodDescriptor(access, name, desc);
                     if (invalidReferencedTypes.size() == 1) {
-                        throw new InvalidPublicAPIException(String.format("In %s, type %s is exposed in the public API but doesn't belong to the allowed packages.", methodDesc, invalidReferencedTypes.iterator().next()));
+                        throw new InvalidPublicAPIException(String.format("In %s, type %s is exposed in the public API but its package is not one of the allowed packages.", methodDesc, invalidReferencedTypes.iterator().next()));
                     } else {
                         StringBuilder sb = new StringBuilder("The following types are referenced in ");
                         sb.append(methodDesc);
-                        sb.append(" but don't belong to the allowed packages:\n");
+                        sb.append(" but their package is not one of the allowed packages:\n");
                         for (String invalidReferencedType : invalidReferencedTypes) {
                             sb.append("   - ").append(invalidReferencedType).append("\n");
                         }
@@ -210,7 +287,7 @@ public class ApiStubGenerator {
             if (signature==null) {
                 return Collections.emptySet();
             }
-            if (allowedPackages.isEmpty()) {
+            if (!validateExposedTypes || !hasDeclaredAPI) {
                 return Collections.emptySet();
             }
             SignatureReader sr = new SignatureReader(signature);
@@ -228,28 +305,6 @@ public class ApiStubGenerator {
             return result;
         }
 
-        private boolean validateType(String className) {
-            if (allowedPackages.isEmpty()) {
-                return true;
-            }
-
-            String pkg = className.indexOf(".") > 0 ? className.substring(0, className.lastIndexOf(".")) : "";
-
-            if (pkg.startsWith("java")) {
-                // special case to treat all Java classes as belonging to the public API
-                return true;
-            }
-            boolean allowed = false;
-            for (String allowedPackage : allowedPackages) {
-                if (pkg.equals(allowedPackage)) {
-                    allowed = true;
-                    break;
-                }
-            }
-            return allowed;
-        }
-
-
         @Override
         public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, Object value) {
             if (isPublicAPI(access)) {
@@ -261,7 +316,7 @@ public class ApiStubGenerator {
                     } else {
                         StringBuilder sb = new StringBuilder("The following types are referenced in ");
                         sb.append(fieldDescriptor);
-                        sb.append("but don't belong to the allowed packages:\n");
+                        sb.append(" but their package is not one of the allowed packages:\n");
                         for (String invalidReferencedType : invalidReferencedTypes) {
                             sb.append("   - ").append(invalidReferencedType).append("\n");
                         }
@@ -279,5 +334,12 @@ public class ApiStubGenerator {
             return null;
         }
 
+        @Override
+        public void visitInnerClass(String name, String outerName, String innerName, int access) {
+            if (isPackagePrivate(access) && hasDeclaredAPI) {
+                return;
+            }
+            super.visitInnerClass(name, outerName, innerName, access);
+        }
     }
 }

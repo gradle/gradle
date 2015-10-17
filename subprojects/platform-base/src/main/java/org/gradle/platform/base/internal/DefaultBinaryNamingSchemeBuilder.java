@@ -53,7 +53,8 @@ public class DefaultBinaryNamingSchemeBuilder implements BinaryNamingSchemeBuild
     }
 
     public BinaryNamingSchemeBuilder withVariantDimension(String dimension) {
-        List<String> newDimensions = new ArrayList<String>(dimensions);
+        List<String> newDimensions = new ArrayList<String>(dimensions.size() + 1);
+        newDimensions.addAll(dimensions);
         newDimensions.add(dimension);
         return new DefaultBinaryNamingSchemeBuilder(parentName, typeString, newDimensions);
     }

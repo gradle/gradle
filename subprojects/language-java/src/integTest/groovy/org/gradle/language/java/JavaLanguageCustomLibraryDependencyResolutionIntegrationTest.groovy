@@ -150,13 +150,13 @@ model {
         java6MainJar {
             doLast {
                 assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(zdep6Jar)
-                assert compileJava6MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep6Jar/zdep.jar")] as Set
+                assert compileJava6MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep6ApiJar/zdep.jar")] as Set
             }
         }
         java7MainJar {
             doLast {
                 assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(zdep7Jar)
-                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep7Jar/zdep.jar")] as Set
+                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep7ApiJar/zdep.jar")] as Set
             }
         }
     }
@@ -201,7 +201,7 @@ model {
         java7MainJar {
             doLast {
                 assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(zdepJar)
-                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdepJar/zdep.jar")] as Set
+                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/zdepApiJar/zdep.jar")] as Set
             }
         }
     }
@@ -256,7 +256,7 @@ model {
         mainJar {
             doLast {
                 assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(java7ZdepJar)
-                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/java7ZdepJar/zdep.jar")] as Set
+                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/java7ZdepApiJar/zdep.jar")] as Set
             }
         }
     }
@@ -300,7 +300,7 @@ model {
         mainJar {
             doLast {
                 assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(zdep7Jar)
-                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep7Jar/zdep.jar")] as Set
+                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/zdep7ApiJar/zdep.jar")] as Set
             }
         }
     }
@@ -340,7 +340,7 @@ model {
         zdepJar {
             doLast {
                 assert compileZdepJarZdepJava.taskDependencies.getDependencies(compileZdepJarZdepJava).contains(mainJar)
-                assert compileZdepJarZdepJava.classpath.files == [file("${buildDir}/jars/mainJar/main.jar")] as Set
+                assert compileZdepJarZdepJava.classpath.files == [file("${buildDir}/jars/mainApiJar/main.jar")] as Set
             }
         }
     }
@@ -390,10 +390,10 @@ model {
         mainJar {
             doLast {
                 assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondJar)
-                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/secondJar/second.jar")] as Set
+                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/secondApiJar/second.jar")] as Set
 
                 assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
-                assert compileSecondJarSecondJava.classpath.files == [file("${buildDir}/jars/thirdJar/third.jar")] as Set
+                assert compileSecondJarSecondJava.classpath.files == [file("${buildDir}/jars/thirdApiJar/third.jar")] as Set
             }
         }
     }
@@ -448,10 +448,10 @@ model {
         mainJar {
             doLast {
                 assert compileMainJarMainJava.taskDependencies.getDependencies(compileMainJarMainJava).contains(secondJar)
-                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/secondJar/second.jar")] as Set
+                assert compileMainJarMainJava.classpath.files == [file("${buildDir}/jars/secondApiJar/second.jar")] as Set
 
                 assert compileSecondJarSecondJava.taskDependencies.getDependencies(compileSecondJarSecondJava).contains(thirdJar)
-                assert compileSecondJarSecondJava.classpath.files == [file("${buildDir}/jars/thirdJar/third.jar")] as Set
+                assert compileSecondJarSecondJava.classpath.files == [file("${buildDir}/jars/thirdApiJar/third.jar")] as Set
             }
         }
     }
@@ -657,25 +657,25 @@ model {
         java6MainJar {
             doLast {
                 assert compileJava6MainJarMainJava.taskDependencies.getDependencies(compileJava6MainJarMainJava).contains(second6Jar)
-                assert compileJava6MainJarMainJava.classpath.files == [file("${buildDir}/jars/second6Jar/second.jar")] as Set
+                assert compileJava6MainJarMainJava.classpath.files == [file("${buildDir}/jars/second6ApiJar/second.jar")] as Set
             }
         }
         java7MainJar {
             doLast {
                 assert compileJava7MainJarMainJava.taskDependencies.getDependencies(compileJava7MainJarMainJava).contains(second7Jar)
-                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/second7Jar/second.jar")] as Set
+                assert compileJava7MainJarMainJava.classpath.files == [file("${buildDir}/jars/second7ApiJar/second.jar")] as Set
             }
         }
         second6Jar {
             doLast {
                 assert compileSecond6JarSecondJava.taskDependencies.getDependencies(compileSecond6JarSecondJava).contains(java6ThirdJar)
-                assert compileSecond6JarSecondJava.classpath.files == [file("${buildDir}/jars/java6ThirdJar/third.jar")] as Set
+                assert compileSecond6JarSecondJava.classpath.files == [file("${buildDir}/jars/java6ThirdApiJar/third.jar")] as Set
             }
         }
         second7Jar {
             doLast {
                 assert compileSecond7JarSecondJava.taskDependencies.getDependencies(compileSecond7JarSecondJava).contains(java7ThirdJar)
-                assert compileSecond7JarSecondJava.classpath.files == [file("${buildDir}/jars/java7ThirdJar/third.jar")] as Set
+                assert compileSecond7JarSecondJava.classpath.files == [file("${buildDir}/jars/java7ThirdApiJar/third.jar")] as Set
             }
         }
     }

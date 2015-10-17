@@ -318,8 +318,7 @@ finalize
         succeeds "printPeople"
 
         and:
-        output.contains TextUtil.toPlatformLineSeparators('''
-p1 defined
+        output.contains TextUtil.toPlatformLineSeparators('''p1 defined
 p2 defined
 p3 defined
 construct Person

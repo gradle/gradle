@@ -205,22 +205,37 @@ This default implementation is then used as the super class for all `@Managed` s
 - Allow for binaries and components.
 - Change core plugins to declare default implementations for `ComponentSpec` and `BinarySpec`. This will allow `@Managed` subtypes of each
 of these types.
-- Update user guide and samples to show how to implement a custom `@Managed` `ComponentSpec` and `BinarySpec` type
-- Update user guide to show how to attach an internal view to the custom type
 
 ### Test cases
 
 - user can declare a base binary type and extended it with a `@Managed` subtype
 - user can declare a base component type and extended it with a `@Managed` subtype
+- user can attach internal view to custom type
+- internal views registered for managed super-type are available on custom managed type
+- internal views registered for unmanaged super-type are available on custom managed type
 - fails on registration when:
-    - implementation type is an abstract type
-    - implementation type does not have a default constructor
-    - implementation type does not extend `BaseBinarySpec` or `BaseComponentSpec`, respectively
-    - base type does not implement `BinarySpec` or `ComponentSpec`, respectively
+    - registered implementation type is an abstract type
+    - registered implementation type does not have a default constructor
+    - registered implementation type does not extend `BaseBinarySpec` or `BaseComponentSpec`, respectively
+    - registered managed type extends base type without a default implementation (i.e. `BinarySpec`)
+    - registered managed type extends multiple interfaces that declare default implementations
+
+
+## Core plugins use managed binary and component types
+
+- Convert binary and component types where possible to `@Managed` types in core plugins. Convert these types:
+    - TBD
+- Update user guide and samples to show how to implement a custom `@Managed` `ComponentSpec` and `BinarySpec` type
+- Update user guide to show how to attach an internal view to the custom type
+
 
 ## Plugin author declares default implementation for all extensible types
 
-Extend the previous story for `LanguageSourceSet` and `FunctionalSourceSet`.
+Extend story "Plugin author declares default implementation for extensible binary and component type"
+for `LanguageSourceSet`.
+
+- Update user guide and samples to show how to implement a custom `@Managed` `LanguageSourceSet` type
+
 
 ## Plugin author declares internal view for custom non-managed source set types
 
@@ -451,7 +466,7 @@ scalar type the error message should read:
 
 ```
 > A model element of type: 'SomeManagedType' can not be constructed.
-  It's property 'List propertyName' is not a valid scalar collection type.
+  Its property 'List propertyName' is not a valid scalar collection type.
   A scalar collection type is a List<T> or Set<T> where 'T' is a scalar type (String, Boolean, Character, Byte, Short, Integer, Float, Long, Double, BigInteger, BigDecimal, File)
 ```
 
@@ -465,15 +480,23 @@ Allow a read-write property marked with `@Unmanaged` of a `@Managed` type to hav
 ## Story: Report available types for a `ModelMap` or `ModelSet` when element type is not constructable
 
 When adding an element to a `ModelMap<T>` or `ModelSet<T>` and `T` is not constructable, use a specific error message that informs
-the user that an element of type `T` cannot be added to the collection. Error message should include the known types:
+the user that an element of type `T` cannot be added to the collection. Error message should include the constructable types:
 
 - When `T` extends BinarySpec or ComponentSpec, report on the registered subtypes.
-- Otherwise, report on the general types that are assignable to `T`.
+- Otherwise, report on the constructable types that are assignable to `T`.
 
 ### Test cases
 
 - Fix `ComponentModelIntegrationTest.reasonable error message when creating component with no implementation`. This used to report the available types.
 - Fix `ComponentModelIntegrationTest.reasonable error message when creating component with default implementation`. This used to report the available types.
+- Add `ComponentModelIntegrationTest.reasonable error message when creating binary with no implementation`.
+- Add `ComponentModelIntegrationTest.reasonable error message when creating binary with default implementation`.
+- Add `ManagedNodeBackedModelMapTest.reasonable error message when creating a non-constructable type`.
+- Add `UnmanagedNodeBackedModelMapTest.reasonable error message when creating a non-constructable type`.
+- Add `DomainObjectCollectionBackedModelMapTest.reasonable error message when creating a non-constructable type`.
+- Add `ModelSetIntegrationTest.reasonable error message when creating a non-constructable type`.
+
+For all theses tests, assert that the reported constructable types list contains appropriate types and only them.
 
 ## Story: Validate model types more eagerly
 

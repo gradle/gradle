@@ -19,7 +19,6 @@ package org.gradle.api.plugins.announce.internal
 import org.gradle.api.plugins.announce.Announcer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import sun.misc.BASE64Encoder
 
 /**
  * This class allows to send announce messages to Twitter.
@@ -45,7 +44,7 @@ class Twitter implements Announcer {
             connection.doOutput = true
             connection.useCaches = false
 
-            String credentials = new BASE64Encoder().encodeBuffer("$username:$password".toString().getBytes("UTF-8")).trim()
+            String credentials = (username + ':' + password).getBytes('UTF-8').encodeBase64().toString().trim()
             connection.setRequestProperty "Authorization", "Basic " + credentials
 
             connection.outputStream.withWriter { out ->

@@ -176,9 +176,12 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         ModelProperty.StateManagementType stateManagementType = determineStateManagementType(extractionContext, getterContext);
         final ModelType<R> returnType = ModelType.returnType(mostSpecificGetter);
 
-        boolean writable = setterContext != null;
-        if (writable) {
+        WeaklyTypeReferencingMethod<?, Void> setterRef;
+        if (setterContext != null) {
             validateSetter(extractionContext, returnType, getterContext, setterContext);
+            setterRef = WeaklyTypeReferencingMethod.of(extractionContext.getType(), ModelType.of(void.class), setterContext.getMostSpecificDeclaration());
+        } else {
+            setterRef = null;
         }
 
         ImmutableSet<ModelType<?>> declaringClasses = ImmutableSet.copyOf(Iterables.transform(getterContext.getDeclaringMethods(), new Function<Method, ModelType<?>>() {
@@ -196,7 +199,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
         boolean declaredAsHavingUnmanagedType = getterContext.getAnnotation(Unmanaged.class) != null;
         return new ModelPropertyExtractionResult<R>(
-            ModelProperty.of(returnType, propertyName, stateManagementType, writable, declaringClasses, getterRefs, declaredAsHavingUnmanagedType),
+            new ModelProperty<R>(returnType, propertyName, stateManagementType, declaringClasses, getterRefs, setterRef, declaredAsHavingUnmanagedType),
             getterContext,
             setterContext
         );

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base.internal;
+package org.gradle.platform.base.binary.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.NamedDomainObjectFactory;
@@ -24,6 +24,7 @@ import org.gradle.api.internal.rules.RuleAwareNamedDomainObjectFactoryRegistry;
 import org.gradle.model.internal.core.BaseInstanceFactory;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.binary.BaseBinarySpec;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class BinarySpecFactory extends BaseInstanceFactory<BinarySpec> {
     private final RuleAwareNamedDomainObjectFactoryRegistry<BinarySpec> domainObjectFactories = new DefaultRuleAwareNamedDomainObjectFactoryRegistry<BinarySpec>(collector);
 
     public BinarySpecFactory(String displayName) {
-        super(displayName);
+        super(displayName, BinarySpec.class, BaseBinarySpec.class);
     }
 
     public <U extends BinarySpec> void registerDomainObjectFactory(Class<U> type, ModelRuleDescriptor descriptor, NamedDomainObjectFactory<? extends U> factory) {

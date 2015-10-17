@@ -25,7 +25,7 @@ import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.*
 import org.gradle.platform.base.component.BaseComponentSpec
-import org.gradle.platform.base.internal.ComponentSpecFactory
+import org.gradle.platform.base.component.internal.ComponentSpecFactory
 import org.gradle.platform.base.internal.registry.AbstractAnnotationModelRuleExtractorTest
 import org.gradle.platform.base.internal.registry.ComponentTypeModelRuleExtractor
 import spock.lang.Unroll
@@ -96,7 +96,7 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
         "repeatedInternalView"             | "Internal view '${ComponentSpecInternalView.name}' must not be specified multiple times."                                                  | "internal view specified multiple times"
     }
 
-
+    static interface SomeComponentSpec extends ComponentSpec {}
 
     static class SomeComponentSpecImpl extends BaseComponentSpec implements SomeComponentSpec, ComponentSpecInternalView, BareInternalView {}
 
@@ -107,6 +107,14 @@ class ComponentTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExt
     abstract static class NotExtendingBaseComponentSpec implements SomeComponentSpec {}
 
     abstract static class NonInterfaceInternalView implements ComponentSpec {}
+
+    static interface ComponentSpecInternalView extends ComponentSpec {}
+
+    static interface BareInternalView {}
+
+    static interface NotComponentSpec {}
+
+    static interface NotImplementedComponentSpecInternalView extends ComponentSpec {}
 
     static class NoDefaultConstructor extends BaseComponentSpec implements SomeComponentSpec {
         NoDefaultConstructor(String arg) {

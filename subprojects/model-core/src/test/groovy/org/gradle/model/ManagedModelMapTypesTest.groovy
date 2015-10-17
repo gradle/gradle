@@ -15,7 +15,6 @@
  */
 
 package org.gradle.model
-
 import org.gradle.api.Named
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException

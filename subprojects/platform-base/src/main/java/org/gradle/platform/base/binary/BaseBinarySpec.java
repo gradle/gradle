@@ -61,7 +61,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     private final String name;
     private final String typeName;
-    private final Class<? extends BinarySpec> publicType;
+    private Class<? extends BinarySpec> publicType;
 
     private boolean disabled;
 
@@ -106,6 +106,11 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     @Override
     public Class<? extends BinarySpec> getPublicType() {
         return publicType;
+    }
+
+    @Override
+    public void setPublicType(Class<? extends BinarySpec> publicType) {
+        this.publicType = publicType;
     }
 
     protected String getTypeName() {

@@ -23,6 +23,7 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import java.io.File;
+import java.io.Writer;
 import java.util.List;
 
 /**
@@ -53,8 +54,6 @@ import java.util.List;
  */
 @Incubating
 public abstract class GradleRunner {
-
-    public static final String DEBUG_SYS_PROP = "org.gradle.testkit.debug";
 
     /**
      * Creates a new Gradle runner.
@@ -242,6 +241,30 @@ public abstract class GradleRunner {
      * @since 2.9
      */
     public abstract GradleRunner withDebug(boolean debug);
+
+    /**
+     * Specifies the writer used for capturing standard output during test execution. The provided writer may not be null.
+     * <p>
+     * If no writer is specified, the standard output is only captured as part of the build result.
+     * If a writer is specified, the standard output captures the same output as the build result.
+     *
+     * @param standardOutput the writer used to capture standard output
+     * @return this
+     * @since 2.9
+     */
+    public abstract GradleRunner withStandardOutput(Writer standardOutput);
+
+    /**
+     * Specifies the writer used for capturing standard error during test execution. The provided writer may not be null.
+     * <p>
+     * If no writer is specified, the standard error is only captured as part of the build result.
+     * If a writer is specified, the standard error captures the same output as the build result.
+     *
+     * @param standardError the writer used to capture standard error
+     * @return this
+     * @since 2.9
+     */
+    public abstract GradleRunner withStandardError(Writer standardError);
 
     /**
      * Executes a build, expecting it to complete without failure.

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * Definition of a Jar file binary that is to be built by Gradle.
@@ -41,4 +42,18 @@ public interface JarBinarySpec extends JvmBinarySpec {
      * Sets the jar file output for this binary.
      */
     void setJarFile(File jarFile);
+
+    /**
+     * The API jar file output for this binary.
+     */
+    File getApiJarFile();
+
+    /**
+     * Sets the API jar file output for this binary.
+     */
+    void setApiJarFile(File jarFile);
+
+    void setExportedPackages(Set<String> exportedPackages);
+
+    Set<String> getExportedPackages();
 }

@@ -17,30 +17,37 @@
 package org.gradle.model.internal.core;
 
 import com.google.common.base.Optional;
+import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.type.ModelType;
 
 public class NodeInitializerContext {
     private final ModelType<?> modelType;
-    private final Optional<String> propertyName;
+    private final Optional<ModelProperty<?>> modelProperty;
+    private final Optional<? extends ModelType<?>> declaringType;
+
+    public NodeInitializerContext(ModelType<?> modelType, Optional<ModelProperty<?>> modelProperty, Optional<? extends ModelType<?>> declaringType) {
+        this.modelType = modelType;
+        this.modelProperty = modelProperty;
+        this.declaringType = declaringType;
+    }
 
     public static NodeInitializerContext forType(ModelType<?> modelType) {
-        return new NodeInitializerContext(modelType, Optional.<String>absent());
+        return new NodeInitializerContext(modelType, Optional.<ModelProperty<?>>absent(), Optional.<ModelType<?>>absent());
     }
 
-    public static NodeInitializerContext forProperty(ModelType<?> modelType, String propertyName) {
-        return new NodeInitializerContext(modelType, Optional.of(propertyName));
-    }
-
-    public NodeInitializerContext(ModelType<?> modelType, Optional<String> propertyName) {
-        this.modelType = modelType;
-        this.propertyName = propertyName;
+    public static NodeInitializerContext forProperty(ModelType<?> modelType, ModelProperty<?> modelProperty, ModelType<?> containingType) {
+        return new NodeInitializerContext(modelType, Optional.<ModelProperty<?>>of(modelProperty), Optional.of(containingType));
     }
 
     public ModelType<?> getModelType() {
         return modelType;
     }
 
-    public Optional<String> getPropertyName() {
-        return propertyName;
+    public Optional<ModelProperty<?>> getModelProperty() {
+        return modelProperty;
+    }
+
+    public Optional<? extends ModelType<?>> getDeclaringType() {
+        return declaringType;
     }
 }
