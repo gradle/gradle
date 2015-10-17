@@ -205,6 +205,13 @@ It is now possible to reference external dependencies when building a `JvmLibrar
 
 TODO: Expand this and provide a DSL example.
 
+### Support for API dependencies in the 'jvm-components' plugin
+
+The API of a JVM library consists of the API classes of the library, plus the API of dependent libraries that are defined as
+"exported" in the dependency specification.
+
+TODO: Expand this and provide a DSL example.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
