@@ -212,8 +212,8 @@ class ApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
                         api {
                             exports 'compile.test'
                         }
+                        targetPlatform 'java5'
                         targetPlatform 'java6'
-                        targetPlatform 'java7'
                     }
                 }
             }
@@ -225,10 +225,10 @@ class ApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         def allClasses = app.sources*.classFile.fullPath as String[]
         def apiClassesOnly = (allClasses -
             ["non_api/pkg/InternalPerson.class", "compile/test/internal/Util.class"]) as String[];
+        jarFile("build/jars/java5MyLibJar/myLib.jar").hasDescendants(allClasses)
+        jarFile("build/jars/java5MyLibApiJar/myLib.jar").hasDescendants(apiClassesOnly)
         jarFile("build/jars/java6MyLibJar/myLib.jar").hasDescendants(allClasses)
         jarFile("build/jars/java6MyLibApiJar/myLib.jar").hasDescendants(apiClassesOnly)
-        jarFile("build/jars/java7MyLibJar/myLib.jar").hasDescendants(allClasses)
-        jarFile("build/jars/java7MyLibApiJar/myLib.jar").hasDescendants(apiClassesOnly)
     }
 
     def "building api jar should trigger compilation of classes"() {
