@@ -49,8 +49,7 @@ public class BuildScriptTransformer implements Transformer, Factory<BuildScriptD
         new TaskDefinitionScriptTransformer().register(compilationUnit);
         new FixMainScriptTransformer().register(compilationUnit);
         new StatementLabelsScriptTransformer().register(compilationUnit);
-        new ScriptSourceTransformer(scriptSource.getDisplayName(), scriptSource.getResource().getURI()).register(compilationUnit);
-        new ModelBlockTransformer().register(compilationUnit);
+        new ModelBlockTransformer(scriptSource.getDisplayName(), scriptSource.getResource().getURI()).register(compilationUnit);
         imperativeStatementDetectingTransformer.register(compilationUnit);
     }
 

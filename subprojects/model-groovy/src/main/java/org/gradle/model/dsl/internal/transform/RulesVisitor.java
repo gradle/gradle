@@ -28,10 +28,10 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.Nullable;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
-import org.gradle.groovy.scripts.internal.ScriptSourceTransformer;
 import org.gradle.internal.Pair;
 import org.gradle.model.internal.core.ModelPath;
 
+import java.net.URI;
 import java.util.List;
 
 @ThreadSafe
@@ -46,11 +46,15 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
 
     private final SourceUnit sourceUnit;
     private final RuleVisitor ruleVisitor;
+    private final String scriptSourceDescription;
+    private final @Nullable URI location;
 
-    public RulesVisitor(SourceUnit sourceUnit, RuleVisitor ruleVisitor) {
+    public RulesVisitor(SourceUnit sourceUnit, RuleVisitor ruleVisitor, String scriptSourceDescription, @Nullable URI location) {
         super(sourceUnit, INVALID_STATEMENT);
         this.sourceUnit = sourceUnit;
         this.ruleVisitor = ruleVisitor;
+        this.scriptSourceDescription = scriptSourceDescription;
+        this.location = location;
     }
 
     public static void visitGeneratedClosure(ClassNode node) {
@@ -138,11 +142,12 @@ public class RulesVisitor extends RestrictiveCodeVisitor {
     }
 
     private String getScriptSourceDescription() {
-        return sourceUnit.getAST().getNodeMetaData(ScriptSourceTransformer.AST_NODE_DESCRIPTION_METADATA_KEY);
+        return scriptSourceDescription;
     }
 
-    private String getScriptSourceLocation() {
-        return sourceUnit.getAST().getNodeMetaData(ScriptSourceTransformer.AST_NODE_LOCATION_METADATA_KEY);
+    @Nullable
+    private URI getScriptSourceLocation() {
+        return location;
     }
 
     @Nullable // if the target was invalid

@@ -34,6 +34,7 @@ import org.gradle.model.dsl.internal.inputs.PotentialInputs;
 import org.gradle.model.internal.core.ModelPath;
 
 import java.lang.reflect.Modifier;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -52,15 +53,19 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     private static final ClassNode POTENTIAL_INPUTS = new ClassNode(PotentialInputs.class);
     private static final ClassNode TRANSFORMED_CLOSURE = new ClassNode(TransformedClosure.class);
 
-    private static final String INPUTS_LVAR_NAME = "__rule_inputs_var__";
     private static final String INPUTS_FIELD_NAME = "__rule_inputs__";
     private static final Token ASSIGN = new Token(Types.ASSIGN, "=", -1, -1);
 
+    private final String scriptSourceDescription;
+    private final URI location;
     private final SourceUnit sourceUnit;
     private InputReferences inputs;
     private VariableExpression inputsVariable;
+    private int counter;
 
-    public RuleVisitor(SourceUnit sourceUnit) {
+    public RuleVisitor(SourceUnit sourceUnit, String scriptSourceDescription, URI location) {
+        this.scriptSourceDescription = scriptSourceDescription;
+        this.location = location;
         this.sourceUnit = sourceUnit;
     }
 
@@ -72,7 +77,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
         if (sourceLocation != null) {
             AnnotationNode metadataAnnotation = new AnnotationNode(RULE_METADATA);
 
-            metadataAnnotation.addMember("absoluteScriptSourceLocation", new ConstantExpression(sourceLocation.getUri()));
+            metadataAnnotation.addMember("absoluteScriptSourceLocation", new ConstantExpression(sourceLocation.getUri().toString()));
             metadataAnnotation.addMember("lineNumber", new ConstantExpression(sourceLocation.getLineNumber()));
             metadataAnnotation.addMember("columnNumber", new ConstantExpression(sourceLocation.getColumnNumber()));
 
@@ -104,22 +109,36 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     }
 
     public void visitRuleClosure(ClosureExpression expression, SourceLocation sourceLocation) {
-        if (inputs != null) {
-            throw new IllegalStateException("Already visiting a rule closure");
-        }
-        inputs = new InputReferences();
+        InputReferences parentInputs = inputs;
+        VariableExpression parentInputsVariable = inputsVariable;
         try {
-            inputsVariable = new VariableExpression(INPUTS_LVAR_NAME, POTENTIAL_INPUTS);
+            if (inputs == null) {
+                inputs = new InputReferences();
+            }
+            inputsVariable = new VariableExpression("__rule_inputs_var_" + (counter++), POTENTIAL_INPUTS);
+            inputsVariable.setClosureSharedVariable(true);
             super.visitClosureExpression(expression);
             BlockStatement code = (BlockStatement) expression.getCode();
             code.setNodeMetaData(AST_NODE_METADATA_LOCATION_KEY, sourceLocation);
             code.setNodeMetaData(AST_NODE_METADATA_INPUTS_KEY, inputs);
-            inputsVariable.setClosureSharedVariable(true);
+            if (parentInputsVariable != null) {
+                expression.getVariableScope().putReferencedLocalVariable(parentInputsVariable);
+            }
             code.getVariableScope().putDeclaredVariable(inputsVariable);
 
-            // <inputs-lvar> = <inputs-field>
-            DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, ASSIGN, new VariableExpression(INPUTS_FIELD_NAME));
-            code.getStatements().add(0, new ExpressionStatement(variableDeclaration));
+            if (parentInputsVariable == null) {
+                // <inputs-lvar> = <inputs-field>
+                DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, ASSIGN, new VariableExpression(INPUTS_FIELD_NAME));
+                code.getStatements().add(0, new ExpressionStatement(variableDeclaration));
+
+            } else {
+                // <inputs-lvar> = <inputs-field> ?: <parent-inputs-lvar>
+                DeclarationExpression variableDeclaration = new DeclarationExpression(inputsVariable, ASSIGN,
+                        new ElvisOperatorExpression(
+                                new VariableExpression(INPUTS_FIELD_NAME),
+                                parentInputsVariable));
+                code.getStatements().add(0, new ExpressionStatement(variableDeclaration));
+            }
 
             // Move default values into body of closure, so they can use <inputs-lvar>
             for (Parameter parameter : expression.getParameters()) {
@@ -129,7 +148,8 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
                 }
             }
         } finally {
-            inputs = null;
+            inputs = parentInputs;
+            inputsVariable = parentInputsVariable;
         }
     }
 
@@ -173,14 +193,33 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
     }
 
     @Override
+    public void visitExpressionStatement(ExpressionStatement stat) {
+        if (stat.getExpression() instanceof MethodCallExpression) {
+            MethodCallExpression call = (MethodCallExpression) stat.getExpression();
+            if (call.isImplicitThis()) {
+                ArgumentListExpression arguments = (ArgumentListExpression) call.getArguments();
+                if (!arguments.getExpressions().isEmpty()) {
+                    Expression lastArg = arguments.getExpression(arguments.getExpressions().size() - 1);
+                    if (lastArg instanceof ClosureExpression) {
+                        // TODO - other args need to be visited
+                        visitRuleClosure((ClosureExpression) lastArg, new SourceLocation(location, scriptSourceDescription, call.getLineNumber(), call.getColumnNumber()));
+                        return;
+                    }
+                }
+            }
+        }
+        super.visitExpressionStatement(stat);
+    }
+
+    @Override
     public void visitMethodCallExpression(MethodCallExpression call) {
         String methodName = call.getMethodAsString();
         if (call.isImplicitThis() && methodName != null && methodName.equals(DOLLAR)) {
             visitInputMethod(call);
-        } else {
-            // visit the method call, because one of the args may be an input method call
-            super.visitMethodCallExpression(call);
+            return;
         }
+        // visit the method call, because one of the args may be an input method call
+        super.visitMethodCallExpression(call);
     }
 
     private void visitInputMethod(MethodCallExpression call) {

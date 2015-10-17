@@ -157,7 +157,7 @@ public class TransformedModelDslBacking {
                 description = uri.toString();
             }
 
-            return new SourceLocation(uri.toString(), description, ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
+            return new SourceLocation(uri, description, ruleMetadata.lineNumber(), ruleMetadata.columnNumber());
         }
     }
 }

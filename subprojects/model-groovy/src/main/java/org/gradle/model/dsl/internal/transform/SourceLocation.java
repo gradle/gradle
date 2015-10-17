@@ -17,17 +17,20 @@
 package org.gradle.model.dsl.internal.transform;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Nullable;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 
+import java.net.URI;
+
 @ThreadSafe
 public class SourceLocation {
-    private final String uri;
+    private final @Nullable URI uri;
     private final String scriptSourceDescription;
     private final int lineNumber;
     private final int columnNumber;
 
-    public SourceLocation(String uri, String scriptSourceDescription, int lineNumber, int columnNumber) {
+    public SourceLocation(@Nullable URI uri, String scriptSourceDescription, int lineNumber, int columnNumber) {
         this.uri = uri;
         this.scriptSourceDescription = scriptSourceDescription;
         this.lineNumber = lineNumber;
@@ -42,13 +45,11 @@ public class SourceLocation {
         return columnNumber;
     }
 
-    public String getScriptSourceDescription() {
-        return scriptSourceDescription;
-    }
-
-    public String getUri() {
+    @Nullable
+    public URI getUri() {
         return uri;
     }
+
     @Override
     public String toString() {
         return String.format("%s line %d, column %d", scriptSourceDescription, lineNumber, columnNumber);
