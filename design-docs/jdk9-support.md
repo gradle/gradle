@@ -252,6 +252,8 @@ Validation at this point should be optional and disabled by default.
     a) where a library doesn't declare any exported packages (so we assume all classes are in the API)
     b) where a library explicitly declares that the set of exported packages is empty
 
+- The concept of API needs to be described in the User Guide, including the concept of 'exported' dependencies.
+
 ### Questions:
 
 - Does such a library have an empty API jar, or is the API jar missing?
@@ -366,6 +368,9 @@ The last step of separating API from implementation involves the creation of a b
 - Reuse existing repositories DSL, bridging into model space.
 - Main Jar artifact of maven module is included in compile classpath.
 - Main Jar artifact of any compile-scoped dependencies are included transitively in the compile classpath.
+
+- Update samples and user guide
+- Update newJavaModel performance test?
 
 ### Test cases
 
