@@ -80,6 +80,11 @@ For this story, it is expected that the API jar is built after the runtime jar. 
 - Changes to the API specification should trigger regeneration of the API jar
 - If the API specification does not change, the API jar should not be rebuilt
 
+### Open issues
+
+- Do we need to verify that each exported package actually maps to some classes?
+- What happens if none of the exported packages map to any classes: empty API jar?
+
 ## Story: Non-API classes of library are not visible when compiling consuming Java source
 
 - When compiling Java source against a library use the API jar of the selected variant.
@@ -203,19 +208,70 @@ AKA: adding a private method to the an API class should not trigger recompilatio
 
 ## Story: Java library API references the APIs of other libraries
 
-- Extend dependency DSL to allow a dependency of a library to be exported.
-- When library A is exported by library B, then the API of B includes the API of A, and so the API of both A and B is visible to consumers at compile time.
-- Resolve compile time graph transitively.
-- A library may have no API classes of its own, and may simply export other libraries. For example, some library that implements an API defined somewhere else.
-- A library must have a non-empty API (otherwise it is not a library - it is some other kind of component)
+- For a given library, Dependency DSL allows any library dependency to be exported in the library API.
+- When library B is exported by library A, then the API of A includes the API of B, and so the API of both A and B is visible to consumers of A at compile time.
+- APIs of exported libraries are resolved transitively
 
-TBD - Add a dependency set at the component level, to be used as the default for all its source sets.
+Given the example:
+
+    model {
+        main(JvmLibrarySpec) {
+            sources.java.dependencies {
+                library "A"
+            }
+        }
+        A(JvmLibrarySpec) {
+            sources.java.dependencies {
+                library "B" exported(true)
+                library "D"
+            }
+        }
+        B(JvmLibrarySpec) {
+            sources.java.dependencies {
+                library "C" exported(true)
+            }
+        }
+        C(JvmLibrarySpec) {}
+        D(JvmLibrarySpec) {}
+    }
+
+- The compile classpath for 'main' includes the APIs of `A`, `B` and `C`, but not `D`.
+- `D` is not exported in the API of `B`, and so is added to the compile classpath of `B` only
 
 ### Test cases
 
-- Consuming source can use API class that is transitively included in the compile time dependency graph.
-- Consuming source cannot use non-API class of library that is transitively included in the compile time dependency graph.
-- A library may include no API classes.
+- When compiling sources for `main`` that has a dependency on `A` above:
+    - Compile classpath includes API jars from `A`, `B` and `C`
+    - Compile classpath does _not_ include API jar from `D`
+- No failure attempting to build `main`, where `D` contains bad code
+- Reasonable error message attempting to build `main`, where `C` contains bad code
+
+### Open issues
+
+- Declare a dependency set at the component level, to be used as the default for all its source sets.
+
+## Story: Java Library API includes exported dependencies but no exported classes
+
+- A library may have no API classes of its own: the API of such a library consists of the exported APIs of dependent libraries.
+    - In this case, the library will have an empty api jar
+    - An example would be a library that provides an implementation of an API defined in a dependency.
+- Any library must have a non-empty API: at a minimum it must export either API classes or the API of other libraries
+    - A 'library' with an empty API is not a library - it is some other kind of component
+- Simply declaring exported packages is not enough: the exported packages must include some API classes
+- Should permit explicitly declaring an empty set of exported packages. Will need to differentiate between:
+    a) where a library doesn't declare any exported packages (so we assume all classes are in the API)
+    b) where a library explicitly declares that the set of exported packages is empty
+
+### Questions:
+
+- Does such a library have an empty API jar, or is the API jar missing?
+
+### Test cases
+
+- When compiling sources for `main` that has dependency on `libraryA` that has no API classes
+    - Useful error message if `libraryA` also has no exported dependencies : it is invalid for `libraryA` to have an empty API
+    - Same applies for a transitively referenced library: must either have classes or library dependencies exported in the API
+    - Where `libraryA` declares exported dependencies, then the api jars of these exported dependencies are available for compilation.
 
 ## Story: Extract a buildable element to represent the compiled classes of the library variant
 
