@@ -586,8 +586,8 @@ model {
         create('checkClasspath') {
             doLast {
                 def cp = compileMainJarMainJava.classpath.files
-                assert cp.contains(project(':b').createMainApiJar.archivePath)
-                assert !cp.contains(project(':c').createMainApiJar.archivePath)
+                assert cp.contains(new File(project(':b').createMainApiJar.destinationDir, "main.jar"))
+                assert !cp.contains(new File(project(':c').createMainApiJar.destinationDir, 'main.jar'))
             }
         }
         mainJar.finalizedBy('checkClasspath')
@@ -659,7 +659,7 @@ class DependencyResolutionObserver extends RuleSource {
         doLast {
             def task = tasks.get('compileMainJarMainJava')
             def cp = task.classpath.files
-            assert cp == [task.project.project(':b').modelRegistry.find(ModelPath.path('tasks.createMainApiJar'), ModelType.of(Task)).archivePath] as Set
+            assert cp == [new File(task.project.project(':b').modelRegistry.find(ModelPath.path('tasks.createMainApiJar'), ModelType.of(Task)).destinationDir, 'main.jar')] as Set
 
         }
         }
@@ -764,8 +764,8 @@ model {
         create('checkClasspath') {
             doLast {
                 def cp = compileMainJarMainJava.classpath.files
-                assert cp.contains(project(':b').createMainApiJar.archivePath)
-                assert !cp.contains(project(':c').createMainApiJar.archivePath)
+                assert cp.contains(new File(project(':b').createMainApiJar.destinationDir, 'main.jar'))
+                assert !cp.contains(new File(project(':c').createMainApiJar.destinationDir, 'main.jar'))
             }
         }
         mainJar.finalizedBy('checkClasspath')

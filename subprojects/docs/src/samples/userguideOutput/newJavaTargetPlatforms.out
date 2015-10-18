@@ -1,14 +1,12 @@
 :core:compileJava5MainJarMainJava
 :core:processJava5MainJarMainResources
 :core:createJava5MainJar
-:core:extractJava5MainApiClasses
 :core:createJava5MainApiJar
 :core:java5MainJar
 :core:compileJava6MainJarMainJava
 :core:compileJava6MainJarMainJava6
 :core:processJava6MainJarMainResources
 :core:createJava6MainJar
-:core:extractJava6MainApiClasses
 :core:createJava6MainApiJar
 :core:java6MainJar
 :core:assemble

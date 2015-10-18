@@ -1,7 +1,6 @@
 :compileMainJarMainJava
 :processMainJarMainResources
 :createMainJar
-:extractMainApiClasses
 :createMainApiJar
 :mainJar
 :assemble
