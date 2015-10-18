@@ -47,9 +47,9 @@ class NewJavaPluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject                | maxExecutionTimeRegression | parallelWorkers
-        //"smallNewMultiprojectJava" | millis(1000)               | 0
-        //"smallNewMultiprojectJava" | millis(1000)               | 4
+        "smallNewMultiprojectJava" | millis(1000)               | 0
+        "smallNewMultiprojectJava" | millis(1000)               | 4
         "largeNewMultiprojectJava" | millis(5000)               | 0
-        //"largeNewMultiprojectJava" | millis(5000)               | 4
+        "largeNewMultiprojectJava" | millis(5000)               | 4
     }
 }
