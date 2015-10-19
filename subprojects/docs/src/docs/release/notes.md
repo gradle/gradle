@@ -151,7 +151,7 @@ The following example directly prints out standard output and error messages to 
 
 ### Model rules improvements
 
-#### Declaring packages that belong to the API
+#### Declaring packages that belong to an API
 
 It is now possible to declare the packages that make up the API of a JVM component. Declaring the API of a component is done using the `api { ... }` block:
 
@@ -166,7 +166,7 @@ It is now possible to declare the packages that make up the API of a JVM compone
         }
     }
 
-Gradle will automatically create an API jar out of this specification, and components that depend on this component will compile against the API jar.
+Gradle will automatically create an API jar for the main component. Components that depend on that main component will compile against that API jar.
 The API jar will only include classes that belong to those packages. As a consequence:
    - trying to compile a consumer that accesses a class which which doesn't belong to the list of exported packages will result in a compile time error.
    - updating a non-API class will not result in the compilation of downstream consumers.
