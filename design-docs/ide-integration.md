@@ -72,64 +72,68 @@ we want to have a dedicated model for eclipse specific java information and grad
 
 #### The API
 
-    interface EclipseProject {
-        EclipseJavaView getJavaView()
+    interface JavaView {
+        JavaVersion getSourceLanguageLevel()
+    }
+
+    interface GradleProject {
+        ...
+        JavaView getJavaView()
     }
 
     interface EclipseJavaView {
         JavaView getJavaView()
-        JavaCompatibilityVersion getSourceLanguageLevel()
+        JavaVersion getSourceLanguageLevel()
     }
 
-    interface JavaView {
-        JavaCompatibilityVersion getSourceLanguageLevel()
-    }
-
-    enum JavaCompatibilityVersion {
-        VERSION_1_5,
-        VERSION_1_6,
-        VERSION_1_7,
+    interface EclipseProject {
         ...
+        EclipseJavaView getEclipseJavaView()
     }
 
-    interface GradleProject {
-        JavaView getJavaView()
-    }
 
-- For `EclipseProject`, add details of the Java source level:
-    - JDT language compliance level.
-- Improve the Java source level detection. Source level should be based on the source compatibility of the project.
-    - consume this information from the eclipse plugin configuration if provided (`eclipse.jdt.sourceCompatibility`)
-- For older Gradle versions:
-    - TBD - reasonable defaults for Java language version
+- The `JavaView` interface describes Java-specific details for a model. It defines only one attribute, the `sourceLanguageLevel`
+which is represented by the `org.gradle.api.JavaVersion` enumeration. The language level is returned from Java plugin convention object.
+(`JavaPluginConvention.getSourceCompatibility()`).
+- The `GradleProject` model has a new `getJavaView()` method returning a non-null value if the project applies the 'java' plugin.
+- The `EclipseJavaView` interface describes Java-specific details for an Eclipse model which can be customized by the 'eclipse'
+plugin. The `getJavaView` returns the same information as the `GradleProject.getJavaView()`. The `getSourceLanguageLevel()` might return
+the same source language level `getJavaView().getsourceLanguageLevel()` but it also respects the `eclipse.jdt.sourceCompatibility`
+configuration.
+- The `EclipseProject` model has a new `getEclipseJavaView()` method which returns a non-null EclipseJavaView instance if the project
+applies the 'java' plugin.
+- For older Gradle version the `JavaView.getSourceLanguageLevel()` always returns `JavaVersion.current()`.
 
 #### Implementation
 
 - Add `JavaView` with `getSourceLanguageLevel()` method
 - Extend `GradleProject` model to expose `JavaView`
-- Update DefaultEclipseProject to implement new `getJavaView()` method
-- Update `EclipseModelBuilder` to set values for `SourceLanguageLevel`
-    - configure `EclipseJavaView` and `JavaView` per project if project is java project
-        - in `EclipseModel.getJavaView().getSourceLanguageLevel()`
-            - matching `eclipse.jdt.sourceCompatibility`
-        - in `EclipseModel.getGradleProject().getJavaView().getSourceLanguageLevel()`
-            - matching `Project.sourceCompatibility` (mixedin via JavaConvention)
-    - return `null` for `EclipseProject.getJavaView()` and `GradleProject.getJavaView()` if project not a java project
-
 - Update DefaultGradleProject to implement new `getJavaView()` method
-- Update `GradleProjectBuilder` to set values for `SourceLanguageLevel` in JavaView
-    - configure `JavaView` per project if project is java project
-        - in `GradleProject.getJavaView().getSourceLanguageLevel()`
-            - matching `Project.sourceCompatibility` (mixedin via JavaConvention)
-    - return `null` for `GradleProject.getJavaView()` if project is not a java project
-
+- Update `GradleProjectBuilder` to set values for source language level
+    - return `null` if the project doesn't apply the 'java' plugin
+    - otherwise return the value from `JavaPluginConvention.getSourceCompatibility()`
+- Add the `EclipseJavaView` interface with the two methods defined
+- Extend `EclipseProject` model to expose `EclipseJavaView`
+- Update DefaultEclipseProject to implement new `getEclipseJavaView()` method
+- Update `EclipseModelBuilder` to set values for the `EclipseJavaView`
+    - return `null` if the project doesn't apply the 'java' plug-in
+    - otherwise configure the it as follows
+        - the `getJavaView().getSourceLanguageLevel()` has the same result as `GradleProject.getJavaView()`
+        - the `getSourceLanguageLevel()` returns the value of `eclipse.jdt.sourceCompatibility` if defined,
+          otherwise returns the result of`getJavaView().getSourceLanguageLevel()`
 
 #### Test coverage
 
-- `EclipseProject.getJavaView()` returns null for non java projects
-- `GradleProject.getJavaView()` returns null for non java projects
-- `GradleProject.getJavaView().getSourceLanguageLevel()` matches sourceCompatibility property mixedin from JavaConvention
-- `EclipseProject.getJavaView().getSourceLanguageLevel()` respects cusomization via `eclipse.jdt.sourceCompatibility`
+- all test cases should be checked for the EclipseProject and for the GradleProject models
+    - old target Gradle version is used
+    - project does not apply Java plugin
+    - project applies the Java plugin
+        - project uses default source compatibility
+            - 'eclipse' plugin does not define custom source compatibility via `eclipse.jdt.sourceCompatibility`
+            - 'eclipse' plugin defines custom source compatibility via `eclipse.jdt.sourceCompatibility`
+        - project uses custom source compatibility
+            - 'eclipse' plugin does not define custom source compatibility via `eclipse.jdt.sourceCompatibility`
+            - 'eclipse' plugin defines custom source compatibility via `eclipse.jdt.sourceCompatibility`
 
 ### Story - Expose Java source level for Java projects to IDEA
 
