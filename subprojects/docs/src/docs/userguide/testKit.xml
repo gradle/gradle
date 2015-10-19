@@ -211,7 +211,9 @@
                 <imagedata fileref="img/testkit-idea-run-config.png" width="989px" depth="464px"/>
             </imageobject>
             <para>
-                Alternatively, the debug mode can also be activated through the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withDebug"/>.
+                Alternatively, the debug mode can also be activated programmatically through the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withDebug"/>.
+                The usage of the argument <literal>-Dorg.gradle.testkit.debug=true</literal> as parameter to the method
+                <apilink class="org.gradle.testkit.runner.GradleRunner" method="withArguments"/> should be avoided as it will not enable the debug mode.
             </para>
         </section>
     </section>
