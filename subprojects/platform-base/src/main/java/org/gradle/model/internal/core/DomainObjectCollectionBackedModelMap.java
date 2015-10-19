@@ -167,6 +167,11 @@ public class DomainObjectCollectionBackedModelMap<T> implements ModelMap<T> {
     }
 
     @Override
+    public void put(String name, T instance) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void named(String name, Class<? extends RuleSource> ruleSource) {
         throw new UnsupportedOperationException();
     }

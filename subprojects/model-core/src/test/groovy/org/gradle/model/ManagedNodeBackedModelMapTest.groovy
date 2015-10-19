@@ -864,4 +864,14 @@ class ManagedNodeBackedModelMapTest extends Specification {
         realize()
     }
 
+    def "can put existing unmanaged instance"() {
+        when:
+        mutate {
+            put("foo", "bar")
+        }
+
+        then:
+        registry.realize("map.foo", String) == "bar"
+    }
+
 }

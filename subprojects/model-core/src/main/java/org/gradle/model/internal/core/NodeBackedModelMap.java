@@ -24,6 +24,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
+import org.gradle.internal.Factories;
 import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -186,6 +188,20 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     @Override
     public <S extends T> void create(final String name, final Class<S> type, final Action<? super S> configAction) {
         doCreate(name, ModelType.of(type), configAction);
+    }
+
+    @Override
+    public void put(String name, T instance) {
+        Class<T> type = Cast.uncheckedCast(instance.getClass());
+        ModelRuleDescriptor descriptor = NestedModelRuleDescriptor.append(sourceDescriptor, "put()");
+        modelNode.addLink(
+            ModelCreators.unmanagedInstance(
+                ModelReference.of(modelNode.getPath().child(name), type),
+                Factories.constant(instance)
+            )
+            .descriptor(descriptor)
+            .build()
+        );
     }
 
     private <S> void doBeforeEach(ModelType<S> type, Action<? super S> configAction) {
