@@ -20,7 +20,10 @@ import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.language.fixtures.TestJavaComponent
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.JDK8_OR_EARLIER)
 class ApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
     TestJvmComponent app = new TestJavaComponent()
