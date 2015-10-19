@@ -86,8 +86,8 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        public void createTestTasks(final TaskContainer tasks, BinaryContainer binaries) {
-            for (NativeTestSuiteBinarySpec testBinary : binaries.withType(NativeTestSuiteBinarySpec.class)) {
+        public void createTestTasks(final TaskContainer tasks, ModelMap<NativeTestSuiteBinarySpec> binaries) {
+            for (NativeTestSuiteBinarySpec testBinary : binaries) {
                 NativeBinarySpecInternal binary = (NativeBinarySpecInternal) testBinary;
                 final BinaryNamingScheme namingScheme = binary.getNamingScheme();
 
@@ -113,12 +113,12 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void attachBinariesToCheckLifecycle(ModelMap<Task> tasks, final BinaryContainer binaries) {
+        void attachBinariesToCheckLifecycle(ModelMap<Task> tasks, final ModelMap<NativeTestSuiteBinarySpec> binaries) {
             // TODO - binaries aren't an input to this rule, they're an input to the action
             tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
                 @Override
                 public void execute(Task checkTask) {
-                    for (NativeTestSuiteBinarySpec testBinary : binaries.withType(NativeTestSuiteBinarySpec.class)) {
+                    for (NativeTestSuiteBinarySpec testBinary : binaries) {
                         checkTask.dependsOn(testBinary.getTasks().getRun());
                     }
                 }

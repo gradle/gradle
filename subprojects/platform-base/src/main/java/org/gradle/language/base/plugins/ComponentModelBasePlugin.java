@@ -137,9 +137,9 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
 
         // Finalizing here, as we need this to run after any 'assembling' task (jar, link, etc) is created.
         @Finalize
-        void createSourceTransformTasks(final TaskContainer tasks, final BinaryContainer binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
+        void createSourceTransformTasks(final TaskContainer tasks, final ModelMap<BinarySpecInternal> binaries, LanguageTransformContainer languageTransforms, ServiceRegistry serviceRegistry) {
             for (LanguageTransform<?, ?> language : languageTransforms) {
-                for (final BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+                for (final BinarySpecInternal binary : binaries) {
                     if (binary.isLegacyBinary() || !language.applyToBinary(binary)) {
                         continue;
                     }

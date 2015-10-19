@@ -43,7 +43,6 @@ import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistr
 import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryContainer;
@@ -173,10 +172,10 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, BinaryContainer binaries) {
+        void attachBinariesToAssembleLifecycle(@Path("tasks.assemble") Task assemble, ModelMap<BinarySpecInternal> binaries) {
             List<BinarySpecInternal> notBuildable = Lists.newArrayList();
             boolean hasBuildableBinaries = false;
-            for (BinarySpecInternal binary : binaries.withType(BinarySpecInternal.class)) {
+            for (BinarySpecInternal binary : binaries) {
                 if (!binary.isLegacyBinary()) {
                     if (binary.isBuildable()) {
                         assemble.dependsOn(binary);
