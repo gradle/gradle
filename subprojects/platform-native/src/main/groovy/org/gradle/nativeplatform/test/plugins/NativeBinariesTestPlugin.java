@@ -106,6 +106,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
 
         @Defaults
         public void copyTestBinariesToGlobalContainer(BinaryContainer binaries, TestSuiteContainer testSuites) {
+            // TODO:LPTR Needs ModelMap.add() to turn BinaryContainer into a ModelMap
             for (TestSuiteSpec testSuite : testSuites.withType(TestSuiteSpec.class).values()) {
                 binaries.addAll(testSuite.getBinaries().values());
             }
