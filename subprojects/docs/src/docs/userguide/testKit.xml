@@ -212,8 +212,10 @@
             </imageobject>
             <para>
                 Alternatively, the debug mode can also be activated programmatically through the method <apilink class="org.gradle.testkit.runner.GradleRunner" method="withDebug"/>.
-                The usage of the argument <literal>-Dorg.gradle.testkit.debug=true</literal> as parameter to the method
-                <apilink class="org.gradle.testkit.runner.GradleRunner" method="withArguments"/> should be avoided as it will not enable the debug mode.
+                The usage of the argument <literal>-Dorg.gradle.testkit.debug=true</literal> as parameter to the methods
+                <apilink class="org.gradle.testkit.runner.GradleRunner" method="withArguments(java.util.List)"/>
+                or
+                <apilink class="org.gradle.testkit.runner.GradleRunner" method="withArguments(java.lang.String[])"/> should be avoided as it will not enable the debug mode.
             </para>
         </section>
     </section>
