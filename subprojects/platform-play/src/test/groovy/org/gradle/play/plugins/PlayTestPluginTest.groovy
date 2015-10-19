@@ -36,7 +36,7 @@ import spock.lang.Specification
 class PlayTestPluginTest extends Specification {
 
     ModelMap<Task> taskModelMap = Mock(ModelMap)
-    def binaryContainer = Mock(BinaryContainer)
+    def binaryContainer = Mock(ModelMap)
     def projectIdentifier = Mock(ProjectIdentifier)
     def binary = Mock(PlayApplicationBinarySpecInternal)
     def playPlatform = Mock(PlayPlatform)
@@ -52,7 +52,6 @@ class PlayTestPluginTest extends Specification {
     PlayTestPlugin plugin = new PlayTestPlugin()
 
     def setup(){
-        _ * binaryContainer.withType(PlayApplicationBinarySpecInternal.class) >> binaryContainer
         _ * binaryContainer.iterator() >> [binary].iterator()
         _ * binary.name >> "someBinary"
         _ * binary.getTasks() >> Mock(BinaryTasksCollection)
