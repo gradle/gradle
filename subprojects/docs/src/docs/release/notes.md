@@ -151,6 +151,28 @@ The following example directly prints out standard output and error messages to 
 
 ### Model rules improvements
 
+#### Declaring packages that belong to the API
+
+It is now possible to declare the packages that make up the API of a JVM component. Declaring the API of a component is done using the `api { ... }` block:
+
+    model {
+        components {
+            main(JvmLibrarySpec) {
+                api {
+                    // declares the package 'com.acme' as belonging to the public, exported API
+                    exports 'com.acme'
+                }
+            }
+        }
+    }
+
+Gradle will automatically create an API jar out of this specification, and components that depend on this component will compile against the API jar.
+The API jar will only include classes that belong to those packages. As a consequence:
+   - trying to compile a consumer that accesses a class which which doesn't belong to the list of exported packages will result in a compile time error.
+   - updating a non-API class will not result in the compilation of downstream consumers.
+
+#### `$.p` expressions in DSL rules
+
 TBD: DSL now supports `$.p` expressions in DSL rules:
 
     model {
