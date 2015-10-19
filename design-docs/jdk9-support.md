@@ -96,21 +96,24 @@ For this story, it is expected that the API jar is built after the runtime jar. 
 - Consuming source is recompiled when API class is changed.
 - Consuming source is not recompiled when non-API class changes.
 
-## Story: API stub generator strips out non public elements from classes
+## Story: Consuming Java source is not recompiled when specification of API of a library has not changed
 
-Given a source `byte[]` representing the bytecode of a class, generate a new `byte[]` that corresponds to the same class viewed as an API class:
+AKA: API classes can reference non-API classes of the same library
+
+Produce a stubbed API jar instead of an API jar.
+
+- Replace the API jar generator input from a list of packages to the `ApiSpec` class (if this has not already been done).
+- Generate stub classes in the API jar using the API class stub generator.
+
+### Implementation
+
+Given a source representing the bytecode of a class, generate a new `byte[]` that corresponds to the same class viewed as an API class:
 
 - strips out private members
 - removes method bodies
 - removes static initializers
 - removes debug information
 - provides a way to determine if a class file should belong to the API jar based on its package and access modifiers
-
-This stubbed API class generator will serve as a base for an stubbed API jar creator and as a finer grained filtering medium for including classes
-in the API jar.
-
-### Implementation
-
 - Should take `.class` files as input, **not** source files
 - Process classes using the ASM library
 - Method bodies should throw an `UnsupportedOperationException`.
@@ -130,67 +133,15 @@ in the API jar.
 - Public constant types should be initialized to `null` or their default JVM value if of a primitive type (do not use `UnsupportedOperationException` here because it would imply the
 creation of a static initializer that we want to avoid).
 - Java bytecode compatibility level of the classes must be the same as the original class compatibility level
-
-### Out of scope
-
-This doesn't have to use the `ApiSpec` (or whatever it is called) if it is not available when work on this story is started; a simple list of packages would be sufficient.
-
-## Story: Validates stubbed API classes according to the API specification
-
-When stripping out non public members of a class, the stub generator should check if the methods or classes which are exported do not expose classes which do not belong
-to the list of exported packages. Special treatment should be done to allow the JDK base classes to be part of the API.
-Validation at this point should be optional and disabled by default.
-
-# Test cases
-
-- Allows classes from the base JDK to be referenced in exposed members: superclasses, interfaces, annotations, method parameters, fields.
-- Throws an error if an exposed member references a class which is not part of the API. For example, given:
-    ```
-    package p1;
-    public class A {
-       public B foo()
-    }
-
-    package p2;
-    public class B {
-    }
-    ```
-
-    if only package `p1` has been specified as part of the library's API, then `foo` has a return type in violation of this contract. An error should be raised accordingly.
-
-
-## Story: Consuming Java source is not recompiled when specification of API of a library has not changed
-
-AKA: API classes can reference non-API classes of the same library
-
-Produce a stubbed API jar instead of an API jar.
-
-- Replace the API jar generator input from a list of packages to the `ApiSpec` class (if this has not already been done).
-- Generate stub classes in the API jar using the API class stub generator.
-
-### Test cases
-
 - A method body in an API class can reference non-API classes of the same library.
 - A private method signature can reference non-API classes of the same library.
 - Consuming source is not recompiled when API class method body of is changed.
 - Consuming source is not recompiled when comment is changed in API source file.
 - Consuming source is recompiled when signature of public API method is changed.
 
-## Story: Consuming an API jar should throw an error
+### Out of scope
 
-Make sure that if a user puts a stubbed API jar on classpath, during execution of the program, an error is thrown. This should already be implemented
-at this point, this story is about adding intergration tests that make sure that we really provide sensible error messages to the user. If necessary,
-update the error messages so that they are clearly understandable.
-
-### Test cases
-
-- class `B` of library `LB` instantiates class `A` of library `LA`
-   * Should not throw an error if runtime jar of `LA` is used
-   * Should throw `UnsupportedOperationException` if the stubbed API jar is used
-
-- class `B` of library `LB` calls static method of class `A` of library `LA`
-   * Should not throw an error if runtime jar of `LA` is used
-   * Should throw `UnsupportedOperationException` if the stubbed API jar is used
+This doesn't have to use the `ApiSpec` (or whatever it is called) if it is not available when work on this story is started; a simple list of packages would be sufficient.
 
 
 ## Story: Consuming Java source is recompiled when API class changes in an incompatible way
@@ -249,6 +200,45 @@ Given the example:
 ### Open issues
 
 - Declare a dependency set at the component level, to be used as the default for all its source sets.
+
+## Story: Consuming an API jar should throw an error
+
+Make sure that if a user puts a stubbed API jar on classpath, during execution of the program, an error is thrown. This should already be implemented
+at this point, this story is about adding intergration tests that make sure that we really provide sensible error messages to the user. If necessary,
+update the error messages so that they are clearly understandable.
+
+### Test cases
+
+- class `B` of library `LB` instantiates class `A` of library `LA`
+   * Should not throw an error if runtime jar of `LA` is used
+   * Should throw `UnsupportedOperationException` if the stubbed API jar is used
+
+- class `B` of library `LB` calls static method of class `A` of library `LA`
+   * Should not throw an error if runtime jar of `LA` is used
+   * Should throw `UnsupportedOperationException` if the stubbed API jar is used
+
+## Story: Validates stubbed API classes according to the API specification
+
+When stripping out non public members of a class, the stub generator should check if the methods or classes which are exported do not expose classes which do not belong
+to the list of exported packages. Special treatment should be done to allow the JDK base classes to be part of the API.
+Validation at this point should be optional and disabled by default.
+
+# Test cases
+
+- Allows classes from the base JDK to be referenced in exposed members: superclasses, interfaces, annotations, method parameters, fields.
+- Throws an error if an exposed member references a class which is not part of the API. For example, given:
+    ```
+    package p1;
+    public class A {
+       public B foo()
+    }
+
+    package p2;
+    public class B {
+    }
+    ```
+
+    if only package `p1` has been specified as part of the library's API, then `foo` has a return type in violation of this contract. An error should be raised accordingly.
 
 ## Story: Java Library API includes exported dependencies but no exported classes
 
