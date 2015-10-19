@@ -14,30 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.internal;
+package org.gradle.testkit.runner.internal
 
-import org.gradle.testkit.runner.BuildTask;
-import org.gradle.testkit.runner.TaskOutcome;
+import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Specification
 
-public class DefaultBuildTask implements BuildTask {
-    private final String path;
-    private final TaskOutcome outcome;
+class DefaultBuildTaskTest extends Specification {
+    def "can create String representation"() {
+        given:
+        DefaultBuildTask defaultBuildTask = new DefaultBuildTask(':myTask', TaskOutcome.SUCCESS)
 
-    public DefaultBuildTask(String path, TaskOutcome outcome) {
-        this.path = path;
-        this.outcome = outcome;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public TaskOutcome getOutcome() {
-        return outcome;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s=%s", path, outcome);
+        expect:
+        defaultBuildTask.toString() == ':myTask=SUCCESS'
     }
 }

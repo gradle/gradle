@@ -19,6 +19,7 @@ package org.gradle.testkit.runner.internal;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskOutcome;
@@ -76,5 +77,27 @@ public class DefaultBuildResult implements BuildResult {
         }
 
         return null;
+    }
+
+    @Override
+    public String toString() {
+        String lineBreak = SystemProperties.getInstance().getLineSeparator();
+        StringBuilder message = new StringBuilder();
+        message.append("Output:");
+        message.append(lineBreak);
+        message.append(standardOutput);
+        message.append(lineBreak);
+        message.append("-----");
+        message.append(lineBreak);
+        message.append("Error:");
+        message.append(lineBreak);
+        message.append(standardError);
+        message.append(lineBreak);
+        message.append("-----");
+        message.append(lineBreak);
+        message.append("Tasks:");
+        message.append(lineBreak);
+        message.append(tasks);
+        return message.toString();
     }
 }

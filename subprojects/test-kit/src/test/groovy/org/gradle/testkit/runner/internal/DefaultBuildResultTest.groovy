@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner.internal
 
 import org.gradle.testkit.runner.BuildTask
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 import static org.gradle.testkit.runner.TaskOutcome.*
@@ -57,5 +58,17 @@ class DefaultBuildResultTest extends Specification {
 
         then:
         thrown(UnsupportedOperationException)
+    }
+
+    def "can create String representation"() {
+        expect:
+        TextUtil.normaliseLineSeparators(defaultBuildResult.toString()) == '''Output:
+output
+-----
+Error:
+error
+-----
+Tasks:
+[:a=SUCCESS, :b=FAILED]'''
     }
 }
