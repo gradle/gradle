@@ -83,6 +83,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         ModelPath binariesPath = ModelPath.path("binaries");
 
         ModelType<BinarySpec> binarySpecModelType = ModelType.of(BinarySpec.class);
+        // TODO:LPTR Remove once reuse is taken out
         modelRegistry.createOrReplace(
             BridgedCollections.creator(
                 ModelReference.of(binariesPath, DefaultBinaryContainer.class),
@@ -161,7 +162,7 @@ public class LanguageBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void copyBinaryTasksToTaskContainer(TaskContainer tasks, BinaryContainer binaries) {
+        void copyBinaryTasksToTaskContainer(TaskContainer tasks, ModelMap<BinarySpec> binaries) {
             for (BinarySpec binary : binaries) {
                 tasks.addAll(binary.getTasks());
                 Task buildTask = binary.getBuildTask();
