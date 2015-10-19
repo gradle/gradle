@@ -135,7 +135,7 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         runner('helloWorld').build()
 
         then:
-        UnexpectedBuildException t = thrown UnexpectedBuildException
+        UnexpectedBuildFailure t = thrown UnexpectedBuildFailure
         BuildResult result = t.buildResult
         !result.standardOutput
         !result.standardError
@@ -164,7 +164,7 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         gradleRunner.build()
 
         then:
-        UnexpectedBuildException t = thrown UnexpectedBuildException
+        UnexpectedBuildFailure t = thrown UnexpectedBuildFailure
         BuildResult result = t.buildResult
         result.standardOutput.contains(':helloWorld')
         result.standardOutput.contains('Hello world!')

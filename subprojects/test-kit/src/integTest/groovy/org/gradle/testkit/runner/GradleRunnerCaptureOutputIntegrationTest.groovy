@@ -111,10 +111,10 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
         GradleRunner gradleRunner = runner('helloWorld')
         gradleRunner.withStandardOutput(standardOutput)
         gradleRunner.withStandardError(standardError)
-        gradleRunner.buildAndFail()
+        gradleRunner.build()
 
         then:
-        UnexpectedBuildException t = thrown UnexpectedBuildException
+        UnexpectedBuildFailure t = thrown UnexpectedBuildFailure
         BuildResult result = t.buildResult
         result.standardOutput.contains(':helloWorld')
         result.standardOutput.contains('Hello world!')

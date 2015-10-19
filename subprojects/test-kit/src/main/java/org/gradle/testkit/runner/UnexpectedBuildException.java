@@ -34,11 +34,6 @@ public class UnexpectedBuildException extends RuntimeException {
         this.buildResult = buildResult;
     }
 
-    public UnexpectedBuildException(Throwable t, BuildResult buildResult) {
-        super(t);
-        this.buildResult = buildResult;
-    }
-
     public BuildResult getBuildResult() {
         return buildResult;
     }

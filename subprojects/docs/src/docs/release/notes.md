@@ -26,42 +26,8 @@ With previous versions of Gradle TestKit, any unexpected failure during function
 These types provide basic diagnostics about the root cause of the failure in textual form assigned to the exception `message` field. Suffice to say that a String is not very
 convenient for further inspections or assertions of the build outcome.
 
-This release provides the `BuildResult` with the method <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildException.html#getBuildResult()">UnexpectedBuildException.getBuildResult()</a>.
-`UnexpectedBuildException` is the parent class of the exceptions `UnexpectedBuildSuccess` and `UnexpectedBuildFailure`. The following code example demonstrates the use of a build result from
-an unexpected build failure in a [Spock](http://spockframework.org/) test:
-
-    class BuildLogicFunctionalTest extends Specification {
-        @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
-
-        def "can inspect build result for unexpected failure"() {
-            given:
-            buildFile << """
-                task helloWorld {
-                    doLast {
-                        println 'Hello world!'
-                    }
-                }
-            """
-
-            when:
-            def result = GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
-                .withArguments('helloWorld')
-                .buildAndFail()
-
-            then:
-            UnexpectedBuildSuccess t = thrown(UnexpectedBuildSuccess)
-            BuildResult result = t.buildResult
-            result.standardOutput.contains(':helloWorld')
-            result.standardOutput.contains('Hello world!')
-            !result.standardError
-            result.tasks.collect { it.path } == [':helloWorld']
-            result.taskPaths(SUCCESS) == [':helloWorld']
-            result.taskPaths(SKIPPED).empty
-            result.taskPaths(UP_TO_DATE).empty
-            result.taskPaths(FAILED).empty
-        }
-    }
+This release provides the `BuildResult` with the method <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildException.html#getBuildResult()">UnexpectedBuildException.getBuildResult()</a> for
+diagnosing test execution failures. `UnexpectedBuildException` is the parent class of the exceptions `UnexpectedBuildSuccess` and `UnexpectedBuildFailure`.
 
 #### Ability to provide a Gradle distribution for test execution
 
