@@ -585,6 +585,8 @@ In order to properly deploy a web application, the IDE needs to know about the l
 
 #### Estimate
 
+- 2 Days
+
 #### The API
 
 ```
@@ -606,10 +608,17 @@ class WebApplicationModelBuilder implements ToolingModelBuilder {
 Note that the WebApplicationProject model directly maps to properties defined in the ('war' plugin)[https://docs.gradle.org/current/userguide/war_plugin.html].
 
 #### Implementation
+
 - Create `WebApplicationProject` model
 - Create `DefaultWebApplicationProject`
 - Create `WebApplicationModelBuilder`
 - Add `WebApplicationModelBuilder` to builders in `ToolingRegistrationAction`
+- Add model to ModelMapping.java
+- Add model to ActionAwareConsumerConnectionTest.groovy
+- Add model to BuildActionRunnerBackedConsumerConnection.java
+- Add model to InternalConnectionBackedConsumerConnection.java
+- Add model to BuildController.java documentation
+- Add model to ProjectConnection.java documentation
 
 #### Test Coverage
 
@@ -621,6 +630,13 @@ Note that the WebApplicationProject model directly maps to properties defined in
 - WebApplicationProject.getWebApplicationDirectory returns null when custom web application directory is set, but directory does not exist
 
 The `WebApplicationModelBuilder` is tested transitively, as the following tests would all fail if the `WebApplicationModelBuilder` did not produce the correct model.
+
+- Add WebApplicationProject to ModelMappingTest.groovy
+- Add WebApplicationProject to ModelBuilderBackedConsumerConnectionTest.groovy
+- Add WebApplicationProject to BuildActionRunnerBackedConsumerConnectionTest.groovy
+- Add WebApplicationProject to CancellableConsumerConnectionTest.groovy
+- Add WebApplicationProject to InternalConnectionBackedConsumerConnectionTest.groovy
+- Add WebApplicationProject to BuildActionRunnerBackedConsumerConnectionTest.groovy
 
 # More candidates
 
