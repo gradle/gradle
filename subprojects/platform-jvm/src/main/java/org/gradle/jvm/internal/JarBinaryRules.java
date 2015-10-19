@@ -35,7 +35,8 @@ public class JarBinaryRules extends RuleSource {
             @Override
             public void execute(JarBinarySpec jarBinary) {
                 String jarBinaryName = jarBinary.getName();
-                String apiJarBinaryName = jarBinaryName.substring(0, jarBinaryName.lastIndexOf("Jar")) + "ApiJar";
+                int idx = jarBinaryName.lastIndexOf("Jar");
+                String apiJarBinaryName = idx>0?jarBinaryName.substring(0, idx) + "ApiJar" : jarBinaryName + "ApiJar";
                 String libraryName = jarBinary.getId().getLibraryName();
                 File outputDir = new File(classesDir, jarBinaryName);
 
