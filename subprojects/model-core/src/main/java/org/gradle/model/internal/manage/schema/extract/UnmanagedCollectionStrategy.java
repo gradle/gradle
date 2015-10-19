@@ -18,7 +18,6 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.model.internal.manage.schema.ModelSchema;
-import org.gradle.model.internal.manage.schema.UnmanagedCollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
@@ -42,6 +41,6 @@ public class UnmanagedCollectionStrategy extends UnmanagedImplStructStrategy {
 
     @Override
     protected <R> ModelSchema<R> createSchema(ModelSchemaExtractionContext<R> extractionContext, Iterable<ModelPropertyExtractionResult<?>> propertyResults, Iterable<ModelSchemaAspect> aspects) {
-        return new UnmanagedCollectionSchema<R>(super.createSchema(extractionContext, propertyResults, aspects));
+        return super.createSchema(extractionContext, propertyResults, aspects);
     }
 }
