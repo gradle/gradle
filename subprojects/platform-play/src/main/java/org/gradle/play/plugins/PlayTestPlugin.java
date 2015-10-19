@@ -33,7 +33,6 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
-import org.gradle.platform.base.BinaryContainer;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.toolchain.PlayToolProvider;
@@ -48,9 +47,9 @@ import java.util.Arrays;
 @Incubating
 public class PlayTestPlugin extends RuleSource {
     @Mutate
-    void createTestTasks(ModelMap<Task> tasks, BinaryContainer binaryContainer, final PlayPluginConfigurations configurations,
+    void createTestTasks(ModelMap<Task> tasks, ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final PlayPluginConfigurations configurations,
                          final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
-        for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
+        for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
             final PlayToolProvider playToolProvider = binary.getToolChain().select(binary.getTargetPlatform());
             final FileCollection testCompileClasspath = getTestCompileClasspath(binary, playToolProvider, configurations);
 
@@ -109,13 +108,13 @@ public class PlayTestPlugin extends RuleSource {
     }
 
     @Mutate
-    void attachTestSuitesToCheckTask(ModelMap<Task> tasks, final BinaryContainer binaries) {
+    void attachTestSuitesToCheckTask(ModelMap<Task> tasks, final ModelMap<PlayApplicationBinarySpec> playBinaries) {
         // TODO - binaries aren't an input to this rule, they're an input to the action
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task checkTask) {
                 // TODO Need a better mechanism to wire tasks into lifecycle
-                for (PlayApplicationBinarySpec binary : binaries.withType(PlayApplicationBinarySpec.class)) {
+                for (PlayApplicationBinarySpec binary : playBinaries) {
                     checkTask.dependsOn(binary.getTasks().withType(Test.class));
                 }
             }

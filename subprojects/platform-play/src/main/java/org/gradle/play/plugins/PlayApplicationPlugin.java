@@ -124,6 +124,7 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         @BinaryType
         void registerApplication(BinaryTypeBuilder<PlayApplicationBinarySpec> builder) {
             builder.defaultImplementation(DefaultPlayApplicationBinarySpec.class);
+            builder.internalView(PlayApplicationBinarySpecInternal.class);
         }
 
         @LanguageType
@@ -385,9 +386,9 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void createPlayRunTask(ModelMap<Task> tasks, BinaryContainer binaryContainer, final ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
+        void createPlayRunTask(ModelMap<Task> tasks, ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final ServiceRegistry serviceRegistry, final PlayPluginConfigurations configurations, ProjectIdentifier projectIdentifier, final PlayToolChainInternal playToolChain) {
 
-            for (final PlayApplicationBinarySpecInternal binary : binaryContainer.withType(PlayApplicationBinarySpecInternal.class)) {
+            for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
                 String runTaskName = String.format("run%s", StringUtils.capitalize(binary.getName()));
 
                 tasks.create(runTaskName, PlayRun.class, new Action<PlayRun>() {
