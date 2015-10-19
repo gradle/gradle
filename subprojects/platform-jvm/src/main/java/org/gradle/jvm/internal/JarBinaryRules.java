@@ -42,8 +42,8 @@ public class JarBinaryRules extends RuleSource {
 
                 jarBinary.setClassesDir(outputDir);
                 jarBinary.setResourcesDir(outputDir);
-                jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinaryName, libraryName)));
-                jarBinary.setApiJarFile(new File(binariesDir, String.format("%s/%s.jar", apiJarBinaryName, libraryName)));
+                jarBinary.setJarFile(new File(binariesDir, String.format("%s%s%s.jar", jarBinaryName, File.separator, libraryName)));
+                jarBinary.setApiJarFile(new File(binariesDir, String.format("%s%s%s.jar", apiJarBinaryName, File.separator, libraryName)));
                 jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
             }
         });
