@@ -20,9 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.*;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -71,6 +69,7 @@ import org.gradle.util.ConfigureUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.*;
+import java.util.zip.Adler32;
 
 /**
  * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
@@ -140,6 +139,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestReporter testReporter;
+    private Long candidateClassFilesHash;
 
     @Nested
     private final DefaultTestTaskReports reports;
@@ -1013,9 +1013,31 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @return The candidate class files.
      */
     @InputFiles
-    @Input
     public FileTree getCandidateClassFiles() {
         return getProject().fileTree(getTestClassesDir()).matching(patternSet);
+    }
+
+    @Input
+    public Long getCandidateClassFilesHash() {
+        if (candidateClassFilesHash == null) {
+            candidateClassFilesHash = calculateCandidateClassFilesHash();
+        }
+        return candidateClassFilesHash;
+    }
+
+    private Long calculateCandidateClassFilesHash() {
+        final SortedSet<String> sortedFilePaths = new TreeSet<String>();
+        getCandidateClassFiles().visit(new EmptyFileVisitor() {
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                sortedFilePaths.add(fileDetails.getPath());
+            }
+        });
+        Adler32 checksum = new Adler32();
+        for(String filePath : sortedFilePaths) {
+            checksum.update(filePath.getBytes());
+        }
+        return checksum.getValue();
     }
 
     /**
