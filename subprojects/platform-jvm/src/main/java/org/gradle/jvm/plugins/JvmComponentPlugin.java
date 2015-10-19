@@ -164,8 +164,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 return;
             }
 
-            String libName = binaryName.replace("Jar", "");
-            String createApiJar = "create" + capitalize(binary.getName().replace("Jar", "ApiJar"));
+            String libName = binaryName.substring(0, binaryName.lastIndexOf("Jar"));
+            String createApiJar = "create" + capitalize(libName + "ApiJar");
             if (binary.getExportedPackages().isEmpty()) {
                 tasks.create(createApiJar, Copy.class, new Action<Copy>() {
                     @Override

@@ -34,11 +34,15 @@ public class JarBinaryRules extends RuleSource {
         jvmLibrary.getBinaries().withType(JarBinarySpec.class).beforeEach(new Action<JarBinarySpec>() {
             @Override
             public void execute(JarBinarySpec jarBinary) {
-                File outputDir = new File(classesDir, jarBinary.getName());
+                String jarBinaryName = jarBinary.getName();
+                String apiJarBinaryName = jarBinaryName.substring(0, jarBinaryName.lastIndexOf("Jar")) + "ApiJar";
+                String libraryName = jarBinary.getId().getLibraryName();
+                File outputDir = new File(classesDir, jarBinaryName);
+
                 jarBinary.setClassesDir(outputDir);
                 jarBinary.setResourcesDir(outputDir);
-                jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinary.getName(), jarBinary.getId().getLibraryName())));
-                jarBinary.setApiJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinary.getName().replace("Jar", "ApiJar"), jarBinary.getId().getLibraryName())));
+                jarBinary.setJarFile(new File(binariesDir, String.format("%s/%s.jar", jarBinaryName, libraryName)));
+                jarBinary.setApiJarFile(new File(binariesDir, String.format("%s/%s.jar", apiJarBinaryName, libraryName)));
                 jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
             }
         });
