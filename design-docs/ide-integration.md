@@ -596,7 +596,8 @@ interface WebApplicationProject {
 }
 
 class DefaultWebApplicationProject implements Serializable {
-    WebApplicationDirectory getWebApplicationDirectory();
+    String getWebApplicationDirectoryName();
+    File getWebApplicationDirectory();
 }
 
 class WebApplicationModelBuilder implements ToolingModelBuilder {
