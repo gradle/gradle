@@ -28,6 +28,12 @@ plugins {
 '''
     }
 
+    void updateFile(String path, String contents) {
+        // add a small delay in order to avoid FS synchronization issues
+        sleep(100)
+        file(path).write(contents)
+    }
+
     def "fails compilation if trying to compile a non-API class"() {
         given: "a library that declares a public API"
         applyJavaPlugin(buildFile)
@@ -130,12 +136,12 @@ public class TestApp {
         succeeds ':mainJar'
 
         when:
-        file('src/myLib/java/com/acme/Person.java').write '''package com.acme;
+        updateFile('src/myLib/java/com/acme/Person.java', '''package com.acme;
 
 public class Person {
     public String name;
 }
-'''
+''')
         then:
         succeeds ':mainJar'
 
@@ -195,13 +201,13 @@ public class TestApp {
         succeeds ':mainJar'
 
         when:
-        file('src/myLib/java/internal/PersonInternal.java').write '''package internal;
+        updateFile('src/myLib/java/internal/PersonInternal.java', '''package internal;
 import com.acme.Person;
 
 public class PersonInternal extends Person {
     private String name;
 }
-'''
+''')
         then:
         succeeds ':mainJar'
 
