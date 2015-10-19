@@ -78,6 +78,7 @@
                     a consumer is going to be compiled against an <firstterm>API</firstterm>.</listitem>
                 <listitem>An <firstterm>API jar</firstterm> is a collection of <firstterm>API classes</firstterm>. There can be multiple API jars depending on the combinations of variant dimensions.</listitem>
                 <listitem>A <firstterm>stubbed API jar</firstterm> is a collection of <firstterm>stubbed API classes</firstterm>. There can be multiple stubbed API jars depending on the combinations of variant dimensions.</listitem>
+                <listitem>An <firstterm>ABI (application binary interface)</firstterm> corresponds to the public signature of an API, that is to say the set of stubbed API classes that it exposes (and their API visible members).</listitem>
             </itemizedlist>
             <para>
                 We avoid the use of the term <firstterm>implementation</firstterm> because it is too vague: both <firstterm>API classes</firstterm> and <firstterm>Non-API classes</firstterm> can have an implementation.

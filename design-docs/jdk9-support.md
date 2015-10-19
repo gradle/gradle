@@ -96,14 +96,11 @@ For this story, it is expected that the API jar is built after the runtime jar. 
 - Consuming source is recompiled when API class is changed.
 - Consuming source is not recompiled when non-API class changes.
 
-## Story: Consuming Java source is not recompiled when specification of API of a library has not changed
+## Story: Consuming Java source is not recompiled when signature (ABI) of a library has not changed
 
-AKA: API classes can reference non-API classes of the same library
+AKA: API classes can reference non-API classes of the same library and adding a private method to the an API class should not trigger recompilation of consuming sources.
 
-Produce a stubbed API jar instead of an API jar.
-
-- Replace the API jar generator input from a list of packages to the `ApiSpec` class (if this has not already been done).
-- Generate stub classes in the API jar using the API class stub generator.
+Produce a stubbed API jar instead of an API jar by generating stub classes using an ASM based API class stub generator.
 
 ### Implementation
 
@@ -117,7 +114,6 @@ Given a source representing the bytecode of a class, generate a new `byte[]` tha
 - Should take `.class` files as input, **not** source files
 - Process classes using the ASM library
 - Method bodies should throw an `UnsupportedOperationException`.
-- Should consider `java.*`, `javax.*` as allowed packages, considering they will map later to the `java-base` module.
 
 ### Test cases
 
@@ -138,18 +134,6 @@ creation of a static initializer that we want to avoid).
 - Consuming source is not recompiled when API class method body of is changed.
 - Consuming source is not recompiled when comment is changed in API source file.
 - Consuming source is recompiled when signature of public API method is changed.
-
-### Out of scope
-
-This doesn't have to use the `ApiSpec` (or whatever it is called) if it is not available when work on this story is started; a simple list of packages would be sufficient.
-
-
-## Story: Consuming Java source is recompiled when API class changes in an incompatible way
-
-AKA: adding a private method to the an API class should not trigger recompilation of consuming sources.
-
-### Test cases
-
 - Adding a private field to an API class should not trigger recompilation of the consuming library
 - Adding a private method to an API class should not trigger recompilation of the consuming library
 - Updating the method body of an API class should not trigger recompilation of the consuming library
@@ -223,7 +207,11 @@ When stripping out non public members of a class, the stub generator should chec
 to the list of exported packages. Special treatment should be done to allow the JDK base classes to be part of the API.
 Validation at this point should be optional and disabled by default.
 
-# Test cases
+### Implementation
+
+- Should consider `java.*`, `javax.*` as allowed packages, considering they will map later to the `java-base` module.
+
+### Test cases
 
 - Allows classes from the base JDK to be referenced in exposed members: superclasses, interfaces, annotations, method parameters, fields.
 - Throws an error if an exposed member references a class which is not part of the API. For example, given:
