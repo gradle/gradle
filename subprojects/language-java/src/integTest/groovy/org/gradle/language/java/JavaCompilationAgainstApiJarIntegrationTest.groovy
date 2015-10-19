@@ -130,7 +130,6 @@ public class TestApp {
         succeeds ':mainJar'
 
         when:
-        sleep(1000)
         file('src/myLib/java/com/acme/Person.java').write '''package com.acme;
 
 public class Person {
@@ -196,7 +195,6 @@ public class TestApp {
         succeeds ':mainJar'
 
         when:
-        sleep(1000)
         file('src/myLib/java/internal/PersonInternal.java').write '''package internal;
 import com.acme.Person;
 
