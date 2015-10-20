@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner;
+package org.gradle.testkit.runner.internal;
+
+import org.gradle.testkit.runner.GradleDistribution;
 
 import java.net.URI;
 
-/**
- * A Gradle distribution available at a specified URI, e.g. <code>new URI("https://services.gradle.org/distributions/gradle-2.8-bin.zip")</code>.
- */
-public final class URILocatedGradleDistribution implements GradleDistribution<URI> {
+public final class URILocatedGradleDistribution extends GradleDistribution<URI> {
+
     private final URI location;
 
     public URILocatedGradleDistribution(URI location) {
         this.location = location;
     }
 
+    @Override
     public URI getHandle() {
         return location;
     }

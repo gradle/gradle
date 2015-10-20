@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.fixtures.GradleRunnerType
 import org.gradle.testkit.runner.fixtures.MultiGradleRunnerSpecRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.testkit.runner.internal.InstalledGradleDistribution
 import org.gradle.testkit.runner.internal.TestKitGradleExecutor
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule

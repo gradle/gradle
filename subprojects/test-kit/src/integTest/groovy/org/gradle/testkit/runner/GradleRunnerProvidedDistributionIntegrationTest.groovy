@@ -17,6 +17,9 @@
 package org.gradle.testkit.runner
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.testkit.runner.internal.InstalledGradleDistribution
+import org.gradle.testkit.runner.internal.URILocatedGradleDistribution
+import org.gradle.testkit.runner.internal.VersionBasedGradleDistribution
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires

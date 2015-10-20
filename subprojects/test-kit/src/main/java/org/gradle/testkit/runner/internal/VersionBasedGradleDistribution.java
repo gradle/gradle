@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner;
+package org.gradle.testkit.runner.internal;
 
-import java.io.File;
+import org.gradle.testkit.runner.GradleDistribution;
 
-/**
- * A Gradle distribution installed in the filesystem, e.g. <code>new File(System.getProperty("user.home"), "./gradle/wrapper/dist/gradle-2.8-bin")</code>.
- */
-public final class InstalledGradleDistribution implements GradleDistribution<File> {
-    private final File gradleHome;
+public final class VersionBasedGradleDistribution extends GradleDistribution<String> {
 
-    public InstalledGradleDistribution(File gradleHome) {
-        this.gradleHome = gradleHome;
+    private final String gradleVersion;
+
+    public VersionBasedGradleDistribution(String gradleVersion) {
+        this.gradleVersion = gradleVersion;
     }
 
-    public File getHandle() {
-        return gradleHome;
+    @Override
+    public String getHandle() {
+        return gradleVersion;
     }
 }

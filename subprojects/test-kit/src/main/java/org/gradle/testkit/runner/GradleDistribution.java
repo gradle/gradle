@@ -16,14 +16,59 @@
 
 package org.gradle.testkit.runner;
 
+import org.gradle.api.Incubating;
+import org.gradle.testkit.runner.internal.InstalledGradleDistribution;
+import org.gradle.testkit.runner.internal.URILocatedGradleDistribution;
+import org.gradle.testkit.runner.internal.VersionBasedGradleDistribution;
+
+import java.io.File;
+import java.net.URI;
+
 /**
  * Represents a distribution of Gradle.
+ * <p>
+ * A distribution can be created via the methods {@link #withVersion(String)}, {@link #fromUri(URI)} or {@link #fromPath(File)}.
  *
  * @param <T> the handle to the distribution
- * @see InstalledGradleDistribution
- * @see URILocatedGradleDistribution
- * @see VersionBasedGradleDistribution
+ * @since 2.9
  */
-public interface GradleDistribution<T> {
-    T getHandle();
+@Incubating
+public abstract class GradleDistribution<T> {
+
+    /**
+     * Creates a Gradle distribution identifiable by version, e.g. <code>"2.8"</code>.
+     *
+     * @param version the Gradle version
+     * @return the Gradle distribution
+     */
+    public static GradleDistribution<?> withVersion(String version) {
+        return new VersionBasedGradleDistribution(version);
+    }
+
+    /**
+     * Creates a Gradle distribution available at a specified URI, e.g. <code>new URI("https://services.gradle.org/distributions/gradle-2.8-bin.zip")</code>.
+     *
+     * @param location the URI
+     * @return the Gradle distribution
+     */
+    public static GradleDistribution<?> fromUri(URI location) {
+        return new URILocatedGradleDistribution(location);
+    }
+
+    /**
+     * Creates a Gradle distribution that is installed in the filesystem, e.g. <code>new File(System.getProperty("user.home"), "./gradle/wrapper/dist/gradle-2.8-bin")</code>.
+     *
+     * @param path the path in the filesystem
+     * @return the Gradle distribution
+     */
+    public static GradleDistribution<?> fromPath(File path) {
+        return new InstalledGradleDistribution(path);
+    }
+
+    /**
+     * Returns the handle to the Gradle distribution depending on the type.
+     *
+     * @return the handle
+     */
+    protected abstract T getHandle();
 }

@@ -175,6 +175,10 @@
                 cross-version compatibility of a plugin or task.
             </para>
             <para>
+                Gradle distributions can be created via the methods
+                <apilink class="org.gradle.testkit.runner.GradleDistribution" method="withVersion(java.lang.String)"/>,
+                <apilink class="org.gradle.testkit.runner.GradleDistribution" method="fromUri(java.net.URI)"/> or
+                <apilink class="org.gradle.testkit.runner.GradleDistribution" method="fromPath(java.io.File)"/>.
                 The TestKit does not allow the use of custom implementations of the <literal>GradleDistribution</literal> interface.
             </para>
             <para>

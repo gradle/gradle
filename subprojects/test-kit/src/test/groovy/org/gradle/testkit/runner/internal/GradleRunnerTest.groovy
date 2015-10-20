@@ -16,7 +16,8 @@
 
 package org.gradle.testkit.runner.internal
 
-import org.gradle.testkit.runner.*
+import org.gradle.testkit.runner.GradleDistribution
+import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -32,9 +33,9 @@ class GradleRunnerTest extends Specification {
         gradleRunner
 
         where:
-        gradleDistribution << [new VersionBasedGradleDistribution('2.8'),
-                               new InstalledGradleDistribution(new File('some/dir')),
-                               new URILocatedGradleDistribution(new URI('http://services.gradle.org/distributions/gradle-2.8-bin.zip'))]
+        gradleDistribution << [GradleDistribution.withVersion('2.8'),
+                               GradleDistribution.fromUri(new URI('http://services.gradle.org/distributions/gradle-2.8-bin.zip')),
+                               GradleDistribution.fromPath(new File('some/dir'))]
     }
 
     def "throws exception for unsupported Gradle distribution type"() {
@@ -46,7 +47,7 @@ class GradleRunnerTest extends Specification {
         t.message == "Invalid Gradle distribution type: ${MyGradleDistribution.name}"
     }
 
-    private class MyGradleDistribution implements GradleDistribution<String> {
+    private class MyGradleDistribution extends GradleDistribution<String> {
         String getHandle() {
             '2.8'
         }

@@ -566,8 +566,8 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         writeTest """
             package org.gradle.test
 
+            import org.gradle.testkit.runner.GradleDistribution
             import org.gradle.testkit.runner.GradleRunner
-            import org.gradle.testkit.runner.VersionBasedGradleDistribution
             import static org.gradle.testkit.runner.TaskOutcome.*
             import org.junit.Rule
             import org.junit.rules.TemporaryFolder
@@ -592,7 +592,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     '''
 
                     when:
-                    def gradleRunner = GradleRunner.create(new VersionBasedGradleDistribution('$gradleVersion'))
+                    def gradleRunner = GradleRunner.create(GradleDistribution.withVersion('$gradleVersion'))
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
                         .withDebug($gradleRunnerType.debug)
@@ -631,8 +631,8 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
             writeTest """
                 package org.gradle.test
 
+                import org.gradle.testkit.runner.GradleDistribution
                 import org.gradle.testkit.runner.GradleRunner
-                import org.gradle.testkit.runner.VersionBasedGradleDistribution
                 import static org.gradle.testkit.runner.TaskOutcome.*
                 import org.junit.Rule
                 import org.junit.rules.TemporaryFolder
@@ -657,7 +657,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         '''
 
                         when:
-                        def gradleRunner = GradleRunner.create(new VersionBasedGradleDistribution('$gradleVersion'))
+                        def gradleRunner = GradleRunner.create(GradleDistribution.withVersion('$gradleVersion'))
                             .withProjectDir(testProjectDir.root)
                             .withArguments('helloWorld')
                             .withDebug($gradleRunnerType.debug)

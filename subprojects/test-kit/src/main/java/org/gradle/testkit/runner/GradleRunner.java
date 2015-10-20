@@ -21,6 +21,9 @@ import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
+import org.gradle.testkit.runner.internal.InstalledGradleDistribution;
+import org.gradle.testkit.runner.internal.URILocatedGradleDistribution;
+import org.gradle.testkit.runner.internal.VersionBasedGradleDistribution;
 
 import java.io.File;
 import java.io.Writer;

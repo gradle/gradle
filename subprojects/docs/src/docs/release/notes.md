@@ -40,7 +40,7 @@ the distribution ZIP file or a extracted Gradle distribution available on the fi
 as part of a multi-version compatibility test. The following code snippet shows the use of a compatibility test written with
 Spock:
 
-    import org.gradle.testkit.runner.VersionBasedGradleDistribution
+    import org.gradle.testkit.runner.GradleDistribution
 
     class BuildLogicFunctionalTest extends Specification {
         @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
@@ -57,7 +57,7 @@ Spock:
             """
 
             when:
-            def result = GradleRunner.create(new VersionBasedGradleDistribution(gradleVersion))
+            def result = GradleRunner.create(GradleDistribution.withVersion(gradleVersion))
                 .withProjectDir(testProjectDir.root)
                 .withArguments('helloWorld')
                 .build()

@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner;
+package org.gradle.testkit.runner.internal;
 
-/**
- * A Gradle distribution identifiable by version, e.g. <code>"2.8"</code>.
- */
-public final class VersionBasedGradleDistribution implements GradleDistribution<String> {
+import org.gradle.testkit.runner.GradleDistribution;
 
-    private final String gradleVersion;
+import java.io.File;
 
-    public VersionBasedGradleDistribution(String gradleVersion) {
-        this.gradleVersion = gradleVersion;
+public final class InstalledGradleDistribution extends GradleDistribution<File> {
+
+    private final File gradleHome;
+
+    public InstalledGradleDistribution(File gradleHome) {
+        this.gradleHome = gradleHome;
     }
 
-    public String getHandle() {
-        return gradleVersion;
+    @Override
+    public File getHandle() {
+        return gradleHome;
     }
 }

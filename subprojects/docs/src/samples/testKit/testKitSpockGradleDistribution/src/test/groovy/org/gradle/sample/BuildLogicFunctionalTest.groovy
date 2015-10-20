@@ -17,8 +17,8 @@
 package org.gradle.sample
 
 // START SNIPPET functional-test-spock-gradle-distribution
+import org.gradle.testkit.runner.GradleDistribution
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.VersionBasedGradleDistribution
 import static org.gradle.testkit.runner.TaskOutcome.*
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -45,7 +45,7 @@ class BuildLogicFunctionalTest extends Specification {
         """
 
         when:
-        def result = GradleRunner.create(new VersionBasedGradleDistribution(gradleVersion))
+        def result = GradleRunner.create(GradleDistribution.withVersion(gradleVersion))
             .withProjectDir(testProjectDir.root)
             .withArguments('helloWorld')
             .build()
