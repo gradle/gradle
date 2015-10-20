@@ -178,6 +178,15 @@ The API of a JVM library consists of the API classes of the library, plus the AP
 
 TODO: Expand this and provide a DSL example.
 
+### Tooling API improvements
+
+#### Expose Eclipse builders and natures
+
+Clients of the Tooling API now can query the list of Eclipse builders and natures via the
+<a href="javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html">EclipseProject</a> model. The result of the `EclipseProject.getProjectNatures()`
+and `EclipseProject.getBuildCommands()` contain the builders and natures required for the target project as well as the customisation defined the
+'eclipse' <a href="dsl/org.gradle.plugins.ide.eclipse.model.EclipseProject.html">Gradle plugin configuration</a>.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
