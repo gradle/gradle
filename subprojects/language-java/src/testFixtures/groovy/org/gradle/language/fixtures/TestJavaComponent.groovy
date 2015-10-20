@@ -42,7 +42,7 @@ public class Person {
         new JvmSourceFile("compile/test", "Person2.java", '''
 package compile.test;
 
-class Person2 {
+public class Person2 {
 }
 ''')
     ]

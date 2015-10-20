@@ -20,6 +20,8 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
@@ -59,6 +61,19 @@ public class ApiStubGenerator {
      */
     public boolean belongsToAPI(byte[] clazz) {
         ClassReader cr = new ClassReader(clazz);
+        return belongsToApi(cr);
+    }
+
+    public boolean belongsToAPI(InputStream inputStream) throws IOException {
+        ClassReader cr = new ClassReader(inputStream);
+        try {
+            return belongsToApi(cr);
+        } finally {
+            inputStream.close();
+        }
+    }
+
+    private boolean belongsToApi(ClassReader cr) {
         final AtomicBoolean isAPI = new AtomicBoolean();
         cr.accept(new ClassVisitor(Opcodes.ASM5) {
             @Override
@@ -78,6 +93,19 @@ public class ApiStubGenerator {
      */
     public byte[] convertToApi(byte[] clazz) {
         ClassReader cr = new ClassReader(clazz);
+        return convertToApi(cr);
+    }
+
+    public byte[] convertToApi(InputStream inputStream) throws IOException {
+        try {
+            ClassReader cr = new ClassReader(inputStream);
+            return convertToApi(cr);
+        } finally {
+            inputStream.close();
+        }
+    }
+
+    private byte[] convertToApi(ClassReader cr) {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         cr.accept(new PublicAPIAdapter(cw), ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
         return cw.toByteArray();
@@ -222,25 +250,14 @@ public class ApiStubGenerator {
             if (isPublicAPI(access) || ("<init>".equals(name) && isInnerClass)) {
                 Set<String> invalidReferencedTypes = invalidReferencedTypes(signature == null ? desc : signature);
                 if (invalidReferencedTypes.isEmpty()) {
-                    MethodVisitor mv = new MethodVisitor(Opcodes.ASM5, cv.visitMethod(access, name, desc, signature, exceptions)) {
-                        @Override
-                        public AnnotationVisitor visitAnnotation(String annDesc, boolean visible) {
-                            checkAnnotation(prettifyMethodDescriptor(access, name, desc), annDesc);
-                            return super.visitAnnotation(desc, visible);
-                        }
-
-                        @Override
-                        public AnnotationVisitor visitParameterAnnotation(int parameter, String annDesc, boolean visible) {
-                            checkAnnotation(prettifyMethodDescriptor(access, name, desc), annDesc);
-                            return super.visitParameterAnnotation(parameter, desc, visible);
-                        }
-                    };
+                    MethodVisitor mv = createAnnotationVisitor(access, name, desc, signature, exceptions, true);
                     if ((access & ACC_ABSTRACT) != ACC_ABSTRACT) {
                         mv.visitCode();
                         mv.visitMethodInsn(INVOKESTATIC, internalClassName, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", false);
                         mv.visitInsn(ATHROW);
                         mv.visitMaxs(1, 0);
                         mv.visitEnd();
+                        return createAnnotationVisitor(access, name, desc, signature, exceptions, false);
                     }
                     return mv;
                 } else {
@@ -259,6 +276,22 @@ public class ApiStubGenerator {
                 }
             }
             return null;
+        }
+
+        private MethodVisitor createAnnotationVisitor(final int access, final String name, final String desc, final String signature, final String[] exceptions, boolean delegate) {
+            return new MethodVisitor(Opcodes.ASM5, delegate?cv.visitMethod(access, name, desc, signature, exceptions):null) {
+                @Override
+                public AnnotationVisitor visitAnnotation(String annDesc, boolean visible) {
+                    checkAnnotation(prettifyMethodDescriptor(access, name, desc), annDesc);
+                    return super.visitAnnotation(desc, visible);
+                }
+
+                @Override
+                public AnnotationVisitor visitParameterAnnotation(int parameter, String annDesc, boolean visible) {
+                    checkAnnotation(prettifyMethodDescriptor(access, name, desc), annDesc);
+                    return super.visitParameterAnnotation(parameter, desc, visible);
+                }
+            };
         }
 
         private String prettifyMethodDescriptor(int access, String name, String desc) {

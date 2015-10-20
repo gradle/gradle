@@ -16,8 +16,10 @@
 
 package org.gradle.jvm.plugins;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.*;
-import org.gradle.api.tasks.Copy;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
@@ -28,6 +30,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
+import org.gradle.language.base.internal.tasks.apigen.ApiStubGenerator;
 import org.gradle.model.*;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -37,6 +40,8 @@ import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -44,9 +49,8 @@ import java.util.Set;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
 /**
- * Base plugin for JVM component support. Applies the
- * {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}.
- * Registers the {@link JvmLibrarySpec} library type for the components container.
+ * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link JvmLibrarySpec} library type for the components
+ * container.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
@@ -166,31 +170,38 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
             String libName = binaryName.substring(0, binaryName.lastIndexOf("Jar"));
             String createApiJar = "create" + capitalize(libName + "ApiJar");
-            if (binary.getExportedPackages().isEmpty()) {
-                tasks.create(createApiJar, Copy.class, new Action<Copy>() {
-                    @Override
-                    public void execute(Copy copy) {
-                        copy.setDescription(String.format("Creates the API binary file for %s.", binary));
-                        copy.from(new File(runtimeJarDestDir, runtimeJarArchiveName));
-                        copy.setDestinationDir(binary.getApiJarFile().getParentFile());
-                        copy.dependsOn(createRuntimeJar);
-                    }
-                });
-            } else {
-                tasks.create(createApiJar, Jar.class, new Action<Jar>() {
-                    @Override
-                    public void execute(Jar jar) {
-                        jar.setDescription(String.format("Creates the API binary file for %s.", binary));
-                        jar.from(runtimeClassesDir);
-                        for (String packageName : binary.getExportedPackages()) {
-                            jar.include(packageName.replace('.', '/') + "/*");
+            final ApiStubGenerator stubGenerator = new ApiStubGenerator(ImmutableList.copyOf(binary.getExportedPackages()));
+            tasks.create(createApiJar, StubbedJar.class, new Action<StubbedJar>() {
+                @Override
+                public void execute(StubbedJar jar) {
+                    jar.setDescription(String.format("Creates the API binary file for %s.", binary));
+                    jar.from(runtimeClassesDir);
+                    jar.include(new Spec<FileTreeElement>() {
+                        @Override
+                        public boolean isSatisfiedBy(FileTreeElement element) {
+                            if (element.isDirectory()) {
+                                return true;
+                            }
+                            File file = element.getFile();
+                            if (!file.getName().endsWith(".class")) {
+                                return false;
+                            }
+                            try {
+                                // we don't want to use element#open here because it would trigger the ASM rewrite
+                                FileInputStream stream = new FileInputStream(file);
+                                return stubGenerator.belongsToAPI(stream);
+                            } catch (IOException e) {
+                                return false;
+                            }
                         }
-                        jar.setDestinationDir(binary.getApiJarFile().getParentFile());
-                        jar.setArchiveName(binary.getApiJarFile().getName());
-                        jar.dependsOn(createRuntimeJar);
-                    }
-                });
-            }
+                    });
+                    jar.setExportedPackages(binary.getExportedPackages());
+
+                    jar.setDestinationDir(binary.getApiJarFile().getParentFile());
+                    jar.setArchiveName(binary.getApiJarFile().getName());
+                    jar.dependsOn(createRuntimeJar);
+                }
+            });
         }
     }
 }

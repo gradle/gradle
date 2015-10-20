@@ -16,9 +16,11 @@
 
 package org.gradle.language.java
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
+import spock.lang.Ignore
 
+@LeaksFileHandles
 class JavaCompilationAgainstApiJarIntegrationTest extends AbstractIntegrationSpec {
     void applyJavaPlugin(File buildFile) {
         buildFile << '''
@@ -31,7 +33,12 @@ plugins {
 
     void updateFile(String path, String contents) {
         // add a small delay in order to avoid FS synchronization issues
-        sleep(500)
+        // the errors often look like this:
+        // bad class file: /home/cchampeau/DEV/PROJECTS/GITHUB/gradle/subprojects/language-java/build/tmp/test files/JavaCompilationAgainstApiJarIntegrationTest/consuming_source_is...s_changes/qgrf/build/jars/myLibApiJar/myLib.jar(com/acme/Person.class)
+        // unable to access file: corrupted zip file
+        // and the reason is unclear now.
+        // TODO: investigate this issue
+        sleep(1000)
         file(path).write(contents)
     }
 
@@ -217,7 +224,6 @@ public class PersonInternal extends Person {
         skipped(':compileMainJarMainJava')
     }
 
-    @NotYetImplemented
     def "consuming source is not recompiled when comment is changed in API class"() {
         given: "a library that declares a public API"
         applyJavaPlugin(buildFile)
@@ -285,7 +291,6 @@ public class Person {
         skipped(':compileMainJarMainJava')
     }
 
-    @NotYetImplemented
     def "consuming source is not recompiled when method body of API class changes"() {
         given: "a library that declares a public API"
         applyJavaPlugin(buildFile)
@@ -349,7 +354,8 @@ public class Person {
         executedAndNotSkipped(':compileMyLibJarMyLibJava')
         skipped(':compileMainJarMainJava')
     }
-        @NotYetImplemented
+
+    @Ignore("Requires a better definition of what ABI means")
     def "consuming source is not recompiled when overriding a method from a superclass"() {
         given: "a library that declares a public API"
         applyJavaPlugin(buildFile)
@@ -479,6 +485,156 @@ public class Person {
         and:
         executedAndNotSkipped(':compileMyLibJarMyLibJava')
         executedAndNotSkipped(':compileMainJarMainJava')
+    }
+
+    def "consuming source is not recompiled when signature of API class doesn't change"() {
+        given: "a library that declares a public API"
+        applyJavaPlugin(buildFile)
+        buildFile << '''
+model {
+    components {
+        myLib(JvmLibrarySpec) {
+            api {
+                exports 'com.acme'
+            }
+        }
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'myLib'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
+
+public class Person {
+    private String name;
+    public void sayHello() {
+        System.out.println(greeting());
+    }
+
+    private String greeting() {
+        return "Hello, "+name;
+    }
+}
+'''
+
+        and:
+        file('src/main/java/com/acme/TestApp.java') << '''package com.acme;
+
+import com.acme.Person;
+
+public class TestApp {
+    private Person person;
+}
+
+'''
+
+        expect:
+        succeeds ':myLibJar'
+
+        and:
+        succeeds ':mainJar'
+
+        when:
+        updateFile('src/myLib/java/com/acme/Person.java', '''package com.acme;
+
+public class Person {
+    private String name;
+    public void sayHello() {
+        System.out.println("Hello, " + name);
+    }
+}
+''')
+        then:
+        succeeds ':mainJar'
+
+        and:
+        executedAndNotSkipped(':compileMyLibJarMyLibJava')
+        skipped(':compileMainJarMainJava')
+    }
+
+    @Ignore("This can randomly pass, we need to make it guaranteed in stub generation")
+    def "consuming source is not recompiled when order of public methods of API class changes"() {
+        given: "a library that declares a public API"
+        applyJavaPlugin(buildFile)
+        buildFile << '''
+model {
+    components {
+        myLib(JvmLibrarySpec) {
+            api {
+                exports 'com.acme'
+            }
+        }
+        main(JvmLibrarySpec) {
+            sources {
+                java {
+                    dependencies {
+                        library 'myLib'
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+        file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
+
+public class Person {
+    private String name;
+    public void sayHello() {
+        System.out.println(greeting());
+    }
+
+    public String greeting() {
+        return "Hello, "+name;
+    }
+}
+'''
+
+        and:
+        file('src/main/java/com/acme/TestApp.java') << '''package com.acme;
+
+import com.acme.Person;
+
+public class TestApp {
+    private Person person;
+}
+
+'''
+
+        expect:
+        succeeds ':myLibJar'
+
+        and:
+        succeeds ':mainJar'
+
+        when:
+        updateFile('src/myLib/java/com/acme/Person.java', '''package com.acme;
+
+public class Person {
+    private String name;
+
+    public String greeting() {
+        return "Hello, "+name;
+    }
+
+    public void sayHello() {
+        System.out.println(greeting());
+    }
+}
+''')
+        then:
+        succeeds ':mainJar'
+
+        and:
+        executedAndNotSkipped(':compileMyLibJarMyLibJava')
+        skipped(':compileMainJarMainJava')
     }
 
 }
