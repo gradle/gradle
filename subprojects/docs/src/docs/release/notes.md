@@ -64,14 +64,8 @@ Spock:
 
             then:
             noExceptionThrown()
-            result.standardOutput.contains(':helloWorld')
             result.standardOutput.contains('Hello world!')
-            !result.standardError
-            result.tasks.collect { it.path } == [':helloWorld']
             result.taskPaths(SUCCESS) == [':helloWorld']
-            result.taskPaths(SKIPPED).empty
-            result.taskPaths(UP_TO_DATE).empty
-            result.taskPaths(FAILED).empty
 
             where:
             gradleVersion << ['2.6', '2.7']

@@ -171,7 +171,7 @@
                 </itemizedlist>
             </para>
             <para>
-                This functionality is extremely useful to verify that build logic is working as expected for across multiple versions of Gradle. The typical use case would be to test the
+                This functionality is extremely useful to verify that build logic is working as expected across multiple versions of Gradle. The typical use case would be to test the
                 cross-version compatibility of a plugin or task.
             </para>
             <para>

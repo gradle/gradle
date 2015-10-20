@@ -22,15 +22,6 @@ import spock.lang.Unroll
 
 class GradleRunnerTest extends Specification {
 
-    def "can create instance for current Gradle version"() {
-        when:
-        GradleRunner gradleRunner = GradleRunner.create(VersionBasedGradleDistribution.CURRENT)
-
-        then:
-        noExceptionThrown()
-        gradleRunner
-    }
-
     @Unroll
     def "can create instance with supported Gradle distribution type #gradleDistribution.getClass().getName()"() {
         when:

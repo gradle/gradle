@@ -16,13 +16,10 @@
 
 package org.gradle.testkit.runner;
 
-import org.gradle.util.GradleVersion;
-
 /**
  * A Gradle distribution identifiable by version, e.g. <code>"2.8"</code>.
  */
 public final class VersionBasedGradleDistribution implements GradleDistribution<String> {
-    public final static VersionBasedGradleDistribution CURRENT = new VersionBasedGradleDistribution(GradleVersion.current().getVersion());
 
     private final String gradleVersion;
 
