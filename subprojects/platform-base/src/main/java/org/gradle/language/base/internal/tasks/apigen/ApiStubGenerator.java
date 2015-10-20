@@ -249,7 +249,9 @@ public class ApiStubGenerator {
                 mv.visitEnd();
             }
             for (FieldSig field : Sets.newTreeSet(fields)) {
-                adapter.visitField(field.getAccess(), field.getName(), field.getDesc(), field.getSignature(), null);
+                FieldVisitor fieldVisitor = adapter.visitField(field.getAccess(), field.getName(), field.getDesc(), field.getSignature(), null);
+                visitAnnotationSigs(fieldVisitor, Sets.newTreeSet(field.getAnnotations()));
+                fieldVisitor.visitEnd();
             }
             for (InnerClassSig innerClass : Sets.newTreeSet(innerClasses)) {
                 adapter.visitInnerClass(innerClass.getName(), innerClass.getOuterName(), innerClass.getInnerName(), innerClass.getAccess());
@@ -267,6 +269,13 @@ public class ApiStubGenerator {
         private void visitAnnotationSigs(MethodVisitor mv, Set<AnnotationSig> annotationSigs) {
             for (AnnotationSig annotation : annotationSigs) {
                 AnnotationVisitor annotationVisitor = mv.visitAnnotation(annotation.getName(), annotation.isVisible());
+                visitAnnotationValues(annotation, annotationVisitor);
+            }
+        }
+
+        private void visitAnnotationSigs(FieldVisitor fv, Set<AnnotationSig> annotationSigs) {
+            for (AnnotationSig annotation : annotationSigs) {
+                AnnotationVisitor annotationVisitor = fv.visitAnnotation(annotation.getName(), annotation.isVisible());
                 visitAnnotationValues(annotation, annotationVisitor);
             }
         }
@@ -378,12 +387,14 @@ public class ApiStubGenerator {
                         throw new InvalidPublicAPIException(sb.toString());
                     }
                 }
-                fields.add(new FieldSig(access, name, desc, signature));
+                final FieldSig fieldSig = new FieldSig(access, name, desc, signature);
+                fields.add(fieldSig);
                 return new FieldVisitor(Opcodes.ASM5) {
                     @Override
                     public AnnotationVisitor visitAnnotation(String annotationDesc, boolean visible) {
                         checkAnnotation(fieldDescriptor, annotationDesc);
-                        return super.visitAnnotation(annotationDesc, visible);
+                        AnnotationSig sig = fieldSig.addAnnotation(annotationDesc, visible);
+                        return new SortingAnnotationVisitor(sig, super.visitAnnotation(annotationDesc, visible));
                     }
                 };
             }

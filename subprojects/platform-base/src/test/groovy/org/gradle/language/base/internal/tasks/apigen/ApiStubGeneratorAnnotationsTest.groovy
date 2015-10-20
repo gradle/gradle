@@ -88,6 +88,44 @@ public @interface Ann {}
         stubbedAnnotations[0].annotationType() == stubbedAnn
     }
 
+    void "annotations on field are retained"() {
+        given:
+        def api = toApi([
+            A  : '''public class A {
+    @Ann(a="b")
+    public String foo;
+}''',
+            Ann: '''import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD})
+public @interface Ann {
+    String a();
+}
+'''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def annotations = clazz.clazz.getDeclaredField('foo').annotations
+        def stubbed = api.loadStub(clazz)
+        def annClazz = api.classes.Ann
+        def stubbedAnn = api.loadStub(annClazz)
+        def stubbedAnnotations = stubbed.getDeclaredField('foo').annotations
+
+        then:
+        api.belongsToAPI(clazz)
+        api.belongsToAPI(annClazz)
+        annotations.size() == 1
+        annotations[0].annotationType().name == 'Ann'
+        stubbedAnnotations.size() == 1
+        stubbedAnnotations[0].annotationType() == stubbedAnn
+        stubbedAnnotations[0].a() == 'b'
+    }
+
     void "annotation value is retained"() {
         given:
         def api = toApi([

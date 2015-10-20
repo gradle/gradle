@@ -16,12 +16,16 @@
 package org.gradle.language.base.internal.tasks.apigen.abi;
 
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Lists;
+
+import java.util.List;
 
 public class FieldSig implements Comparable<FieldSig> {
     private final int access;
     private final String name;
     private final String desc;
     private final String signature;
+    private final List<AnnotationSig> annotations = Lists.newArrayList();
 
     public FieldSig(int access, String name, String desc, String signature) {
         this.access = access;
@@ -44,6 +48,16 @@ public class FieldSig implements Comparable<FieldSig> {
 
     public String getSignature() {
         return signature;
+    }
+
+    public List<AnnotationSig> getAnnotations() {
+        return annotations;
+    }
+
+    public AnnotationSig addAnnotation(String desc, boolean visible) {
+        AnnotationSig sig = new AnnotationSig(desc, visible);
+        annotations.add(sig);
+        return sig;
     }
 
     @Override
