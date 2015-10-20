@@ -15,12 +15,10 @@
  */
 package org.gradle.language.base.internal.tasks.apigen.abi;
 
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class MethodSig implements Comparable<MethodSig> {
@@ -29,6 +27,7 @@ public class MethodSig implements Comparable<MethodSig> {
     private final String desc;
     private final String signature;
     private final Set<String> exceptions;
+    private final List<AnnotationSig> annotations = Lists.newArrayList();
 
     public MethodSig(int access, String name, String desc, String signature, String[] exceptions) {
         this.access = access;
@@ -56,6 +55,16 @@ public class MethodSig implements Comparable<MethodSig> {
 
     public String getSignature() {
         return signature;
+    }
+
+    public List<AnnotationSig> getAnnotations() {
+        return annotations;
+    }
+
+    public AnnotationSig addAnnotation(String desc, boolean visible) {
+        AnnotationSig sig = new AnnotationSig(desc, visible);
+        annotations.add(sig);
+        return sig;
     }
 
     @Override

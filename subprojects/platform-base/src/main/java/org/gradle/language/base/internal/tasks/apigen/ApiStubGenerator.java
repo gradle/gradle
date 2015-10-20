@@ -28,7 +28,6 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
@@ -208,7 +207,7 @@ public class ApiStubGenerator {
                 mv.visitMaxs(1, 0);
                 mv.visitEnd();
             }
-            return null;
+            return mv;
         }
 
     }
@@ -243,10 +242,11 @@ public class ApiStubGenerator {
             super.visitEnd();
 
             adapter.visit(classSig.getVersion(), classSig.getAccess(), classSig.getName(), classSig.getSignature(), classSig.getSuperName(), classSig.getInterfaces());
-            TreeSet<AnnotationSig> annotationSigs = Sets.newTreeSet(classSig.getAnnotations());
-            visitAnnotationSigs(annotationSigs);
+            visitAnnotationSigs(Sets.newTreeSet(classSig.getAnnotations()));
             for (MethodSig method : Sets.newTreeSet(methods)) {
-                adapter.visitMethod(method.getAccess(), method.getName(), method.getDesc(), method.getSignature(), method.getExceptions().toArray(new String[method.getExceptions().size()]));
+                MethodVisitor mv = adapter.visitMethod(method.getAccess(), method.getName(), method.getDesc(), method.getSignature(), method.getExceptions().toArray(new String[method.getExceptions().size()]));
+                visitAnnotationSigs(mv, Sets.newTreeSet(method.getAnnotations()));
+                mv.visitEnd();
             }
             for (FieldSig field : Sets.newTreeSet(fields)) {
                 adapter.visitField(field.getAccess(), field.getName(), field.getDesc(), field.getSignature(), null);
@@ -260,6 +260,13 @@ public class ApiStubGenerator {
         private void visitAnnotationSigs(Set<AnnotationSig> annotationSigs) {
             for (AnnotationSig annotation : annotationSigs) {
                 AnnotationVisitor annotationVisitor = adapter.visitAnnotation(annotation.getName(), annotation.isVisible());
+                visitAnnotationValues(annotation, annotationVisitor);
+            }
+        }
+
+        private void visitAnnotationSigs(MethodVisitor mv, Set<AnnotationSig> annotationSigs) {
+            for (AnnotationSig annotation : annotationSigs) {
+                AnnotationVisitor annotationVisitor = mv.visitAnnotation(annotation.getName(), annotation.isVisible());
                 visitAnnotationValues(annotation, annotationVisitor);
             }
         }
@@ -315,8 +322,9 @@ public class ApiStubGenerator {
             if (isPublicAPI(access) || ("<init>".equals(name) && isInnerClass)) {
                 Set<String> invalidReferencedTypes = invalidReferencedTypes(signature == null ? desc : signature);
                 if (invalidReferencedTypes.isEmpty()) {
-                    methods.add(new MethodSig(access, name, desc, signature, exceptions));
-                    return createMethodAnnotationChecker(access, name, desc, signature, exceptions, true);
+                    MethodSig methodSig = new MethodSig(access, name, desc, signature, exceptions);
+                    methods.add(methodSig);
+                    return createMethodAnnotationChecker(access, name, desc, methodSig);
                 } else {
                     String methodDesc = prettifyMethodDescriptor(access, name, desc);
                     if (invalidReferencedTypes.size() == 1) {
@@ -335,12 +343,13 @@ public class ApiStubGenerator {
             return null;
         }
 
-        private MethodVisitor createMethodAnnotationChecker(final int access, final String name, final String desc, final String signature, final String[] exceptions, boolean delegate) {
+        private MethodVisitor createMethodAnnotationChecker(final int access, final String name, final String desc, final MethodSig methodSig) {
             return new MethodVisitor(Opcodes.ASM5) {
                 @Override
                 public AnnotationVisitor visitAnnotation(String annDesc, boolean visible) {
                     checkAnnotation(prettifyMethodDescriptor(access, name, desc), annDesc);
-                    return super.visitAnnotation(desc, visible);
+                    AnnotationSig sig = methodSig.addAnnotation(annDesc, visible);
+                    return new SortingAnnotationVisitor(sig, super.visitAnnotation(desc, visible));
                 }
 
                 @Override
