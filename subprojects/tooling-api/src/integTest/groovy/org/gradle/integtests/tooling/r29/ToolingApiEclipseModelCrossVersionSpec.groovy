@@ -25,7 +25,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 @ToolingApiVersion('>=2.9')
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion("<2.9")
+    @TargetGradleVersion(">=1.0-milestone-8 <2.9")
     def "older Gradle versions return default natures"() {
         given:
         file('build.gradle') << ""
