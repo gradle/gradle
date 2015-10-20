@@ -17,9 +17,6 @@
 package org.gradle.testkit.runner
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.testkit.runner.internal.InstalledGradleDistribution
-import org.gradle.testkit.runner.internal.URILocatedGradleDistribution
-import org.gradle.testkit.runner.internal.VersionBasedGradleDistribution
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
@@ -55,9 +52,9 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         result.taskPaths(FAILED).empty
 
         where:
-        gradleDistribution << [new InstalledGradleDistribution(buildContext.gradleHomeDir),
-                               new URILocatedGradleDistribution(locator.getDistributionFor(GradleVersion.version('2.7'))),
-                               new VersionBasedGradleDistribution('2.7')]
+        gradleDistribution << [GradleDistribution.fromPath(buildContext.gradleHomeDir),
+                               GradleDistribution.fromUri(locator.getDistributionFor(GradleVersion.version('2.7'))),
+                               GradleDistribution.withVersion('2.7')]
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
@@ -66,7 +63,7 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         buildFile << helloWorldTaskWithLoggerOutput()
 
         when:
-        GradleRunner gradleRunner = runner(new VersionBasedGradleDistribution(gradleVersion), 'helloWorld')
+        GradleRunner gradleRunner = runner(GradleDistribution.withVersion(gradleVersion), 'helloWorld')
         BuildResult result = gradleRunner.build()
 
         then:
@@ -99,7 +96,7 @@ class GradleRunnerProvidedDistributionIntegrationTest extends AbstractGradleRunn
         """
 
         when:
-        GradleRunner gradleRunner = runner(new VersionBasedGradleDistribution('2.5'), 'dependencies')
+        GradleRunner gradleRunner = runner(GradleDistribution.withVersion('2.5'), 'dependencies')
         BuildResult result = gradleRunner.buildAndFail()
 
         then:

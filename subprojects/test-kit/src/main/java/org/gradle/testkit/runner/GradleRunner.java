@@ -76,7 +76,7 @@ public abstract class GradleRunner {
     public static GradleRunner create() {
         GradleDistributionLocator gradleDistributionLocator = new DefaultGradleDistributionLocator(GradleRunner.class);
         final File gradleHome = gradleDistributionLocator.getGradleHome();
-        return create(new InstalledGradleDistribution(gradleHome));
+        return create(GradleDistribution.fromPath(gradleHome));
     }
 
     /**
