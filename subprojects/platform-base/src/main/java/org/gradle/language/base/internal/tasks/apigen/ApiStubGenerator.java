@@ -273,12 +273,13 @@ public class ApiStubGenerator {
         }
 
         private void visitAnnotationValue(AnnotationVisitor annotationVisitor, AnnotationValue value) {
+            String name = value.getName();
             if (value instanceof EnumAnnotationValue) {
-                annotationVisitor.visitEnum(value.getName(), ((EnumAnnotationValue) value).getDesc(), (String) ((EnumAnnotationValue) value).getValue());
+                annotationVisitor.visitEnum(name, ((EnumAnnotationValue) value).getDesc(), (String) ((EnumAnnotationValue) value).getValue());
             } else if (value instanceof SimpleAnnotationValue) {
-                annotationVisitor.visit(value.getName(), ((SimpleAnnotationValue) value).getValue());
+                annotationVisitor.visit(name, ((SimpleAnnotationValue) value).getValue());
             } else if (value instanceof ArrayAnnotationValue) {
-                AnnotationVisitor arrayVisitor = annotationVisitor.visitArray(value.getName());
+                AnnotationVisitor arrayVisitor = annotationVisitor.visitArray(name);
                 AnnotationValue[] values = ((ArrayAnnotationValue) value).getValue();
                 for (AnnotationValue annotationValue : values) {
                     visitAnnotationValue(arrayVisitor, annotationValue);
@@ -286,7 +287,7 @@ public class ApiStubGenerator {
                 arrayVisitor.visitEnd();
             } else if (value instanceof AnnotationAnnotationValue) {
                 AnnotationSig annotation = ((AnnotationAnnotationValue) value).getAnnotation();
-                AnnotationVisitor annVisitor = annotationVisitor.visitAnnotation(value.getName(), annotation.getName());
+                AnnotationVisitor annVisitor = annotationVisitor.visitAnnotation(name, annotation.getName());
                 visitAnnotationValues(annotation, annVisitor);
             }
         }
@@ -496,7 +497,7 @@ public class ApiStubGenerator {
 
             @Override
             public void visitEnum(String name, String desc, String value) {
-                values.add(new EnumAnnotationValue(name == null ? "" : name, desc, value));
+                values.add(new EnumAnnotationValue(name == null ? "value" : name, desc, value));
                 super.visitEnum(name, desc, value);
             }
 

@@ -721,6 +721,76 @@ public class Person {
         executedAndNotSkipped(':compileMainJarMainJava')
     }
 
+    def "changing order of annotations on API class should not trigger recompilation of the consuming library"() {
+        given:
+        applyJavaPlugin(buildFile)
+        mainLibraryDependingOnApi()
+        file('src/myLib/java/com/acme/Ann1.java') << '''package com.acme;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface Ann1 {
+    String value();
+}
+'''
+        file('src/myLib/java/com/acme/Ann2.java') << '''package com.acme;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface Ann2 {
+    String a();
+    String b();
+}
+'''
+        file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
+
+@Ann1("foo")
+@Ann2(a="bar", b="baz")
+public class Person {
+    private String name;
+    public void sayHello() {
+        System.out.println("Hello, "+name);
+    }
+}
+'''
+
+        and:
+        testAppDependingOnApiClass()
+
+        expect:
+        succeeds ':myLibJar'
+
+        and:
+        succeeds ':mainJar'
+
+        when:
+        updateFile('src/myLib/java/com/acme/Person.java', '''package com.acme;
+
+@Ann2(b="baz", a="bar")
+@Ann1("foo")
+public class Person {
+    private String name;
+    public void sayHello() {
+        System.out.println("Hello, "+name);
+    }
+}
+''')
+        then:
+        succeeds ':mainJar'
+
+        and:
+        executedAndNotSkipped(':compileMyLibJarMyLibJava')
+        skipped(':compileMainJarMainJava')
+    }
 
 }
