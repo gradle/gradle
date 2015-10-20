@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r29
 
-import org.apache.maven.model.Build
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion

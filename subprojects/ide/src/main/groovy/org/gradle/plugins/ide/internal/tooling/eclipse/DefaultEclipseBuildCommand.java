@@ -31,7 +31,11 @@ public class DefaultEclipseBuildCommand implements Serializable {
         this.arguments = ImmutableMap.copyOf(arguments);
     }
 
-    public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
-    public Map<String, String> getArguments() { return arguments; }
+    public Map<String, String> getArguments() {
+        return arguments;
+    }
 }
