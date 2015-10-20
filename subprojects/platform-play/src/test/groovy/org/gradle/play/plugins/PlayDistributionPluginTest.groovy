@@ -37,7 +37,6 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.jvm.tasks.Jar
 import org.gradle.model.ModelMap
-import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.BinaryTasksCollection
 import org.gradle.play.PlayApplicationBinarySpec
 import org.gradle.play.distribution.PlayDistribution
@@ -54,7 +53,7 @@ class PlayDistributionPluginTest extends Specification {
         DomainObjectSet jarTasks2 = Stub(DomainObjectSet)
         PlayApplicationBinarySpec bin1 = binary("bin1", jarTasks1)
         PlayApplicationBinarySpec bin2 = binary("bin2", jarTasks2)
-        BinaryContainer binaryContainer = binaryContainer([ bin1, bin2 ])
+        ModelMap<PlayApplicationBinarySpec> binaryContainer = binaryContainer([ bin1, bin2 ])
 
         def distributions = [ bin1: distribution(bin1), bin2: distribution(bin2) ]
         PlayDistributionContainer distributionContainer = Mock(PlayDistributionContainer) {
@@ -200,10 +199,8 @@ class PlayDistributionPluginTest extends Specification {
     }
 
     def binaryContainer(List binaries) {
-        return Stub(BinaryContainer) {
-            withType(PlayApplicationBinarySpec.class) >> Stub(NamedDomainObjectSet) {
-                iterator() >> binaries.iterator()
-            }
+        return Stub(ModelMap) {
+            iterator() >> binaries.iterator()
         }
     }
 

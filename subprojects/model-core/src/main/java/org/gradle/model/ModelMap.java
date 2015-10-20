@@ -111,6 +111,11 @@ public interface ModelMap<T> extends CollectionBuilder<T>, Iterable<T> {
     <S extends T> void create(String name, Class<S> type, Action<? super S> configAction);
 
     /**
+     * This should be internal.
+     */
+    void put(String name, T instance);
+
+    /**
      * {@inheritDoc}
      */
     @Override

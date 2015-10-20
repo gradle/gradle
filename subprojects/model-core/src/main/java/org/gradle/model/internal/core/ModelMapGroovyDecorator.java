@@ -136,6 +136,11 @@ public class ModelMapGroovyDecorator<I> extends GroovyObjectSupport implements M
     }
 
     @Override
+    public void put(String name, I instance) {
+        delegate.put(name, instance);
+    }
+
+    @Override
     public void named(String name, Action<? super I> configAction) {
         delegate.named(name, configAction);
     }

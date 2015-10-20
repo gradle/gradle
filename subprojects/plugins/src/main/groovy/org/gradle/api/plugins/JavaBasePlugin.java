@@ -402,6 +402,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         @Mutate
         void attachBridgedBinaries(BinaryContainer binaries, @Path("bridgedBinaries") BridgedBinaries bridgedBinaries) {
+            // TODO:LPTR Needs ModelMap.add() to turn BinaryContainer into a ModelMap
             binaries.addAll(bridgedBinaries.binaries);
         }
     }

@@ -35,7 +35,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.model.*;
-import org.gradle.platform.base.BinaryContainer;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.distribution.PlayDistribution;
 import org.gradle.play.distribution.PlayDistributionContainer;
@@ -80,10 +79,10 @@ public class PlayDistributionPlugin extends RuleSource {
     }
 
     @Defaults
-    void createDistributions(@Path("distributions") PlayDistributionContainer distributions, BinaryContainer binaryContainer, PlayPluginConfigurations configurations, ServiceRegistry serviceRegistry) {
+    void createDistributions(@Path("distributions") PlayDistributionContainer distributions, ModelMap<PlayApplicationBinarySpec> playBinaries, PlayPluginConfigurations configurations, ServiceRegistry serviceRegistry) {
         FileOperations fileOperations = serviceRegistry.get(FileOperations.class);
         Instantiator instantiator = serviceRegistry.get(Instantiator.class);
-        for (PlayApplicationBinarySpec binary : binaryContainer.withType(PlayApplicationBinarySpec.class)) {
+        for (PlayApplicationBinarySpec binary : playBinaries) {
             PlayDistribution distribution = instantiator.newInstance(DefaultPlayDistribution.class, binary.getName(), fileOperations.copySpec(), binary);
             distribution.setBaseName(binary.getName());
             distributions.add(distribution);
