@@ -161,7 +161,7 @@ which is represented by the `org.gradle.api.JavaVersion` enumeration. The langua
 (`JavaPluginConvention.getSourceCompatibility()`). If the source compatibility is not defined in the convention object, it falls back to the
 value of `IdeaProject.getLanguageLevel()`.
 - The definition of the `getJavaView()` method is the same as in the Eclipse story.
-- The `IdeaModule` model has a new `getEclipseJavaView()` method which returns a non-null EclipseJavaView instance if the project applies
+- The `IdeaModule` model has a new `getJavaView()` method which returns a non-null IdeaModuleJavaView instance if the project applies
 the 'java' plugin.
 
 #### Implementation
@@ -182,7 +182,7 @@ the 'java' plugin.
 - `IdeaModule.getGradleProject().getSourceLanguageLevel()` matches `idea.project.languageLevel` settings if no language level information
 can be obtained from JavaConvention
 
-#### Open questions
+#### Open questions§
 - Is it possible to convert the String version of the language level from `IdeaProject.getLanguageLevel()` to JavaVersion?
 - Should extend the DSL to enable the user to define per-module source level?
 
