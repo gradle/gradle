@@ -260,11 +260,16 @@ public class ApiStubGenerator {
         private void visitAnnotationSigs(Set<AnnotationSig> annotationSigs) {
             for (AnnotationSig annotation : annotationSigs) {
                 AnnotationVisitor annotationVisitor = adapter.visitAnnotation(annotation.getName(), annotation.isVisible());
-                Set<AnnotationValue> values = Sets.newTreeSet(annotation.getValues());
-                for (AnnotationValue value : values) {
-                    visitAnnotationValue(annotationVisitor, value);
-                }
+                visitAnnotationValues(annotation, annotationVisitor);
             }
+        }
+
+        private void visitAnnotationValues(AnnotationSig annotation, AnnotationVisitor annotationVisitor) {
+            Set<AnnotationValue> values = Sets.newTreeSet(annotation.getValues());
+            for (AnnotationValue value : values) {
+                visitAnnotationValue(annotationVisitor, value);
+            }
+            annotationVisitor.visitEnd();
         }
 
         private void visitAnnotationValue(AnnotationVisitor annotationVisitor, AnnotationValue value) {
@@ -278,6 +283,11 @@ public class ApiStubGenerator {
                 for (AnnotationValue annotationValue : values) {
                     visitAnnotationValue(arrayVisitor, annotationValue);
                 }
+                arrayVisitor.visitEnd();
+            } else if (value instanceof AnnotationAnnotationValue) {
+                AnnotationSig annotation = ((AnnotationAnnotationValue) value).getAnnotation();
+                AnnotationVisitor annVisitor = annotationVisitor.visitAnnotation(value.getName(), annotation.getName());
+                visitAnnotationValues(annotation, annVisitor);
             }
         }
 
@@ -452,14 +462,23 @@ public class ApiStubGenerator {
 
         private class SortingAnnotationVisitor extends AnnotationVisitor {
             private final AnnotationSig sig;
+            SortingAnnotationVisitor parent;
             String array;
             String subAnnName;
-            AnnotationSig subAnn;
             final List<AnnotationValue> values = Lists.newLinkedList();
 
             public SortingAnnotationVisitor(AnnotationSig parent, AnnotationVisitor av) {
                 super(Opcodes.ASM5, av);
                 this.sig = parent;
+            }
+
+            @Override
+            public AnnotationVisitor visitAnnotation(String name, String desc) {
+                AnnotationSig subAnn = new AnnotationSig(desc, true);
+                SortingAnnotationVisitor sortingAnnotationVisitor = new SortingAnnotationVisitor(subAnn, super.visitAnnotation(name, desc));
+                sortingAnnotationVisitor.subAnnName = name == null ? "value" : name;
+                sortingAnnotationVisitor.parent = this;
+                return sortingAnnotationVisitor;
             }
 
             @Override
@@ -477,22 +496,23 @@ public class ApiStubGenerator {
 
             @Override
             public void visitEnum(String name, String desc, String value) {
-                values.add(new EnumAnnotationValue(name, desc, value));
+                values.add(new EnumAnnotationValue(name == null ? "" : name, desc, value));
                 super.visitEnum(name, desc, value);
             }
 
             @Override
             public void visitEnd() {
-                if (array != null) {
+                if (subAnnName != null) {
+                    AnnotationAnnotationValue ann = new AnnotationAnnotationValue(subAnnName, sig);
+                    parent.values.add(ann);
+                    subAnnName = null;
+                } else if (array != null) {
                     ArrayAnnotationValue arr = new ArrayAnnotationValue(array, values.toArray(new AnnotationValue[values.size()]));
                     sig.getValues().add(arr);
-                } else {
-                    sig.getValues().addAll(values);
+                    array = null;
                 }
+                sig.getValues().addAll(values);
                 values.clear();
-                subAnn = null;
-                subAnnName = null;
-                array = null;
                 super.visitEnd();
             }
         }
