@@ -15,13 +15,13 @@
  */
 
 package org.gradle.integtests.tooling.fixture
-
 /**
  * A base class for all logging tooling API tests
  */
 abstract class ToolingApiLoggingSpecification extends ToolingApiSpecification {
     def setup() {
-        if (!targetDist.toolingApiLoggingInEmbeddedModeSupported) {
+        // TODO - remove special case for 2.8
+        if (!targetDist.toolingApiLoggingInEmbeddedModeSupported || targetDist.version.version == "2.8") {
             toolingApi.requireDaemons()
         }
     }
