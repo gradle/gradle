@@ -16,6 +16,7 @@
 
 package org.gradle.language.base.internal.tasks.apigen
 
+import groovy.transform.NotYetImplemented
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.objectweb.asm.*
@@ -112,7 +113,7 @@ class ApiStubGeneratorTest extends ApiStubGeneratorTestSupport {
 
     def "should remove package private method if API is defined"() {
         given:
-        def api = toApi ([''], ['A': '''public class A {
+        def api = toApi([''], ['A': '''public class A {
     void foo() {}
     static void bar() {}
 }'''])
@@ -280,10 +281,10 @@ public abstract class A {
         '1.7'  | 51
     }
 
-    void "annotations are retained"() {
+    void "annotations on class are retained"() {
         given:
         def api = toApi([
-            A: '@Ann public class A {}',
+            A  : '@Ann public class A {}',
             Ann: '''import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -310,6 +311,62 @@ public @interface Ann {}
         annotations[0].annotationType().name == 'Ann'
         stubbedAnnotations.size() == 1
         stubbedAnnotations[0].annotationType() == stubbedAnn
+    }
+
+    @NotYetImplemented
+    void "annotation arrays on class are retained"() {
+        given:
+        def api = toApi([
+            A     : '''
+            @Ann({@SubAnn("foo"), @SubAnn("bar")})
+            public class A {}''',
+            Ann   : '''import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface Ann {
+    SubAnn[] value();
+}
+''',
+            SubAnn: '''import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface SubAnn {
+    String value();
+}
+'''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def annotations = clazz.clazz.annotations
+        def annClazz = api.classes.Ann
+        def subAnnClazz = api.classes.SubAnn
+
+        def stubbedSubAnn = api.loadStub(subAnnClazz)
+        def stubbedAnn = api.loadStub(annClazz)
+        def stubbed = api.loadStub(clazz)
+        def stubbedAnnotations = stubbed.annotations
+
+        then:
+        api.belongsToAPI(clazz)
+        api.belongsToAPI(annClazz)
+        annotations.size() == 1
+        annotations[0].annotationType().name == 'Ann'
+        stubbedAnnotations.size() == 1
+        def annotation = stubbedAnnotations[0]
+        annotation.annotationType() == stubbedAnn
+        def subAnnotations = annotation.value()
+        subAnnotations.length == 2
+        subAnnotations.collect { it.value() } == ['foo', 'bar']
+
     }
 
 
@@ -396,7 +453,7 @@ public @interface Ann {}
 
     def "should remove package private field if API is declared"() {
         given:
-        def api = toApi ([''],['A': '''public class A {
+        def api = toApi([''], ['A': '''public class A {
     String foo;
 }'''])
 
@@ -472,7 +529,7 @@ public abstract class A {
 
     def "package private class does not belong to API if API declared"() {
         given:
-        def api = toApi ([''], ['A': '''class A {
+        def api = toApi([''], ['A': '''class A {
     String foo;
 }'''])
 

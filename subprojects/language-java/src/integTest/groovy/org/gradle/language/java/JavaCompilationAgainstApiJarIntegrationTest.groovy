@@ -390,7 +390,6 @@ public class Person {
         skipped(':compileMainJarMainJava')
     }
 
-    @Ignore("This can randomly pass, we need to make it guaranteed in stub generation")
     def "consuming source is not recompiled when order of public methods of API class changes"() {
         given:
         applyJavaPlugin(buildFile)
@@ -519,6 +518,59 @@ public class Person {
     public void sayHello() {
         System.out.println("Hello, "+name);
     }
+}
+''')
+        then:
+        succeeds ':mainJar'
+
+        and:
+        executedAndNotSkipped(':compileMyLibJarMyLibJava')
+        skipped(':compileMainJarMainJava')
+    }
+
+    def "changing the order of members of API class should not trigger recompilation of the consuming library"() {
+        given:
+        applyJavaPlugin(buildFile)
+        mainLibraryDependingOnApi()
+        file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
+
+public class Person {
+    public String intro;
+    public String name;
+
+    public String greeting() {
+       return intro +"," + name;
+    }
+
+    public void sayHello() {
+        System.out.println(greeting());
+    }
+}
+'''
+
+        and:
+        testAppDependingOnApiClass()
+
+        expect:
+        succeeds ':myLibJar'
+
+        and:
+        succeeds ':mainJar'
+
+        when:
+        updateFile('src/myLib/java/com/acme/Person.java', '''package com.acme;
+
+public class Person {
+    public void sayHello() {
+        System.out.println(greeting());
+    }
+
+    public String greeting() {
+       return intro + "," + name;
+    }
+
+    public String name;
+    public String intro;
 }
 ''')
         then:
