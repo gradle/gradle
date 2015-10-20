@@ -68,9 +68,55 @@ TBD
 
 TBD
 
-## Story: Add "discovered" inputs
+## Story: Add "discovered" inputs to incremental tasks
 
-TBD
+This story adds a way for an incremental task to register additional inputs once execution has started.  At the end of execution, the discovered inputs are recorded in the task's execution history.
+
+    void perform(IncrementalTaskInputs inputs) {
+      getInputs().getFiles.each { source ->
+        File discoveredInput = complicatedAnalysis(source)
+        inputs.newInput(discoveredInput)
+      }
+      if (inputs.incremental) {
+        inputs.outOfDate { 
+          /* do stuff */ 
+        }
+      }
+    }
+
+### Implementation
+
+- Add `void newInput(File)` to IncrementalTaskInputs
+- Add `Set<File> getDiscoveredInputs()` to IncrementalTaskInputsInternal
+- StatefulIncrementalTaskInputs will implement `newInput` and `getDiscoveredInputs` to capture discovered inputs.
+- Add new getDiscoveredInputFilesSnapshot/setDiscoveredInputFilesSnapshot methods to TaskExecution and LazyTaskExecution to record a separate discovered FileCollectionSnapshot. This means a task has 3 snapshots (inputs, outputs, discovered inputs).
+- Update LazyTaskExecution and CacheBackedTaskHistoryRepository to handle the new discovered inputs snapshot. Maybe there's a higher level extraction that could be done here? The code for inputs/outputs/discovered are all similar.
+- Add new DiscoveredInputFilesStateChangeRule that behaves identical to InputFilesStateChangeRule, except there is no input snapshot. Instead, the input snapshot is calculated by getting the hash of all files in the previousExecution's DiscoveredInputFilesSnapshot.
+- DiscoveredInputFilesStateChangeRule's snapshotAfterTask action is to take the snapshot of all discovered files and add it to the current execution.
+- TaskUpToDateState will use DiscoveredInputFilesStateChangeRule to create another source of TaskStateChanges.  This ties discovered inputs into the up-to-date checks.
+- DefaultTaskArtifactStateRepository will be responsible for tying the discovered inputs from IncrementalTaskInputs to the discovered input snapshotting in snapshotAfterTask().
+
+### Test coverage
+
+- Discovered inputs must be Files (not directories).
+- On the first build, no discovered inputs are known, so discovered inputs are not needed for up-to-date checks.
+- On the second build, discovered inputs from previous build for a task are checked for up-to-date-ness.
+- When a discovered input is modified, the task is out of date on the next build.
+- When a discovered input is deleted, the task is out of date on the next build.
+- Files added to the same directory as discovered inputs do not cause the task to be out of date.
+- The set of discovered inputs after the task executes represents the inputs discovered for that execution, so if on build#1 discovered inputs are A, B, C and on build#2 discovered inputs are D, E, F.  Discovered inputs after #2 should be D, E, F (not a combination).
+- A task that is up-to-date should not lose its discovered inputs. Following an up-to-date build, a change in a discovered inputs should cause a task to be out of date.  i.e., A task that discovers inputs A, B, C in build#1, is up-to-date in build #2, should still have discovered inputs A, B, C in build#3.
+
+### Open issues
+
+- If a discovered input is missing when it is discovered, should we treat that as a missing file input or a fatal problem?
+- It looks straightforward to not "stream" the hashes into the discovered snapshot and just create it all at once (like the other snapshots do).
+- It would be nice to perform discovery incrementally.
+- The previous discovered files snapshot can be thrown away as soon as we know we'll be executing.
+
+## Story: Use source #include information as discovered inputs 
+
+Based on IncrementalCompiler's #include extractor, add header files as discovered inputs to compile tasks.
 
 # Unprioritized
 
