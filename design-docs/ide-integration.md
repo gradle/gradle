@@ -117,7 +117,7 @@ applies the 'java' plugin.
 - Update DefaultEclipseProject to implement new `getEclipseJavaView()` method
 - Update `EclipseModelBuilder` to set values for the `EclipseJavaView`
     - return `null` if the project doesn't apply the 'java' plug-in
-    - otherwise configure the it as follows
+    - otherwise configure it as follows
         - the `getJavaView().getSourceLanguageLevel()` has the same result as `GradleProject.getJavaView()`
         - the `getSourceLanguageLevel()` returns the value of `eclipse.jdt.sourceCompatibility` if defined,
           otherwise returns the result of`getJavaView().getSourceLanguageLevel()`
@@ -137,45 +137,60 @@ applies the 'java' plugin.
 
 ### Story - Expose Java source level for Java projects to IDEA
 
+This is the IDEA-counterpart of the _Expose Java source level for Java projects to Eclipse_ story. The goal is to expose the source
+language levels for each module in a project.
+
 #### Estimate
 
 - 2 days
 
 #### The API
 
+    interface IdeaModuleJavaView {
+        JavaView getJavaView()
+        JavaVersion getSourceLanguageLevel()
+    }
+
     interface IdeaModule {
+        ...
         IdeaModuleJavaView getJavaView()
     }
 
-    interface IdeaModuleJavaView {
-        JavaView getJavaView()
-        JavaCompatibilityVersion getSourceLanguageLevel()
-    }
+- The `IdeaModuleJavaView` interface describes Java-specific details for a module. It defines only one attribute, the `sourceLanguageLevel`
+which is represented by the `org.gradle.api.JavaVersion` enumeration. The language level is returned from Java plugin convention object.
+(`JavaPluginConvention.getSourceCompatibility()`). If the source compatibility is not defined in the convention object, it falls back to the
+value of `IdeaProject.getLanguageLevel()`.
+- The definition of the `getJavaView()` method is the same as in the Eclipse story.
+- The `IdeaModule` model has a new `getEclipseJavaView()` method which returns a non-null EclipseJavaView instance if the project applies
+the 'java' plugin.
 
 #### Implementation
-
-- Add `IdeaModuleJavaView` with `getSourceLanguageLevel()` method
-
-- Update DefaultModuleProject to implement new `getJavaView()` method
-- Update `IdeaModelBuilder` to set values for `SourceLanguageLevel`
-    - configure `IdeaModuleJavaView` and `JavaView` per project if project is java project
-        - in `IdeaModule.getJavaView().getSourceLanguageLevel()`
-            - matching inherited `idea.project.languageLevel` from
-        - in `IdeaModule.getGradleProject().getJavaView().getSourceLanguageLevel()`
-            - matching `Project.sourceCompatibility` (mixedin via JavaConvention)
-    - return `null` for `IdeaModule.getJavaView()` and `IdeaModule.getJavaView()` if project not a java project
+- Add the `IdeaModuleJavaView` interface with the two methods defined
+- Extend `IdeaModule` model to expose `IdeaModuleJavaView`
+- Update `DefaultIdeaModule` to implement new `getIdeaModuleJavaView()` method
+- Update `IdeaModelBuilder` to set values the Java view
+    - return `null` if not a Java module
+    - otherwise configure it as follows
+        - the `getJavaView().getSourceLanguageLevel()` has the same result as `GradleProject.getJavaView()`
+        - the `getSourceLanguageLevel()` returns  result of`getJavaView().getSourceLanguageLevel()` or if not defined,
+          `IdeaProject.getLanguageLevel()`.
 
 #### Test coverage
-
 - `IdeaModule.getJavaView()` returns null for non java projects
 - `IdeaModule.getGradleProject().getJavaView()` returns null for non java projects
 - `IdeaModule.getGradleProject().getSourceLanguageLevel()` matches sourceCompatibility property mixedin from JavaConvention
-- `IdeaModule.getJavaView().getSourceLanguageLevel()` respects customization via `idea.project.languageLevel`
+- `IdeaModule.getGradleProject().getSourceLanguageLevel()` matches `idea.project.languageLevel` settings if no language level information
+can be obtained from JavaConvention
+
+#### Open questions
+- Is it possible to convert the String version of the language level from `IdeaProject.getLanguageLevel()` to JavaVersion?
+- Should extend the DSL to enable the user to define per-module source level?
 
 
 ### Story - Expose target JDK for Java projects to Eclipse
 
 #### Estimate
+        JavaVersion getSourceLanguageLevel()
 
 - 3 days
 
