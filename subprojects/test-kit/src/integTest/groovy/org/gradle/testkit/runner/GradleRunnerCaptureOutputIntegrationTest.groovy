@@ -23,8 +23,8 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
 
     def "can specify System.out and System.err as output"() {
         given:
-        Writer standardOutput = new BufferedWriter(new OutputStreamWriter(System.out))
-        Writer standardError = new BufferedWriter(new OutputStreamWriter(System.err))
+        Writer standardOutput = new OutputStreamWriter(System.out)
+        Writer standardError = new OutputStreamWriter(System.err)
         buildFile << helloWorldWithStandardOutputAndError()
 
         when:

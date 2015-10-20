@@ -248,8 +248,10 @@ public abstract class GradleRunner {
     /**
      * Specifies the writer used for capturing standard output during test execution. The provided writer may not be null.
      * <p>
-     * If no writer is specified, the standard output is only captured as part of the build result.
-     * If a writer is specified, the standard output captures the same output as the build result.
+     * By default, the standard output is only captured as part of the build result.
+     * When a writer is specified, the provided writer captures the same standard output as the build result.
+     * <p>
+     * The provided writer is not closed automatically after test execution.
      *
      * @param standardOutput the writer used to capture standard output
      * @return this
@@ -260,8 +262,10 @@ public abstract class GradleRunner {
     /**
      * Specifies the writer used for capturing standard error during test execution. The provided writer may not be null.
      * <p>
-     * If no writer is specified, the standard error is only captured as part of the build result.
-     * If a writer is specified, the standard error captures the same output as the build result.
+     * By default, the standard error is only captured as part of the build result.
+     * When a writer is specified, the provided writer captures the same standard error as the build result.
+     * <p>
+     * The provided writer is not closed automatically after test execution.
      *
      * @param standardError the writer used to capture standard error
      * @return this

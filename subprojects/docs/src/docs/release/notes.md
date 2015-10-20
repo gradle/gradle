@@ -72,9 +72,9 @@ Spock:
         }
     }
 
-### Providing Writers for capturing standard output an error during test execution
+### Providing Writers for capturing standard output and error during test execution
 
-Any messages emitted to standard output and error during test execution are captured in the `BuildResult`. There's not direct output of these streams to the console. This makes
+Any messages emitted to standard output and error during test execution are captured in the `BuildResult`. There's no direct output of these streams to the console. This makes
 diagnosing the root cause of a failed test much harder. Users would need to print out the standard output or error field of the `BuildResult` to identify the issue.
 
 With this release, the `GradleRunner` API exposes methods for specifying `Writer` instances for debugging or purposes of further processing.
@@ -98,8 +98,8 @@ The following example directly prints out standard output and error messages to 
             def result = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
                 .withArguments('printOutput')
-                .withStandardOutput(new BufferedWriter(new OutputStreamWriter(System.out)))
-                .withStandardError(new BufferedWriter(new OutputStreamWriter(System.err)))
+                .withStandardOutput(new OutputStreamWriter(System.out))
+                .withStandardError(new OutputStreamWriter(System.err))
                 .build()
 
             then:

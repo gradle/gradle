@@ -19,7 +19,6 @@ package org.gradle.testkit.runner.internal;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
-import java.nio.charset.Charset;
 
 public class TeeOutputStreamWriter extends OutputStream {
     private final OutputStream out;
@@ -38,21 +37,21 @@ public class TeeOutputStreamWriter extends OutputStream {
     }
 
     @Override
-    public void write(int b) throws IOException {
+    public synchronized void write(int b) throws IOException {
         out.write(b);
         tee.write(b);
     }
 
     @Override
-    public void write(byte[] b) throws IOException {
+    public synchronized void write(byte[] b) throws IOException {
         out.write(b);
-        tee.write(new String(b, Charset.defaultCharset()));
+        tee.write(new String(b));
     }
 
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+    public synchronized void write(byte[] b, int off, int len) throws IOException {
         out.write(b, off, len);
-        tee.write(new String(b, Charset.defaultCharset()), off, len);
+        tee.write(new String(b), off, len);
     }
 
     @Override
@@ -64,6 +63,7 @@ public class TeeOutputStreamWriter extends OutputStream {
     @Override
     public void close() throws IOException {
         out.close();
-        tee.close();
+        // we do not close the provided writer
+        // it's going to be the end user's responsibility
     }
 }
