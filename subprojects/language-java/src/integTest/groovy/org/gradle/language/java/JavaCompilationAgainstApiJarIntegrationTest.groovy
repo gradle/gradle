@@ -867,6 +867,81 @@ public class Person {
         skipped(':compileMainJarMainJava')
     }
 
+    def "changing order of annotations on API method parameter should not trigger recompilation of the consuming library"() {
+        given:
+        applyJavaPlugin(buildFile)
+        mainLibraryDependingOnApi()
+        file('src/myLib/java/com/acme/Ann1.java') << '''package com.acme;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.PARAMETER})
+public @interface Ann1 {
+    String value();
+}
+'''
+        file('src/myLib/java/com/acme/Ann2.java') << '''package com.acme;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.PARAMETER})
+public @interface Ann2 {
+    String a();
+    String b();
+}
+'''
+        file('src/myLib/java/com/acme/Person.java') << '''package com.acme;
+
+public class Person {
+    private String name;
+
+    public void sayHello(
+       @Ann1("foo")
+       @Ann2(a="bar", b="baz") String intro) {
+          System.out.println(intro + ", "+name);
+    }
+}
+'''
+
+        and:
+        testAppDependingOnApiClass()
+
+        expect:
+        succeeds ':myLibJar'
+
+        and:
+        succeeds ':mainJar'
+
+        when:
+        updateFile('src/myLib/java/com/acme/Person.java', '''package com.acme;
+
+public class Person {
+    private String name;
+
+    public void sayHello(
+       @Ann2(b="baz", a="bar")
+       @Ann1("foo")
+       String intro) {
+          System.out.println(intro + ", "+name);
+    }
+}
+''')
+        then:
+        succeeds ':mainJar'
+
+        and:
+        executedAndNotSkipped(':compileMyLibJarMyLibJava')
+        skipped(':compileMainJarMainJava')
+    }
+
     def "changing order of annotations on API field should not trigger recompilation of the consuming library"() {
         given:
         applyJavaPlugin(buildFile)

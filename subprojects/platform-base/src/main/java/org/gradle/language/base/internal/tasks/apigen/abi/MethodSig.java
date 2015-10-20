@@ -28,6 +28,7 @@ public class MethodSig implements Comparable<MethodSig> {
     private final String signature;
     private final Set<String> exceptions;
     private final List<AnnotationSig> annotations = Lists.newArrayList();
+    private final List<AnnotationSig> parameterAnnotations = Lists.newArrayList();
 
     public MethodSig(int access, String name, String desc, String signature, String[] exceptions) {
         this.access = access;
@@ -61,9 +62,18 @@ public class MethodSig implements Comparable<MethodSig> {
         return annotations;
     }
 
+    public List<AnnotationSig> getParameterAnnotations() {
+        return parameterAnnotations;
+    }
+
     public AnnotationSig addAnnotation(String desc, boolean visible) {
         AnnotationSig sig = new AnnotationSig(desc, visible);
         annotations.add(sig);
+        return sig;
+    }
+    public ParameterAnnotationSig addParameterAnnotation(int param, String desc, boolean visible) {
+        ParameterAnnotationSig sig = new ParameterAnnotationSig(desc, visible, param);
+        parameterAnnotations.add(sig);
         return sig;
     }
 

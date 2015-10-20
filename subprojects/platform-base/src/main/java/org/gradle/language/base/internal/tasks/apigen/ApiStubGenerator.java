@@ -246,6 +246,7 @@ public class ApiStubGenerator {
             for (MethodSig method : Sets.newTreeSet(methods)) {
                 MethodVisitor mv = adapter.visitMethod(method.getAccess(), method.getName(), method.getDesc(), method.getSignature(), method.getExceptions().toArray(new String[method.getExceptions().size()]));
                 visitAnnotationSigs(mv, Sets.newTreeSet(method.getAnnotations()));
+                visitAnnotationSigs(mv, Sets.newTreeSet(method.getParameterAnnotations()));
                 mv.visitEnd();
             }
             for (FieldSig field : Sets.newTreeSet(fields)) {
@@ -268,7 +269,12 @@ public class ApiStubGenerator {
 
         private void visitAnnotationSigs(MethodVisitor mv, Set<AnnotationSig> annotationSigs) {
             for (AnnotationSig annotation : annotationSigs) {
-                AnnotationVisitor annotationVisitor = mv.visitAnnotation(annotation.getName(), annotation.isVisible());
+                AnnotationVisitor annotationVisitor;
+                if (annotation instanceof ParameterAnnotationSig) {
+                    annotationVisitor = mv.visitParameterAnnotation(((ParameterAnnotationSig) annotation).getParameter(), annotation.getName(), annotation.isVisible());
+                } else {
+                    annotationVisitor = mv.visitAnnotation(annotation.getName(), annotation.isVisible());
+                }
                 visitAnnotationValues(annotation, annotationVisitor);
             }
         }
@@ -364,7 +370,8 @@ public class ApiStubGenerator {
                 @Override
                 public AnnotationVisitor visitParameterAnnotation(int parameter, String annDesc, boolean visible) {
                     checkAnnotation(prettifyMethodDescriptor(access, name, desc), annDesc);
-                    return super.visitParameterAnnotation(parameter, desc, visible);
+                    ParameterAnnotationSig pSig = methodSig.addParameterAnnotation(parameter, annDesc, visible);
+                    return new SortingAnnotationVisitor(pSig, super.visitParameterAnnotation(parameter, desc, visible));
                 }
             };
         }
