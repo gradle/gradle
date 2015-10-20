@@ -113,6 +113,7 @@ This story adds a way for an incremental task to register additional inputs once
 - It looks straightforward to not "stream" the hashes into the discovered snapshot and just create it all at once (like the other snapshots do).
 - It would be nice to perform discovery incrementally.
 - The previous discovered files snapshot can be thrown away as soon as we know we'll be executing.
+- Discovered inputs do not work with continuous build.
 
 ## Story: Use source #include information as discovered inputs 
 
