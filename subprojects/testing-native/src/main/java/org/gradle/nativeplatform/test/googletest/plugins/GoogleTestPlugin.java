@@ -36,6 +36,7 @@ import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteBinary;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteSpec;
+import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.BinaryType;
@@ -116,7 +117,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
                         testSuiteSpec.getBinaries().create(namingScheme.getLifecycleTaskName(), GoogleTestTestSuiteBinarySpec.class, new Action<GoogleTestTestSuiteBinarySpec>() {
                             @Override
                             public void execute(GoogleTestTestSuiteBinarySpec binary) {
-                                DefaultGoogleTestTestSuiteBinary testBinary = (DefaultGoogleTestTestSuiteBinary) binary;
+                                NativeTestSuiteBinarySpecInternal testBinary = (NativeTestSuiteBinarySpecInternal) binary;
                                 testBinary.setTestedBinary((NativeBinarySpecInternal) testedBinary);
                                 testBinary.setNamingScheme(namingScheme);
                                 testBinary.setResolver(resolver);
@@ -129,7 +130,7 @@ public class GoogleTestPlugin implements Plugin<Project> {
             });
         }
 
-        private void configure(DefaultGoogleTestTestSuiteBinary testBinary, File buildDir) {
+        private void configure(NativeTestSuiteBinarySpecInternal testBinary, File buildDir) {
             BinaryNamingScheme namingScheme = testBinary.getNamingScheme();
             PlatformToolProvider toolProvider = testBinary.getPlatformToolProvider();
             File binaryOutputDir = new File(new File(buildDir, "binaries"), namingScheme.getOutputDirectoryBase());
