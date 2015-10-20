@@ -136,8 +136,6 @@ creation of a static initializer that we want to avoid).
 - Consuming source is recompiled when signature of public API method is changed.
 - Adding a private field to an API class should not trigger recompilation of the consuming library
 - Adding a private method to an API class should not trigger recompilation of the consuming library
-- Updating the method body of an API class should not trigger recompilation of the consuming library
-- Changing an API method signature of an API class should trigger recompilation of the consuming library
 - Changing an API field of an API class should trigger recompilation of the consuming library
 - Changing the superclass or interfaces of an API class should trigger recompilation of the consuming library
 
