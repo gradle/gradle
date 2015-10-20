@@ -25,21 +25,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 @ToolingApiVersion('>=2.9')
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=1.0-milestone-8 <2.9")
-    def "older Gradle versions return default natures"() {
-        given:
-        file('build.gradle') << ""
-        file('settings.gradle') << "rootProject.name = 'root'"
-
-        when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
-        def natures = rootProject.getProjectNatures(['default.nature'])
-
-        then:
-        natures.size() == 1
-        natures[0] == 'default.nature'
-    }
-
     @TargetGradleVersion(">=2.9")
     def "empty project returns empty nature list"() {
         given:
