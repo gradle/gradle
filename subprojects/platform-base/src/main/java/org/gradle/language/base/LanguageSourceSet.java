@@ -42,4 +42,14 @@ public interface LanguageSourceSet extends Named, BuildableModelElement {
     void source(Action<? super SourceDirectorySet> config);
 
     void generatedBy(Task generatorTask);
+
+    /**
+     * A convention representing the typical location of the sources. Typically this is relative to a projects baseDir.
+     * e.g. for a java {@link LanguageSourceSet} this would be "src/main"
+     */
+    @Nullable
+    String getSourceDirConvention();
+
+    @Nullable
+    String getParentName();
 }

@@ -16,15 +16,18 @@
 
 package org.gradle.language.base.internal.model;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,13 +40,19 @@ public class FunctionalSourceSetNodeInitializer implements NodeInitializer {
 
     @Override
     public List<? extends ModelReference<?>> getInputs() {
-        return Collections.singletonList(ModelReference.of(ProjectSourceSet.class));
+        return Lists.<ModelReference<?>>newArrayList(
+            ModelReference.of(ProjectSourceSet.class),
+            ModelReference.of(LanguageRegistry.class),
+            ModelReference.of("baseSourceSetDirectory", File.class)
+        );
     }
 
     @Override
     public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
         ProjectSourceSet projectSourceSet = (ProjectSourceSet) inputs.get(0).getInstance();
-        DefaultFunctionalSourceSet defaultFunctionalSourceSet = new DefaultFunctionalSourceSet(modelNode.getPath().getName(), instantiator, projectSourceSet);
+        LanguageRegistry languageRegistry = (LanguageRegistry) inputs.get(1).getInstance();
+        File baseDir = (File) inputs.get(2).getInstance();
+        DefaultFunctionalSourceSet defaultFunctionalSourceSet = new DefaultFunctionalSourceSet(modelNode.getPath().getName(), instantiator, projectSourceSet, languageRegistry, baseDir);
         modelNode.setPrivateData(DefaultFunctionalSourceSet.class, defaultFunctionalSourceSet);
     }
 

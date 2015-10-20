@@ -15,9 +15,10 @@
  */
 
 package org.gradle.language.base
-
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -40,7 +41,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can create a top level functional source set with a rule"() {
-        buildFile << """
+        buildScript """
         apply plugin: 'language-base'
 
         class Rules extends RuleSource {
@@ -173,4 +174,87 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         buildType.testSources."0".@nodeValue[0] == "source set '0'"
         buildType.testSources."0".@creator[0] == 'Rules#addSources > create()'
     }
+
+    def "can register a language source set"() {
+        buildScript """
+        apply plugin: 'language-base'
+
+        ${registerJavaLanguage()}
+
+        class Rules extends RuleSource {
+            @Model
+            void functionalSources(FunctionalSourceSet sources) {
+                sources.create("javaB", JavaSourceSet)
+            }
+        }
+        apply plugin: Rules
+        """
+        expect:
+        succeeds "model"
+    }
+
+    def "can register a language source set via the model dsl"() {
+        buildFile << """
+        ${registerJavaLanguage()}
+
+        model {
+            functionalSources(FunctionalSourceSet){
+                myJavaSourceSet(JavaSourceSet)
+            }
+        }
+        """
+
+        when:
+        succeeds "model"
+
+        then:
+        def modelNode = ModelReportOutput.from(output).modelNode
+        modelNode.functionalSources.@nodeValue[0] == "source set 'functionalSources'"
+        modelNode.sources.@nodeValue[0] == "[Java source 'functionalSources:myJavaSourceSet']"
+    }
+
+    def "a LSS is initialized with a default source set"() {
+        buildFile << """
+        ${registerJavaLanguage()}
+
+        model {
+            functionalSources(FunctionalSourceSet){
+                myJavaSourceSet(JavaSourceSet)
+            }
+        }
+
+        class Rules extends RuleSource {
+            @Mutate void printTask(ModelMap<Task> tasks, FunctionalSourceSet fss) {
+                tasks.create("verify") {
+                  doLast {
+                    assert fss.getByName("myJavaSourceSet").source.getSrcDirs()[0].path == '${normaliseFileSeparators(testDirectory.path + "/src/main/functionalSources/myJavaSourceSet")}'
+                  }
+              }
+            }
+
+        }
+        apply plugin: Rules
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    private String registerJavaLanguage() {
+        return """
+            import org.gradle.language.java.internal.DefaultJavaLanguageSourceSet
+
+            class JavaLangRuleSource extends RuleSource {
+
+            @LanguageType
+            void registerLanguage(LanguageTypeBuilder<JavaSourceSet> builder) {
+                builder.setLanguageName("java");
+                builder.defaultImplementation(DefaultJavaLanguageSourceSet.class);
+            }
+
+        }
+        apply plugin: JavaLangRuleSource
+        """
+    }
+
 }

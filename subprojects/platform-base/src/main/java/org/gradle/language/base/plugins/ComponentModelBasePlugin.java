@@ -121,11 +121,6 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Service
-        LanguageRegistry languages() {
-            return new DefaultLanguageRegistry();
-        }
-
-        @Service
         LanguageTransformContainer languageTransforms() {
             return new DefaultLanguageTransformContainer();
         }

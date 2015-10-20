@@ -30,6 +30,8 @@ import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
 import org.gradle.language.base.internal.model.ComponentSpecInitializer;
 import org.gradle.language.base.internal.model.FunctionalSourceSetNodeInitializer;
+import org.gradle.language.base.internal.registry.DefaultLanguageRegistry;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.model.*;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
@@ -48,6 +50,7 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryContainer;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -126,7 +129,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-
         @Service
         ModelSchemaStore schemaStore(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ModelSchemaStore.class);
@@ -158,6 +160,16 @@ public class LanguageBasePlugin implements Plugin<Project> {
         @Model
         ProjectSourceSet sources(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(Instantiator.class).newInstance(DefaultProjectSourceSet.class);
+        }
+
+        @Service
+        LanguageRegistry languages() {
+            return new DefaultLanguageRegistry();
+        }
+
+        @Service
+        File baseSourceSetDirectory(){
+            return new File(".");
         }
 
         @Mutate

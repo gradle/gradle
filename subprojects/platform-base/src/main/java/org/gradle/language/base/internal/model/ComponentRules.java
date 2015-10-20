@@ -17,9 +17,6 @@
 package org.gradle.language.base.internal.model;
 
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.registry.LanguageRegistration;
 import org.gradle.language.base.internal.registry.LanguageRegistry;
@@ -43,11 +40,6 @@ public class ComponentRules extends RuleSource {
         }
     }
 
-    @Defaults
-    void applyDefaultSourceConventions(final ComponentSpec component) {
-        component.getSources().afterEach(new AddDefaultSourceLocation(component.getName()));
-    }
-
     // Currently needs to be a separate action since can't have parameterized utility methods in a RuleSource
     private static class ComponentSourcesRegistrationAction<U extends LanguageSourceSet> implements Action<ComponentSpecInternal> {
         private final LanguageRegistration<U> languageRegistration;
@@ -63,14 +55,7 @@ public class ComponentRules extends RuleSource {
         }
 
         public void execute(ComponentSpecInternal componentSpecInternal) {
-            registerLanguageSourceSetFactory(componentSpecInternal);
             createDefaultSourceSetForComponents(componentSpecInternal);
-        }
-
-        void registerLanguageSourceSetFactory(final ComponentSpecInternal component) {
-            final FunctionalSourceSet functionalSourceSet = component.getFunctionalSourceSet();
-            NamedDomainObjectFactory<? extends U> sourceSetFactory = languageRegistration.getSourceSetFactory(functionalSourceSet.getName());
-            functionalSourceSet.registerFactory(languageRegistration.getSourceSetType(), sourceSetFactory);
         }
 
         // If there is a transform for the language into one of the component inputs, add a default source set
@@ -81,23 +66,6 @@ public class ComponentRules extends RuleSource {
                     component.getSources().create(languageRegistration.getName(), languageRegistration.getSourceSetType());
                     return;
                 }
-            }
-        }
-    }
-
-    private static class AddDefaultSourceLocation implements Action<LanguageSourceSet> {
-        private String name;
-
-        public AddDefaultSourceLocation(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public void execute(LanguageSourceSet languageSourceSet) {
-            // Only apply default locations when none explicitly configured
-            final SourceDirectorySet source = languageSourceSet.getSource();
-            if (source.getSrcDirs().isEmpty()) {
-                source.srcDir(String.format("src/%s/%s", name, languageSourceSet.getName()));
             }
         }
     }

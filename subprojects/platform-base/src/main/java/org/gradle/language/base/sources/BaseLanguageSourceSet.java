@@ -51,6 +51,7 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
         return fullName;
     }
 
+    @Override
     public String getParentName() {
         return parentName;
     }
@@ -113,6 +114,12 @@ public abstract class BaseLanguageSourceSet extends AbstractBuildableModelElemen
             nextSourceSetInfo.set(null);
         }
     }
+
+    @Override
+    public String getSourceDirConvention() {
+        return "src";
+    }
+
 
     protected BaseLanguageSourceSet() {
         this(nextSourceSetInfo.get());

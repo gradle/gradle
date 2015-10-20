@@ -28,6 +28,7 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.model.ModelMap;
 import org.gradle.model.collection.internal.BridgedCollections;
 import org.gradle.model.collection.internal.ChildNodeInitializerStrategyAccessors;
@@ -44,6 +45,7 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.util.DeprecationLogger;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -71,9 +73,7 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
                 @Override
                 public <S extends LanguageSourceSet> S create(String name, Class<S> type) {
                     FunctionalSourceSet sourceSet = modelNode.getPrivateData(FunctionalSourceSet.class);
-                    S s = sourceSet.getEntityInstantiator().create(name, type);
-                    sourceSet.add(s);
-                    return s;
+                    return sourceSet.create(name, type);
                 }
             };
         }
@@ -88,11 +88,11 @@ public abstract class BaseComponentSpec implements ComponentSpecInternal {
     private final MutableModelNode sources;
     private MutableModelNode modelNode;
 
-    public static <T extends BaseComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, MutableModelNode modelNode, ProjectSourceSet allSourceSets, Instantiator instantiator) {
+    public static <T extends BaseComponentSpec> T create(Class<T> type, ComponentSpecIdentifier identifier, MutableModelNode modelNode, ProjectSourceSet allSourceSets, Instantiator instantiator, LanguageRegistry languageRegistry, File baseDir) {
         if (type.equals(BaseComponentSpec.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseComponentSpec.");
         }
-        FunctionalSourceSet mainSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet.class, identifier.getName(), instantiator, allSourceSets);
+        FunctionalSourceSet mainSourceSet = instantiator.newInstance(DefaultFunctionalSourceSet.class, identifier.getName(), instantiator, allSourceSets, languageRegistry, baseDir);
         nextComponentInfo.set(new ComponentInfo(identifier, modelNode, type.getSimpleName(), mainSourceSet, instantiator));
         try {
             try {

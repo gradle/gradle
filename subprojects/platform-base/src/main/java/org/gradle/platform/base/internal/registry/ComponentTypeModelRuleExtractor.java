@@ -23,6 +23,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.util.BiFunction;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.registry.LanguageRegistry;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -41,6 +42,7 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.internal.builder.TypeBuilderFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -80,7 +82,12 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
         }
 
         private RegistrationAction(ModelType<S> publicType, ModelType<? extends BaseComponentSpec> implementationType, Set<Class<?>> internalViews, ModelRuleDescriptor descriptor) {
-            super(ModelReference.of(ComponentSpecFactory.class), descriptor, ModelReference.of("serviceRegistry", ServiceRegistry.class), ModelReference.of("projectIdentifier", ProjectIdentifier.class), ModelReference.of("sources", ProjectSourceSet.class));
+            super(ModelReference.of(ComponentSpecFactory.class), descriptor,
+                ModelReference.of("serviceRegistry", ServiceRegistry.class),
+                ModelReference.of("projectIdentifier", ProjectIdentifier.class),
+                ModelReference.of("sources", ProjectSourceSet.class),
+                ModelReference.of("languages", LanguageRegistry.class),
+                ModelReference.of("baseSourceSetDirectory", File.class));
             this.publicType = publicType;
             this.implementationType = implementationType;
             this.internalViews = internalViews;
@@ -94,11 +101,14 @@ public class ComponentTypeModelRuleExtractor extends TypeModelRuleExtractor<Comp
                 final Instantiator instantiator = serviceRegistry.get(Instantiator.class);
                 final ProjectIdentifier projectIdentifier = ModelViews.assertType(inputs.get(1), ModelType.of(ProjectIdentifier.class)).getInstance();
                 final ProjectSourceSet projectSourceSet = ModelViews.assertType(inputs.get(2), ModelType.of(ProjectSourceSet.class)).getInstance();
+                final LanguageRegistry languageRegistry = ModelViews.assertType(inputs.get(3), ModelType.of(LanguageRegistry.class)).getInstance();
+                final File baseDir = (File) inputs.get(4).getInstance();
+
                 registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new BiFunction<S, String, MutableModelNode>() {
                     @Override
                     public S apply(String name, MutableModelNode modelNode1) {
                         ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                        return Cast.uncheckedCast(BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode1, projectSourceSet, instantiator));
+                        return Cast.uncheckedCast(BaseComponentSpec.create(implementationType.getConcreteClass(), id, modelNode1, projectSourceSet, instantiator, languageRegistry, baseDir));
                     }
                 });
                 if (COMPONENT_SPEC_INTERNAL_MODEL_TYPE.isAssignableFrom(implementationType)) {
