@@ -40,6 +40,22 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
         result.standardError.contains('Some failure')
     }
 
+    def "can forward test execution output to System.out and System.err"() {
+        given:
+        buildFile << helloWorldWithStandardOutputAndError()
+
+        when:
+        GradleRunner gradleRunner = runner('helloWorld')
+        gradleRunner.forwardOutput()
+        BuildResult result = gradleRunner.build()
+
+        then:
+        noExceptionThrown()
+        result.standardOutput.contains(':helloWorld')
+        result.standardOutput.contains('Hello world!')
+        result.standardError.contains('Some failure')
+    }
+
     def "build result standard output and error capture the same output as output provided by user"() {
         given:
         Writer standardOutput = new StringWriter()

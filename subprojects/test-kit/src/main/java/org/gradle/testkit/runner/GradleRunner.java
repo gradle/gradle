@@ -274,6 +274,16 @@ public abstract class GradleRunner {
     public abstract GradleRunner withStandardError(Writer standardError);
 
     /**
+     * Forwards the test execution output to the standard output and error streams.
+     * <p>
+     * By default, standard output and error streams are not rendered in the console.
+     *
+     * @return this
+     * @since 2.9
+     */
+    public abstract GradleRunner forwardOutput();
+
+    /**
      * Executes a build, expecting it to complete without failure.
      *
      * @throws InvalidRunnerConfigurationException if the configuration of this runner is invalid (e.g. project directory not set)

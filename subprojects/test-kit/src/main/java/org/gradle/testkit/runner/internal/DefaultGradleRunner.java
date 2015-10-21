@@ -24,6 +24,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.testkit.runner.*;
 
 import java.io.File;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -149,6 +150,13 @@ public class DefaultGradleRunner extends GradleRunner {
     public GradleRunner withStandardError(Writer standardError) {
         validateArgumentNotNull(standardError, "standardError");
         this.standardError = standardError;
+        return this;
+    }
+
+    @Override
+    public GradleRunner forwardOutput() {
+        withStandardOutput(new OutputStreamWriter(System.out));
+        withStandardError(new OutputStreamWriter(System.err));
         return this;
     }
 

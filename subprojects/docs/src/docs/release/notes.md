@@ -77,8 +77,9 @@ Spock:
 Any messages emitted to standard output and error during test execution are captured in the `BuildResult`. There's no direct output of these streams to the console. This makes
 diagnosing the root cause of a failed test much harder. Users would need to print out the standard output or error field of the `BuildResult` to identify the issue.
 
-With this release, the `GradleRunner` API exposes methods for specifying `Writer` instances for debugging or purposes of further processing.
-The following example directly prints out standard output and error messages to the console:
+With this release, the `GradleRunner` API exposes methods for specifying `Writer` instances for debugging or purposes of further processing. A common use case is to forward
+test execution output to the console. The following example demonstrates the use of the convenience method
+<a href="javadoc/org/gradle/testkit/runner/GradleRunner.html#forwardOutput()">GradleRunner.forwardOutput()</a> to forward output to the console:
 
     class BuildLogicFunctionalTest extends Specification {
         @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
@@ -98,8 +99,7 @@ The following example directly prints out standard output and error messages to 
             def result = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
                 .withArguments('printOutput')
-                .withStandardOutput(new OutputStreamWriter(System.out))
-                .withStandardError(new OutputStreamWriter(System.err))
+                .forwardOutput()
                 .build()
 
             then:
