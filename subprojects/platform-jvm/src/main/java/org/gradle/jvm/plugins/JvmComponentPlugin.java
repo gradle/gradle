@@ -40,7 +40,6 @@ import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -170,7 +169,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
             String libName = binaryName.substring(0, binaryName.lastIndexOf("Jar"));
             String createApiJar = "create" + capitalize(libName + "ApiJar");
-            final ApiStubGenerator stubGenerator = new ApiStubGenerator(ImmutableList.copyOf(binary.getExportedPackages()));
+            final ImmutableList<String> allowedPackages = ImmutableList.copyOf(binary.getExportedPackages());
+            final ApiStubGenerator stubGenerator = new ApiStubGenerator(allowedPackages);
             tasks.create(createApiJar, StubbedJar.class, new Action<StubbedJar>() {
                 @Override
                 public void execute(StubbedJar jar) {
@@ -187,15 +187,13 @@ public class JvmComponentPlugin implements Plugin<Project> {
                                 return false;
                             }
                             try {
-                                // we don't want to use element#open here because it would trigger the ASM rewrite
-                                FileInputStream stream = new FileInputStream(file);
-                                return stubGenerator.belongsToAPI(stream);
+                                return stubGenerator.belongsToAPI(element.open());
                             } catch (IOException e) {
                                 return false;
                             }
                         }
                     });
-                    jar.setExportedPackages(binary.getExportedPackages());
+                    jar.setExportedPackages(allowedPackages);
 
                     jar.setDestinationDir(binary.getApiJarFile().getParentFile());
                     jar.setArchiveName(binary.getApiJarFile().getName());
