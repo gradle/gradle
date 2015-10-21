@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.*;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Copy;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
@@ -170,36 +171,48 @@ public class JvmComponentPlugin implements Plugin<Project> {
             String libName = binaryName.substring(0, binaryName.lastIndexOf("Jar"));
             String createApiJar = "create" + capitalize(libName + "ApiJar");
             final ImmutableList<String> allowedPackages = ImmutableList.copyOf(binary.getExportedPackages());
-            final ApiStubGenerator stubGenerator = new ApiStubGenerator(allowedPackages);
-            tasks.create(createApiJar, StubbedJar.class, new Action<StubbedJar>() {
-                @Override
-                public void execute(StubbedJar jar) {
-                    jar.setDescription(String.format("Creates the API binary file for %s.", binary));
-                    jar.from(runtimeClassesDir);
-                    jar.include(new Spec<FileTreeElement>() {
-                        @Override
-                        public boolean isSatisfiedBy(FileTreeElement element) {
-                            if (element.isDirectory()) {
-                                return true;
+            if (allowedPackages.isEmpty()) {
+                tasks.create(createApiJar, Copy.class, new Action<Copy>() {
+                    @Override
+                    public void execute(Copy copy) {
+                        copy.setDescription(String.format("Creates the API binary file for %s.", binary));
+                        copy.from(new File(runtimeJarDestDir, runtimeJarArchiveName));
+                        copy.setDestinationDir(binary.getApiJarFile().getParentFile());
+                        copy.dependsOn(createRuntimeJar);
+                    }
+                });
+            } else {
+                final ApiStubGenerator stubGenerator = new ApiStubGenerator(allowedPackages);
+                tasks.create(createApiJar, StubbedJar.class, new Action<StubbedJar>() {
+                    @Override
+                    public void execute(StubbedJar jar) {
+                        jar.setDescription(String.format("Creates the API binary file for %s.", binary));
+                        jar.from(runtimeClassesDir);
+                        jar.include(new Spec<FileTreeElement>() {
+                            @Override
+                            public boolean isSatisfiedBy(FileTreeElement element) {
+                                if (element.isDirectory()) {
+                                    return true;
+                                }
+                                File file = element.getFile();
+                                if (!file.getName().endsWith(".class")) {
+                                    return false;
+                                }
+                                try {
+                                    return stubGenerator.belongsToAPI(element.open());
+                                } catch (IOException e) {
+                                    return false;
+                                }
                             }
-                            File file = element.getFile();
-                            if (!file.getName().endsWith(".class")) {
-                                return false;
-                            }
-                            try {
-                                return stubGenerator.belongsToAPI(element.open());
-                            } catch (IOException e) {
-                                return false;
-                            }
-                        }
-                    });
-                    jar.setExportedPackages(allowedPackages);
+                        });
+                        jar.setExportedPackages(allowedPackages);
 
-                    jar.setDestinationDir(binary.getApiJarFile().getParentFile());
-                    jar.setArchiveName(binary.getApiJarFile().getName());
-                    jar.dependsOn(createRuntimeJar);
-                }
-            });
+                        jar.setDestinationDir(binary.getApiJarFile().getParentFile());
+                        jar.setArchiveName(binary.getApiJarFile().getName());
+                        jar.dependsOn(createRuntimeJar);
+                    }
+                });
+            }
         }
     }
 }
