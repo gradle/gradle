@@ -526,9 +526,37 @@ coverage and the cost of the coverage
     - Change`DefaultFunctionalSourceSet` to use that `LanguageRegistry` to create LSS instances (i.e. `DefaultPolymorphicNamedEntityInstantiator.factories` is no longer used to create LanguageSourceSets)
     - Change `ComponentRules.ComponentSourcesRegistrationAction#registerLanguageSourceSetFactory` to no longer push `sourceSetFactory`'s into `FunctionalSourceSet`
 
-- TBD: Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has
-no knowledge of where its elements end up being referenced.
 
+### Test cases
+Assuming `JavaSourceSet` is registered as a `LanguageType`
+
+- Creating `LanguageSourceSet`'s via rule sources
+```groovy
+
+class Rules extends RuleSource {
+    @Model
+    void functionalSources(FunctionalSourceSet sources) {
+        sources.create("javaB", JavaSourceSet)
+    }
+}
+```
+
+- Creating `LanguageSourceSet`'s via the model DSL
+```groovy
+
+model {
+    functionalSources(FunctionalSourceSet){
+        java(JavaSourceSet)
+    }
+}
+```
+
+- An error message consistent with that of `ComponentSpec` and `BinarySpec` when a LanguageSourceSet is not supported/registered.
+
+### Open Issues
+- Are these created LSS's intended to be model elements and appear on the model report? considering FSS is not yet a `ModelMap`.
+- Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has
+no knowledge of where its elements end up being referenced.
 
 ## Story: Allow `LanguageSourceSet` instances to be attached to a managed type
 
