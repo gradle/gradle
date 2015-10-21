@@ -20,7 +20,7 @@ import org.gradle.testkit.runner.GradleDistribution;
 
 import java.io.File;
 
-public final class InstalledGradleDistribution extends GradleDistribution<File> {
+public final class InstalledGradleDistribution extends GradleDistribution {
 
     private final File gradleHome;
 
@@ -28,8 +28,7 @@ public final class InstalledGradleDistribution extends GradleDistribution<File> 
         this.gradleHome = gradleHome;
     }
 
-    @Override
-    public File getHandle() {
+    public File getGradleHome() {
         return gradleHome;
     }
 }

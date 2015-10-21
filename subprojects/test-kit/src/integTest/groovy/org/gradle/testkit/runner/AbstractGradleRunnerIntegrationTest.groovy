@@ -66,7 +66,7 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
         runner(GradleDistribution.fromPath(buildContext.gradleHomeDir), arguments)
     }
 
-    DefaultGradleRunner runner(GradleDistribution<?> gradleDistribution, String... arguments) {
+    DefaultGradleRunner runner(GradleDistribution gradleDistribution, String... arguments) {
         GradleRunner gradleRunner = new DefaultGradleRunner(gradleDistribution)
             .withTestKitDir(testKitWorkspace)
             .withProjectDir(testProjectDir.testDirectory)

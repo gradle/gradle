@@ -47,7 +47,7 @@ public class DefaultGradleRunner extends GradleRunner {
     private Writer standardOutput;
     private Writer standardError;
 
-    public DefaultGradleRunner(GradleDistribution<?> gradleDistribution) {
+    public DefaultGradleRunner(GradleDistribution gradleDistribution) {
         this(new TestKitGradleExecutor(gradleDistribution), new TempTestKitDirProvider());
     }
 

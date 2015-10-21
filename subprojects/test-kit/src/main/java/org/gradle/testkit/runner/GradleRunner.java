@@ -92,7 +92,7 @@ public abstract class GradleRunner {
      * @return a new Gradle runner
      * @since 2.9
      */
-    public static GradleRunner create(GradleDistribution<?> gradleDistribution) {
+    public static GradleRunner create(GradleDistribution gradleDistribution) {
         if (!(gradleDistribution instanceof InstalledGradleDistribution
             || gradleDistribution instanceof URILocatedGradleDistribution
             || gradleDistribution instanceof VersionBasedGradleDistribution)) {
@@ -103,9 +103,9 @@ public abstract class GradleRunner {
         return new DefaultGradleRunner(gradleDistribution);
     }
 
-    private static void validateGradleDistribution(GradleDistribution<?> gradleDistribution) {
+    private static void validateGradleDistribution(GradleDistribution gradleDistribution) {
         if (gradleDistribution instanceof InstalledGradleDistribution) {
-            if (((InstalledGradleDistribution)gradleDistribution).getHandle() == null) {
+            if (((InstalledGradleDistribution)gradleDistribution).getGradleHome() == null) {
                 try {
                     File classpathForClass = ClasspathUtil.getClasspathForClass(GradleRunner.class);
                     throw new IllegalStateException("Could not create a GradleRunner, as the GradleRunner class was loaded from " + classpathForClass + " which is not a Gradle distribution");

@@ -16,7 +16,9 @@
 
 package org.gradle.testkit.runner.internal;
 
-import org.gradle.testkit.runner.*;
+import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.GradleDistribution;
+import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.events.ProgressEvent;
@@ -41,9 +43,9 @@ import static org.gradle.testkit.runner.TaskOutcome.*;
 public class TestKitGradleExecutor implements GradleExecutor {
 
     public static final String TEST_KIT_DAEMON_DIR_NAME = "test-kit-daemon";
-    private final GradleDistribution<?> gradleDistribution;
+    private final GradleDistribution gradleDistribution;
 
-    public TestKitGradleExecutor(GradleDistribution<?> gradleDistribution) {
+    public TestKitGradleExecutor(GradleDistribution gradleDistribution) {
         this.gradleDistribution = gradleDistribution;
         registerShutdownHook();
     }
@@ -111,11 +113,11 @@ public class TestKitGradleExecutor implements GradleExecutor {
 
     private void useGradleDistribution(GradleConnector gradleConnector) {
         if(gradleDistribution instanceof InstalledGradleDistribution) {
-            gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getHandle());
+            gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getGradleHome());
         } else if(gradleDistribution instanceof URILocatedGradleDistribution) {
-            gradleConnector.useDistribution(((URILocatedGradleDistribution) gradleDistribution).getHandle());
+            gradleConnector.useDistribution(((URILocatedGradleDistribution) gradleDistribution).getLocation());
         } else if(gradleDistribution instanceof VersionBasedGradleDistribution) {
-            gradleConnector.useGradleVersion(((VersionBasedGradleDistribution) gradleDistribution).getHandle());
+            gradleConnector.useGradleVersion(((VersionBasedGradleDistribution) gradleDistribution).getGradleVersion());
         }
     }
 

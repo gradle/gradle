@@ -29,11 +29,10 @@ import java.net.URI;
  * <p>
  * A distribution can be created via the methods {@link #withVersion(String)}, {@link #fromUri(URI)} or {@link #fromPath(File)}.
  *
- * @param <T> the handle to the distribution
  * @since 2.9
  */
 @Incubating
-public abstract class GradleDistribution<T> {
+public abstract class GradleDistribution {
 
     /**
      * Creates a Gradle distribution identifiable by version, e.g. <code>"2.8"</code>.
@@ -41,7 +40,7 @@ public abstract class GradleDistribution<T> {
      * @param version the Gradle version
      * @return the Gradle distribution
      */
-    public static GradleDistribution<?> withVersion(String version) {
+    public static GradleDistribution withVersion(String version) {
         return new VersionBasedGradleDistribution(version);
     }
 
@@ -51,7 +50,7 @@ public abstract class GradleDistribution<T> {
      * @param location the URI
      * @return the Gradle distribution
      */
-    public static GradleDistribution<?> fromUri(URI location) {
+    public static GradleDistribution fromUri(URI location) {
         return new URILocatedGradleDistribution(location);
     }
 
@@ -61,14 +60,7 @@ public abstract class GradleDistribution<T> {
      * @param path the path in the filesystem
      * @return the Gradle distribution
      */
-    public static GradleDistribution<?> fromPath(File path) {
+    public static GradleDistribution fromPath(File path) {
         return new InstalledGradleDistribution(path);
     }
-
-    /**
-     * Returns the handle to the Gradle distribution depending on the type.
-     *
-     * @return the handle
-     */
-    protected abstract T getHandle();
 }

@@ -47,9 +47,5 @@ class GradleRunnerTest extends Specification {
         t.message == "Invalid Gradle distribution type: ${MyGradleDistribution.name}"
     }
 
-    private class MyGradleDistribution extends GradleDistribution<String> {
-        String getHandle() {
-            '2.8'
-        }
-    }
+    private class MyGradleDistribution extends GradleDistribution {}
 }

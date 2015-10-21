@@ -20,7 +20,7 @@ import org.gradle.testkit.runner.GradleDistribution;
 
 import java.net.URI;
 
-public final class URILocatedGradleDistribution extends GradleDistribution<URI> {
+public final class URILocatedGradleDistribution extends GradleDistribution {
 
     private final URI location;
 
@@ -28,8 +28,7 @@ public final class URILocatedGradleDistribution extends GradleDistribution<URI> 
         this.location = location;
     }
 
-    @Override
-    public URI getHandle() {
+    public URI getLocation() {
         return location;
     }
 }

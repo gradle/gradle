@@ -18,7 +18,7 @@ package org.gradle.testkit.runner.internal;
 
 import org.gradle.testkit.runner.GradleDistribution;
 
-public final class VersionBasedGradleDistribution extends GradleDistribution<String> {
+public final class VersionBasedGradleDistribution extends GradleDistribution {
 
     private final String gradleVersion;
 
@@ -26,8 +26,7 @@ public final class VersionBasedGradleDistribution extends GradleDistribution<Str
         this.gradleVersion = gradleVersion;
     }
 
-    @Override
-    public String getHandle() {
+    public String getGradleVersion() {
         return gradleVersion;
     }
 }
