@@ -178,9 +178,10 @@ the 'java' plugin.
 #### Test coverage
 - `IdeaModule.getJavaView()` returns null for non java projects
 - `IdeaModule.getGradleProject().getJavaView()` returns null for non java projects
-- `IdeaModule.getGradleProject().getSourceLanguageLevel()` matches sourceCompatibility property mixedin from JavaConvention
-- `IdeaModule.getGradleProject().getSourceLanguageLevel()` matches `idea.project.languageLevel` settings if no language level information
-can be obtained from JavaConvention
+- `IdeaModule.getGradleProject().getJavaView().getSourceLanguageLevel()`  matches sourceCompatibility property mixedin from JavaConvention
+- `IdeaModule.getJavaView.getSourceLanguageLevel()` matches  language level information can be obtained from JavaConvention if defined
+- `IdeaModule.getJavaView.getSourceLanguageLevel()` matches `idea.project.languageLevel` settings if no language level information
+   defined in JavaConvention
 
 #### Open questions§
 - Is it possible to convert the String version of the language level from `IdeaProject.getLanguageLevel()` to JavaVersion?
