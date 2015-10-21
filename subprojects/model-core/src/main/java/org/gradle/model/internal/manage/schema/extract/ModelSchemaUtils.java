@@ -69,13 +69,7 @@ public class ModelSchemaUtils {
             @Override
             public void visitType(Class<? super T> type) {
                 for (Method method : type.getDeclaredMethods()) {
-                    int modifiers = method.getModifiers();
-                    if (method.isSynthetic() || Modifier.isStatic(modifiers) || !Modifier.isPublic(modifiers)) {
-                        continue;
-                    }
-
-                    // Ignore overrides of Object and GroovyObject methods
-                    if (IGNORED_METHODS.contains(METHOD_EQUIVALENCE.wrap(method))) {
+                    if (isIgnoredMethod(method)) {
                         continue;
                     }
 
@@ -84,6 +78,16 @@ public class ModelSchemaUtils {
             }
         });
         return methodsBuilder.build();
+    }
+
+    public static boolean isIgnoredMethod(Method method) {
+        int modifiers = method.getModifiers();
+        if (method.isSynthetic() || Modifier.isStatic(modifiers) || !Modifier.isPublic(modifiers)) {
+            return true;
+        }
+
+        // Ignore overrides of Object and GroovyObject methods
+        return IGNORED_METHODS.contains(METHOD_EQUIVALENCE.wrap(method));
     }
 
     /**

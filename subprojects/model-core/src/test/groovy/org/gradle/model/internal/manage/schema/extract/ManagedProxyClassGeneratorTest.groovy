@@ -185,20 +185,23 @@ class ManagedProxyClassGeneratorTest extends Specification {
         1 * node.hashCode() >> 123
     }
 
-    def "mixes in unmanaged delegate"() {
+    @Unroll
+    def "mixes in unmanaged delegate from #managedType.simpleName"() {
         def node = Stub(MutableModelNode)
         def state = Mock(ModelElementState) {
             getBackingNode() >> node
         }
 
         when:
-        Class<? extends ManagedSubType> proxyClass = generate(ManagedSubType, UnmanagedImplType)
+        Class<? extends PublicUnmanagedType> proxyClass = generate(managedType, UnmanagedImplType)
         def unmanagedInstance = new UnmanagedImplType()
-        ManagedSubType impl = proxyClass.newInstance(state, unmanagedInstance)
+        PublicUnmanagedType impl = proxyClass.newInstance(state, unmanagedInstance)
 
         then:
         impl instanceof ManagedInstance
         ((ManagedInstance) impl).backingNode == node
+        managedType.isAssignableFrom(proxyClass)
+        managedType.isAssignableFrom(impl.class)
 
         when:
         impl.unmanagedValue = "Lajos"
@@ -241,6 +244,11 @@ class ManagedProxyClassGeneratorTest extends Specification {
         then:
         def ex = thrown RuntimeException
         ex.message == "error"
+
+        where:
+        managedType                    | _
+        ManagedSubTypeViaInterface     | _
+        ManagedSubTypeViaAbstractClass | _
     }
 
     static interface OverloadingNumber {
@@ -530,10 +538,14 @@ class ManagedProxyClassGeneratorTest extends Specification {
     }
 
     @Managed
-    static interface ManagedSubType extends PublicUnmanagedType {
+    static interface ManagedSubTypeViaInterface extends PublicUnmanagedType {
         String getManagedValue()
-
         void setManagedValue(String managedValue)
     }
 
+    @Managed
+    static abstract class ManagedSubTypeViaAbstractClass implements PublicUnmanagedType {
+        abstract String getManagedValue()
+        abstract void setManagedValue(String managedValue)
+    }
 }

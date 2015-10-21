@@ -39,6 +39,7 @@ import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteBinary;
 import org.gradle.nativeplatform.test.cunit.internal.DefaultCUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.cunit.tasks.GenerateCUnitLauncher;
+import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.BinaryType;
@@ -149,7 +150,7 @@ public class CUnitPlugin implements Plugin<Project> {
                         cUnitTestSuite.getBinaries().create(namingScheme.getLifecycleTaskName(), CUnitTestSuiteBinarySpec.class, new Action<CUnitTestSuiteBinarySpec>() {
                             @Override
                             public void execute(CUnitTestSuiteBinarySpec binary) {
-                                DefaultCUnitTestSuiteBinary testBinary = (DefaultCUnitTestSuiteBinary) binary;
+                                NativeTestSuiteBinarySpecInternal testBinary = (NativeTestSuiteBinarySpecInternal) binary;
                                 testBinary.setTestedBinary((NativeBinarySpecInternal) testedBinary);
                                 testBinary.setNamingScheme(namingScheme);
                                 testBinary.setResolver(resolver);
@@ -162,7 +163,7 @@ public class CUnitPlugin implements Plugin<Project> {
             });
         }
 
-        private void configure(DefaultCUnitTestSuiteBinary testBinary, File buildDir) {
+        private void configure(NativeTestSuiteBinarySpecInternal testBinary, File buildDir) {
             BinaryNamingScheme namingScheme = testBinary.getNamingScheme();
             PlatformToolProvider toolProvider = testBinary.getPlatformToolProvider();
             File binaryOutputDir = new File(new File(buildDir, "binaries"), namingScheme.getOutputDirectoryBase());
