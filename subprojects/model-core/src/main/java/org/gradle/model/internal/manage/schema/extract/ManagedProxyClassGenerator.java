@@ -16,13 +16,13 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
+import com.google.common.base.Equivalence;
+import com.google.common.base.Function;
+import com.google.common.collect.*;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.reflect.MethodSignatureEquivalence;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
@@ -72,6 +72,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
     private static final String METHOD_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class), Type.getType(Object.class));
     private static final String SET_PROPERTY_MISSING_METHOD_DESCRIPTOR = Type.getMethodDescriptor(Type.getType(Object.class), Type.getType(String.class), Type.getType(Object.class));
     private static final String MISSING_METHOD_EXCEPTION_CONSTRUCTOR_DESCRIPTOR = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(String.class), Type.getType(Class.class), Type.getType(Object[].class));
+    private static final Equivalence<Method> METHOD_EQUIVALENCE = new MethodSignatureEquivalence();
     private static final Map<Class<?>, Class<?>> BOXED_TYPES = ImmutableMap.<Class<?>, Class<?>>builder()
         .put(byte.class, Byte.class)
         .put(short.class, Short.class)
@@ -664,17 +665,37 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
 
     private void writeDelegateMethods(final ClassVisitor visitor, final Type generatedType, ModelStructSchema<?> delegateSchema, Set<Class<?>> typesToDelegate) {
         Class<?> delegateTypeClass = delegateSchema.getType().getConcreteClass();
-        Set<Method> methodsToDelegate = Sets.newLinkedHashSet();
+        Map<Equivalence.Wrapper<Method>, Map<Class<?>, Method>> methodsToDelegate = Maps.newHashMap();
         for (Class<?> typeToDelegate : typesToDelegate) {
-            methodsToDelegate.addAll(Arrays.asList(typeToDelegate.getMethods()));
+            for (Method methodToDelegate : typeToDelegate.getMethods()) {
+                if (ModelSchemaUtils.isIgnoredMethod(methodToDelegate)) {
+                    continue;
+                }
+                Equivalence.Wrapper<Method> methodKey = METHOD_EQUIVALENCE.wrap(methodToDelegate);
+                Map<Class<?>, Method> methodsByReturnType = methodsToDelegate.get(methodKey);
+                if (methodsByReturnType == null) {
+                    methodsByReturnType = Maps.newHashMap();
+                    methodsToDelegate.put(methodKey, methodsByReturnType);
+                }
+                methodsByReturnType.put(methodToDelegate.getReturnType(), methodToDelegate);
+            }
         }
-        for (Method methodToDelegate : methodsToDelegate) {
-            try {
-                delegateTypeClass.getMethod(methodToDelegate.getName(), methodToDelegate.getParameterTypes());
-            } catch (NoSuchMethodException e) {
+        Set<Equivalence.Wrapper<Method>> delegateMethodKeys = ImmutableSet.copyOf(Iterables.transform(Arrays.asList(delegateTypeClass.getMethods()), new Function<Method, Equivalence.Wrapper<Method>>() {
+            @Override
+            public Equivalence.Wrapper<Method> apply(Method method) {
+                return METHOD_EQUIVALENCE.wrap(method);
+            }
+        }));
+        for (Map.Entry<Equivalence.Wrapper<Method>, Map<Class<?>, Method>> entry : methodsToDelegate.entrySet()) {
+            Equivalence.Wrapper<Method> methodKey = entry.getKey();
+            if (!delegateMethodKeys.contains(methodKey)) {
                 continue;
             }
-            writeDelegatedMethod(visitor, generatedType, delegateTypeClass, methodToDelegate);
+
+            Map<Class<?>, Method> methodsByReturnType = entry.getValue();
+            for (Method methodToDelegate : methodsByReturnType.values()) {
+                writeDelegatedMethod(visitor, generatedType, delegateTypeClass, methodToDelegate);
+            }
         }
     }
 
