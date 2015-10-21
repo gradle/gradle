@@ -21,6 +21,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileVisitDetailsWithAttributes;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.specs.Spec;
@@ -37,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Jdk7DirectoryWalker implements DirectoryFileTree.DirectoryWalker {
     private static final int MAX_VISIT_DEPTH = 512;
+    private final StringInterner relativePathStringInterner = new StringInterner();
 
     static boolean isAllowed(FileTreeElement element, Spec<FileTreeElement> spec) {
         return spec.isSatisfiedBy(element);
@@ -82,7 +84,7 @@ public class Jdk7DirectoryWalker implements DirectoryFileTree.DirectoryWalker {
                 private FileVisitDetails getFileVisitDetails(Path file, BasicFileAttributes attrs, boolean isDirectory) {
                     File child = file.toFile();
                     FileVisitDetails dirDetails = directoryDetailsHolder.peek();
-                    RelativePath childPath = dirDetails != null ? dirDetails.getRelativePath().append(!isDirectory, child.getName()) : rootPath;
+                    RelativePath childPath = dirDetails != null ? dirDetails.getRelativePath().append(!isDirectory, relativePathStringInterner.intern(child.getName())) : rootPath;
                     return new FileVisitDetailsWithAttributes(child, childPath, stopFlag, fileSystem, fileSystem, isDirectory, attrs.lastModifiedTime().toMillis(), attrs.size());
                 }
 

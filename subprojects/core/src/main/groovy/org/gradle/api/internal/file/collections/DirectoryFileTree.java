@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.*;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.CachingFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.Logger;
@@ -211,6 +212,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     }
 
     static class DefaultDirectoryWalker implements DirectoryWalker {
+        private final StringInterner relativePathStringInterner = new StringInterner();
 
         @Override
         public void walkDir(File file, RelativePath path, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag, FileSystem fileSystem, boolean postfix) {
@@ -226,7 +228,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
             for (int i = 0; !stopFlag.get() && i < children.length; i++) {
                 File child = children[i];
                 boolean isFile = child.isFile();
-                RelativePath childPath = path.append(isFile, child.getName());
+                RelativePath childPath = path.append(isFile, relativePathStringInterner.intern(child.getName()));
                 FileVisitDetails details = new CachingFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, !isFile);
                 if (isAllowed(details, spec)) {
                     if (isFile) {
