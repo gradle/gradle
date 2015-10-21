@@ -108,6 +108,9 @@ buildTypes {
     }
 }
 
+apply from: "gradle/testGroupings.gradle"
+apply from: 'gradle/buildSplits.gradle'
+
 ext {
     jvm = org.gradle.internal.jvm.Jvm.current()
     javaVersion = JavaVersion.current()
@@ -170,7 +173,6 @@ apply from: "gradle/classycle.gradle"
 apply from: "gradle/strictCompile.gradle"
 apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
 apply from: "gradle/testSetup.gradle"
-apply from: "gradle/testGroupings.gradle"
 apply from: "gradle/taskOrdering.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
 
@@ -267,7 +269,6 @@ task installAll(type: Install) {
 
 apply from: "gradle/intTestImage.gradle"
 apply from: 'gradle/pullRequestBuild.gradle'
-apply from: 'gradle/buildSplits.gradle'
 
 def reportsFolder = new File(buildDir, "reports")
 ext.preferencesTraceFile = new File(reportsFolder, "preferences.trace.log")
