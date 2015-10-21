@@ -520,9 +520,15 @@ coverage and the cost of the coverage
 
 ### Implementation
 
-- TBD: Currently rules push language registrations into various well known instances. Should change this to work with all instances, ideally by pull rather than push.
+- Currently rules push language registrations into various well known instances. Should change this to work with all instances, ideally by pull rather than push.
+    - Define a `LanguageRegistry` as a `@Service`. Anything needing a `LanguageRegistry` uses this instance.
+    - Change the constructor of `DefaultFunctionalSourceSet` to take a `LanguageRegistry`.
+    - Change`DefaultFunctionalSourceSet` to use that `LanguageRegistry` to create LSS instances (i.e. `DefaultPolymorphicNamedEntityInstantiator.factories` is no longer used to create LanguageSourceSets)
+    - Change `ComponentRules.ComponentSourcesRegistrationAction#registerLanguageSourceSetFactory` to no longer push `sourceSetFactory`'s into `FunctionalSourceSet`
+
 - TBD: Currently `FunctionalSourceSet` pushes instances into `sources` container. Should change this to work the same way as binaries, where the owner of the binary has
 no knowledge of where its elements end up being referenced.
+
 
 ## Story: Allow `LanguageSourceSet` instances to be attached to a managed type
 
