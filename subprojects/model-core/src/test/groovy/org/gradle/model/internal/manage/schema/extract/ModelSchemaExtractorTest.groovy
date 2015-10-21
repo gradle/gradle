@@ -1302,6 +1302,30 @@ interface Managed${typeName} {
         collectionType << [LinkedList, ArrayList, SortedSet, TreeSet]
     }
 
+
+    def "can extract overloaded property from unmanaged struct type"() {
+        def unmanagedType = new GroovyClassLoader(getClass().classLoader).parseClass """
+            interface UnmanagedWithOverload {
+                Integer getThing()
+                Integer getThing(int parameter)
+
+                boolean isNice()
+                boolean getNice()
+                boolean getNice(int parameter)
+                boolean isNice(int parameter)
+                void setNice(boolean parameter)
+            }
+        """
+
+        when:
+        def schema = extract(unmanagedType)
+        assert schema instanceof ModelStructSchema
+
+        then:
+        schema.properties*.name == ["nice", "thing"]
+        schema.properties*.type*.rawClass == [boolean, Integer]
+    }
+
     String getName(ModelType<?> modelType) {
         modelType
     }
