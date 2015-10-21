@@ -2,7 +2,9 @@ apply plugin: 'cpp'
 apply plugin: 'c'
 
 <% if (overlapWithOutput) { %>
-    buildDir = new File(rootProject.buildDir, project.name)    
+    if (project != rootProject) {
+       buildDir = new File(rootProject.buildDir, project.name)
+    }
 <% } %>
 
 model {
