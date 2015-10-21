@@ -282,29 +282,6 @@ This story adds the ability to understand what happened with the test when it fa
 - UnexpectedBuildFailure and Success should have-a BuildResult
 - Tooling API exceptions and infrastructure failures should be wrapped and provide build information (e.g. stdout)
 
-## Story: Classes under test are visible to build scripts
-
-When using the plugin development plugin, plugins under test are visible to build scripts.
-
-### Implementation
-
-- Infer the classpath for classes under test classpath
-    - When running from the plugin dev plugin, use the main source set's runtime classpath.
-    - When running from the IDE, could use a generated resource or perhaps infer from the runtime classpath in the test JVM.
-- Add or expand sample to demonstrate this feature.
-- Add some brief user guide material.
-
-### Test coverage
-
-* The classpath of the tooling API execution is set up properly.
-    * Class files of project sources under test (e.g. plugin classes) are added to classpath of the tooling API execution.
-        * A plugin class under test can be referenced and tested in build script by type and id.
-        * A custom task class under test can be referenced and tested in build script by type.
-        * Arbitrary classes under test can be referenced and tested in build script.
-    * Classes originating from external libraries used by classes under tests are added to classpath of the tooling API execution.
-* IDEA and Eclipse projects are configured to run these tests. Manually verify that this works (in IDEA say).
-* Manually verify that when using an IDE, a breakpoint can be added in production classes, the test run, and the breakpoint hit.
-
 ## Story: Test build code against different Gradle versions
 
 Extend the capabilities of `GradleRunner` to allow for testing a build against more than one Gradle version. The typical use case is to check the runtime compatibility of build logic against a
@@ -436,6 +413,29 @@ The `GradleRunner` abstract class will be extended to provide additional methods
 * Using `System.out` and `System.err` as default? This might produce to much log output.
 
 # Milestone 3
+
+## Story: Classes under test are visible to build scripts
+
+When using the plugin development plugin, plugins under test are visible to build scripts.
+
+### Implementation
+
+- Infer the classpath for classes under test classpath
+    - When running from the plugin dev plugin, use the main source set's runtime classpath.
+    - When running from the IDE, could use a generated resource or perhaps infer from the runtime classpath in the test JVM.
+- Add or expand sample to demonstrate this feature.
+- Add some brief user guide material.
+
+### Test coverage
+
+* The classpath of the tooling API execution is set up properly.
+    * Class files of project sources under test (e.g. plugin classes) are added to classpath of the tooling API execution.
+        * A plugin class under test can be referenced and tested in build script by type and id.
+        * A custom task class under test can be referenced and tested in build script by type.
+        * Arbitrary classes under test can be referenced and tested in build script.
+    * Classes originating from external libraries used by classes under tests are added to classpath of the tooling API execution.
+* IDEA and Eclipse projects are configured to run these tests. Manually verify that this works (in IDEA say).
+* Manually verify that when using an IDE, a breakpoint can be added in production classes, the test run, and the breakpoint hit.
 
 ## Story: Integration with plugin-development-plugin
 
