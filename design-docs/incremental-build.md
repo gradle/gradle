@@ -6,13 +6,13 @@ This spec defines some improvements to improve incremental build and task up-to-
 
 These are general speed ups that improve all builds.
 
-## Story: Speed up File metadata lookup in task input/output snapshotting 
+## Story: Speed up File metadata lookup in task input/output snapshotting
 
-File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are 
+File metadata operations .isFile(), .isDirectory(), .length() and .lastModified are
 hotspots in task input/output snapshotting.
 
-The Java nio2 directory walking method java.nio.file.Files.walkFileTree can pass the file 
-metadata used for directory scanning to "visiting" the file tree so that metadata 
+The Java nio2 directory walking method java.nio.file.Files.walkFileTree can pass the file
+metadata used for directory scanning to "visiting" the file tree so that metadata
 (BasicFileAttributes) doesn't have to be re-read.
 
 ### Implementation
@@ -56,8 +56,8 @@ metadata used for directory scanning to "visiting" the file tree so that metadat
 
 ## Story: Add caching to Specs returned from PatternSet.getAsSpecs()
 
-Evaluating patterns is a hotspot in directory scanning. The default excludes patterns 
-contains 28 entries. Checking all rules for each file sums up in a lot of operations. 
+Evaluating patterns is a hotspot in directory scanning. The default excludes patterns
+contains 28 entries. Checking all rules for each file sums up in a lot of operations.
 Adding caching will improve performance of subsequent incremental builds.
 
 ### Implementation
@@ -82,7 +82,7 @@ Spike commit: https://github.com/lhotari/gradle/commit/f235117fd0b8b125a8220c45d
 #### 2. phase - target release Gradle 2.10
 
 Goal: separate caching logic and manage the cache instance in Gradle infrastructure instead of a singleton instance
-- Separate caching logic from PatternSetSpecFactory class to a class called CachingPatternSetSpecFactory. 
+- Separate caching logic from PatternSetSpecFactory class to a class called CachingPatternSetSpecFactory.
 - Remove caching from the default PatternSetSpecFactory class. This removes the caching from PatternSet class which was added in 1. phase.
 - Make the Gradle infrastructure manage the CachingPatternSetSpecFactory instance.
 - Create a new PatternSet subclass that takes the PatternSetSpecFactory instance in the constructor.
@@ -107,7 +107,7 @@ This story adds a way for an incremental task to register additional inputs once
         inputs.newInput(discoveredInput)
       }
       if (inputs.incremental) {
-        inputs.outOfDate { 
+        inputs.outOfDate {
           // do stuff
         }
       }
@@ -132,19 +132,19 @@ This story adds a way for an incremental task to register additional inputs once
 - On the second build, discovered inputs from previous build for a task are checked for up-to-date-ness.
 - When a discovered input is modified, the task is out of date on the next build.
 - When a discovered input is deleted, the task is out of date on the next build.
-- Files added to the same directory as discovered inputs do not cause the task to be out of date.
 - The set of discovered inputs after the task executes represents the inputs discovered for that execution, so if on build#1 discovered inputs are A, B, C and on build#2 discovered inputs are D, E, F.  Discovered inputs after #2 should be D, E, F (not a combination).
 - A task that is up-to-date should not lose its discovered inputs. Following an up-to-date build, a change in a discovered inputs should cause a task to be out of date.  i.e., A task that discovers inputs A, B, C in build#1, is up-to-date in build #2, should still have discovered inputs A, B, C in build#3.
 
 ### Open issues
 
-- If a discovered input is missing when it is discovered, should we treat that as a missing file input or a fatal problem?
-- It looks straightforward to not "stream" the hashes into the discovered snapshot and just create it all at once (like the other snapshots do).
+- If a discovered input is missing when it is discovered, should we treat that as a missing file input or a fatal problem? -- currently this is a fatal problem (files must exist)
+- Any change to discovered inputs causes all inputs to be out-of-date
 - It would be nice to perform discovery incrementally.
+- It looks straightforward to not "stream" the hashes into the discovered snapshot and just create it all at once (like the other snapshots do).
 - The previous discovered files snapshot can be thrown away as soon as we know we'll be executing.
 - Discovered inputs do not work with continuous build.
 
-## Story: Use source #include information as discovered inputs 
+## Story: Use source #include information as discovered inputs
 
 Based on IncrementalCompiler's #include extractor, add header files as discovered inputs to compile tasks.
 
@@ -152,10 +152,10 @@ Based on IncrementalCompiler's #include extractor, add header files as discovere
 
 ## Story: Reuse native source file dependency information within a build
 
-Gradle parses each source file to determine the source file dependencies. 
-Currently this is cached on a per-task basis, meaning it is recalculated many 
-times when building multiple variants and compiling test suites. We should 
-instead move this to a cache that is shared across all tasks for a build, 
+Gradle parses each source file to determine the source file dependencies.
+Currently this is cached on a per-task basis, meaning it is recalculated many
+times when building multiple variants and compiling test suites. We should
+instead move this to a cache that is shared across all tasks for a build,
 and kept in memory across builds.
 
 ## Story: Inline the data from the file hash cache into the task history cache
@@ -242,10 +242,10 @@ The in-memory caches are a decorator for the underlying persistent cache. In-mem
 
 ### Relationship of `fileSnapshots` and `taskArtifacts` caches
 
-The `taskArtifacts` cache contains `TaskHistory` entries. Each `TaskHistory` can contain multiple task executions (`CacheBackedTaskHistoryRepository.LazyTaskExecution`). Each `LazyTaskExecution` contains it's input and output filesnapshots (`FileCollectionSnapshot`). 
+The `taskArtifacts` cache contains `TaskHistory` entries. Each `TaskHistory` can contain multiple task executions (`CacheBackedTaskHistoryRepository.LazyTaskExecution`). Each `LazyTaskExecution` contains it's input and output filesnapshots (`FileCollectionSnapshot`).
 Input and output instances are lazily loaded from the `fileSnapshots` cache when the `TaskHistory` instance gets loaded in an incremental build.
 
-The life-time of the `TaskHistory` instance can be seen in the 
+The life-time of the `TaskHistory` instance can be seen in the
 [`SkipUpToDateTaskExecuter.execute`](https://github.com/gradle/gradle/blob/3a0cfd6ac94eb9db4c7884c46ef4f9e973dca114/subprojects/core/src/main/groovy/org/gradle/api/internal/tasks/execution/SkipUpToDateTaskExecuter.java#L66) method. The in-memory `TaskHistory` instance is persisted in the call to it's `update` method. This call originates from the `TaskArtifactState.afterTask` call in the `SkipUpToDateTaskExecuter.execute` method.
 
 When the `TaskHistory` gets persisted, it adds the current task execution to the list of executions and limits the number of executions to 3 by removing any additional task executions. When the task execution (`LazyTaskExecution`) gets persisted, the input and output file snapshots get persisted in the `filesnapshots` cache. This serves at least 2 purposes: the filesnapshot don't have to be loaded when the `TaskHistory` is loaded. It also prevents updating the input and output filesnapshots to the persistent storage when the `TaskHistory` instance gets updated. When the `TaskHistory` instance gets updated, all data gets re-serialized to disk.

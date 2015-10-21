@@ -16,17 +16,23 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
+import java.io.File;
+import java.util.Set;
+
 abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputsInternal {
     private final FilesSnapshotSet inputFilesSnapshot;
+    private final Set<File> discoveredInputs;
     private boolean outOfDateProcessed;
     private boolean removedProcessed;
 
     protected StatefulIncrementalTaskInputs(FilesSnapshotSet inputFilesSnapshot) {
         this.inputFilesSnapshot = inputFilesSnapshot;
+        this.discoveredInputs = Sets.newHashSet();
     }
 
     public FilesSnapshotSet getInputFilesSnapshot() {
@@ -55,4 +61,20 @@ abstract class StatefulIncrementalTaskInputs implements IncrementalTaskInputsInt
     }
 
     protected abstract void doRemoved(Action<? super InputFileDetails> removedAction);
+
+    @Override
+    public void newInput(File discoveredInput) {
+        if (!discoveredInput.exists()) {
+            throw new IllegalArgumentException("Discovered inputs must exist before they are discovered.");
+        }
+        if (!discoveredInput.isFile()) {
+            throw new IllegalArgumentException("Discovered inputs should be files, not directories.");
+        }
+        discoveredInputs.add(discoveredInput);
+    }
+
+    @Override
+    public Set<File> getDiscoveredInputs() {
+        return discoveredInputs;
+    }
 }

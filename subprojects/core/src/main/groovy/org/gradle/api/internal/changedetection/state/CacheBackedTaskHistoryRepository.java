@@ -72,6 +72,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                         if (currentExecution.outputFilesSnapshotId == null && currentExecution.outputFilesSnapshot != null) {
                             currentExecution.outputFilesSnapshotId = snapshotRepository.add(currentExecution.outputFilesSnapshot);
                         }
+                        if (currentExecution.discoveredFilesSnapshotId == null && currentExecution.discoveredFilesSnapshot != null) {
+                            currentExecution.discoveredFilesSnapshotId = snapshotRepository.add(currentExecution.discoveredFilesSnapshot);
+                        }
                         while (history.configurations.size() > TaskHistory.MAX_HISTORY_ENTRIES) {
                             LazyTaskExecution execution = history.configurations.remove(history.configurations.size() - 1);
                             if (execution.inputFilesSnapshotId != null) {
@@ -79,6 +82,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                             }
                             if (execution.outputFilesSnapshotId != null) {
                                 snapshotRepository.remove(execution.outputFilesSnapshotId);
+                            }
+                            if (execution.discoveredFilesSnapshotId != null) {
+                                snapshotRepository.remove(execution.discoveredFilesSnapshotId);
                             }
                         }
                         history.beforeSerialized();
@@ -195,9 +201,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private static class LazyTaskExecution extends TaskExecution {
         private Long inputFilesSnapshotId;
         private Long outputFilesSnapshotId;
+        private Long discoveredFilesSnapshotId;
         private transient FileSnapshotRepository snapshotRepository;
         private transient FileCollectionSnapshot inputFilesSnapshot;
         private transient FileCollectionSnapshot outputFilesSnapshot;
+        private transient FileCollectionSnapshot discoveredFilesSnapshot;
         private transient TaskArtifactStateCacheAccess cacheAccess;
 
         @Override
@@ -216,6 +224,24 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         public void setInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot) {
             this.inputFilesSnapshot = inputFilesSnapshot;
             this.inputFilesSnapshotId = null;
+        }
+
+        @Override
+        public FileCollectionSnapshot getDiscoveredInputFilesSnapshot() {
+            if (discoveredFilesSnapshot == null) {
+                discoveredFilesSnapshot = cacheAccess.useCache("fetch discovered input files", new Factory<FileCollectionSnapshot>() {
+                    public FileCollectionSnapshot create() {
+                        return snapshotRepository.get(discoveredFilesSnapshotId);
+                    }
+                });
+            }
+            return discoveredFilesSnapshot;
+        }
+
+        @Override
+        public void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot discoveredFilesSnapshot) {
+            this.discoveredFilesSnapshot = discoveredFilesSnapshot;
+            this.discoveredFilesSnapshotId = null;
         }
 
         @Override
@@ -249,6 +275,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 LazyTaskExecution execution = new LazyTaskExecution();
                 execution.inputFilesSnapshotId = decoder.readLong();
                 execution.outputFilesSnapshotId = decoder.readLong();
+                execution.discoveredFilesSnapshotId = decoder.readLong();
                 execution.setTaskClass(decoder.readString());
                 int outputFiles = decoder.readInt();
                 Set<String> files = new HashSet<String>();
@@ -270,6 +297,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             public void write(Encoder encoder, LazyTaskExecution execution) throws Exception {
                 encoder.writeLong(execution.inputFilesSnapshotId);
                 encoder.writeLong(execution.outputFilesSnapshotId);
+                encoder.writeLong(execution.discoveredFilesSnapshotId);
                 encoder.writeString(execution.getTaskClass());
                 encoder.writeInt(execution.getOutputFiles().size());
                 for (String outputFile : execution.getOutputFiles()) {

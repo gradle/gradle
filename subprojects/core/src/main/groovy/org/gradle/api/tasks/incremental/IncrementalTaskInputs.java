@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 
+import java.io.File;
+
 /**
  * Provides access to any input files that need to be processed by an incremental task.
  * <p>
@@ -121,4 +123,6 @@ public interface IncrementalTaskInputs {
      * @throws IllegalStateException if invoked prior to {@link #outOfDate}, or if invoked more than once.
      */
     void removed(Action<? super InputFileDetails> removedAction);
+
+    void newInput(File discoveredInput);
 }
