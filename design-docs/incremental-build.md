@@ -60,9 +60,38 @@ Evaluating patterns is a hotspot in directory scanning. The default excludes pat
 contains 28 entries. Checking all rules for each file sums up in a lot of operations. 
 Adding caching will improve performance of subsequent incremental builds.
 
-### Test coverage
+### Implementation
 
-TBD
+Assumption: PatternSet class is part of the Gradle Public API and we cannot change it's interface.
+
+#### 1. phase - target release Gradle 2.9
+
+Spike commit: https://github.com/lhotari/gradle/commit/f235117fd0b8b125a8220c45dca8ee9dc2331559
+
+- Mainly based on the spike commit
+- Move Spec<FileTreeElement> creation logic to separate factory class from PatternSet class (currently in getAsSpec, getAsIncludeSpec, getAsExcludeSpec methods)
+- Add caching for Spec<FileTreeElement> instance creation and evaluation results
+- Only add caching to Spec<FileTreeElement> instances that are created from the include and exclude patterns.
+- A PatternSet can contain a list of includeSpecs and excludeSpecs. Don't add caching to these.
+
+#### Test coverage for 1. phase
+
+- Test that Spec<FileTreeElement> includes (added with PatternSet.include(Spec<FileTreeElement> spec)) and excludes (added with PatternSet.exclude(Spec<FileTreeElement> spec)) are not cached.
+- Existing PatternSet tests cover rest of the changes since there are no planned behavioural or API changes for 1. phase.
+
+#### 2. phase - target release Gradle 2.10
+
+Goal: separate caching logic and manage the cache instance in Gradle infrastructure instead of a singleton instance
+- Separate caching logic from PatternSetSpecFactory class to a class called CachingPatternSetSpecFactory. 
+- Remove caching from the default PatternSetSpecFactory class. This removes the caching from PatternSet class which was added in 1. phase.
+- Make the Gradle infrastructure manage the CachingPatternSetSpecFactory instance.
+- Create a new PatternSet subclass that takes the PatternSetSpecFactory instance in the constructor.
+- Replace usage of PatternSet class with the new subclass in Gradle core code. Wire the CachingPatternSetSpecFactory instance to the instances of the new PatternSet subclass.
+
+Goal: support suppressing default excludes
+- Add support for suppressing the default excludes that are part of Ant integration legacy in Gradle. Default excludes aren't needed when there are specific include patterns. The default excludes support can be added to the same new PatternSet subclass that supports the separate (Caching)PatternSetSpecFactory.
+- make SourceSets in Gradle use the new PatternSet implementation that supports suppressing the default excludes and uses the CachingPatternSetSpecFactory managed by the Gradle infrastructure (`GlobalScopeServices`)
+
 
 ## Story: High number of UnknownDomainObjectExceptions when resolving libraries in native projects.
 
@@ -79,7 +108,7 @@ This story adds a way for an incremental task to register additional inputs once
       }
       if (inputs.incremental) {
         inputs.outOfDate { 
-          /* do stuff */ 
+          // do stuff
         }
       }
     }
