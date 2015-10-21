@@ -43,6 +43,7 @@ public class DefaultGradleRunner extends GradleRunner {
     private List<String> arguments = Collections.emptyList();
     private List<String> jvmArguments = Collections.emptyList();
     private ClassPath classpath = ClassPath.EMPTY;
+    private boolean daemon;
     private boolean debug;
     private Writer standardOutput;
     private Writer standardError;
@@ -55,6 +56,7 @@ public class DefaultGradleRunner extends GradleRunner {
         this.gradleExecutor = gradleExecutor;
         this.testKitDirProvider = testKitDirProvider;
         debug = isDebugEnabled();
+        daemon = !debug;
     }
 
     private boolean isDebugEnabled() {
@@ -136,6 +138,13 @@ public class DefaultGradleRunner extends GradleRunner {
     @Override
     public GradleRunner withDebug(boolean debug) {
         this.debug = debug;
+        // at the moment debugging is only possible in embedded mode
+        withDaemon(!debug);
+        return this;
+    }
+
+    public GradleRunner withDaemon(boolean daemon) {
+        this.daemon = daemon;
         return this;
     }
 
@@ -238,7 +247,7 @@ public class DefaultGradleRunner extends GradleRunner {
             arguments,
             jvmArguments,
             classpath,
-            debug,
+            daemon,
             standardOutput,
             standardError)
         );

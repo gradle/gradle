@@ -30,7 +30,7 @@ import org.junit.Rule
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
-@TargetCoverage({ GradleRunnerCoverage.FORKED })
+@TargetCoverage({ GradleRunnerCoverage.DAEMON })
 class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     @Rule

@@ -16,11 +16,11 @@
 
 package org.gradle.testkit.runner.fixtures
 
-import static org.gradle.testkit.runner.fixtures.GradleRunnerType.DAEMON
-import static org.gradle.testkit.runner.fixtures.GradleRunnerType.EMBEDDED
+import static org.gradle.testkit.runner.fixtures.GradleRunnerTestVariant.DAEMON_NO_DEBUG
+import static org.gradle.testkit.runner.fixtures.GradleRunnerTestVariant.EMBEDDED_DEBUG
 
 class GradleRunnerCoverage {
-    public static final EnumSet<GradleRunnerType> ALL = EnumSet.of(DAEMON, EMBEDDED)
-    public static final EnumSet<GradleRunnerType> FORKED = EnumSet.of(DAEMON)
-    public static final EnumSet<GradleRunnerType> DEBUG = EnumSet.of(EMBEDDED)
+    public static final EnumSet<GradleRunnerTestVariant> ALL = EnumSet.of(DAEMON_NO_DEBUG, EMBEDDED_DEBUG)
+    public static final EnumSet<GradleRunnerTestVariant> DAEMON = EnumSet.of(DAEMON_NO_DEBUG)
+    public static final EnumSet<GradleRunnerTestVariant> EMBEDDED = EnumSet.of(EMBEDDED_DEBUG)
 }

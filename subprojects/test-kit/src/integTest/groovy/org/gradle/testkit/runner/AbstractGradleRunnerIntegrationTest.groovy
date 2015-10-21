@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testkit.runner.fixtures.GradleRunnerType
+import org.gradle.testkit.runner.fixtures.GradleRunnerTestVariant
 import org.gradle.testkit.runner.fixtures.MultiGradleRunnerSpecRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.TestKitGradleExecutor
@@ -44,7 +44,7 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
     @Rule
     SetSystemProperties setSystemProperties = new SetSystemProperties((NativeServices.NATIVE_DIR_OVERRIDE): buildContext.gradleUserHomeDir.file("native").absolutePath)
 
-    static GradleRunnerType gradleRunnerType
+    static GradleRunnerTestVariant gradleRunnerTestVariant
 
     TestFile getTestKitWorkspace() {
         testProjectDir.file("test-kit-workspace")
@@ -72,11 +72,9 @@ abstract class AbstractGradleRunnerIntegrationTest extends Specification {
             .withProjectDir(testProjectDir.testDirectory)
             .withArguments(arguments)
 
-        if (gradleRunnerType == GradleRunnerType.EMBEDDED) {
-            gradleRunner.withDebug(true)
-        }
-
-        assert gradleRunner.debug == gradleRunnerType.debug
+        gradleRunner.withDebug(gradleRunnerTestVariant.debug)
+        assert gradleRunner.daemon == gradleRunnerTestVariant.daemon
+        assert gradleRunner.debug == gradleRunnerTestVariant.debug
         gradleRunner
     }
 

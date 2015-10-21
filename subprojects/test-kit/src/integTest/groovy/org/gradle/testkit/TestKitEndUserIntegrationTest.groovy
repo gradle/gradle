@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.fixtures.GradleRunnerType
+import org.gradle.testkit.runner.fixtures.GradleRunnerTestVariant
 import org.gradle.testkit.runner.fixtures.MultiGradleRunnerSpecRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.TempTestKitDirProvider
@@ -34,7 +34,7 @@ import org.junit.runner.RunWith
 @RunWith(MultiGradleRunnerSpecRunner)
 class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
-    static GradleRunnerType gradleRunnerType
+    static GradleRunnerTestVariant gradleRunnerTestVariant
 
     def setup() {
         executer.requireGradleHome().withStackTraceChecksDisabled()
@@ -43,7 +43,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def "use of GradleRunner API in test class without declaring test-kit dependency causes compilation error"() {
         given:
-        writeTest(buildLogicFunctionalTestCreatingGradleRunner(gradleRunnerType.debug))
+        writeTest(buildLogicFunctionalTestCreatingGradleRunner(gradleRunnerTestVariant.debug))
 
         when:
         fails('build')
@@ -67,7 +67,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         GFileUtils.copyFile(gradleTestKitLib, new File(libDir, gradleTestKitLib.name))
 
         buildFile << libDirDependency()
-        writeTest(buildLogicFunctionalTestCreatingGradleRunner(gradleRunnerType.debug))
+        writeTest(buildLogicFunctionalTestCreatingGradleRunner(gradleRunnerTestVariant.debug))
 
         when:
         fails('build')
@@ -92,7 +92,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         }
 
         buildFile << libDirDependency()
-        writeTest(buildLogicFunctionalTestCreatingGradleRunner(gradleRunnerType.debug))
+        writeTest(buildLogicFunctionalTestCreatingGradleRunner(gradleRunnerTestVariant.debug))
 
         when:
         fails('build')
@@ -104,7 +104,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     def "successfully execute functional test and verify expected result"() {
         buildFile << gradleTestKitDependency()
-        writeTest successfulSpockTest('BuildLogicFunctionalTest', gradleRunnerType.debug)
+        writeTest successfulSpockTest('BuildLogicFunctionalTest', gradleRunnerTestVariant.debug)
 
         when:
         succeeds('build')
@@ -121,7 +121,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         def testClassNames = (1..10).collect { "BuildLogicFunctionalTest$it" }
 
         testClassNames.each { testClassName ->
-            writeTest successfulSpockTest(testClassName, gradleRunnerType.debug), testClassName
+            writeTest successfulSpockTest(testClassName, gradleRunnerTestVariant.debug), testClassName
         }
 
         when:
@@ -173,7 +173,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
                         .withTestKitDir(testGradleUserHomeDir.root)
-                        .withDebug($gradleRunnerType.debug)
+                        .withDebug($gradleRunnerTestVariant.debug)
                         .build()
 
                     then:
@@ -341,7 +341,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
-                        .withDebug($gradleRunnerType.debug)
+                        .withDebug($gradleRunnerTestVariant.debug)
                         .build()
 
                     then:
@@ -477,7 +477,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld', 'byeWorld')
                         .withPluginClasspath(pluginClasspath)
-                        .withDebug($gradleRunnerType.debug)
+                        .withDebug($gradleRunnerTestVariant.debug)
                         .build()
 
                     then:
@@ -504,7 +504,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
         buildFile << gradleTestKitDependency()
         buildFile << """
             test {
-                systemProperty '$DefaultGradleRunner.DEBUG_SYS_PROP', '$gradleRunnerType.debug'
+                systemProperty '$DefaultGradleRunner.DEBUG_SYS_PROP', '$gradleRunnerTestVariant.debug'
             }
         """
         writeTest """
@@ -541,7 +541,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     def result = gradleRunner.build()
 
                     then:
-                    gradleRunner.debug == $gradleRunnerType.debug
+                    gradleRunner.debug == $gradleRunnerTestVariant.debug
                     result.standardOutput.contains('Hello world!')
                     result.standardError == ''
                     result.taskPaths(SUCCESS) == [':helloWorld']
@@ -595,7 +595,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                     def gradleRunner = GradleRunner.create(GradleDistribution.withVersion('$gradleVersion'))
                         .withProjectDir(testProjectDir.root)
                         .withArguments('helloWorld')
-                        .withDebug($gradleRunnerType.debug)
+                        .withDebug($gradleRunnerTestVariant.debug)
                     def result = gradleRunner.build()
 
                     then:
@@ -660,7 +660,7 @@ class TestKitEndUserIntegrationTest extends AbstractIntegrationSpec {
                         def gradleRunner = GradleRunner.create(GradleDistribution.withVersion('$gradleVersion'))
                             .withProjectDir(testProjectDir.root)
                             .withArguments('helloWorld')
-                            .withDebug($gradleRunnerType.debug)
+                            .withDebug($gradleRunnerTestVariant.debug)
                         def result = gradleRunner.build()
 
                         then:

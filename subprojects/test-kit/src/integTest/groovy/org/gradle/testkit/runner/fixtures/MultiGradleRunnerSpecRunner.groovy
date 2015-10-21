@@ -29,7 +29,7 @@ class MultiGradleRunnerSpecRunner extends AbstractMultiTestRunner {
         TargetCoverage coverage = target.getAnnotation(TargetCoverage)
         EnumSet coverageTargets = determineCoverageTargets(coverage)
 
-        coverageTargets.each { GradleRunnerType coverageTarget ->
+        coverageTargets.each { GradleRunnerTestVariant coverageTarget ->
             add(new GradleRunnerExecution(coverageTarget))
         }
     }
@@ -43,20 +43,20 @@ class MultiGradleRunnerSpecRunner extends AbstractMultiTestRunner {
     }
 
     private static class GradleRunnerExecution extends AbstractMultiTestRunner.Execution {
-        private final GradleRunnerType gradleRunnerType
+        private final GradleRunnerTestVariant gradleRunnerTestVariant
 
-        GradleRunnerExecution(GradleRunnerType gradleRunnerType) {
-            this.gradleRunnerType = gradleRunnerType
+        GradleRunnerExecution(GradleRunnerTestVariant gradleRunnerTestVariant) {
+            this.gradleRunnerTestVariant = gradleRunnerTestVariant
         }
 
         @Override
         protected String getDisplayName() {
-            gradleRunnerType.displayName
+            gradleRunnerTestVariant.displayName
         }
 
         @Override
         protected void before() {
-            target.gradleRunnerType = gradleRunnerType
+            target.gradleRunnerTestVariant = gradleRunnerTestVariant
         }
 
         @Override
@@ -65,7 +65,7 @@ class MultiGradleRunnerSpecRunner extends AbstractMultiTestRunner {
 
             if (ignoreTarget) {
                 EnumSet enumSet = ignoreTarget.value().newInstance(target, target).call()
-                return !enumSet.contains(gradleRunnerType)
+                return !enumSet.contains(gradleRunnerTestVariant)
             }
 
             true

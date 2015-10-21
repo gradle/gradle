@@ -16,23 +16,29 @@
 
 package org.gradle.testkit.runner.fixtures
 
-enum GradleRunnerType {
-    DAEMON('daemon', false),
-    EMBEDDED('embedded', true)
+enum GradleRunnerTestVariant {
+    DAEMON_NO_DEBUG(true, false, 'daemon, no debug'),
+    EMBEDDED_DEBUG(false, true, 'embedded, debug')
 
-    private final String displayName
+    private final boolean daemon
     private final boolean debug
+    private final String displayName
 
-    GradleRunnerType(String displayName, boolean debug) {
-        this.displayName = displayName
+    GradleRunnerTestVariant(boolean daemon, boolean debug, String displayName) {
+        this.daemon = daemon
         this.debug = debug
+        this.displayName = displayName
+    }
+
+    boolean isDaemon() {
+        return daemon
+    }
+
+    boolean isDebug() {
+        debug
     }
 
     String getDisplayName() {
         displayName
-    }
-
-    boolean getDebug() {
-        debug
     }
 }

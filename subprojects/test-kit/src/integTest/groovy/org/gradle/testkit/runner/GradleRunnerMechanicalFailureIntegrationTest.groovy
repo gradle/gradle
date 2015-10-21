@@ -125,7 +125,7 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         result.taskPaths(FAILED).empty
     }
 
-    @IgnoreTarget({ GradleRunnerCoverage.DEBUG })
+    @IgnoreTarget({ GradleRunnerCoverage.EMBEDDED })
     def "build execution with invalid JVM arguments"() {
         given:
         GFileUtils.writeFile('org.gradle.jvmargs=-unknown', testProjectDir.file('gradle.properties'))
@@ -146,7 +146,7 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         result.taskPaths(FAILED).empty
     }
 
-    @IgnoreTarget({ GradleRunnerCoverage.DEBUG })
+    @IgnoreTarget({ GradleRunnerCoverage.EMBEDDED })
     def "daemon dies during build execution"() {
         given:
         buildFile << """

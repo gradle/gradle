@@ -107,7 +107,7 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
         standardError.close()
     }
 
-    @IgnoreTarget({ GradleRunnerCoverage.DEBUG })
+    @IgnoreTarget({ GradleRunnerCoverage.EMBEDDED })
     def "output is captured if mechanical failure occurs"() {
         given:
         Writer standardOutput = new StringWriter()
