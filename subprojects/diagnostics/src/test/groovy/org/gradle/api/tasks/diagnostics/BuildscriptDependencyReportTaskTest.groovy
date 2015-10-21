@@ -16,34 +16,24 @@
 
 package org.gradle.api.tasks.diagnostics
 
-import org.gradle.api.Project
+
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
-import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class BuildscriptDependencyReportTaskTest extends Specification {
-    private Project project = TestUtil.createRootProject()
+    private DefaultProject project = TestUtil.createRootProject()
     private BuildscriptDependencyReportTask task = TestUtil.createTask(BuildscriptDependencyReportTask.class, project)
     private DependencyReportRenderer renderer = Mock(DependencyReportRenderer)
     private Configuration conf1 = project.buildscript.configurations.create("conf1")
     private Configuration conf2 = project.buildscript.configurations.create("conf2")
     private Configuration classpath = project.buildscript.configurations.getByName("classpath")
 
-    void setup() {
-        task.renderer = renderer
-    }
-
-    def "task is configured correctly"() {
-        task = TestUtil.createTask(BuildscriptDependencyReportTask.class);
-
-        expect:
-        task.renderer instanceof AsciiDependencyReportRenderer
-    }
-
     def "renders all configurations in the project"() {
         when:
+        task.setRenderer(renderer)
         task.generate()
 
         then: 1 * renderer.startConfiguration(classpath)

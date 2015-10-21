@@ -15,35 +15,34 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import javax.inject.Inject;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ProjectReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
-import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.logging.StyledTextOutputFactory;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
 
 /**
  * Displays the buildscript dependency tree for a project. An instance of this type is used when you
  * execute the {@code buildscriptDependencies} task from the command-line.
  */
-public class BuildscriptDependencyReportTask extends ConventionTask {
+public class BuildscriptDependencyReportTask extends DefaultTask {
 
     private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
-    private File outputFile;
     private Set<Project> projects;
 
     public BuildscriptDependencyReportTask() {
@@ -85,59 +84,13 @@ public class BuildscriptDependencyReportTask extends ConventionTask {
             }
         };
 
-        ReportGenerator reportGenerator = new ReportGenerator(getRenderer(), getClientMetaData(), getOutputFile(),
+        ReportGenerator reportGenerator = new ReportGenerator(renderer, getClientMetaData(), null,
                 getTextOutputFactory(), projectReportGenerator);
-        reportGenerator.generateReport(new TreeSet<Project>(getProjects()));
+        reportGenerator.generateReport(projects);
     }
 
-    public ReportRenderer getRenderer() {
-        return renderer;
-    }
-
-    /**
-     * Set the renderer to use to build a report. If unset, AsciiGraphRenderer will be used.
-     */
-    public void setRenderer(DependencyReportRenderer renderer) {
-        this.renderer = renderer;
-    }
-
-    /**
-     * Returns the file which the report will be written to. When set to {@code null}, the report is written to {@code System.out}.
-     * Defaults to {@code null}.
-     *
-     * @return The output file. May be null.
-     */
-    @OutputFile
-    @Optional
-    public File getOutputFile() {
-        return outputFile;
-    }
-
-    /**
-     * Sets the file which the report will be written to. Set this to {@code null} to write the report to {@code System.out}.
-     *
-     * @param outputFile The output file. May be null.
-     */
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
-    }
-
-    /**
-     * Returns the set of project to generate this report for. By default, the report is generated for the task's
-     * containing project.
-     *
-     * @return The set of files.
-     */
-    public Set<Project> getProjects() {
-        return projects;
-    }
-
-    /**
-     * Specifies the set of projects to generate this report for.
-     *
-     * @param projects The set of projects. Must not be null.
-     */
-    public void setProjects(Set<Project> projects) {
-        this.projects = projects;
+    @VisibleForTesting
+    protected void setRenderer(DependencyReportRenderer dependencyReportRenderer) {
+        this.renderer = dependencyReportRenderer;
     }
 }

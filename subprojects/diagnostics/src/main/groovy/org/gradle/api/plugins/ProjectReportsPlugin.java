@@ -87,16 +87,6 @@ public class ProjectReportsPlugin implements Plugin<Project> {
         BuildscriptDependencyReportTask buildscriptDependencyReportTask = project.getTasks().create(BUILDSCRIPT_DEPENDENCY_REPORT,
                 BuildscriptDependencyReportTask.class);
         buildscriptDependencyReportTask.setDescription("Generates a buildscript report about your library dependencies.");
-        buildscriptDependencyReportTask.conventionMapping("outputFile", new Callable<Object>() {
-            public Object call() throws Exception {
-                return new File(convention.getProjectReportDir(), "buildscriptDependencies.txt");
-            }
-        });
-        buildscriptDependencyReportTask.conventionMapping("projects", new Callable<Object>() {
-            public Object call() throws Exception {
-                return convention.getProjects();
-            }
-        });
 
         HtmlDependencyReportTask htmlDependencyReportTask = project.getTasks().create(HTML_DEPENDENCY_REPORT,
                 HtmlDependencyReportTask.class);
