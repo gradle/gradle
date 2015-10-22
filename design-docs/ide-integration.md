@@ -602,7 +602,7 @@ class WebApplicationModelBuilder implements ToolingModelBuilder {
 }
 ```
 
-Note that the WebApplicationProject model directly maps to properties defined in the ('war' plugin)[https://docs.gradle.org/current/userguide/war_plugin.html].
+Note that the WebApplicationProject model directly maps to properties defined in the ['war' plugin](https://docs.gradle.org/current/userguide/war_plugin.html).
 
 #### Implementation
 
