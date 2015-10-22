@@ -213,6 +213,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Changes to native software model
+
+TBD general warning about breaking changes, e.g. replacing `NativeExecutableBinarySpec#setExecutableFile` with `#getExecutable.setFile()`
+
 ### Changes to experimental integration between software model and Java plugins
 
 TBD

@@ -15,24 +15,22 @@
  */
 
 package org.gradle.nativeplatform.tasks
+
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.ParallelizableTask
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.nativeplatform.toolchain.Gcc
+import org.gradle.platform.base.ToolChain
 
 import javax.inject.Inject
+
 /**
  * Installs an executable with it's dependent libraries so it can be easily executed.
  */
@@ -58,7 +56,7 @@ public class InstallExecutable extends DefaultTask {
     /**
      * The tool chain used for linking.
      */
-    NativeToolChain toolChain
+    ToolChain toolChain
 
     /**
      * The directory to install files into.

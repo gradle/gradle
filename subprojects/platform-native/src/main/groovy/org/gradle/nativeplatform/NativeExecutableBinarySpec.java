@@ -21,13 +21,12 @@ import org.gradle.api.Task;
 import org.gradle.platform.base.ApplicationBinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
 
-import java.io.File;
-
 /**
  * An binary built by Gradle for a native application.
  */
 @Incubating
 public interface NativeExecutableBinarySpec extends NativeBinarySpec, ApplicationBinarySpec {
+
     /**
      * Provides access to key tasks used for building the binary.
      */
@@ -56,14 +55,14 @@ public interface NativeExecutableBinarySpec extends NativeBinarySpec, Applicatio
     NativeExecutableSpec getComponent();
 
     /**
-     * The executable file.
+     * TODO:HH Discuss Javadoc practices
      */
-    File getExecutableFile();
+    NativeInstallationSpec getInstallation();
 
     /**
-     * The executable file.
+     * TODO:HH Discuss Javadoc practices
      */
-    void setExecutableFile(File executableFile);
+    NativeExecutableFileSpec getExecutable();
 
     /**
      * {@inheritDoc}

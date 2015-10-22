@@ -257,7 +257,7 @@ model {
         def modPath = { File original -> new File(original.parent + "/new_output/_" + original.name) }
         main(NativeExecutableSpec) {
             binaries.all {
-                executableFile = modPath(executableFile)
+                executable.file = modPath(executableFile)
             }
         }
         hello(NativeLibrarySpec) {

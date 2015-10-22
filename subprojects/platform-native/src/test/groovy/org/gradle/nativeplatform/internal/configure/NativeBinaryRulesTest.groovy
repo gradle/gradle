@@ -18,7 +18,9 @@ package org.gradle.nativeplatform.internal.configure
 
 import org.gradle.api.Project
 import org.gradle.nativeplatform.NativeComponentSpec
+import org.gradle.nativeplatform.NativeExecutableFileSpec
 import org.gradle.nativeplatform.NativeExecutableSpec
+import org.gradle.nativeplatform.NativeInstallationSpec
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.nativeplatform.internal.NativeExecutableBinarySpecInternal
@@ -53,7 +55,11 @@ class NativeBinaryRulesTest extends Specification {
     }
 
     def "test executable"() {
+        def executableFile = new NativeExecutableFileSpec();
+        def installation = new NativeInstallationSpec();
         def binary = initBinary(NativeExecutableBinarySpecInternal, NativeExecutableSpec)
+        binary.executable >> executableFile
+        binary.installation >> installation
 
         when:
         toolProvider.getExecutableName("base_name") >> "exe_name"
@@ -62,7 +68,8 @@ class NativeBinaryRulesTest extends Specification {
         NativeBinaryRules.assignTools(binary, toolChains, tmpDir.testDirectory)
 
         then:
-        1 * binary.setExecutableFile(tmpDir.testDirectory.file("binaries", "output_dir", "exe_name"))
+        executableFile.file == tmpDir.testDirectory.file("binaries", "output_dir", "exe_name")
+        installation.directory == tmpDir.testDirectory.file("install/output_dir")
     }
 
     def "test shared library"() {

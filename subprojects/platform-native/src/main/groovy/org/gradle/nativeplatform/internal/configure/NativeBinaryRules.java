@@ -24,6 +24,7 @@ import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.NativeExecutableFileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -47,12 +48,25 @@ public class NativeBinaryRules extends RuleSource {
         String baseName = binarySpecInternal.getComponent().getBaseName();
 
         if (binarySpecInternal instanceof NativeExecutableBinarySpec) {
-            ((NativeExecutableBinarySpec) binarySpecInternal).setExecutableFile(new File(binaryOutputDir, toolProvider.getExecutableName(baseName)));
+            NativeExecutableBinarySpec binarySpec = (NativeExecutableBinarySpec) binarySpecInternal;
+            initializeNativeExecutableBinary(buildDir, binarySpec, toolChain, toolProvider, namingScheme, binaryOutputDir, baseName);
         } else if (binarySpecInternal instanceof SharedLibraryBinarySpec) {
             ((SharedLibraryBinarySpec) binarySpecInternal).setSharedLibraryFile(new File(binaryOutputDir, toolProvider.getSharedLibraryName(baseName)));
             ((SharedLibraryBinarySpec) binarySpecInternal).setSharedLibraryLinkFile(new File(binaryOutputDir, toolProvider.getSharedLibraryLinkFileName(baseName)));
         } else if (binarySpecInternal instanceof StaticLibraryBinarySpec) {
             ((StaticLibraryBinarySpec) binarySpecInternal).setStaticLibraryFile(new File(binaryOutputDir, toolProvider.getStaticLibraryName(baseName)));
         }
+    }
+
+    private static void initializeNativeExecutableBinary(File buildDir, NativeExecutableBinarySpec binarySpec,
+                                                         NativeToolChainInternal toolChain,
+                                                         PlatformToolProvider toolProvider,
+                                                         BinaryNamingScheme namingScheme, File binaryOutputDir,
+                                                         String baseName) {
+        NativeExecutableFileSpec executable = binarySpec.getExecutable();
+        executable.setFile(new File(binaryOutputDir, toolProvider.getExecutableName(baseName)));
+        executable.setToolChain(toolChain);
+        File defaultDestination = new File(buildDir, "install/" + namingScheme.getOutputDirectoryBase());
+        binarySpec.getInstallation().setDirectory(defaultDestination);
     }
 }
