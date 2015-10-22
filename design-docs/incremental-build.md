@@ -81,16 +81,15 @@ Spike commit: https://github.com/lhotari/gradle/commit/f235117fd0b8b125a8220c45d
 
 #### 2. phase - target release Gradle 2.10
 
-Goal: separate caching logic and manage the cache instance in Gradle infrastructure instead of a singleton instance
-- Separate caching logic from PatternSetSpecFactory class to a class called CachingPatternSetSpecFactory.
-- Remove caching from the default PatternSetSpecFactory class. This removes the caching from PatternSet class which was added in 1. phase.
-- Make the Gradle infrastructure manage the CachingPatternSetSpecFactory instance.
-- Create a new PatternSet subclass that takes the PatternSetSpecFactory instance in the constructor.
-- Replace usage of PatternSet class with the new subclass in Gradle core code. Wire the CachingPatternSetSpecFactory instance to the instances of the new PatternSet subclass.
+Goal: manage the cache instance in Gradle infrastructure instead of a singleton instance
+- Use default non-caching PatternSpecFactory in PatternSet class, replace use of CachingPatternSpecFactory with plain PatternSpecFactory
+- Make the Gradle infrastructure manage the CachingPatternSpecFactory instance.
+- Create a new PatternSet subclass that takes the PatternSpecFactory instance in the constructor.
+- Replace usage of PatternSet class with the new subclass in Gradle core code. Wire the CachingPatternSpecFactory instance to the instances of the new PatternSet subclass.
 
 Goal: support suppressing default excludes
-- Add support for suppressing the default excludes that are part of Ant integration legacy in Gradle. Default excludes aren't needed when there are specific include patterns. The default excludes support can be added to the same new PatternSet subclass that supports the separate (Caching)PatternSetSpecFactory.
-- make SourceSets in Gradle use the new PatternSet implementation that supports suppressing the default excludes and uses the CachingPatternSetSpecFactory managed by the Gradle infrastructure (`GlobalScopeServices`)
+- Add support for suppressing the default excludes that are part of Ant integration legacy in Gradle. Default excludes aren't needed when there are specific include patterns. The default excludes support can be added to the same new PatternSet subclass that supports the separate (Caching)PatternSpecFactory.
+- make SourceSets in Gradle use the new PatternSet implementation that supports suppressing the default excludes and uses the CachingPatternSpecFactory managed by the Gradle infrastructure (`GlobalScopeServices`)
 
 
 ## Story: High number of UnknownDomainObjectExceptions when resolving libraries in native projects.
