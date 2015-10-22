@@ -90,7 +90,12 @@ class DependencyGenerator {
         }
     }
 
-    def createDependencies() {
+    /**
+     * Generate dependencies for each sub-project using the method described in the class level javadoc
+     *
+     * @return map where key is projectNumber, value is a collection of projectNumbers that are the dependencies
+     */
+    Map<Integer, Collection<Integer>> createDependencies() {
         def layerSizes = calculateLayerSizes()
         def projectsInLayers = splitProjectsInLayers(layerSizes)
 
@@ -103,6 +108,7 @@ class DependencyGenerator {
                     def possibleDependencies = (startingLayer..<layerIndex).collect {
                         projectsInLayers[it]
                     }.flatten()
+                    // use Random with projectNumber as seed, so that we get same results each time
                     Collections.shuffle(possibleDependencies, new Random(projectNumber as long))
                     resolvedDependencies = possibleDependencies.take(numberOfDependencies).sort()
                 }
