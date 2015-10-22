@@ -303,6 +303,8 @@ public class NodeBackedModelMap<T> implements ModelMap<T>, ManagedInstance {
     }
 
     public <S extends T> ModelMap<S> toSubType(Class<S> type) {
+        // TODO:HH Filtering should be additive
+        // map.withType(Foo).withType(Bar) should return only elements that implement both Foo and Bar
         ChildNodeInitializerStrategy<S> creatorStrategy = uncheckedCast(this.creatorStrategy);
         return new NodeBackedModelMap<S>(ModelType.of(type), sourceDescriptor, modelNode, eager, viewState, creatorStrategy);
     }
