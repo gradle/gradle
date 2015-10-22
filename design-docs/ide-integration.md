@@ -628,9 +628,6 @@ Note that the WebApplicationProject model directly maps to properties defined in
 - WebApplicationProject.getWebApplicationDirectory returns correct file when custom web application directory is set
 - WebApplicationProject.getWebApplicationDirectory returns null when custom web application directory is set, but directory does not exist
 - WebApplicationProject model returns null when project does not apply the 'war' plugin
-
-The `WebApplicationModelBuilder` is tested transitively, as the following tests would all fail if the `WebApplicationModelBuilder` did not produce the correct model.
-
 - Add WebApplicationProject to ModelMappingTest.groovy
 - Add WebApplicationProject to ModelBuilderBackedConsumerConnectionTest.groovy
 - Add WebApplicationProject to BuildActionRunnerBackedConsumerConnectionTest.groovy
