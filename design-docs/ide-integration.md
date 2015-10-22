@@ -602,7 +602,7 @@ class DefaultWebApplicationProject implements Serializable {
 
 class WebApplicationModelBuilder implements ToolingModelBuilder {
     public boolean canBuild(String modelName);
-    public DefaultEclipseProject buildAll(String modelName, Project project);
+    public DefaultWebApplicationProject buildAll(String modelName, Project project);
 }
 ```
 
