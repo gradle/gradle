@@ -583,10 +583,6 @@ A web application project will be defined to be any project that applies the 'wa
 
 In order to properly deploy a web application, the IDE needs to know about the location and contents of the web application directory.
 
-#### Estimate
-
-- ? Days
-
 #### The API
 
 ```
