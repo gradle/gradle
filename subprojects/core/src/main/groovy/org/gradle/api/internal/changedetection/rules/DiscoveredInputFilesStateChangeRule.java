@@ -74,15 +74,15 @@ public class DiscoveredInputFilesStateChangeRule {
         public InputFileChange lastChange;
 
         public void added(String fileName) {
-            lastChange = new InputFileChange(fileName, ChangeType.ADDED);
+            lastChange = new DiscoveredInputFileChange(fileName, ChangeType.ADDED);
         }
 
         public void removed(String fileName) {
-            lastChange = new InputFileChange(fileName, ChangeType.REMOVED);
+            lastChange = new DiscoveredInputFileChange(fileName, ChangeType.REMOVED);
         }
 
         public void changed(String fileName) {
-            lastChange = new InputFileChange(fileName, ChangeType.MODIFIED);
+            lastChange = new DiscoveredInputFileChange(fileName, ChangeType.MODIFIED);
         }
     }
 }

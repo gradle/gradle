@@ -41,7 +41,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final FileCollectionSnapshotter outputFilesSnapshotter;
     private final FileCollectionSnapshotter inputFilesSnapshotter;
     private final Instantiator instantiator;
-    private IncrementalTaskInputsInternal taskInputs;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
                                               FileCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter) {
@@ -60,6 +59,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private final TaskHistoryRepository.History history;
         private boolean upToDate;
         private TaskUpToDateState states;
+        private IncrementalTaskInputsInternal taskInputs;
 
         public TaskArtifactStateImpl(TaskInternal task, TaskHistoryRepository.History history) {
             this.task = task;
