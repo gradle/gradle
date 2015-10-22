@@ -22,6 +22,9 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 class PlatformNativeComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
     private String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
+    //TODO:HH Test rendering of a NativeExecutableSpec
+    // Should display installation directory
+
     @RequiresInstalledToolChain
     def "shows details of native C++ library"() {
         given:
