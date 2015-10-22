@@ -28,19 +28,16 @@ class DependencyGeneratorTest extends Specification {
         dependencyGenerator.numberOfProjects = numberOfProjects
         when:
         def layerSizes = dependencyGenerator.calculateLayerSizes()
-        println "layer sizes ${layerSizes}"
         then:
         layerSizes.size() == dependencyGenerator.numberOfLayers
         layerSizes.sum() == numberOfProjects
         when:
         def projectsInLayer = dependencyGenerator.splitProjectsInLayers(layerSizes)
-        println "projects in each layer ${projectsInLayer}"
         then:
         projectsInLayer.size() == dependencyGenerator.numberOfLayers
         projectsInLayer.collect { it.size() }.sum() == numberOfProjects
         when:
         def projectDependencies = dependencyGenerator.createDependencies()
-        projectDependencies.each { k, v -> println "$k $v" }
         then:
         projectDependencies.size() == numberOfProjects
         projectDependencies.values().any { it.size() > dependencyGenerator.numberOfDependencies } == false
