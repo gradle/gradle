@@ -32,6 +32,8 @@
               files=".*[/\\]subprojects[/\\]language-groovy[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]compile[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]language-java[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]compile[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]platform-native[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]language[/\\][^/\\]+"/>
 
     <!-- Don't require api docs for projects only used internally -->
     <suppress checks="Javadoc.*"

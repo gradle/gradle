@@ -16,9 +16,6 @@
 
 package org.gradle.nativeplatform.internal.configure;
 
-import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.language.base.internal.registry.LanguageTransform;
-import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
@@ -33,19 +30,8 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
 import java.io.File;
-import java.util.Map;
 
 public class NativeBinaryRules extends RuleSource {
-    @Defaults
-    void addToolExtensions(NativeBinarySpec nativeBinarySpec, LanguageTransformContainer languageTransforms) {
-        for (LanguageTransform<?, ?> language : languageTransforms) {
-            Map<String, Class<?>> binaryTools = language.getBinaryTools();
-            for (String toolName : binaryTools.keySet()) {
-                ((ExtensionAware) nativeBinarySpec).getExtensions().create(toolName, binaryTools.get(toolName));
-            }
-        }
-    }
-
     @Defaults
     public static void assignTools(NativeBinarySpec nativeBinarySpec, NativeToolChainRegistryInternal toolChains, /* @Path("buildDir") */ File buildDir) {
         NativeBinarySpecInternal binarySpecInternal = (NativeBinarySpecInternal) nativeBinarySpec;

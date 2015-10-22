@@ -43,7 +43,6 @@ import org.gradle.model.internal.manage.schema.extract.ConstructableTypesRegistr
 import org.gradle.model.internal.manage.schema.extract.DefaultConstructableTypesRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.DefaultBinaryContainer;

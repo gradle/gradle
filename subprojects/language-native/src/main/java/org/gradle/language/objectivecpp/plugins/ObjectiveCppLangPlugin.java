@@ -23,7 +23,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.language.nativeplatform.internal.DefaultPreprocessingTool;
+import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;

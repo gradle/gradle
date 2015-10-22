@@ -32,7 +32,6 @@ import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.nativeplatform.internal.configure.ToolSettingNativeBinaryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
@@ -130,8 +129,6 @@ public class CUnitPlugin implements Plugin<Project> {
         @Mutate
         public void createCUnitTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir,
                                             LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            final Action<NativeBinarySpec> setToolsAction = new ToolSettingNativeBinaryInitializer(languageTransforms);
-
             testSuites.withType(CUnitTestSuiteSpec.class).afterEach(new Action<CUnitTestSuiteSpec>() {
                 @Override
                 public void execute(final CUnitTestSuiteSpec cUnitTestSuite) {
@@ -154,7 +151,6 @@ public class CUnitPlugin implements Plugin<Project> {
                                 testBinary.setTestedBinary((NativeBinarySpecInternal) testedBinary);
                                 testBinary.setNamingScheme(namingScheme);
                                 testBinary.setResolver(resolver);
-                                setToolsAction.execute(testBinary);
                                 configure(testBinary, buildDir);
                             }
                         });

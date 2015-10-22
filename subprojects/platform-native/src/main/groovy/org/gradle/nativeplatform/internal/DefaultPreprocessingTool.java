@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.internal;
+package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.internal.DefaultTool;
 import org.gradle.language.PreprocessingTool;
 
 import java.util.LinkedHashMap;

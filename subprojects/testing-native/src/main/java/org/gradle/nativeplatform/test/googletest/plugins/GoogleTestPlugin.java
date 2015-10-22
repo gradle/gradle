@@ -30,7 +30,6 @@ import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.nativeplatform.internal.configure.ToolSettingNativeBinaryInitializer;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
@@ -98,8 +97,6 @@ public class GoogleTestPlugin implements Plugin<Project> {
         @Mutate
         public void createGoogleTestTestBinaries(TestSuiteContainer testSuites, @Path("buildDir") final File buildDir,
                                                  LanguageTransformContainer languageTransforms, final ServiceRegistry serviceRegistry, final ITaskFactory taskFactory) {
-            final Action<NativeBinarySpec> setToolsAction = new ToolSettingNativeBinaryInitializer(languageTransforms);
-
             testSuites.withType(GoogleTestTestSuiteSpec.class).afterEach(new Action<GoogleTestTestSuiteSpec>() {
                 @Override
                 public void execute(final GoogleTestTestSuiteSpec testSuiteSpec) {
@@ -121,7 +118,6 @@ public class GoogleTestPlugin implements Plugin<Project> {
                                 testBinary.setTestedBinary((NativeBinarySpecInternal) testedBinary);
                                 testBinary.setNamingScheme(namingScheme);
                                 testBinary.setResolver(resolver);
-                                setToolsAction.execute(testBinary);
                                 configure(testBinary, buildDir);
                             }
                         });
