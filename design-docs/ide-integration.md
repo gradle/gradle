@@ -583,6 +583,8 @@ A web application project will be defined to be any project that applies the 'wa
 
 In order to properly deploy a web application, the IDE needs to know about the location and contents of the web application directory.
 
+This story also introduces the `WebApplicationProject` model, an IDE agnostic model that exposes information about projects that apply the 'war' plugin.
+
 #### The API
 
 ```
