@@ -17,7 +17,9 @@ package org.gradle.language.base.internal.tasks.apigen.abi;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Lists;
+import org.objectweb.asm.Type;
 
+import java.lang.reflect.Modifier;
 import java.util.List;
 
 public class FieldSig implements Comparable<FieldSig> {
@@ -68,5 +70,10 @@ public class FieldSig implements Comparable<FieldSig> {
             .compare(desc == null ? "" : desc, o.desc == null ? "" : o.desc)
             .compare(signature == null ? "" : signature, o.signature == null ? "" : o.signature)
             .result();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s %s", Modifier.toString(access), Type.getType(desc).getClassName(), name);
     }
 }

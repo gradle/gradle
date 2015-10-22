@@ -17,15 +17,12 @@ package org.gradle.language.base.internal.tasks.apigen;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.tasks.apigen.abi.*;
 import org.objectweb.asm.*;
-import org.objectweb.asm.signature.SignatureReader;
-import org.objectweb.asm.signature.SignatureVisitor;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Modifier;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,18 +33,18 @@ public class ApiStubGenerator {
     // See JLS3 "Binary Compatibility" (13.1)
     private final static Pattern AIC_LOCAL_CLASS_PATTERN = Pattern.compile(".+\\$[0-9]+(?:[\\p{Alnum}_$]+)?$");
 
-    private final boolean validateExposedTypes;
-    private final List<String> allowedPackages;
     private final boolean hasDeclaredAPI;
+    private final MemberOfApiChecker memberOfApiChecker;
+    private final ApiValidator apiValidator;
 
     public ApiStubGenerator(List<String> allowedPackages) {
         this(allowedPackages, false);
     }
 
     public ApiStubGenerator(List<String> allowedPackages, boolean validateExposedTypes) {
-        this.allowedPackages = allowedPackages;
         this.hasDeclaredAPI = !allowedPackages.isEmpty();
-        this.validateExposedTypes = validateExposedTypes;
+        this.memberOfApiChecker = hasDeclaredAPI ? new DefaultMemberOfApiChecker(allowedPackages) : new AlwaysMemberOfApiChecker();
+        this.apiValidator = validateExposedTypes ? new DefaultApiValidator(memberOfApiChecker) : new NoOpValidator();
     }
 
     /**
@@ -78,7 +75,7 @@ public class ApiStubGenerator {
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 String className = toClassName(name);
-                isAPI.set(belongsToApi(className) && isPublicAPI(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
+                isAPI.set(memberOfApiChecker.belongsToApi(className) && isPublicAPI(access) && !AIC_LOCAL_CLASS_PATTERN.matcher(name).matches());
             }
         }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
         return isAPI.get();
@@ -110,38 +107,8 @@ public class ApiStubGenerator {
         return cw.toByteArray();
     }
 
-    private static String toClassName(String cn) {
+    public static String toClassName(String cn) {
         return cn.replace('/', '.');
-    }
-
-    private static String extractPackageName(String className) {
-        return className.indexOf(".") > 0 ? className.substring(0, className.lastIndexOf(".")) : "";
-    }
-
-    private boolean validateType(String className) {
-        return !validateExposedTypes || belongsToApi(className);
-    }
-
-    private boolean belongsToApi(String className) {
-        if (!hasDeclaredAPI) {
-            return true;
-        }
-
-        String pkg = extractPackageName(className);
-
-        for (String javaBasePackage : JavaBaseModule.PACKAGES) {
-            if (pkg.equals(javaBasePackage)) {
-                return true;
-            }
-        }
-        boolean allowed = false;
-        for (String allowedPackage : allowedPackages) {
-            if (pkg.equals(allowedPackage)) {
-                allowed = true;
-                break;
-            }
-        }
-        return allowed;
     }
 
     private boolean isProtected(int access) {
@@ -161,55 +128,6 @@ public class ApiStubGenerator {
             || access == Opcodes.ACC_STATIC
             || access == Opcodes.ACC_SUPER
             || access == (Opcodes.ACC_SUPER | Opcodes.ACC_STATIC);
-    }
-
-    private class StubClassWriter extends ClassVisitor implements Opcodes {
-
-        public static final String UOE_METHOD = "$unsupportedOpEx";
-        private String internalClassName;
-
-        public StubClassWriter(ClassWriter cv) {
-            super(ASM5, cv);
-        }
-
-        /**
-         * Generates an exception which is going to be thrown in each method. The reason it is in a separate method is because it reduces the bytecode size.
-         */
-        private void generateUnsupportedOperationExceptionMethod() {
-            MethodVisitor mv = cv.visitMethod(ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", null, null);
-            mv.visitCode();
-            mv.visitTypeInsn(NEW, "java/lang/UnsupportedOperationException");
-            mv.visitInsn(DUP);
-            mv.visitLdcInsn("You tried to call a method on an API class. You probably added the API jar on classpath instead of the implementation jar.");
-            mv.visitMethodInsn(INVOKESPECIAL, "java/lang/UnsupportedOperationException", "<init>", "(Ljava/lang/String;)V", false);
-            mv.visitInsn(ARETURN);
-            mv.visitMaxs(3, 0);
-            mv.visitEnd();
-        }
-
-
-        @Override
-        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-            super.visit(version, access, name, signature, superName, interfaces);
-            internalClassName = name;
-            if ((access & ACC_INTERFACE) == 0) {
-                generateUnsupportedOperationExceptionMethod();
-            }
-        }
-
-        @Override
-        public MethodVisitor visitMethod(final int access, final String name, final String desc, final String signature, final String[] exceptions) {
-            MethodVisitor mv = cv.visitMethod(access, name, desc, signature, exceptions);
-            if ((access & ACC_ABSTRACT) == 0) {
-                mv.visitCode();
-                mv.visitMethodInsn(INVOKESTATIC, internalClassName, UOE_METHOD, "()Ljava/lang/UnsupportedOperationException;", false);
-                mv.visitInsn(ATHROW);
-                mv.visitMaxs(1, 0);
-                mv.visitEnd();
-            }
-            return mv;
-        }
-
     }
 
     class PublicAPIExtractor extends ClassVisitor implements Opcodes {
@@ -234,7 +152,7 @@ public class ApiStubGenerator {
             classSig = new ClassSig(version, access, name, signature, superName, interfaces);
             internalClassName = name;
             isInnerClass = (access & ACC_SUPER) == ACC_SUPER;
-            validateSuperTypes(name, signature, superName, interfaces);
+            apiValidator.validateSuperTypes(name, signature, superName, interfaces);
         }
 
         @Override
@@ -315,17 +233,14 @@ public class ApiStubGenerator {
         }
 
         @Override
-        public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            checkAnnotation(toClassName(internalClassName), desc);
-            final AnnotationSig sig = classSig.addAnnotation(desc, visible);
-            return new SortingAnnotationVisitor(sig, super.visitAnnotation(desc, visible));
-        }
-
-        private void checkAnnotation(String owner, String annotationDesc) {
-            String annotation = Type.getType(annotationDesc).getClassName();
-            if (!validateType(annotation)) {
-                throw new InvalidPublicAPIException(String.format("'%s' is annotated with '%s' effectively exposing it in the public API but its package is not one of the allowed packages.", owner, annotation));
-            }
+        public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
+            return apiValidator.validateAnnotation(toClassName(internalClassName), desc, new Factory<AnnotationVisitor>() {
+                @Override
+                public AnnotationVisitor create() {
+                    final AnnotationSig sig = classSig.addAnnotation(desc, visible);
+                    return new SortingAnnotationVisitor(sig, PublicAPIExtractor.super.visitAnnotation(desc, visible));
+                }
+            });
         }
 
         @Override
@@ -335,43 +250,46 @@ public class ApiStubGenerator {
                 return null;
             }
             if (isPublicAPI(access) || ("<init>".equals(name) && isInnerClass)) {
-                Set<String> invalidReferencedTypes = invalidReferencedTypes(signature == null ? desc : signature);
-                if (invalidReferencedTypes.isEmpty()) {
-                    MethodSig methodSig = new MethodSig(access, name, desc, signature, exceptions);
-                    methods.add(methodSig);
-                    return createMethodAnnotationChecker(access, name, desc, methodSig);
-                } else {
-                    String methodDesc = prettifyMethodDescriptor(access, name, desc);
-                    if (invalidReferencedTypes.size() == 1) {
-                        throw new InvalidPublicAPIException(String.format("In %s, type %s is exposed in the public API but its package is not one of the allowed packages.", methodDesc, invalidReferencedTypes.iterator().next()));
-                    } else {
-                        StringBuilder sb = new StringBuilder("The following types are referenced in ");
-                        sb.append(methodDesc);
-                        sb.append(" but their package is not one of the allowed packages:\n");
-                        for (String invalidReferencedType : invalidReferencedTypes) {
-                            sb.append("   - ").append(invalidReferencedType).append("\n");
-                        }
-                        throw new InvalidPublicAPIException(sb.toString());
+                final MethodSig methodSig = new MethodSig(access, name, desc, signature, exceptions);
+                return apiValidator.validateMethod(methodSig, new Factory<MethodVisitor>() {
+                    @Override
+                    public MethodVisitor create() {
+                        methods.add(methodSig);
+                        return createMethodAnnotationChecker(methodSig);
                     }
-                }
+                });
             }
             return null;
         }
 
-        private MethodVisitor createMethodAnnotationChecker(final int access, final String name, final String desc, final MethodSig methodSig) {
+        private MethodVisitor createMethodAnnotationChecker(final MethodSig methodSig) {
             return new MethodVisitor(Opcodes.ASM5) {
-                @Override
-                public AnnotationVisitor visitAnnotation(String annDesc, boolean visible) {
-                    checkAnnotation(prettifyMethodDescriptor(access, name, desc), annDesc);
-                    AnnotationSig sig = methodSig.addAnnotation(annDesc, visible);
-                    return new SortingAnnotationVisitor(sig, super.visitAnnotation(desc, visible));
+
+                private AnnotationVisitor superVisitParameterAnnotation(int parameter, String annDesc, boolean visible) {
+                    return super.visitParameterAnnotation(parameter, annDesc, visible);
                 }
 
                 @Override
-                public AnnotationVisitor visitParameterAnnotation(int parameter, String annDesc, boolean visible) {
-                    checkAnnotation(prettifyMethodDescriptor(access, name, desc), annDesc);
-                    ParameterAnnotationSig pSig = methodSig.addParameterAnnotation(parameter, annDesc, visible);
-                    return new SortingAnnotationVisitor(pSig, super.visitParameterAnnotation(parameter, desc, visible));
+                public AnnotationVisitor visitAnnotation(final String annDesc, final boolean visible) {
+                    return apiValidator.validateAnnotation(methodSig.toString(), annDesc, new Factory<AnnotationVisitor>() {
+                        @Override
+                        public AnnotationVisitor create() {
+                            AnnotationSig sig = methodSig.addAnnotation(annDesc, visible);
+                            return new SortingAnnotationVisitor(sig, PublicAPIExtractor.super.visitAnnotation(annDesc, visible));
+                        }
+                    });
+
+                }
+
+                @Override
+                public AnnotationVisitor visitParameterAnnotation(final int parameter, final String annDesc, final boolean visible) {
+                    return apiValidator.validateAnnotation(methodSig.toString(), annDesc, new Factory<AnnotationVisitor>() {
+                        @Override
+                        public AnnotationVisitor create() {
+                            ParameterAnnotationSig pSig = methodSig.addParameterAnnotation(parameter, annDesc, visible);
+                            return new SortingAnnotationVisitor(pSig, superVisitParameterAnnotation(parameter, annDesc, visible));
+                        }
+                    });
                 }
             };
         }
@@ -379,37 +297,40 @@ public class ApiStubGenerator {
         @Override
         public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, Object value) {
             if (isPublicAPI(access)) {
-                final String fieldDescriptor = prettifyFieldDescriptor(access, name, desc);
-                Set<String> invalidReferencedTypes = invalidReferencedTypes(signature);
-                if (!invalidReferencedTypes.isEmpty()) {
-                    if (invalidReferencedTypes.size() == 1) {
-                        throw new InvalidPublicAPIException(String.format("Field '%s' references disallowed API type '%s'", fieldDescriptor, invalidReferencedTypes.iterator().next()));
-                    } else {
-                        StringBuilder sb = new StringBuilder("The following types are referenced in ");
-                        sb.append(fieldDescriptor);
-                        sb.append(" but their package is not one of the allowed packages:\n");
-                        for (String invalidReferencedType : invalidReferencedTypes) {
-                            sb.append("   - ").append(invalidReferencedType).append("\n");
-                        }
-                        throw new InvalidPublicAPIException(sb.toString());
-                    }
-                }
                 final FieldSig fieldSig = new FieldSig(access, name, desc, signature);
-                fields.add(fieldSig);
-                return new FieldVisitor(Opcodes.ASM5) {
+                return apiValidator.validateField(fieldSig, new Factory<FieldVisitor>() {
                     @Override
-                    public AnnotationVisitor visitAnnotation(String annotationDesc, boolean visible) {
-                        checkAnnotation(fieldDescriptor, annotationDesc);
-                        AnnotationSig sig = fieldSig.addAnnotation(annotationDesc, visible);
-                        return new SortingAnnotationVisitor(sig, super.visitAnnotation(annotationDesc, visible));
+                    public FieldVisitor create() {
+                        fields.add(fieldSig);
+                        return new FieldVisitor(Opcodes.ASM5) {
+                            private AnnotationVisitor superVisitAnnotation(String desc, boolean visible) {
+                                return super.visitAnnotation(desc, visible);
+                            }
+
+                            @Override
+                            public AnnotationVisitor visitAnnotation(final String annotationDesc, final boolean visible) {
+                                return apiValidator.validateAnnotation(fieldSig.toString(), annotationDesc, new Factory<AnnotationVisitor>() {
+                                    @Override
+                                    public AnnotationVisitor create() {
+                                        AnnotationSig sig = fieldSig.addAnnotation(annotationDesc, visible);
+                                        return new SortingAnnotationVisitor(sig, superVisitAnnotation(annotationDesc, visible));
+                                    }
+                                });
+
+                            }
+                        };
                     }
-                };
+                });
+
             }
             return null;
         }
 
         @Override
         public void visitInnerClass(String name, String outerName, String innerName, int access) {
+            if (innerName == null) {
+                return;
+            }
             if (isPackagePrivate(access) && hasDeclaredAPI) {
                 return;
             }
@@ -417,133 +338,6 @@ public class ApiStubGenerator {
             super.visitInnerClass(name, outerName, innerName, access);
         }
 
-        private String prettifyMethodDescriptor(int access, String name, String desc) {
-            StringBuilder methodDesc = new StringBuilder();
-            methodDesc.append(Modifier.toString(access)).append(" ");
-            methodDesc.append(Type.getReturnType(desc).getClassName()).append(" ");
-            methodDesc.append(name);
-            methodDesc.append("(");
-            Type[] argumentTypes = Type.getArgumentTypes(desc);
-            for (int i = 0, argumentTypesLength = argumentTypes.length; i < argumentTypesLength; i++) {
-                Type type = argumentTypes[i];
-                methodDesc.append(type.getClassName());
-                if (i < argumentTypesLength - 1) {
-                    methodDesc.append(", ");
-                }
-            }
-            methodDesc.append(")");
-            return methodDesc.toString();
-        }
-
-        private String prettifyFieldDescriptor(int access, String name, String desc) {
-            return String.format("%s %s %s", Modifier.toString(access), Type.getType(desc).getClassName(), name);
-        }
-
-        private Set<String> invalidReferencedTypes(String signature) {
-            if (signature == null) {
-                return Collections.emptySet();
-            }
-            if (!validateExposedTypes || !hasDeclaredAPI) {
-                return Collections.emptySet();
-            }
-            SignatureReader sr = new SignatureReader(signature);
-            final Set<String> result = Sets.newLinkedHashSet();
-            sr.accept(new SignatureVisitor(Opcodes.ASM5) {
-                @Override
-                public void visitClassType(String name) {
-                    super.visitClassType(name);
-                    String className = toClassName(name);
-                    if (!validateType(className)) {
-                        result.add(className);
-                    }
-                }
-            });
-            return result;
-        }
-
-        private void validateSuperTypes(String name, String signature, String superName, String[] interfaces) {
-            if (!validateType(toClassName(superName))) {
-                throw new InvalidPublicAPIException(String.format("'%s' extends '%s' and its package is not one of the allowed packages.", toClassName(name), toClassName(superName)));
-            }
-            Set<String> invalidReferencedTypes = invalidReferencedTypes(signature);
-            if (!invalidReferencedTypes.isEmpty()) {
-                if (invalidReferencedTypes.size() == 1) {
-                    throw new InvalidPublicAPIException(String.format("'%s' references disallowed API type '%s' in superclass or interfaces.", toClassName(name), invalidReferencedTypes.iterator().next()));
-                } else {
-                    StringBuilder sb = new StringBuilder("The following types are referenced in ");
-                    sb.append(toClassName(name));
-                    sb.append(" superclass but their package don't belong to the allowed packages:\n");
-                    for (String invalidReferencedType : invalidReferencedTypes) {
-                        sb.append("   - ").append(invalidReferencedType).append("\n");
-                    }
-                    throw new InvalidPublicAPIException(sb.toString());
-                }
-            }
-            if (interfaces != null) {
-                for (String intf : interfaces) {
-                    if (!validateType(toClassName(intf))) {
-                        throw new InvalidPublicAPIException(String.format("'%s' declares interface '%s' and its package is not one of the allowed packages.", toClassName(name), toClassName(intf)));
-                    }
-                }
-            }
-        }
-
-        private class SortingAnnotationVisitor extends AnnotationVisitor {
-            private final AnnotationSig sig;
-            SortingAnnotationVisitor parent;
-            String array;
-            String subAnnName;
-            final List<AnnotationValue> values = Lists.newLinkedList();
-
-            public SortingAnnotationVisitor(AnnotationSig parent, AnnotationVisitor av) {
-                super(Opcodes.ASM5, av);
-                this.sig = parent;
-            }
-
-            @Override
-            public AnnotationVisitor visitAnnotation(String name, String desc) {
-                AnnotationSig subAnn = new AnnotationSig(desc, true);
-                SortingAnnotationVisitor sortingAnnotationVisitor = new SortingAnnotationVisitor(subAnn, super.visitAnnotation(name, desc));
-                sortingAnnotationVisitor.subAnnName = name == null ? "value" : name;
-                sortingAnnotationVisitor.parent = this;
-                return sortingAnnotationVisitor;
-            }
-
-            @Override
-            public void visit(String name, Object value) {
-                values.add(new SimpleAnnotationValue(name, value));
-                super.visit(name, value);
-            }
-
-            @Override
-            public AnnotationVisitor visitArray(String name) {
-                SortingAnnotationVisitor sortingAnnotationVisitor = new SortingAnnotationVisitor(sig, super.visitArray(name));
-                sortingAnnotationVisitor.array = name;
-                return sortingAnnotationVisitor;
-            }
-
-            @Override
-            public void visitEnum(String name, String desc, String value) {
-                values.add(new EnumAnnotationValue(name == null ? "value" : name, desc, value));
-                super.visitEnum(name, desc, value);
-            }
-
-            @Override
-            public void visitEnd() {
-                if (subAnnName != null) {
-                    AnnotationAnnotationValue ann = new AnnotationAnnotationValue(subAnnName, sig);
-                    parent.values.add(ann);
-                    subAnnName = null;
-                } else if (array != null) {
-                    ArrayAnnotationValue arr = new ArrayAnnotationValue(array, values.toArray(new AnnotationValue[values.size()]));
-                    sig.getValues().add(arr);
-                    array = null;
-                }
-                sig.getValues().addAll(values);
-                values.clear();
-                super.visitEnd();
-            }
-        }
     }
 
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.language.base.internal.tasks.apigen
 
+import org.gradle.language.base.internal.tasks.apigen.abi.InvalidPublicAPIException
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll

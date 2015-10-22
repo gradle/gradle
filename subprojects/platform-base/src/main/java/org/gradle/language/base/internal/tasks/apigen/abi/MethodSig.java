@@ -16,7 +16,9 @@
 package org.gradle.language.base.internal.tasks.apigen.abi;
 
 import com.google.common.collect.*;
+import org.objectweb.asm.Type;
 
+import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -86,5 +88,24 @@ public class MethodSig implements Comparable<MethodSig> {
             .compare(signature == null ? "" : signature, o.signature == null ? "" : o.signature)
             .compare(exceptions, o.exceptions, Ordering.<String>natural().lexicographical())
             .result();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder methodDesc = new StringBuilder();
+        methodDesc.append(Modifier.toString(access)).append(" ");
+        methodDesc.append(Type.getReturnType(desc).getClassName()).append(" ");
+        methodDesc.append(name);
+        methodDesc.append("(");
+        Type[] argumentTypes = Type.getArgumentTypes(desc);
+        for (int i = 0, argumentTypesLength = argumentTypes.length; i < argumentTypesLength; i++) {
+            Type type = argumentTypes[i];
+            methodDesc.append(type.getClassName());
+            if (i < argumentTypesLength - 1) {
+                methodDesc.append(", ");
+            }
+        }
+        methodDesc.append(")");
+        return methodDesc.toString();
     }
 }
