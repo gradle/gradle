@@ -514,8 +514,7 @@ coverage and the cost of the coverage
 ## Story: A `LanguageSourceSet` of any registered type can be created in any `FunctionalSourceSet` instance
 
 - All registered `LanguageSourceSet` types are available to be added.
-- TBD: Need some convention for source directory locations. Possibly add a `baseDir` property to `FunctionalSourceSet` and default source directories to `$baseDir/$sourceSet.name`
-
+- Need some convention for source directory locations. Possibly add a `baseDir` property to `FunctionalSourceSet` and default source directories to `$baseDir/$sourceSet.name`
 - Out-of-scope: Instances are visible in top level `sources` container.
 
 ### Implementation
@@ -526,6 +525,10 @@ coverage and the cost of the coverage
     - Change`DefaultFunctionalSourceSet` to use that `LanguageRegistry` to create LSS instances (i.e. `DefaultPolymorphicNamedEntityInstantiator.factories` is no longer used to create LanguageSourceSets)
     - Change `ComponentRules.ComponentSourcesRegistrationAction#registerLanguageSourceSetFactory` to no longer push `sourceSetFactory`'s into `FunctionalSourceSet`
 
+- Source directory locations
+    - Add a `baseDir` property to `FunctionalSourceSet` and default it to `project.projectDir`
+    - Add an `abstract` method to `BaseLanguageSourceSet`, `String getSourceDirConvention()`. For a java LSS this would return `"src/main"`
+    - When a `LanguageSourceSet` is created via a `FunctionalSourceSet` the `LSS`'s source directory should be `${fss.baseDir}/${lss.getSourceDirConvention()}/${lss.name}`
 
 ### Test cases
 Assuming `JavaSourceSet` is registered as a `LanguageType`
@@ -552,6 +555,7 @@ model {
 ```
 
 - An error message consistent with that of `ComponentSpec` and `BinarySpec` when a LanguageSourceSet is not supported/registered.
+- The source set locations of a LSS when `fss.baseDir` has been overridden.
 
 ### Open Issues
 - Are these created LSS's intended to be model elements and appear on the model report? considering FSS is not yet a `ModelMap`.
