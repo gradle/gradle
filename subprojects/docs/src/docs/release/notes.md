@@ -172,6 +172,12 @@ The API of a JVM library consists of the API classes of the library, plus the AP
 
 TODO: Expand this and provide a DSL example.
 
+### Support for "discovered" inputs to incremental tasks
+
+Incremental tasks can now register files as discovered inputs during task execution.
+
+TODO: Expand this and provide an example.
+
 ### Tooling API improvements
 
 #### Expose Eclipse builders and natures
