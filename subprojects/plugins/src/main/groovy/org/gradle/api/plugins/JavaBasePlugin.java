@@ -48,13 +48,14 @@ import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
+import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelCreators;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.platform.base.BinaryContainer;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
@@ -401,9 +402,10 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Mutate
-        void attachBridgedBinaries(BinaryContainer binaries, @Path("bridgedBinaries") BridgedBinaries bridgedBinaries) {
-            // TODO:LPTR Needs ModelMap.add() to turn BinaryContainer into a ModelMap
-            binaries.addAll(bridgedBinaries.binaries);
+        void attachBridgedBinaries(ModelMap<BinarySpec> binaries, @Path("bridgedBinaries") BridgedBinaries bridgedBinaries) {
+            for (BinarySpec binary : bridgedBinaries.binaries) {
+                binaries.put(binary.getName(), binary);
+            }
         }
     }
 }

@@ -184,11 +184,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Defaults
-        void collectBinaries(BinaryContainer binaries, ComponentSpecContainer componentSpecs) {
-            // TODO:LPTR Needs ModelMap.add() to turn BinaryContainer into a ModelMap
+        void collectBinaries(ModelMap<BinarySpec> binaries, ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs.values()) {
                 for (BinarySpec binary : componentSpec.getBinaries().values()) {
-                    binaries.add(binary);
+                    binaries.put(binary.getName(), binary);
                 }
             }
         }

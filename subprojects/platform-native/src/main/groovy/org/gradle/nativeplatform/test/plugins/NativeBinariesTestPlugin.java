@@ -21,7 +21,10 @@ import org.gradle.api.internal.rules.ModelMapCreators;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.DependentSourceSet;
-import org.gradle.model.*;
+import org.gradle.model.Defaults;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Mutate;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelCreator;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -36,7 +39,6 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
-import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.test.TestSuiteContainer;
@@ -105,10 +107,11 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         }
 
         @Defaults
-        public void copyTestBinariesToGlobalContainer(BinaryContainer binaries, TestSuiteContainer testSuites) {
-            // TODO:LPTR Needs ModelMap.add() to turn BinaryContainer into a ModelMap
+        public void copyTestBinariesToGlobalContainer(ModelMap<BinarySpec> binaries, TestSuiteContainer testSuites) {
             for (TestSuiteSpec testSuite : testSuites.withType(TestSuiteSpec.class).values()) {
-                binaries.addAll(testSuite.getBinaries().values());
+                for (BinarySpec binary : testSuite.getBinaries().values()) {
+                    binaries.put(binary.getName(), binary);
+                }
             }
         }
 
