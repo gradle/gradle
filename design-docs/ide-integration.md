@@ -583,7 +583,7 @@ A web application project will be defined to be any project that applies the 'wa
 
 In order to properly deploy a web application, the IDE needs to know about the location and contents of the web application directory.
 
-This story also introduces the `WebApplicationProject` model, an IDE agnostic model that exposes information about projects that apply the 'war' plugin.
+This story also introduces the `WebApplicationProject` model, an IDE agnostic model that exposes information about web application projects.
 
 #### The API
 
@@ -627,7 +627,7 @@ Note that the WebApplicationProject model directly maps to properties defined in
 - WebApplicationProject.getWebApplicationDirectoryName returns correct value when custom web application directory is set
 - WebApplicationProject.getWebApplicationDirectory returns correct file when custom web application directory is set
 - WebApplicationProject.getWebApplicationDirectory returns null when custom web application directory is set, but directory does not exist
-- WebApplicationProject model returns null when project does not apply the 'war' plugin
+- WebApplicationProject model returns null when project is not a web application project
 - Add WebApplicationProject to ModelMappingTest.groovy
 - Add WebApplicationProject to ModelBuilderBackedConsumerConnectionTest.groovy
 - Add WebApplicationProject to BuildActionRunnerBackedConsumerConnectionTest.groovy
