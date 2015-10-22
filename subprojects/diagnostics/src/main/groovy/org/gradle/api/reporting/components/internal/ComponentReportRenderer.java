@@ -81,7 +81,7 @@ public class ComponentReportRenderer extends TextReportRenderer {
         }
     }
 
-    public void renderBinaries(Collection<BinarySpec> binaries) {
+    public void renderBinaries(Iterable<BinarySpec> binaries) {
         Set<BinarySpec> additionalBinaries = Sets.newTreeSet(TypeAwareBinaryRenderer.SORT_ORDER);
         for (BinarySpec binary : binaries) {
             if (!componentBinaries.contains(binary)) {

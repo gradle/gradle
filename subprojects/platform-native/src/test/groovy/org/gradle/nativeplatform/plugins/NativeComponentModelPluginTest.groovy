@@ -15,20 +15,21 @@
  */
 
 package org.gradle.nativeplatform.plugins
-
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.type.ModelType
+import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.*
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
-import org.gradle.platform.base.BinaryContainer
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpecContainer
 import org.gradle.platform.base.PlatformContainer
 import org.gradle.util.TestUtil
@@ -50,8 +51,8 @@ class NativeComponentModelPluginTest extends Specification {
         project.modelRegistry.realize(ModelPath.path(path), type)
     }
 
-    BinaryContainer getBinaries() {
-        realizeModelElement("binaries", BinaryContainer)
+    ModelMap<BinarySpec> getBinaries() {
+        realizeModelElement("binaries", ModelTypes.modelMap(BinarySpec))
     }
 
     NativeToolChainRegistry getToolChains() {

@@ -15,7 +15,6 @@
  */
 
 package org.gradle.language.assembler.plugins
-
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
@@ -26,7 +25,7 @@ import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
 import org.gradle.nativeplatform.*
-import org.gradle.platform.base.BinaryContainer
+import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
@@ -43,8 +42,8 @@ class AssemblerPluginTest extends Specification {
         project.modelRegistry.find(ModelPath.path("sources"), ModelType.of(ProjectSourceSet))
     }
 
-    BinaryContainer realizeBinaries() {
-        project.modelRegistry.find(ModelPath.path("binaries"), ModelType.of(BinaryContainer))
+    ModelMap<BinarySpec> realizeBinaries() {
+        project.modelRegistry.find(ModelPath.path("binaries"), ModelTypes.modelMap(BinarySpec))
     }
 
     def "creates asm source set with conventional locations for components"() {

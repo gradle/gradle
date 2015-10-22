@@ -2,6 +2,7 @@ import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.model.*
 import org.gradle.platform.base.BinaryContainer
+import org.gradle.platform.base.BinarySpec
 
 plugins {
     id 'jvm-component'
@@ -79,12 +80,12 @@ class ClasspathWiring extends RuleSource {
 
 class TestTaskWiring extends RuleSource {
     @Mutate
-    void createTestTask(ModelMap<Task> tasks, BinaryContainer binaries, ModelMap<JvmLibrarySpec> libraries) {
-        def testJarClassesDir = binaries.getByName('testJar').classesDir
+    void createTestTask(ModelMap<Task> tasks, ModelMap<BinarySpec> binaries, ModelMap<JvmLibrarySpec> libraries) {
+        def testJarClassesDir = binaries.get('testJar').classesDir
         def testSourceDirs = libraries.get('test').sources.collect {
             it.source.srcDirs
         }.flatten()
-        def additionalClassPath = [binaries.getByName('mainJar').classesDir, testJarClassesDir]
+        def additionalClassPath = [binaries.get('mainJar').classesDir, testJarClassesDir]
         tasks.create("test", Test) {
             dependsOn "compileTestJarTestJava"
             classpath = project.files(additionalClassPath) + project.configurations.getByName('testRuntime')
@@ -111,7 +112,7 @@ class TestTaskWiring extends RuleSource {
 
 class CheckstyleWiring extends RuleSource {
     @Mutate
-    void createCheckstyleTasks(ModelMap<Task> tasks, BinaryContainer binaries, ModelMap<JvmLibrarySpec> libraries) {
+    void createCheckstyleTasks(ModelMap<Task> tasks, ModelMap<JvmLibrarySpec> libraries) {
         def checkstyleTaskNames = libraries.collect { JvmLibrarySpec librarySpec ->
             String taskName = "checkstyle\${librarySpec.getName().capitalize()}"
             tasks.create(taskName, Checkstyle) { task ->
