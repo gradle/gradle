@@ -23,9 +23,10 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.AntBuilderAware;
-import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSetAntBuilderDelegate;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
+import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.util.CollectionUtils;
@@ -39,14 +40,25 @@ import java.util.Set;
 public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     private static final NotationParser<Object, String> PARSER = NotationParserBuilder.toType(String.class).fromCharSequence().toComposite();
-    private static final PatternSpecFactory PATTERN_SPEC_FACTORY = new CachingPatternSpecFactory();
+    private static final PatternSpecFactory PATTERN_SPEC_FACTORY = createPatternSpecFactory();
 
     private final Set<String> includes = Sets.newLinkedHashSet();
     private final Set<String> excludes = Sets.newLinkedHashSet();
     private final Set<Spec<FileTreeElement>> includeSpecs = Sets.newLinkedHashSet();
     private final Set<Spec<FileTreeElement>> excludeSpecs = Sets.newLinkedHashSet();
 
+
     boolean caseSensitive = true;
+
+    private static PatternSpecFactory createPatternSpecFactory() {
+        try {
+            // prevents adding CachingPatternSpecFactory and it's dependencies to the Tooling API jar
+            Class clazz = PatternSet.class.getClassLoader().loadClass(new StringBuilder("org.gradle.api.tasks.util.internal.").append("CachingPatternSpecFactory").toString());
+            return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz));
+        } catch (ClassNotFoundException e) {
+            return new PatternSpecFactory();
+        }
+    }
 
     @Override
     public boolean equals(Object o) {

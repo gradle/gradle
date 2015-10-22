@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks.util.internal;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
@@ -27,6 +25,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -37,7 +37,7 @@ public class PatternSpecFactory {
     }
 
     public Spec<FileTreeElement> createIncludeSpec(PatternSet patternSet) {
-        List<Spec<FileTreeElement>> allIncludeSpecs = Lists.newArrayListWithExpectedSize(1 + patternSet.getIncludeSpecs().size());
+        List<Spec<FileTreeElement>> allIncludeSpecs = new ArrayList<Spec<FileTreeElement>>(1 + patternSet.getIncludeSpecs().size());
 
         if (!patternSet.getIncludes().isEmpty()) {
             allIncludeSpecs.add(createSpec(patternSet.getIncludes(), true, patternSet.isCaseSensitive()));
@@ -49,13 +49,13 @@ public class PatternSpecFactory {
     }
 
     public Spec<FileTreeElement> createExcludeSpec(PatternSet patternSet) {
-        List<Spec<FileTreeElement>> allExcludeSpecs = Lists.newArrayListWithExpectedSize(2 + patternSet.getExcludeSpecs().size());
+        List<Spec<FileTreeElement>> allExcludeSpecs = new ArrayList<Spec<FileTreeElement>>(2 + patternSet.getExcludeSpecs().size());
 
         if (!patternSet.getExcludes().isEmpty()) {
             allExcludeSpecs.add(createSpec(patternSet.getExcludes(), false, patternSet.isCaseSensitive()));
         }
 
-        List<String> defaultExcludes = ImmutableList.copyOf(DirectoryScanner.getDefaultExcludes());
+        List<String> defaultExcludes = Arrays.asList(DirectoryScanner.getDefaultExcludes());
         if (!defaultExcludes.isEmpty()) {
             allExcludeSpecs.add(createSpec(defaultExcludes, false, patternSet.isCaseSensitive()));
         }
@@ -66,7 +66,7 @@ public class PatternSpecFactory {
     }
 
     protected Spec<FileTreeElement> createSpec(Collection<String> patterns, boolean include, boolean caseSensitive) {
-        List<Spec<FileTreeElement>> matchers = Lists.newArrayListWithExpectedSize(patterns.size());
+        List<Spec<FileTreeElement>> matchers = new ArrayList<Spec<FileTreeElement>>(patterns.size());
 
         for (String pattern : patterns) {
             Spec<RelativePath> patternMatcher = PatternMatcherFactory.getPatternMatcher(include, caseSensitive, pattern);
