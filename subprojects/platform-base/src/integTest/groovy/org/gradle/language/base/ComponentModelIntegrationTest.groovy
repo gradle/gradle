@@ -57,8 +57,8 @@ class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTes
             class ComponentBinaryRules extends RuleSource {
                 @ComponentBinaries
                 void addBinaries(ModelMap<CustomBinary> binaries, CustomComponent component) {
-                    binaries.create("main", CustomBinary)
-                    binaries.create("test", CustomBinary)
+                    binaries.create(component.name + "Main", CustomBinary)
+                    binaries.create(component.name + "Test", CustomBinary)
                 }
             }
 
@@ -697,7 +697,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "printBinaryNames"
 
         then:
-        output.contains "names: [main, test]"
+        output.contains "names: [mainMain, mainTest]"
     }
 
     def "can reference binaries container elements using specialized type in a rule"() {
@@ -706,7 +706,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         buildFile << '''
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.main") CustomBinary binary) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.mainMain") CustomBinary binary) {
                     tasks.create("printBinaryData") {
                         doLast {
                             println "binary data: ${binary.data}"
@@ -733,7 +733,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
             model {
                 tasks {
                     create("printBinaryTaskNames") {
-                        def tasks = $("components.main.binaries.main.tasks")
+                        def tasks = $("components.main.binaries.mainMain.tasks")
                         doLast {
                             println "names: ${tasks*.name}"
                         }
@@ -746,7 +746,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "printBinaryTaskNames"
 
         then:
-        output.contains "names: [customMainMainMain]"
+        output.contains "names: [customMainMainMainMain]"
     }
 
     def "can view components container as a model map and as a collection builder"() {
