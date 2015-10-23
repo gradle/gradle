@@ -39,20 +39,17 @@ public class CachingFileSnapshotter implements FileSnapshotter, FileTreeElementS
     }
 
     public FileInfo snapshot(File file) {
-        return snapshot(new FileAccessor(file));
+        return snapshot(file, file.length(), file.lastModified());
     }
 
     public FileInfo snapshot(FileTreeElement file) {
-        return snapshot(new FileTreeElementAccessor(file));
+        return snapshot(file.getFile(), file.getSize(), file.getLastModified());
     }
 
-    private FileInfo snapshot(FileWithMetadata fileWithMetadata) {
-        File file = fileWithMetadata.getFile();
+    private FileInfo snapshot(File file, long length, long timestamp) {
         String absolutePath = file.getAbsolutePath();
         FileInfo info = cache.get(absolutePath);
 
-        long length = fileWithMetadata.getSize();
-        long timestamp = fileWithMetadata.getLastModified();
         if (info != null && length == info.length && timestamp == info.timestamp) {
             return info;
         }
@@ -61,60 +58,6 @@ public class CachingFileSnapshotter implements FileSnapshotter, FileTreeElementS
         info = new FileInfo(hash, length, timestamp);
         cache.put(stringInterner.intern(absolutePath), info);
         return info;
-    }
-
-    private interface FileWithMetadata {
-        File getFile();
-
-        long getSize();
-
-        long getLastModified();
-    }
-
-    private static class FileTreeElementAccessor implements FileWithMetadata {
-        private final FileTreeElement fileTreeElement;
-
-        private FileTreeElementAccessor(FileTreeElement fileTreeElement) {
-            this.fileTreeElement = fileTreeElement;
-        }
-
-        @Override
-        public File getFile() {
-            return fileTreeElement.getFile();
-        }
-
-        @Override
-        public long getSize() {
-            return fileTreeElement.getSize();
-        }
-
-        @Override
-        public long getLastModified() {
-            return fileTreeElement.getLastModified();
-        }
-    }
-
-    private static class FileAccessor implements FileWithMetadata {
-        private final File file;
-
-        private FileAccessor(File file) {
-            this.file = file;
-        }
-
-        @Override
-        public File getFile() {
-            return file;
-        }
-
-        @Override
-        public long getSize() {
-            return file.length();
-        }
-
-        @Override
-        public long getLastModified() {
-            return file.lastModified();
-        }
     }
 
     public static class FileInfo implements FileSnapshot {
