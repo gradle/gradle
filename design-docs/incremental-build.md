@@ -94,7 +94,18 @@ Goal: support suppressing default excludes
 
 ## Story: High number of UnknownDomainObjectExceptions when resolving libraries in native projects.
 
-TBD
+### Implementation
+
+- remove the use of UnknownDomainObjectException as flow control of normal program flow in LibraryBinaryLocator implementations (ChainedLibraryBinaryLocator, PrebuiltLibraryBinaryLocator, ProjectLibraryBinaryLocator). 
+  - return null from LibraryBinaryLocator.getBinaries method when binaries cannot be located.
+  - since exceptions won't be used for passing detailed error messages, they will be removed.
+- LibraryResolveException should be thrown in DefaultLibraryResolver.resolveLibraryBinary method if LibraryBinaryLocator returns a null.
+  - move ChainedLibraryBinaryLocator.getFailureMessage(NativeLibraryRequirement) method to LibraryResolveException so that LibraryResolveException can be created with NativeLibraryRequirement as constructor parameter in DefaultLibraryResolver.resolveLibraryBinary method
+
+### Test coverage
+
+- No new test coverage is needed. Change existing test to follow the changed interface contract of LibraryBinaryLocator.
+
 
 ## Story: Add "discovered" inputs to incremental tasks
 
