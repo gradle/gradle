@@ -59,10 +59,6 @@ public abstract class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBin
         return getExecutable().getFile();
     }
 
-    public void setExecutableFile(File executableFile) {
-        getExecutable().setFile(executableFile);
-    }
-
     @Override
     public NativeInstallationSpec getInstallation() {
         return installation;

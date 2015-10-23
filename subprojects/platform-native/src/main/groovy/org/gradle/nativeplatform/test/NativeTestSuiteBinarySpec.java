@@ -75,11 +75,6 @@ public interface NativeTestSuiteBinarySpec extends TestSuiteBinarySpec, NativeBi
     File getExecutableFile();
 
     /**
-     * The executable file.
-     */
-    void setExecutableFile(File executableFile);
-
-    /**
      * {@inheritDoc}
      */
     @Override

@@ -132,7 +132,8 @@ public class GoogleTestPlugin implements Plugin<Project> {
             File binaryOutputDir = new File(new File(buildDir, "binaries"), namingScheme.getOutputDirectoryBase());
             String baseName = testBinary.getComponent().getBaseName();
 
-            testBinary.setExecutableFile(new File(binaryOutputDir, toolProvider.getExecutableName(baseName)));
+            testBinary.getExecutable().setFile(new File(binaryOutputDir, toolProvider.getExecutableName(baseName)));
+            testBinary.getInstallation().setDirectory(new File(new File(buildDir, "install"), namingScheme.getOutputDirectoryBase()));
         }
     }
 }
