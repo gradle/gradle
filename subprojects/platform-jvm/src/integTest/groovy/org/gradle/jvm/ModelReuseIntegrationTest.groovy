@@ -18,8 +18,10 @@ package org.gradle.jvm
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.model.internal.persist.ReusingModelRegistryStore
+import spock.lang.Ignore
 
 // Requires daemon because reuse right now doesn't handle the build actually changing
+@Ignore
 class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {

@@ -22,10 +22,12 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.SingleToolChainTestRunner
 import org.junit.runner.RunWith
+import spock.lang.Ignore
 
 // Requires daemon because reuse right now doesn't handle the build actually changing
 @RequiresInstalledToolChain
 @RunWith(SingleToolChainTestRunner.class)
+@Ignore
 class ModelReuseIntegrationTest extends DaemonIntegrationSpec {
 
     def setup() {
