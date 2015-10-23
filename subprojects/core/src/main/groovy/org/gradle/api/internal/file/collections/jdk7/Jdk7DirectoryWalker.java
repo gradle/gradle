@@ -23,7 +23,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileVisitDetailsWithAttributes;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.DirectoryWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
@@ -36,7 +36,7 @@ import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Jdk7DirectoryWalker implements DirectoryFileTree.DirectoryWalker {
+public class Jdk7DirectoryWalker implements DirectoryWalker {
     private static final int MAX_VISIT_DEPTH = 512;
     private final StringInterner relativePathStringInterner = new StringInterner();
 

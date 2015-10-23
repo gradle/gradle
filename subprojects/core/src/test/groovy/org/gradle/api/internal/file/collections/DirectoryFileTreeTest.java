@@ -54,11 +54,11 @@ public class DirectoryFileTreeTest {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private JUnit4Mockery context = new JUnit4GroovyMockery();
     private FileVisitor visitor;
-    private Factory<DirectoryFileTree.DirectoryWalker> directoryWalkerFactory = new Factory<DirectoryFileTree.DirectoryWalker>() {
-        DirectoryFileTree.DirectoryWalker directoryWalker = new DirectoryFileTree.DefaultDirectoryWalker();
+    private Factory<DirectoryWalker> directoryWalkerFactory = new Factory<DirectoryWalker>() {
+        DirectoryWalker directoryWalker = new DefaultDirectoryWalker();
 
         @Override
-        public DirectoryFileTree.DirectoryWalker create() {
+        public DirectoryWalker create() {
             return directoryWalker;
         }
     };

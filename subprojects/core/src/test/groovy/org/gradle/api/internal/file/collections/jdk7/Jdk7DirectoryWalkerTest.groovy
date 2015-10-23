@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections.jdk7
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.collections.DefaultDirectoryWalker
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
@@ -102,7 +103,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         !visited.contains(doesNotExist.absolutePath)
 
         where:
-        walkerInstance << [new DirectoryFileTree.DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
     }
 
     def "both DirectoryWalker implementations return same set of files and attributes"() {
@@ -112,7 +113,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
 
         when:
         def visitedWithJdk7Walker = walkFiles(rootDir, new Jdk7DirectoryWalker())
-        def visitedWithDefaultWalker = walkFiles(rootDir, new DirectoryFileTree.DefaultDirectoryWalker())
+        def visitedWithDefaultWalker = walkFiles(rootDir, new DefaultDirectoryWalker())
 
         then:
         visitedWithDefaultWalker.size() == 340
@@ -180,7 +181,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DirectoryFileTree.DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -211,7 +212,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DirectoryFileTree.DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -240,7 +241,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
         link.delete()
 
         where:
-        walkerInstance << [new DirectoryFileTree.DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
     }
 
 
