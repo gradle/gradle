@@ -37,7 +37,6 @@ import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Jdk7DirectoryWalker implements DirectoryWalker {
-    private static final int MAX_VISIT_DEPTH = 512;
     private final StringInterner relativePathStringInterner = new StringInterner();
 
     static boolean isAllowed(FileTreeElement element, Spec<FileTreeElement> spec) {
@@ -49,7 +48,7 @@ public class Jdk7DirectoryWalker implements DirectoryWalker {
         final Deque<FileVisitDetails> directoryDetailsHolder = new LinkedList<FileVisitDetails>();
 
         try {
-            Files.walkFileTree(rootDir.toPath(), EnumSet.of(FileVisitOption.FOLLOW_LINKS), MAX_VISIT_DEPTH, new java.nio.file.FileVisitor<Path>() {
+            Files.walkFileTree(rootDir.toPath(), EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new java.nio.file.FileVisitor<Path>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                     FileVisitDetails details = getFileVisitDetails(dir, attrs, true);
