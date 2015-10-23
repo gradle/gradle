@@ -184,10 +184,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Defaults
-        void collectBinaries(ModelMap<BinarySpec> binaries, ComponentSpecContainer componentSpecs) {
+        void collectBinaries(BinaryContainer binaries, ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs.values()) {
                 for (BinarySpec binary : componentSpec.getBinaries().values()) {
-                    binaries.put(binary.getName(), binary);
+                    binaries.add(binary);
                 }
             }
         }
