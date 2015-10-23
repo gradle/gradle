@@ -100,7 +100,6 @@ Goal: support suppressing default excludes
   - return null from LibraryBinaryLocator.getBinaries method when binaries cannot be located.
   - since exceptions won't be used for passing detailed error messages, they will be removed.
 - LibraryResolveException should be thrown in DefaultLibraryResolver.resolveLibraryBinary method if LibraryBinaryLocator returns a null.
-  - move ChainedLibraryBinaryLocator.getFailureMessage(NativeLibraryRequirement) method to LibraryResolveException so that LibraryResolveException can be created with NativeLibraryRequirement as constructor parameter in DefaultLibraryResolver.resolveLibraryBinary method
 
 ### Test coverage
 
