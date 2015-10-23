@@ -21,6 +21,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.resource.CharsetUtil;
 
 import java.nio.charset.Charset;
 
@@ -48,7 +49,7 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
     }
 
     private DirectoryWalker createInstance() {
-        if (javaVersion.isJava7Compatible() && Charset.defaultCharset().name().equals("UTF-8")) {
+        if (javaVersion.isJava7Compatible() && isUnicodeSupported()) {
             try {
                 Class clazz = classLoader.loadClass("org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker");
                 return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz));
@@ -58,5 +59,9 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
         } else {
             return new DefaultDirectoryWalker();
         }
+    }
+
+    private boolean isUnicodeSupported() {
+        return Charset.defaultCharset().contains(CharsetUtil.UTF_8);
     }
 }

@@ -57,7 +57,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
 
     // java.nio2 cannot access files with unicode characters when using single-byte non-unicode platform encoding
     @Issue("GRADLE-2181")
-    def "check that JDK7 walker gets picked only with UTF-8 encoding as default"() {
+    def "check that JDK7 walker gets picked with Unicode encoding as default"() {
         setup:
         System.setProperty("file.encoding", fileEncoding)
         Charset.defaultCharset = null
@@ -68,6 +68,9 @@ class Jdk7DirectoryWalkerTest extends Specification {
         where:
         fileEncoding | expectedClassName
         "UTF-8"      | "Jdk7DirectoryWalker"
+        "UTF-16be" | "Jdk7DirectoryWalker"
+        "UTF-16le" | "Jdk7DirectoryWalker"
+        "UTF-16"   | "Jdk7DirectoryWalker"
         "ISO-8859-1" | "DefaultDirectoryWalker"
     }
 
