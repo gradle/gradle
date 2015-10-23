@@ -49,7 +49,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
-public class DirectoryFileTreeTest {
+public class DefaultDirectoryWalkerTest {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private JUnit4Mockery context = new JUnit4GroovyMockery();
