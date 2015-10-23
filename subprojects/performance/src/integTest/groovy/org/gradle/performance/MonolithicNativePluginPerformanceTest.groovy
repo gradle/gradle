@@ -49,8 +49,8 @@ class MonolithicNativePluginPerformanceTest extends AbstractCrossVersionPerforma
         where:
         testProject                   | maxExecutionTimeRegression | parallelWorkers
         "nativeMonolithic"            | millis(1000)               | 0
-        "nativeMonolithicOverlapping" | millis(1000)               | 4
-        "nativeMonolithic"            | millis(1000)               | 0
+        "nativeMonolithic"            | millis(1000)               | 4
+        "nativeMonolithicOverlapping" | millis(1000)               | 0
         "nativeMonolithicOverlapping" | millis(1000)               | 4
     }
 }
