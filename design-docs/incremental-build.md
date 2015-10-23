@@ -159,6 +159,19 @@ Based on IncrementalCompiler's #include extractor, add header files as discovere
 
 # Unprioritized
 
+## Story: not loading the file snapshots in up-to-date checking
+
+- Add hash based pre-check phase to up-to-date checking
+- pre-check hash is calculated from the list of files sorted by their name
+  - the file's name, size and last modified times are added to the hash
+  - there are no file content hashes as part of the pre-check hash
+- if pre-check hash is same as pre-check for previous snapshot, it is considered up-to-date and the actual file snapshot doesn't have to be loaded
+- if pre-check hash is different and snapshot up-to-date check doesn't contain changes (false positive), the persisted hash gets updated
+  - this might happen when file modification times are different, but content is the same
+- The "fileSnapshots" in-memory cache should use weak references for values.
+  - loaded fileSnapshots will get GCd under memory pressure
+
+
 ## Story: Reuse native source file dependency information within a build
 
 Gradle parses each source file to determine the source file dependencies.
