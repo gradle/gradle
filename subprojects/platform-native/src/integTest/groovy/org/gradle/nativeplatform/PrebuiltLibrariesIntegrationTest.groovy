@@ -320,8 +320,6 @@ model {
 
         then:
         failure.assertHasDescription("Could not locate library 'other'.")
-        failure.assertHasCause("NativeLibrarySpec with name 'other' not found.")
-        failure.assertHasCause("Prebuilt library with name 'other' not found in repositories '[libs, libs2]'.")
     }
 
     def "produces reasonable error message when prebuilt library does not exist in a different project"() {
@@ -366,7 +364,5 @@ model {
 
         then:
         failure.assertHasDescription("Could not locate library 'hello' for project ':projectB'.")
-        failure.assertHasCause("NativeLibrarySpec with name 'hello' not found.")
-        failure.assertHasCause("Prebuilt library with name 'hello' not found in repositories '[libs, libs2]'.")
     }
 }

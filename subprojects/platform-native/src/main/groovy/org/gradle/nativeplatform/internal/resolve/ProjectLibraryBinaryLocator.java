@@ -16,10 +16,8 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
-import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -42,12 +40,12 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
         ModelRegistry projectModel = findProject(requirement);
         ComponentSpecContainer components = projectModel.find(ModelPath.path("components"), ModelType.of(ComponentSpecContainer.class));
         if (components == null) {
-            throw new LibraryResolveException(String.format("Project does not have a libraries container: '%s'", requirement.getProjectPath()));
+            return null;
         }
         String libraryName = requirement.getLibraryName();
         NativeLibrarySpec library = components.withType(NativeLibrarySpec.class).get(libraryName);
         if (library == null) {
-            throw new UnknownDomainObjectException(String.format("%s with name '%s' not found.", NativeLibrarySpec.class.getSimpleName(), libraryName));
+            return null;
         }
         ModelMap<NativeBinarySpec> projectBinaries = library.getBinaries().withType(NativeBinarySpec.class);
         DomainObjectSet<NativeLibraryBinary> binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);

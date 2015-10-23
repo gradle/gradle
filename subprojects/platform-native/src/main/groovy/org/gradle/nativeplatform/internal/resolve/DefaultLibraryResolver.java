@@ -36,11 +36,21 @@ class DefaultLibraryResolver {
     }
 
     public NativeLibraryBinary resolveLibraryBinary() {
+        DomainObjectSet<NativeLibraryBinary> binaries = libraryBinaryLocator.getBinaries(requirement);
+        if (binaries == null) {
+            throw new LibraryResolveException(getFailureMessage(requirement));
+        }
         return new LibraryResolution()
-                .withFlavor(context.getFlavor())
-                .withPlatform(context.getTargetPlatform())
-                .withBuildType(context.getBuildType())
-                .resolveLibrary(libraryBinaryLocator.getBinaries(requirement));
+            .withFlavor(context.getFlavor())
+            .withPlatform(context.getTargetPlatform())
+            .withBuildType(context.getBuildType())
+            .resolveLibrary(binaries);
+    }
+
+    private String getFailureMessage(NativeLibraryRequirement requirement) {
+        return requirement.getProjectPath() == null
+            ? String.format("Could not locate library '%s'.", requirement.getLibraryName())
+            : String.format("Could not locate library '%s' for project '%s'.", requirement.getLibraryName(), requirement.getProjectPath());
     }
 
     private class LibraryResolution {

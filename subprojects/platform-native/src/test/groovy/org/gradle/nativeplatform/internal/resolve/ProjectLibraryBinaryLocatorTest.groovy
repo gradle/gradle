@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.internal.resolve
-import org.gradle.api.UnknownDomainObjectException
+
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.resolve.ProjectModelResolver
-import org.gradle.language.base.internal.resolve.LibraryResolveException
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.registry.ModelRegistry
@@ -108,11 +107,8 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         def libraries = findLibraryContainer(projectModel)
         libraries.get("unknown") >> { null }
 
-        and:
-        locator.getBinaries(requirement)
-
         then:
-        thrown(UnknownDomainObjectException)
+        locator.getBinaries(requirement) == null
     }
 
     def "fails when project does not have libraries"() {
@@ -123,12 +119,8 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         projectLocator.resolveProjectModel("other") >> projectModel
         projectModel.find(ModelPath.path("components"), ModelTypes.modelMap(NativeLibrarySpec)) >> null
 
-        and:
-        locator.getBinaries(requirement)
-
         then:
-        def e = thrown(LibraryResolveException)
-        e.message == "Project does not have a libraries container: 'other'"
+        locator.getBinaries(requirement) == null
     }
 
     private void findLibraryInProject() {

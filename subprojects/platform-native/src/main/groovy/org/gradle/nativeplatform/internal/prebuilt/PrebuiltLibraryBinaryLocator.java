@@ -25,9 +25,6 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.resolve.LibraryBinaryLocator;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
     private final ProjectModelResolver projectModelResolver;
 
@@ -39,22 +36,19 @@ public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
         ModelRegistry projectModel = projectModelResolver.resolveProjectModel(requirement.getProjectPath());
         NamedDomainObjectSet<PrebuiltLibraries> repositories = projectModel.realize(ModelPath.path("repositories"), ModelType.of(Repositories.class)).withType(PrebuiltLibraries.class);
         if (repositories.isEmpty()) {
-            throw new PrebuiltLibraryResolveException("Project does not have any prebuilt library repositories.");
+            return null;
         }
         PrebuiltLibrary prebuiltLibrary = getPrebuiltLibrary(repositories, requirement.getLibraryName());
-        return prebuiltLibrary.getBinaries();
+        return prebuiltLibrary != null ? prebuiltLibrary.getBinaries() : null;
     }
 
     private PrebuiltLibrary getPrebuiltLibrary(NamedDomainObjectSet<PrebuiltLibraries> repositories, String libraryName) {
-        List<String> repositoryNames = new ArrayList<String>();
         for (PrebuiltLibraries prebuiltLibraries : repositories) {
-            repositoryNames.add(prebuiltLibraries.getName());
             PrebuiltLibrary prebuiltLibrary = prebuiltLibraries.resolveLibrary(libraryName);
             if (prebuiltLibrary != null) {
                 return prebuiltLibrary;
             }
         }
-        throw new PrebuiltLibraryResolveException(
-                String.format("Prebuilt library with name '%s' not found in repositories '%s'.", libraryName, repositoryNames));
+        return null;
     }
 }
