@@ -16,6 +16,7 @@
 
 package org.gradle.language.objectivec
 
+import groovy.transform.NotYetImplemented
 import org.gradle.language.AbstractNativeLanguageIncrementalCompileIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
@@ -51,6 +52,8 @@ class ObjectiveCLanguageIncrementalCompileIntegrationTest extends AbstractNative
         outputs.recompiledFile sourceFile
     }
 
+    // We need to suppor this
+    @NotYetImplemented
     def "source is always recompiled if it imported header via macro"() {
         given:
         sourceFile << """

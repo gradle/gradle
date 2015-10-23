@@ -15,8 +15,8 @@
  */
 
 package org.gradle.language
-
 import groovy.io.FileType
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
@@ -108,6 +108,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
 
     def "recompiles only source file that includes changed header file"() {
         given:
+        executer.withArgument("--info")
         sourceFile << """
             #include "${otherHeaderFile.name}"
 """
@@ -128,6 +129,8 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFile sourceFile
     }
 
+    // We need to support this
+    @NotYetImplemented
     def "source is always recompiled if it includes header via macro"() {
         given:
         sourceFile << """
@@ -227,6 +230,8 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.noneRecompiled()
     }
 
+    // We can't implement this because we rebuild everything when the include path changes
+    @NotYetImplemented
     @Unroll
     def "does not recompile when include path has #testCase"() {
         given:
@@ -302,6 +307,8 @@ model {
         outputs.recompiledFiles allSources
     }
 
+    // We can't implement this because we don't scan the input directories.
+    @NotYetImplemented
     def "recompiles when replacement header file is added before previous header to existing include path"() {
         given:
         buildFile << """

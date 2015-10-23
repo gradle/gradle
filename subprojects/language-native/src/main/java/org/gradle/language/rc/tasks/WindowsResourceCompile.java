@@ -92,6 +92,7 @@ public class WindowsResourceCompile extends DefaultTask {
         spec.setMacros(getMacros());
         spec.args(getCompilerArgs());
         spec.setIncrementalCompile(inputs.isIncremental());
+        spec.setIncrementalInputs(inputs);
         spec.setOperationLogger(operationLogger);
 
         PlatformToolProvider platformToolProvider = toolChain.select(targetPlatform);
