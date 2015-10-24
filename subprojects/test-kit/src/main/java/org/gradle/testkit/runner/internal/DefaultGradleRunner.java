@@ -136,10 +136,10 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     @Override
-    public GradleRunner withDebug(boolean debug) {
-        this.debug = debug;
+    public GradleRunner withDebug(boolean flag) {
+        this.debug = flag;
         // at the moment debugging is only possible in embedded mode
-        withDaemon(!debug);
+        withDaemon(!flag);
         return this;
     }
 

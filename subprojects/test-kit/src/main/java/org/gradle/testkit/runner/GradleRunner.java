@@ -221,29 +221,30 @@ public abstract class GradleRunner {
     public abstract GradleRunner withPluginClasspath(Iterable<? extends File> classpath);
 
     /**
-     * Indicates if test execution is debuggable from an IDE. Enabled debugging effectively executes the tests in same JVM process
-     * as the "main" Gradle process.
+     * Indicates whether the build should be executed “in process” so that it is debuggable.
      * <p>
-     * The debug mode can be enabled by providing the system property <code>org.gradle.testkit.debug</code> with the value
-     * <code>true</code> in the IDE run configuration.
+     * If debug support is not enabled, the build will be executed in an entirely separate process.
+     * This means that any debugger that is attached to the test execution process will not be attached to the build process.
+     * When debug support is enabled, the build is executed in the same process that is using the Gradle Runner, allowing the build to be debugged.
      * <p>
-     * Alternatively, the debug flag can be set programmatically by invoking the method {@link #withDebug(boolean)} which takes precedence over
-     * the default debug mode. By default the debug mode is disabled.
+     * Debug support is off (i.e. {@code false}) by default.
+     * It can be enabled by setting the system property {@code org.gradle.testkit.debug} to {@code true} for the test process,
+     * or by using the {@link #withDebug(boolean)} method.
      *
-     * @return the debug flag
+     * @return whether the build should be executed in the same process
      * @since 2.9
      */
     public abstract boolean isDebug();
 
     /**
-     * Enables or disables debugging for test execution.
+     * Sets whether debugging support is enabled.
      *
-     * @param debug the debug flag
-     * @return this
      * @see #isDebug()
+     * @param flag the debug flag
+     * @return this
      * @since 2.9
      */
-    public abstract GradleRunner withDebug(boolean debug);
+    public abstract GradleRunner withDebug(boolean flag);
 
     /**
      * Specifies the writer used for capturing standard output during test execution. The provided writer may not be null.
