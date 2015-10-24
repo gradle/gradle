@@ -6,9 +6,11 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-<!--
-### Example new and noteworthy
--->
+### Software model changes
+
+TBD - Binary names are now scoped to the component they belong to. This means multiple components can have binaries with a given name. For example, several library components
+might have a `jar` binary. This allows binaries to have names that reflect their relationship to the component, rather than their absolute location in the software model.
+
 
 ## Promoted features
 
@@ -36,9 +38,13 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Changes to incubating software model
+
+TBD
+
+- `BinarySpec.name` should no longer be considered a unique identifier for the binary within a project.
+- The name for the 'build' task for a binary is now qualified with the name of its component. For example, `jar` in `mylib` will have a build task called 'mylibJar'
+- The name for the compile tasks for a binary is now qualified with the name of its component.
 
 ## External contributions
 
