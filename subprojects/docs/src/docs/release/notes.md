@@ -2,23 +2,23 @@
 
 Here are the new features introduced in this Gradle release.
 
-### TestKit improvements
+### Easier debugging of TestKit functional tests
 
-This release provide significant improvements to for consumers of the TestKit.
+The [Gradle TestKit](userguide/test_kit.html) facilitates programmatic execution of Gradle builds for the purpose of testing plugins and build logic.
+This release of Gradle makes it easier to use a debugger to debug build logic under test.
 
-#### Easier debugging of test build with TestKit from an IDE
+In order to provide an accurate simulation of a Gradle build, the TestKit executes the build in a _separate process_ by default.
+This avoids interference to the build environment by the test environment and vice versa.
+This does mean however, that executing a test via a debugger does not automatically allow debugging the build process.
 
-Identifying the root cause of a failing functional test can be tricky. Debugging test execution from an IDE can help to discover problems
-by stepping through the code line by line. By default, TestKit executes functional tests in a forked daemon process. Setting up remote debugging for a daemon process
-is inconvenient and cumbersome.
+To support debugging, it is now possible to specify that the build should be run in the same process as the test.
+This can be done by setting the `org.gradle.testkit.debug` system property to `true` for the test process,
+or by using the [`withDebug(boolean)`](javadoc/org/gradle/testkit/runner/GradleRunner.html#withDebug\(boolean\))
+method of the `GradleRunner`.
 
-This release makes it more convenient for the end user to debug tests from an IDE. By setting the system property `org.gradle.testkit.debug` to `true` in the IDE run configuration,
-a user can execute the functional tests in the same JVM process as the spawning Gradle process.
+Please see the [Gradle User Guide section on debugging with the TestKit](userguide/test_kit.html#test-kit-debug) for more information.
 
-Alternatively, debugging behavior can also be set programmatically through the `GradleRunner` API with the method
-<a href="javadoc/org/gradle/testkit/runner/GradleRunner.html#withDebug(boolean)">withDebug(boolean)</a>.
-
-#### Unexpected build failure provide access to the build result
+### Unexpected build failure provide access to the build result
 
 With previous versions of Gradle TestKit, any unexpected failure during functional test executions resulted in throwing a
 <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildSuccess.html">UnexpectedBuildSuccess</a> or a
@@ -29,7 +29,7 @@ convenient for further inspections or assertions of the build outcome.
 This release provides the `BuildResult` with the method <a href="javadoc/org/gradle/testkit/runner/UnexpectedBuildException.html#getBuildResult()">UnexpectedBuildException.getBuildResult()</a> for
 diagnosing test execution failures. `UnexpectedBuildException` is the parent class of the exceptions `UnexpectedBuildSuccess` and `UnexpectedBuildFailure`.
 
-#### Ability to provide a Gradle distribution for test execution
+### Ability to provide a Gradle distribution for test execution
 
 In previous versions of Gradle, the TestKit API did not support providing a Gradle distribution for executing functional tests. Instead it automatically
 determined the distribution by deriving this information from the build script that loads the `GradleRunner` class.

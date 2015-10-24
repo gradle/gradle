@@ -188,7 +188,7 @@
                 <sourcefile file="BuildLogicFunctionalTest.groovy" snippet="functional-test-spock-gradle-distribution"/>
             </sample>
         </section>
-        <section>
+        <section id="test-kit-debug">
             <title>Debugging build logic</title>
             <para>
                 The runner uses the <link linkend="embedding">Tooling API</link> to execute builds.
