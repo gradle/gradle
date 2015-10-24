@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2007-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,26 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.DirectBuildDependencies;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
 
+import java.util.Collection;
 import java.util.Set;
 
-public class DefaultConfigurationsToModuleDescriptorConverter implements ConfigurationsToModuleDescriptorConverter {
-    public void addConfigurations(BuildableLocalComponentMetaData metaData, Iterable<? extends Configuration> configurations) {
+public class DefaultConfigurationComponentMetaDataBuilder implements ConfigurationComponentMetaDataBuilder {
+    private final DependenciesToModuleDescriptorConverter dependenciesConverter;
+
+    public DefaultConfigurationComponentMetaDataBuilder(DependenciesToModuleDescriptorConverter dependenciesConverter) {
+        this.dependenciesConverter = dependenciesConverter;
+    }
+
+    public void addConfigurations(BuildableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             addConfiguration(metaData, configuration);
         }
+        addDependencies(metaData, configurations);
+        addArtifacts(metaData, configurations);
     }
 
     private void addConfiguration(BuildableLocalComponentMetaData metaData, Configuration configuration) {
@@ -35,5 +45,15 @@ public class DefaultConfigurationsToModuleDescriptorConverter implements Configu
         Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
         TaskDependency directBuildDependencies = DirectBuildDependencies.forDependenciesAndArtifacts(configuration);
         metaData.addConfiguration(configuration.getName(), configuration.getDescription(), extendsFrom, hierarchy, configuration.isVisible(), configuration.isTransitive(), directBuildDependencies);
+    }
+
+    private void addDependencies(BuildableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
+        dependenciesConverter.addDependencyDescriptors(metaData, configurations);
+    }
+
+    private void addArtifacts(BuildableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
+        for (Configuration configuration : configurations) {
+            metaData.addArtifacts(configuration.getName(), configuration.getArtifacts());
+        }
     }
 }

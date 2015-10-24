@@ -42,10 +42,6 @@ class DependencyManagementGlobalScopeServices {
         return new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverter);
     }
 
-    ConfigurationsToModuleDescriptorConverter createConfigurationsToModuleDescriptorConverter() {
-        return new DefaultConfigurationsToModuleDescriptorConverter();
-    }
-
     DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
         return new DefaultDependencyDescriptorFactory(
             new ProjectIvyDependencyDescriptorFactory(
@@ -58,15 +54,13 @@ class DependencyManagementGlobalScopeServices {
         return new DefaultDependenciesToModuleDescriptorConverter(dependencyDescriptorFactory, excludeRuleConverter);
     }
 
-    ConfigurationsToArtifactsConverter createConfigurationsToArtifactsConverter() {
-        return new DefaultConfigurationsToArtifactsConverter();
+    ConfigurationComponentMetaDataBuilder createConfigurationComponentMetaDataBuilder(DependenciesToModuleDescriptorConverter dependenciesConverter) {
+        return new DefaultConfigurationComponentMetaDataBuilder(dependenciesConverter);
     }
 
-    ConfigurationLocalComponentMetaDataAdapter createConfigurationLocalComponentConverter(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
-                                                                                    DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
-                                                                                    ConfigurationsToArtifactsConverter configurationsToArtifactsConverter,
-                                                                                    ComponentIdentifierFactory componentIdentifierFactory) {
-        return new ConfigurationLocalComponentMetaDataAdapter(configurationsToModuleDescriptorConverter, dependenciesToModuleDescriptorConverter, componentIdentifierFactory, configurationsToArtifactsConverter);
+    ConfigurationLocalComponentMetaDataAdapter createConfigurationLocalComponentConverter(ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
+                                                                                          ComponentIdentifierFactory componentIdentifierFactory) {
+        return new ConfigurationLocalComponentMetaDataAdapter(componentIdentifierFactory, configurationComponentMetaDataBuilder);
     }
 
     ResourceConnectorFactory createFileConnectorFactory() {

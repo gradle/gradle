@@ -32,9 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationsToArtifactsConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationsToModuleDescriptorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
@@ -212,9 +210,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         public ArtifactPublisher createArtifactPublisher() {
             return new IvyBackedArtifactPublisher(
-                    services.get(ConfigurationsToModuleDescriptorConverter.class),
-                    services.get(DependenciesToModuleDescriptorConverter.class),
-                    services.get(ConfigurationsToArtifactsConverter.class),
+                    services.get(ConfigurationComponentMetaDataBuilder.class),
                     services.get(IvyContextManager.class),
                     new DefaultIvyDependencyPublisher(),
                     new IvyXmlModuleDescriptorWriter()

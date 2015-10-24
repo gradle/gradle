@@ -36,8 +36,6 @@ class DependentSourceSetResolveContextTest extends Specification {
 
         then:
         context.componentId.projectPath == project
-        context.dependencies.empty
-        context.allDependencies.empty
     }
 
     @Unroll

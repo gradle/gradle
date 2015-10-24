@@ -24,26 +24,19 @@ import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentMetaDataAdapter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
 import java.util.Set;
 
 public class ConfigurationLocalComponentMetaDataAdapter implements LocalComponentMetaDataAdapter {
-    private final ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;
-    private final DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter;
     private final ComponentIdentifierFactory componentIdentifierFactory;
-    private final ConfigurationsToArtifactsConverter configurationsToArtifactsConverter;
+    private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
 
-    public ConfigurationLocalComponentMetaDataAdapter(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
-                                                      DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
-                                                      ComponentIdentifierFactory componentIdentifierFactory,
-                                                      ConfigurationsToArtifactsConverter configurationsToArtifactsConverter) {
-        this.configurationsToModuleDescriptorConverter = configurationsToModuleDescriptorConverter;
-        this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
+    public ConfigurationLocalComponentMetaDataAdapter(ComponentIdentifierFactory componentIdentifierFactory,
+                                                      ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder) {
         this.componentIdentifierFactory = componentIdentifierFactory;
-        this.configurationsToArtifactsConverter = configurationsToArtifactsConverter;
+        this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
     }
 
     @Override
@@ -66,9 +59,7 @@ public class ConfigurationLocalComponentMetaDataAdapter implements LocalComponen
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
         DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
-        configurationsToModuleDescriptorConverter.addConfigurations(metaData, configurations);
-        dependenciesToModuleDescriptorConverter.addDependencyDescriptors(metaData, configurations);
-        configurationsToArtifactsConverter.addArtifacts(metaData, configurations);
+        configurationComponentMetaDataBuilder.addConfigurations(metaData, configurations);
         return metaData;
     }
 

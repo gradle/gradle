@@ -15,26 +15,19 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
-
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData
 import spock.lang.Specification
 
 public class ConfigurationLocalComponentMetaDataAdapterTest extends Specification {
-    def configurationsConverter = Mock(ConfigurationsToModuleDescriptorConverter)
-    def dependenciesConverter = Mock(DependenciesToModuleDescriptorConverter)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
-    def configurationsToArtifactsConverter = Mock(ConfigurationsToArtifactsConverter)
+    def configurationMetaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
 
-    ConfigurationLocalComponentMetaDataAdapter resolveModuleDescriptorConverter = new ConfigurationLocalComponentMetaDataAdapter(
-            configurationsConverter,
-            dependenciesConverter,
-            componentIdentifierFactory,
-            configurationsToArtifactsConverter)
+    ConfigurationLocalComponentMetaDataAdapter resolveModuleDescriptorConverter =
+            new ConfigurationLocalComponentMetaDataAdapter(componentIdentifierFactory, configurationMetaDataBuilder)
 
     def "converts for provided default module"() {
         given:
@@ -45,9 +38,8 @@ public class ConfigurationLocalComponentMetaDataAdapterTest extends Specificatio
         def componentMetaData = resolveModuleDescriptorConverter.convert(new ConfigurationBackedComponent(module, configurations))
 
         then:
-        1 * configurationsConverter.addConfigurations(!null, configurations)
-        1 * dependenciesConverter.addDependencyDescriptors(!null, configurations)
         1 * componentIdentifierFactory.createComponentIdentifier(module) >> new DefaultModuleComponentIdentifier('group-one', 'name-one', 'version-one')
+        1 * configurationMetaDataBuilder.addConfigurations(!null, configurations)
 
         and:
         componentMetaData instanceof DefaultLocalComponentMetaData

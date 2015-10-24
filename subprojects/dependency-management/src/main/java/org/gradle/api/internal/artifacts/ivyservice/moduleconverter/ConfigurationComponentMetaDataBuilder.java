@@ -18,11 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
 
-public class DefaultConfigurationsToArtifactsConverter implements ConfigurationsToArtifactsConverter {
+import java.util.Collection;
 
-    public void addArtifacts(BuildableLocalComponentMetaData metaData, Iterable<? extends Configuration> configurations) {
-        for (Configuration configuration : configurations) {
-            metaData.addArtifacts(configuration.getName(), configuration.getArtifacts());
-        }
-    }
+public interface ConfigurationComponentMetaDataBuilder {
+    void addConfigurations(BuildableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations);
 }
