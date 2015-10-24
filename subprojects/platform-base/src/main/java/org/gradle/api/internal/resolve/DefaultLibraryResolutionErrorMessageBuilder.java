@@ -19,8 +19,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
-import org.gradle.jvm.JarBinarySpec;
-import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaDataHelper;
@@ -30,17 +28,19 @@ import org.gradle.platform.base.Platform;
 
 import java.util.*;
 
-public class JvmLibraryResolutionErrorMessageBuilder implements LibraryResolutionErrorMessageBuilder {
+public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResolutionErrorMessageBuilder {
     private static final String TARGET_PLATFORM = "targetPlatform";
 
     private final VariantsMetaData variantsMetaData;
     private final ModelSchemaStore schemaStore;
     private final Platform platform;
     private final Set<String> resolveDimensions;
+    private final LocalLibraryMetaDataAdapter adapter;
 
-    public JvmLibraryResolutionErrorMessageBuilder(VariantsMetaData variantsMetaData, ModelSchemaStore schemaStore) {
+    public DefaultLibraryResolutionErrorMessageBuilder(VariantsMetaData variantsMetaData, ModelSchemaStore schemaStore, LocalLibraryMetaDataAdapter adapter) {
         this.variantsMetaData = variantsMetaData;
         this.schemaStore = schemaStore;
+        this.adapter = adapter;
         this.platform = variantsMetaData.getValueAsType(Platform.class, TARGET_PLATFORM);
         this.resolveDimensions = variantsMetaData.getNonNullDimensions();
     }
@@ -74,6 +74,7 @@ public class JvmLibraryResolutionErrorMessageBuilder implements LibraryResolutio
         }
     }
 
+    // TODO:DAZ Extract the JVM-specific logic out of here: this error message builder should be general to all library types
     @Override
     public String noCompatibleBinaryErrorMessage(String libraryName, Collection<BinarySpec> allBinaries) {
         if (resolveDimensions.size() == 1) { // 1 because of targetPlatform
@@ -81,7 +82,7 @@ public class JvmLibraryResolutionErrorMessageBuilder implements LibraryResolutio
                 Lists.newArrayList(allBinaries), new Function<BinarySpec, String>() {
                     @Override
                     public String apply(BinarySpec input) {
-                        return input instanceof JarBinarySpec ? ((JarBinarySpec) input).getTargetPlatform().toString() : input.toString();
+                        return getPlatformDisplayName(input);
                     }
                 }
             );
@@ -92,14 +93,11 @@ public class JvmLibraryResolutionErrorMessageBuilder implements LibraryResolutio
                 Lists.newArrayList(allBinaries), new Function<BinarySpec, String>() {
                     @Override
                     public String apply(BinarySpec input) {
-                        if (input instanceof JarBinarySpec) {
-                            JavaPlatform targetPlatform = ((JarBinarySpec) input).getTargetPlatform();
-                            if (moreThanOneBinary) {
-                                return String.format("'%s' on %s", targetPlatform.getName(), input.getDisplayName());
-                            }
-                            return String.format("'%s'", targetPlatform.getName());
+                        String platformName = getPlatformDisplayName(input);
+                        if (moreThanOneBinary) {
+                            return String.format("'%s' on %s", platformName, input.getDisplayName());
                         }
-                        return null;
+                        return String.format("'%s'", platformName);
                     }
                 }
             ));
@@ -142,6 +140,10 @@ public class JvmLibraryResolutionErrorMessageBuilder implements LibraryResolutio
             }
             return error.toString();
         }
+    }
+
+    private String getPlatformDisplayName(BinarySpec input) {
+        return adapter.getPlatformDisplayName(input);
     }
 
     private static boolean isPlatformDimension(String dimension) {

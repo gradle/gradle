@@ -99,7 +99,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator, ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
-                                                                    ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener, ProjectFinder projectFinder) {
+                                                                    ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener,
+                                                                    ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                     configurationResolver,
                     instantiator,
@@ -107,7 +108,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     listenerManager,
                     metaDataProvider,
                     projectAccessListener,
-                    projectFinder);
+                    projectFinder,
+                    metaDataBuilder);
         }
 
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,

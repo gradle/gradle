@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData;
 import org.gradle.internal.component.model.*;
@@ -35,7 +34,6 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
-import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.language.base.internal.model.VariantDimensionSelectorFactory;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
@@ -53,21 +51,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class AbstractLocalLibraryDependencyResolver<T extends BinarySpec> implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+public class LocalLibraryDependencyResolver<T extends BinarySpec> implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
     private final ProjectModelResolver projectModelResolver;
     private final VariantsMetaData variantsMetaData;
     private final VariantsMatcher matcher;
     private final LibraryResolutionErrorMessageBuilder errorMessageBuilder;
+    private final LocalLibraryMetaDataAdapter libraryMetaDataAdapter;
     private final Class<? extends BinarySpec> binaryType;
     private final Predicate<LibrarySpec> binarySpecPredicate;
 
-    public AbstractLocalLibraryDependencyResolver(
-        Class<T> binarySpecType,
-        ProjectModelResolver projectModelResolver,
-        List<VariantDimensionSelectorFactory> selectorFactories,
-        VariantsMetaData variantsMetaData,
-        LibraryResolutionErrorMessageBuilder errorMessageBuilder, ModelSchemaStore schemaStore) {
+    public LocalLibraryDependencyResolver(
+            Class<T> binarySpecType,
+            ProjectModelResolver projectModelResolver,
+            List<VariantDimensionSelectorFactory> selectorFactories,
+            VariantsMetaData variantsMetaData,
+            ModelSchemaStore schemaStore,
+            LocalLibraryMetaDataAdapter libraryMetaDataAdapter,
+            LibraryResolutionErrorMessageBuilder errorMessageBuilder) {
         this.projectModelResolver = projectModelResolver;
+        this.libraryMetaDataAdapter = libraryMetaDataAdapter;
         this.matcher = new VariantsMatcher(selectorFactories, binarySpecType, schemaStore);
         this.errorMessageBuilder = errorMessageBuilder;
         this.variantsMetaData = variantsMetaData;
@@ -100,7 +102,7 @@ public abstract class AbstractLocalLibraryDependencyResolver<T extends BinarySpe
                     BinarySpec selectedBinary = compatibleBinaries.iterator().next();
                     DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
                     buildDependencies.add(selectedBinary);
-                    DefaultLibraryLocalComponentMetaData metaData = (DefaultLibraryLocalComponentMetaData) createLocalComponentMetaData(selectedBinary, buildDependencies, selectorProjectPath);
+                    LocalComponentMetaData metaData = libraryMetaDataAdapter.createLocalComponentMetaData(selectedBinary, buildDependencies, selectorProjectPath);
                     result.resolved(metaData);
                 }
             }
@@ -173,7 +175,4 @@ public abstract class AbstractLocalLibraryDependencyResolver<T extends BinarySpe
             }
         }
     }
-
-    protected abstract LocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, TaskDependency buildDependencies, String projectPath);
-
 }

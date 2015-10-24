@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
 
+package org.gradle.api.internal.resolve;
+
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
+import org.gradle.platform.base.BinarySpec;
 
-public interface LocalComponentMetaDataAdapter {
-    boolean canConvert(Object source);
+public interface LocalLibraryMetaDataAdapter {
+    LocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, TaskDependency buildDependencies, String projectPath);
 
-    LocalComponentMetaData convert(Object source);
+    String getPlatformDisplayName(BinarySpec binary);
 }

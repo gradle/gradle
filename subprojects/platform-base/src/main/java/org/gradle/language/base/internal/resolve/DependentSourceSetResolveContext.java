@@ -20,8 +20,12 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
+import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaData;
+import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.DependencySpecContainer;
 
 public class DependentSourceSetResolveContext implements ResolveContext {
     private final LibraryBinaryIdentifier binaryId;
@@ -61,4 +65,19 @@ public class DependentSourceSetResolveContext implements ResolveContext {
     public ResolutionStrategyInternal getResolutionStrategy() {
         return resolutionStrategy;
     }
+
+    @Override
+    public ComponentResolveMetaData toRootComponentMetaData() {
+        LibraryBinaryIdentifier libraryBinaryIdentifier = getComponentId();
+        DefaultLibraryLocalComponentMetaData metaData = DefaultLibraryLocalComponentMetaData.newMetaData(libraryBinaryIdentifier, sourceSet.getBuildDependencies());
+        addDependencies(libraryBinaryIdentifier.getProjectPath(), metaData, sourceSet.getDependencies());
+        return metaData;
+    }
+
+    private void addDependencies(String defaultProject, DefaultLibraryLocalComponentMetaData metaData, DependencySpecContainer allDependencies) {
+        for (DependencySpec dependency : allDependencies.getDependencies()) {
+            metaData.addDependency(dependency, defaultProject);
+        }
+    }
+
 }

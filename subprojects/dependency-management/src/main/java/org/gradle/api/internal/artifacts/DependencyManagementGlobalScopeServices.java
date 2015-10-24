@@ -58,11 +58,6 @@ class DependencyManagementGlobalScopeServices {
         return new DefaultConfigurationComponentMetaDataBuilder(dependenciesConverter);
     }
 
-    ConfigurationLocalComponentMetaDataAdapter createConfigurationLocalComponentConverter(ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
-                                                                                          ComponentIdentifierFactory componentIdentifierFactory) {
-        return new ConfigurationLocalComponentMetaDataAdapter(componentIdentifierFactory, configurationComponentMetaDataBuilder);
-    }
-
     ResourceConnectorFactory createFileConnectorFactory() {
         return new FileConnectorFactory();
     }

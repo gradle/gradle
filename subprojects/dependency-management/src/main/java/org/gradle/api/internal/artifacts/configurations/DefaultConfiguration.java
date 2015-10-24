@@ -22,12 +22,14 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.*;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileSystemSubset;
@@ -37,6 +39,9 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -66,6 +71,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ProjectAccessListener projectAccessListener;
     private final ProjectFinder projectFinder;
     private final ResolutionStrategyInternal resolutionStrategy;
+    private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
 
     private final Set<MutationValidator> childMutationValidators = Sets.newHashSet();
     private final MutationValidator parentMutationValidator = new MutationValidator() {
@@ -100,7 +106,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 DependencyMetaDataProvider metaDataProvider,
                                 ResolutionStrategyInternal resolutionStrategy,
                                 ProjectAccessListener projectAccessListener,
-                                ProjectFinder projectFinder) {
+                                ProjectFinder projectFinder,
+                                ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -110,6 +117,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.resolutionStrategy = resolutionStrategy;
         this.projectAccessListener = projectAccessListener;
         this.projectFinder = projectFinder;
+        this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
 
         dependencyResolutionListeners = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
@@ -486,7 +494,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder);
+            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -531,6 +539,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public ResolutionStrategyInternal getResolutionStrategy() {
         return resolutionStrategy;
+    }
+
+    // TODO:DAZ ResolveContext should have-a Configuration, not be one
+    public ComponentResolveMetaData toRootComponentMetaData() {
+        ModuleInternal module = getModule();
+        Set<? extends Configuration> configurations = getAll();
+        ComponentIdentifier componentIdentifier = DefaultProjectComponentIdentifier.newId(module.getProjectPath());
+        ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
+        DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
+        configurationComponentMetaDataBuilder.addConfigurations(metaData, configurations);
+        return metaData;
     }
 
     public String getPath() {

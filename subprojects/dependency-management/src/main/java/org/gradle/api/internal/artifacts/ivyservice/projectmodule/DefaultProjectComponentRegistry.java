@@ -15,19 +15,24 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.internal.artifacts.ivyservice.LocalComponentMetaDataAdapter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationBackedComponent;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
 public class DefaultProjectComponentRegistry implements ProjectComponentRegistry {
-    private final LocalComponentMetaDataAdapter localComponentMetaDataAdapter;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
+    private final ConfigurationComponentMetaDataBuilder metaDataBuilder;
 
-    public DefaultProjectComponentRegistry(LocalComponentMetaDataAdapter localComponentMetaDataAdapter, ProjectRegistry<ProjectInternal> projectRegistry) {
-        this.localComponentMetaDataAdapter = localComponentMetaDataAdapter;
+    public DefaultProjectComponentRegistry(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
         this.projectRegistry = projectRegistry;
+        this.metaDataBuilder = metaDataBuilder;
     }
 
     public LocalComponentMetaData getProject(String projectPath) {
@@ -35,6 +40,15 @@ public class DefaultProjectComponentRegistry implements ProjectComponentRegistry
         if (project == null) {
             return null;
         }
-        return localComponentMetaDataAdapter.convert(new ConfigurationBackedComponent(project.getModule(), project.getConfigurations()));
+        return getLocalComponentMetaData(project);
+    }
+
+    private LocalComponentMetaData getLocalComponentMetaData(ProjectInternal project) {
+        ModuleInternal module = project.getModule();
+        ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
+        ComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(project.getPath());
+        DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
+        metaDataBuilder.addConfigurations(metaData, project.getConfigurations());
+        return metaData;
     }
 }
