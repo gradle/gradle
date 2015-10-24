@@ -32,7 +32,6 @@ import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.Tool;
-import org.gradle.nativeplatform.internal.AbstractNativeBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.util.CollectionUtils;
@@ -89,7 +88,7 @@ abstract public class CompileTaskConfig implements SourceTransformTaskConfig {
         });
 
         for (String toolName : languageTransform.getBinaryTools().keySet()) {
-            Tool tool = ((AbstractNativeBinarySpec) binary).getToolByName(toolName);
+            Tool tool = binary.getToolByName(toolName);
             if (tool instanceof PreprocessingTool) {
                 task.setMacros(((PreprocessingTool) tool).getMacros());
             }

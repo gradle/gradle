@@ -20,13 +20,12 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.language.assembler.tasks.Assemble;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.nativeplatform.Tool;
-import org.gradle.nativeplatform.internal.AbstractNativeBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.language.assembler.tasks.Assemble;
 import org.gradle.platform.base.BinarySpec;
 
 public class AssembleTaskConfig implements SourceTransformTaskConfig {
@@ -53,7 +52,7 @@ public class AssembleTaskConfig implements SourceTransformTaskConfig {
         final Project project = task.getProject();
         task.setObjectFileDir(project.file(project.getBuildDir() + "/objs/" + binary.getNamingScheme().getOutputDirectoryBase() + "/" + sourceSet.getFullName()));
 
-        Tool assemblerTool = ((AbstractNativeBinarySpec) binary).getToolByName("assembler");
+        Tool assemblerTool = binary.getToolByName("assembler");
         task.setAssemblerArgs(assemblerTool.getArgs());
 
         binary.binaryInputs(task.getOutputs().getFiles().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o")));

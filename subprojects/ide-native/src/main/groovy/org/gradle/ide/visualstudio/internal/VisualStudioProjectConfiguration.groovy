@@ -18,7 +18,6 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.language.PreprocessingTool
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.NativeBinarySpec
-import org.gradle.nativeplatform.internal.AbstractNativeBinarySpec
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter
 
@@ -86,7 +85,7 @@ class VisualStudioProjectConfiguration {
     }
 
     private PreprocessingTool findCompiler(String tool) {
-        return ((AbstractNativeBinarySpec) binary).getToolByName(tool) as PreprocessingTool
+        return binary.getToolByName(tool) as PreprocessingTool
     }
 
     List<File> getIncludePaths() {
