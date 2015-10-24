@@ -27,13 +27,12 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.ComponentSpecAware;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 
-public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecInternal, ComponentSpecAware {
+public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecInternal {
 
     void setFlavor(Flavor flavor);
 

@@ -19,6 +19,7 @@ package org.gradle.platform.base.binary;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.AbstractBuildableModelElement;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DefaultPolymorphicNamedEntityInstantiator;
@@ -33,11 +34,9 @@ import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap;
 import org.gradle.model.internal.core.ModelMapGroovyDecorator;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.BinaryTasksCollection;
+import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ModelInstantiationException;
-import org.gradle.platform.base.internal.BinaryBuildAbility;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
-import org.gradle.platform.base.internal.FixedBuildAbility;
+import org.gradle.platform.base.internal.*;
 import org.gradle.util.DeprecationLogger;
 
 /**
@@ -58,18 +57,18 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final BinaryTasksCollection tasks;
-
+    private final ComponentSpecInternal owner;
     private final String name;
     private final String typeName;
     private Class<? extends BinarySpec> publicType;
 
     private boolean disabled;
 
-    public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType, String name, Instantiator instantiator, ITaskFactory taskFactory) {
+    public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType, String name, ComponentSpecInternal owner, Instantiator instantiator, ITaskFactory taskFactory) {
         if (implementationType.equals(BaseBinarySpec.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseBinarySpec.");
         }
-        nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, taskFactory, instantiator));
+        nextBinaryInfo.set(new BinaryInfo(name, publicType, implementationType, owner, taskFactory, instantiator));
         try {
             try {
                 return instantiator.newInstance(implementationType);
@@ -92,6 +91,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         this.name = info.name;
         this.publicType = info.publicType;
         this.typeName = info.implementationType.getSimpleName();
+        this.owner = info.owner;
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
         DefaultPolymorphicNamedEntityInstantiator<LanguageSourceSet> entityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<LanguageSourceSet>(LanguageSourceSet.class, "owned sources");
         this.entityInstantiator = entityInstantiator;
@@ -111,6 +111,16 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
     @Override
     public void setPublicType(Class<? extends BinarySpec> publicType) {
         this.publicType = publicType;
+    }
+
+    @Override
+    public String getProjectScopedName() {
+        return name;
+    }
+
+    @Nullable
+    public ComponentSpec getComponent() {
+        return owner;
     }
 
     protected String getTypeName() {
@@ -176,13 +186,15 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         private final String name;
         private final Class<? extends BinarySpec> publicType;
         private final Class<? extends BaseBinarySpec> implementationType;
+        private final ComponentSpecInternal owner;
         private final ITaskFactory taskFactory;
         private final Instantiator instantiator;
 
-        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, Class<? extends BaseBinarySpec> implementationType, ITaskFactory taskFactory, Instantiator instantiator) {
+        private BinaryInfo(String name, Class<? extends BinarySpec> publicType, Class<? extends BaseBinarySpec> implementationType, ComponentSpecInternal owner, ITaskFactory taskFactory, Instantiator instantiator) {
             this.name = name;
             this.publicType = publicType;
             this.implementationType = implementationType;
+            this.owner = owner;
             this.taskFactory = taskFactory;
             this.instantiator = instantiator;
         }

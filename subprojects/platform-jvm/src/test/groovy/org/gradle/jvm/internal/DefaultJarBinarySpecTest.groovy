@@ -61,6 +61,6 @@ class DefaultJarBinarySpecTest extends Specification {
     }
 
     private DefaultJarBinarySpec binary() {
-        BaseBinarySpec.create(JarBinarySpec, DefaultJarBinarySpec, "jvm-lib-jar", DirectInstantiator.INSTANCE, Mock(ITaskFactory))
+        BaseBinarySpec.create(JarBinarySpec, DefaultJarBinarySpec, "jvm-lib-jar", null, DirectInstantiator.INSTANCE, Mock(ITaskFactory))
     }
 }

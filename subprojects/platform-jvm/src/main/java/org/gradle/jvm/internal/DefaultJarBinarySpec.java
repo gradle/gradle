@@ -39,7 +39,6 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     private File resourcesDir;
     private File jarFile;
     private File apiJarFile;
-    private ComponentSpec component;
     private Set<String> exportedPackages = Collections.emptySet();
 
     @Override
@@ -48,12 +47,8 @@ public class DefaultJarBinarySpec extends BaseBinarySpec implements JarBinarySpe
     }
 
     @Override
-    public void setComponent(ComponentSpec componentSpec) {
-        this.component = componentSpec;
-    }
-
-    @Override
     public LibraryBinaryIdentifier getId() {
+        ComponentSpec component = getComponent();
         return new DefaultLibraryBinaryIdentifier(component.getProjectPath(), component.getName(), getName());
     }
 
