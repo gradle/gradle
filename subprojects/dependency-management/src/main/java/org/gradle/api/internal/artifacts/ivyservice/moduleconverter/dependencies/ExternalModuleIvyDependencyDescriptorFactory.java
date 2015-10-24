@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaDataWrapper;

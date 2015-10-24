@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData
 import spock.lang.Specification

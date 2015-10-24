@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
+package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
 import org.apache.ivy.core.module.id.ArtifactId;
