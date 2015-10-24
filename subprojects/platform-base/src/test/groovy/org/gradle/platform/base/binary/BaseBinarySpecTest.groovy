@@ -24,6 +24,7 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ModelInstantiationException
+import org.gradle.platform.base.internal.ComponentSpecInternal
 import spock.lang.Specification
 
 class BaseBinarySpecTest extends Specification {
@@ -53,7 +54,19 @@ class BaseBinarySpecTest extends Specification {
         expect:
         binary.class == MySampleBinary
         binary.name == "sampleBinary"
+        binary.projectScopedName == "sampleBinary"
         binary.displayName == "MySampleBinary 'sampleBinary'"
+    }
+
+    def "qualifies project scoped named and display name using owners name"() {
+        def component = Stub(ComponentSpecInternal)
+        component.name >> "sample"
+        def binary = BaseBinarySpec.create(BinarySpec, MySampleBinary, "unitTest", component, instantiator, Mock(ITaskFactory))
+
+        expect:
+        binary.name == "unitTest"
+        binary.projectScopedName == "sampleUnitTest"
+        binary.displayName == "MySampleBinary 'sample:unitTest'"
     }
 
     def "create fails if subtype does not have a public no-args constructor"() {

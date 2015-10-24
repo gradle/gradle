@@ -109,8 +109,9 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 binariesNode.applyToAllLinks(ModelActionRole.Finalize, InputUsingModelAction.single(ModelReference.of(BinarySpec.class), ruleDescriptor, ModelReference.of(ITaskFactory.class), new BiAction<BinarySpec, ITaskFactory>() {
                     @Override
                     public void execute(BinarySpec binary, ITaskFactory taskFactory) {
-                        if (!((BinarySpecInternal) binary).isLegacyBinary()) {
-                            TaskInternal binaryLifecycleTask = taskFactory.create(binary.getName(), DefaultTask.class);
+                        BinarySpecInternal binarySpecInternal = (BinarySpecInternal) binary;
+                        if (!binarySpecInternal.isLegacyBinary()) {
+                            TaskInternal binaryLifecycleTask = taskFactory.create(binarySpecInternal.getProjectScopedName(), DefaultTask.class);
                             binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                             binaryLifecycleTask.setDescription(String.format("Assembles %s.", binary));
                             binary.setBuildTask(binaryLifecycleTask);

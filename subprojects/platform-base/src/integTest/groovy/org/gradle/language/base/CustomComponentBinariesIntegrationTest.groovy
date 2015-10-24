@@ -98,9 +98,9 @@ class DefaultSampleLibrary extends BaseComponentSpec implements SampleLibrary {}
                         def sampleBinary = binaries.sampleLibBinary
                         def othersSampleBinary = binaries.sampleLibOtherBinary
                         assert sampleBinary instanceof SampleBinary
-                        assert sampleBinary.displayName == "DefaultSampleBinary 'sampleLibBinary'"
+                        assert sampleBinary.displayName == "DefaultSampleBinary 'sampleLib:binary'"
                         assert othersSampleBinary instanceof OtherSampleBinary
-                        assert othersSampleBinary.displayName == "OtherSampleBinaryImpl 'sampleLibOtherBinary'"
+                        assert othersSampleBinary.displayName == "OtherSampleBinaryImpl 'sampleLib:otherBinary'"
                     }
                 }
             }
@@ -129,9 +129,9 @@ Source sets
         srcDir: src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
-    DefaultSampleBinary 'sampleLibBinary'
+    DefaultSampleBinary 'sampleLib:binary'
         build using task: :sampleLibBinary
-    OtherSampleBinaryImpl 'sampleLibOtherBinary'
+    OtherSampleBinaryImpl 'sampleLib:otherBinary'
         build using task: :sampleLibOtherBinary
 """))
     }
@@ -213,7 +213,7 @@ Binaries
                @ComponentBinaries
                void createBinariesForSampleLibrary(ModelMap<SampleBinary> binaries, $ruleInputs) {
                    myModel.values.each{ value ->
-                        binaries.create("\${library.name}\${value}Binary")
+                        binaries.create("\${value}Binary")
                    }
                }
            }
@@ -240,9 +240,9 @@ Source sets
         srcDir: src${File.separator}sampleLib${File.separator}librarySource
 
 Binaries
-    DefaultSampleBinary 'sampleLib1stBinary'
+    DefaultSampleBinary 'sampleLib:1stBinary'
         build using task: :sampleLib1stBinary
-    DefaultSampleBinary 'sampleLib2ndBinary'
+    DefaultSampleBinary 'sampleLib:2ndBinary'
         build using task: :sampleLib2ndBinary
 """))
         where:
@@ -257,8 +257,8 @@ Binaries
             static class Rules extends RuleSource {
                 @ComponentBinaries
                 void createBinariesForSampleLibrary(${binariesContainerType.simpleName}<SampleBinary> binaries, SampleLibrary library) {
-                    binaries.create("\${library.name}Binary")
-                    binaries.create("\${library.name}OtherBinary", OtherSampleBinary)
+                    binaries.create("binary")
+                    binaries.create("otherBinary", OtherSampleBinary)
                 }
             }
          }
@@ -284,8 +284,8 @@ Binaries
         then:
         output.contains(toPlatformLineSeparators("""
 Binaries
-    DefaultSampleBinary 'derivedFromMethodName'
-        build using task: :derivedFromMethodName
+    DefaultSampleBinary 'sampleLib:derivedFromMethodName'
+        build using task: :sampleLibDerivedFromMethodName
 """))
     }
 

@@ -43,7 +43,7 @@ class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTes
                 components {
                     main {
                         sources {
-                            main(CustomLanguageSourceSet)
+                            someLang(CustomLanguageSourceSet)
                         }
                     }
                 }
@@ -57,8 +57,8 @@ class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTes
             class ComponentBinaryRules extends RuleSource {
                 @ComponentBinaries
                 void addBinaries(ModelMap<CustomBinary> binaries, CustomComponent component) {
-                    binaries.create(component.name + "Main", CustomBinary)
-                    binaries.create(component.name + "Test", CustomBinary)
+                    binaries.create("b1", CustomBinary)
+                    binaries.create("b2", CustomBinary)
                 }
             }
 
@@ -162,7 +162,7 @@ model {
         succeeds "printSourceNames"
 
         then:
-        output.contains "names: [main]"
+        output.contains "names: [someLang]"
     }
 
     def "component sources container elements are visible in model report"() {
@@ -225,7 +225,7 @@ model {
             model {
                 tasks {
                     create("printSourceDisplayName") {
-                        def sources = $("components.main.sources.main")
+                        def sources = $("components.main.sources.someLang")
                         doLast {
                             println "sources display name: ${sources.displayName}"
                         }
@@ -238,7 +238,7 @@ model {
         succeeds "printSourceDisplayName"
 
         then:
-        output.contains "sources display name: DefaultCustomLanguageSourceSet 'main:main'"
+        output.contains "sources display name: DefaultCustomLanguageSourceSet 'main:someLang'"
     }
 
     def "can reference sources container elements using specialized type in a rule"() {
@@ -247,7 +247,7 @@ model {
         buildFile << '''
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.sources.main") CustomLanguageSourceSet sourceSet) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.sources.someLang") CustomLanguageSourceSet sourceSet) {
                     tasks.create("printSourceData") {
                         doLast {
                             println "sources data: ${sourceSet.data}"
@@ -352,7 +352,6 @@ model {
                     }
                 }
             }
-
         }
     }
 
@@ -440,7 +439,6 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                 sources()
             }
         }
-
     }
 
     def "buildscript can configure component with given name"() {
@@ -537,7 +535,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
                 binaries()
                 sources {
                     bar(nodeValue: "DefaultCustomLanguageSourceSet 'main:bar'")
-                    main(nodeValue: "DefaultCustomLanguageSourceSet 'main:main'")
+                    someLang(nodeValue: "DefaultCustomLanguageSourceSet 'main:someLang'")
                 }
             }
         }
@@ -747,7 +745,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "printBinaryNames"
 
         then:
-        output.contains "names: [mainMain, mainTest]"
+        output.contains "names: [b1, b2]"
     }
 
     def "can reference binaries container elements using specialized type in a rule"() {
@@ -756,7 +754,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         buildFile << '''
             class TaskRules extends RuleSource {
                 @Mutate
-                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.mainMain") CustomBinary binary) {
+                void addPrintSourceDisplayNameTask(ModelMap<Task> tasks, @Path("components.main.binaries.b1") CustomBinary binary) {
                     tasks.create("printBinaryData") {
                         doLast {
                             println "binary data: ${binary.data}"
@@ -783,7 +781,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
             model {
                 tasks {
                     create("printBinaryTaskNames") {
-                        def tasks = $("components.main.binaries.mainMain.tasks")
+                        def tasks = $("components.main.binaries.b1.tasks")
                         doLast {
                             println "names: ${tasks*.name}"
                         }
@@ -796,7 +794,7 @@ afterEach DefaultCustomComponent 'newComponent'"""))
         succeeds "printBinaryTaskNames"
 
         then:
-        output.contains "names: [customMainMainMainMain]"
+        output.contains "names: [customMainB1MainSomeLang]"
     }
 
     def "can view components container as a model map and as a collection builder"() {

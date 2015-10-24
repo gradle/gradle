@@ -45,14 +45,88 @@ model {
         then:
         ModelReportOutput.from(output).hasNodeStructure {
             binaries {
-                main {
+                myLibMain {
                     tasks()
                 }
-                test {
+                myLibTest {
                     tasks()
                 }
             }
         }
+    }
+
+    def "multiple components may have binary with the same given name"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    otherlib(CustomComponent) {
+                        binaries {
+                            main(CustomBinary)
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "model"
+
+        then:
+        def reportOutput = ModelReportOutput.from(output)
+        reportOutput.hasNodeStructure {
+            components {
+                myLib {
+                    binaries {
+                        main {
+                            tasks()
+                        }
+                        test {
+                            tasks()
+                        }
+                    }
+                    sources()
+                }
+                otherLib {
+                    binaries {
+                        main {
+                            tasks()
+                        }
+                    }
+                    sources()
+                }
+            }
+        }
+        reportOutput.hasNodeStructure {
+            binaries {
+                myLibMain {
+                    tasks()
+                }
+                myLibTest {
+                    tasks()
+                }
+                otherLibMain {
+                    tasks()
+                }
+            }
+        }
+    }
+
+    def "fails when component has binary whose qualified name conflicts with another binary"() {
+        given:
+        buildFile << """
+model {
+    binaries {
+        mylibMain(CustomBinary) {}
+    }
+}
+"""
+        when:
+        fails "model"
+
+        then:
+        failure.assertHasCause("Exception thrown while executing model rule: model.binaries @ build.gradle line 64, column 5")
+        failure.assertHasCause("Cannot create 'binaries.mylibMain' using creation rule 'model.binaries @ build.gradle line 64, column 5 > create(mylibMain)' as the rule 'ComponentModelBasePlugin.Rules#collectBinaries > put()' is already registered to create this model element.")
     }
 
     def "input source sets of binary is union of component source sets and binary specific source sets"() {

@@ -143,7 +143,7 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
                     for (LanguageSourceSet languageSourceSet : binary.getInputs()) {
                         LanguageSourceSetInternal sourceSet = (LanguageSourceSetInternal) languageSourceSet;
                         if (language.getSourceSetType().isInstance(sourceSet) && sourceSet.getMayHaveSources()) {
-                            String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getName()) + capitalize(sourceSet.getFullName());
+                            String taskName = taskConfig.getTaskPrefix() + capitalize(binary.getProjectScopedName()) + capitalize(sourceSet.getFullName());
                             Task task = tasks.create(taskName, taskConfig.getTaskType());
                             taskConfig.configureTask(task, binary, sourceSet, serviceRegistry);
 
@@ -179,10 +179,10 @@ public class ComponentModelBasePlugin implements Plugin<ProjectInternal> {
         }
 
         @Defaults
-        void collectBinaries(BinaryContainer binaries, ComponentSpecContainer componentSpecs) {
+        void collectBinaries(ModelMap<BinarySpec> binaries, ComponentSpecContainer componentSpecs) {
             for (ComponentSpec componentSpec : componentSpecs.values()) {
-                for (BinarySpec binary : componentSpec.getBinaries().values()) {
-                    binaries.add(binary);
+                for (BinarySpecInternal binary : componentSpec.getBinaries().withType(BinarySpecInternal.class).values()) {
+                    binaries.put(binary.getProjectScopedName(), binary);
                 }
             }
         }

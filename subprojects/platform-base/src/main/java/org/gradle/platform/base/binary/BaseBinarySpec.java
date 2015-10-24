@@ -16,6 +16,7 @@
 
 package org.gradle.platform.base.binary;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
@@ -64,7 +65,7 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
 
     private boolean disabled;
 
-    public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType, String name, ComponentSpecInternal owner, Instantiator instantiator, ITaskFactory taskFactory) {
+    public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType, String name, @Nullable ComponentSpecInternal owner, Instantiator instantiator, ITaskFactory taskFactory) {
         if (implementationType.equals(BaseBinarySpec.class)) {
             throw new ModelInstantiationException("Cannot create instance of abstract class BaseBinarySpec.");
         }
@@ -88,10 +89,10 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         if (info == null) {
             throw new ModelInstantiationException("Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead.");
         }
+        this.owner = info.owner;
         this.name = info.name;
         this.publicType = info.publicType;
         this.typeName = info.implementationType.getSimpleName();
-        this.owner = info.owner;
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
         DefaultPolymorphicNamedEntityInstantiator<LanguageSourceSet> entityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<LanguageSourceSet>(LanguageSourceSet.class, "owned sources");
         this.entityInstantiator = entityInstantiator;
@@ -113,11 +114,6 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         this.publicType = publicType;
     }
 
-    @Override
-    public String getProjectScopedName() {
-        return name;
-    }
-
     @Nullable
     public ComponentSpec getComponent() {
         return owner;
@@ -127,8 +123,17 @@ public abstract class BaseBinarySpec extends AbstractBuildableModelElement imple
         return typeName;
     }
 
+    @Override
+    public String getProjectScopedName() {
+        return owner == null ? name : owner.getName() + StringUtils.capitalize(name);
+    }
+
     public String getDisplayName() {
-        return String.format("%s '%s'", getTypeName(), getName());
+        if (owner == null) {
+            return String.format("%s '%s'", getTypeName(), name);
+        } else {
+            return String.format("%s '%s:%s'", getTypeName(), owner.getName(), name);
+        }
     }
 
     public String getName() {
