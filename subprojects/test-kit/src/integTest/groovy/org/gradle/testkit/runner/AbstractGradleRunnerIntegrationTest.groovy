@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.executer.*
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testkit.runner.GradleDistribution
 import org.gradle.testkit.runner.fixtures.GradleRunnerIntegTestRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.testkit.runner.internal.TestKitGradleExecutor
