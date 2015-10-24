@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 
 /**
@@ -26,10 +25,6 @@ public interface ResolveContext {
     String getName();
 
     String getDisplayName();
-
-    DependencySet getDependencies();
-
-    DependencySet getAllDependencies();
 
     ResolutionStrategyInternal getResolutionStrategy();
 
