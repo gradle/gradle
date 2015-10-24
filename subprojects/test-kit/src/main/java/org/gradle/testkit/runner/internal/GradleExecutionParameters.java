@@ -28,18 +28,18 @@ public class GradleExecutionParameters {
     private final List<String> buildArgs;
     private final List<String> jvmArgs;
     private final ClassPath injectedClassPath;
-    private final boolean daemon;
+    private final boolean embedded;
     private final Writer standardOutput;
     private final Writer standardError;
 
     public GradleExecutionParameters(File gradleUserHome, File projectDir, List<String> buildArgs, List<String> jvmArgs, ClassPath injectedClassPath,
-                                     boolean daemon, Writer standardOutput, Writer standardError) {
+                                     boolean embedded, Writer standardOutput, Writer standardError) {
         this.gradleUserHome = gradleUserHome;
         this.projectDir = projectDir;
         this.buildArgs = buildArgs;
         this.jvmArgs = jvmArgs;
         this.injectedClassPath = injectedClassPath;
-        this.daemon = daemon;
+        this.embedded = embedded;
         this.standardOutput = standardOutput;
         this.standardError = standardError;
     }
@@ -64,8 +64,8 @@ public class GradleExecutionParameters {
         return injectedClassPath;
     }
 
-    public boolean isDaemon() {
-        return daemon;
+    public boolean isEmbedded() {
+        return embedded;
     }
 
     public Writer getStandardOutput() {
@@ -87,7 +87,7 @@ public class GradleExecutionParameters {
 
         GradleExecutionParameters that = (GradleExecutionParameters) o;
 
-        if (daemon != that.daemon) {
+        if (embedded != that.embedded) {
             return false;
         }
         if (gradleUserHome != null ? !gradleUserHome.equals(that.gradleUserHome) : that.gradleUserHome != null) {
@@ -119,7 +119,7 @@ public class GradleExecutionParameters {
         result = 31 * result + (buildArgs != null ? buildArgs.hashCode() : 0);
         result = 31 * result + (jvmArgs != null ? jvmArgs.hashCode() : 0);
         result = 31 * result + (injectedClassPath != null ? injectedClassPath.hashCode() : 0);
-        result = 31 * result + (daemon ? 1 : 0);
+        result = 31 * result + (embedded ? 1 : 0);
         result = 31 * result + (standardOutput != null ? standardOutput.hashCode() : 0);
         result = 31 * result + (standardError != null ? standardError.hashCode() : 0);
         return result;

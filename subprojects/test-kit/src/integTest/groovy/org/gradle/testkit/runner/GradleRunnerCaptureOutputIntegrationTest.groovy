@@ -16,8 +16,7 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.testkit.runner.fixtures.GradleRunnerCoverage
-import org.gradle.testkit.runner.fixtures.IgnoreTarget
+import org.gradle.testkit.runner.fixtures.NoDebug
 
 class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
@@ -107,7 +106,7 @@ class GradleRunnerCaptureOutputIntegrationTest extends AbstractGradleRunnerInteg
         standardError.close()
     }
 
-    @IgnoreTarget({ GradleRunnerCoverage.EMBEDDED })
+    @NoDebug
     def "output is captured if mechanical failure occurs"() {
         given:
         Writer standardOutput = new StringWriter()

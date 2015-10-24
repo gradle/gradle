@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
@@ -24,13 +23,13 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testkit.runner.fixtures.GradleRunnerCoverage
+import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.Rule
 
 import static org.gradle.testkit.runner.TaskOutcome.*
 
-@TargetCoverage({ GradleRunnerCoverage.DAEMON })
+@NoDebug
 class GradleRunnerIsolatedDaemonIntegrationTest extends AbstractGradleRunnerIntegrationTest {
 
     @Rule

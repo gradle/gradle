@@ -16,8 +16,7 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.testkit.runner.fixtures.GradleRunnerCoverage
-import org.gradle.testkit.runner.fixtures.IgnoreTarget
+import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.util.GFileUtils
 import org.gradle.util.TextUtil
 
@@ -125,7 +124,7 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         result.taskPaths(FAILED).empty
     }
 
-    @IgnoreTarget({ GradleRunnerCoverage.EMBEDDED })
+    @NoDebug
     def "build execution with invalid JVM arguments"() {
         given:
         GFileUtils.writeFile('org.gradle.jvmargs=-unknown', testProjectDir.file('gradle.properties'))
@@ -146,7 +145,7 @@ Project directory '$nonExistentWorkingDir.absolutePath' does not exist.""")
         result.taskPaths(FAILED).empty
     }
 
-    @IgnoreTarget({ GradleRunnerCoverage.EMBEDDED })
+    @NoDebug
     def "daemon dies during build execution"() {
         given:
         buildFile << """

@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner.fixtures
+package org.gradle.testkit.runner.fixtures;
 
-import static org.gradle.testkit.runner.fixtures.GradleRunnerTestVariant.DAEMON_NO_DEBUG
-import static org.gradle.testkit.runner.fixtures.GradleRunnerTestVariant.EMBEDDED_DEBUG
+import java.lang.annotation.*;
 
-class GradleRunnerCoverage {
-    public static final EnumSet<GradleRunnerTestVariant> ALL = EnumSet.of(DAEMON_NO_DEBUG, EMBEDDED_DEBUG)
-    public static final EnumSet<GradleRunnerTestVariant> DAEMON = EnumSet.of(DAEMON_NO_DEBUG)
-    public static final EnumSet<GradleRunnerTestVariant> EMBEDDED = EnumSet.of(EMBEDDED_DEBUG)
+/**
+ * Indicates that the feature under test does not work with debug on, or is testing something that doesn't make sense to test with debug on.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Inherited
+public @interface NoDebug {
 }

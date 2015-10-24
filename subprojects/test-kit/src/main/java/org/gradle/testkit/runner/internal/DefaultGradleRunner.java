@@ -43,7 +43,6 @@ public class DefaultGradleRunner extends GradleRunner {
     private List<String> arguments = Collections.emptyList();
     private List<String> jvmArguments = Collections.emptyList();
     private ClassPath classpath = ClassPath.EMPTY;
-    private boolean daemon;
     private boolean debug;
     private Writer standardOutput;
     private Writer standardError;
@@ -55,12 +54,7 @@ public class DefaultGradleRunner extends GradleRunner {
     DefaultGradleRunner(GradleExecutor gradleExecutor, TestKitDirProvider testKitDirProvider) {
         this.gradleExecutor = gradleExecutor;
         this.testKitDirProvider = testKitDirProvider;
-        debug = isDebugEnabled();
-        daemon = !debug;
-    }
-
-    private boolean isDebugEnabled() {
-        return Boolean.getBoolean(DEBUG_SYS_PROP);
+        this.debug = Boolean.getBoolean(DEBUG_SYS_PROP);
     }
 
     public TestKitDirProvider getTestKitDirProvider() {
@@ -138,13 +132,6 @@ public class DefaultGradleRunner extends GradleRunner {
     @Override
     public GradleRunner withDebug(boolean flag) {
         this.debug = flag;
-        // at the moment debugging is only possible in embedded mode
-        withDaemon(!flag);
-        return this;
-    }
-
-    public GradleRunner withDaemon(boolean daemon) {
-        this.daemon = daemon;
         return this;
     }
 
@@ -242,14 +229,14 @@ public class DefaultGradleRunner extends GradleRunner {
         File testKitDir = createTestKitDir(testKitDirProvider);
 
         GradleExecutionResult execResult = gradleExecutor.run(new GradleExecutionParameters(
-            testKitDir,
-            projectDirectory,
-            arguments,
-            jvmArguments,
-            classpath,
-            daemon,
-            standardOutput,
-            standardError)
+                testKitDir,
+                projectDirectory,
+                arguments,
+                jvmArguments,
+                classpath,
+                debug,
+                standardOutput,
+                standardError)
         );
 
         resultVerification.execute(execResult);

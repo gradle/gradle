@@ -63,7 +63,7 @@ public class TestKitGradleExecutor implements GradleExecutor {
         final ByteArrayOutputStream standardError = new ByteArrayOutputStream();
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
 
-        GradleConnector gradleConnector = buildConnector(parameters.getGradleUserHome(), parameters.getProjectDir(), parameters.isDaemon());
+        GradleConnector gradleConnector = buildConnector(parameters.getGradleUserHome(), parameters.getProjectDir(), parameters.isEmbedded());
         ProjectConnection connection = null;
 
         try {
@@ -98,7 +98,7 @@ public class TestKitGradleExecutor implements GradleExecutor {
         return outputStream;
     }
 
-    private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean daemon) {
+    private GradleConnector buildConnector(File gradleUserHome, File projectDir, boolean embedded) {
         DefaultGradleConnector gradleConnector = (DefaultGradleConnector) GradleConnector.newConnector();
         useGradleDistribution(gradleConnector);
         gradleConnector.useGradleUserHomeDir(gradleUserHome);
@@ -107,16 +107,16 @@ public class TestKitGradleExecutor implements GradleExecutor {
         gradleConnector.forProjectDirectory(projectDir);
         gradleConnector.searchUpwards(false);
         gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);
-        gradleConnector.embedded(!daemon);
+        gradleConnector.embedded(embedded);
         return gradleConnector;
     }
 
     private void useGradleDistribution(GradleConnector gradleConnector) {
-        if(gradleDistribution instanceof InstalledGradleDistribution) {
+        if (gradleDistribution instanceof InstalledGradleDistribution) {
             gradleConnector.useInstallation(((InstalledGradleDistribution) gradleDistribution).getGradleHome());
-        } else if(gradleDistribution instanceof URILocatedGradleDistribution) {
+        } else if (gradleDistribution instanceof URILocatedGradleDistribution) {
             gradleConnector.useDistribution(((URILocatedGradleDistribution) gradleDistribution).getLocation());
-        } else if(gradleDistribution instanceof VersionBasedGradleDistribution) {
+        } else if (gradleDistribution instanceof VersionBasedGradleDistribution) {
             gradleConnector.useGradleVersion(((VersionBasedGradleDistribution) gradleDistribution).getGradleVersion());
         }
     }
