@@ -62,11 +62,11 @@ class DependencyManagementGlobalScopeServices {
         return new DefaultConfigurationsToArtifactsConverter();
     }
 
-    ConfigurationLocalComponentConverter createConfigurationLocalComponentConverter(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
+    ConfigurationLocalComponentMetaDataAdapter createConfigurationLocalComponentConverter(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
                                                                                     DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
                                                                                     ConfigurationsToArtifactsConverter configurationsToArtifactsConverter,
                                                                                     ComponentIdentifierFactory componentIdentifierFactory) {
-        return new ConfigurationLocalComponentConverter(configurationsToModuleDescriptorConverter, dependenciesToModuleDescriptorConverter, componentIdentifierFactory, configurationsToArtifactsConverter);
+        return new ConfigurationLocalComponentMetaDataAdapter(configurationsToModuleDescriptorConverter, dependenciesToModuleDescriptorConverter, componentIdentifierFactory, configurationsToArtifactsConverter);
     }
 
     ResourceConnectorFactory createFileConnectorFactory() {

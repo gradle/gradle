@@ -23,23 +23,23 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentMetaDataAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
 import java.util.Set;
 
-public class ConfigurationLocalComponentConverter implements LocalComponentConverter {
+public class ConfigurationLocalComponentMetaDataAdapter implements LocalComponentMetaDataAdapter {
     private final ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter;
     private final DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ConfigurationsToArtifactsConverter configurationsToArtifactsConverter;
 
-    public ConfigurationLocalComponentConverter(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
-                                                DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
-                                                ComponentIdentifierFactory componentIdentifierFactory,
-                                                ConfigurationsToArtifactsConverter configurationsToArtifactsConverter) {
+    public ConfigurationLocalComponentMetaDataAdapter(ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
+                                                      DependenciesToModuleDescriptorConverter dependenciesToModuleDescriptorConverter,
+                                                      ComponentIdentifierFactory componentIdentifierFactory,
+                                                      ConfigurationsToArtifactsConverter configurationsToArtifactsConverter) {
         this.configurationsToModuleDescriptorConverter = configurationsToModuleDescriptorConverter;
         this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
         this.componentIdentifierFactory = componentIdentifierFactory;

@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ContextualArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
-import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentMetaDataAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -118,8 +118,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     }
 
     private ResolveContextToComponentResolver createResolveContextConverter() {
-        List<LocalComponentConverter> localComponentFactories = allServices(LocalComponentConverter.class);
-        return new DefaultResolveContextToComponentResolver(new ChainedLocalComponentConverter(localComponentFactories));
+        List<LocalComponentMetaDataAdapter> localComponentFactories = allServices(LocalComponentMetaDataAdapter.class);
+        return new DefaultResolveContextToComponentResolver(new ChainedLocalComponentMetaDataAdapter(localComponentFactories));
     }
 
     private ConflictHandler createConflictHandler(ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
@@ -137,16 +137,16 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         return Lists.newArrayList(serviceRegistry.getAll(serviceType));
     }
 
-    private static class ChainedLocalComponentConverter implements LocalComponentConverter {
-        private final List<LocalComponentConverter> factories;
+    private static class ChainedLocalComponentMetaDataAdapter implements LocalComponentMetaDataAdapter {
+        private final List<LocalComponentMetaDataAdapter> factories;
 
-        public ChainedLocalComponentConverter(List<LocalComponentConverter> factories) {
+        public ChainedLocalComponentMetaDataAdapter(List<LocalComponentMetaDataAdapter> factories) {
             this.factories = factories;
         }
 
         @Override
         public boolean canConvert(Object source) {
-            for (LocalComponentConverter factory : factories) {
+            for (LocalComponentMetaDataAdapter factory : factories) {
                 if (factory.canConvert(source)) {
                     return true;
                 }
@@ -157,7 +157,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         @Override
         @SuppressWarnings("unchecked")
         public LocalComponentMetaData convert(Object context) {
-            for (LocalComponentConverter factory : factories) {
+            for (LocalComponentMetaDataAdapter factory : factories) {
                 if (factory.canConvert(context)) {
                     return factory.convert(context);
                 }
@@ -167,9 +167,9 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     }
 
     private static class DefaultResolveContextToComponentResolver implements ResolveContextToComponentResolver {
-        private final LocalComponentConverter localComponentFactory;
+        private final LocalComponentMetaDataAdapter localComponentFactory;
 
-        public DefaultResolveContextToComponentResolver(ChainedLocalComponentConverter localComponentFactory) {
+        public DefaultResolveContextToComponentResolver(ChainedLocalComponentMetaDataAdapter localComponentFactory) {
             this.localComponentFactory = localComponentFactory;
         }
 

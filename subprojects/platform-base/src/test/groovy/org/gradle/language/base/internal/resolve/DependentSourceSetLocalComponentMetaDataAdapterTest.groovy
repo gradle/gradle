@@ -26,12 +26,12 @@ import org.gradle.platform.base.internal.DefaultDependencySpec
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DependentSourceSetLocalComponentConverterTest extends Specification {
+class DependentSourceSetLocalComponentMetaDataAdapterTest extends Specification {
     def sourceSet = Mock(DependentSourceSetInternal)
     def dependencySpecs = Mock(DependencySpecContainer)
     def project = ':myPath'
     def context
-    def factory = new DependentSourceSetLocalComponentConverter()
+    def factory = new DependentSourceSetLocalComponentMetaDataAdapter()
 
     def setup() {
         sourceSet.dependencies >> dependencySpecs

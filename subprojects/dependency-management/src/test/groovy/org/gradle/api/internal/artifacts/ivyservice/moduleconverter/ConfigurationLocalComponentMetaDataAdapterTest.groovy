@@ -24,13 +24,13 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData
 import spock.lang.Specification
 
-public class ConfigurationLocalComponentConverterTest extends Specification {
+public class ConfigurationLocalComponentMetaDataAdapterTest extends Specification {
     def configurationsConverter = Mock(ConfigurationsToModuleDescriptorConverter)
     def dependenciesConverter = Mock(DependenciesToModuleDescriptorConverter)
     def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     def configurationsToArtifactsConverter = Mock(ConfigurationsToArtifactsConverter)
 
-    ConfigurationLocalComponentConverter resolveModuleDescriptorConverter = new ConfigurationLocalComponentConverter(
+    ConfigurationLocalComponentMetaDataAdapter resolveModuleDescriptorConverter = new ConfigurationLocalComponentMetaDataAdapter(
             configurationsConverter,
             dependenciesConverter,
             componentIdentifierFactory,

@@ -16,14 +16,14 @@
 package org.gradle.language.base.internal.resolve;
 
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentMetaDataAdapter;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.internal.DependentSourceSetInternal;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.DependencySpecContainer;
 
-public class DependentSourceSetLocalComponentConverter implements LocalComponentConverter {
+public class DependentSourceSetLocalComponentMetaDataAdapter implements LocalComponentMetaDataAdapter {
 
 
     @Override

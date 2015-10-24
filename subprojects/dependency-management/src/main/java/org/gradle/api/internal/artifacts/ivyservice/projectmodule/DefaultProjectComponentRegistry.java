@@ -15,18 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.internal.artifacts.ivyservice.LocalComponentConverter;
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentMetaDataAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationBackedComponent;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
 public class DefaultProjectComponentRegistry implements ProjectComponentRegistry {
-    private final LocalComponentConverter localComponentConverter;
+    private final LocalComponentMetaDataAdapter localComponentMetaDataAdapter;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
 
-    public DefaultProjectComponentRegistry(LocalComponentConverter localComponentConverter, ProjectRegistry<ProjectInternal> projectRegistry) {
-        this.localComponentConverter = localComponentConverter;
+    public DefaultProjectComponentRegistry(LocalComponentMetaDataAdapter localComponentMetaDataAdapter, ProjectRegistry<ProjectInternal> projectRegistry) {
+        this.localComponentMetaDataAdapter = localComponentMetaDataAdapter;
         this.projectRegistry = projectRegistry;
     }
 
@@ -35,6 +35,6 @@ public class DefaultProjectComponentRegistry implements ProjectComponentRegistry
         if (project == null) {
             return null;
         }
-        return localComponentConverter.convert(new ConfigurationBackedComponent(project.getModule(), project.getConfigurations()));
+        return localComponentMetaDataAdapter.convert(new ConfigurationBackedComponent(project.getModule(), project.getConfigurations()));
     }
 }

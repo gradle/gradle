@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
-public interface LocalComponentConverter {
+public interface LocalComponentMetaDataAdapter {
     boolean canConvert(Object source);
 
     LocalComponentMetaData convert(Object source);
