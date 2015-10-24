@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import org.gradle.model.ModelMap
-import org.gradle.model.RuleSource
-
 interface ImageComponent extends LibrarySpec {
     String title
     List<String> sizes
@@ -52,9 +49,9 @@ class MyImageRenderingPlugin extends RuleSource {
     @ComponentBinaries
     void createBinariesForBinaryComponent(ModelMap<ImageBinary> binaries, ImageComponent library) {
         library.sizes.each{ fontSize ->
-            binaries.create("${library.title}${fontSize}Binary"){
-                it.size = fontSize;
-                it.title = library.title
+            binaries.create(fontSize) {
+                size = fontSize;
+                title = library.title
             }
         }
     }

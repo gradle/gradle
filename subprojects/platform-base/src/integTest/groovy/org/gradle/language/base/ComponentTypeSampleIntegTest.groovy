@@ -38,8 +38,8 @@ model {
                 assert titleAImage instanceof ImageComponent
                 assert titleAImage.projectPath == project.path
                 assert titleAImage.displayName == "DefaultImageComponent 'imageA'"
-                assert titleAImage.title == 'TitleA\'
-                assert titleAImage.binaries.values()*.name.sort() == ['TitleA14pxBinary', 'TitleA28pxBinary', 'TitleA40pxBinary']
+                assert titleAImage.title == 'TitleA'
+                assert titleAImage.binaries.values()*.name.sort() == ['14px', '28px', '40px']
             }
         }
     }
@@ -55,9 +55,9 @@ model {
         when:
         succeeds "assemble"
         then:
-        executedAndNotSkipped ":renderTitleA14pxSvg", ":TitleA14pxBinary", ":renderTitleA28pxSvg", ":TitleA28pxBinary", ":renderTitleA40pxSvg",
-                              ":TitleA40pxBinary", ":renderTitleB14pxSvg", ":TitleB14pxBinary", ":renderTitleB28pxSvg", ":TitleB28pxBinary",
-                              ":renderTitleB40pxSvg", ":TitleB40pxBinary", ":assemble"
+        executedAndNotSkipped ":renderTitleA14pxSvg", ":imageA14px", ":renderTitleA28pxSvg", ":imageA28px", ":renderTitleA40pxSvg",
+                              ":imageA40px", ":renderTitleB14pxSvg", ":imageB14px", ":renderTitleB28pxSvg", ":imageB28px",
+                              ":renderTitleB40pxSvg", ":imageB40px", ":assemble"
 
         and:
         componentTypeSample.dir.file("build/renderedSvg").assertHasDescendants("TitleA_14px.svg", "TitleA_28px.svg", "TitleA_40px.svg", "TitleB_14px.svg",
