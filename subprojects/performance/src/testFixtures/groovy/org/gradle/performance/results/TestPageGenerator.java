@@ -113,11 +113,12 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                                 td().text(format.timestamp(new Date(results.getTestTime()))).end();
                                 td().text(results.getVersionUnderTest()).end();
                                 td().text(results.getVcsBranch()).end();
-                                td().text(results.getVcsCommit()).end();
+                                String commit = results.getVcsCommit();
+                                td().a().href(String.format("https://github.com/gradle/gradle/commit/%s", commit)).text(commit).end().end();
                                 renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
-                                    public DataSeries<Duration> transform(MeasuredOperationList original) {
-                                        return original.getTotalTime();
-                                    }
+                                public DataSeries<Duration> transform(MeasuredOperationList original) {
+                                    return original.getTotalTime();
+                                }
                                 });
                                 renderSamplesForExperiment(results.getExperiments(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     public DataSeries<Duration> transform(MeasuredOperationList original) {
