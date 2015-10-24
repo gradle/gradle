@@ -25,4 +25,20 @@ import java.util.Set;
 public interface IncrementalTaskInputsInternal extends IncrementalTaskInputs {
     FilesSnapshotSet getInputFilesSnapshot();
     Set<File> getDiscoveredInputs();
+
+    // TODO: SLG Make this public after 2.9
+    /**
+     * Registers files as "discovered" inputs to the task. All inputs added this way must be added each time the task is executed.
+     * <p>
+     * Discovered inputs should be derived from inputs registered with {@link org.gradle.api.tasks.TaskInputs}.
+     * </p>
+     * <p>
+     * These inputs must be files (not directories) and exist at the time they are registered.
+     * </p>
+     * <p>
+     * This method may be called at any time.
+     * </p>
+     * @param discoveredInput New input file discovered as part of the task's action.
+     */
+    void newInput(File discoveredInput);
 }
