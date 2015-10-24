@@ -96,7 +96,6 @@ public class LanguageBasePlugin implements Plugin<Project> {
                 BridgedCollections.itemDescriptor(descriptor)
             )
                 .descriptor(descriptor)
-                .service(true)
                 .ephemeral(true)
                 .withProjection(PolymorphicModelMapProjection.of(binarySpecModelType,
                     ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(binarySpecModelType))))
