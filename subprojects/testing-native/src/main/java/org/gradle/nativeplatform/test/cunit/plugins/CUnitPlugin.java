@@ -151,6 +151,8 @@ public class CUnitPlugin implements Plugin<Project> {
                                 testBinary.setTestedBinary((NativeBinarySpecInternal) testedBinary);
                                 testBinary.setNamingScheme(namingScheme);
                                 testBinary.setResolver(resolver);
+                                testBinary.setToolChain(testedBinary.getToolChain());
+                                testBinary.getExecutable().setToolChain(testedBinary.getToolChain());
                                 configure(testBinary, buildDir);
                             }
                         });
