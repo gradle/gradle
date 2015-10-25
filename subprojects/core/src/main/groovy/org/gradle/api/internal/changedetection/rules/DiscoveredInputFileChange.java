@@ -22,6 +22,6 @@ public class DiscoveredInputFileChange extends InputFileChange {
     }
     @Override
     protected String getFileType() {
-        return "Input";
+        return "Discovered input";
     }
 }

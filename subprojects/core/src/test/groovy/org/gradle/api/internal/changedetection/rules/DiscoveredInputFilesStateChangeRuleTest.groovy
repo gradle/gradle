@@ -55,6 +55,7 @@ class DiscoveredInputFilesStateChangeRuleTest extends Specification {
         1 * previousInputSnapshot.getFiles() >> new SimpleFileCollection()
         1 * discoveredFileSnapshot.iterateChangesSince(previousInputSnapshot) >> changeIterator
         4 * changeIterator.next(_ as ChangeListener) >> { ChangeListener listener ->
+            // added probably doesn't make sense for discovered inputs...
             listener.added("one")
             true
         } >> { ChangeListener listener ->
@@ -66,6 +67,6 @@ class DiscoveredInputFilesStateChangeRuleTest extends Specification {
         } >> false
 
         and:
-        messages == ["Input file one has been added.", "Input file two has been removed.", "Input file three has changed."]
+        messages == ["Discovered input file one has been added.", "Discovered input file two has been removed.", "Discovered input file three has changed."]
     }
 }
