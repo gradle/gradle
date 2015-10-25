@@ -44,12 +44,18 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
         StringBuilder variantDescriptor = new StringBuilder();
         for (BinarySpec variant : binaries) {
             variantDescriptor.setLength(0);
-            variantDescriptor.append("   - ").append(variant.getDisplayName()).append(":\n");
+            boolean first = true;
+            variantDescriptor.append("    - ").append(variant.getDisplayName()).append(" [");
             VariantsMetaData metaData = DefaultVariantsMetaData.extractFrom(variant, schemaStore);
-            Set<String> nonNullAxesForVariant = new TreeSet<String>(metaData.getNonNullVariantAxes());
-            for (String axis : nonNullAxesForVariant) {
-                variantDescriptor.append("       * ").append(renderAxisName(axis)).append(" '").append(metaData.getValueAsString(axis)).append("'\n");
+            for (String axis : metaData.getNonNullVariantAxes()) {
+                if (first) {
+                    first = false;
+                } else {
+                    variantDescriptor.append(", ");
+                }
+                variantDescriptor.append(renderAxisName(axis)).append(":'").append(metaData.getValueAsString(axis)).append("'");
             }
+            variantDescriptor.append("]\n");
             variantDescriptors.add(variantDescriptor.toString());
         }
         StringBuilder sb = new StringBuilder(String.format("Multiple compatible variants found for library '%s':\n", libraryName));

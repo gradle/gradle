@@ -1022,10 +1022,8 @@ model {
         then:
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'mainJar'' source set 'Java source 'main:java'")
         failure.assertHasCause("""Multiple compatible variants found for library 'dep':
-   - Jar 'depJar':
-       * platform 'java6'
-   - Jar 'depJar2':
-       * platform 'java6'"""
+    - Jar 'depJar' [platform:'java6']
+    - Jar 'depJar2' [platform:'java6']"""
         )
 
     }
@@ -1092,10 +1090,8 @@ model {
         then: "fails because multiple binaries are available for the Java 6 variant of 'dep'"
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java6MainJar'' source set 'Java source 'main:java'")
         failure.assertHasCause("""Multiple compatible variants found for library 'dep':
-   - Jar 'depJar':
-       * platform 'java6'
-   - Jar 'depJar2':
-       * platform 'java6'"""
+    - Jar 'depJar' [platform:'java6']
+    - Jar 'depJar2' [platform:'java6']"""
         )
 
         when: "attempt to build main jar Java 7"
@@ -1104,10 +1100,8 @@ model {
         then: "fails because multiple binaries are available for the Java 6 compatible variant of 'dep'"
         failure.assertHasDescription("Could not resolve all dependencies for 'Jar 'java7MainJar'' source set 'Java source 'main:java'")
         failure.assertHasCause("""Multiple compatible variants found for library 'dep':
-   - Jar 'depJar':
-       * platform 'java6'
-   - Jar 'depJar2':
-       * platform 'java6'"""
+    - Jar 'depJar' [platform:'java6']
+    - Jar 'depJar2' [platform:'java6']"""
         )
 
     }
